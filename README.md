@@ -44,9 +44,7 @@ degradation/            DocCreator's degradation models, in Python
 ├── blur_zones.py           blur in patches, not over the whole page
 └── holes.py                holes punched or torn through
 
-samples/                curated example output, kept small and in git
-├── degradation/            ten before/after pairs from the port
-└── benchmark/              renderer comparison figures
+samples/degradation/    twenty before/after pairs from the port
 tools/                  driver scripts (`augment_samples.py`)
 docs/                   notes that outlive any one generator
 Makefile                the tasks; `make help` lists them

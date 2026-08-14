@@ -18,7 +18,7 @@ Work through all of these and report each as PASS or FAIL with the exact
 command or path that proves it.
 
 **1. Documented paths exist.** Extract every path mentioned in `README.md`,
-`CONTRIBUTING.md`, `docs/*.md`, `degradation/README.md`, `reference/README.md`
+`CONTRIBUTING.md`, `docs/*.md`, `degradation/README.md`
 and `generators/*/README*.md` — including the directory-tree code blocks — and
 check each one exists. Report every path that does not.
 
