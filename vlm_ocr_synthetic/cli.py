@@ -2,6 +2,7 @@
 
     python -m vlm_ocr_synthetic doctor                     # is this environment usable?
     python -m vlm_ocr_synthetic benchmark --pages 3        # compare the backends
+    python -m vlm_ocr_synthetic generate -c configs/dataset.yaml --dry-run
     python -m vlm_ocr_synthetic list                       # backend status
     python -m vlm_ocr_synthetic render --renderer all      # side-by-side check
     python -m vlm_ocr_synthetic render -r html --config configs/html_flow.yaml
@@ -17,6 +18,13 @@ from typing import Optional, Sequence
 
 from .benchmark import DEFAULT_OUT_DIR, format_markdown, run_benchmark, save_report
 from .compat import environment_report, problems
+from .pipeline import (
+    DEFAULT_OUT_DIR as DATASET_OUT_DIR,
+    dry_run,
+    format_distribution,
+    generate,
+    load_dataset_config,
+)
 from .renderers import (
     RendererUnavailable,
     available_renderers,
@@ -151,6 +159,38 @@ def _cmd_benchmark(args: argparse.Namespace) -> int:
     return 1 if not report["backends"] else 0
 
 
+def _cmd_generate(args: argparse.Namespace) -> int:
+    config = load_dataset_config(args.config)
+    if args.pages is not None:
+        config = config.model_copy(update={"pages": args.pages})
+    if args.seed is not None:
+        config = config.model_copy(update={"seed": args.seed})
+    if args.scale is not None:
+        config = config.model_copy(update={"scale": args.scale})
+    if args.mode is not None:
+        config = config.model_copy(update={"mode": args.mode})
+
+    if args.dry_run:
+        print(format_distribution(dry_run(config)))
+        print("\n(dry run: nothing was rendered)")
+        return 0
+
+    written = 0
+
+    def progress(count: int, scenario) -> None:
+        nonlocal written
+        written = count
+        if args.quiet or count % 25:
+            return
+        print(f"  {count} images", file=sys.stderr)
+
+    report = generate(config, out_dir=args.out, progress=progress)
+    print(format_distribution(report))
+    print(f"\nmanifest: {report['manifest']}")
+    print(f"summary:  {Path(args.out) / 'summary.json'}")
+    return 1 if report["images"] == 0 else 0
+
+
 def _expand(renderer: str) -> list[str]:
     return renderer_names() if renderer == "all" else [renderer]
 
@@ -221,6 +261,30 @@ def build_parser() -> argparse.ArgumentParser:
         "--no-images", action="store_true", help="report only, write no pages"
     )
     benchmark_parser.set_defaults(func=_cmd_benchmark)
+
+    generate_parser = subparsers.add_parser(
+        "generate",
+        help="render a dataset by sampling the scenario space",
+    )
+    generate_parser.add_argument(
+        "-c", "--config", default="configs/dataset.yaml", help="dataset config"
+    )
+    generate_parser.add_argument(
+        "-o", "--out", default=str(DATASET_OUT_DIR), help="output directory"
+    )
+    generate_parser.add_argument("-n", "--pages", type=int, help="override pages")
+    generate_parser.add_argument("--seed", type=int, help="override the master seed")
+    generate_parser.add_argument("--scale", type=float, help="override scale")
+    generate_parser.add_argument(
+        "--mode", choices=["sample", "stratified"], help="override sampling mode"
+    )
+    generate_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="plan the run and print the realised distribution, render nothing",
+    )
+    generate_parser.add_argument("-q", "--quiet", action="store_true")
+    generate_parser.set_defaults(func=_cmd_generate)
 
     return parser
 
