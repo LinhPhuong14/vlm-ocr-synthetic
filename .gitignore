@@ -1,12 +1,105 @@
+# ---------------------------------------------------------------- Python
 __pycache__/
 *.py[cod]
-.venv/
-venv/
-*.egg-info/
+*$py.class
+*.so
+
+# Packaging / build
 build/
 dist/
+sdist/
+wheels/
+*.egg
+*.egg-info/
+.eggs/
+MANIFEST
+pip-wheel-metadata/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# Test / lint / type-check caches
 .pytest_cache/
 .ruff_cache/
+.mypy_cache/
+.pytype/
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+*.cover
 
-# Rendered pages and annotations
+# ------------------------------------------------- Generated synthetic data
+# Rendered pages and their annotations. Regenerate with
+#   python -m vlm_ocr_synthetic render -r all
 outputs/
+renders/
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.pdf
+
+# Datasets and shards produced from the renders
+data/
+datasets/
+*.jsonl
+*.tar
+*.parquet
+*.arrow
+*.lmdb
+*.h5
+*.hdf5
+
+# Fonts / backgrounds / corpora pulled in for rendering (redistribute separately)
+assets/fonts/
+assets/backgrounds/
+resources/fonts/
+resources/backgrounds/
+*.ttf
+*.otf
+*.ttc
+
+# Model checkpoints and training runs, if training lands in this repo
+checkpoints/
+runs/
+wandb/
+mlruns/
+lightning_logs/
+*.ckpt
+*.pt
+*.pth
+*.safetensors
+*.onnx
+
+# ------------------------------------------------------------------ Tooling
+# Playwright's downloaded browsers, when not using a system chromium
+.playwright/
+ms-playwright/
+
+# Local overrides
+.env
+.env.*
+!.env.example
+configs/local_*.yaml
+*.local.yaml
+
+# --------------------------------------------------------- Editors / OS junk
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
+
+# Keep the shipped template and sample assets that the ignores above would eat
+!vlm_ocr_synthetic/**/templates/**
+!docs/**/*.png
