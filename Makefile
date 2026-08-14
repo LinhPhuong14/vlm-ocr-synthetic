@@ -14,7 +14,7 @@ LAYOUT       ?=
 
 .DEFAULT_GOAL := help
 .PHONY: help setup setup-synthdog setup-html setup-genalog textures \
-        receipts preview preview-grid dataset proof showcase \
+        receipts preview preview-grid dataset dataset-clean proof showcase \
         check-rules check-corpus distribution list-degradations \
         lint format check clean
 
@@ -61,6 +61,9 @@ receipts:  ## 100 receipts with the glyph renderer, via the synthtiger CLI
 
 dataset:  ## Build a labelled dataset with all three renderers (N=20 each)
 	$(TOOLPY) tools/generate_dataset.py -o $(DATASET) -n $(N)
+
+dataset-clean:  ## The same dataset with no ageing and no distortion at all
+	$(TOOLPY) tools/generate_dataset.py -o $(DATASET)_clean -n $(N) --clean
 
 proof:  ## Run Tesseract over $(DATASET) and score it against the labels
 	$(TOOLPY) tools/ocr_proof.py $(DATASET)

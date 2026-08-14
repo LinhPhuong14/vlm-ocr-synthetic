@@ -27,6 +27,11 @@ sys.path.insert(0, str(REPO_ROOT))
 
 from rulebase import available_layouts  # noqa: E402
 
+# The augmentation value whose chain is empty. Named here rather than inlined
+# so renaming it in rules/augmentation.yaml fails loudly instead of silently
+# producing an aged "clean" set.
+CLEAN_AUGMENTATION = "khong_lam_gi"
+
 # name -> (interpreter, script, working directory)
 BACKENDS = {
     "synthdog": (
@@ -54,7 +59,8 @@ def plan(count: int, layouts: list[str]) -> list[tuple[str, int]]:
             for index, layout in enumerate(layouts)]
 
 
-def run_backend(name: str, out: Path, count: int, seed: int, layouts: list[str]) -> list[dict]:
+def run_backend(name: str, out: Path, count: int, seed: int, layouts: list[str],
+                extra: list[str] | None = None) -> list[dict]:
     interpreter, script, cwd = BACKENDS[name]
     if not interpreter.exists():
         raise SystemExit(
@@ -76,7 +82,7 @@ def run_backend(name: str, out: Path, count: int, seed: int, layouts: list[str])
             "-c", str(quota),
             "--seed", str(seed + offset * 1000),
             "--layout", layout,
-        ]
+        ] + list(extra or [])
         print(f"  [{name}/{layout}] {quota} ảnh")
         result = subprocess.run(command, cwd=cwd, capture_output=True, text=True)
         if result.returncode != 0:
@@ -113,6 +119,15 @@ def main() -> int:
         "--frameworks", nargs="+", default=list(BACKENDS),
         choices=list(BACKENDS), help="subset to build",
     )
+    parser.add_argument(
+        "--clean", action="store_true",
+        help="no ageing at all: empties the degradation chain, and switches off "
+             "the glyph backend's curl, perspective and camera effects too",
+    )
+    parser.add_argument(
+        "--force", action="append", default=[], metavar="ATTR=ID",
+        help="pin any attribute for the whole run, repeatable",
+    )
     args = parser.parse_args()
 
     # Absolute: the glyph backend is run from `generators/synthdog/`, because
@@ -123,12 +138,27 @@ def main() -> int:
 
     layouts = available_layouts()
     args.out.mkdir(parents=True, exist_ok=True)
-    summary = {"per_framework": args.per_framework, "layouts": layouts, "frameworks": {}}
+
+    forced = list(args.force)
+    if args.clean and not any(f.startswith("augmentation=") for f in forced):
+        forced.append(f"augmentation={CLEAN_AUGMENTATION}")
+    summary = {
+        "per_framework": args.per_framework,
+        "layouts": layouts,
+        "clean": bool(args.clean),
+        "force": forced,
+        "frameworks": {},
+    }
 
     for index, name in enumerate(args.frameworks):
         print(f"[{name}]")
+        extra = [arg for value in forced for arg in ("--force", value)]
+        # Only the glyph backend has distortion of its own to switch off.
+        if args.clean and name == "synthdog":
+            extra.append("--clean")
         records = run_backend(
-            name, args.out / name, args.per_framework, args.seed + index * 100000, layouts
+            name, args.out / name, args.per_framework, args.seed + index * 100000,
+            layouts, extra,
         )
         counts: dict[str, int] = {}
         for record in records:

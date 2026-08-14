@@ -26,9 +26,43 @@ import numpy as np
 import yaml
 from PIL import Image
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(REPO_ROOT))
 
 from template_receipt import SynthVNReceipt  # noqa: E402
+
+import rulebase  # noqa: E402
+
+
+def make_clean(config: dict) -> dict:
+    """Turn off everything this renderer does *after* the structure render.
+
+    `--force augmentation=khong_lam_gi` empties the degradation chain, but this
+    backend has a second source of distortion the other two do not: it curls
+    the paper, warps it, drops it on a background and photographs it. A clean
+    set has to switch that off too, or "not augmented" would only be true of
+    two renderers out of three.
+
+    What is left is the sheet as the grid describes it: no curl, no
+    perspective, no lamp, and JPEG quality high enough not to matter.
+    """
+    config = {**config}
+    config["quality"] = [93, 97]
+    # Let the sheet fill the frame exactly, so no background shows at all.
+    # `canvas_w = max(dw / fill, canvas_h / aspect)`, so an aspect above the
+    # receipt's own height-to-width ratio (~2) makes the second term lose and
+    # the canvas comes out the size of the document.
+    config["canvas_fill"] = [1.0, 1.0]
+    config["canvas_aspect"] = [4.0, 4.0]
+    config["curl"] = {**config.get("curl", {}), "prob": 0.0}
+    for stage in ("doc_effect", "effect"):
+        block = config.get(stage) or {}
+        config[stage] = {
+            **block,
+            "args": [{**entry, "prob": 0} for entry in block.get("args", [])],
+        }
+    return config
 
 
 def main() -> int:
@@ -37,13 +71,23 @@ def main() -> int:
     parser.add_argument("-c", "--count", type=int, default=10)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--layout", help="pin one bố cục")
+    parser.add_argument(
+        "--force", action="append", default=[], metavar="ATTR=ID",
+        help="pin any attribute, repeatable: --force augmentation=khong_lam_gi",
+    )
     parser.add_argument("--config", type=Path, default=Path("config_vi_receipt.yaml"))
+    parser.add_argument(
+        "--clean", action="store_true",
+        help="no curl, no perspective, no camera effects -- the structure render only",
+    )
     args = parser.parse_args()
 
     config = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+    if args.clean:
+        config = make_clean(config)
     template = SynthVNReceipt(config)
     args.out.mkdir(parents=True, exist_ok=True)
-    force = {"layout": args.layout} if args.layout else None
+    force = rulebase.parse_force(args.force, args.layout)
 
     records = []
     for index in range(args.count):

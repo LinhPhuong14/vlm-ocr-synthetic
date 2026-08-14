@@ -6,17 +6,17 @@
     "frameworks": {
       "synthdog": {
         "images": 20,
-        "token_recall": 0.3985,
-        "token_recall_folded": 0.4419,
-        "field_hit_rate": 0.2622,
-        "field_hit_rate_folded": 0.289,
+        "token_recall": 0.4013,
+        "token_recall_folded": 0.4448,
+        "field_hit_rate": 0.2667,
+        "field_hit_rate_folded": 0.2936,
         "money_exact": 28,
         "money_total": 144
       },
       "html": {
         "images": 20,
-        "token_recall": 0.7551,
-        "token_recall_folded": 0.7756,
+        "token_recall": 0.7567,
+        "token_recall_folded": 0.7772,
         "field_hit_rate": 0.6521,
         "field_hit_rate_folded": 0.6752,
         "money_exact": 79,
@@ -24,8 +24,8 @@
       },
       "genalog": {
         "images": 20,
-        "token_recall": 0.7028,
-        "token_recall_folded": 0.7243,
+        "token_recall": 0.7054,
+        "token_recall_folded": 0.7269,
         "field_hit_rate": 0.5785,
         "field_hit_rate_folded": 0.5988,
         "money_exact": 63,
@@ -35,11 +35,11 @@
     "by_layout": {
       "quan_an_ascii": {
         "images": 12,
-        "token_recall": 0.6441
+        "token_recall": 0.6543
       },
       "quan_nhau_stt": {
         "images": 12,
-        "token_recall": 0.7181
+        "token_recall": 0.7198
       },
       "sieu_thi_barcode": {
         "images": 12,
@@ -57,11 +57,11 @@
     "by_augmentation": {
       "chu_bong": {
         "images": 17,
-        "token_recall": 0.6937
+        "token_recall": 0.6949
       },
       "giay_that": {
         "images": 10,
-        "token_recall": 0.8557
+        "token_recall": 0.86
       },
       "khong_lam_gi": {
         "images": 4,
@@ -77,7 +77,7 @@
       },
       "nhe": {
         "images": 1,
-        "token_recall": 0.5
+        "token_recall": 0.5122
       },
       "photocopy": {
         "images": 3,
@@ -89,7 +89,7 @@
       },
       "vua": {
         "images": 12,
-        "token_recall": 0.5219
+        "token_recall": 0.5275
       }
     },
     "by_visual": {
@@ -103,15 +103,15 @@
       },
       "nhiet_dam": {
         "images": 10,
-        "token_recall": 0.554
+        "token_recall": 0.5555
       },
       "nhiet_hep": {
         "images": 13,
-        "token_recall": 0.6034
+        "token_recall": 0.6092
       },
       "nhiet_mo": {
         "images": 22,
-        "token_recall": 0.6176
+        "token_recall": 0.62
       }
     }
   },
@@ -119,10 +119,10 @@
     {
       "file_name": "synthdog_000.jpg",
       "fields": 11,
-      "token_recall": 0.7741935483870968,
-      "field_hit_rate": 0.5454545454545454,
-      "token_recall_folded": 0.7903225806451613,
-      "field_hit_rate_folded": 0.6363636363636364,
+      "token_recall": 0.8166666666666667,
+      "field_hit_rate": 0.6363636363636364,
+      "token_recall_folded": 0.8333333333333334,
+      "field_hit_rate_folded": 0.7272727272727273,
       "money_total": 4,
       "money_exact": 2,
       "worst_fields": [
@@ -151,9 +151,9 @@
     {
       "file_name": "synthdog_001.jpg",
       "fields": 19,
-      "token_recall": 0.47058823529411764,
+      "token_recall": 0.4852941176470588,
       "field_hit_rate": 0.2631578947368421,
-      "token_recall_folded": 0.4852941176470588,
+      "token_recall_folded": 0.5,
       "field_hit_rate_folded": 0.2631578947368421,
       "money_total": 7,
       "money_exact": 0,
@@ -855,9 +855,9 @@
     {
       "file_name": "html_003.jpg",
       "fields": 25,
-      "token_recall": 0.5,
+      "token_recall": 0.5121951219512195,
       "field_hit_rate": 0.36,
-      "token_recall_folded": 0.5365853658536586,
+      "token_recall_folded": 0.5487804878048781,
       "field_hit_rate_folded": 0.4,
       "money_total": 11,
       "money_exact": 2,
@@ -951,9 +951,9 @@
     {
       "file_name": "html_006.jpg",
       "fields": 32,
-      "token_recall": 0.7755102040816326,
+      "token_recall": 0.7857142857142857,
       "field_hit_rate": 0.71875,
-      "token_recall_folded": 0.8061224489795918,
+      "token_recall_folded": 0.8163265306122449,
       "field_hit_rate_folded": 0.75,
       "money_total": 13,
       "money_exact": 8,
@@ -983,9 +983,9 @@
     {
       "file_name": "html_007.jpg",
       "fields": 32,
-      "token_recall": 0.7448979591836735,
+      "token_recall": 0.7551020408163265,
       "field_hit_rate": 0.625,
-      "token_recall_folded": 0.8061224489795918,
+      "token_recall_folded": 0.8163265306122449,
       "field_hit_rate_folded": 0.6875,
       "money_total": 13,
       "money_exact": 6,
@@ -1399,9 +1399,9 @@
     {
       "file_name": "genalog_000.jpg",
       "fields": 19,
-      "token_recall": 0.7704918032786885,
+      "token_recall": 0.7833333333333333,
       "field_hit_rate": 0.5789473684210527,
-      "token_recall_folded": 0.7704918032786885,
+      "token_recall_folded": 0.7833333333333333,
       "field_hit_rate_folded": 0.5789473684210527,
       "money_total": 8,
       "money_exact": 2,
@@ -1431,9 +1431,9 @@
     {
       "file_name": "genalog_001.jpg",
       "fields": 19,
-      "token_recall": 0.8524590163934426,
+      "token_recall": 0.8666666666666667,
       "field_hit_rate": 0.7894736842105263,
-      "token_recall_folded": 0.8524590163934426,
+      "token_recall_folded": 0.8666666666666667,
       "field_hit_rate_folded": 0.7894736842105263,
       "money_total": 8,
       "money_exact": 6,
@@ -1463,9 +1463,9 @@
     {
       "file_name": "genalog_002.jpg",
       "fields": 19,
-      "token_recall": 0.7540983606557377,
+      "token_recall": 0.7666666666666667,
       "field_hit_rate": 0.6842105263157895,
-      "token_recall_folded": 0.7704918032786885,
+      "token_recall_folded": 0.7833333333333333,
       "field_hit_rate_folded": 0.6842105263157895,
       "money_total": 8,
       "money_exact": 5,
@@ -1495,9 +1495,9 @@
     {
       "file_name": "genalog_003.jpg",
       "fields": 19,
-      "token_recall": 0.7704918032786885,
+      "token_recall": 0.7833333333333333,
       "field_hit_rate": 0.6842105263157895,
-      "token_recall_folded": 0.7868852459016393,
+      "token_recall_folded": 0.8,
       "field_hit_rate_folded": 0.6842105263157895,
       "money_total": 8,
       "money_exact": 6,

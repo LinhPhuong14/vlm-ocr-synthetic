@@ -224,11 +224,15 @@ def main() -> int:
     parser.add_argument("-c", "--count", type=int, default=10)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--layout", help="pin one bố cục")
+    parser.add_argument(
+        "--force", action="append", default=[], metavar="ATTR=ID",
+        help="pin any attribute, repeatable: --force augmentation=khong_lam_gi",
+    )
     parser.add_argument("--scale", type=float, default=2.0)
     args = parser.parse_args()
 
     args.out.mkdir(parents=True, exist_ok=True)
-    force = {"layout": args.layout} if args.layout else None
+    force = rulebase.parse_force(args.force, args.layout)
     records = []
 
     with HtmlReceiptRenderer(scale=args.scale) as renderer:

@@ -216,6 +216,29 @@ def sample_recipe(
     return Recipe(seed=seed, choices=choices, tags=frozenset(tags))
 
 
+def parse_force(items: Iterable[str] | None, layout: str | None = None) -> dict[str, str] | None:
+    """Turn `["augmentation=khong_lam_gi"]` into the dict `sample_recipe` wants.
+
+    Every renderer takes the same `--force ATTR=ID` flag, so this lives here
+    rather than being written out three times and drifting. `layout` is the
+    older, narrower flag; it is folded in so both spellings work.
+    """
+    forced: dict[str, str] = {}
+    for item in items or ():
+        attribute, separator, value = item.partition("=")
+        if not separator or not value:
+            raise RuleError(f"--force expects ATTR=ID, got {item!r}")
+        attribute = attribute.strip()
+        if attribute not in ATTRIBUTES:
+            raise RuleError(
+                f"--force: unknown attribute {attribute!r}; have {', '.join(ATTRIBUTES)}"
+            )
+        forced[attribute] = value.strip()
+    if layout:
+        forced.setdefault("layout", layout)
+    return forced or None
+
+
 def enumerate_valid(
     attribute: str,
     rules: dict[str, list[Option]] | None = None,
@@ -265,6 +288,7 @@ __all__ = [
     "RULES_ROOT",
     "enumerate_valid",
     "load_rules",
+    "parse_force",
     "sample_recipe",
     "validate",
 ]
