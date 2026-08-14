@@ -8,8 +8,11 @@ plus pixel-accurate ground truth. Two backends ship today:
 
 | backend    | how it draws                                | strengths | costs |
 | ---------- | ------------------------------------------- | --------- | ----- |
-| `synthdog` | Pillow paints the page directly             | boxes exact by construction, scan-like noise, no browser needed | typography is basic, layout is simple stacking |
+| `synthdog` | Pillow paints the page directly             | boxes exact by construction, ~10x faster per page, no browser needed | typography is basic, layout is simple stacking |
 | `html`     | HTML/CSS laid out in chromium, screenshotted | real typography, tables, wrapping and CSS layout; boxes read off the DOM | needs a chromium binary, slower per page |
+
+Both then go through the **same paper layer**, so a page from either backend
+looks like it came off the same scanner (see [Paper](#paper-and-degradation)).
 
 Because both consume the same `Document` and return the same `RenderResult`,
 you can render one document through both and compare, or mix backends within a
@@ -30,18 +33,21 @@ vlm_ocr_synthetic/
 │   ├── synthdog/
 │   │   ├── fonts.py    # font lookup with sensible per-platform defaults
 │   │   └── renderer.py # SynthdogConfig + SynthdogRenderer (Pillow)
-│   └── html/
-│       ├── html_builder.py  # Document -> HTML (no browser involved, unit-testable)
-│       ├── backends.py      # screenshot engines; PlaywrightEngine + chromium lookup
-│       ├── renderer.py      # HtmlConfig + HtmlRenderer
-│       └── templates/       # jinja2 page template
-├── samples/            # ready-made documents (invoice, ...)
+│   ├── html/
+│   │   ├── html_builder.py  # Document -> HTML (no browser involved, unit-testable)
+│   │   ├── backends.py      # screenshot engines; PlaywrightEngine + chromium lookup
+│   │   ├── renderer.py      # HtmlConfig + HtmlRenderer
+│   │   └── templates/       # jinja2 page template
+│   └── paper.py        # the paper + degradation layer both backends share
+├── samples/            # ready-made documents + corpus.py (shared text + the format rule)
+├── benchmark.py        # render through every backend and compare
+├── compat.py           # interpreter and dependency floors
 ├── cli.py              # python -m vlm_ocr_synthetic
 └── __main__.py
 configs/                # one strict YAML preset per backend
 tests/                  # contract suite shared by all backends + per-backend tests
 experiments/            # scratch scripts, safe to break
-outputs/                # rendered pages (git-ignored)
+data/                   # everything generated (see below)
 ```
 
 Backends are imported **lazily** through the registry, so a missing browser
@@ -142,7 +148,7 @@ FreeType binding covers everything synthtiger used pygame for:
 | ------------------- | ---- |
 | `pygame.freetype` glyph rasterisation | `PIL.ImageFont` on FreeType 2.14, with **raqm 0.10** for complex-script shaping (Vietnamese diacritics, Arabic, Indic) |
 | pygame surfaces and blitting for layers | `PIL.Image` / `ImageDraw` layers |
-| `imgaug` noise and effects | `PIL.ImageChops` + a seeded `random.Random` (`noise_sigma`), so output stays reproducible |
+| `imgaug` noise and effects | the `paper` layer: `PIL.ImageChops` + a seeded `random.Random`, so output stays reproducible |
 | synthtiger text layout | the wrapping and flow layout in `renderers/synthdog/renderer.py` |
 
 `tests/test_environment.py` runs a real render in a clean interpreter and fails
@@ -160,20 +166,23 @@ images plus JSON.
 # Which backends are usable right now, and why the others are not?
 python -m vlm_ocr_synthetic list
 
-# Render the built-in sample with every available backend
-python -m vlm_ocr_synthetic render -r all -o outputs/
+# Render the built-in sample with every available backend (into data/)
+python -m vlm_ocr_synthetic render -r all
+
+# Compare the backends and write data/benchmark/report.md
+python -m vlm_ocr_synthetic benchmark --pages 3
 
 # One backend, a shipped preset, 2x resolution
-python -m vlm_ocr_synthetic render -r html -c configs/html_flow.yaml --scale 2.0
+python -m vlm_ocr_synthetic render -r html -c configs/html_scanned.yaml --scale 2.0
 
 # Your own document
-python -m vlm_ocr_synthetic render -r synthdog -d my_doc.json -o outputs/ --stem my_doc
+python -m vlm_ocr_synthetic render -r synthdog -d my_doc.json --stem my_doc
 ```
 
 Both backends side by side, with the boxes printed:
 
 ```bash
-python experiments/render_sample.py --out outputs/compare
+python experiments/render_sample.py --out data/compare
 ```
 
 From Python:
@@ -186,7 +195,7 @@ document = get_sample("invoice")
 
 for name in ("synthdog", "html"):
     result = get_renderer(name, {"scale": 2.0, "seed": 7}).render(document)
-    result.save(f"outputs/{name}", stem="invoice")   # -> invoice.png + invoice.json
+    result.save(f"data/{name}", stem="invoice")   # -> invoice.png + invoice.json
 ```
 
 ### CLI reference
@@ -196,22 +205,27 @@ for name in ("synthdog", "html"):
 | `doctor` | interpreter, dependency floors, backend availability; exits non-zero on problems (`--json` too) |
 | `list` | backend availability (`--json` for machine-readable output) and sample names |
 | `render` | render one document |
+| `benchmark` | render the same pages through every backend, save images + report |
+
+Samples: `invoice`, `receipt_vn` (pass with `-s`).
 
 `render` flags: `-r/--renderer` (name or `all`, default `all`) · `-c/--config`
 (YAML/JSON preset) · `-d/--document` (a `Document` JSON file) · `-s/--sample`
 (built-in document, default `invoice`) · `-o/--out` (default `outputs`) ·
 `--stem` (file stem, default `page`) · `--scale` (override the config) ·
-`--strict` (exit non-zero when a backend is unavailable, for CI).
+`--no-paper` (structure only, skip the paper stage) · `--strict` (exit non-zero
+when a backend is unavailable, for CI).
 
 ---
 
 ## Output format
 
-Every render writes a pair into `<out>/<backend>/`:
+Every render writes a pair into `<out>/<backend>/`, and `<out>` defaults to
+`data/`:
 
 ```
-outputs/html/page.png     # the rendered page
-outputs/html/page.json    # the document, with every bbox filled in
+data/html/page.png     # the rendered page
+data/html/page.json    # the document, with every bbox filled in
 ```
 
 ```jsonc
@@ -301,6 +315,249 @@ Documents are pydantic models, so `Document.model_validate_json(...)` /
 
 ---
 
+## Samples
+
+Two documents ship with the package; `python -m vlm_ocr_synthetic list` names
+them, and `experiments/build_gallery.py` regenerates the previews below.
+
+### `receipt_vn` — Vietnamese restaurant bill
+
+80mm thermal paper, centred shop block, cash total, thank-you footer, and the
+column layout Vietnamese invoices actually use:
+
+| STT | Tên hàng | SL | Đơn giá | Thành tiền |
+| --- | -------- | -- | ------- | ---------- |
+| 1 | Bún Sinh | 1 | 42,000 | 42,000 |
+| 4 | Cơm Bát Bửu | 4 | 43,000 | 172,000 |
+
+Only the item name is free text. `STT` numbers the lines, `Thành tiền` is
+`SL x Đơn giá`, and the cash total is the sum — so a generated bill always adds
+up, whatever order you feed it. The register line and the cash total are real
+two- and three-column tables rather than padded strings, so they land the same
+way in both backends (see [the corpus rule](#corpus-rule-content-is-words-layout-is-structure)):
+
+```python
+from vlm_ocr_synthetic.samples.receipt_vn import OrderLine, build_receipt_document
+
+document = build_receipt_document(
+    order=(OrderLine("Phở Bò", 3, 30_000), OrderLine("Trà Đá", 2, 2_000)),
+    table_number=12,
+)
+```
+
+The text carries full diacritics on purpose: it is the cheapest end-to-end check
+that font shaping is not dropping Vietnamese marks, in **both** the Pillow
+backend (via raqm) and the browser.
+
+| `synthdog` | `html` | `html`, structure only |
+| --- | --- | --- |
+| ![receipt rendered by synthdog](data/samples/receipt_vn-synthdog.jpg) | ![receipt rendered by html](data/samples/receipt_vn-html.jpg) | ![receipt structure without paper](data/samples/receipt_vn-html-structure.jpg) |
+| `configs/synthdog_receipt_vn.yaml` | `configs/html_receipt_vn.yaml` | `--no-paper` |
+
+Receipts needed things the general presets did not have, all added as config or
+document structure rather than as special cases in the renderers: `extra_css` on
+the html backend (centre the header, drop table borders) and
+`center_block_types` / `underline_headers` on synthdog. The column widths and
+alignment are **not** in either preset — they are in the document.
+
+### `invoice` — A4 page with a bordered table
+
+| `synthdog` | `html` (flow) | `html` (scanned preset) |
+| --- | --- | --- |
+| ![invoice by synthdog](data/samples/invoice-synthdog.jpg) | ![invoice by html](data/samples/invoice-html-flow.jpg) | ![invoice, degraded](data/samples/invoice-html-scanned.jpg) |
+
+---
+
+## Corpus rule: content is words, layout is structure
+
+A content string holds the words and nothing else — no padding spaces to line
+columns up, no tabs, no manual right-alignment. Alignment lives in the table's
+`column_widths` / `column_align`, which **both backends read from the
+document**.
+
+The rule exists because the two backends cannot agree about whitespace: Pillow
+lays out glyph runs, a browser applies `white-space` and its own shaper, and a
+proportional font makes padded "alignment" drift anyway. This string rendered as
+two different documents:
+
+```python
+DocumentBlock(block_type="Section-header", content="TIỀN MẶT        537,000")
+# synthdog collapsed it to  "TIỀN MẶT 537,000"
+# the browser kept it as    "TIỀN MẶT        537,000"
+```
+
+It is now a two-cell row, and both backends place it identically:
+
+```python
+TableBlock(
+    rows=[TableRow(cells=[TableCell(content="TIỀN MẶT"), TableCell(content="537,000")])],
+    column_widths=(0.5, 0.5),
+    column_align=("left", "right"),
+)
+```
+
+`vlm_ocr_synthetic/samples/corpus.py` holds the shared text — Vietnamese invoice
+column headings, labels, money formatting — and `assert_plain_text(document)`
+enforces the rule. `tests/test_corpus.py` runs it over every shipped sample, so
+a future generator cannot quietly reintroduce padded strings.
+
+Two more things keep the backends aligned:
+
+- **The table carries its own layout.** `column_widths` are normalised, so
+  `(1, 4, 1)` and `(0.17, 0.66, 0.17)` mean the same thing. A renderer config
+  (`table_column_widths` / `table_column_align` on synthdog, CSS on html) is
+  only a fallback for documents that describe nothing — when the document does,
+  it wins.
+- **synthdog preserves whitespace runs**, exactly like `white-space: pre-wrap`
+  in the browser, so text that *does* contain padding survives intact in both.
+  A wrap swallows only the whitespace it broke on.
+
+The invariant is tested, not just documented: the same document rendered through
+both backends must produce **the same table column geometry**.
+
+```
+receipt header row, cell widths in document space
+  synthdog  [41, 188, 41, 107, 132]
+  html      [41, 188, 41, 107, 132]
+```
+
+---
+
+## Paper and degradation
+
+Rendering runs in **two stages**. A backend first produces the *structure* —
+glyphs, rules, table geometry — and the paper layer is applied to that finished
+page afterwards, for **both backends and every config**. A browser screenshot is
+pixel-perfect and a rasteriser is pixel-perfect; scanned paper is neither, and a
+model trained only on clean pages learns the wrong prior.
+
+Keeping the stages separate means you can check the structure on a clean sheet,
+then try several paper presets against the same render without paying for the
+layout again — no browser involved the second time:
+
+```bash
+python -m vlm_ocr_synthetic render -r html --no-paper     # stage one only
+```
+
+```python
+structure = get_renderer("html", {"paper": {"enabled": False}}).render(document)
+
+for preset in (PaperConfig(grain=4), PaperConfig(grain=9, blur=0.4, vignette=0.3)):
+    structure.with_paper(preset).save("data/variants")
+```
+
+`with_paper()` carries the annotations over untouched — the paper stage moves no
+geometry, which is exactly what `tests/test_paper.py` asserts. Applying paper
+afterwards is byte-identical to letting the backend do it inline with the same
+seed.
+
+`renderers/paper.py` is shared, so the paper treatment is never what makes two
+backends differ:
+
+| knob | simulates | default |
+| ---- | --------- | ------- |
+| `color` | the sheet itself; the render is multiplied onto it, so ink stays dark | `[250, 249, 245]` |
+| `grain` | paper texture, as gaussian grey-level noise | `4.0` |
+| `fold_rows` / `fold_columns` | creases from a sheet that was folded before it was scanned | `0` |
+| `fold_strength` | how hard those creases were pressed (0 disables folds) | `0` |
+| `fold_softness` | crease blur radius in px; how rounded the fold is | `4.0` |
+| `fold_jitter` | crease offset as a fraction of the page, so no two sheets fold alike | `0.02` |
+| `texture` | a photographed sheet: an image, or a directory to pick one from | `null` |
+| `texture_strength` | how far that photograph is blended in | `1.0` |
+| `blur` | a scanner that cannot quite focus | `0` |
+| `bleed_through` | ink seeping from the reverse side (mirrored, blurred) | `0` |
+| `salt` | fraction of pixels lightened — faded ink | `0` |
+| `pepper` | fraction of pixels darkened — dust and scanner specks | `0` |
+| `vignette` | darkening towards the corners | `0` |
+
+### Folds
+
+synthdog gets its creases from photographs — `resources/paper/*.jpg`, real
+sheets that had been folded before they were shot. This generates the same
+effect procedurally, so nothing has to be shipped or downloaded:
+
+```yaml
+paper:
+  fold_rows: 1        # one crease across
+  fold_columns: 1     # one down: the sheet was quartered
+  fold_strength: 0.6
+  fold_softness: 5.0
+```
+
+`fold_rows: 2` is a letter tri-fold; `fold_rows: 1` alone is the single crease a
+restaurant bill picks up on the way into a pocket. Each crease gets a dark
+valley and a lighter ridge beside it, each panel between creases leans towards
+or away from the light, and position and pressure are jittered per page from the
+seed — so a batch does not fold identically. `configs/html_folded.yaml` is a
+ready-made quarter fold.
+
+| clean | tri-fold, photocopied | quarter fold |
+| --- | --- | --- |
+| ![clean page](data/samples/invoice-html-flow.jpg) | ![tri-folded and degraded](data/samples/invoice-html-scanned.jpg) | ![quarter folded](data/samples/invoice-html-folded.jpg) |
+
+If you do have real paper photographs — synthdog's `resources/paper`, or your
+own scans — point `texture` at the file or the directory and they are multiplied
+into the sheet instead, with one picked per page from the seed:
+
+```yaml
+paper:
+  texture: /path/to/synthdog/resources/paper
+  texture_strength: 0.8
+```
+
+The effect list follows [genalog's degradation
+model](https://github.com/microsoft/genalog); the sheet-and-ink compositing
+follows synthdog's paper layer. Turn it all off with `paper: {enabled: false}`,
+or turn it up with `configs/html_scanned.yaml`.
+
+Two properties are enforced by `tests/test_paper.py`: degradation changes
+**pixels only, never annotations**, and the same seed always produces the same
+page. Implementation stays on Pillow's C paths (a 256-entry LUT for the gaussian
+grain, thresholded noise planes for salt and pepper), so this sits in the
+default pipeline without dominating render time.
+
+---
+
+## Benchmark
+
+```bash
+python -m vlm_ocr_synthetic benchmark --pages 3          # -> data/benchmark/
+python -m vlm_ocr_synthetic benchmark --no-paper         # measure without paper
+python -m vlm_ocr_synthetic benchmark -r synthdog -n 20
+```
+
+It renders the same documents through every case, saves **every image it
+generates** under `data/benchmark/<case>/`, and writes `report.md` +
+`report.json` next to them. The committed
+[`data/benchmark/report.md`](data/benchmark/report.md) is the current numbers.
+
+The html backend appears twice, because comparing it to synthdog only makes
+sense when both are asked for the same geometry:
+
+| case | what it is |
+| ---- | ---------- |
+| `synthdog` | Pillow rasteriser |
+| `html-flow` | browser, CSS decides the layout |
+| `html-absolute` | browser, blocks pinned to the input bboxes |
+
+Measured: seconds/page (median and mean), image and PNG size, ink coverage,
+luminance mean/stdev, blocks and cells annotated, whether every box is present,
+**layout fidelity** (mean IoU between requested and achieved geometry),
+determinism, and pairwise cross-backend IoU.
+
+Two findings worth knowing before you pick a backend:
+
+- **synthdog renders ~10x faster per page.** The browser is one process for a
+  whole batch — `render_many()` and the benchmark keep chromium alive via
+  `renderer.session()` — but a page still costs ~0.25 s against ~0.03 s.
+- **The two backends report boxes by different conventions.** `html-absolute`
+  scores 1.0 on layout fidelity because a pinned block *is* its CSS box;
+  synthdog scores ~0.26 on the same document because it reports the **tight ink
+  extent** rather than the requested slot. Neither is wrong — but if you mix
+  backends in one dataset, the boxes are not describing the same thing.
+
+---
+
 ## Configs
 
 Presets live in `configs/`, one per backend flavour, and are **strict**: an
@@ -325,6 +582,10 @@ python -m vlm_ocr_synthetic render -c configs/html_flow.yaml
 | `synthdog_default.yaml` | Pillow, off-white paper, table grid, light scan noise |
 | `html_flow.yaml` | browser, CSS decides the layout — realistic and varied |
 | `html_absolute.yaml` | browser, blocks pinned to the input bboxes — comparable to synthdog |
+| `html_scanned.yaml` | browser, genalog-style degradations turned up: blur, bleed-through, specks, vignette, tri-fold |
+| `html_folded.yaml` | browser, a sheet quarter-folded before it was scanned |
+| `html_receipt_vn.yaml` | browser, 80mm thermal receipt (mono font, centred, borderless) |
+| `synthdog_receipt_vn.yaml` | the same receipt through Pillow, for side-by-side checks |
 
 Shared knobs (`RenderConfig`): `page_width`, `page_height`, `scale`, `seed`.
 `SynthdogConfig` adds fonts, margins, spacing, colours, `noise_sigma`,
@@ -337,6 +598,25 @@ Shared knobs (`RenderConfig`): `page_width`, `page_height`, `scale`, `seed`.
   realistic, varied training pages.
 - `absolute` — every block is pinned to the bbox in the input document. Use this
   to render identical geometry through both backends and diff the results.
+
+---
+
+## What is in `data/`
+
+Every image any command generates lands under `data/`:
+
+```
+data/<backend>/page.png            # python -m vlm_ocr_synthetic render
+data/samples/*.jpg + *.json        # python experiments/build_gallery.py
+data/benchmark/<case>/page_*.png   # python -m vlm_ocr_synthetic benchmark
+data/benchmark/report.md + .json
+data/benchmark/preview-<case>.jpg
+```
+
+Full-resolution PNGs are regenerable and large — paper grain is close to
+incompressible, so a 1000x1400 page is ~1.5 MB. What git tracks is the small,
+reviewable subset: the JPEG previews (~200 KB each at full resolution), their
+annotations, and the benchmark report. Everything else under `data/` is ignored.
 
 ---
 

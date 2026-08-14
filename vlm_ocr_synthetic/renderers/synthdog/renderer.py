@@ -9,11 +9,13 @@ boxes are exact by construction.
 from __future__ import annotations
 
 import random
+import re
 from typing import Optional
 
 from ...schemas.document import BBox, BlockType, Document, DocumentBlock, TableBlock
 from ...schemas.render import RenderConfig, RenderResult
 from ..base import BaseRenderer
+from ..paper import PaperConfig
 from .fonts import find_font, load_font
 
 
@@ -33,13 +35,28 @@ class SynthdogConfig(RenderConfig):
     block_spacing: int = 24
     cell_padding: int = 8
 
-    paper_color: tuple[int, int, int] = (250, 249, 245)
     text_color: tuple[int, int, int] = (25, 25, 28)
     rule_color: tuple[int, int, int] = (120, 120, 125)
 
-    # Post-processing that makes the page look photographed/scanned.
-    noise_sigma: float = 4.0
+    # The sheet and its degradations, shared with the html backend.
+    paper: PaperConfig = PaperConfig()
+
     draw_table_grid: bool = True
+
+    # Column widths as fractions of the table width; empty means equal
+    # columns. A receipt wants a narrow STT column and a wide item one.
+    table_column_widths: tuple[float, ...] = ()
+
+    # Per-column "left" / "center" / "right"; empty means all left. Money
+    # columns on an invoice read as right-aligned.
+    table_column_align: tuple[str, ...] = ()
+
+    # Rule drawn under titles and section headers (off for receipts).
+    underline_headers: bool = True
+
+    # Block types drawn centred in the content width (receipt headers,
+    # thank-you footers). The html backend does this with extra_css.
+    center_block_types: tuple[str, ...] = ()
 
 
 class SynthdogRenderer(BaseRenderer):
@@ -83,22 +100,36 @@ class SynthdogRenderer(BaseRenderer):
 
     @staticmethod
     def _wrap(text: str, font, max_width: float) -> list[str]:
-        """Greedy word wrap; falls back to one word per line when too narrow."""
+        """Greedy word wrap that keeps whitespace runs intact.
+
+        The browser preserves runs of spaces (``white-space: pre-wrap``), so
+        this does too: the same string has to draw the same either way.
+        Whitespace is only dropped where a line actually wraps, which is
+        what a browser does as well.
+        """
         lines: list[str] = []
+
         for paragraph in text.split("\n"):
-            words = paragraph.split()
-            if not words:
+            if not paragraph.strip():
                 lines.append("")
                 continue
-            current = words[0]
-            for word in words[1:]:
-                candidate = f"{current} {word}"
-                if font.getlength(candidate) <= max_width:
+
+            # Keep separators: ["Total", "   ", "537,000"]
+            tokens = [token for token in re.split(r"(\s+)", paragraph) if token]
+            current = ""
+
+            for token in tokens:
+                candidate = current + token
+                if not current or font.getlength(candidate) <= max_width:
                     current = candidate
-                else:
-                    lines.append(current)
-                    current = word
-            lines.append(current)
+                    continue
+
+                lines.append(current.rstrip())
+                # A wrap swallows the whitespace that caused it.
+                current = "" if token.isspace() else token
+
+            lines.append(current.rstrip())
+
         return lines
 
     def _line_height(self, font) -> float:
@@ -118,7 +149,8 @@ class SynthdogRenderer(BaseRenderer):
         px_width = int(round(page_width * cfg.scale))
         px_height = int(round(page_height * cfg.scale))
 
-        image = Image.new("RGB", (px_width, px_height), cfg.paper_color)
+        # Draw on white; apply_paper() supplies the sheet colour and texture.
+        image = Image.new("RGB", (px_width, px_height), (255, 255, 255))
         draw = ImageDraw.Draw(image)
 
         margin = cfg.margin * cfg.scale
@@ -137,24 +169,60 @@ class SynthdogRenderer(BaseRenderer):
             rendered_blocks.append(rendered)
             cursor_y += cfg.block_spacing * cfg.scale
 
-        if cfg.noise_sigma > 0:
-            image = self._add_noise(image, rng, cfg.noise_sigma)
-
         rendered_document = Document(
             page_width=page_width,
             page_height=page_height,
             blocks=rendered_blocks,
         )
-        return RenderResult(
+        structure = RenderResult(
             image=image,
             document=rendered_document,
             renderer=self.name,
             metadata={
                 "scale": cfg.scale,
                 "seed": cfg.seed,
-                "bbox_space": "document",  # divide-by-nothing; multiply by scale for px
+                "bbox_space": "document",  # multiply by scale for pixels
+                "paper": PaperConfig(enabled=False).model_dump(),
             },
         )
+        # Stage two: the finished structure goes onto paper.
+        return structure.with_paper(cfg.paper, seed=cfg.seed)
+
+    def _column_edges(
+        self,
+        left: float,
+        table_width: float,
+        n_columns: int,
+        table: TableBlock,
+    ) -> list[float]:
+        """Left edge of every column, plus the table's right edge.
+
+        The table's own widths win; the renderer config is a fallback for
+        documents that do not carry a layout.
+        """
+        weights = table.column_widths or self.config.table_column_widths
+        if len(weights) != n_columns or sum(weights) <= 0:
+            weights = tuple(1 / n_columns for _ in range(n_columns))
+
+        total = sum(weights)
+        edges = [left]
+        for weight in weights:
+            edges.append(edges[-1] + table_width * weight / total)
+        return edges
+
+    def _align_for(self, column: int, table: TableBlock) -> str:
+        if table.column_align:
+            return table.alignment(column)
+        alignments = self.config.table_column_align
+        return alignments[column] if column < len(alignments) else "left"
+
+    @staticmethod
+    def _align_offset(align: str, available: float, text_width: float) -> float:
+        if align == "right":
+            return max(0.0, available - text_width)
+        if align == "center":
+            return max(0.0, (available - text_width) / 2)
+        return 0.0
 
     def _px_box(self, x1, y1, x2, y2) -> BBox:
         """Pixel coordinates -> document-space bbox."""
@@ -186,17 +254,25 @@ class SynthdogRenderer(BaseRenderer):
         lines = self._wrap(text, font, max_width) if text else []
         line_height = self._line_height(font)
 
+        centered = block.block_type in cfg.center_block_types
+
         y = top
         widest = 0.0
         for line in lines:
-            draw.text((left, y), line, font=font, fill=cfg.text_color)
-            widest = max(widest, font.getlength(line))
+            line_width = font.getlength(line)
+            x = left + (max_width - line_width) / 2 if centered else left
+            draw.text((x, y), line, font=font, fill=cfg.text_color)
+            widest = max(widest, line_width)
             y += line_height
 
         bottom = y if lines else top
-        bbox = self._px_box(left, top, left + max(widest, 1.0), max(bottom, top + 1.0))
+        width = max_width if centered else max(widest, 1.0)
+        bbox = self._px_box(left, top, left + width, max(bottom, top + 1.0))
 
-        if block.block_type in {BlockType.TITLE, BlockType.SECTION_HEADER}:
+        if cfg.underline_headers and block.block_type in {
+            BlockType.TITLE,
+            BlockType.SECTION_HEADER,
+        }:
             rule_y = bottom + 4 * cfg.scale
             draw.line(
                 [(left, rule_y), (left + max_width, rule_y)],
@@ -231,7 +307,7 @@ class SynthdogRenderer(BaseRenderer):
             table_width = max(px_width - 2 * margin, 1.0)
 
         n_columns = max(table.n_columns, 1)
-        column_width = table_width / n_columns
+        column_edges = self._column_edges(left, table_width, n_columns, table)
         padding = cfg.cell_padding * cfg.scale
 
         body_font = self._font_for(BlockType.TEXT)
@@ -250,8 +326,10 @@ class SynthdogRenderer(BaseRenderer):
 
             for cell in row.cells:
                 font = header_font if cell.is_header else body_font
-                cell_left = left + column_index * column_width
-                cell_width = column_width * cell.colspan
+                first = min(column_index, n_columns - 1)
+                last = min(column_index + cell.colspan, n_columns)
+                cell_left = column_edges[first]
+                cell_width = max(column_edges[last] - cell_left, 1.0)
 
                 lines = self._wrap(
                     cell.content, font, max(cell_width - 2 * padding, 1.0)
@@ -260,15 +338,26 @@ class SynthdogRenderer(BaseRenderer):
                 height = len(lines) * line_height + 2 * padding
                 row_height = max(row_height, height)
 
-                cell_boxes.append((cell, cell_left, cell_width, lines, font))
+                cell_boxes.append(
+                    (
+                        cell,
+                        cell_left,
+                        cell_width,
+                        lines,
+                        font,
+                        self._align_for(first, table),
+                    )
+                )
                 column_index += cell.colspan
 
             rendered_cells = []
-            for cell, cell_left, cell_width, lines, font in cell_boxes:
+            for cell, cell_left, cell_width, lines, font, align in cell_boxes:
                 text_y = y + padding
+                inner = max(cell_width - 2 * padding, 1.0)
                 for line in lines:
+                    offset = self._align_offset(align, inner, font.getlength(line))
                     draw.text(
-                        (cell_left + padding, text_y),
+                        (cell_left + padding + offset, text_y),
                         line,
                         font=font,
                         fill=cfg.text_color,
@@ -302,16 +391,3 @@ class SynthdogRenderer(BaseRenderer):
         next_cursor = max(cursor_y, y) if anchor is not None else y
         return rendered, next_cursor
 
-    @staticmethod
-    def _add_noise(image, rng: random.Random, sigma: float):
-        """Per-pixel gaussian grain, seeded so renders are reproducible."""
-        from PIL import Image, ImageChops
-
-        width, height = image.size
-        noise_bytes = bytes(
-            max(0, min(255, int(128 + rng.gauss(0, sigma))))
-            for _ in range(width * height)
-        )
-        noise = Image.frombytes("L", (width, height), noise_bytes).convert("RGB")
-        # add(a, b, scale, offset) == (a + b) / scale + offset, so 128 is neutral.
-        return ImageChops.add(image, noise, scale=1.0, offset=-128)

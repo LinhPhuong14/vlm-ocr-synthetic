@@ -13,5 +13,8 @@ title_font_size: 40
 margin: 60
 line_height: 1.35
 
-page_background: "#faf9f5"
-text_color: "#19191c"
+# Same sheet as configs/synthdog_default.yaml.
+paper:
+  enabled: true
+  color: [250, 249, 245]
+  grain: 4.0

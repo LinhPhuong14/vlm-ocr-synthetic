@@ -50,6 +50,31 @@ class RenderResult:
     renderer: str
     metadata: dict[str, Any] = field(default_factory=dict)
 
+    def with_paper(self, paper, seed: Optional[int] = None) -> "RenderResult":
+        """Return a copy with the paper layer applied on top.
+
+        Rendering is two stages: a backend produces the *structure* -- glyphs,
+        rules, table geometry -- and the paper layer is applied to the finished
+        page afterwards. Keeping them separate means you can check the
+        structure on a clean sheet, then try several paper presets against the
+        same render without paying for the layout again (no browser involved).
+
+        The annotations are carried over untouched: paper moves no geometry.
+        """
+        import random
+
+        from ..renderers.paper import apply_paper
+
+        if seed is None:
+            seed = int(self.metadata.get("seed", 0) or 0)
+
+        return RenderResult(
+            image=apply_paper(self.image, paper, random.Random(seed)),
+            document=self.document,
+            renderer=self.renderer,
+            metadata={**self.metadata, "paper": paper.model_dump()},
+        )
+
     def annotation(self) -> dict[str, Any]:
         return {
             "renderer": self.renderer,
@@ -58,15 +83,30 @@ class RenderResult:
             "document": self.document.model_dump(exclude_none=True),
         }
 
-    def save(self, out_dir: str | Path, stem: str = "page") -> tuple[Path, Path]:
-        """Write ``<stem>.png`` and ``<stem>.json`` into ``out_dir``."""
+    def save(
+        self,
+        out_dir: str | Path,
+        stem: str = "page",
+        image_format: str = "png",
+        quality: int = 88,
+    ) -> tuple[Path, Path]:
+        """Write ``<stem>.<ext>`` and ``<stem>.json`` into ``out_dir``.
+
+        PNG is the default because it is lossless; ``image_format="jpeg"``
+        is for previews that have to be small enough to keep in git (a
+        grainy page is roughly 5x smaller as JPEG at the same size).
+        """
         out_dir = Path(out_dir)
         out_dir.mkdir(parents=True, exist_ok=True)
 
-        image_path = out_dir / f"{stem}.png"
+        suffix = "jpg" if image_format.lower() in {"jpg", "jpeg"} else image_format
+        image_path = out_dir / f"{stem}.{suffix}"
         annotation_path = out_dir / f"{stem}.json"
 
-        self.image.save(image_path)
+        if suffix == "jpg":
+            self.image.convert("RGB").save(image_path, quality=quality, optimize=True)
+        else:
+            self.image.save(image_path)
         annotation_path.write_text(
             json.dumps(self.annotation(), indent=2, ensure_ascii=False),
             encoding="utf-8",

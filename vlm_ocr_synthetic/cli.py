@@ -1,6 +1,7 @@
 """Command line entry point.
 
     python -m vlm_ocr_synthetic doctor                     # is this environment usable?
+    python -m vlm_ocr_synthetic benchmark --pages 3        # compare the backends
     python -m vlm_ocr_synthetic list                       # backend status
     python -m vlm_ocr_synthetic render --renderer all      # side-by-side check
     python -m vlm_ocr_synthetic render -r html --config configs/html_flow.yaml
@@ -14,6 +15,7 @@ import sys
 from pathlib import Path
 from typing import Optional, Sequence
 
+from .benchmark import DEFAULT_OUT_DIR, format_markdown, run_benchmark, save_report
 from .compat import environment_report, problems
 from .renderers import (
     RendererUnavailable,
@@ -102,6 +104,9 @@ def _cmd_render(args: argparse.Namespace) -> int:
 
     if args.scale is not None:
         options = {**options, "scale": args.scale}
+    if args.no_paper:
+        # Stage one only: the structure on a clean sheet.
+        options = {**options, "paper": {"enabled": False}}
 
     out_root = Path(args.out)
     failures = 0
@@ -120,6 +125,30 @@ def _cmd_render(args: argparse.Namespace) -> int:
         print(f"     {annotation_path}")
 
     return 1 if failures and args.strict else 0
+
+
+def _cmd_benchmark(args: argparse.Namespace) -> int:
+    options: dict[str, object] = {"scale": args.scale}
+    if args.no_paper:
+        options["paper"] = {"enabled": False}
+
+    report = run_benchmark(
+        pages=args.pages,
+        sample=args.sample,
+        options=options,
+        backends=_expand(args.renderer or "all"),
+        out_dir=args.out,
+        save_images=not args.no_images,
+    )
+
+    json_path, markdown_path = save_report(report, args.out)
+    print(format_markdown(report))
+    print(f"report: {markdown_path}")
+    print(f"        {json_path}")
+    if not args.no_images:
+        print(f"images: {Path(args.out)}/<renderer>/page_*.png")
+
+    return 1 if not report["backends"] else 0
 
 
 def _expand(renderer: str) -> list[str]:
@@ -155,8 +184,15 @@ def build_parser() -> argparse.ArgumentParser:
     render_parser.add_argument(
         "-s", "--sample", default="invoice", help="built-in sample document"
     )
-    render_parser.add_argument("-o", "--out", default="outputs", help="output directory")
+    render_parser.add_argument(
+        "-o", "--out", default="data", help="output directory (default: data)"
+    )
     render_parser.add_argument("--stem", default="page", help="output file stem")
+    render_parser.add_argument(
+        "--no-paper",
+        action="store_true",
+        help="render the structure only, without the paper layer",
+    )
     render_parser.add_argument("--scale", type=float, help="override config scale")
     render_parser.add_argument(
         "--strict",
@@ -164,6 +200,27 @@ def build_parser() -> argparse.ArgumentParser:
         help="exit non-zero when a backend is unavailable",
     )
     render_parser.set_defaults(func=_cmd_render)
+
+    benchmark_parser = subparsers.add_parser(
+        "benchmark",
+        help="render the same pages through every backend and compare them",
+    )
+    benchmark_parser.add_argument("-n", "--pages", type=int, default=3)
+    benchmark_parser.add_argument("-s", "--sample", default="invoice")
+    benchmark_parser.add_argument(
+        "-r", "--renderer", help="backend name or 'all' (default: all)"
+    )
+    benchmark_parser.add_argument(
+        "-o", "--out", default=str(DEFAULT_OUT_DIR), help="output directory"
+    )
+    benchmark_parser.add_argument("--scale", type=float, default=1.0)
+    benchmark_parser.add_argument(
+        "--no-paper", action="store_true", help="measure without the paper layer"
+    )
+    benchmark_parser.add_argument(
+        "--no-images", action="store_true", help="report only, write no pages"
+    )
+    benchmark_parser.set_defaults(func=_cmd_benchmark)
 
     return parser
 

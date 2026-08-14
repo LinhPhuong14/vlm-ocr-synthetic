@@ -19,6 +19,7 @@ from typing import Literal, Optional
 from ...schemas.document import BBox, Document, DocumentBlock
 from ...schemas.render import RenderConfig, RenderResult
 from ..base import BaseRenderer
+from ..paper import PaperConfig
 from .backends import ScreenshotEngine, get_engine_class
 from .html_builder import (
     BLOCK_ID_ATTR,
@@ -50,11 +51,21 @@ class HtmlConfig(RenderConfig):
     block_spacing: int = 24
     cell_padding: int = 8
 
-    page_background: str = "#faf9f5"
+    # Every html render goes through the same paper layer as synthdog, so
+    # the two backends differ only in how the page was laid out.
+    paper: PaperConfig = PaperConfig()
+
+    # The CSS background stays white: apply_paper() tints the sheet.
+    page_background: str = "#ffffff"
     text_color: str = "#19191c"
     muted_color: str = "#55555c"
     header_background: str = "#eeece5"
     table_border: str = "1px solid #78787d"
+
+    # Raw CSS appended last, so a preset can restyle anything the template
+    # emits (centre a receipt header, drop table borders, ...) without the
+    # config growing a knob per rule.
+    extra_css: str = ""
 
     def style_context(self) -> dict[str, object]:
         """The subset of the config the jinja2 template interpolates."""
@@ -74,6 +85,7 @@ class HtmlConfig(RenderConfig):
             "muted_color",
             "header_background",
             "table_border",
+            "extra_css",
         )
         return {key: getattr(self, key) for key in keys}
 
@@ -113,6 +125,10 @@ class HtmlRenderer(BaseRenderer):
             )
         return self._engine
 
+    def session(self):
+        """Reuse one chromium instance for every render inside the block."""
+        return self._get_engine().session()
+
     def build_html(self, document: Document) -> str:
         """Expose the intermediate markup (handy for debugging and tests)."""
         return build_html(document, self.config)
@@ -146,7 +162,7 @@ class HtmlRenderer(BaseRenderer):
         rendered_document.page_width = page_width
         rendered_document.page_height = page_height
 
-        return RenderResult(
+        structure = RenderResult(
             image=image,
             document=rendered_document,
             renderer=self.name,
@@ -154,9 +170,13 @@ class HtmlRenderer(BaseRenderer):
                 "engine": self.config.engine,
                 "layout": self.config.layout,
                 "scale": self.config.scale,
+                "seed": self.config.seed,
                 "bbox_space": "document",
+                "paper": PaperConfig(enabled=False).model_dump(),
             },
         )
+        # Stage two: the browser gave us the structure, now put it on paper.
+        return structure.with_paper(self.config.paper, seed=self.config.seed)
 
     @staticmethod
     def _apply_boxes(
