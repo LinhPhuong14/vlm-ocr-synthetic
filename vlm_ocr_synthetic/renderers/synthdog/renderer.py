@@ -8,9 +8,7 @@ boxes are exact by construction.
 
 from __future__ import annotations
 
-import random
 import re
-from typing import Optional
 
 from ...schemas.document import BBox, BlockType, Document, DocumentBlock, TableBlock
 from ...schemas.render import RenderConfig, RenderResult
@@ -22,8 +20,8 @@ from .fonts import find_font, load_font
 class SynthdogConfig(RenderConfig):
     """Knobs for the Pillow-based backend."""
 
-    font_path: Optional[str] = None
-    bold_font_path: Optional[str] = None
+    font_path: str | None = None
+    bold_font_path: str | None = None
 
     font_size: int = 22
     title_font_size: int = 40
@@ -66,7 +64,7 @@ class SynthdogRenderer(BaseRenderer):
     config: SynthdogConfig
 
     @classmethod
-    def check_available(cls) -> Optional[str]:
+    def check_available(cls) -> str | None:
         try:
             import PIL  # noqa: F401
         except ImportError:
@@ -143,7 +141,6 @@ class SynthdogRenderer(BaseRenderer):
         from PIL import Image, ImageDraw
 
         cfg = self.config
-        rng = random.Random(cfg.seed)
 
         page_width, page_height = cfg.page_size(document)
         px_width = int(round(page_width * cfg.scale))
@@ -331,9 +328,7 @@ class SynthdogRenderer(BaseRenderer):
                 cell_left = column_edges[first]
                 cell_width = max(column_edges[last] - cell_left, 1.0)
 
-                lines = self._wrap(
-                    cell.content, font, max(cell_width - 2 * padding, 1.0)
-                )
+                lines = self._wrap(cell.content, font, max(cell_width - 2 * padding, 1.0))
                 line_height = self._line_height(font)
                 height = len(lines) * line_height + 2 * padding
                 row_height = max(row_height, height)
@@ -390,4 +385,3 @@ class SynthdogRenderer(BaseRenderer):
         rendered = block.model_copy(update={"table": rendered_table, "bbox": table_bbox})
         next_cursor = max(cursor_y, y) if anchor is not None else y
         return rendered, next_cursor
-

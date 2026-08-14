@@ -6,8 +6,6 @@ nodes.  Bounding boxes are optional on input -- renderers that lay the page
 out themselves fill them in on the rendered copy they return.
 """
 
-from typing import Optional
-
 from pydantic import BaseModel, Field
 
 
@@ -89,7 +87,7 @@ class TableCell(BaseModel):
 
     is_header: bool = False
 
-    bbox: Optional[BBox] = None
+    bbox: BBox | None = None
 
 
 class TableRow(BaseModel):
@@ -115,7 +113,7 @@ class TableBlock(BaseModel):
     # "left" | "center" | "right", one per column.
     column_align: tuple[str, ...] = ()
 
-    bbox: Optional[BBox] = None
+    bbox: BBox | None = None
 
     def width_fractions(self) -> tuple[float, ...]:
         """Normalised column widths, falling back to equal columns."""
@@ -143,11 +141,11 @@ class TableBlock(BaseModel):
 
 class DocumentBlock(BaseModel):
     block_type: str
-    content: Optional[str] = None
-    bbox: Optional[BBox] = None
+    content: str | None = None
+    bbox: BBox | None = None
 
     # Only set when ``block_type == BlockType.TABLE``.
-    table: Optional[TableBlock] = None
+    table: TableBlock | None = None
 
 
 class Document(BaseModel):

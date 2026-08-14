@@ -21,6 +21,13 @@ from __future__ import annotations
 
 from typing import NamedTuple
 
+from ..corpus import (
+    INVOICE_COLUMN_ALIGN,
+    INVOICE_COLUMN_WIDTHS,
+    INVOICE_COLUMNS_VI,
+    LABELS_VI,
+    format_dong,
+)
 from ..schemas.document import (
     BlockType,
     Document,
@@ -28,13 +35,6 @@ from ..schemas.document import (
     TableBlock,
     TableCell,
     TableRow,
-)
-from .corpus import (
-    INVOICE_COLUMN_ALIGN,
-    INVOICE_COLUMN_WIDTHS,
-    INVOICE_COLUMNS_VI,
-    LABELS_VI,
-    format_dong,
 )
 
 # 80mm thermal paper at 203 dpi is 576 dots wide.
@@ -141,9 +141,7 @@ def build_total_table(order: tuple[OrderLine, ...] = ORDER) -> TableBlock:
             TableRow(
                 cells=[
                     TableCell(content=LABELS_VI["cash"], is_header=True),
-                    TableCell(
-                        content=format_dong(order_total(order)), is_header=True
-                    ),
+                    TableCell(content=format_dong(order_total(order)), is_header=True),
                 ]
             )
         ],

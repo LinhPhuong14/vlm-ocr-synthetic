@@ -119,12 +119,34 @@ A4 = frozenset({"a4"})
 STYLES: tuple[Variant, ...] = (
     # --- thermal receipts -------------------------------------------------
     Variant("thermal_17", _thermal(17), weight=5, requires=THERMAL),
-    Variant("thermal_15_tight", _thermal(15, margin=26, spacing=8), weight=3, requires=THERMAL),
-    Variant("thermal_19_airy", _thermal(19, margin=40, spacing=16), weight=2, requires=WIDE_THERMAL),
-    Variant("thermal_faint", _thermal(17, css=".block, td, th { color: #4a4a4a; }"), weight=2, requires=THERMAL),
-    Variant("thermal_bold_header", _thermal(17, css=".block-Page-Header { font-size: 30px; letter-spacing: 2px; }"), weight=2, requires=WIDE_THERMAL),
+    Variant(
+        "thermal_15_tight", _thermal(15, margin=26, spacing=8), weight=3, requires=THERMAL
+    ),
+    Variant(
+        "thermal_19_airy",
+        _thermal(19, margin=40, spacing=16),
+        weight=2,
+        requires=WIDE_THERMAL,
+    ),
+    Variant(
+        "thermal_faint",
+        _thermal(17, css=".block, td, th { color: #4a4a4a; }"),
+        weight=2,
+        requires=THERMAL,
+    ),
+    Variant(
+        "thermal_bold_header",
+        _thermal(17, css=".block-Page-Header { font-size: 30px; letter-spacing: 2px; }"),
+        weight=2,
+        requires=WIDE_THERMAL,
+    ),
     Variant("thermal_wide_line", _thermal(17, line=1.7), weight=2, requires=THERMAL),
-    Variant("thermal_13_dense", _thermal(13, margin=22, spacing=6, line=1.25), weight=2, requires=THERMAL),
+    Variant(
+        "thermal_13_dense",
+        _thermal(13, margin=22, spacing=6, line=1.25),
+        weight=2,
+        requires=THERMAL,
+    ),
     Variant(
         "thermal_sans",
         Style(
@@ -145,11 +167,21 @@ STYLES: tuple[Variant, ...] = (
         weight=2,
         requires=THERMAL,
     ),
-    Variant("thermal_ruled", _thermal(17, css="td { border-bottom: 1px dotted #9a9a9a; }"), weight=1, requires=THERMAL),
+    Variant(
+        "thermal_ruled",
+        _thermal(17, css="td { border-bottom: 1px dotted #9a9a9a; }"),
+        weight=1,
+        requires=THERMAL,
+    ),
     Variant("thermal_20_large", _thermal(20, margin=30), weight=1, requires=WIDE_THERMAL),
     # --- A4 documents -----------------------------------------------------
     Variant("office_sans_22", _office(22, SANS, "", ""), weight=4, requires=A4),
-    Variant("office_sans_18_tight", _office(18, SANS, "", "", margin=44), weight=2, requires=A4),
+    Variant(
+        "office_sans_18_tight",
+        _office(18, SANS, "", "", margin=44),
+        weight=2,
+        requires=A4,
+    ),
     Variant(
         "office_serif_22",
         _office(22, SERIF, SERIF_PATH, SERIF_BOLD),

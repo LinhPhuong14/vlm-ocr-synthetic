@@ -1,6 +1,6 @@
 """Render the same document with every available backend, side by side.
 
-    python experiments/render_sample.py --out data/compare
+python experiments/render_sample.py --out data/compare
 """
 
 from __future__ import annotations
@@ -11,12 +11,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from vlm_ocr_synthetic.renderers import (  # noqa: E402
+from vlm_ocr_synthetic.renderers import (
     RendererUnavailable,
     get_renderer,
     renderer_names,
 )
-from vlm_ocr_synthetic.samples import get_sample  # noqa: E402
+from vlm_ocr_synthetic.samples import get_sample
 
 
 def main() -> int:
@@ -27,8 +27,10 @@ def main() -> int:
     args = parser.parse_args()
 
     document = get_sample(args.sample)
-    print(f"document: {len(document.blocks)} blocks, "
-          f"{document.page_width}x{document.page_height}")
+    print(
+        f"document: {len(document.blocks)} blocks, "
+        f"{document.page_width}x{document.page_height}"
+    )
 
     for name in renderer_names():
         try:

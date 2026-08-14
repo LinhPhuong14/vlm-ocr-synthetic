@@ -48,13 +48,13 @@ def default_space() -> ScenarioSpace:
 
 
 __all__ = [
-    "Axis",
     "BACKEND_AXIS",
     "DEFAULT_SPACE",
     "DEGRADATION_AXIS",
-    "IncompatibleSpace",
     "LAYOUT_AXIS",
     "STYLE_AXIS",
+    "Axis",
+    "IncompatibleSpace",
     "Scenario",
     "ScenarioSpace",
     "Style",

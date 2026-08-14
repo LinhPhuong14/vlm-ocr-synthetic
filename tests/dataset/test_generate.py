@@ -7,14 +7,15 @@ import random
 from pathlib import Path
 
 import pytest
+from helpers import requires_renderer
+from pydantic import ValidationError
 
-from conftest import requires_renderer
-from vlm_ocr_synthetic.pipeline import (
+from vlm_ocr_synthetic.corpus import assert_plain_text
+from vlm_ocr_synthetic.dataset import (
     DatasetConfig,
     build_document,
     build_space,
     dry_run,
-    flatten,
     format_distribution,
     generate,
     load_dataset_config,
@@ -22,11 +23,10 @@ from vlm_ocr_synthetic.pipeline import (
     read_manifest,
     render_options,
 )
-from vlm_ocr_synthetic.samples.corpus import assert_plain_text
 from vlm_ocr_synthetic.variations import LAYOUT_AXIS, default_space
 from vlm_ocr_synthetic.variations.space import Scenario
 
-CONFIGS = Path(__file__).resolve().parent.parent / "configs"
+CONFIGS = Path(__file__).resolve().parent.parent.parent / "configs"
 
 # Small and synthdog-only, so the suite does not launch a browser per test.
 FAST = DatasetConfig(
@@ -42,7 +42,7 @@ FAST = DatasetConfig(
 
 
 def test_shipped_dataset_config_loads():
-    config = load_dataset_config(CONFIGS / "dataset.yaml")
+    config = load_dataset_config(CONFIGS / "datasets" / "default.yaml")
 
     assert config.pages > 0
     assert config.mode in {"sample", "stratified"}
@@ -51,7 +51,7 @@ def test_shipped_dataset_config_loads():
 
 def test_shipped_config_names_only_variants_that_exist():
     """A typo in the weights must fail loudly, not silently do nothing."""
-    config = load_dataset_config(CONFIGS / "dataset.yaml")
+    config = load_dataset_config(CONFIGS / "datasets" / "default.yaml")
     build_space(config)  # raises KeyError on an unknown axis or variant
 
 
@@ -59,7 +59,7 @@ def test_unknown_config_key_is_rejected(tmp_path):
     path = tmp_path / "bad.yaml"
     path.write_text("pages: 3\npagez: 4\n", encoding="utf-8")
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         load_dataset_config(path)
 
 
@@ -106,9 +106,7 @@ def test_dry_run_reports_without_touching_the_disk(tmp_path):
 # --------------------------------------------------------------- documents
 
 
-@pytest.mark.parametrize(
-    "layout", LAYOUT_AXIS.variants, ids=lambda variant: variant.name
-)
+@pytest.mark.parametrize("layout", LAYOUT_AXIS.variants, ids=lambda variant: variant.name)
 def test_every_layout_builds_a_valid_document(layout):
     """A layout that produces a broken document must fail here, not at 5000 pages."""
     space = default_space()
@@ -130,9 +128,9 @@ def test_every_layout_builds_a_valid_document(layout):
 
 
 def test_receipt_totals_stay_consistent_across_random_orders():
-    from vlm_ocr_synthetic.samples.corpus import format_dong
-    from vlm_ocr_synthetic.variations.layouts import sample_order
+    from vlm_ocr_synthetic.corpus import format_dong
     from vlm_ocr_synthetic.samples.receipt_vn import build_receipt_document, order_total
+    from vlm_ocr_synthetic.variations.layouts import sample_order
 
     for seed in range(20):
         order = sample_order(random.Random(seed), 3, 8)

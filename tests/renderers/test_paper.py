@@ -10,6 +10,7 @@ from __future__ import annotations
 import random
 
 import pytest
+from pydantic import ValidationError
 
 from vlm_ocr_synthetic.renderers.paper import (
     PaperConfig,
@@ -111,7 +112,9 @@ def test_every_degradation_changes_the_page(page, config):
 
 def test_pepper_darkens_and_salt_lightens(page):
     baseline = _mean(apply_paper(page, PaperConfig(grain=0), random.Random(4)))
-    peppered = _mean(apply_paper(page, PaperConfig(grain=0, pepper=0.2), random.Random(4)))
+    peppered = _mean(
+        apply_paper(page, PaperConfig(grain=0, pepper=0.2), random.Random(4))
+    )
     salted = _mean(apply_paper(page, PaperConfig(grain=0, salt=0.2), random.Random(4)))
 
     assert peppered < baseline
@@ -127,7 +130,7 @@ def test_vignette_darkens_corners_more_than_the_centre(page):
 
 
 def test_config_rejects_unknown_keys():
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         PaperConfig(noise_sigma=4)
 
 
@@ -172,9 +175,11 @@ def test_paper_applied_afterwards_matches_paper_applied_inline():
     inline = get_renderer("synthdog", {"scale": 0.4, "seed": 3, "paper": paper}).render(
         document
     )
-    two_stage = get_renderer(
-        "synthdog", {"scale": 0.4, "seed": 3, "paper": {"enabled": False}}
-    ).render(document).with_paper(PaperConfig(**paper), seed=3)
+    two_stage = (
+        get_renderer("synthdog", {"scale": 0.4, "seed": 3, "paper": {"enabled": False}})
+        .render(document)
+        .with_paper(PaperConfig(**paper), seed=3)
+    )
 
     assert inline.image.tobytes() == two_stage.image.tobytes()
 
@@ -234,9 +239,7 @@ def test_fold_shading_is_neutral_where_there_is_no_crease():
 
 
 def test_the_crease_is_darker_than_the_panel_around_it():
-    config = PaperConfig(
-        fold_rows=1, fold_strength=1.0, fold_jitter=0, fold_softness=2
-    )
+    config = PaperConfig(fold_rows=1, fold_strength=1.0, fold_jitter=0, fold_softness=2)
     shading = fold_shading((60, 200), config, random.Random(0))
 
     crease_row = min(shading.getpixel((30, y)) for y in range(96, 105))

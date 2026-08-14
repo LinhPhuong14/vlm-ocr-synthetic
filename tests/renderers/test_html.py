@@ -7,8 +7,9 @@ take a screenshot are marked ``slow`` and skipped when chromium is absent.
 from __future__ import annotations
 
 import pytest
+from helpers import requires_renderer
+from pydantic import ValidationError
 
-from conftest import requires_renderer
 from vlm_ocr_synthetic.renderers.html import HtmlConfig, HtmlRenderer
 from vlm_ocr_synthetic.renderers.html.backends import (
     ENGINES,
@@ -23,7 +24,7 @@ jinja2 = pytest.importorskip("jinja2")
 
 
 def test_config_rejects_an_unknown_layout():
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         HtmlConfig(layout="diagonal")
 
 

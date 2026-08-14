@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Optional
 
 # Reasonable defaults on Linux/macOS CI boxes; the config can override.
 DEFAULT_FONT_CANDIDATES = (
@@ -23,7 +22,7 @@ DEFAULT_BOLD_FONT_CANDIDATES = (
 )
 
 
-def find_font(explicit: Optional[str] = None, bold: bool = False) -> Optional[str]:
+def find_font(explicit: str | None = None, bold: bool = False) -> str | None:
     """First existing font path, or ``None`` to fall back to PIL's bitmap font."""
     if explicit:
         if not Path(explicit).exists():
@@ -38,7 +37,7 @@ def find_font(explicit: Optional[str] = None, bold: bool = False) -> Optional[st
 
 
 @lru_cache(maxsize=64)
-def load_font(path: Optional[str], size: int):
+def load_font(path: str | None, size: int):
     from PIL import ImageFont
 
     if path is None:

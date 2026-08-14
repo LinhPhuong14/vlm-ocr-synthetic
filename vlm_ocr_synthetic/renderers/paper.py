@@ -20,7 +20,7 @@ from __future__ import annotations
 import random
 from pathlib import Path
 from statistics import NormalDist
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
 
@@ -58,7 +58,7 @@ class PaperConfig(BaseModel):
 
     # A photographed sheet, the way synthdog composites resources/paper/*.
     # Path to an image, or to a directory to pick one from (seeded).
-    texture: Optional[str] = None
+    texture: str | None = None
     texture_strength: float = 1.0  # 0..1, blended towards a plain sheet
 
     # genalog-style degradations.
@@ -92,7 +92,7 @@ class PaperConfig(BaseModel):
         return self.fold_strength > 0 and bool(self.fold_rows or self.fold_columns)
 
 
-def _uniform_noise(size: tuple[int, int], rng: random.Random) -> "Image":
+def _uniform_noise(size: tuple[int, int], rng: random.Random) -> Image:
     """A full-size plane of uniform noise, generated at C speed."""
     from PIL import Image
 
@@ -118,11 +118,9 @@ def paper_texture(
     size: tuple[int, int],
     config: PaperConfig,
     rng: random.Random,
-) -> "Image":
+) -> Image:
     """The sheet the document is printed on: base colour plus grain."""
-    from PIL import Image
-
-    from PIL import ImageChops
+    from PIL import Image, ImageChops
 
     sheet = Image.new("RGB", size, config.color)
 
@@ -165,7 +163,7 @@ def _panel_shading(
     boundaries: list[float],
     amplitude: float,
     horizontal: bool,
-) -> "Image":
+) -> Image:
     """Each panel between creases catches the light differently.
 
     A folded sheet never lies flat, so panels alternate between leaning
@@ -207,7 +205,7 @@ def fold_shading(
     size: tuple[int, int],
     config: PaperConfig,
     rng: random.Random,
-) -> "Image":
+) -> Image:
     """A 128-neutral map: panel shading plus a valley and ridge per crease."""
     from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageOps
 
@@ -282,7 +280,7 @@ def load_texture(
     size: tuple[int, int],
     strength: float,
     rng: random.Random,
-) -> "Image":
+) -> Image:
     """A photographed sheet, resized to the page.
 
     ``source`` is an image or a directory of them -- point it at a synthdog
@@ -296,9 +294,7 @@ def load_texture(
     path = Path(source)
     if path.is_dir():
         candidates = sorted(
-            child
-            for child in path.iterdir()
-            if child.suffix.lower() in TEXTURE_SUFFIXES
+            child for child in path.iterdir() if child.suffix.lower() in TEXTURE_SUFFIXES
         )
         if not candidates:
             raise FileNotFoundError(f"no texture images in {path}")
@@ -313,7 +309,7 @@ def load_texture(
     return texture.point(lambda value: int(round(255 - (255 - value) * blend)))
 
 
-def _bleed_through(image: "Image", alpha: float) -> "Image":
+def _bleed_through(image: Image, alpha: float) -> Image:
     """Ink from the back of the sheet, mirrored and faint (genalog)."""
     from PIL import Image, ImageChops, ImageFilter
 
@@ -325,12 +321,12 @@ def _bleed_through(image: "Image", alpha: float) -> "Image":
 
 
 def _salt_and_pepper(
-    image: "Image",
+    image: Image,
     config: PaperConfig,
     rng: random.Random,
-) -> "Image":
+) -> Image:
     """Random light/dark specks, thresholded out of a uniform plane."""
-    from PIL import Image, ImageChops
+    from PIL import ImageChops
 
     result = image
 
@@ -351,7 +347,7 @@ def _salt_and_pepper(
     return result
 
 
-def _vignette(image: "Image", strength: float) -> "Image":
+def _vignette(image: Image, strength: float) -> Image:
     """Corner darkening, built from Pillow's radial gradient."""
     from PIL import Image, ImageChops
 
@@ -364,10 +360,10 @@ def _vignette(image: "Image", strength: float) -> "Image":
 
 
 def apply_paper(
-    image: "Image",
+    image: Image,
     config: PaperConfig,
     rng: random.Random,
-) -> "Image":
+) -> Image:
     """Composite ``image`` onto textured paper and degrade it.
 
     The render is multiplied onto the sheet, so dark ink stays dark while

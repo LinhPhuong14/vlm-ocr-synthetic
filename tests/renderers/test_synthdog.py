@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import pytest
+from helpers import requires_renderer
 
-from conftest import requires_renderer
 from vlm_ocr_synthetic.renderers.synthdog import SynthdogConfig, SynthdogRenderer
 from vlm_ocr_synthetic.schemas.document import (
     BlockType,
@@ -125,7 +125,10 @@ def test_renderer_config_aligns_columns_when_the_table_does_not(invoice: Documen
 def test_table_layout_wins_over_the_renderer_config(invoice: Document):
     """A document that describes its own columns is not overridden."""
     configured = SynthdogRenderer(
-        {"table_column_align": ["right", "right", "left"], "table_column_widths": [0.8, 0.1, 0.1]}
+        {
+            "table_column_align": ["right", "right", "left"],
+            "table_column_widths": [0.8, 0.1, 0.1],
+        }
     ).render(invoice)
     plain = SynthdogRenderer().render(invoice)
 

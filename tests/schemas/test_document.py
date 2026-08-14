@@ -36,9 +36,7 @@ def test_table_block_is_kept_on_the_block(invoice: Document):
 
 
 def test_text_and_table_blocks_partition_the_page(invoice: Document):
-    assert len(invoice.text_blocks()) + len(invoice.table_blocks()) == len(
-        invoice.blocks
-    )
+    assert len(invoice.text_blocks()) + len(invoice.table_blocks()) == len(invoice.blocks)
 
 
 def test_n_columns_accounts_for_colspan():

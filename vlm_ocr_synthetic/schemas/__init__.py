@@ -14,9 +14,9 @@ __all__ = [
     "BlockType",
     "Document",
     "DocumentBlock",
+    "RenderConfig",
+    "RenderResult",
     "TableBlock",
     "TableCell",
     "TableRow",
-    "RenderConfig",
-    "RenderResult",
 ]

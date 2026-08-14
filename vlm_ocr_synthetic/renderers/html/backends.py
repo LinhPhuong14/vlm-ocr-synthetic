@@ -15,7 +15,6 @@ from abc import ABC, abstractmethod
 from contextlib import contextmanager, nullcontext
 from functools import lru_cache
 from pathlib import Path
-from typing import Optional
 
 # Boxes are keyed by the element's data-* id, values are CSS-pixel rects.
 Boxes = dict[str, dict[str, float]]
@@ -31,7 +30,7 @@ CHROMIUM_CANDIDATES = (
 )
 
 
-def resolve_chromium_path(explicit: Optional[str] = None) -> Optional[str]:
+def resolve_chromium_path(explicit: str | None = None) -> str | None:
     """Locate a chromium binary, or ``None`` to use playwright's own."""
     for candidate in (explicit, os.environ.get(CHROMIUM_ENV_VAR)):
         if candidate:
@@ -63,7 +62,7 @@ class ScreenshotEngine(ABC):
 
     @classmethod
     @abstractmethod
-    def check_available(cls) -> Optional[str]:
+    def check_available(cls) -> str | None:
         """``None`` when usable, else why not."""
 
     @abstractmethod
@@ -85,7 +84,7 @@ class ScreenshotEngine(ABC):
 class PlaywrightEngine(ScreenshotEngine):
     name = "playwright"
 
-    def __init__(self, executable_path: Optional[str] = None, timeout_ms: int = 30_000):
+    def __init__(self, executable_path: str | None = None, timeout_ms: int = 30_000):
         self.executable_path = executable_path
         self.timeout_ms = timeout_ms
         self._browser = None  # set while a session() is open
@@ -116,7 +115,7 @@ class PlaywrightEngine(ScreenshotEngine):
                 browser.close()
 
     @classmethod
-    def check_available(cls) -> Optional[str]:
+    def check_available(cls) -> str | None:
         return _playwright_status()
 
     def capture(
@@ -130,7 +129,9 @@ class PlaywrightEngine(ScreenshotEngine):
         from playwright.sync_api import sync_playwright
 
         if self._browser is not None:  # inside session(): reuse the browser
-            return self._capture(self._browser, html, page_width, page_height, scale, selectors)
+            return self._capture(
+                self._browser, html, page_width, page_height, scale, selectors
+            )
 
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(**self._launch_kwargs())
@@ -189,7 +190,7 @@ _BOX_SCRIPT = """
 
 
 @lru_cache(maxsize=1)
-def _playwright_status() -> Optional[str]:
+def _playwright_status() -> str | None:
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
