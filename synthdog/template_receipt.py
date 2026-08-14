@@ -20,12 +20,11 @@ import re
 from typing import List
 
 import numpy as np
-from PIL import Image
-from synthtiger import components, layers, templates
-
 from elements import Background, Paper
 from elements.receipt import Receipt
 from elements.warp import CurlWarp
+from PIL import Image
+from synthtiger import components, layers, templates
 
 
 class SynthVNReceipt(templates.Template):

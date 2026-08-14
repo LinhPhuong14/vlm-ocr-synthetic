@@ -6,10 +6,10 @@ MIT License
 from collections import OrderedDict
 
 import numpy as np
+from layouts import GridStack
 from synthtiger import components
 
 from elements.textbox import TextBox
-from layouts import GridStack
 
 
 class TextReader:
