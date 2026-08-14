@@ -1,675 +1,84 @@
 # vlm-ocr-synthetic
 
-Synthetic document pages for training and evaluating VLM / OCR models.
+Synthetic document images for training and evaluating VLM / OCR models, with
+structured labels. Three generators live here, each self-contained:
 
-A page is described **once** as a `Document` — blocks, tables, optional
-positions — and any render backend can turn that description into an image
-plus pixel-accurate ground truth. Two backends ship today:
-
-| backend    | how it draws                                | strengths | costs |
-| ---------- | ------------------------------------------- | --------- | ----- |
-| `synthdog` | Pillow paints the page directly             | boxes exact by construction, ~10x faster per page, no browser needed | typography is basic, layout is simple stacking |
-| `html`     | HTML/CSS laid out in chromium, screenshotted | real typography, tables, wrapping and CSS layout; boxes read off the DOM | needs a chromium binary, slower per page |
-
-Both then go through the **same paper layer**, so a page from either backend
-looks like it came off the same scanner (see [Paper](#paper-and-degradation)).
-
-Because both consume the same `Document` and return the same `RenderResult`,
-you can render one document through both and compare, or mix backends within a
-single dataset.
-
----
-
-## Layout
-
-```
-vlm_ocr_synthetic/
-├── schemas/
-│   ├── document.py     # BBox, TableCell/Row/Block, DocumentBlock, Document, BlockType
-│   └── render.py       # RenderConfig (shared knobs), RenderResult (image + ground truth)
-├── renderers/
-│   ├── base.py         # BaseRenderer: the contract every backend implements
-│   ├── __init__.py     # lazy registry: get_renderer(), available_renderers(), load_config()
-│   ├── synthdog/
-│   │   ├── fonts.py    # font lookup with sensible per-platform defaults
-│   │   └── renderer.py # SynthdogConfig + SynthdogRenderer (Pillow)
-│   ├── html/
-│   │   ├── html_builder.py  # Document -> HTML (no browser involved, unit-testable)
-│   │   ├── backends.py      # screenshot engines; PlaywrightEngine + chromium lookup
-│   │   ├── renderer.py      # HtmlConfig + HtmlRenderer
-│   │   └── templates/       # jinja2 page template
-│   └── paper.py        # the paper + degradation layer both backends share
-├── samples/            # ready-made documents + corpus.py (shared text + the format rule)
-├── benchmark.py        # render through every backend and compare
-├── compat.py           # interpreter and dependency floors
-├── cli.py              # python -m vlm_ocr_synthetic
-└── __main__.py
-configs/                # one strict YAML preset per backend
-tests/                  # contract suite shared by all backends + per-backend tests
-experiments/            # scratch scripts, safe to break
-data/                   # everything generated (see below)
-```
-
-Backends are imported **lazily** through the registry, so a missing browser
-never breaks `synthdog`, a missing Pillow never breaks the registry, and
-`python -m vlm_ocr_synthetic list` still explains what is wrong.
-
----
-
-## Install
-
-Python **3.10 – 3.14**.
+| directory | what it generates | how | Python |
+| --- | --- | --- | --- |
+| [`synthdog/`](synthdog/README_vi_receipt.md) | Vietnamese thermal-printer receipts, with structured ground truth for Donut | [synthtiger](https://github.com/clovaai/synthtiger) templates | **3.8 – 3.12** |
+| [`html-table/`](html-table/README.md) | table images with cell-level annotations | HTML rendered in a browser | 3.8+ |
+| [`genalog/`](https://github.com/microsoft/genalog) | degraded document images from text | Microsoft genalog, as a submodule | 3.6 – 3.8 |
 
 ```bash
+git clone --recurse-submodules https://github.com/LinhPhuong14/vlm-ocr-synthetic.git
+```
+
+Already cloned without submodules? `git submodule update --init`.
+
+---
+
+## Vietnamese receipts — `synthdog/`
+
+The main generator: thermal-printer bills for restaurants and shops, with
+diacritics, VAT, discounts and change, on paper that is skewed, curled and
+blurred differently every time.
+
+```bash
+cd synthdog
 python -m venv .venv && source .venv/bin/activate
-pip install -e ".[all]"
-python -m vlm_ocr_synthetic doctor      # interpreter, deps and backends in one shot
+pip install -U pip setuptools wheel      # required, see requirements.txt
+pip install -r requirements.txt
+
+synthtiger -o ./outputs/VNReceipt -c 1000 -w 4 -v \
+    template_receipt.py SynthVNReceipt config_vi_receipt.yaml
 ```
 
-Extras let you install only what you need:
+Full instructions, including the config knobs and troubleshooting:
+[`synthdog/README_vi_receipt.md`](synthdog/README_vi_receipt.md).
 
-| extra        | pulls in                        | for |
-| ------------ | ------------------------------- | --- |
-| *(none)*     | pydantic, PyYAML                | schemas, registry, configs |
-| `synthdog`   | + Pillow                        | the Pillow backend |
-| `html`       | + Pillow, Jinja2, playwright    | the browser backend |
-| `dev`        | + pytest                        | the test suite |
-| `all`        | everything above                | |
+**Python 3.13+ will not work here**, and the version cap is not caution — the
+pins in `synthdog/requirements.txt` each come from a real failure
+(`pillow<10`, `numpy<2`, `opencv-python<5`). [`docs/python-314.md`](docs/python-314.md)
+has the measurements, including which wheels stop existing where.
 
-The `html` backend needs a chromium binary:
+---
+
+## Table images — `html-table/`
+
+Vendored from [TIES_DataGeneration](https://github.com/hassan-mahmood/TIES_DataGeneration),
+extended with configurable cell types, merged cells and colours. Renders tables
+through a browser and writes cell-level annotations.
 
 ```bash
-playwright install chromium          # if you have no system chromium
-```
-
-It is looked up in this order — first hit wins:
-
-1. `executable_path:` in the renderer config
-2. `$VLM_OCR_CHROMIUM_PATH`
-3. `/opt/pw-browsers/chromium`, `/usr/bin/chromium`, `/usr/bin/chromium-browser`, `/usr/bin/google-chrome`
-4. `chromium` / `chromium-browser` / `google-chrome` on `$PATH`
-5. playwright's own bundled browser
-
-Useful when the pre-provisioned browser and the playwright version disagree:
-
-```bash
-export VLM_OCR_CHROMIUM_PATH=/opt/pw-browsers/chromium
+cd html-table
+pip install -r requirements.txt
+python generate_data.py --help
 ```
 
 ---
 
-## Python 3.14, and why there is no pygame
+## Degraded documents — `genalog/`
 
-The suite passes unchanged on **CPython 3.14.7** (and on 3.11), both backends
-included. Two things make that true, and both are enforced by tests rather than
-just claimed.
-
-### Dependency floors
-
-Python 3.14 needs newer dependencies than older interpreters: below these
-versions there is no cp314 wheel, so pip falls back to a source build that fails
-or takes minutes. `pyproject.toml` applies them with `python_version >= '3.14'`
-markers, and `vlm_ocr_synthetic/compat.py` re-checks them at runtime.
-
-| dependency | floor on 3.14 | what happens below it |
-| ---------- | ------------- | --------------------- |
-| `pydantic` | 2.12    | 2.11 and older have no cp314 wheel for `pydantic-core` — install fails outright |
-| `PyYAML`   | 6.0.3   | first release with a cp314 wheel |
-| `Pillow`   | 11.3    | first release with a cp314 wheel |
-| `playwright` | 1.52  | 1.49 and older pin `greenlet==3.1.1`, which has no cp314 wheel |
-
-Older interpreters keep the loose floors, so nothing is forced on 3.10 – 3.13.
-
-### The original synthdog does not run on 3.14
-
-The synthdog from donut renders through `synthtiger`, which pins
-`pygame==2.6.1`. Measured on CPython 3.14.7:
-
-| attempt | result |
-| ------- | ------ |
-| `pip install pygame` | no cp314 wheel → source build **fails** |
-| `pip install synthtiger` | pulls `pygame==2.6.1` → same failure |
-| `pip install pygame-ce` | **works** (2.5.8, ships cp314 wheels, same `import pygame` API) |
-| synthtiger + pygame-ce + NumPy 2 | `import synthtiger` → `AttributeError: np.sctypes was removed in NumPy 2.0` (via `imgaug`) |
-| synthtiger + pygame-ce + NumPy 1.26 (2 min source build) | `import synthtiger` → scipy dies on `np.long`, removed in NumPy 2 |
-
-So **pygame is only the first wall.** Swapping in `pygame-ce` clears it, but
-`imgaug` (unmaintained since 2020) needs NumPy 1.x APIs while every scipy build
-that exists for 3.14 needs NumPy ≥ 2 — a conflict no pin resolves. The last
-interpreter where that whole stack installs from wheels is **CPython 3.12**
-(`numpy 1.26.4` and `scipy 1.13.1` stop at cp312).
-
-### What replaces pygame here
-
-Our `synthdog` backend never depended on pygame — it draws with Pillow, whose
-FreeType binding covers everything synthtiger used pygame for:
-
-| synthtiger / pygame | here |
-| ------------------- | ---- |
-| `pygame.freetype` glyph rasterisation | `PIL.ImageFont` on FreeType 2.14, with **raqm 0.10** for complex-script shaping (Vietnamese diacritics, Arabic, Indic) |
-| pygame surfaces and blitting for layers | `PIL.Image` / `ImageDraw` layers |
-| `imgaug` noise and effects | the `paper` layer: `PIL.ImageChops` + a seeded `random.Random`, so output stays reproducible |
-| synthtiger text layout | the wrapping and flow layout in `renderers/synthdog/renderer.py` |
-
-`tests/test_environment.py` runs a real render in a clean interpreter and fails
-if `pygame`, `synthtiger` or `imgaug` ever appear in `sys.modules`.
-
-If you specifically need the original synthdog, run it on Python ≤ 3.12 in its
-own environment and keep this package on 3.14 — they exchange data as plain
-images plus JSON.
+[Microsoft genalog](https://github.com/microsoft/genalog) as a submodule: HTML
+templates plus a degradation pipeline (blur, bleed-through, salt, pepper,
+morphology). Useful when you have text and want scanned-looking pages from it.
 
 ---
 
-## Quickstart
-
-```bash
-# Which backends are usable right now, and why the others are not?
-python -m vlm_ocr_synthetic list
-
-# Render the built-in sample with every available backend (into data/)
-python -m vlm_ocr_synthetic render -r all
-
-# Compare the backends and write data/benchmark/report.md
-python -m vlm_ocr_synthetic benchmark --pages 3
-
-# One backend, a shipped preset, 2x resolution
-python -m vlm_ocr_synthetic render -r html -c configs/html_scanned.yaml --scale 2.0
-
-# Your own document
-python -m vlm_ocr_synthetic render -r synthdog -d my_doc.json --stem my_doc
-```
-
-Both backends side by side, with the boxes printed:
-
-```bash
-python experiments/render_sample.py --out data/compare
-```
-
-From Python:
-
-```python
-from vlm_ocr_synthetic.renderers import get_renderer
-from vlm_ocr_synthetic.samples import get_sample
-
-document = get_sample("invoice")
-
-for name in ("synthdog", "html"):
-    result = get_renderer(name, {"scale": 2.0, "seed": 7}).render(document)
-    result.save(f"data/{name}", stem="invoice")   # -> invoice.png + invoice.json
-```
-
-### CLI reference
-
-| command | what it does |
-| ------- | ------------ |
-| `doctor` | interpreter, dependency floors, backend availability; exits non-zero on problems (`--json` too) |
-| `list` | backend availability (`--json` for machine-readable output) and sample names |
-| `render` | render one document |
-| `benchmark` | render the same pages through every backend, save images + report |
-
-Samples: `invoice`, `receipt_vn` (pass with `-s`).
-
-`render` flags: `-r/--renderer` (name or `all`, default `all`) · `-c/--config`
-(YAML/JSON preset) · `-d/--document` (a `Document` JSON file) · `-s/--sample`
-(built-in document, default `invoice`) · `-o/--out` (default `outputs`) ·
-`--stem` (file stem, default `page`) · `--scale` (override the config) ·
-`--no-paper` (structure only, skip the paper stage) · `--strict` (exit non-zero
-when a backend is unavailable, for CI).
-
----
-
-## Output format
-
-Every render writes a pair into `<out>/<backend>/`, and `<out>` defaults to
-`data/`:
+## Repository layout
 
 ```
-data/html/page.png     # the rendered page
-data/html/page.json    # the document, with every bbox filled in
+synthdog/      SynthDoG-VN: templates, configs, corpora, tools
+html-table/    vendored HTML table generator
+genalog/       submodule -> microsoft/genalog
+resources/     shared corpora (wiki text for synthtiger)
+docs/          notes worth keeping across generators
 ```
 
-```jsonc
-{
-  "renderer": "html",
-  "image_size": [1000, 1400],            // pixels
-  "metadata": {
-    "engine": "playwright",
-    "layout": "flow",
-    "scale": 1.0,
-    "bbox_space": "document"             // NOT pixels -- see below
-  },
-  "document": {
-    "page_width": 1000,
-    "page_height": 1400,
-    "blocks": [
-      {
-        "block_type": "Page-Header",
-        "content": "INVOICE",
-        "bbox": {"x1": 60.0, "y1": 60.0, "x2": 940.0, "y2": 97.79}
-      },
-      {
-        "block_type": "Table",
-        "bbox": {"x1": 60.0, "y1": 175.48, "x2": 940.0, "y2": 316.54},
-        "table": {
-          "bbox": {"x1": 60.0, "y1": 175.48, "x2": 940.0, "y2": 316.54},
-          "rows": [
-            {"cells": [
-              {"content": "Item", "is_header": true, "rowspan": 1, "colspan": 1,
-               "bbox": {"x1": 60.5, "y1": 175.98, "x2": 427.6, "y2": 222.67}}
-            ]}
-          ]
-        }
-      }
-    ]
-  }
-}
-```
+`make help` lists the tasks: `make setup` prepares the synthdog environment,
+`make lint` and `make check` keep the repo's own scripts tidy.
 
-### Coordinate convention
+## Licence
 
-Boxes are always in **document space** (`page_width` x `page_height`), never in
-pixels. The same annotation is therefore valid for every `scale`; convert when
-you need pixels:
-
-```python
-scale = result.metadata["scale"]
-pixel_bbox = block.bbox.scaled(scale)
-```
-
----
-
-## Documents
-
-```python
-from vlm_ocr_synthetic.schemas.document import (
-    BBox, BlockType, Document, DocumentBlock, TableBlock, TableCell, TableRow,
-)
-
-Document(
-    page_width=1000,
-    page_height=1400,
-    blocks=[
-        DocumentBlock(block_type=BlockType.TITLE, content="Quarterly report"),
-        DocumentBlock(block_type=BlockType.TEXT, content="Body text ..."),
-        DocumentBlock(
-            block_type=BlockType.TABLE,
-            table=TableBlock(rows=[
-                TableRow(cells=[TableCell(content="Item", is_header=True)]),
-                TableRow(cells=[TableCell(content="Apple")]),
-            ]),
-        ),
-    ],
-)
-```
-
-- `block_type` uses the DocLayNet-flavoured vocabulary in `BlockType`
-  (`Title`, `Section-header`, `Text`, `List-item`, `Table`, `Footnote`, ...).
-- `content` holds the text; `table` holds structure and is only set for table
-  blocks.
-- **`bbox` is optional on input.** Leave it out and the backend lays the block
-  out itself, then reports where it landed. Provide it and the block is pinned
-  there (`synthdog`, and `html` with `layout: absolute`).
-
-Documents are pydantic models, so `Document.model_validate_json(...)` /
-`document.model_dump_json()` round-trip cleanly through disk.
-
----
-
-## Samples
-
-Two documents ship with the package; `python -m vlm_ocr_synthetic list` names
-them, and `experiments/build_gallery.py` regenerates the previews below.
-
-### `receipt_vn` — Vietnamese restaurant bill
-
-80mm thermal paper, centred shop block, cash total, thank-you footer, and the
-column layout Vietnamese invoices actually use:
-
-| STT | Tên hàng | SL | Đơn giá | Thành tiền |
-| --- | -------- | -- | ------- | ---------- |
-| 1 | Bún Sinh | 1 | 42,000 | 42,000 |
-| 4 | Cơm Bát Bửu | 4 | 43,000 | 172,000 |
-
-Only the item name is free text. `STT` numbers the lines, `Thành tiền` is
-`SL x Đơn giá`, and the cash total is the sum — so a generated bill always adds
-up, whatever order you feed it. The register line and the cash total are real
-two- and three-column tables rather than padded strings, so they land the same
-way in both backends (see [the corpus rule](#corpus-rule-content-is-words-layout-is-structure)):
-
-```python
-from vlm_ocr_synthetic.samples.receipt_vn import OrderLine, build_receipt_document
-
-document = build_receipt_document(
-    order=(OrderLine("Phở Bò", 3, 30_000), OrderLine("Trà Đá", 2, 2_000)),
-    table_number=12,
-)
-```
-
-The text carries full diacritics on purpose: it is the cheapest end-to-end check
-that font shaping is not dropping Vietnamese marks, in **both** the Pillow
-backend (via raqm) and the browser.
-
-| `synthdog` | `html` | `html`, structure only |
-| --- | --- | --- |
-| ![receipt rendered by synthdog](data/samples/receipt_vn-synthdog.jpg) | ![receipt rendered by html](data/samples/receipt_vn-html.jpg) | ![receipt structure without paper](data/samples/receipt_vn-html-structure.jpg) |
-| `configs/synthdog_receipt_vn.yaml` | `configs/html_receipt_vn.yaml` | `--no-paper` |
-
-Receipts needed things the general presets did not have, all added as config or
-document structure rather than as special cases in the renderers: `extra_css` on
-the html backend (centre the header, drop table borders) and
-`center_block_types` / `underline_headers` on synthdog. The column widths and
-alignment are **not** in either preset — they are in the document.
-
-### `invoice` — A4 page with a bordered table
-
-| `synthdog` | `html` (flow) | `html` (scanned preset) |
-| --- | --- | --- |
-| ![invoice by synthdog](data/samples/invoice-synthdog.jpg) | ![invoice by html](data/samples/invoice-html-flow.jpg) | ![invoice, degraded](data/samples/invoice-html-scanned.jpg) |
-
----
-
-## Corpus rule: content is words, layout is structure
-
-A content string holds the words and nothing else — no padding spaces to line
-columns up, no tabs, no manual right-alignment. Alignment lives in the table's
-`column_widths` / `column_align`, which **both backends read from the
-document**.
-
-The rule exists because the two backends cannot agree about whitespace: Pillow
-lays out glyph runs, a browser applies `white-space` and its own shaper, and a
-proportional font makes padded "alignment" drift anyway. This string rendered as
-two different documents:
-
-```python
-DocumentBlock(block_type="Section-header", content="TIỀN MẶT        537,000")
-# synthdog collapsed it to  "TIỀN MẶT 537,000"
-# the browser kept it as    "TIỀN MẶT        537,000"
-```
-
-It is now a two-cell row, and both backends place it identically:
-
-```python
-TableBlock(
-    rows=[TableRow(cells=[TableCell(content="TIỀN MẶT"), TableCell(content="537,000")])],
-    column_widths=(0.5, 0.5),
-    column_align=("left", "right"),
-)
-```
-
-`vlm_ocr_synthetic/samples/corpus.py` holds the shared text — Vietnamese invoice
-column headings, labels, money formatting — and `assert_plain_text(document)`
-enforces the rule. `tests/test_corpus.py` runs it over every shipped sample, so
-a future generator cannot quietly reintroduce padded strings.
-
-Two more things keep the backends aligned:
-
-- **The table carries its own layout.** `column_widths` are normalised, so
-  `(1, 4, 1)` and `(0.17, 0.66, 0.17)` mean the same thing. A renderer config
-  (`table_column_widths` / `table_column_align` on synthdog, CSS on html) is
-  only a fallback for documents that describe nothing — when the document does,
-  it wins.
-- **synthdog preserves whitespace runs**, exactly like `white-space: pre-wrap`
-  in the browser, so text that *does* contain padding survives intact in both.
-  A wrap swallows only the whitespace it broke on.
-
-The invariant is tested, not just documented: the same document rendered through
-both backends must produce **the same table column geometry**.
-
-```
-receipt header row, cell widths in document space
-  synthdog  [41, 188, 41, 107, 132]
-  html      [41, 188, 41, 107, 132]
-```
-
----
-
-## Paper and degradation
-
-Rendering runs in **two stages**. A backend first produces the *structure* —
-glyphs, rules, table geometry — and the paper layer is applied to that finished
-page afterwards, for **both backends and every config**. A browser screenshot is
-pixel-perfect and a rasteriser is pixel-perfect; scanned paper is neither, and a
-model trained only on clean pages learns the wrong prior.
-
-Keeping the stages separate means you can check the structure on a clean sheet,
-then try several paper presets against the same render without paying for the
-layout again — no browser involved the second time:
-
-```bash
-python -m vlm_ocr_synthetic render -r html --no-paper     # stage one only
-```
-
-```python
-structure = get_renderer("html", {"paper": {"enabled": False}}).render(document)
-
-for preset in (PaperConfig(grain=4), PaperConfig(grain=9, blur=0.4, vignette=0.3)):
-    structure.with_paper(preset).save("data/variants")
-```
-
-`with_paper()` carries the annotations over untouched — the paper stage moves no
-geometry, which is exactly what `tests/test_paper.py` asserts. Applying paper
-afterwards is byte-identical to letting the backend do it inline with the same
-seed.
-
-`renderers/paper.py` is shared, so the paper treatment is never what makes two
-backends differ:
-
-| knob | simulates | default |
-| ---- | --------- | ------- |
-| `color` | the sheet itself; the render is multiplied onto it, so ink stays dark | `[250, 249, 245]` |
-| `grain` | paper texture, as gaussian grey-level noise | `4.0` |
-| `fold_rows` / `fold_columns` | creases from a sheet that was folded before it was scanned | `0` |
-| `fold_strength` | how hard those creases were pressed (0 disables folds) | `0` |
-| `fold_softness` | crease blur radius in px; how rounded the fold is | `4.0` |
-| `fold_jitter` | crease offset as a fraction of the page, so no two sheets fold alike | `0.02` |
-| `texture` | a photographed sheet: an image, or a directory to pick one from | `null` |
-| `texture_strength` | how far that photograph is blended in | `1.0` |
-| `blur` | a scanner that cannot quite focus | `0` |
-| `bleed_through` | ink seeping from the reverse side (mirrored, blurred) | `0` |
-| `salt` | fraction of pixels lightened — faded ink | `0` |
-| `pepper` | fraction of pixels darkened — dust and scanner specks | `0` |
-| `vignette` | darkening towards the corners | `0` |
-
-### Folds
-
-synthdog gets its creases from photographs — `resources/paper/*.jpg`, real
-sheets that had been folded before they were shot. This generates the same
-effect procedurally, so nothing has to be shipped or downloaded:
-
-```yaml
-paper:
-  fold_rows: 1        # one crease across
-  fold_columns: 1     # one down: the sheet was quartered
-  fold_strength: 0.6
-  fold_softness: 5.0
-```
-
-`fold_rows: 2` is a letter tri-fold; `fold_rows: 1` alone is the single crease a
-restaurant bill picks up on the way into a pocket. Each crease gets a dark
-valley and a lighter ridge beside it, each panel between creases leans towards
-or away from the light, and position and pressure are jittered per page from the
-seed — so a batch does not fold identically. `configs/html_folded.yaml` is a
-ready-made quarter fold.
-
-| clean | tri-fold, photocopied | quarter fold |
-| --- | --- | --- |
-| ![clean page](data/samples/invoice-html-flow.jpg) | ![tri-folded and degraded](data/samples/invoice-html-scanned.jpg) | ![quarter folded](data/samples/invoice-html-folded.jpg) |
-
-If you do have real paper photographs — synthdog's `resources/paper`, or your
-own scans — point `texture` at the file or the directory and they are multiplied
-into the sheet instead, with one picked per page from the seed:
-
-```yaml
-paper:
-  texture: /path/to/synthdog/resources/paper
-  texture_strength: 0.8
-```
-
-The effect list follows [genalog's degradation
-model](https://github.com/microsoft/genalog); the sheet-and-ink compositing
-follows synthdog's paper layer. Turn it all off with `paper: {enabled: false}`,
-or turn it up with `configs/html_scanned.yaml`.
-
-Two properties are enforced by `tests/test_paper.py`: degradation changes
-**pixels only, never annotations**, and the same seed always produces the same
-page. Implementation stays on Pillow's C paths (a 256-entry LUT for the gaussian
-grain, thresholded noise planes for salt and pepper), so this sits in the
-default pipeline without dominating render time.
-
----
-
-## Benchmark
-
-```bash
-python -m vlm_ocr_synthetic benchmark --pages 3          # -> data/benchmark/
-python -m vlm_ocr_synthetic benchmark --no-paper         # measure without paper
-python -m vlm_ocr_synthetic benchmark -r synthdog -n 20
-```
-
-It renders the same documents through every case, saves **every image it
-generates** under `data/benchmark/<case>/`, and writes `report.md` +
-`report.json` next to them. The committed
-[`data/benchmark/report.md`](data/benchmark/report.md) is the current numbers.
-
-The html backend appears twice, because comparing it to synthdog only makes
-sense when both are asked for the same geometry:
-
-| case | what it is |
-| ---- | ---------- |
-| `synthdog` | Pillow rasteriser |
-| `html-flow` | browser, CSS decides the layout |
-| `html-absolute` | browser, blocks pinned to the input bboxes |
-
-Measured: seconds/page (median and mean), image and PNG size, ink coverage,
-luminance mean/stdev, blocks and cells annotated, whether every box is present,
-**layout fidelity** (mean IoU between requested and achieved geometry),
-determinism, and pairwise cross-backend IoU.
-
-Two findings worth knowing before you pick a backend:
-
-- **synthdog renders ~10x faster per page.** The browser is one process for a
-  whole batch — `render_many()` and the benchmark keep chromium alive via
-  `renderer.session()` — but a page still costs ~0.25 s against ~0.03 s.
-- **The two backends report boxes by different conventions.** `html-absolute`
-  scores 1.0 on layout fidelity because a pinned block *is* its CSS box;
-  synthdog scores ~0.26 on the same document because it reports the **tight ink
-  extent** rather than the requested slot. Neither is wrong — but if you mix
-  backends in one dataset, the boxes are not describing the same thing.
-
----
-
-## Configs
-
-Presets live in `configs/`, one per backend flavour, and are **strict**: an
-unknown key raises instead of being silently ignored, so a typo cannot quietly
-change nothing.
-
-```yaml
-# configs/html_flow.yaml
-renderer: html          # required: picks the backend
-scale: 1.0
-seed: 42
-layout: flow
-font_size: 22
-```
-
-```bash
-python -m vlm_ocr_synthetic render -c configs/html_flow.yaml
-```
-
-| preset | what it gives you |
-| ------ | ----------------- |
-| `synthdog_default.yaml` | Pillow, off-white paper, table grid, light scan noise |
-| `html_flow.yaml` | browser, CSS decides the layout — realistic and varied |
-| `html_absolute.yaml` | browser, blocks pinned to the input bboxes — comparable to synthdog |
-| `html_scanned.yaml` | browser, genalog-style degradations turned up: blur, bleed-through, specks, vignette, tri-fold |
-| `html_folded.yaml` | browser, a sheet quarter-folded before it was scanned |
-| `html_receipt_vn.yaml` | browser, 80mm thermal receipt (mono font, centred, borderless) |
-| `synthdog_receipt_vn.yaml` | the same receipt through Pillow, for side-by-side checks |
-
-Shared knobs (`RenderConfig`): `page_width`, `page_height`, `scale`, `seed`.
-`SynthdogConfig` adds fonts, margins, spacing, colours, `noise_sigma`,
-`draw_table_grid`. `HtmlConfig` adds `engine`, `executable_path`, `timeout_ms`,
-`layout`, and the CSS-facing typography/colour settings.
-
-### HTML layout modes
-
-- `flow` — CSS lays the page out; boxes come back from the DOM. Use this for
-  realistic, varied training pages.
-- `absolute` — every block is pinned to the bbox in the input document. Use this
-  to render identical geometry through both backends and diff the results.
-
----
-
-## What is in `data/`
-
-Every image any command generates lands under `data/`:
-
-```
-data/<backend>/page.png            # python -m vlm_ocr_synthetic render
-data/samples/*.jpg + *.json        # python experiments/build_gallery.py
-data/benchmark/<case>/page_*.png   # python -m vlm_ocr_synthetic benchmark
-data/benchmark/report.md + .json
-data/benchmark/preview-<case>.jpg
-```
-
-Full-resolution PNGs are regenerable and large — paper grain is close to
-incompressible, so a 1000x1400 page is ~1.5 MB. What git tracks is the small,
-reviewable subset: the JPEG previews (~200 KB each at full resolution), their
-annotations, and the benchmark report. Everything else under `data/` is ignored.
-
----
-
-## Testing
-
-```bash
-pytest                  # everything (renders through both backends)
-pytest -m "not slow"    # schemas, registry, markup only -- no rendering, <1s
-pytest -k html          # one backend
-```
-
-`tests/test_renderers.py` is parametrised over the registry, so **every backend
-is held to the same contract**: correct image size, a non-blank page, a bbox for
-every block and every table cell, cells that do not overlap within a row,
-content preserved through rendering, annotations that survive a save/reload, and
-byte-identical output across two runs with the same seed.
-
-A backend whose dependencies are missing is **skipped with the reason attached**
-— never silently passed:
-
-```
-SKIPPED [1] tests/test_renderers.py:102: html renderer unavailable: chromium not found: /nope/chromium
-```
-
-Per-backend files cover what only that backend can get wrong: font lookup, text
-wrapping and noise determinism for `synthdog`; HTML escaping, `data-*`
-annotation, absolute-vs-flow layout and CSS-pixel (not device-pixel) boxes for
-`html`.
-
----
-
-## Adding a backend
-
-1. Subclass `BaseRenderer`; set `name` and `config_model`; implement
-   `render(document) -> RenderResult` and `check_available()` (return `None`
-   when usable, else a human-readable reason).
-2. Register it:
-
-```python
-from vlm_ocr_synthetic.renderers import register_renderer
-
-register_renderer("weasyprint", "my_pkg.renderer:WeasyPrintRenderer")
-```
-
-   In-tree backends go straight into `_REGISTRY` in
-   `vlm_ocr_synthetic/renderers/__init__.py`.
-
-3. Emit boxes in document space and set `metadata["bbox_space"] = "document"`.
-
-The shared contract suite, the CLI (`list`, `render -r all`) and config loading
-pick the new backend up with no further changes.
-
-To add only a new *screenshot engine* for the HTML backend (weasyprint, a
-different browser driver), subclass `ScreenshotEngine` in
-`renderers/html/backends.py` and add it to `ENGINES`; the engine is selected via
-`engine:` in the config.
+Not yet chosen — add one before publishing. Note that `html-table/` carries its
+own `LICENSE.md`, and `genalog/` is MIT-licensed upstream.

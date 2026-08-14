@@ -1,62 +1,24 @@
-[build-system]
-requires = ["setuptools>=68"]
-build-backend = "setuptools.build_meta"
+# This repository is a collection of generators, not an installable package:
+# each of synthdog/, html-table/ and genalog/ has its own dependencies and its
+# own supported Python range. What lives here is the tooling configuration
+# shared across them.
 
-[project]
-name = "vlm-ocr-synthetic"
-version = "0.1.0"
-description = "Synthetic document generation for VLM/OCR training, with pluggable render backends"
-readme = "README.md"
-requires-python = ">=3.10"
-classifiers = [
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
+[tool.ruff]
+line-length = 90
+# synthdog targets Python 3.8, so ruff must not suggest newer syntax --
+# `zip(strict=)` and friends would break the environment it actually runs in.
+target-version = "py38"
+# Vendored third-party code keeps its own style and its own pre-commit config.
+extend-exclude = ["html-table", "genalog", "resources", ".venv*"]
+
+[tool.ruff.lint]
+# Correctness and imports; not a style crusade over code adapted from upstream.
+select = ["E", "F", "I"]
+ignore = [
+    "E501",  # long lines
+    "E731",  # assigned lambdas read fine in the layout helpers
 ]
 
-# Python 3.14 needs higher floors than older interpreters: below these
-# versions there is no cp314 wheel, so pip falls back to a source build that
-# fails or takes minutes. See vlm_ocr_synthetic/compat.py for the evidence
-# behind each floor -- that module and these pins must stay in sync.
-dependencies = [
-    "pydantic>=2.0; python_version < '3.14'",
-    "pydantic>=2.12; python_version >= '3.14'",
-    "PyYAML>=6.0; python_version < '3.14'",
-    "PyYAML>=6.0.3; python_version >= '3.14'",
-]
-
-[project.optional-dependencies]
-synthdog = [
-    "Pillow>=10.0; python_version < '3.14'",
-    "Pillow>=11.3; python_version >= '3.14'",
-]
-html = [
-    "Pillow>=10.0; python_version < '3.14'",
-    "Pillow>=11.3; python_version >= '3.14'",
-    "Jinja2>=3.1",
-    "playwright>=1.40; python_version < '3.14'",
-    "playwright>=1.52; python_version >= '3.14'",
-]
-dev = ["pytest>=7.0"]
-all = [
-    "vlm-ocr-synthetic[synthdog,html,dev]",
-]
-
-[project.scripts]
-vlm-ocr-synthetic = "vlm_ocr_synthetic.cli:main"
-
-[tool.setuptools.packages.find]
-include = ["vlm_ocr_synthetic*"]
-
-[tool.setuptools.package-data]
-"vlm_ocr_synthetic.renderers.html" = ["templates/*.j2"]
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-pythonpath = ["."]
-addopts = "-ra"
-markers = [
-    "slow: renders through a real backend (browser / rasteriser)",
-]
+[tool.ruff.lint.per-file-ignores]
+# Kept close to clovaai/donut so upstream changes still merge cleanly.
+"synthdog/template.py" = ["F841"]
