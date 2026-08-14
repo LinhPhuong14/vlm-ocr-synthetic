@@ -6,7 +6,7 @@ self-contained: its own dependencies, its own supported Python, its own README.
 
 | generator | produces | how | Python | status |
 | --- | --- | --- | --- | --- |
-| [`generators/synthdog/`](generators/synthdog/README_vi_receipt.md) | Vietnamese thermal-printer receipts with structured ground truth for Donut | [synthtiger](https://github.com/clovaai/synthtiger) templates | **3.8 – 3.12** | first-party |
+| [`generators/synthdog/`](generators/synthdog/README_vi_receipt.md) | Vietnamese thermal-printer receipts with structured ground truth for Donut | [synthtiger](https://github.com/clovaai/synthtiger) templates | **3.8 – 3.11** | first-party |
 | [`generators/html-table/`](generators/html-table/README.md) | table images with cell-level annotations | HTML rendered in a browser | 3.8+ | vendored |
 | [`generators/genalog/`](https://github.com/microsoft/genalog) | degraded document images from plain text | Microsoft genalog | 3.6 – 3.8 | submodule |
 
@@ -37,6 +37,8 @@ generators/
 ├── html-table/         vendored TableGeneration + its dictionaries
 └── genalog/            submodule -> microsoft/genalog
 
+augment/                DocCreator's degradations, in Python -- applied to any generator's output
+scripts/                one-off drivers (augmentation demo)
 docs/                   notes that outlive any one generator
 .github/workflows/      lint, byte-compile, and a real synthtiger install
 Makefile                the tasks; `make help` lists them
@@ -56,7 +58,7 @@ diacritics, VAT, discounts and change, on paper skewed, curled and blurred
 differently every time.
 
 ```bash
-make setup      # a 3.12 venv with the pinned dependencies
+make setup      # a 3.11 venv with the pinned dependencies
 make receipts   # 100 receipts into generators/synthdog/outputs/
 make preview    # a grid of 8, to eyeball a config change
 ```
@@ -96,6 +98,23 @@ python generate_data.py --help
 templates plus a degradation pipeline (blur, bleed-through, salt, pepper,
 morphology). Useful when you already have text and want scanned-looking pages
 from it. Work on it upstream, not in place.
+
+---
+
+## Augmentation
+
+[`augment/`](augment/README.md) is a Python port of the degradation models from
+[DocCreator](https://github.com/DocCreator/DocCreator) — local ink decay,
+bleed-through, blur zones, binding shadow, holes. It runs on whatever a
+generator produced, so the same ageing can be applied to receipts and to
+genalog pages alike.
+
+```bash
+python scripts/augment_samples.py --synthdog <dir> --genalog <dir> -o data/augment
+```
+
+[`data/augment/`](data/augment) holds ten before/after pairs, five from each
+generator.
 
 ---
 

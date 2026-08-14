@@ -32,8 +32,10 @@ combination of pins satisfies both.
 | `scipy` | 1.13.1 (last supporting NumPy 1.x) | **cp312** |
 | `imgaug` | 0.4.0 | pure Python, but needs NumPy 1.x |
 
-`numpy` and `scipy` are what set the ceiling: **CPython 3.12 is the last
-interpreter where the whole stack installs from wheels.**
+`numpy` and `scipy` are what set the ceiling: **CPython 3.11 is the last interpreter where the whole
+stack installs from wheels** on Linux: `pillow<10` resolves to 9.5.0, whose
+manylinux wheels stop at cp311, so 3.12 falls back to a source build that
+fails. Measured here, not inferred.
 
 ## What this means in practice
 
