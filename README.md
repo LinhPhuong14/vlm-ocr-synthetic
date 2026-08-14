@@ -40,7 +40,6 @@ generators/
 augment/                DocCreator's degradations, in Python -- applied to any generator's output
 scripts/                one-off drivers (augmentation demo)
 docs/                   notes that outlive any one generator
-.github/workflows/      lint, byte-compile, and a real synthtiger install
 Makefile                the tasks; `make help` lists them
 pyproject.toml          ruff configuration (this repo is not a package)
 ```
@@ -122,7 +121,8 @@ It calls WeasyPrint's `write_png()`, removed in WeasyPrint 53, so
 ## Contributing
 
 [CONTRIBUTING.md](CONTRIBUTING.md) covers which environment to build for which
-generator, what CI checks, and the constraints that are deliberate.
+generator, the checks to run before pushing, and the constraints that are
+deliberate.
 
 ## Licence
 
