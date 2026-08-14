@@ -32,18 +32,25 @@ combination of pins satisfies both.
 | `scipy` | 1.13.1 (last supporting NumPy 1.x) | **cp312** |
 | `imgaug` | 0.4.0 | pure Python, but needs NumPy 1.x |
 
-`numpy` and `scipy` are what set the ceiling: **CPython 3.11 is the last interpreter where the whole
-stack installs from wheels** on Linux: `pillow<10` resolves to 9.5.0, whose
-manylinux wheels stop at cp311, so 3.12 falls back to a source build that
-fails. Measured here, not inferred.
+Add Pillow to that table and the ceiling drops again:
+
+| package | version needed | last CPython with a Linux wheel |
+| ------- | -------------- | ------------------------------- |
+| `pillow` | 9.5.0 (`pillow<10`) | **cp311** |
+
+**CPython 3.11 is the last interpreter where the whole stack installs from
+wheels.** On 3.12, `pillow<10` resolves to 9.5.0, whose manylinux wheels stop at
+cp311, so pip falls back to a source build that fails. Measured on this
+repository, not inferred from release notes — which is why `make setup` refuses
+3.12 even though synthtiger itself would run there.
 
 ## What this means in practice
 
-- Create the synthdog environment with a 3.8 – 3.12 interpreter. `make setup`
+- Create the synthdog environment with a 3.8 – 3.11 interpreter. `make setup`
   refuses to continue on anything newer rather than producing a broken venv.
-- If your system Python is 3.13+, get an older one rather than relaxing a pin:
-  `uv python install 3.12`, `pyenv install 3.12`, or your distribution's
-  `python3.12` package.
+- If your system Python is 3.12+, get an older one rather than relaxing a pin:
+  `uv python install 3.11`, `pyenv install 3.11`, or your distribution's
+  `python3.11` package.
 - The other two pins have their own causes, both documented in
   `synthdog/requirements.txt`: synthtiger 1.2.1 calls `ImageFont.getsize()`,
   removed in Pillow 10; and `opencv-python>=5` requires NumPy 2, which conflicts
