@@ -9,7 +9,7 @@ line-length = 90
 # `zip(strict=)` and friends would break the environment it actually runs in.
 target-version = "py38"
 # Vendored third-party code keeps its own style and its own pre-commit config.
-extend-exclude = ["html-table", "genalog", "resources", ".venv*"]
+extend-exclude = ["generators/html-table", "generators/genalog", ".venv*"]
 
 [tool.ruff.lint]
 # Correctness and imports; not a style crusade over code adapted from upstream.
@@ -21,4 +21,4 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 # Kept close to clovaai/donut so upstream changes still merge cleanly.
-"synthdog/template.py" = ["F841"]
+"generators/synthdog/template.py" = ["F841"]
