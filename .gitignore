@@ -35,9 +35,15 @@ datasets/
 *.jpeg
 *.webp
 *.pdf
-!generators/synthdog/docs/**/*.jpg     # figures in the generator's README
-!generators/html-table/**/*.png        # figures the vendored code ships
-!samples/**/*.jpg                      # the curated examples this repo shows
+# NB: git has no inline comments in .gitignore -- a trailing "# ..." is read
+# as part of the pattern, which silently stops the negation matching anything.
+# Keep every comment on its own line.
+# Figures in the generator's README:
+!generators/synthdog/docs/**/*.jpg
+# Figures the vendored code ships:
+!generators/html-table/**/*.png
+# The curated examples this repo shows:
+!samples/**/*.jpg
 !samples/**/*.json
 
 # Fonts, paper and backgrounds are not redistributable; supply them locally.
