@@ -31,7 +31,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Byte-compile
-        run: git ls-files '*.py' | grep -v '^html-table/' | xargs -r python -m py_compile
+        run: git ls-files '*.py' | grep -v '^generators/html-table/' | xargs -r python -m py_compile
 
   synthdog:
     # The one environment where synthtiger actually installs.
@@ -44,9 +44,9 @@ jobs:
       - name: Install pinned dependencies
         run: |
           python -m pip install -U pip setuptools wheel
-          pip install -r synthdog/requirements.txt
+          pip install -r generators/synthdog/requirements.txt
       - name: Smoke test
         run: |
           python -c "import synthtiger, PIL, numpy, cv2; \
             print(synthtiger.__version__, PIL.__version__, numpy.__version__, cv2.__version__)"
-          cd synthdog && python -m py_compile template_receipt.py template.py
+          cd generators/synthdog && python -m py_compile template_receipt.py template.py
