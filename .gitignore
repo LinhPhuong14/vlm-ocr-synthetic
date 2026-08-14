@@ -24,6 +24,8 @@ htmlcov/
 # Generators write into their own directories; none of it belongs in git.
 outputs/
 generators/*/outputs/
+data/*
+!data/augment/
 generators/*/output/
 data/
 datasets/
@@ -40,6 +42,10 @@ datasets/
 *.pdf
 !generators/synthdog/docs/**/*.jpg
 !generators/html-table/**/*.png
+# The augmentation demo: ten before/after pairs, small enough to review.
+!data/augment/
+!data/augment/*.jpg
+!data/augment/*.json
 
 # Fonts, paper and backgrounds are not redistributable; supply them locally.
 # See generators/synthdog/resources/README.md.

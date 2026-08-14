@@ -7,14 +7,12 @@ and no shared virtualenv: pick the one you are working on.
 | --- | --- | --- |
 | `generators/synthdog/` | `make setup` | Python 3.8 – 3.12 only |
 | `generators/html-table/` | `pip install -r generators/html-table/requirements.txt` | vendored; prefer upstreaming fixes |
-| `generators/genalog/` | upstream repo | a submodule, do not edit in place |
 
 Each generator is run **from its own directory** — the paths in their configs
 are relative to it. That is also why resources live under the generator that
 needs them rather than in one shared folder.
 
 ```bash
-git submodule update --init   # genalog has no content until you do this
 make check                    # every tracked .py parses, no dependencies needed
 make lint                     # ruff, on this repo's own scripts
 ```
@@ -35,7 +33,7 @@ and retries forever**, so a broken template hangs silently. Always pass `-v`.
 `ruff` for linting, configured in `pyproject.toml`. It checks correctness and
 imports, not formatting: most of the Python here is adapted from upstream and
 reformatting it would only make future merges harder. Vendored code
-(`generators/html-table/`, `generators/genalog/`) is excluded entirely.
+(`generators/html-table/`) is excluded entirely.
 
 `target-version` is `py38` because that is what `synthdog/` supports —
 so ruff will not suggest `zip(strict=)` or other 3.10+ syntax that would break

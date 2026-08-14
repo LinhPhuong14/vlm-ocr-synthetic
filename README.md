@@ -1,22 +1,23 @@
 # vlm-ocr-synthetic
 
 Synthetic document images for training and evaluating VLM / OCR models, with
-structured labels. Three generators live side by side under `generators/`, each
+structured labels. Two generators live side by side under `generators/`, each
 self-contained: its own dependencies, its own supported Python, its own README.
 
 | generator | produces | how | Python | status |
 | --- | --- | --- | --- | --- |
-| [`generators/synthdog/`](generators/synthdog/README_vi_receipt.md) | Vietnamese thermal-printer receipts with structured ground truth for Donut | [synthtiger](https://github.com/clovaai/synthtiger) templates | **3.8 – 3.12** | first-party |
+| [`generators/synthdog/`](generators/synthdog/README_vi_receipt.md) | Vietnamese thermal-printer receipts with structured ground truth for Donut | [synthtiger](https://github.com/clovaai/synthtiger) templates | **3.8 – 3.11** | first-party |
 | [`generators/html-table/`](generators/html-table/README.md) | table images with cell-level annotations | HTML rendered in a browser | 3.8+ | vendored |
-| [`generators/genalog/`](https://github.com/microsoft/genalog) | degraded document images from plain text | Microsoft genalog | 3.6 – 3.8 | submodule |
+
+[Microsoft genalog](https://github.com/microsoft/genalog) is used too, for
+degraded pages from plain text, but it is not vendored here — `pip install
+genalog` when you need it. See [Augmentation](#augmentation).
 
 ```bash
-git clone --recurse-submodules https://github.com/LinhPhuong14/vlm-ocr-synthetic.git
+git clone https://github.com/LinhPhuong14/vlm-ocr-synthetic.git
 cd vlm-ocr-synthetic
 make help
 ```
-
-Cloned without `--recurse-submodules`? `make submodules`.
 
 ---
 
@@ -34,11 +35,11 @@ generators/
 │   ├── resources/              corpora in git; fonts and paper are not
 │   ├── tools/                  font coverage check, preview grid
 │   └── requirements.txt        pinned, and each pin has a reason
-├── html-table/         vendored TableGeneration + its dictionaries
-└── genalog/            submodule -> microsoft/genalog
+└── html-table/         vendored TableGeneration + its dictionaries
 
+augment/                DocCreator's degradations, in Python -- applied to any generator's output
+scripts/                one-off drivers (augmentation demo)
 docs/                   notes that outlive any one generator
-.github/workflows/      lint, byte-compile, and a real synthtiger install
 Makefile                the tasks; `make help` lists them
 pyproject.toml          ruff configuration (this repo is not a package)
 ```
@@ -56,7 +57,7 @@ diacritics, VAT, discounts and change, on paper skewed, curled and blurred
 differently every time.
 
 ```bash
-make setup      # a 3.12 venv with the pinned dependencies
+make setup      # a 3.11 venv with the pinned dependencies
 make receipts   # 100 receipts into generators/synthdog/outputs/
 make preview    # a grid of 8, to eyeball a config change
 ```
@@ -90,21 +91,40 @@ python generate_data.py --help
 
 ---
 
-## Degraded documents
+## Augmentation
 
-[Microsoft genalog](https://github.com/microsoft/genalog) as a submodule: HTML
-templates plus a degradation pipeline (blur, bleed-through, salt, pepper,
-morphology). Useful when you already have text and want scanned-looking pages
-from it. Work on it upstream, not in place.
+[`augment/`](augment/README.md) is a Python port of the degradation models from
+[DocCreator](https://github.com/DocCreator/DocCreator) — local ink decay,
+bleed-through, blur zones, binding shadow, holes. It runs on whatever a
+generator produced, so the same ageing can be applied to receipts and to
+genalog pages alike.
+
+```bash
+python scripts/augment_samples.py --synthdog <dir> --genalog <dir> -o data/augment
+```
+
+[`data/augment/`](data/augment) holds ten before/after pairs: five receipts from
+synthdog and five pages from [genalog](https://github.com/microsoft/genalog),
+which renders documents from plain text. genalog is an external dependency, not
+part of this repository:
+
+```bash
+pip install --no-deps genalog       # its opencv pin stops at cp38; skip its deps
+pip install numpy "opencv-python<5" pillow scikit-image jinja2 cairocffi weasyprint pymupdf
+```
+
+It calls WeasyPrint's `write_png()`, removed in WeasyPrint 53, so
+`scripts/augment_samples.py` renders through PDF instead.
 
 ---
 
 ## Contributing
 
 [CONTRIBUTING.md](CONTRIBUTING.md) covers which environment to build for which
-generator, what CI checks, and the constraints that are deliberate.
+generator, the checks to run before pushing, and the constraints that are
+deliberate.
 
 ## Licence
 
 Not yet chosen — add one before publishing. `generators/html-table/` carries its
-own `LICENSE.md`; `genalog` is MIT upstream.
+own `LICENSE.md`.

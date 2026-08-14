@@ -4,18 +4,15 @@ SYNTHDOG      = generators/synthdog
 SYNTHDOG_VENV = generators/synthdog/.venv
 
 .DEFAULT_GOAL := help
-.PHONY: help setup receipts preview lint format check submodules clean
+.PHONY: help setup receipts preview lint format check clean
 
 help:  ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | \
 	  awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
-submodules:  ## Fetch genalog (a submodule with no content until initialised)
-	git submodule update --init --recursive
-
 setup:  ## Create synthdog's venv and install its pinned dependencies
 	@$(PYTHON) -c 'import sys; v=sys.version_info; \
-	  sys.exit(0 if v < (3, 13) else "synthdog needs Python 3.8-3.12; see docs/python-314.md")'
+	  sys.exit(0 if v < (3, 12) else "synthdog needs Python 3.8-3.11; see docs/python-314.md")'
 	$(PYTHON) -m venv $(SYNTHDOG_VENV)
 	$(SYNTHDOG_VENV)/bin/pip install -q -U pip setuptools wheel
 	$(SYNTHDOG_VENV)/bin/pip install -q -r $(SYNTHDOG)/requirements.txt
