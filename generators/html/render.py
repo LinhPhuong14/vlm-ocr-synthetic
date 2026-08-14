@@ -93,15 +93,15 @@ def build_html(grid, recipe, receipt) -> str:
     font_px = (size_lo + size_hi) / 2.0
     spacing_lo, spacing_hi = visual.get("line_spacing", [1.05, 1.35])
     line_px = font_px * (spacing_lo + spacing_hi) / 2.0
-    margin = sum(visual.get("margin", [0.05, 0.10])) / 2.0
-
-    pad_ch = grid.ncols * margin
+    # Padding comes from the rule-base, so the glyph renderer leaves the same
+    # margin. `padding` already guarantees the top clears the tallest cell:
+    # a header set at 1.7em overflows its fixed-height line box, and an element
+    # screenshot clips at the element's edge, decapitating the shop name.
+    pad = rulebase.padding(recipe, grid)
+    pad_ch = pad["columns"]
     width_ch = grid.ncols + pad_ch * 2
-    # A cell set at 1.6em overflows its fixed-height line box, and an element
-    # screenshot clips at the element's edge -- which decapitates the shop name
-    # on the first row. Reserve the tallest cell's overflow at both ends.
-    tallest = max([cell.scale for cell in grid.cells] + [1.0])
-    pad_px = line_px * (0.6 + tallest)
+    pad_top = line_px * pad["top"]
+    pad_bottom = line_px * pad["bottom"]
 
     spans = []
     for cell in grid.cells:
@@ -114,7 +114,7 @@ def build_html(grid, recipe, receipt) -> str:
         # pushing the amount off the sheet. The outer span keeps the sheet's
         # font-size and stays on the grid; only the inner one grows.
         style = (
-            f"left:{left:.3f}ch;top:{cell.row * line_px:.2f}px;"
+            f"left:{left:.3f}ch;top:{pad_top + cell.row * line_px:.2f}px;"
             f"width:{width}ch;text-align:{cell.align};color:{colour_hex};"
         )
         # Same clamp the glyph renderer applies: an enlarged cell may not grow
@@ -143,9 +143,12 @@ html,body{{margin:0;padding:0;background:#fff;}}
   line-height:{line_px:.2f}px;
   width:{width_ch:.3f}ch;
   /* Every cell is absolutely positioned, so the sheet has no content to be
-     sized by and collapses to a sliver unless the height is stated. */
-  height:{grid.nrows * line_px:.2f}px;
-  padding:{pad_px:.2f}px 0;
+     sized by and collapses to a sliver unless the height is stated. The
+     padding is baked into that height and into each cell's `top`, NOT set as
+     a `padding` property: an absolutely positioned child is laid out against
+     its ancestor's *padding box*, so CSS padding does not move it, and the
+     shop name ends up hard against the top edge however large the padding is. */
+  height:{grid.nrows * line_px + pad_top + pad_bottom:.2f}px;
   background:#fff;
   -webkit-font-smoothing:antialiased;
 }}
