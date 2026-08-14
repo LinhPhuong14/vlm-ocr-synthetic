@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from vlm_ocr_synthetic.benchmark import (
+from vlm_ocr_synthetic.evaluation import (
     BenchmarkCase,
     count_annotations,
     cross_backend_agreement,
@@ -164,18 +164,12 @@ def test_benchmark_report_shape(tmp_path):
 @pytest.mark.slow
 def test_html_absolute_honours_geometry_better_than_flow(tmp_path):
     """The comparison the report exists to make."""
-    cases = [
-        case
-        for case in _available_cases(FAST)
-        if case.renderer == "html"
-    ]
+    cases = [case for case in _available_cases(FAST) if case.renderer == "html"]
     if len(cases) < 2:
         pytest.skip("html renderer unavailable")
 
     report = run_benchmark(pages=1, cases=cases, out_dir=tmp_path, save_images=False)
-    fidelity = {
-        entry["label"]: entry["layout_fidelity"] for entry in report["backends"]
-    }
+    fidelity = {entry["label"]: entry["layout_fidelity"] for entry in report["backends"]}
 
     assert fidelity["html-absolute"] > fidelity["html-flow"]
 

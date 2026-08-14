@@ -72,9 +72,7 @@ def test_zero_weight_keeps_the_variant_but_never_samples_it():
 
 
 def test_weights_are_respected_within_sampling_noise():
-    axis = Axis(
-        "x", (Variant("common", weight=9), Variant("rare", weight=1))
-    )
+    axis = Axis("x", (Variant("common", weight=9), Variant("rare", weight=1)))
     rng = random.Random(4)
     counts = Counter(axis.sample(rng).name for _ in range(4000))
 
@@ -135,8 +133,6 @@ def test_absolute_layout_only_for_documents_that_pin_their_blocks():
 
 def test_every_axis_has_at_least_one_variant_per_layout():
     """No layout may be a dead end for the axes that follow it."""
-    space = default_space()
-
     for layout in LAYOUT_AXIS.variants:
         tags = layout.tags
         for axis in (BACKEND_AXIS, STYLE_AXIS, DEGRADATION_AXIS):

@@ -27,8 +27,9 @@ callable, a dict of renderer options); YAML only carries weights.
 from __future__ import annotations
 
 import random
-from dataclasses import dataclass, field, replace
-from typing import Any, Iterable, Iterator, Optional
+from collections.abc import Iterable, Iterator
+from dataclasses import dataclass, replace
+from typing import Any
 
 
 class IncompatibleSpace(RuntimeError):
@@ -84,7 +85,7 @@ class Axis:
             f"available: {', '.join(self.names())}"
         )
 
-    def with_weights(self, weights: dict[str, float]) -> "Axis":
+    def with_weights(self, weights: dict[str, float]) -> Axis:
         """Override weights by name. Unknown names raise -- they are typos.
 
         A weight of 0 keeps the variant declared but never samples it, which
@@ -169,7 +170,7 @@ class ScenarioSpace:
     def axis_names(self) -> list[str]:
         return [axis.name for axis in self.axes]
 
-    def with_weights(self, weights: dict[str, dict[str, float]]) -> "ScenarioSpace":
+    def with_weights(self, weights: dict[str, dict[str, float]]) -> ScenarioSpace:
         """Apply ``{axis: {variant: weight}}``, usually straight from YAML."""
         unknown = set(weights) - set(self.axis_names())
         if unknown:

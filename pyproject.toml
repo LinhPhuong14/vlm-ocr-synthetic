@@ -39,7 +39,7 @@ html = [
     "playwright>=1.40; python_version < '3.14'",
     "playwright>=1.52; python_version >= '3.14'",
 ]
-dev = ["pytest>=7.0"]
+dev = ["pytest>=7.0", "ruff>=0.6"]
 all = [
     "vlm-ocr-synthetic[synthdog,html,dev]",
 ]
@@ -53,9 +53,32 @@ include = ["vlm_ocr_synthetic*"]
 [tool.setuptools.package-data]
 "vlm_ocr_synthetic.renderers.html" = ["templates/*.j2"]
 
+[tool.ruff]
+line-length = 90
+target-version = "py310"
+extend-exclude = ["data", ".venv*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+ignore = [
+    "E501",    # long lines are the formatter's business, not the linter's
+    "B008",    # Depends()-style defaults are fine here
+    "SIM108",  # ternaries are not always clearer
+    "B905",    # zip(strict=) -- several zips here are intentionally ragged
+    "RUF046",  # int(round(x)) is explicit about the pixel rounding we mean
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests reach into privates on purpose, and import inside functions to keep
+# optional dependencies optional.
+"tests/**" = ["E402"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["vlm_ocr_synthetic"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["."]
+pythonpath = [".", "tests"]
 addopts = "-ra"
 markers = [
     "slow: renders through a real backend (browser / rasteriser)",

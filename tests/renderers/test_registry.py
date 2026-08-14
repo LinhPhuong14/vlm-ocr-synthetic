@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
 from vlm_ocr_synthetic.renderers import (
     available_renderers,
@@ -15,7 +16,7 @@ from vlm_ocr_synthetic.renderers import (
 )
 from vlm_ocr_synthetic.renderers.base import BaseRenderer
 
-CONFIG_DIR = Path(__file__).resolve().parent.parent / "configs"
+CONFIG_DIR = Path(__file__).resolve().parent.parent.parent / "configs" / "renderers"
 
 
 def test_both_backends_are_registered():
@@ -43,7 +44,9 @@ def test_unknown_renderer_raises():
 
 
 def test_out_of_tree_backend_can_be_registered():
-    register_renderer("dummy", "vlm_ocr_synthetic.renderers.synthdog.renderer:SynthdogRenderer")
+    register_renderer(
+        "dummy", "vlm_ocr_synthetic.renderers.synthdog.renderer:SynthdogRenderer"
+    )
     try:
         assert "dummy" in renderer_names()
         assert get_renderer_class("dummy").__name__ == "SynthdogRenderer"
@@ -79,5 +82,5 @@ def test_config_without_renderer_key_is_rejected(tmp_path):
 def test_typo_in_config_is_rejected():
     from vlm_ocr_synthetic.renderers.synthdog import SynthdogConfig
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         SynthdogConfig(fontsize=12)

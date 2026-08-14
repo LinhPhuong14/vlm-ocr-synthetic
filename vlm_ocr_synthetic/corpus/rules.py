@@ -1,4 +1,4 @@
-"""Shared corpus: the text and the rules every sample follows.
+"""The corpus rule: content is words, layout is structure.
 
 **Content carries no layout.** A cell or a block holds the words and
 nothing else -- no padding spaces to line columns up, no tabs, no manual
@@ -23,32 +23,6 @@ from ..schemas.document import Document
 
 # Two or more spaces, or any tab -- someone laying out with whitespace.
 LAYOUT_WHITESPACE = re.compile(r"[ ]{2,}|\t")
-
-# Column headings used by Vietnamese invoices and receipts.
-INVOICE_COLUMNS_VI = ("STT", "Tên hàng", "SL", "Đơn giá", "Thành tiền")
-INVOICE_COLUMNS_EN = ("No.", "Item", "Qty", "Unit price", "Amount")
-
-# Sensible layout for those five columns: a narrow line number, a wide item
-# name, money on the right.
-# The last column has to fit "Thành tiền" without wrapping in either
-# backend; bold headings in a browser are wider than the glyph run Pillow
-# measures, so the width is set for the wider of the two.
-INVOICE_COLUMN_WIDTHS = (0.08, 0.37, 0.08, 0.21, 0.26)
-INVOICE_COLUMN_ALIGN = ("center", "left", "center", "right", "right")
-
-LABELS_VI = {
-    "table_no": "BÀN SỐ",
-    "cash": "TIỀN MẶT",
-    "total": "TỔNG CỘNG",
-    "change": "TIỀN THỐI",
-    "thanks": "CẢM ƠN QUÝ KHÁCH",
-    "see_you": "HẸN GẶP LẠI!",
-}
-
-
-def format_dong(amount: int) -> str:
-    """Vietnamese money formatting: thousands separated by a comma."""
-    return f"{amount:,}"
 
 
 def iter_text(document: Document):

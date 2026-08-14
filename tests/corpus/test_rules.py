@@ -12,17 +12,17 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from helpers import requires_renderer
 
-from conftest import requires_renderer
-from vlm_ocr_synthetic.renderers import get_renderer, load_config
-from vlm_ocr_synthetic.samples import get_sample, sample_names
-from vlm_ocr_synthetic.samples.corpus import (
+from vlm_ocr_synthetic.corpus import (
     LAYOUT_WHITESPACE,
     assert_plain_text,
     format_dong,
     iter_text,
     layout_whitespace_offenders,
 )
+from vlm_ocr_synthetic.renderers import get_renderer, load_config
+from vlm_ocr_synthetic.samples import get_sample, sample_names
 from vlm_ocr_synthetic.schemas.document import (
     BlockType,
     Document,
@@ -32,7 +32,7 @@ from vlm_ocr_synthetic.schemas.document import (
     TableRow,
 )
 
-CONFIGS = Path(__file__).resolve().parent.parent / "configs"
+CONFIGS = Path(__file__).resolve().parent.parent.parent / "configs" / "renderers"
 
 
 # ------------------------------------------------------------- the rule

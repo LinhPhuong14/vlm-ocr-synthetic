@@ -15,8 +15,9 @@ from __future__ import annotations
 
 import sys
 from dataclasses import dataclass
-from importlib.metadata import PackageNotFoundError, version as installed_version
-from typing import Literal, Optional
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as installed_version
+from typing import Literal
 
 # The interpreter this project is tested against.
 MIN_PYTHON = (3, 10)
@@ -30,7 +31,7 @@ class Requirement:
     """A dependency, with the floor Python 3.14 forces on it."""
 
     distribution: str
-    min_for_py314: Optional[str]
+    min_for_py314: str | None
     optional: bool
     note: str
 

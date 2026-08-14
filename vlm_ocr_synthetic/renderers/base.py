@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
 from contextlib import nullcontext
 from pathlib import Path
-from typing import Any, ClassVar, Iterable, Optional
+from typing import Any, ClassVar
 
 from ..schemas.document import Document
 from ..schemas.render import RenderConfig, RenderResult
@@ -26,13 +27,11 @@ class BaseRenderer(ABC):
     name: ClassVar[str] = "base"
     config_model: ClassVar[type[RenderConfig]] = RenderConfig
 
-    def __init__(self, config: Optional[RenderConfig | dict[str, Any]] = None):
+    def __init__(self, config: RenderConfig | dict[str, Any] | None = None):
         self.config = self._coerce_config(config)
 
     @classmethod
-    def _coerce_config(
-        cls, config: Optional[RenderConfig | dict[str, Any]]
-    ) -> RenderConfig:
+    def _coerce_config(cls, config: RenderConfig | dict[str, Any] | None) -> RenderConfig:
         if config is None:
             return cls.config_model()
         if isinstance(config, dict):
@@ -43,7 +42,7 @@ class BaseRenderer(ABC):
         return cls.config_model(**config.model_dump(exclude_unset=True))
 
     @classmethod
-    def check_available(cls) -> Optional[str]:
+    def check_available(cls) -> str | None:
         """Return ``None`` when usable, else a human-readable reason why not.
 
         Backends override this to probe optional dependencies (Pillow, a
@@ -76,7 +75,7 @@ class BaseRenderer(ABC):
     def render_many(
         self,
         documents: Iterable[Document],
-        out_dir: Optional[str | Path] = None,
+        out_dir: str | Path | None = None,
         stem: str = "page",
     ) -> list[RenderResult]:
         results = []

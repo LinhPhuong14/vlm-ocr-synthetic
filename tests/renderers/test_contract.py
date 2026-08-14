@@ -9,6 +9,7 @@ is skipped, never silently passed.
 from __future__ import annotations
 
 import json
+from itertools import pairwise
 
 import pytest
 
@@ -95,7 +96,7 @@ def test_cells_in_a_row_do_not_overlap(result):
             boxes = sorted(
                 (cell.bbox for cell in row.cells if cell.bbox), key=lambda b: b.x1
             )
-            for left, right in zip(boxes, boxes[1:]):
+            for left, right in pairwise(boxes):
                 assert left.x2 <= right.x1 + 1.0
 
 

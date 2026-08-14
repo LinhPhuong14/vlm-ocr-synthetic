@@ -19,14 +19,14 @@ from .schemas.document import (
 from .schemas.render import RenderConfig, RenderResult
 
 __all__ = [
-    "__version__",
     "BBox",
     "BlockType",
     "Document",
     "DocumentBlock",
+    "RenderConfig",
+    "RenderResult",
     "TableBlock",
     "TableCell",
     "TableRow",
-    "RenderConfig",
-    "RenderResult",
+    "__version__",
 ]

@@ -13,25 +13,25 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from vlm_ocr_synthetic.renderers import (  # noqa: E402
+from vlm_ocr_synthetic.renderers import (
     RendererUnavailable,
     get_renderer,
     load_config,
 )
-from vlm_ocr_synthetic.samples import get_sample  # noqa: E402
+from vlm_ocr_synthetic.samples import get_sample
 
 OUT_DIR = Path("data/samples")
 
 # (sample, preset, output stem)
 GALLERY = (
-    ("receipt_vn", "configs/synthdog_receipt_vn.yaml", "receipt_vn-synthdog"),
-    ("receipt_vn", "configs/html_receipt_vn.yaml", "receipt_vn-html"),
+    ("receipt_vn", "configs/renderers/synthdog_receipt_vn.yaml", "receipt_vn-synthdog"),
+    ("receipt_vn", "configs/renderers/html_receipt_vn.yaml", "receipt_vn-html"),
     # Stage one on its own: the structure before any paper is applied.
-    ("receipt_vn", "configs/html_receipt_vn.yaml", "receipt_vn-html-structure"),
-    ("invoice", "configs/synthdog_default.yaml", "invoice-synthdog"),
-    ("invoice", "configs/html_flow.yaml", "invoice-html-flow"),
-    ("invoice", "configs/html_scanned.yaml", "invoice-html-scanned"),
-    ("invoice", "configs/html_folded.yaml", "invoice-html-folded"),
+    ("receipt_vn", "configs/renderers/html_receipt_vn.yaml", "receipt_vn-html-structure"),
+    ("invoice", "configs/renderers/synthdog_default.yaml", "invoice-synthdog"),
+    ("invoice", "configs/renderers/html_flow.yaml", "invoice-html-flow"),
+    ("invoice", "configs/renderers/html_scanned.yaml", "invoice-html-scanned"),
+    ("invoice", "configs/renderers/html_folded.yaml", "invoice-html-folded"),
 )
 
 
@@ -48,9 +48,7 @@ def main() -> int:
             print(f"[skip] {stem}: {exc}")
             continue
 
-        image_path, annotation_path = result.save(
-            OUT_DIR, stem, image_format="jpeg"
-        )
+        image_path, annotation_path = result.save(OUT_DIR, stem, image_format="jpeg")
         size_kb = image_path.stat().st_size / 1024
         print(f"[ok] {stem:<24} {size_kb:6.0f} KB  {result.image.size}")
         print(f"     {annotation_path}")

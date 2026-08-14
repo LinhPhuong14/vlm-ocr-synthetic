@@ -80,10 +80,13 @@ def test_render_from_a_document_file(tmp_path):
 def test_render_with_a_shipped_config(tmp_path):
     from pathlib import Path
 
-    config = Path(__file__).resolve().parent.parent / "configs" / "synthdog_default.yaml"
-    exit_code = main(
-        ["render", "-c", str(config), "-o", str(tmp_path), "--scale", "0.4"]
+    config = (
+        Path(__file__).resolve().parent.parent
+        / "configs"
+        / "renderers"
+        / "synthdog_default.yaml"
     )
+    exit_code = main(["render", "-c", str(config), "-o", str(tmp_path), "--scale", "0.4"])
 
     assert exit_code == 0
     assert (tmp_path / "synthdog" / "page.png").exists()

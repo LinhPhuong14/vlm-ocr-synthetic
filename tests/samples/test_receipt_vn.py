@@ -9,11 +9,11 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from helpers import requires_renderer
 
-from conftest import requires_renderer
+from vlm_ocr_synthetic.corpus import assert_plain_text, format_dong
 from vlm_ocr_synthetic.renderers import load_config
 from vlm_ocr_synthetic.samples import get_sample
-from vlm_ocr_synthetic.samples.corpus import assert_plain_text, format_dong
 from vlm_ocr_synthetic.samples.receipt_vn import (
     COLUMN_HEADERS,
     ORDER,
@@ -21,9 +21,9 @@ from vlm_ocr_synthetic.samples.receipt_vn import (
     build_receipt_document,
     order_total,
 )
-from vlm_ocr_synthetic.schemas.document import BlockType, Document
+from vlm_ocr_synthetic.schemas.document import Document
 
-CONFIG_DIR = Path(__file__).resolve().parent.parent / "configs"
+CONFIG_DIR = Path(__file__).resolve().parent.parent.parent / "configs" / "renderers"
 
 DIACRITICS = "ÁĂÂĐÊÔƠƯáăâđêôơư"
 
@@ -113,13 +113,11 @@ def test_order_can_be_overridden():
     total = document.table_blocks()[2].table
 
     assert total.rows[0].cells[1].content == "90,000"
-    assert any("BÀN SỐ: 9" == block.content for block in document.blocks)
+    assert any(block.content == "BÀN SỐ: 9" for block in document.blocks)
     assert_plain_text(document)
 
 
-@pytest.mark.parametrize(
-    "filename", ["html_receipt_vn.yaml", "synthdog_receipt_vn.yaml"]
-)
+@pytest.mark.parametrize("filename", ["html_receipt_vn.yaml", "synthdog_receipt_vn.yaml"])
 def test_receipt_presets_load(filename):
     from vlm_ocr_synthetic.renderers import get_renderer_class
 
@@ -138,7 +136,7 @@ def test_receipt_presets_load(filename):
 def test_synthdog_renders_the_receipt(receipt: Document):
     from vlm_ocr_synthetic.renderers.synthdog import SynthdogRenderer
 
-    name, options = load_config(CONFIG_DIR / "synthdog_receipt_vn.yaml")
+    _, options = load_config(CONFIG_DIR / "synthdog_receipt_vn.yaml")
     result = SynthdogRenderer(options).render(receipt)
 
     assert result.image.size == (receipt.page_width, receipt.page_height)
@@ -195,7 +193,7 @@ def test_underline_headers_can_be_switched_off(receipt: Document):
 def test_html_renders_the_receipt(receipt: Document):
     from vlm_ocr_synthetic.renderers.html import HtmlRenderer
 
-    name, options = load_config(CONFIG_DIR / "html_receipt_vn.yaml")
+    _, options = load_config(CONFIG_DIR / "html_receipt_vn.yaml")
     result = HtmlRenderer(options).render(receipt)
 
     assert result.image.size == (receipt.page_width, receipt.page_height)

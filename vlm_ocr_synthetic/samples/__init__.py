@@ -1,10 +1,10 @@
 """Ready-made documents so any backend can be exercised with one command."""
 
-from typing import Callable
+from collections.abc import Callable
 
 from ..schemas.document import Document
 from .invoice import build_invoice_document, build_invoice_table
-from .receipt_vn import build_receipt_document, build_order_table
+from .receipt_vn import build_order_table, build_receipt_document
 
 SAMPLES: dict[str, Callable[[], Document]] = {
     "invoice": build_invoice_document,

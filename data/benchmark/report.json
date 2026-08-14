@@ -17,10 +17,10 @@
       "renderer": "html",
       "pages": 3,
       "seconds_per_page": {
-        "mean": 0.2596,
-        "median": 0.2833,
-        "min": 0.2089,
-        "max": 0.2866
+        "mean": 0.2631,
+        "median": 0.2495,
+        "min": 0.2393,
+        "max": 0.3006
       },
       "image_size": [
         1000,
@@ -71,10 +71,10 @@
       "renderer": "html",
       "pages": 3,
       "seconds_per_page": {
-        "mean": 0.2345,
-        "median": 0.2262,
-        "min": 0.2099,
-        "max": 0.2675
+        "mean": 0.2557,
+        "median": 0.2566,
+        "min": 0.2103,
+        "max": 0.3001
       },
       "image_size": [
         1000,
@@ -125,10 +125,10 @@
       "renderer": "synthdog",
       "pages": 3,
       "seconds_per_page": {
-        "mean": 0.0257,
-        "median": 0.0268,
-        "min": 0.0233,
-        "max": 0.027
+        "mean": 0.0259,
+        "median": 0.0271,
+        "min": 0.0231,
+        "max": 0.0276
       },
       "image_size": [
         1000,

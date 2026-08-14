@@ -12,12 +12,11 @@ Layouts also declare the tags styles filter on -- ``thermal`` vs ``a4``,
 from __future__ import annotations
 
 import random
-from typing import Callable
+from collections.abc import Callable
 
-from ..samples.corpus import INVOICE_COLUMNS_EN, INVOICE_COLUMNS_VI, LABELS_VI
+from ..corpus import INVOICE_COLUMNS_EN, INVOICE_COLUMNS_VI, LABELS_VI, MENU
 from ..samples.invoice import build_invoice_document
 from ..samples.receipt_vn import (
-    ORDER,
     OrderLine,
     build_receipt_document,
     order_total,
@@ -26,27 +25,6 @@ from ..schemas.document import Document, TableCell, TableRow
 from .space import Axis, Variant
 
 DocumentFactory = Callable[[random.Random], Document]
-
-# Dishes to draw from when a layout wants more or fewer lines than the
-# canonical bill. Prices are realistic per-unit amounts in dong.
-MENU: tuple[tuple[str, int], ...] = (
-    ("Bún Sinh", 42_000),
-    ("Mì Giòn Xào Chay", 37_000),
-    ("Mì Xào Giòn Nhỏ", 40_000),
-    ("Cơm Bát Bửu", 43_000),
-    ("Sườn Chiên Kho Đỏ", 65_000),
-    ("Hủ Tiếu Nhỏ", 40_000),
-    ("Tôm Lăn Bột", 65_000),
-    ("Phở Bò Tái", 55_000),
-    ("Gỏi Cuốn Tôm Thịt", 35_000),
-    ("Chả Giò Hải Sản", 48_000),
-    ("Canh Chua Cá Lóc", 72_000),
-    ("Rau Muống Xào Tỏi", 30_000),
-    ("Cơm Chiên Dương Châu", 58_000),
-    ("Pepsi", 8_000),
-    ("Trà Đá", 2_000),
-    ("Bia Sài Gòn", 22_000),
-)
 
 
 def sample_order(rng: random.Random, low: int, high: int) -> tuple[OrderLine, ...]:
@@ -116,9 +94,7 @@ def _receipt(
         if not footer:
             blocks = blocks[:-1]
 
-        document = document.model_copy(
-            update={"page_width": width, "blocks": blocks}
-        )
+        document = document.model_copy(update={"page_width": width, "blocks": blocks})
 
         if headings != INVOICE_COLUMNS_VI:
             document = _relabel_headings(document, headings)
@@ -144,7 +120,9 @@ def _relabel_headings(document: Document, headings: tuple[str, ...]) -> Document
                 ]
             )
             block = block.model_copy(
-                update={"table": table.model_copy(update={"rows": [header, *table.rows[1:]]})}
+                update={
+                    "table": table.model_copy(update={"rows": [header, *table.rows[1:]]})
+                }
             )
         blocks.append(block)
     return document.model_copy(update={"blocks": blocks})
@@ -221,9 +199,7 @@ LAYOUTS: tuple[Variant, ...] = (
         weight=1,
         tags=THERMAL,
     ),
-    Variant(
-        "receipt_58mm", _receipt(384, (4, 7), compact=True), weight=3, tags=NARROW
-    ),
+    Variant("receipt_58mm", _receipt(384, (4, 7), compact=True), weight=3, tags=NARROW),
     Variant(
         "receipt_58mm_long",
         _receipt(384, (10, 14), compact=True),

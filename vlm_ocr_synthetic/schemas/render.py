@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel
 
@@ -26,8 +26,8 @@ class RenderConfig(BaseModel):
     model_config = {"extra": "forbid"}
 
     # Page size in schema units. ``None`` means "take it from the document".
-    page_width: Optional[int] = None
-    page_height: Optional[int] = None
+    page_width: int | None = None
+    page_height: int | None = None
 
     # Pixels per schema unit; 2.0 renders a 1000x1400 page at 2000x2800.
     scale: float = 1.0
@@ -45,12 +45,12 @@ class RenderConfig(BaseModel):
 class RenderResult:
     """A rendered page plus the ground truth that goes with it."""
 
-    image: "Image"
+    image: Image
     document: Document
     renderer: str
     metadata: dict[str, Any] = field(default_factory=dict)
 
-    def with_paper(self, paper, seed: Optional[int] = None) -> "RenderResult":
+    def with_paper(self, paper, seed: int | None = None) -> RenderResult:
         """Return a copy with the paper layer applied on top.
 
         Rendering is two stages: a backend produces the *structure* -- glyphs,

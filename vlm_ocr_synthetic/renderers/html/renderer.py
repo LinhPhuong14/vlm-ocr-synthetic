@@ -14,7 +14,7 @@ Two layout modes:
 from __future__ import annotations
 
 import io
-from typing import Literal, Optional
+from typing import Literal
 
 from ...schemas.document import BBox, Document, DocumentBlock
 from ...schemas.render import RenderConfig, RenderResult
@@ -34,7 +34,7 @@ class HtmlConfig(RenderConfig):
     """Knobs for the browser-based backend."""
 
     engine: str = "playwright"
-    executable_path: Optional[str] = None
+    executable_path: str | None = None
     timeout_ms: int = 30_000
 
     layout: Literal["flow", "absolute"] = "flow"
@@ -96,12 +96,12 @@ class HtmlRenderer(BaseRenderer):
 
     config: HtmlConfig
 
-    def __init__(self, config=None, engine: Optional[ScreenshotEngine] = None):
+    def __init__(self, config=None, engine: ScreenshotEngine | None = None):
         super().__init__(config)
         self._engine = engine
 
     @classmethod
-    def check_available(cls, engine_name: str = "playwright") -> Optional[str]:
+    def check_available(cls, engine_name: str = "playwright") -> str | None:
         try:
             import jinja2  # noqa: F401
         except ImportError:
@@ -197,9 +197,7 @@ class HtmlRenderer(BaseRenderer):
                 for row_index, row in enumerate(block.table.rows):
                     cells = []
                     for cell_index, cell in enumerate(row.cells):
-                        raw_cell = cell_boxes.get(
-                            cell_id(index, row_index, cell_index)
-                        )
+                        raw_cell = cell_boxes.get(cell_id(index, row_index, cell_index))
                         cells.append(
                             cell.model_copy(
                                 update={

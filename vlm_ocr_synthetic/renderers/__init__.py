@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import importlib
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from ..schemas.render import RenderConfig
 from .base import BaseRenderer, RendererUnavailable
@@ -50,7 +50,7 @@ def get_renderer_class(name: str) -> type[BaseRenderer]:
 
 def get_renderer(
     name: str,
-    config: Optional[RenderConfig | dict[str, Any]] = None,
+    config: RenderConfig | dict[str, Any] | None = None,
 ) -> BaseRenderer:
     """Instantiate a backend, raising ``RendererUnavailable`` if unusable."""
     renderer_cls = get_renderer_class(name)
@@ -58,9 +58,9 @@ def get_renderer(
     return renderer_cls(config)
 
 
-def available_renderers() -> dict[str, Optional[str]]:
+def available_renderers() -> dict[str, str | None]:
     """Map every registered name to ``None`` (usable) or a reason string."""
-    status: dict[str, Optional[str]] = {}
+    status: dict[str, str | None] = {}
     for name in renderer_names():
         try:
             status[name] = get_renderer_class(name).check_available()
