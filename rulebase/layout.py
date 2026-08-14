@@ -168,7 +168,14 @@ def _emit_header(builder, spec, receipt, rng) -> None:
     ):
         value = getattr(receipt.store, attribute)
         if value and header.get(attribute, True):
-            builder.put(fit(value, builder.ncols), role, align="center")
+            # Narrow paper cuts a long address short, exactly as a real till
+            # does -- but then the label has to say what was printed, not what
+            # was sampled. Write the truncation back before the ground truth is
+            # built from these same objects.
+            shown = fit(value, builder.ncols)
+            if shown != value:
+                setattr(receipt.store, attribute, shown)
+            builder.put(shown, role, align="center")
             builder.newline()
 
     if header.get("title", True):
@@ -305,6 +312,11 @@ def _emit_items(builder, spec, receipt, columns, rng) -> None:
 
                 if source in ("name", "note", "barcode_name") and len(text) > width:
                     lines = wrap(text, width) if wrap_name else [fit(text, width)]
+                    if not wrap_name and source in ("name", "note"):
+                        # A layout that cuts rather than wraps -- the old thermal
+                        # till -- must not leave the label claiming the full name.
+                        setattr(item, source, lines[0])
+                        values[source] = lines[0]
                     for offset, line in enumerate(lines):
                         builder.row = base + offset
                         builder.put(line, role, col0, col1, align)
