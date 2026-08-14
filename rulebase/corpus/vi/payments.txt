@@ -1,0 +1,15 @@
+# Hình thức thanh toán in trên dòng "khách trả".
+# Định dạng: nhãn<TAB>nhóm   (nhóm: tienmat | the | vi | qr)
+Tiền mặt	tienmat
+TIỀN MẶT	tienmat
+Tiền khách trả	tienmat
+Thẻ ATM nội địa	the
+Thẻ Visa/Master	the
+Thanh toán thẻ	the
+Ví điện tử của VinID Pay	vi
+Ví MoMo	vi
+Ví ZaloPay	vi
+Ví ShopeePay	vi
+VNPAY-QR	qr
+Quét QR ngân hàng	qr
+Chuyển khoản	qr

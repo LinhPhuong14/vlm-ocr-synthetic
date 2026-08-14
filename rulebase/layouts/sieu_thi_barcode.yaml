@@ -1,0 +1,50 @@
+# Bố cục siêu thị lớn: mã vạch trên, tên hàng thụt xuống dòng dưới.
+#
+# Đo từ ảnh mẫu: VinCommerce — VM Royal City, Số 72A Nguyễn Trãi, Thanh Xuân.
+# Dấu hiệu nhận biết: dòng đầu của mỗi mặt hàng là mã vạch + đơn giá + SL +
+# thành tiền; dòng thứ hai thụt vào là TÊN hàng (kèm giá/KG và khối lượng nếu
+# là hàng cân); mặt hàng khuyến mãi có thêm dòng "KM" tiền âm.
+id: sieu_thi_barcode
+name: Siêu thị — mã vạch trên, tên hàng dưới
+source: "ảnh mẫu VinCommerce / VM Royal City, Hà Nội"
+
+width: [42, 50]
+rule_char: "-"
+
+header:
+  name_scale: [1.25, 1.60]
+  name_bold: true
+  title: true
+  title_scale: [1.10, 1.35]
+
+meta:
+  style: two_column
+  rule_after: false
+
+column_header: true
+columns:
+  - {key: name,       title: "Mặt hàng", width: 0,  align: left}
+  - {key: unit_price, title: "Đơn giá",  width: 11, align: right}
+  - {key: qty,        title: "SL",       width: 4,  align: right}
+  - {key: amount,     title: "T.Tiền",   width: 11, align: right}
+
+item:
+  wrap_name: true
+  rows:
+    - - {col: name, from: barcode}
+      - {col: unit_price, from: unit_price}
+      - {col: qty, from: qty}
+      - {col: amount, from: amount}
+  # tên hàng nằm ở dòng riêng, thụt vào 2 ký tự
+  note_row:
+    indent: 2
+  discount_row:
+    label: "KM"
+
+totals:
+  emphasise_grand: true
+  grand_scale: [1.05, 1.25]
+  grand_two_lines: false
+
+footer:
+  rule_before: true
