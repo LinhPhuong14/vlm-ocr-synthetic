@@ -37,9 +37,10 @@
     {
       "degradation": "holes",
       "options": {
-        "count": 3,
+        "count": 2,
         "placement": "border",
-        "size_ratio": 0.04
+        "size_ratio": 0.18,
+        "fill": "black"
       },
       "file": "showcase-holes.jpg"
     },

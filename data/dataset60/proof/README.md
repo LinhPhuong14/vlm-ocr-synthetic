@@ -9,19 +9,19 @@ one string would measure reading order rather than recognition. See
 
 | framework | ảnh | token recall | recall (bỏ dấu) | field hit | field hit (bỏ dấu) | số tiền đọc đúng |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| synthdog | 20 | 0.401 | 0.445 | 0.267 | 0.294 | 28/144 (19%) |
-| html | 20 | 0.757 | 0.777 | 0.652 | 0.675 | 79/141 (56%) |
-| genalog | 20 | 0.705 | 0.727 | 0.579 | 0.599 | 63/149 (42%) |
+| synthdog | 20 | 0.410 | 0.454 | 0.267 | 0.297 | 30/144 (21%) |
+| html | 20 | 0.679 | 0.703 | 0.570 | 0.590 | 68/141 (48%) |
+| genalog | 20 | 0.767 | 0.783 | 0.668 | 0.684 | 74/149 (50%) |
 
 ## Theo bố cục
 
 | giá trị | ảnh | token recall |
 | --- | ---: | ---: |
-| sieu_thi_barcode | 12 | 0.774 |
-| quan_nhau_stt | 12 | 0.720 |
-| quan_an_ascii | 12 | 0.654 |
-| sieu_thi_vat | 12 | 0.619 |
-| sieu_thi_gia_sl | 12 | 0.338 |
+| sieu_thi_barcode | 12 | 0.718 |
+| quan_nhau_stt | 12 | 0.712 |
+| quan_an_ascii | 12 | 0.628 |
+| sieu_thi_vat | 12 | 0.605 |
+| sieu_thi_gia_sl | 12 | 0.429 |
 
 ## Theo mức làm cũ
 
@@ -29,22 +29,20 @@ one string would measure reading order rather than recognition. See
 | --- | ---: | ---: |
 | khong_lam_gi | 4 | 0.875 |
 | giay_that | 10 | 0.860 |
-| chu_bong | 17 | 0.695 |
-| vet_ban | 4 | 0.551 |
-| vua | 12 | 0.527 |
-| nhe | 1 | 0.512 |
-| photocopy | 3 | 0.499 |
-| nang | 4 | 0.376 |
-| nhau_nat | 5 | 0.261 |
+| chu_bong | 12 | 0.741 |
+| vua | 11 | 0.545 |
+| vet_ban | 8 | 0.541 |
+| photocopy | 9 | 0.491 |
+| rach_giay | 6 | 0.232 |
 
 ## Theo kiểu máy in
 
 | giá trị | ảnh | token recall |
 | --- | ---: | ---: |
-| laser_net | 14 | 0.708 |
-| nhiet_mo | 22 | 0.620 |
-| nhiet_hep | 13 | 0.609 |
-| nhiet_dam | 10 | 0.555 |
+| laser_net | 14 | 0.796 |
+| nhiet_mo | 22 | 0.583 |
+| nhiet_hep | 13 | 0.580 |
+| nhiet_dam | 10 | 0.537 |
 | kim_cu | 1 | 0.248 |
 
 ## Ảnh minh hoạ

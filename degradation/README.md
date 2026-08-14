@@ -28,7 +28,7 @@ came from, which is what you need to check one. Read the original with
 | `shadow_binding` | `ShadowBinding.cpp` | the shadow a bound page casts near its spine |
 | `bleed_through` | `BleedThrough.cpp` | ink from the other side of the sheet |
 | `blur_zones` | `BlurFilter.cpp` | blur in patches, not over the whole page |
-| `holes` | `HoleDegradation.cpp` | holes punched or torn through the sheet |
+| `holes` | `HoleDegradation.cpp` | tears, rips and punched holes — the missing paper filled with **black** by default |
 
 `make list-degradations` prints the registry.
 
@@ -65,6 +65,28 @@ fills the frame, so its "background" is the sheet. A renderer's output often is
 not — a receipt sits on a dark surface — and placing specks there puts white
 dots in mid-air. Independent seed points are confined to the sheet, found by
 thresholding, opening, closing and keeping the largest component.
+
+**`holes`** is the tear model, and three of its four ideas are easy to get
+wrong. A hole is a **pattern image, not a shape formula** — DocCreator ships
+binary masks (18 border, 18 centre, 28 corner) in which black marks the paper
+that is gone, which is why theirs look torn and a drawn ellipse never does. The
+missing paper is filled with a flat colour whose application default is
+**black** (`Assistant.cpp:153`), because a page photographed over a dark
+surface shows dark through the tear. And a tear has a **shaded rim**
+(`drawBorder`/`isInMarge`), without which it reads as a sticker laid on top.
+
+The port generates the masks rather than vendoring them, and the three
+placements are genuinely different shapes rather than one shape moved about. A
+border tear removes *everything from the page edge inwards* to a ragged line: a
+torn edge is not a hole that happens to sit near the border, and drawing it as
+a blob near the edge is exactly what makes a synthetic tear look pasted on. The
+ragged line is a smoothed random walk, not summed sines — sines are periodic,
+and a periodic tear line comes out as evenly spaced battlements.
+
+One deviation, on their own advice: DocCreator applies the rim only when
+filling with an image, and a comment in their source flags the colour path as
+an oversight (`//B:TODO: why don't we also pass "shadowBorderWidth &
+shadowBorderIntensity" to fillHoleWithColor ?`). The rim is applied in both here.
 
 **`phantom_character`** needs a real gap to work in. DocCreator sizes the
 pattern from the character's bounding box and from the distance to its
