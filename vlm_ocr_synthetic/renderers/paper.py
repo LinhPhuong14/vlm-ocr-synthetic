@@ -18,8 +18,9 @@ fast enough to sit in the default pipeline.
 from __future__ import annotations
 
 import random
+from pathlib import Path
 from statistics import NormalDist
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from pydantic import BaseModel
 
@@ -45,6 +46,21 @@ class PaperConfig(BaseModel):
     grain: float = 4.0  # gaussian paper grain, in grey levels
     vignette: float = 0.0  # 0..1, darkening towards the corners
 
+    # Folds: creases from a sheet that was folded before it was scanned,
+    # the thing synthdog gets from its photographed paper resources.
+    # fold_rows=2 is a letter tri-fold; fold_rows=1 + fold_columns=1 is a
+    # quarter fold. fold_strength gates the whole effect.
+    fold_rows: int = 0
+    fold_columns: int = 0
+    fold_strength: float = 0.0  # 0..1
+    fold_softness: float = 4.0  # blur radius of the crease shading, px
+    fold_jitter: float = 0.02  # crease offset, as a fraction of the page
+
+    # A photographed sheet, the way synthdog composites resources/paper/*.
+    # Path to an image, or to a directory to pick one from (seeded).
+    texture: Optional[str] = None
+    texture_strength: float = 1.0  # 0..1, blended towards a plain sheet
+
     # genalog-style degradations.
     blur: float = 0.0  # gaussian radius: scanner that cannot focus
     bleed_through: float = 0.0  # 0..1, ink seeping from the reverse side
@@ -68,7 +84,12 @@ class PaperConfig(BaseModel):
             or self.bleed_through
             or self.salt
             or self.pepper
+            or self.texture
+            or self.has_folds()
         )
+
+    def has_folds(self) -> bool:
+        return self.fold_strength > 0 and bool(self.fold_rows or self.fold_columns)
 
 
 def _uniform_noise(size: tuple[int, int], rng: random.Random) -> "Image":
@@ -101,15 +122,195 @@ def paper_texture(
     """The sheet the document is printed on: base colour plus grain."""
     from PIL import Image
 
-    sheet = Image.new("RGB", size, config.color)
-    if config.grain <= 0:
-        return sheet
-
-    grain = _uniform_noise(size, rng).point(_gaussian_lut(config.grain))
     from PIL import ImageChops
 
-    # add(a, b, scale, offset) == (a + b) / scale + offset; 128 is neutral.
-    return ImageChops.add(sheet, grain.convert("RGB"), scale=1.0, offset=-128)
+    sheet = Image.new("RGB", size, config.color)
+
+    if config.texture:
+        # Multiply so the photograph's creases and shadows darken the tint
+        # rather than replacing it.
+        texture = load_texture(config.texture, size, config.texture_strength, rng)
+        sheet = ImageChops.multiply(sheet, texture.convert("RGB"))
+
+    if config.grain > 0:
+        grain = _uniform_noise(size, rng).point(_gaussian_lut(config.grain))
+        # add(a, b, scale, offset) == (a + b) / scale + offset; 128 neutral.
+        sheet = ImageChops.add(sheet, grain.convert("RGB"), scale=1.0, offset=-128)
+
+    return sheet
+
+
+# --------------------------------------------------------------- folds
+
+TEXTURE_SUFFIXES = (".jpg", ".jpeg", ".png", ".webp", ".bmp")
+
+
+def crease_positions(count: int, jitter: float, rng: random.Random) -> list[float]:
+    """Evenly spaced creases as fractions of the side, nudged by jitter.
+
+    ``count=2`` gives thirds -- a letter tri-fold; ``count=1`` gives a
+    single fold down the middle.
+    """
+    positions = []
+    for index in range(1, count + 1):
+        centre = index / (count + 1)
+        offset = rng.uniform(-jitter, jitter) if jitter > 0 else 0.0
+        positions.append(min(0.98, max(0.02, centre + offset)))
+    return positions
+
+
+def _panel_shading(
+    length: int,
+    breadth: int,
+    boundaries: list[float],
+    amplitude: float,
+    horizontal: bool,
+) -> "Image":
+    """Each panel between creases catches the light differently.
+
+    A folded sheet never lies flat, so panels alternate between leaning
+    towards and away from the light. Built from Pillow's linear gradient,
+    which keeps this on the C path.
+    """
+    from PIL import Image
+
+    size = (breadth, length) if horizontal else (length, breadth)
+    shading = Image.new("L", size, 128)
+
+    edges = [0.0, *boundaries, 1.0]
+    for index in range(len(edges) - 1):
+        start = int(round(edges[index] * length))
+        end = int(round(edges[index + 1] * length))
+        if end - start < 2:
+            continue
+
+        panel_size = (breadth, end - start) if horizontal else (end - start, breadth)
+        gradient = Image.linear_gradient("L")
+        if not horizontal:
+            gradient = gradient.transpose(Image.Transpose.ROTATE_90)
+        if index % 2:  # alternate the lean, like an accordion
+            gradient = gradient.transpose(
+                Image.Transpose.FLIP_TOP_BOTTOM
+                if horizontal
+                else Image.Transpose.FLIP_LEFT_RIGHT
+            )
+
+        gradient = gradient.resize(panel_size, Image.Resampling.BILINEAR).point(
+            lambda value: int(round(128 + (value - 128) * amplitude / 128))
+        )
+        shading.paste(gradient, (0, start) if horizontal else (start, 0))
+
+    return shading
+
+
+def fold_shading(
+    size: tuple[int, int],
+    config: PaperConfig,
+    rng: random.Random,
+) -> "Image":
+    """A 128-neutral map: panel shading plus a valley and ridge per crease."""
+    from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageOps
+
+    width, height = size
+    strength = max(0.0, min(config.fold_strength, 1.0))
+    amplitude = 24 * strength
+
+    rows = crease_positions(config.fold_rows, config.fold_jitter, rng)
+    columns = crease_positions(config.fold_columns, config.fold_jitter, rng)
+
+    shading = Image.new("L", size, 128)
+    if rows:
+        shading = ImageChops.add(
+            shading,
+            _panel_shading(height, width, rows, amplitude, horizontal=True),
+            scale=1.0,
+            offset=-128,
+        )
+    if columns:
+        shading = ImageChops.add(
+            shading,
+            _panel_shading(width, height, columns, amplitude, horizontal=False),
+            scale=1.0,
+            offset=-128,
+        )
+
+    # The crease itself: a dark valley with a lighter ridge beside it.
+    valley = Image.new("L", size, 0)
+    ridge = Image.new("L", size, 0)
+    valley_draw, ridge_draw = ImageDraw.Draw(valley), ImageDraw.Draw(ridge)
+    line_width = max(2, int(round(min(width, height) / 300)))
+
+    def crease_width() -> int:
+        # No two creases are pressed equally hard.
+        return max(1, int(round(line_width * rng.uniform(0.7, 1.4))))
+
+    for fraction in rows:
+        y = fraction * height
+        thickness = crease_width()
+        valley_draw.line([(0, y), (width, y)], fill=255, width=thickness)
+        ridge_draw.line(
+            [(0, y - 2 * thickness), (width, y - 2 * thickness)],
+            fill=255,
+            width=thickness,
+        )
+    for fraction in columns:
+        x = fraction * width
+        thickness = crease_width()
+        valley_draw.line([(x, 0), (x, height)], fill=255, width=thickness)
+        ridge_draw.line(
+            [(x - 2 * thickness, 0), (x - 2 * thickness, height)],
+            fill=255,
+            width=thickness,
+        )
+
+    # Blur spreads the line and drops its peak; autocontrast puts the peak
+    # back so fold_strength means the same thing at any softness.
+    softness = max(0.5, config.fold_softness)
+    valley = ImageOps.autocontrast(
+        valley.filter(ImageFilter.GaussianBlur(softness))
+    ).point(lambda value: int(value * 0.75 * strength))
+    ridge = ImageOps.autocontrast(
+        ridge.filter(ImageFilter.GaussianBlur(softness * 0.6))
+    ).point(lambda value: int(value * 0.45 * strength))
+
+    shading = ImageChops.subtract(shading, valley)
+    return ImageChops.add(shading, ridge)
+
+
+def load_texture(
+    source: str,
+    size: tuple[int, int],
+    strength: float,
+    rng: random.Random,
+) -> "Image":
+    """A photographed sheet, resized to the page.
+
+    ``source`` is an image or a directory of them -- point it at a synthdog
+    ``resources/paper`` checkout and the pages get the same real creases and
+    shadows those images carry. The picture is desaturated and pulled
+    towards neutral by ``strength``, so it tints the sheet instead of
+    replacing it.
+    """
+    from PIL import Image
+
+    path = Path(source)
+    if path.is_dir():
+        candidates = sorted(
+            child
+            for child in path.iterdir()
+            if child.suffix.lower() in TEXTURE_SUFFIXES
+        )
+        if not candidates:
+            raise FileNotFoundError(f"no texture images in {path}")
+        path = candidates[rng.randrange(len(candidates))]
+    elif not path.exists():
+        raise FileNotFoundError(f"texture not found: {path}")
+
+    with Image.open(path) as handle:
+        texture = handle.convert("L").resize(size, Image.Resampling.BILINEAR)
+
+    blend = max(0.0, min(strength, 1.0))
+    return texture.point(lambda value: int(round(255 - (255 - value) * blend)))
 
 
 def _bleed_through(image: "Image", alpha: float) -> "Image":
@@ -182,6 +383,15 @@ def apply_paper(
         image = image.convert("RGB")
 
     result = ImageChops.multiply(image, paper_texture(image.size, config, rng))
+
+    if config.has_folds():
+        # Creases shade the whole page, ink included.
+        result = ImageChops.add(
+            result,
+            fold_shading(image.size, config, rng).convert("RGB"),
+            scale=1.0,
+            offset=-128,
+        )
 
     if config.bleed_through > 0:
         result = _bleed_through(result, min(config.bleed_through, 1.0))

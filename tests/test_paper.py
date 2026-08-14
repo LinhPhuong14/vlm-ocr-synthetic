@@ -14,6 +14,8 @@ import pytest
 from vlm_ocr_synthetic.renderers.paper import (
     PaperConfig,
     apply_paper,
+    crease_positions,
+    fold_shading,
     paper_texture,
 )
 
@@ -196,3 +198,150 @@ def test_several_papers_reuse_one_structural_render():
 
     assert clean.image.tobytes() != scanned.image.tobytes()
     assert structure.image.getpixel((0, 0)) == (255, 255, 255)  # original intact
+
+
+# ------------------------------------------------------------------ folds
+
+
+def test_crease_positions_split_the_page_evenly():
+    assert crease_positions(1, 0, random.Random(0)) == [0.5]
+    assert crease_positions(2, 0, random.Random(0)) == pytest.approx([1 / 3, 2 / 3])
+    assert crease_positions(0, 0, random.Random(0)) == []
+
+
+def test_crease_jitter_is_seeded_and_stays_on_the_page():
+    first = crease_positions(3, 0.05, random.Random(11))
+    second = crease_positions(3, 0.05, random.Random(11))
+    other = crease_positions(3, 0.05, random.Random(12))
+
+    assert first == second != other
+    assert all(0.02 <= position <= 0.98 for position in first)
+
+
+def test_folds_need_both_a_count_and_a_strength():
+    assert not PaperConfig(fold_rows=2).has_folds()  # strength defaults to 0
+    assert not PaperConfig(fold_strength=0.8).has_folds()  # no creases asked for
+    assert PaperConfig(fold_rows=2, fold_strength=0.8).has_folds()
+
+
+def test_fold_shading_is_neutral_where_there_is_no_crease():
+    config = PaperConfig(fold_rows=1, fold_strength=0.8, fold_jitter=0)
+    shading = fold_shading((80, 200), config, random.Random(0))
+
+    assert shading.size == (80, 200)
+    # the panel interiors stay near neutral grey
+    assert shading.getpixel((40, 10)) == pytest.approx(128, abs=30)
+
+
+def test_the_crease_is_darker_than_the_panel_around_it():
+    config = PaperConfig(
+        fold_rows=1, fold_strength=1.0, fold_jitter=0, fold_softness=2
+    )
+    shading = fold_shading((60, 200), config, random.Random(0))
+
+    crease_row = min(shading.getpixel((30, y)) for y in range(96, 105))
+    panel_row = shading.getpixel((30, 160))
+    assert crease_row < panel_row
+
+
+@pytest.mark.parametrize(
+    "config",
+    [
+        PaperConfig(grain=0, fold_rows=2, fold_strength=0.7),
+        PaperConfig(grain=0, fold_columns=1, fold_strength=0.7),
+        PaperConfig(grain=0, fold_rows=1, fold_columns=1, fold_strength=0.7),
+    ],
+    ids=["trifold", "vertical", "quarter"],
+)
+def test_folds_change_the_page(page, config):
+    baseline = apply_paper(page, PaperConfig(grain=0), random.Random(3))
+    folded = apply_paper(page, config, random.Random(3))
+
+    assert folded.size == page.size
+    assert folded.tobytes() != baseline.tobytes()
+
+
+def test_folded_pages_are_reproducible(page):
+    config = PaperConfig(grain=3, fold_rows=2, fold_columns=1, fold_strength=0.6)
+
+    assert (
+        apply_paper(page, config, random.Random(9)).tobytes()
+        == apply_paper(page, config, random.Random(9)).tobytes()
+    )
+    assert (
+        apply_paper(page, config, random.Random(9)).tobytes()
+        != apply_paper(page, config, random.Random(10)).tobytes()
+    )
+
+
+# ---------------------------------------------------------------- textures
+
+
+@pytest.fixture
+def texture_dir(tmp_path):
+    """Two fake paper photographs, the way synthdog ships resources/paper."""
+    from PIL import Image
+
+    for index, shade in enumerate((200, 160)):
+        Image.new("L", (32, 32), shade).save(tmp_path / f"paper{index}.jpg")
+    (tmp_path / "notes.txt").write_text("not an image", encoding="utf-8")
+    return tmp_path
+
+
+def test_texture_file_darkens_the_sheet(page, texture_dir):
+    plain = apply_paper(page, PaperConfig(grain=0), random.Random(0))
+    textured = apply_paper(
+        page,
+        PaperConfig(grain=0, texture=str(texture_dir / "paper1.jpg")),
+        random.Random(0),
+    )
+
+    assert _mean(textured) < _mean(plain)
+
+
+def test_texture_directory_picks_one_image_by_seed(page, texture_dir):
+    first = apply_paper(
+        page, PaperConfig(grain=0, texture=str(texture_dir)), random.Random(1)
+    )
+    same = apply_paper(
+        page, PaperConfig(grain=0, texture=str(texture_dir)), random.Random(1)
+    )
+
+    assert first.tobytes() == same.tobytes()
+    # a non-image sitting in the directory must not be picked up
+    assert (texture_dir / "notes.txt").exists()
+
+
+def test_texture_strength_blends_towards_a_plain_sheet(page, texture_dir):
+    strong = apply_paper(
+        page,
+        PaperConfig(grain=0, texture=str(texture_dir / "paper1.jpg")),
+        random.Random(0),
+    )
+    weak = apply_paper(
+        page,
+        PaperConfig(
+            grain=0, texture=str(texture_dir / "paper1.jpg"), texture_strength=0.2
+        ),
+        random.Random(0),
+    )
+
+    assert _mean(weak) > _mean(strong)
+
+
+def test_missing_texture_is_reported(page, tmp_path):
+    with pytest.raises(FileNotFoundError):
+        apply_paper(
+            page, PaperConfig(texture=str(tmp_path / "nope.jpg")), random.Random(0)
+        )
+
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    with pytest.raises(FileNotFoundError):
+        apply_paper(page, PaperConfig(texture=str(empty)), random.Random(0))
+
+
+def test_texture_alone_is_not_a_noop(texture_dir):
+    assert not PaperConfig(
+        color=(255, 255, 255), grain=0, texture=str(texture_dir)
+    ).is_noop()

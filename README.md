@@ -458,11 +458,52 @@ backends differ:
 | ---- | --------- | ------- |
 | `color` | the sheet itself; the render is multiplied onto it, so ink stays dark | `[250, 249, 245]` |
 | `grain` | paper texture, as gaussian grey-level noise | `4.0` |
+| `fold_rows` / `fold_columns` | creases from a sheet that was folded before it was scanned | `0` |
+| `fold_strength` | how hard those creases were pressed (0 disables folds) | `0` |
+| `fold_softness` | crease blur radius in px; how rounded the fold is | `4.0` |
+| `fold_jitter` | crease offset as a fraction of the page, so no two sheets fold alike | `0.02` |
+| `texture` | a photographed sheet: an image, or a directory to pick one from | `null` |
+| `texture_strength` | how far that photograph is blended in | `1.0` |
 | `blur` | a scanner that cannot quite focus | `0` |
 | `bleed_through` | ink seeping from the reverse side (mirrored, blurred) | `0` |
 | `salt` | fraction of pixels lightened — faded ink | `0` |
 | `pepper` | fraction of pixels darkened — dust and scanner specks | `0` |
 | `vignette` | darkening towards the corners | `0` |
+
+### Folds
+
+synthdog gets its creases from photographs — `resources/paper/*.jpg`, real
+sheets that had been folded before they were shot. This generates the same
+effect procedurally, so nothing has to be shipped or downloaded:
+
+```yaml
+paper:
+  fold_rows: 1        # one crease across
+  fold_columns: 1     # one down: the sheet was quartered
+  fold_strength: 0.6
+  fold_softness: 5.0
+```
+
+`fold_rows: 2` is a letter tri-fold; `fold_rows: 1` alone is the single crease a
+restaurant bill picks up on the way into a pocket. Each crease gets a dark
+valley and a lighter ridge beside it, each panel between creases leans towards
+or away from the light, and position and pressure are jittered per page from the
+seed — so a batch does not fold identically. `configs/html_folded.yaml` is a
+ready-made quarter fold.
+
+| clean | tri-fold, photocopied | quarter fold |
+| --- | --- | --- |
+| ![clean page](data/samples/invoice-html-flow.jpg) | ![tri-folded and degraded](data/samples/invoice-html-scanned.jpg) | ![quarter folded](data/samples/invoice-html-folded.jpg) |
+
+If you do have real paper photographs — synthdog's `resources/paper`, or your
+own scans — point `texture` at the file or the directory and they are multiplied
+into the sheet instead, with one picked per page from the seed:
+
+```yaml
+paper:
+  texture: /path/to/synthdog/resources/paper
+  texture_strength: 0.8
+```
 
 The effect list follows [genalog's degradation
 model](https://github.com/microsoft/genalog); the sheet-and-ink compositing
@@ -541,7 +582,8 @@ python -m vlm_ocr_synthetic render -c configs/html_flow.yaml
 | `synthdog_default.yaml` | Pillow, off-white paper, table grid, light scan noise |
 | `html_flow.yaml` | browser, CSS decides the layout — realistic and varied |
 | `html_absolute.yaml` | browser, blocks pinned to the input bboxes — comparable to synthdog |
-| `html_scanned.yaml` | browser, genalog-style degradations turned up: blur, bleed-through, specks, vignette |
+| `html_scanned.yaml` | browser, genalog-style degradations turned up: blur, bleed-through, specks, vignette, tri-fold |
+| `html_folded.yaml` | browser, a sheet quarter-folded before it was scanned |
 | `html_receipt_vn.yaml` | browser, 80mm thermal receipt (mono font, centred, borderless) |
 | `synthdog_receipt_vn.yaml` | the same receipt through Pillow, for side-by-side checks |
 

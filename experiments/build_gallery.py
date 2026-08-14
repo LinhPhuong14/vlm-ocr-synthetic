@@ -31,6 +31,7 @@ GALLERY = (
     ("invoice", "configs/synthdog_default.yaml", "invoice-synthdog"),
     ("invoice", "configs/html_flow.yaml", "invoice-html-flow"),
     ("invoice", "configs/html_scanned.yaml", "invoice-html-scanned"),
+    ("invoice", "configs/html_folded.yaml", "invoice-html-folded"),
 )
 
 
