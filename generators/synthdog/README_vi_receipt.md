@@ -32,8 +32,8 @@ Thư viện đã ghim sẵn trong `requirements.txt`. **Ba mốc chặn trên l�
 ## 2. Cài đặt
 
 ```bash
-git clone https://github.com/LinhPhuong14/synthdog.git
-cd synthdog/synthdog
+git clone https://github.com/LinhPhuong14/vlm-ocr-synthetic.git
+cd vlm-ocr-synthetic/generators/synthdog
 
 python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
@@ -56,7 +56,7 @@ python -c "import synthtiger, PIL, numpy, cv2; print(synthtiger.__version__, PIL
 ## 3. Sinh dữ liệu
 
 ```bash
-# chạy từ thư mục synthdog/synthdog
+# chạy từ thư mục generators/synthdog
 synthtiger -o ./outputs/VNReceipt -c 1000 -w 4 -v \
     template_receipt.py SynthVNReceipt config_vi_receipt.yaml
 ```
@@ -264,7 +264,7 @@ từng trường (nhãn). Đó là lý do box trong ảnh mục 4 vẫn bám sá
 | `AttributeError: 'FreeTypeFont' object has no attribute 'getsize'` | Pillow ≥ 10. Chạy `pip install "pillow<10"`. |
 | `AttributeError: np.sctypes was removed` | NumPy ≥ 2. Chạy `pip install "numpy<2"`. |
 | Chữ hiện ô vuông ▯▯▯ | Font thiếu glyph tiếng Việt. Chạy `python tools/check_fonts.py resources/font/vi`. **Nhãn vẫn ghi đúng chữ nên lỗi này không tự báo ra** — phải chủ động kiểm tra. |
-| `FileNotFoundError: resources/...` | Phải chạy từ thư mục `synthdog/synthdog`, đường dẫn trong YAML là tương đối. |
+| `FileNotFoundError: resources/...` | Phải chạy từ thư mục `generators/synthdog`, đường dẫn trong YAML là tương đối. |
 
 ---
 
