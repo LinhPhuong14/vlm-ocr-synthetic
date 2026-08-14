@@ -87,3 +87,19 @@ def test_render_with_a_shipped_config(tmp_path):
 
     assert exit_code == 0
     assert (tmp_path / "synthdog" / "page.png").exists()
+
+
+def test_doctor_reports_a_healthy_environment(capsys):
+    assert main(["doctor"]) == 0
+
+    out = capsys.readouterr().out
+    assert "python" in out and "renderers" in out
+    assert "no problems found" in out
+
+
+def test_doctor_json_lists_dependencies(capsys):
+    assert main(["doctor", "--json"]) == 0
+
+    payload = json.loads(capsys.readouterr().out)
+    distributions = {entry["distribution"] for entry in payload["dependencies"]}
+    assert {"pydantic", "Pillow", "PyYAML"} <= distributions
