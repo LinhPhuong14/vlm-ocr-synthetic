@@ -1,0 +1,239 @@
+{
+  "chains": {
+    "synthdog": [
+      [
+        "ink_degradation",
+        {
+          "level": 6
+        }
+      ],
+      [
+        "blur_zones",
+        {
+          "radius": 1.6,
+          "zones": 2,
+          "coverage": 0.18
+        }
+      ],
+      [
+        "shadow_binding",
+        {
+          "border": "bottom",
+          "distance_ratio": 0.1,
+          "intensity": 0.4
+        }
+      ]
+    ],
+    "genalog": [
+      [
+        "ink_degradation",
+        {
+          "level": 4
+        }
+      ],
+      [
+        "bleed_through",
+        {
+          "intensity": 0.6,
+          "nb_iter": 8
+        }
+      ],
+      [
+        "blur_zones",
+        {
+          "radius": 2.0,
+          "zones": 3,
+          "coverage": 0.22
+        }
+      ],
+      [
+        "shadow_binding",
+        {
+          "border": "left",
+          "distance_ratio": 0.14,
+          "intensity": 0.5
+        }
+      ],
+      [
+        "holes",
+        {
+          "count": 2,
+          "placement": "border",
+          "size_ratio": 0.035
+        }
+      ]
+    ]
+  },
+  "images": [
+    {
+      "source": "synthdog",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/synthout/test/image_3.jpg",
+      "before": "synthdog_00-before.jpg",
+      "after": "synthdog_00-after.jpg",
+      "size": [
+        887,
+        1141
+      ],
+      "chain": [
+        "ink_degradation",
+        "blur_zones",
+        "shadow_binding"
+      ],
+      "seed": 2026
+    },
+    {
+      "source": "synthdog",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/synthout/train/image_1.jpg",
+      "before": "synthdog_01-before.jpg",
+      "after": "synthdog_01-after.jpg",
+      "size": [
+        803,
+        957
+      ],
+      "chain": [
+        "ink_degradation",
+        "blur_zones",
+        "shadow_binding"
+      ],
+      "seed": 2027
+    },
+    {
+      "source": "synthdog",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/synthout/train/image_4.jpg",
+      "before": "synthdog_02-before.jpg",
+      "after": "synthdog_02-after.jpg",
+      "size": [
+        986,
+        1136
+      ],
+      "chain": [
+        "ink_degradation",
+        "blur_zones",
+        "shadow_binding"
+      ],
+      "seed": 2028
+    },
+    {
+      "source": "synthdog",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/synthout/validation/image_0.jpg",
+      "before": "synthdog_03-before.jpg",
+      "after": "synthdog_03-after.jpg",
+      "size": [
+        776,
+        953
+      ],
+      "chain": [
+        "ink_degradation",
+        "blur_zones",
+        "shadow_binding"
+      ],
+      "seed": 2029
+    },
+    {
+      "source": "synthdog",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/synthout/validation/image_2.jpg",
+      "before": "synthdog_04-before.jpg",
+      "after": "synthdog_04-after.jpg",
+      "size": [
+        748,
+        918
+      ],
+      "chain": [
+        "ink_degradation",
+        "blur_zones",
+        "shadow_binding"
+      ],
+      "seed": 2030
+    },
+    {
+      "source": "genalog",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/genalogout/genalog_00.png",
+      "before": "genalog_00-before.jpg",
+      "after": "genalog_00-after.jpg",
+      "size": [
+        1241,
+        1772
+      ],
+      "chain": [
+        "ink_degradation",
+        "bleed_through",
+        "blur_zones",
+        "shadow_binding",
+        "holes"
+      ],
+      "seed": 2026
+    },
+    {
+      "source": "genalog",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/genalogout/genalog_01.png",
+      "before": "genalog_01-before.jpg",
+      "after": "genalog_01-after.jpg",
+      "size": [
+        1241,
+        1772
+      ],
+      "chain": [
+        "ink_degradation",
+        "bleed_through",
+        "blur_zones",
+        "shadow_binding",
+        "holes"
+      ],
+      "seed": 2027
+    },
+    {
+      "source": "genalog",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/genalogout/genalog_02.png",
+      "before": "genalog_02-before.jpg",
+      "after": "genalog_02-after.jpg",
+      "size": [
+        1241,
+        1772
+      ],
+      "chain": [
+        "ink_degradation",
+        "bleed_through",
+        "blur_zones",
+        "shadow_binding",
+        "holes"
+      ],
+      "seed": 2028
+    },
+    {
+      "source": "genalog",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/genalogout/genalog_03.png",
+      "before": "genalog_03-before.jpg",
+      "after": "genalog_03-after.jpg",
+      "size": [
+        1241,
+        1772
+      ],
+      "chain": [
+        "ink_degradation",
+        "bleed_through",
+        "blur_zones",
+        "shadow_binding",
+        "holes"
+      ],
+      "seed": 2029
+    },
+    {
+      "source": "genalog",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/genalogout/genalog_04.png",
+      "before": "genalog_04-before.jpg",
+      "after": "genalog_04-after.jpg",
+      "size": [
+        1241,
+        1772
+      ],
+      "chain": [
+        "ink_degradation",
+        "bleed_through",
+        "blur_zones",
+        "shadow_binding",
+        "holes"
+      ],
+      "seed": 2030
+    }
+  ]
+}
