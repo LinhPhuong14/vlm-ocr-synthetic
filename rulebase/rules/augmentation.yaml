@@ -57,7 +57,7 @@ options:
         - [bleed_through, {intensity: 0.5, nb_iter: 6}]
         - [blur_zones, {radius: 1.4, zones: 3, coverage: 0.18}]
         - [shadow_binding, {border: left, distance_ratio: 0.13, intensity: 0.45}]
-        - [holes, {count: 2, placement: border, size_ratio: 0.03}]
+        - [holes, {count: 2, placement: border, size_ratio: 0.10, fill: black}]
 
   - id: vet_ban
     weight: 3
@@ -99,3 +99,27 @@ options:
         - [ink_degradation, {level: 3}]
         - [gradient_domain, {count: 3, strength: 0.6}]
         - [blur_zones, {radius: 1.2, zones: 3, coverage: 0.18}]
+
+  - id: rach_giay
+    weight: 2
+    tags: [co_texture, rach]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.40, grain: 0.6, creases: 2}]
+        - [ink_degradation, {level: 2}]
+        # Giấy rách: phần mất đi lấp bằng MÀU ĐEN — mặt bàn tối lộ qua chỗ
+        # rách, đúng mặc định của DocCreator (Assistant.cpp:153).
+        - [holes, {count: 2, placement: border, size_ratio: 0.16, fill: black}]
+        - [holes, {count: 1, placement: corner, size_ratio: 0.26, fill: black}]
+        - [blur_zones, {radius: 1.0, zones: 2, coverage: 0.14}]
+
+  - id: thung_lo
+    weight: 1
+    tags: [co_texture, rach]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.45, grain: 0.7}]
+        - [ink_degradation, {level: 3}]
+        # Thủng giữa trang, không phải rách mép.
+        - [holes, {count: 3, placement: center, size_ratio: 0.09, fill: black}]
+        - [shadow_binding, {border: left, distance_ratio: 0.10, intensity: 0.35}]
