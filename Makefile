@@ -1,52 +1,43 @@
-# Everything you need after `git clone`. See CONTRIBUTING.md.
-PYTHON ?= python3
-VENV   ?= .venv
-BIN     = $(VENV)/bin
+# Task shortcuts. Each generator has its own environment -- see README.md.
+PYTHON       ?= python3
+SYNTHDOG_VENV = synthdog/.venv
 
 .DEFAULT_GOAL := help
-.PHONY: help setup test test-fast lint format doctor render benchmark gallery dataset clean
+.PHONY: help setup receipts preview lint format check submodules clean
 
 help:  ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | \
 	  awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
-setup:  ## Create the venv and install everything, including chromium
-	$(PYTHON) -m venv $(VENV)
-	$(BIN)/pip install -q -U pip
-	$(BIN)/pip install -q -e ".[all]"
-	$(BIN)/playwright install chromium || \
-	  echo "note: chromium not installed; the html backend will report why"
-	$(BIN)/python -m vlm_ocr_synthetic doctor
+submodules:  ## Fetch genalog (a submodule with no content until initialised)
+	git submodule update --init --recursive
 
-test:  ## Run the whole suite
-	$(BIN)/python -m pytest
+setup:  ## Create synthdog's venv and install its pinned dependencies
+	@$(PYTHON) -c 'import sys; v=sys.version_info; \
+	  sys.exit(0 if v < (3, 13) else "synthdog needs Python 3.8-3.12; see docs/python-314.md")'
+	$(PYTHON) -m venv $(SYNTHDOG_VENV)
+	$(SYNTHDOG_VENV)/bin/pip install -q -U pip setuptools wheel
+	$(SYNTHDOG_VENV)/bin/pip install -q -r synthdog/requirements.txt
+	$(SYNTHDOG_VENV)/bin/python -c "import synthtiger, PIL, numpy, cv2; \
+	  print('synthtiger', synthtiger.__version__, '| pillow', PIL.__version__)"
 
-test-fast:  ## Run everything that does not render (sub-second)
-	$(BIN)/python -m pytest -m "not slow"
+receipts:  ## Generate 100 Vietnamese receipts into synthdog/outputs/
+	cd synthdog && .venv/bin/synthtiger -o ./outputs/VNReceipt -c 100 -w 4 -v \
+	  template_receipt.py SynthVNReceipt config_vi_receipt.yaml
 
-lint:  ## Check style and imports
-	$(BIN)/ruff check .
-	$(BIN)/ruff format --check .
+preview:  ## Render a grid of sample receipts to eyeball the config
+	cd synthdog && .venv/bin/python tools/preview_receipt.py \
+	  --count 8 --grid 4 --seed 2026 --out /tmp/preview
 
-format:  ## Fix what can be fixed automatically
-	$(BIN)/ruff check --fix .
-	$(BIN)/ruff format .
+check:  ## Byte-compile every tracked Python file (no dependencies needed)
+	@git ls-files '*.py' | grep -v '^html-table/' | xargs -r $(PYTHON) -m py_compile && \
+	  echo "all python files compile"
 
-doctor:  ## Is this environment usable?
-	$(BIN)/python -m vlm_ocr_synthetic doctor
+lint:  ## Lint the generators (correctness and imports, not formatting)
+	ruff check .
 
-render:  ## Render the samples with every backend, into data/
-	$(BIN)/python -m vlm_ocr_synthetic render -r all
+format:  ## Apply the fixes ruff can make safely
+	ruff check --fix .
 
-gallery:  ## Rebuild the README previews in data/samples/
-	$(BIN)/python experiments/build_gallery.py
-
-benchmark:  ## Compare the backends, into data/benchmark/
-	$(BIN)/python -m vlm_ocr_synthetic benchmark --pages 3
-
-dataset:  ## Plan a dataset run without rendering anything
-	$(BIN)/python -m vlm_ocr_synthetic generate --dry-run
-
-clean:  ## Remove caches and generated pages (keeps data/samples and the report)
-	rm -rf .pytest_cache .ruff_cache **/__pycache__ build dist *.egg-info
-	rm -rf data/dataset data/compare
+clean:  ## Remove caches and generated output
+	rm -rf .ruff_cache **/__pycache__ synthdog/outputs /tmp/preview

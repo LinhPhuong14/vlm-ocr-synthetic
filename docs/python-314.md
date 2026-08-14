@@ -1,60 +1,55 @@
-# Python 3.14, and why there is no pygame
+# Why synthdog stops at Python 3.12
 
+`synthdog/requirements.txt` pins `pillow<10`, `numpy<2` and `opencv-python<5`,
+and caps the interpreter at 3.12. Those are not conservative guesses — every
+one of them was hit. This page records the measurements so nobody has to
+rediscover them, and so the cap is not "relaxed" by someone on a new laptop.
 
-The suite passes unchanged on **CPython 3.14.7** (and on 3.11), both backends
-included. Two things make that true, and both are enforced by tests rather than
-just claimed.
+Everything below was measured on **CPython 3.14.7**, installed from
+python-build-standalone.
 
-### Dependency floors
-
-Python 3.14 needs newer dependencies than older interpreters: below these
-versions there is no cp314 wheel, so pip falls back to a source build that fails
-or takes minutes. `pyproject.toml` applies them with `python_version >= '3.14'`
-markers, and `vlm_ocr_synthetic/compat.py` re-checks them at runtime.
-
-| dependency | floor on 3.14 | what happens below it |
-| ---------- | ------------- | --------------------- |
-| `pydantic` | 2.12    | 2.11 and older have no cp314 wheel for `pydantic-core` — install fails outright |
-| `PyYAML`   | 6.0.3   | first release with a cp314 wheel |
-| `Pillow`   | 11.3    | first release with a cp314 wheel |
-| `playwright` | 1.52  | 1.49 and older pin `greenlet==3.1.1`, which has no cp314 wheel |
-
-Older interpreters keep the loose floors, so nothing is forced on 3.10 – 3.13.
-
-### The original synthdog does not run on 3.14
-
-The synthdog from donut renders through `synthtiger`, which pins
-`pygame==2.6.1`. Measured on CPython 3.14.7:
+## The wall is not one package
 
 | attempt | result |
 | ------- | ------ |
-| `pip install pygame` | no cp314 wheel → source build **fails** |
+| `pip install pygame` | no cp314 wheel exists → falls back to a source build, which **fails** |
 | `pip install synthtiger` | pulls `pygame==2.6.1` → same failure |
-| `pip install pygame-ce` | **works** (2.5.8, ships cp314 wheels, same `import pygame` API) |
-| synthtiger + pygame-ce + NumPy 2 | `import synthtiger` → `AttributeError: np.sctypes was removed in NumPy 2.0` (via `imgaug`) |
-| synthtiger + pygame-ce + NumPy 1.26 (2 min source build) | `import synthtiger` → scipy dies on `np.long`, removed in NumPy 2 |
+| `pip install pygame-ce` | **works** (2.5.8 ships cp314 wheels, and provides the same `import pygame`) |
+| synthtiger + pygame-ce, NumPy 2 | `import synthtiger` → `AttributeError: np.sctypes was removed in the NumPy 2.0 release` (via `imgaug`) |
+| synthtiger + pygame-ce, NumPy 1.26 (2 min source build) | `import synthtiger` → scipy dies on `np.long`, removed in NumPy 2 |
 
-So **pygame is only the first wall.** Swapping in `pygame-ce` clears it, but
-`imgaug` (unmaintained since 2020) needs NumPy 1.x APIs while every scipy build
-that exists for 3.14 needs NumPy ≥ 2 — a conflict no pin resolves. The last
-interpreter where that whole stack installs from wheels is **CPython 3.12**
-(`numpy 1.26.4` and `scipy 1.13.1` stop at cp312).
+So swapping `pygame` for `pygame-ce` clears the first wall and reveals the real
+one: **`imgaug` has been unmaintained since 2020** and needs NumPy 1.x APIs,
+while every scipy build that exists for 3.14 is compiled against NumPy 2. No
+combination of pins satisfies both.
 
-### What replaces pygame here
+## Where the wheels actually stop
 
-Our `synthdog` backend never depended on pygame — it draws with Pillow, whose
-FreeType binding covers everything synthtiger used pygame for:
+| package | version needed by synthtiger | last CPython with a wheel |
+| ------- | ---------------------------- | ------------------------- |
+| `pygame` | 2.6.1 | cp313 |
+| `numpy` | 1.26.4 (last 1.x) | **cp312** |
+| `scipy` | 1.13.1 (last supporting NumPy 1.x) | **cp312** |
+| `imgaug` | 0.4.0 | pure Python, but needs NumPy 1.x |
 
-| synthtiger / pygame | here |
-| ------------------- | ---- |
-| `pygame.freetype` glyph rasterisation | `PIL.ImageFont` on FreeType 2.14, with **raqm 0.10** for complex-script shaping (Vietnamese diacritics, Arabic, Indic) |
-| pygame surfaces and blitting for layers | `PIL.Image` / `ImageDraw` layers |
-| `imgaug` noise and effects | the `paper` layer: `PIL.ImageChops` + a seeded `random.Random`, so output stays reproducible |
-| synthtiger text layout | the wrapping and flow layout in `renderers/synthdog/renderer.py` |
+`numpy` and `scipy` are what set the ceiling: **CPython 3.12 is the last
+interpreter where the whole stack installs from wheels.**
 
-`tests/test_compat.py` runs a real render in a clean interpreter and fails
-if `pygame`, `synthtiger` or `imgaug` ever appear in `sys.modules`.
+## What this means in practice
 
-If you specifically need the original synthdog, run it on Python ≤ 3.12 in its
-own environment and keep this package on 3.14 — they exchange data as plain
-images plus JSON.
+- Create the synthdog environment with a 3.8 – 3.12 interpreter. `make setup`
+  refuses to continue on anything newer rather than producing a broken venv.
+- If your system Python is 3.13+, get an older one rather than relaxing a pin:
+  `uv python install 3.12`, `pyenv install 3.12`, or your distribution's
+  `python3.12` package.
+- The other two pins have their own causes, both documented in
+  `synthdog/requirements.txt`: synthtiger 1.2.1 calls `ImageFont.getsize()`,
+  removed in Pillow 10; and `opencv-python>=5` requires NumPy 2, which conflicts
+  with `numpy<2`.
+
+## The failure mode to recognise
+
+synthtiger catches exceptions inside its generation loop and retries, so a
+version mismatch does not raise — **it hangs**. If generation produces nothing
+and prints nothing, that is what has happened. Re-run with `-v` to see the
+traceback.

@@ -1,85 +1,24 @@
-[build-system]
-requires = ["setuptools>=68"]
-build-backend = "setuptools.build_meta"
-
-[project]
-name = "vlm-ocr-synthetic"
-version = "0.1.0"
-description = "Synthetic document generation for VLM/OCR training, with pluggable render backends"
-readme = "README.md"
-requires-python = ">=3.10"
-classifiers = [
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
-]
-
-# Python 3.14 needs higher floors than older interpreters: below these
-# versions there is no cp314 wheel, so pip falls back to a source build that
-# fails or takes minutes. See vlm_ocr_synthetic/compat.py for the evidence
-# behind each floor -- that module and these pins must stay in sync.
-dependencies = [
-    "pydantic>=2.0; python_version < '3.14'",
-    "pydantic>=2.12; python_version >= '3.14'",
-    "PyYAML>=6.0; python_version < '3.14'",
-    "PyYAML>=6.0.3; python_version >= '3.14'",
-]
-
-[project.optional-dependencies]
-synthdog = [
-    "Pillow>=10.0; python_version < '3.14'",
-    "Pillow>=11.3; python_version >= '3.14'",
-]
-html = [
-    "Pillow>=10.0; python_version < '3.14'",
-    "Pillow>=11.3; python_version >= '3.14'",
-    "Jinja2>=3.1",
-    "playwright>=1.40; python_version < '3.14'",
-    "playwright>=1.52; python_version >= '3.14'",
-]
-dev = ["pytest>=7.0", "ruff>=0.6"]
-all = [
-    "vlm-ocr-synthetic[synthdog,html,dev]",
-]
-
-[project.scripts]
-vlm-ocr-synthetic = "vlm_ocr_synthetic.cli:main"
-
-[tool.setuptools.packages.find]
-include = ["vlm_ocr_synthetic*"]
-
-[tool.setuptools.package-data]
-"vlm_ocr_synthetic.renderers.html" = ["templates/*.j2"]
+# This repository is a collection of generators, not an installable package:
+# each of synthdog/, html-table/ and genalog/ has its own dependencies and its
+# own supported Python range. What lives here is the tooling configuration
+# shared across them.
 
 [tool.ruff]
 line-length = 90
-target-version = "py310"
-extend-exclude = ["data", ".venv*"]
+# synthdog targets Python 3.8, so ruff must not suggest newer syntax --
+# `zip(strict=)` and friends would break the environment it actually runs in.
+target-version = "py38"
+# Vendored third-party code keeps its own style and its own pre-commit config.
+extend-exclude = ["html-table", "genalog", "resources", ".venv*"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+# Correctness and imports; not a style crusade over code adapted from upstream.
+select = ["E", "F", "I"]
 ignore = [
-    "E501",    # long lines are the formatter's business, not the linter's
-    "B008",    # Depends()-style defaults are fine here
-    "SIM108",  # ternaries are not always clearer
-    "B905",    # zip(strict=) -- several zips here are intentionally ragged
-    "RUF046",  # int(round(x)) is explicit about the pixel rounding we mean
+    "E501",  # long lines
+    "E731",  # assigned lambdas read fine in the layout helpers
 ]
 
 [tool.ruff.lint.per-file-ignores]
-# Tests reach into privates on purpose, and import inside functions to keep
-# optional dependencies optional.
-"tests/**" = ["E402"]
-
-[tool.ruff.lint.isort]
-known-first-party = ["vlm_ocr_synthetic"]
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-pythonpath = [".", "tests"]
-addopts = "-ra"
-markers = [
-    "slow: renders through a real backend (browser / rasteriser)",
-]
+# Kept close to clovaai/donut so upstream changes still merge cleanly.
+"synthdog/template.py" = ["F841"]

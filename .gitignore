@@ -1,121 +1,73 @@
 # ---------------------------------------------------------------- Python
 __pycache__/
 *.py[cod]
-*$py.class
 *.so
-
-# Packaging / build
-build/
-dist/
-sdist/
-wheels/
-*.egg
 *.egg-info/
 .eggs/
-MANIFEST
-pip-wheel-metadata/
+build/
+dist/
 
-# Virtual environments
+# Virtual environments (each generator has its own)
 .venv/
 venv/
 env/
-ENV/
-.python-version
+synthdog/.venv/
+html-table/.venv/
 
-# Test / lint / type-check caches
-.pytest_cache/
+# Tooling caches
 .ruff_cache/
+.pytest_cache/
 .mypy_cache/
-.pytype/
-.tox/
-.nox/
 .coverage
-.coverage.*
-coverage.xml
 htmlcov/
-*.cover
 
 # ------------------------------------------------- Generated synthetic data
-# Rendered pages and their annotations. Regenerate with
-#   python -m vlm_ocr_synthetic render -r all
+# Generators write into their own directories; none of it belongs in git.
 outputs/
-renders/
+synthdog/outputs/
+html-table/output/
+data/
+datasets/
+*.jsonl
+*.tar
+*.parquet
+*.lmdb
+
+# Rendered pages
 *.png
 *.jpg
 *.jpeg
 *.webp
 *.pdf
+!synthdog/docs/**/*.jpg
+!html-table/**/*.png
 
-# Everything generated lands in data/. Full-resolution PNG pages are
-# regenerable and too big to keep, so what git tracks is the small stuff:
-# JPEG previews (~200 KB each), their annotations, and the benchmark report.
-#   python experiments/build_gallery.py     -> data/samples/
-#   python -m vlm_ocr_synthetic benchmark   -> data/benchmark/
-data/*
-!data/benchmark/
-!data/samples/
-
-data/benchmark/*
-!data/benchmark/report.md
-!data/benchmark/report.json
-!data/benchmark/preview-*.jpg
-
-data/samples/*
-!data/samples/*.jpg
-!data/samples/*.json
-
-datasets/
-*.jsonl
-*.tar
-*.parquet
-*.arrow
-*.lmdb
-*.h5
-*.hdf5
-
-# Fonts / backgrounds / corpora pulled in for rendering (redistribute separately)
-assets/fonts/
-assets/backgrounds/
-resources/fonts/
-resources/backgrounds/
+# Fonts and backgrounds pulled in for rendering (redistribute separately)
 *.ttf
 *.otf
 *.ttc
+resources/fonts/
+resources/backgrounds/
 
-# Model checkpoints and training runs, if training lands in this repo
+# Model checkpoints and training runs
 checkpoints/
 runs/
 wandb/
-mlruns/
-lightning_logs/
 *.ckpt
 *.pt
 *.pth
 *.safetensors
-*.onnx
 
-# ------------------------------------------------------------------ Tooling
-# Playwright's downloaded browsers, when not using a system chromium
-.playwright/
-ms-playwright/
-
-# Local overrides
-.env
-.env.*
-!.env.example
-configs/local_*.yaml
-*.local.yaml
-
-# --------------------------------------------------------- Editors / OS junk
+# ---------------------------------------------------------- Editors / OS
 .idea/
 .vscode/
 *.swp
-*.swo
 *~
 .ipynb_checkpoints/
 .DS_Store
 Thumbs.db
 
-# Keep the shipped template and sample assets that the ignores above would eat
-!vlm_ocr_synthetic/**/templates/**
-!docs/**/*.png
+# Local overrides
+.env
+.env.*
+!.env.example

@@ -1,0 +1,3 @@
+[submodule "genalog"]
+	path = genalog
+	url = https://github.com/microsoft/genalog.git
