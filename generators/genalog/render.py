@@ -76,10 +76,11 @@ def styles_for(recipe, grid, line_px: float, pad_ch: float) -> dict:
     # Shared palette, so `visual.ink_gray` fades this backend's text the same
     # amount it fades the other two backends'.
     palette = rulebase.inks(recipe)
+    pad = rulebase.padding(recipe, grid)
     size_lo, size_hi = visual.get("font_size", [22, 30])
     font_px = (size_lo + size_hi) / 2.0
-    tallest = max([cell.scale for cell in grid.cells] + [1.0])
-    margin_px = line_px * (0.6 + tallest)
+    pad_top = line_px * pad["top"]
+    pad_bottom = line_px * pad["bottom"]
     return {
         "font_family": visual.get("font_family", "monospace"),
         "font_size": f"{font_px:.2f}px",
@@ -87,8 +88,8 @@ def styles_for(recipe, grid, line_px: float, pad_ch: float) -> dict:
         "sheet_width": f"{grid.ncols + pad_ch * 2:.3f}ch",
         "sheet_height": f"{grid.nrows * line_px:.2f}px",
         "page_width": f"{(grid.ncols + pad_ch * 2) * font_px * 0.62:.0f}px",
-        "page_height": f"{grid.nrows * line_px + margin_px * 2:.0f}px",
-        "page_margin": f"{margin_px:.2f}px 0",
+        "page_height": f"{grid.nrows * line_px + pad_top + pad_bottom:.0f}px",
+        "page_margin": f"{pad_top:.2f}px 0 {pad_bottom:.2f}px",
         "ink": _hex(palette["ink"]),
         "accent": _hex(palette["accent"]),
         "tint": _hex(palette["tint"]),
@@ -115,7 +116,7 @@ class GenalogReceiptRenderer:
         font_px = (size_lo + size_hi) / 2.0
         spacing_lo, spacing_hi = visual.get("line_spacing", [1.05, 1.35])
         line_px = font_px * (spacing_lo + spacing_hi) / 2.0
-        pad_ch = grid.ncols * (sum(visual.get("margin", [0.05, 0.10])) / 2.0)
+        pad_ch = rulebase.padding(recipe, grid)["columns"]
 
         cells = cells_for_template(grid, recipe, line_px, pad_ch)
         # Build the Document straight from genalog's template environment

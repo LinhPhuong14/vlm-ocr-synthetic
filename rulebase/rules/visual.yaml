@@ -21,6 +21,8 @@ options:
       font_size: [22, 30]
       line_spacing: [1.05, 1.30]
       margin: [0.04, 0.09]
+      padding_top: [1.8, 2.8]
+      padding_bottom: [1.4, 2.6]
       ink_gray: [0, 45]
       bold: 0.35
       paper: nhiet_trang
@@ -36,6 +38,8 @@ options:
       font_size: [20, 28]
       line_spacing: [1.10, 1.45]
       margin: [0.04, 0.10]
+      padding_top: [1.8, 3.0]
+      padding_bottom: [1.6, 3.0]
       # Mực nhạt: máy sắp hết giấy nhiệt. Trên 105 thì chữ mờ tới mức
       # renderer glyph (vốn còn chồng thêm tương phản + độ sáng khi "chụp
       # lại") cho ra ảnh không đọc được — OCR về gần 0.
@@ -54,6 +58,8 @@ options:
       font_size: [17, 23]
       line_spacing: [1.00, 1.20]
       margin: [0.03, 0.07]
+      padding_top: [1.5, 2.4]
+      padding_bottom: [1.2, 2.2]
       ink_gray: [10, 70]
       bold: 0.15
       paper: nhiet_trang
@@ -69,6 +75,8 @@ options:
       font_size: [21, 27]
       line_spacing: [1.15, 1.50]
       margin: [0.05, 0.12]
+      padding_top: [2.0, 3.2]
+      padding_bottom: [1.6, 2.8]
       ink_gray: [30, 90]
       bold: 0.20
       paper: giay_tai_che
@@ -84,6 +92,8 @@ options:
       font_size: [23, 31]
       line_spacing: [1.15, 1.40]
       margin: [0.06, 0.13]
+      padding_top: [2.4, 3.6]
+      padding_bottom: [2.0, 3.2]
       ink_gray: [0, 25]
       bold: 0.30
       paper: giay_a5

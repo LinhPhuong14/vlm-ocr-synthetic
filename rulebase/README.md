@@ -39,7 +39,7 @@ trước đã gắn vào, nên thuộc tính sau tự loại mình ra nếu khô
 | 1 | `document` | loại document: quán nhậu, siêu thị, hoá đơn GTGT… | [rules/document.yaml](rules/document.yaml) |
 | 2 | `layout` | bố cục: cột nào, mỗi mặt hàng mấy dòng | [rules/layout.yaml](rules/layout.yaml) |
 | 3 | `content` | nội dung: có dấu / không dấu, IN HOA, kiểu tiền, có VAT | [rules/content.yaml](rules/content.yaml) |
-| 4 | `visual` | hình thức: font, cỡ chữ, độ đậm mực, tờ giấy, độ cong | [rules/visual.yaml](rules/visual.yaml) |
+| 4 | `visual` | hình thức: font, cỡ chữ, độ đậm mực, **lề trắng**, tờ giấy, độ cong | [rules/visual.yaml](rules/visual.yaml) |
 | 5 | `color` | màu: mực, ám giấy, màu nhấn cho tên cửa hàng | [rules/color.yaml](rules/color.yaml) |
 | 6 | `augmentation` | làm cũ: chuỗi degradation chạy sau khi render | [rules/augmentation.yaml](rules/augmentation.yaml) |
 
@@ -93,6 +93,38 @@ giờ xuất hiện):
 ```bash
 make check-rules
 ```
+
+---
+
+## 2b. Lề trắng quanh nội dung
+
+Ba khoá trong `rules/visual.yaml`, đọc bởi `rulebase.style.padding` và dùng
+chung cho **cả ba renderer**:
+
+```yaml
+margin: [0.06, 0.13]         # lề trái/phải, theo TỈ LỆ số cột
+padding_top: [2.4, 3.6]      # lề trên, theo CHIỀU CAO DÒNG
+padding_bottom: [2.0, 3.2]   # lề dưới, theo chiều cao dòng
+```
+
+Trên và dưới cố ý **không đối xứng**: máy tính tiền nhả một đoạn giấy dài phía
+trên trước khi đầu in bắt đầu in, phần đuôi thì ngắn hơn.
+
+Hai điều mà `padding` tự lo, không cần khai trong YAML:
+
+* **Lề trên luôn đủ để chứa dòng chữ cao nhất.** Tên cửa hàng và tiêu đề được
+  phóng to (1.15–1.65em tuỳ bố cục), chữ tràn lên trên khỏi hộp dòng của nó.
+  `padding` lấy `max(padding_top, cỡ_lớn_nhất + 0.5)`, nên dù bạn đặt
+  `padding_top` nhỏ thì tên quán vẫn không bị cắt cụt ở mép ảnh.
+* **Cả ba renderer ra cùng một lề.** Trước đây mỗi renderer tự đặt một con số:
+  renderer glyph dùng `uniform(0.6, 1.8)` chiều cao dòng, hai renderer HTML
+  dùng `0.6 + cỡ_lớn_nhất`. Cùng một recipe mà dòng tên quán lại nằm ở độ cao
+  khác nhau.
+
+> Với renderer HTML có một cái bẫy: **`padding` của CSS KHÔNG đẩy được các
+> phần tử `position:absolute`** — chúng bám vào *padding box* của phần tử cha,
+> nên đặt `padding-top` bao nhiêu cũng vô ích. Lề trên phải cộng thẳng vào
+> `top` của từng ô.
 
 ---
 

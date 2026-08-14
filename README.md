@@ -104,7 +104,7 @@ Six attributes, drawn in order, each seeing the tags the earlier ones set:
 | 1 | `document` | loại document — quán nhậu, siêu thị, hoá đơn GTGT |
 | 2 | `layout` | bố cục — cột nào, mỗi mặt hàng mấy dòng |
 | 3 | `content` | nội dung — có dấu / không dấu, IN HOA, kiểu tiền, VAT |
-| 4 | `visual` | hình thức — font, cỡ chữ, độ đậm mực, tờ giấy, độ cong |
+| 4 | `visual` | hình thức — font, cỡ chữ, độ đậm mực, lề trắng, tờ giấy, độ cong |
 | 5 | `color` | màu — mực, ám giấy, màu nhấn |
 | 6 | `augmentation` | làm cũ — chuỗi degradation chạy sau khi render |
 
@@ -187,8 +187,8 @@ Two sets are committed, differing in **one attribute** of the rule-base:
 
 | set | | Tesseract token recall (synthdog / html / genalog) |
 | --- | --- | --- |
-| [`data/dataset60/`](data/dataset60) | ageing sampled from the rules | 0.41 / 0.68 / 0.77 |
-| [`data/dataset60_clean/`](data/dataset60_clean) | `augmentation=khong_lam_gi`, no distortion | 0.83 / 0.85 / 0.88 |
+| [`data/dataset60/`](data/dataset60) | ageing sampled from the rules | 0.41 / 0.68 / 0.76 |
+| [`data/dataset60_clean/`](data/dataset60_clean) | `augmentation=khong_lam_gi`, no distortion | 0.85 / 0.85 / 0.87 |
 
 ```bash
 make dataset          # aged
@@ -202,7 +202,7 @@ receipt in whatever order its layout analysis picks, so comparing its output to
 the label as one string would measure reading order rather than recognition.
 
 The clean set is the ceiling, and it earns its place twice over. It is near
-uniform across renderers (0.83–0.88), which says the spread in the aged set
+uniform across renderers (0.85–0.87), which says the spread in the aged set
 comes from the ageing and not from one renderer generating worse pages. And
 because a label that did not match its pixels would cap the clean score too, a
 clean run is the cheapest check that the two agree.
