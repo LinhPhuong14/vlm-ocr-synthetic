@@ -105,15 +105,44 @@ def test_missing_font_is_reported():
 
 
 @pytest.mark.slow
-def test_column_alignment_places_text_inside_its_cell(invoice: Document):
-    """Right-aligned money columns still report the full cell as the bbox."""
+def test_renderer_config_aligns_columns_when_the_table_does_not(invoice: Document):
+    """The config is the fallback for tables that carry no layout."""
+    document = _without_table_layout(invoice)
+
     left = SynthdogRenderer({"table_column_align": ["left", "left", "left"]}).render(
-        invoice
+        document
     )
     right = SynthdogRenderer({"table_column_align": ["left", "left", "right"]}).render(
-        invoice
+        document
     )
 
     assert left.image.tobytes() != right.image.tobytes()
     # geometry is a property of the table, not of the text alignment
     assert left.document == right.document
+
+
+@pytest.mark.slow
+def test_table_layout_wins_over_the_renderer_config(invoice: Document):
+    """A document that describes its own columns is not overridden."""
+    configured = SynthdogRenderer(
+        {"table_column_align": ["right", "right", "left"], "table_column_widths": [0.8, 0.1, 0.1]}
+    ).render(invoice)
+    plain = SynthdogRenderer().render(invoice)
+
+    assert configured.image.tobytes() == plain.image.tobytes()
+
+
+def _without_table_layout(document: Document) -> Document:
+    """Copy of a document whose tables carry no column layout."""
+    blocks = []
+    for block in document.blocks:
+        if block.table is not None:
+            block = block.model_copy(
+                update={
+                    "table": block.table.model_copy(
+                        update={"column_widths": (), "column_align": ()}
+                    )
+                }
+            )
+        blocks.append(block)
+    return document.model_copy(update={"blocks": blocks})

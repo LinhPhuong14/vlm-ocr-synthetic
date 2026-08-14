@@ -22,9 +22,8 @@ draw_table_grid: false
 underline_headers: false
 center_block_types: ["Page-Header", "Section-header", "Footnote"]
 
-# STT | Tên hàng | SL | Đơn giá | Thành tiền
-table_column_widths: [0.09, 0.38, 0.09, 0.21, 0.23]
-table_column_align: ["center", "left", "center", "right", "right"]
+# No table_column_widths here on purpose: the document carries the column
+# layout, so synthdog and html lay the same bill out the same way.
 
 paper:
   enabled: true

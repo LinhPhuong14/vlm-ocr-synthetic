@@ -39,7 +39,7 @@ vlm_ocr_synthetic/
 │   │   ├── renderer.py      # HtmlConfig + HtmlRenderer
 │   │   └── templates/       # jinja2 page template
 │   └── paper.py        # the paper + degradation layer both backends share
-├── samples/            # ready-made documents (invoice, ...)
+├── samples/            # ready-made documents + corpus.py (shared text + the format rule)
 ├── benchmark.py        # render through every backend and compare
 ├── compat.py           # interpreter and dependency floors
 ├── cli.py              # python -m vlm_ocr_synthetic
@@ -332,7 +332,9 @@ column layout Vietnamese invoices actually use:
 
 Only the item name is free text. `STT` numbers the lines, `Thành tiền` is
 `SL x Đơn giá`, and the cash total is the sum — so a generated bill always adds
-up, whatever order you feed it:
+up, whatever order you feed it. The register line and the cash total are real
+two- and three-column tables rather than padded strings, so they land the same
+way in both backends (see [the corpus rule](#corpus-rule-content-is-words-layout-is-structure)):
 
 ```python
 from vlm_ocr_synthetic.samples.receipt_vn import OrderLine, build_receipt_document
@@ -352,17 +354,72 @@ backend (via raqm) and the browser.
 | ![receipt rendered by synthdog](data/samples/receipt_vn-synthdog.jpg) | ![receipt rendered by html](data/samples/receipt_vn-html.jpg) | ![receipt structure without paper](data/samples/receipt_vn-html-structure.jpg) |
 | `configs/synthdog_receipt_vn.yaml` | `configs/html_receipt_vn.yaml` | `--no-paper` |
 
-Receipts needed things the general presets did not have, all added as config
-rather than as special cases in the renderers: `extra_css` on the html backend
-(centre the header, drop table borders, right-align the money columns) and
-`center_block_types` / `table_column_widths` / `table_column_align` /
-`underline_headers` on synthdog.
+Receipts needed things the general presets did not have, all added as config or
+document structure rather than as special cases in the renderers: `extra_css` on
+the html backend (centre the header, drop table borders) and
+`center_block_types` / `underline_headers` on synthdog. The column widths and
+alignment are **not** in either preset — they are in the document.
 
 ### `invoice` — A4 page with a bordered table
 
 | `synthdog` | `html` (flow) | `html` (scanned preset) |
 | --- | --- | --- |
 | ![invoice by synthdog](data/samples/invoice-synthdog.jpg) | ![invoice by html](data/samples/invoice-html-flow.jpg) | ![invoice, degraded](data/samples/invoice-html-scanned.jpg) |
+
+---
+
+## Corpus rule: content is words, layout is structure
+
+A content string holds the words and nothing else — no padding spaces to line
+columns up, no tabs, no manual right-alignment. Alignment lives in the table's
+`column_widths` / `column_align`, which **both backends read from the
+document**.
+
+The rule exists because the two backends cannot agree about whitespace: Pillow
+lays out glyph runs, a browser applies `white-space` and its own shaper, and a
+proportional font makes padded "alignment" drift anyway. This string rendered as
+two different documents:
+
+```python
+DocumentBlock(block_type="Section-header", content="TIỀN MẶT        537,000")
+# synthdog collapsed it to  "TIỀN MẶT 537,000"
+# the browser kept it as    "TIỀN MẶT        537,000"
+```
+
+It is now a two-cell row, and both backends place it identically:
+
+```python
+TableBlock(
+    rows=[TableRow(cells=[TableCell(content="TIỀN MẶT"), TableCell(content="537,000")])],
+    column_widths=(0.5, 0.5),
+    column_align=("left", "right"),
+)
+```
+
+`vlm_ocr_synthetic/samples/corpus.py` holds the shared text — Vietnamese invoice
+column headings, labels, money formatting — and `assert_plain_text(document)`
+enforces the rule. `tests/test_corpus.py` runs it over every shipped sample, so
+a future generator cannot quietly reintroduce padded strings.
+
+Two more things keep the backends aligned:
+
+- **The table carries its own layout.** `column_widths` are normalised, so
+  `(1, 4, 1)` and `(0.17, 0.66, 0.17)` mean the same thing. A renderer config
+  (`table_column_widths` / `table_column_align` on synthdog, CSS on html) is
+  only a fallback for documents that describe nothing — when the document does,
+  it wins.
+- **synthdog preserves whitespace runs**, exactly like `white-space: pre-wrap`
+  in the browser, so text that *does* contain padding survives intact in both.
+  A wrap swallows only the whitespace it broke on.
+
+The invariant is tested, not just documented: the same document rendered through
+both backends must produce **the same table column geometry**.
+
+```
+receipt header row, cell widths in document space
+  synthdog  [41, 188, 41, 107, 132]
+  html      [41, 188, 41, 107, 132]
+```
 
 ---
 

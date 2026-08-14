@@ -8,6 +8,10 @@ bill always adds up:
     thành tiền = số lượng x đơn giá
     tổng cộng  = sum(thành tiền)
 
+Every aligned row -- the register line, the cash total -- is a real table
+with column widths, never a padded string, so the page comes out the same
+whether it is drawn with glyphs or laid out as HTML (see ``corpus``).
+
 The text carries full diacritics on purpose: it is the cheapest end-to-end
 check that font shaping (Pillow + raqm, and the browser) is not dropping or
 mangling Vietnamese marks.
@@ -25,6 +29,13 @@ from ..schemas.document import (
     TableCell,
     TableRow,
 )
+from .corpus import (
+    INVOICE_COLUMN_ALIGN,
+    INVOICE_COLUMN_WIDTHS,
+    INVOICE_COLUMNS_VI,
+    LABELS_VI,
+    format_dong,
+)
 
 # 80mm thermal paper at 203 dpi is 576 dots wide.
 PAGE_WIDTH = 576
@@ -34,8 +45,7 @@ SHOP_NAME = "QUÁN ĂN THIÊN TÂN"
 SHOP_ADDRESS = "17-19 Tôn Đản F13 Q4 TPHCM"
 SHOP_PHONE = "ĐT: 9407863 - 8259956"
 
-# STT | Tên hàng | SL | Đơn giá | Thành tiền
-COLUMN_HEADERS = ("STT", "Tên hàng", "SL", "Đơn giá", "Thành tiền")
+COLUMN_HEADERS = INVOICE_COLUMNS_VI
 
 
 class OrderLine(NamedTuple):
@@ -63,13 +73,39 @@ ORDER: tuple[OrderLine, ...] = (
 )
 
 
-def format_dong(amount: int) -> str:
-    """Vietnamese money formatting: thousands separated by a comma."""
-    return f"{amount:,}"
-
-
 def order_total(order: tuple[OrderLine, ...] = ORDER) -> int:
     return sum(line.amount for line in order)
+
+
+def build_register_table(
+    printed_at: str = "13-11-2011 20:54",
+    bill_number: str = "000887",
+) -> TableBlock:
+    """The REG / CA metadata block above the order.
+
+    Three columns rather than one padded line, so the fields keep their own
+    cells -- and their own ground-truth boxes.
+    """
+    return TableBlock(
+        rows=[
+            TableRow(
+                cells=[
+                    TableCell(content="REG"),
+                    TableCell(content=printed_at),
+                    TableCell(content=""),
+                ]
+            ),
+            TableRow(
+                cells=[
+                    TableCell(content="CA 1"),
+                    TableCell(content="MC #01"),
+                    TableCell(content=bill_number),
+                ]
+            ),
+        ],
+        column_widths=(0.22, 0.48, 0.30),
+        column_align=("left", "left", "right"),
+    )
 
 
 def build_order_table(order: tuple[OrderLine, ...] = ORDER) -> TableBlock:
@@ -91,7 +127,29 @@ def build_order_table(order: tuple[OrderLine, ...] = ORDER) -> TableBlock:
         for index, line in enumerate(order, start=1)
     ]
 
-    return TableBlock(rows=[header, *rows])
+    return TableBlock(
+        rows=[header, *rows],
+        column_widths=INVOICE_COLUMN_WIDTHS,
+        column_align=INVOICE_COLUMN_ALIGN,
+    )
+
+
+def build_total_table(order: tuple[OrderLine, ...] = ORDER) -> TableBlock:
+    """Label on the left, amount hard right -- a row, not a padded string."""
+    return TableBlock(
+        rows=[
+            TableRow(
+                cells=[
+                    TableCell(content=LABELS_VI["cash"], is_header=True),
+                    TableCell(
+                        content=format_dong(order_total(order)), is_header=True
+                    ),
+                ]
+            )
+        ],
+        column_widths=(0.5, 0.5),
+        column_align=("left", "right"),
+    )
 
 
 def build_receipt_document(
@@ -109,28 +167,24 @@ def build_receipt_document(
             DocumentBlock(block_type=BlockType.TEXT, content=SHOP_PHONE),
             DocumentBlock(block_type=BlockType.TEXT, content="* * * * * * * *"),
             DocumentBlock(
-                block_type=BlockType.TEXT,
-                content=f"REG        {printed_at}",
-            ),
-            DocumentBlock(
-                block_type=BlockType.TEXT,
-                content=f"CA 1        MC #01        {bill_number}",
+                block_type=BlockType.TABLE,
+                table=build_register_table(printed_at, bill_number),
             ),
             DocumentBlock(
                 block_type=BlockType.SECTION_HEADER,
-                content=f"BÀN SỐ: {table_number}",
+                content=f"{LABELS_VI['table_no']}: {table_number}",
             ),
             DocumentBlock(
                 block_type=BlockType.TABLE,
                 table=build_order_table(order),
             ),
             DocumentBlock(
-                block_type=BlockType.SECTION_HEADER,
-                content=f"TIỀN MẶT        {format_dong(order_total(order))}",
+                block_type=BlockType.TABLE,
+                table=build_total_table(order),
             ),
             DocumentBlock(
                 block_type=BlockType.FOOTNOTE,
-                content="CẢM ƠN QUÝ KHÁCH\nHẸN GẶP LẠI!",
+                content=f"{LABELS_VI['thanks']}\n{LABELS_VI['see_you']}",
             ),
         ],
     )

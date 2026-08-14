@@ -9,6 +9,7 @@ boxes are exact by construction.
 from __future__ import annotations
 
 import random
+import re
 from typing import Optional
 
 from ...schemas.document import BBox, BlockType, Document, DocumentBlock, TableBlock
@@ -99,22 +100,36 @@ class SynthdogRenderer(BaseRenderer):
 
     @staticmethod
     def _wrap(text: str, font, max_width: float) -> list[str]:
-        """Greedy word wrap; falls back to one word per line when too narrow."""
+        """Greedy word wrap that keeps whitespace runs intact.
+
+        The browser preserves runs of spaces (``white-space: pre-wrap``), so
+        this does too: the same string has to draw the same either way.
+        Whitespace is only dropped where a line actually wraps, which is
+        what a browser does as well.
+        """
         lines: list[str] = []
+
         for paragraph in text.split("\n"):
-            words = paragraph.split()
-            if not words:
+            if not paragraph.strip():
                 lines.append("")
                 continue
-            current = words[0]
-            for word in words[1:]:
-                candidate = f"{current} {word}"
-                if font.getlength(candidate) <= max_width:
+
+            # Keep separators: ["Total", "   ", "537,000"]
+            tokens = [token for token in re.split(r"(\s+)", paragraph) if token]
+            current = ""
+
+            for token in tokens:
+                candidate = current + token
+                if not current or font.getlength(candidate) <= max_width:
                     current = candidate
-                else:
-                    lines.append(current)
-                    current = word
-            lines.append(current)
+                    continue
+
+                lines.append(current.rstrip())
+                # A wrap swallows the whitespace that caused it.
+                current = "" if token.isspace() else token
+
+            lines.append(current.rstrip())
+
         return lines
 
     def _line_height(self, font) -> float:
@@ -174,10 +189,18 @@ class SynthdogRenderer(BaseRenderer):
         return structure.with_paper(cfg.paper, seed=cfg.seed)
 
     def _column_edges(
-        self, left: float, table_width: float, n_columns: int
+        self,
+        left: float,
+        table_width: float,
+        n_columns: int,
+        table: TableBlock,
     ) -> list[float]:
-        """Left edge of every column, plus the table's right edge."""
-        weights = self.config.table_column_widths
+        """Left edge of every column, plus the table's right edge.
+
+        The table's own widths win; the renderer config is a fallback for
+        documents that do not carry a layout.
+        """
+        weights = table.column_widths or self.config.table_column_widths
         if len(weights) != n_columns or sum(weights) <= 0:
             weights = tuple(1 / n_columns for _ in range(n_columns))
 
@@ -187,7 +210,9 @@ class SynthdogRenderer(BaseRenderer):
             edges.append(edges[-1] + table_width * weight / total)
         return edges
 
-    def _align_for(self, column: int) -> str:
+    def _align_for(self, column: int, table: TableBlock) -> str:
+        if table.column_align:
+            return table.alignment(column)
         alignments = self.config.table_column_align
         return alignments[column] if column < len(alignments) else "left"
 
@@ -282,7 +307,7 @@ class SynthdogRenderer(BaseRenderer):
             table_width = max(px_width - 2 * margin, 1.0)
 
         n_columns = max(table.n_columns, 1)
-        column_edges = self._column_edges(left, table_width, n_columns)
+        column_edges = self._column_edges(left, table_width, n_columns, table)
         padding = cfg.cell_padding * cfg.scale
 
         body_font = self._font_for(BlockType.TEXT)
@@ -314,7 +339,14 @@ class SynthdogRenderer(BaseRenderer):
                 row_height = max(row_height, height)
 
                 cell_boxes.append(
-                    (cell, cell_left, cell_width, lines, font, self._align_for(first))
+                    (
+                        cell,
+                        cell_left,
+                        cell_width,
+                        lines,
+                        font,
+                        self._align_for(first, table),
+                    )
                 )
                 column_index += cell.colspan
 

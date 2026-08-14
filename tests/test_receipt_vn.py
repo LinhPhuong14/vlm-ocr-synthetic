@@ -13,12 +13,12 @@ import pytest
 from conftest import requires_renderer
 from vlm_ocr_synthetic.renderers import load_config
 from vlm_ocr_synthetic.samples import get_sample
+from vlm_ocr_synthetic.samples.corpus import assert_plain_text, format_dong
 from vlm_ocr_synthetic.samples.receipt_vn import (
     COLUMN_HEADERS,
     ORDER,
     OrderLine,
     build_receipt_document,
-    format_dong,
     order_total,
 )
 from vlm_ocr_synthetic.schemas.document import BlockType, Document
@@ -38,20 +38,33 @@ def test_receipt_is_thermal_paper_shaped(receipt: Document):
     assert receipt.page_height > receipt.page_width
 
 
-def test_total_matches_the_line_items(receipt: Document):
-    total_block = next(
-        block
-        for block in receipt.blocks
-        if block.content and block.content.startswith("TIỀN MẶT")
-    )
-    expected = format_dong(order_total())
+def order_table(document: Document):
+    """Tables in order: register metadata, the order lines, the cash total."""
+    return document.table_blocks()[1].table
 
-    assert expected == "537,000"
-    assert expected in total_block.content
+
+def test_total_is_its_own_row_not_a_padded_string(receipt: Document):
+    total = receipt.table_blocks()[2].table
+    label, amount = total.rows[0].cells
+
+    assert label.content == "TIỀN MẶT"
+    assert amount.content == format_dong(order_total()) == "537,000"
+    # the amount is pushed right by the column layout, not by spaces
+    assert total.column_align[-1] == "right"
+
+
+def test_register_metadata_keeps_its_own_cells(receipt: Document):
+    register = receipt.table_blocks()[0].table
+
+    assert [cell.content for cell in register.rows[0].cells][:2] == [
+        "REG",
+        "13-11-2011 20:54",
+    ]
+    assert register.rows[1].cells[2].content == "000887"
 
 
 def test_table_uses_the_vietnamese_invoice_columns(receipt: Document):
-    table = receipt.table_blocks()[0].table
+    table = order_table(receipt)
 
     assert table is not None
     assert table.n_columns == 5
@@ -61,8 +74,7 @@ def test_table_uses_the_vietnamese_invoice_columns(receipt: Document):
 
 
 def test_first_column_numbers_the_lines(receipt: Document):
-    table = receipt.table_blocks()[0].table
-    body = table.rows[1:]  # type: ignore[union-attr]
+    body = order_table(receipt).rows[1:]
 
     assert len(body) == len(ORDER)
     assert [row.cells[0].content for row in body] == [
@@ -71,9 +83,7 @@ def test_first_column_numbers_the_lines(receipt: Document):
 
 
 def test_amount_column_is_quantity_times_unit_price(receipt: Document):
-    table = receipt.table_blocks()[0].table
-
-    for row, line in zip(table.rows[1:], ORDER):  # type: ignore[union-attr]
+    for row, line in zip(order_table(receipt).rows[1:], ORDER):
         quantity, unit_price, amount = (cell.content for cell in row.cells[2:5])
         assert quantity == str(line.quantity)
         assert unit_price == format_dong(line.unit_price)
@@ -100,10 +110,11 @@ def test_order_can_be_overridden():
     document = build_receipt_document(
         order=(OrderLine("Phở Bò", 3, 30_000),), table_number=9
     )
-    total = next(b for b in document.blocks if b.content and "TIỀN MẶT" in b.content)
+    total = document.table_blocks()[2].table
 
-    assert "90,000" in total.content
+    assert total.rows[0].cells[1].content == "90,000"
     assert any("BÀN SỐ: 9" == block.content for block in document.blocks)
+    assert_plain_text(document)
 
 
 @pytest.mark.parametrize(
@@ -152,20 +163,20 @@ def test_centred_blocks_are_centred(receipt: Document):
 
 @requires_renderer("synthdog")
 @pytest.mark.slow
-def test_column_widths_are_honoured(receipt: Document):
+def test_column_widths_come_from_the_document(receipt: Document):
+    """No renderer config involved: the table carries its own layout."""
     from vlm_ocr_synthetic.renderers.synthdog import SynthdogRenderer
 
-    result = SynthdogRenderer(
-        {"table_column_widths": [0.09, 0.38, 0.09, 0.21, 0.23], "margin": 34}
-    ).render(receipt)
+    result = SynthdogRenderer({"margin": 34}).render(receipt)
 
-    cells = result.document.table_blocks()[0].table.rows[0].cells  # type: ignore[union-attr]
-    widths = [cell.bbox.width for cell in cells]  # type: ignore[union-attr]
+    table = result.document.table_blocks()[1].table
+    widths = [cell.bbox.width for cell in table.rows[0].cells]  # type: ignore[union-attr]
+    wanted = order_table(receipt).width_fractions()
 
-    assert widths[1] > widths[4] > widths[0]  # item column widest, STT narrowest
+    assert widths[1] > widths[4] > widths[0]  # item widest, STT narrowest
     ratios = [width / sum(widths) for width in widths]
-    assert ratios[0] == pytest.approx(0.09, abs=0.01)
-    assert ratios[1] == pytest.approx(0.38, abs=0.01)
+    for ratio, want in zip(ratios, wanted):
+        assert ratio == pytest.approx(want, abs=0.01)
 
 
 @requires_renderer("synthdog")
@@ -194,7 +205,8 @@ def test_html_renders_the_receipt(receipt: Document):
         for row in block.table.rows  # type: ignore[union-attr]
         for cell in row.cells
     ]
-    assert len(cells) == (len(ORDER) + 1) * 5  # header row included
+    # register metadata (2x3) + order lines (10x5) + cash total (1x2)
+    assert len(cells) == 6 + (len(ORDER) + 1) * 5 + 2
     assert all(cell.bbox is not None for cell in cells)
 
 
