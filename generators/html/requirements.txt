@@ -1,0 +1,13 @@
+# HTML renderer: a headless browser plus the image stack the degradations need.
+#
+# Nothing is pinned hard here, unlike synthdog's requirements.txt: this backend
+# has no old dependency dictating the interpreter, so it runs on any Python the
+# wheels below support (3.9+ at the time of writing).
+
+playwright>=1.40          # drives Chromium; do NOT run `playwright install`
+                          # in the Claude Code container -- a build already
+                          # exists under /opt/pw-browsers.
+numpy>=1.24
+opencv-python-headless>=4.8,<5    # headless: no GUI libs needed in a container
+pillow>=10
+PyYAML>=6                 # rulebase reads its rules from YAML

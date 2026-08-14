@@ -1,0 +1,80 @@
+{
+  "source": "data/dataset60/html/html_000.jpg",
+  "seed": 7,
+  "images": [
+    {
+      "degradation": "bleed_through",
+      "options": {
+        "intensity": 0.65,
+        "nb_iter": 8
+      },
+      "file": "showcase-bleed_through.jpg"
+    },
+    {
+      "degradation": "blur",
+      "options": {
+        "radius": 1.6
+      },
+      "file": "showcase-blur.jpg"
+    },
+    {
+      "degradation": "blur_zones",
+      "options": {
+        "radius": 2.2,
+        "zones": 3,
+        "coverage": 0.25
+      },
+      "file": "showcase-blur_zones.jpg"
+    },
+    {
+      "degradation": "gradient_domain",
+      "options": {
+        "count": 6,
+        "strength": 0.9
+      },
+      "file": "showcase-gradient_domain.jpg"
+    },
+    {
+      "degradation": "holes",
+      "options": {
+        "count": 3,
+        "placement": "border",
+        "size_ratio": 0.04
+      },
+      "file": "showcase-holes.jpg"
+    },
+    {
+      "degradation": "ink_degradation",
+      "options": {
+        "level": 5
+      },
+      "file": "showcase-ink_degradation.jpg"
+    },
+    {
+      "degradation": "paper_texture",
+      "options": {
+        "paper": "giay_tai_che",
+        "alpha": 0.55,
+        "grain": 0.8,
+        "creases": 3
+      },
+      "file": "showcase-paper_texture.jpg"
+    },
+    {
+      "degradation": "phantom_character",
+      "options": {
+        "frequency": "very_frequent"
+      },
+      "file": "showcase-phantom_character.jpg"
+    },
+    {
+      "degradation": "shadow_binding",
+      "options": {
+        "border": "left",
+        "distance_ratio": 0.14,
+        "intensity": 0.5
+      },
+      "file": "showcase-shadow_binding.jpg"
+    }
+  ]
+}

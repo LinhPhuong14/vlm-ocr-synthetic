@@ -1,45 +1,107 @@
 # Contributing
 
-This repository holds two independent generators. There is no shared package
-and no shared virtualenv: pick the one you are working on.
+This repository holds one rule-base and three renderers. There is no shared
+package and no shared virtualenv: the renderers cannot share one, because
+synthtiger pins Pillow 9.5 and WeasyPrint needs a modern one.
 
 | working on | environment | notes |
 | --- | --- | --- |
-| `generators/synthdog/` | `make setup` | Python 3.8 – 3.11 only |
+| `rulebase/` | any Python 3.9+ with `PyYAML` | pure content logic; no image libraries |
+| `degradation/` | any Python 3.9+ with `numpy`, `opencv` | shared by all three renderers |
+| `generators/synthdog/` | `make setup-synthdog` | **Python 3.8 – 3.11 only** |
+| `generators/html/` | `make setup-html` | needs a browser; see its README |
+| `generators/genalog/` | `make setup-genalog` | genalog is installed `--no-deps` |
 | `generators/html-table/` | `pip install -r generators/html-table/requirements.txt` | vendored; prefer upstreaming fixes |
 
-Each generator is run **from its own directory** — the paths in their configs
-are relative to it. That is also why resources live under the generator that
-needs them rather than in one shared folder.
+`make setup` builds all three renderer environments.
+
+The glyph renderer is run **from its own directory** — the paths in
+`config_vi_receipt.yaml` are relative to it. `make receipts`, `make preview` and
+`tools/generate_dataset.py` already `cd` for you. (That is also the reason
+`generate_dataset.py` resolves its output path to an absolute one before
+launching a backend: a relative `-o data/...` would land inside
+`generators/synthdog/`, silently, because the backend creates what it writes to.)
+
+## Before pushing
 
 ```bash
-make check                    # every tracked .py parses, no dependencies needed
-make lint                     # ruff, on this repo's own scripts
+make check           # every tracked .py parses, no dependencies needed
+make lint            # ruff: correctness and imports
+make check-rules     # unreachable rule values, typo'd tags, missing layouts
+make check-corpus    # missing corpus files, wrong column counts
 ```
 
-## The version cap is real
+`make check-rules` is the one people forget. A tag typo does not raise: the
+value it is on simply never gets drawn, generation carries on, and you find out
+weeks later that a bố cục never appeared in the dataset.
 
-`generators/synthdog/requirements.txt` pins `pillow<10`, `numpy<2` and `opencv-python<5`,
-and each pin exists because removing it breaks something specific — the file
-says which. Python 3.13+ cannot satisfy them at all;
-[`docs/python-versions.md`](docs/python-versions.md) has the measurements. If you are on a
-newer interpreter, create the 3.12 environment rather than relaxing a pin.
+If you touched anything a renderer draws:
 
-Also worth knowing while debugging templates: **synthtiger swallows exceptions
-and retries forever**, so a broken template hangs silently. Always pass `-v`.
+```bash
+make preview-grid              # every bố cục as text -- faster than looking at JPEGs
+make dataset N=3               # three images per renderer
+make proof DATASET=data/dataset60
+```
+
+## Constraints that are deliberate
+
+**The version cap is real.** `generators/synthdog/requirements.txt` pins
+`pillow<10`, `numpy<2` and `opencv-python<5`, and each pin exists because
+removing it breaks something specific — the file says which. Python 3.12+
+cannot satisfy them at all; [`docs/python-versions.md`](docs/python-versions.md)
+has the measurements. On a newer interpreter, build the 3.11 environment rather
+than relaxing a pin.
+
+**synthtiger swallows exceptions and retries forever**, so a broken template
+hangs silently rather than failing. Always pass `-v`.
+
+**The corpus is stored with diacritics.** Folding is one-way: "Hẹn gặp lại" →
+"Hen gap lai" is recoverable, the reverse is not. Whether a given receipt is
+folded is `content.prob_ascii_fold`'s decision, made at render time.
+
+**Every font must cover Vietnamese.** Check before adding one — DejaVu Sans
+Mono, the obvious monospace choice, is missing 46 characters including
+`Ấ Ầ Ẩ Ẫ Ắ Ế Ề Ể Ễ`, and a missing glyph renders as a blank box while the
+label still says the word was printed.
+
+```bash
+generators/synthdog/.venv/bin/python generators/synthdog/tools/check_fonts.py fonts/mono
+```
+
+**Order in a degradation chain is not commutative.** Ink decay before blur reads
+as worn ink that was then scanned badly; the other way round it reads as a
+smudged scan.
 
 ## Style
 
 `ruff` for linting, configured in `pyproject.toml`. It checks correctness and
-imports, not formatting: most of the Python here is adapted from upstream and
+imports, not formatting: much of the Python here is adapted from upstream and
 reformatting it would only make future merges harder. Vendored code
 (`generators/html-table/`) is excluded entirely.
 
-`target-version` is `py38` because that is what `synthdog/` supports —
-so ruff will not suggest `zip(strict=)` or other 3.10+ syntax that would break
-it.
+`target-version` is `py38` because that is what the glyph renderer supports, so
+ruff will not suggest `zip(strict=)` or other newer syntax that would break it.
 
-## Generated output
+Comments and docstrings are in English; the YAML rules, the corpus and the
+rule-base README are in Vietnamese, because those are what a Vietnamese speaker
+edits to change what the receipts say.
 
-Everything a generator writes goes under its own directory (`generators/synthdog/outputs/`)
-and is git-ignored. Do not commit generated images.
+## What is committed and what is not
+
+Committed, deliberately:
+
+* `fonts/` — all redistributable, and a clone cannot render without them
+* `textures/paper/` — generated by `make textures`, so redistributable
+* `data/dataset60/` — the published dataset, its labels and its OCR proof; the
+  point of the repository is that these can be looked at without running anything
+* `samples/` — curated examples
+
+Not committed: anything a renderer writes to `outputs/`, virtualenvs, model
+checkpoints, and fonts or paper photographs you supplied yourself under
+`generators/synthdog/resources/`.
+
+`.gitignore` ignores images by default and lets them back in one directory at a
+time. **Git has no inline comments in `.gitignore`** — a trailing `# ...` is read
+as part of the pattern, which silently stops a negation matching anything. Keep
+every comment on its own line, and check a new rule with
+`git check-ignore -v <path>`.

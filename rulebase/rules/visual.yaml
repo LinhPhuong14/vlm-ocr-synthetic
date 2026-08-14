@@ -1,0 +1,91 @@
+# THUỘC TÍNH 4/6 — HÌNH THỨC
+#
+# Cỡ chữ, giãn dòng, lề, độ đậm mực, tờ giấy, độ cong. Đây là chỗ khác nhau
+# giữa "máy in nhiệt sắp hết giấy" và "hoá đơn laser in ở quầy lễ tân".
+#
+# paper: tên file (không đuôi) trong `rulebase/textures/paper/`. CẢ BA renderer
+# đều đọc từ thư mục đó, nên cùng một recipe cho ra cùng một tờ giấy dù vẽ bằng
+# glyph hay bằng HTML. Đặt `paper: auto` để bốc ngẫu nhiên.
+#
+# font_dir: thư mục font cho renderer glyph; font_family: tên font cho renderer
+# HTML. Hai cái phải trỏ tới cùng một bộ chữ, nếu không hai backend sẽ ngắt
+# dòng khác nhau.
+
+options:
+  - id: nhiet_dam
+    weight: 3
+    tags: [in_nhiet]
+    params:
+      font_dir: mono
+      font_family: "Liberation Mono, Cousine, Noto Mono, monospace"
+      font_size: [22, 30]
+      line_spacing: [1.05, 1.30]
+      margin: [0.04, 0.09]
+      ink_gray: [0, 45]
+      bold: 0.35
+      paper: nhiet_trang
+      paper_alpha: [0.05, 0.20]
+      curl: 0.85
+
+  - id: nhiet_mo
+    weight: 3
+    tags: [in_nhiet, muc_nhat]
+    params:
+      font_dir: mono
+      font_family: "Liberation Mono, Cousine, Noto Mono, monospace"
+      font_size: [20, 28]
+      line_spacing: [1.10, 1.45]
+      margin: [0.04, 0.10]
+      # Mực nhạt: máy sắp hết giấy nhiệt. Trên 105 thì chữ mờ tới mức
+      # renderer glyph (vốn còn chồng thêm tương phản + độ sáng khi "chụp
+      # lại") cho ra ảnh không đọc được — OCR về gần 0.
+      ink_gray: [55, 105]
+      bold: 0.05
+      paper: nhiet_nga
+      paper_alpha: [0.10, 0.28]
+      curl: 0.9
+
+  - id: nhiet_hep
+    weight: 2
+    tags: [in_nhiet, giay_hep]
+    params:
+      font_dir: mono
+      font_family: "Liberation Mono, Cousine, Noto Mono, monospace"
+      font_size: [17, 23]
+      line_spacing: [1.00, 1.20]
+      margin: [0.03, 0.07]
+      ink_gray: [10, 70]
+      bold: 0.15
+      paper: nhiet_trang
+      paper_alpha: [0.05, 0.18]
+      curl: 1.0
+
+  - id: kim_cu
+    weight: 2
+    tags: [in_kim]
+    params:
+      font_dir: mono
+      font_family: "Cousine, Liberation Mono, Noto Mono, monospace"
+      font_size: [21, 27]
+      line_spacing: [1.15, 1.50]
+      margin: [0.05, 0.12]
+      ink_gray: [30, 90]
+      bold: 0.20
+      paper: giay_tai_che
+      paper_alpha: [0.12, 0.30]
+      curl: 0.5
+
+  - id: laser_net
+    weight: 2
+    tags: [in_laser, net]
+    params:
+      font_dir: sans
+      font_family: "Liberation Sans, Arimo, Noto Sans, DejaVu Sans, sans-serif"
+      font_size: [23, 31]
+      line_spacing: [1.15, 1.40]
+      margin: [0.06, 0.13]
+      ink_gray: [0, 25]
+      bold: 0.30
+      paper: giay_a5
+      paper_alpha: [0.02, 0.10]
+      curl: 0.25
