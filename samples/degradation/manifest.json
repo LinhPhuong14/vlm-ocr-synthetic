@@ -1,0 +1,423 @@
+{
+  "chains": {
+    "html-table": [
+      [
+        "ink_degradation",
+        {
+          "level": 3
+        }
+      ],
+      [
+        "blur_zones",
+        {
+          "radius": 1.1,
+          "zones": 2,
+          "coverage": 0.18
+        }
+      ],
+      [
+        "shadow_binding",
+        {
+          "border": "top",
+          "distance_ratio": 0.07,
+          "intensity": 0.3
+        }
+      ]
+    ],
+    "synthdog": [
+      [
+        "ink_degradation",
+        {
+          "level": 6
+        }
+      ],
+      [
+        "blur_zones",
+        {
+          "radius": 1.6,
+          "zones": 2,
+          "coverage": 0.18
+        }
+      ],
+      [
+        "shadow_binding",
+        {
+          "border": "bottom",
+          "distance_ratio": 0.1,
+          "intensity": 0.4
+        }
+      ]
+    ],
+    "genalog": [
+      [
+        "ink_degradation",
+        {
+          "level": 4
+        }
+      ],
+      [
+        "bleed_through",
+        {
+          "intensity": 0.6,
+          "nb_iter": 8
+        }
+      ],
+      [
+        "blur_zones",
+        {
+          "radius": 2.0,
+          "zones": 3,
+          "coverage": 0.22
+        }
+      ],
+      [
+        "shadow_binding",
+        {
+          "border": "left",
+          "distance_ratio": 0.14,
+          "intensity": 0.5
+        }
+      ],
+      [
+        "holes",
+        {
+          "count": 2,
+          "placement": "border",
+          "size_ratio": 0.035
+        }
+      ]
+    ]
+  },
+  "images": [
+    {
+      "source": "synthdog",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/receipts2/test/image_3.jpg",
+      "before": "synthdog_00-before.jpg",
+      "after": "synthdog_00-after.jpg",
+      "size": [
+        1016,
+        1335
+      ],
+      "chain": [
+        "ink_degradation",
+        "blur_zones",
+        "shadow_binding"
+      ],
+      "seed": 2026
+    },
+    {
+      "source": "synthdog",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/receipts2/train/image_0.jpg",
+      "before": "synthdog_01-before.jpg",
+      "after": "synthdog_01-after.jpg",
+      "size": [
+        948,
+        1147
+      ],
+      "chain": [
+        "ink_degradation",
+        "blur_zones",
+        "shadow_binding"
+      ],
+      "seed": 2027
+    },
+    {
+      "source": "synthdog",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/receipts2/train/image_1.jpg",
+      "before": "synthdog_02-before.jpg",
+      "after": "synthdog_02-after.jpg",
+      "size": [
+        986,
+        1473
+      ],
+      "chain": [
+        "ink_degradation",
+        "blur_zones",
+        "shadow_binding"
+      ],
+      "seed": 2028
+    },
+    {
+      "source": "synthdog",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/receipts2/train/image_2.jpg",
+      "before": "synthdog_03-before.jpg",
+      "after": "synthdog_03-after.jpg",
+      "size": [
+        774,
+        886
+      ],
+      "chain": [
+        "ink_degradation",
+        "blur_zones",
+        "shadow_binding"
+      ],
+      "seed": 2029
+    },
+    {
+      "source": "synthdog",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/receipts2/train/image_5.jpg",
+      "before": "synthdog_04-before.jpg",
+      "after": "synthdog_04-after.jpg",
+      "size": [
+        781,
+        1241
+      ],
+      "chain": [
+        "ink_degradation",
+        "blur_zones",
+        "shadow_binding"
+      ],
+      "seed": 2030
+    },
+    {
+      "source": "synthdog",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/receipts2/train/image_6.jpg",
+      "before": "synthdog_05-before.jpg",
+      "after": "synthdog_05-after.jpg",
+      "size": [
+        636,
+        803
+      ],
+      "chain": [
+        "ink_degradation",
+        "blur_zones",
+        "shadow_binding"
+      ],
+      "seed": 2031
+    },
+    {
+      "source": "synthdog",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/receipts2/train/image_7.jpg",
+      "before": "synthdog_06-before.jpg",
+      "after": "synthdog_06-after.jpg",
+      "size": [
+        989,
+        1540
+      ],
+      "chain": [
+        "ink_degradation",
+        "blur_zones",
+        "shadow_binding"
+      ],
+      "seed": 2032
+    },
+    {
+      "source": "synthdog",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/receipts2/train/image_8.jpg",
+      "before": "synthdog_07-before.jpg",
+      "after": "synthdog_07-after.jpg",
+      "size": [
+        945,
+        1630
+      ],
+      "chain": [
+        "ink_degradation",
+        "blur_zones",
+        "shadow_binding"
+      ],
+      "seed": 2033
+    },
+    {
+      "source": "synthdog",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/receipts2/train/image_9.jpg",
+      "before": "synthdog_08-before.jpg",
+      "after": "synthdog_08-after.jpg",
+      "size": [
+        818,
+        978
+      ],
+      "chain": [
+        "ink_degradation",
+        "blur_zones",
+        "shadow_binding"
+      ],
+      "seed": 2034
+    },
+    {
+      "source": "synthdog",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/receipts2/validation/image_4.jpg",
+      "before": "synthdog_09-before.jpg",
+      "after": "synthdog_09-after.jpg",
+      "size": [
+        928,
+        942
+      ],
+      "chain": [
+        "ink_degradation",
+        "blur_zones",
+        "shadow_binding"
+      ],
+      "seed": 2035
+    },
+    {
+      "source": "genalog",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/genalogout/genalog_00.png",
+      "before": "genalog_00-before.jpg",
+      "after": "genalog_00-after.jpg",
+      "size": [
+        1241,
+        1772
+      ],
+      "chain": [
+        "ink_degradation",
+        "bleed_through",
+        "blur_zones",
+        "shadow_binding",
+        "holes"
+      ],
+      "seed": 2026
+    },
+    {
+      "source": "genalog",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/genalogout/genalog_01.png",
+      "before": "genalog_01-before.jpg",
+      "after": "genalog_01-after.jpg",
+      "size": [
+        1241,
+        1772
+      ],
+      "chain": [
+        "ink_degradation",
+        "bleed_through",
+        "blur_zones",
+        "shadow_binding",
+        "holes"
+      ],
+      "seed": 2027
+    },
+    {
+      "source": "genalog",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/genalogout/genalog_02.png",
+      "before": "genalog_02-before.jpg",
+      "after": "genalog_02-after.jpg",
+      "size": [
+        1241,
+        1772
+      ],
+      "chain": [
+        "ink_degradation",
+        "bleed_through",
+        "blur_zones",
+        "shadow_binding",
+        "holes"
+      ],
+      "seed": 2028
+    },
+    {
+      "source": "genalog",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/genalogout/genalog_03.png",
+      "before": "genalog_03-before.jpg",
+      "after": "genalog_03-after.jpg",
+      "size": [
+        1241,
+        1772
+      ],
+      "chain": [
+        "ink_degradation",
+        "bleed_through",
+        "blur_zones",
+        "shadow_binding",
+        "holes"
+      ],
+      "seed": 2029
+    },
+    {
+      "source": "genalog",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/genalogout/genalog_04.png",
+      "before": "genalog_04-before.jpg",
+      "after": "genalog_04-after.jpg",
+      "size": [
+        1241,
+        1772
+      ],
+      "chain": [
+        "ink_degradation",
+        "bleed_through",
+        "blur_zones",
+        "shadow_binding",
+        "holes"
+      ],
+      "seed": 2030
+    },
+    {
+      "source": "html-table",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/tables/img/border_left_2_6N2HBQT9OZ0OYHB0JFL2.jpg",
+      "before": "html-table_00-before.jpg",
+      "after": "html-table_00-after.jpg",
+      "size": [
+        330,
+        205
+      ],
+      "chain": [
+        "ink_degradation",
+        "blur_zones",
+        "shadow_binding"
+      ],
+      "seed": 2026
+    },
+    {
+      "source": "html-table",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/tables/img/border_left_4_EFXLFC71IQQU221AIW8N.jpg",
+      "before": "html-table_01-before.jpg",
+      "after": "html-table_01-after.jpg",
+      "size": [
+        366,
+        267
+      ],
+      "chain": [
+        "ink_degradation",
+        "blur_zones",
+        "shadow_binding"
+      ],
+      "seed": 2027
+    },
+    {
+      "source": "html-table",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/tables/img/border_right_0_C051W9BJSDZ2IXG3TWYA.jpg",
+      "before": "html-table_02-before.jpg",
+      "after": "html-table_02-after.jpg",
+      "size": [
+        293,
+        190
+      ],
+      "chain": [
+        "ink_degradation",
+        "blur_zones",
+        "shadow_binding"
+      ],
+      "seed": 2028
+    },
+    {
+      "source": "html-table",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/tables/img/border_top_3_2VHBELBOIF094A5SE9KZ.jpg",
+      "before": "html-table_03-before.jpg",
+      "after": "html-table_03-after.jpg",
+      "size": [
+        300,
+        251
+      ],
+      "chain": [
+        "ink_degradation",
+        "blur_zones",
+        "shadow_binding"
+      ],
+      "seed": 2029
+    },
+    {
+      "source": "html-table",
+      "origin": "/tmp/claude-0/-home-user-vlm-ocr-synthetic/49ce912c-8edb-5707-988a-4e332978a76e/scratchpad/tables/img/no_border_1_6SO8TEZ6UFVMV7ZYSVZX.jpg",
+      "before": "html-table_04-before.jpg",
+      "after": "html-table_04-after.jpg",
+      "size": [
+        537,
+        119
+      ],
+      "chain": [
+        "ink_degradation",
+        "blur_zones",
+        "shadow_binding"
+      ],
+      "seed": 2030
+    }
+  ]
+}
