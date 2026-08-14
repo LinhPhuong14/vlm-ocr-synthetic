@@ -70,6 +70,6 @@ python tools/augment_samples.py --synthdog <dir> --genalog <dir> -o samples/degr
 ```
 
 Writes a before/after pair per page and a contact sheet.
-[`samples/degradation/`](../samples/degradation) holds ten of them: five synthdog receipts and
+[`samples/degradation/`](../samples/degradation) holds twenty of them: ten synthdog receipts, five genalog pages and
 five pages from [genalog](https://github.com/microsoft/genalog), which is an
 external dependency here rather than part of the repository.

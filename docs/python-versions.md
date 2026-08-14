@@ -1,6 +1,6 @@
 # Why synthdog stops at Python 3.12
 
-`synthdog/requirements.txt` pins `pillow<10`, `numpy<2` and `opencv-python<5`,
+`generators/synthdog/requirements.txt` pins `pillow<10`, `numpy<2` and `opencv-python<5`,
 and caps the interpreter at 3.12. Those are not conservative guesses — every
 one of them was hit. This page records the measurements so nobody has to
 rediscover them, and so the cap is not "relaxed" by someone on a new laptop.
@@ -52,7 +52,7 @@ repository, not inferred from release notes — which is why `make setup` refuse
   `uv python install 3.11`, `pyenv install 3.11`, or your distribution's
   `python3.11` package.
 - The other two pins have their own causes, both documented in
-  `synthdog/requirements.txt`: synthtiger 1.2.1 calls `ImageFont.getsize()`,
+  `generators/synthdog/requirements.txt`: synthtiger 1.2.1 calls `ImageFont.getsize()`,
   removed in Pillow 10; and `opencv-python>=5` requires NumPy 2, which conflicts
   with `numpy<2`.
 
