@@ -31,4 +31,8 @@ paper:
   grain: 6.0
   blur: 0.35
   pepper: 0.0008
+  # A bill gets folded once on the way into a pocket.
+  fold_rows: 1
+  fold_strength: 0.4
+  fold_softness: 4.0
   vignette: 0.18

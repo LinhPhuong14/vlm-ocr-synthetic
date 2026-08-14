@@ -17,10 +17,10 @@
       "renderer": "html",
       "pages": 3,
       "seconds_per_page": {
-        "mean": 0.2814,
-        "median": 0.2747,
-        "min": 0.2529,
-        "max": 0.3166
+        "mean": 0.2596,
+        "median": 0.2833,
+        "min": 0.2089,
+        "max": 0.2866
       },
       "image_size": [
         1000,
@@ -52,6 +52,13 @@
           ],
           "grain": 4.0,
           "vignette": 0.0,
+          "fold_rows": 0,
+          "fold_columns": 0,
+          "fold_strength": 0.0,
+          "fold_softness": 4.0,
+          "fold_jitter": 0.02,
+          "texture": null,
+          "texture_strength": 1.0,
           "blur": 0.0,
           "bleed_through": 0.0,
           "salt": 0.0,
@@ -64,10 +71,10 @@
       "renderer": "html",
       "pages": 3,
       "seconds_per_page": {
-        "mean": 0.2589,
-        "median": 0.266,
-        "min": 0.2278,
-        "max": 0.2828
+        "mean": 0.2345,
+        "median": 0.2262,
+        "min": 0.2099,
+        "max": 0.2675
       },
       "image_size": [
         1000,
@@ -99,6 +106,13 @@
           ],
           "grain": 4.0,
           "vignette": 0.0,
+          "fold_rows": 0,
+          "fold_columns": 0,
+          "fold_strength": 0.0,
+          "fold_softness": 4.0,
+          "fold_jitter": 0.02,
+          "texture": null,
+          "texture_strength": 1.0,
           "blur": 0.0,
           "bleed_through": 0.0,
           "salt": 0.0,
@@ -111,10 +125,10 @@
       "renderer": "synthdog",
       "pages": 3,
       "seconds_per_page": {
-        "mean": 0.0248,
-        "median": 0.0235,
-        "min": 0.0234,
-        "max": 0.0275
+        "mean": 0.0257,
+        "median": 0.0268,
+        "min": 0.0233,
+        "max": 0.027
       },
       "image_size": [
         1000,
@@ -144,6 +158,13 @@
           ],
           "grain": 4.0,
           "vignette": 0.0,
+          "fold_rows": 0,
+          "fold_columns": 0,
+          "fold_strength": 0.0,
+          "fold_softness": 4.0,
+          "fold_jitter": 0.02,
+          "texture": null,
+          "texture_strength": 1.0,
           "blur": 0.0,
           "bleed_through": 0.0,
           "salt": 0.0,

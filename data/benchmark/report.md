@@ -5,8 +5,8 @@ Python 3.14.7 (cpython) on Linux.
 
 | metric | html-flow | html-absolute | synthdog |
 | --- | --- | --- | --- |
-| seconds/page (median) | 0.2747 | 0.266 | 0.0235 |
-| seconds/page (mean) | 0.2814 | 0.2589 | 0.0248 |
+| seconds/page (median) | 0.2833 | 0.2262 | 0.0268 |
+| seconds/page (mean) | 0.2596 | 0.2345 | 0.0257 |
 | image size (px) | 1000x1400 | 1000x1400 | 1000x1400 |
 | png size (bytes) | 1573131 | 1573313 | 1565237 |
 | ink coverage | 0.00659 | 0.00636 | 0.00643 |
@@ -38,9 +38,16 @@ Both backends share the same paper and degradation settings, so the numbers abov
     245
   ],
   "enabled": true,
+  "fold_columns": 0,
+  "fold_jitter": 0.02,
+  "fold_rows": 0,
+  "fold_softness": 4.0,
+  "fold_strength": 0.0,
   "grain": 4.0,
   "pepper": 0.0,
   "salt": 0.0,
+  "texture": null,
+  "texture_strength": 1.0,
   "vignette": 0.0
 }
 ```
