@@ -17,10 +17,10 @@
       "renderer": "html",
       "pages": 3,
       "seconds_per_page": {
-        "mean": 0.2636,
-        "median": 0.2435,
-        "min": 0.231,
-        "max": 0.3162
+        "mean": 0.2673,
+        "median": 0.2722,
+        "min": 0.2235,
+        "max": 0.3062
       },
       "image_size": [
         1000,
@@ -41,6 +41,7 @@
         "engine": "playwright",
         "layout": "flow",
         "scale": 1.0,
+        "seed": 0,
         "bbox_space": "document",
         "paper": {
           "enabled": true,
@@ -63,10 +64,10 @@
       "renderer": "html",
       "pages": 3,
       "seconds_per_page": {
-        "mean": 0.2468,
-        "median": 0.2532,
-        "min": 0.222,
-        "max": 0.2652
+        "mean": 0.2466,
+        "median": 0.2483,
+        "min": 0.235,
+        "max": 0.2566
       },
       "image_size": [
         1000,
@@ -87,6 +88,7 @@
         "engine": "playwright",
         "layout": "absolute",
         "scale": 1.0,
+        "seed": 0,
         "bbox_space": "document",
         "paper": {
           "enabled": true,
@@ -109,10 +111,10 @@
       "renderer": "synthdog",
       "pages": 3,
       "seconds_per_page": {
-        "mean": 0.0252,
-        "median": 0.0244,
-        "min": 0.0239,
-        "max": 0.0273
+        "mean": 0.0245,
+        "median": 0.0236,
+        "min": 0.0232,
+        "max": 0.0267
       },
       "image_size": [
         1000,

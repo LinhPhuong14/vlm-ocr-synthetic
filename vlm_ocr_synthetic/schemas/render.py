@@ -50,6 +50,31 @@ class RenderResult:
     renderer: str
     metadata: dict[str, Any] = field(default_factory=dict)
 
+    def with_paper(self, paper, seed: Optional[int] = None) -> "RenderResult":
+        """Return a copy with the paper layer applied on top.
+
+        Rendering is two stages: a backend produces the *structure* -- glyphs,
+        rules, table geometry -- and the paper layer is applied to the finished
+        page afterwards. Keeping them separate means you can check the
+        structure on a clean sheet, then try several paper presets against the
+        same render without paying for the layout again (no browser involved).
+
+        The annotations are carried over untouched: paper moves no geometry.
+        """
+        import random
+
+        from ..renderers.paper import apply_paper
+
+        if seed is None:
+            seed = int(self.metadata.get("seed", 0) or 0)
+
+        return RenderResult(
+            image=apply_paper(self.image, paper, random.Random(seed)),
+            document=self.document,
+            renderer=self.renderer,
+            metadata={**self.metadata, "paper": paper.model_dump()},
+        )
+
     def annotation(self) -> dict[str, Any]:
         return {
             "renderer": self.renderer,

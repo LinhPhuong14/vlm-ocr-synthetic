@@ -102,3 +102,18 @@ def test_missing_font_is_reported():
         SynthdogRenderer({"font_path": "/nope/does-not-exist.ttf"})._font_for(
             BlockType.TEXT
         )
+
+
+@pytest.mark.slow
+def test_column_alignment_places_text_inside_its_cell(invoice: Document):
+    """Right-aligned money columns still report the full cell as the bbox."""
+    left = SynthdogRenderer({"table_column_align": ["left", "left", "left"]}).render(
+        invoice
+    )
+    right = SynthdogRenderer({"table_column_align": ["left", "left", "right"]}).render(
+        invoice
+    )
+
+    assert left.image.tobytes() != right.image.tobytes()
+    # geometry is a property of the table, not of the text alignment
+    assert left.document == right.document

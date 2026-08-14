@@ -14,9 +14,12 @@ from conftest import requires_renderer
 from vlm_ocr_synthetic.renderers import load_config
 from vlm_ocr_synthetic.samples import get_sample
 from vlm_ocr_synthetic.samples.receipt_vn import (
+    COLUMN_HEADERS,
     ORDER,
+    OrderLine,
     build_receipt_document,
     format_dong,
+    order_total,
 )
 from vlm_ocr_synthetic.schemas.document import BlockType, Document
 
@@ -41,20 +44,45 @@ def test_total_matches_the_line_items(receipt: Document):
         for block in receipt.blocks
         if block.content and block.content.startswith("TIỀN MẶT")
     )
-    expected = format_dong(sum(price for _, _, price in ORDER))
+    expected = format_dong(order_total())
 
     assert expected == "537,000"
     assert expected in total_block.content
 
 
-def test_order_table_has_one_row_per_dish(receipt: Document):
+def test_table_uses_the_vietnamese_invoice_columns(receipt: Document):
     table = receipt.table_blocks()[0].table
 
     assert table is not None
-    assert len(table.rows) == len(ORDER)
-    assert table.n_columns == 3
-    # a paper bill has no header row
-    assert not any(cell.is_header for row in table.rows for cell in row.cells)
+    assert table.n_columns == 5
+    assert [cell.content for cell in table.rows[0].cells] == list(COLUMN_HEADERS)
+    assert all(cell.is_header for cell in table.rows[0].cells)
+    assert COLUMN_HEADERS[0] == "STT"
+
+
+def test_first_column_numbers_the_lines(receipt: Document):
+    table = receipt.table_blocks()[0].table
+    body = table.rows[1:]  # type: ignore[union-attr]
+
+    assert len(body) == len(ORDER)
+    assert [row.cells[0].content for row in body] == [
+        str(index) for index in range(1, len(ORDER) + 1)
+    ]
+
+
+def test_amount_column_is_quantity_times_unit_price(receipt: Document):
+    table = receipt.table_blocks()[0].table
+
+    for row, line in zip(table.rows[1:], ORDER):  # type: ignore[union-attr]
+        quantity, unit_price, amount = (cell.content for cell in row.cells[2:5])
+        assert quantity == str(line.quantity)
+        assert unit_price == format_dong(line.unit_price)
+        assert amount == format_dong(line.quantity * line.unit_price)
+
+
+def test_line_total_is_derived_not_stored():
+    line = OrderLine("Cơm Bát Bửu", 4, 43_000)
+    assert line.amount == 172_000
 
 
 def test_sample_carries_vietnamese_diacritics(receipt: Document):
@@ -69,7 +97,9 @@ def test_sample_carries_vietnamese_diacritics(receipt: Document):
 
 
 def test_order_can_be_overridden():
-    document = build_receipt_document(order=((3, "Phở Bò", 90_000),), table_number=9)
+    document = build_receipt_document(
+        order=(OrderLine("Phở Bò", 3, 30_000),), table_number=9
+    )
     total = next(b for b in document.blocks if b.content and "TIỀN MẶT" in b.content)
 
     assert "90,000" in total.content
@@ -126,15 +156,16 @@ def test_column_widths_are_honoured(receipt: Document):
     from vlm_ocr_synthetic.renderers.synthdog import SynthdogRenderer
 
     result = SynthdogRenderer(
-        {"table_column_widths": [0.12, 0.62, 0.26], "margin": 34}
+        {"table_column_widths": [0.09, 0.38, 0.09, 0.21, 0.23], "margin": 34}
     ).render(receipt)
 
     cells = result.document.table_blocks()[0].table.rows[0].cells  # type: ignore[union-attr]
     widths = [cell.bbox.width for cell in cells]  # type: ignore[union-attr]
 
-    assert widths[1] > widths[2] > widths[0]
+    assert widths[1] > widths[4] > widths[0]  # item column widest, STT narrowest
     ratios = [width / sum(widths) for width in widths]
-    assert ratios[0] == pytest.approx(0.12, abs=0.01)
+    assert ratios[0] == pytest.approx(0.09, abs=0.01)
+    assert ratios[1] == pytest.approx(0.38, abs=0.01)
 
 
 @requires_renderer("synthdog")
@@ -163,7 +194,7 @@ def test_html_renders_the_receipt(receipt: Document):
         for row in block.table.rows  # type: ignore[union-attr]
         for cell in row.cells
     ]
-    assert len(cells) == len(ORDER) * 3
+    assert len(cells) == (len(ORDER) + 1) * 5  # header row included
     assert all(cell.bbox is not None for cell in cells)
 
 

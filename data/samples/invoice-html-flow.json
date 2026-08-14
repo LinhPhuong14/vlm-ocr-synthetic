@@ -8,6 +8,7 @@
     "engine": "playwright",
     "layout": "flow",
     "scale": 1.0,
+    "seed": 42,
     "bbox_space": "document",
     "paper": {
       "enabled": true,

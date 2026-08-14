@@ -104,6 +104,9 @@ def _cmd_render(args: argparse.Namespace) -> int:
 
     if args.scale is not None:
         options = {**options, "scale": args.scale}
+    if args.no_paper:
+        # Stage one only: the structure on a clean sheet.
+        options = {**options, "paper": {"enabled": False}}
 
     out_root = Path(args.out)
     failures = 0
@@ -185,6 +188,11 @@ def build_parser() -> argparse.ArgumentParser:
         "-o", "--out", default="data", help="output directory (default: data)"
     )
     render_parser.add_argument("--stem", default="page", help="output file stem")
+    render_parser.add_argument(
+        "--no-paper",
+        action="store_true",
+        help="render the structure only, without the paper layer",
+    )
     render_parser.add_argument("--scale", type=float, help="override config scale")
     render_parser.add_argument(
         "--strict",

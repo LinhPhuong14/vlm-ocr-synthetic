@@ -5,8 +5,8 @@ Python 3.14.7 (cpython) on Linux.
 
 | metric | html-flow | html-absolute | synthdog |
 | --- | --- | --- | --- |
-| seconds/page (median) | 0.2435 | 0.2532 | 0.0244 |
-| seconds/page (mean) | 0.2636 | 0.2468 | 0.0252 |
+| seconds/page (median) | 0.2722 | 0.2483 | 0.0236 |
+| seconds/page (mean) | 0.2673 | 0.2466 | 0.0245 |
 | image size (px) | 1000x1400 | 1000x1400 | 1000x1400 |
 | png size (bytes) | 1573032 | 1573175 | 1565374 |
 | ink coverage | 0.00659 | 0.00635 | 0.00643 |

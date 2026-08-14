@@ -14,14 +14,12 @@ Two layout modes:
 from __future__ import annotations
 
 import io
-import random
-from contextlib import nullcontext
-from typing import Iterable, Literal, Optional
+from typing import Literal, Optional
 
 from ...schemas.document import BBox, Document, DocumentBlock
 from ...schemas.render import RenderConfig, RenderResult
 from ..base import BaseRenderer
-from ..paper import PaperConfig, apply_paper
+from ..paper import PaperConfig
 from .backends import ScreenshotEngine, get_engine_class
 from .html_builder import (
     BLOCK_ID_ATTR,
@@ -157,7 +155,6 @@ class HtmlRenderer(BaseRenderer):
 
         image = Image.open(io.BytesIO(png))
         image.load()
-        image = apply_paper(image, self.config.paper, random.Random(self.config.seed))
 
         rendered_document = self._apply_boxes(
             document, boxes.get("blocks", {}), boxes.get("cells", {})
@@ -165,7 +162,7 @@ class HtmlRenderer(BaseRenderer):
         rendered_document.page_width = page_width
         rendered_document.page_height = page_height
 
-        return RenderResult(
+        structure = RenderResult(
             image=image,
             document=rendered_document,
             renderer=self.name,
@@ -173,10 +170,13 @@ class HtmlRenderer(BaseRenderer):
                 "engine": self.config.engine,
                 "layout": self.config.layout,
                 "scale": self.config.scale,
+                "seed": self.config.seed,
                 "bbox_space": "document",
-                "paper": self.config.paper.model_dump(),
+                "paper": PaperConfig(enabled=False).model_dump(),
             },
         )
+        # Stage two: the browser gave us the structure, now put it on paper.
+        return structure.with_paper(self.config.paper, seed=self.config.seed)
 
     @staticmethod
     def _apply_boxes(
