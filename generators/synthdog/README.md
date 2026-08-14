@@ -2,11 +2,11 @@
 
 SynthDoG is synthetic document generator for visual document understanding (VDU).
 
-![image](../misc/sample_synthdog.png)
+![image](docs/samples/receipts.jpg)
 
 > 🧾 **Sinh hoá đơn Việt Nam?** Xem [`README_vi_receipt.md`](README_vi_receipt.md)
 > (template `template_receipt.py` + `config_vi_receipt.yaml`), hoặc
-> [hướng dẫn cài đặt và chạy](../HUONG_DAN.md) nếu bạn bắt đầu từ đầu.
+> [hướng dẫn cài đặt và chạy](../../README.md) nếu bạn bắt đầu từ đầu.
 
 ## Prerequisites
 

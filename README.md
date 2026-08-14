@@ -37,12 +37,29 @@ generators/
 │   └── requirements.txt        pinned, and each pin has a reason
 └── html-table/         vendored TableGeneration + its dictionaries
 
-augment/                DocCreator's degradations, in Python -- applied to any generator's output
-scripts/                one-off drivers (augmentation demo)
+degradation/            DocCreator's degradation models, in Python
+├── ink_degradation.py      local ink decay (the one worth having)
+├── shadow_binding.py       shadow near a page's spine
+├── bleed_through.py        ink from the other side of the sheet
+├── blur_zones.py           blur in patches, not over the whole page
+└── holes.py                holes punched or torn through
+
+samples/degradation/    twenty before/after pairs from the port
+tools/                  driver scripts (`augment_samples.py`)
 docs/                   notes that outlive any one generator
 Makefile                the tasks; `make help` lists them
 pyproject.toml          ruff configuration (this repo is not a package)
 ```
+
+Where to look for a thing:
+
+| you want | it is in |
+| --- | --- |
+| to generate pages | `generators/` |
+| to make pages look old or scanned | `degradation/` |
+| to see what the output looks like | `samples/` |
+| to run something end to end | `tools/`, or `make help` |
+| why a version is pinned | `docs/` |
 
 **Every generator is run from its own directory**, because the paths inside
 their configs are relative to it. `make receipts` and `make preview` already
@@ -71,7 +88,7 @@ Two things to know before the first run:
   swallows exceptions and retries.
 - **Python 3.13+ will not work**, and the cap is not caution: the pins in
   `requirements.txt` each come from a real failure. See
-  [docs/python-314.md](docs/python-314.md) for the measurements.
+  [docs/python-versions.md](docs/python-versions.md) for the measurements.
 
 Everything else — config knobs, the label format, troubleshooting — is in
 [`generators/synthdog/README_vi_receipt.md`](generators/synthdog/README_vi_receipt.md).
@@ -93,19 +110,27 @@ python generate_data.py --help
 
 ## Augmentation
 
-[`augment/`](augment/README.md) is a Python port of the degradation models from
+[`degradation/`](degradation/README.md) is a Python port of the degradation models from
 [DocCreator](https://github.com/DocCreator/DocCreator) — local ink decay,
 bleed-through, blur zones, binding shadow, holes. It runs on whatever a
 generator produced, so the same ageing can be applied to receipts and to
 genalog pages alike.
 
 ```bash
-python scripts/augment_samples.py --synthdog <dir> --genalog <dir> -o data/augment
+python tools/augment_samples.py --synthdog <dir> --genalog <dir> -o samples/degradation
 ```
 
-[`data/augment/`](data/augment) holds ten before/after pairs: five receipts from
-synthdog and five pages from [genalog](https://github.com/microsoft/genalog),
-which renders documents from plain text. genalog is an external dependency, not
+[`samples/degradation/`](samples/degradation) holds twenty before/after pairs —
+ten synthdog receipts, five genalog pages, five html-table tables — each with
+the chain suited to it:
+
+| source | chain | why |
+| --- | --- | --- |
+| synthdog receipts | ink decay, blur zones, bottom shadow | a thermal bill creased in a pocket |
+| genalog pages | ink decay, bleed-through, blur zones, spine shadow, holes | an office document photocopied and bound |
+| html-table tables | ink decay, blur zones, top shadow | small and sparse: page-sized settings overwhelm it, and mirrored bleed-through lands in the empty cells and reads as a double exposure |
+
+[genalog](https://github.com/microsoft/genalog) is an external dependency, not
 part of this repository:
 
 ```bash
@@ -114,7 +139,7 @@ pip install numpy "opencv-python<5" pillow scikit-image jinja2 cairocffi weasypr
 ```
 
 It calls WeasyPrint's `write_png()`, removed in WeasyPrint 53, so
-`scripts/augment_samples.py` renders through PDF instead.
+`tools/augment_samples.py` renders through PDF instead.
 
 ---
 

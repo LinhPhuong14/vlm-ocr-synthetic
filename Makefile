@@ -12,7 +12,7 @@ help:  ## Show this help
 
 setup:  ## Create synthdog's venv and install its pinned dependencies
 	@$(PYTHON) -c 'import sys; v=sys.version_info; \
-	  sys.exit(0 if v < (3, 12) else "synthdog needs Python 3.8-3.11; see docs/python-314.md")'
+	  sys.exit(0 if v < (3, 12) else "synthdog needs Python 3.8-3.11; see docs/python-versions.md")'
 	$(PYTHON) -m venv $(SYNTHDOG_VENV)
 	$(SYNTHDOG_VENV)/bin/pip install -q -U pip setuptools wheel
 	$(SYNTHDOG_VENV)/bin/pip install -q -r $(SYNTHDOG)/requirements.txt
