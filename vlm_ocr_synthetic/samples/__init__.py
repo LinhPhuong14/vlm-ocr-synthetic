@@ -4,9 +4,11 @@ from typing import Callable
 
 from ..schemas.document import Document
 from .invoice import build_invoice_document, build_invoice_table
+from .receipt_vn import build_receipt_document, build_order_table
 
 SAMPLES: dict[str, Callable[[], Document]] = {
     "invoice": build_invoice_document,
+    "receipt_vn": build_receipt_document,
 }
 
 
@@ -28,6 +30,8 @@ __all__ = [
     "SAMPLES",
     "build_invoice_document",
     "build_invoice_table",
+    "build_order_table",
+    "build_receipt_document",
     "get_sample",
     "sample_names",
 ]

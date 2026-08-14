@@ -58,6 +58,20 @@ class BBox(BaseModel):
     def as_xyxy(self) -> tuple[float, float, float, float]:
         return (self.x1, self.y1, self.x2, self.y2)
 
+    def area(self) -> float:
+        return max(0.0, self.width) * max(0.0, self.height)
+
+    def iou(self, other: "BBox") -> float:
+        """Intersection over union, for comparing two renders of a page."""
+        overlap_w = min(self.x2, other.x2) - max(self.x1, other.x1)
+        overlap_h = min(self.y2, other.y2) - max(self.y1, other.y1)
+        if overlap_w <= 0 or overlap_h <= 0:
+            return 0.0
+
+        intersection = overlap_w * overlap_h
+        union = self.area() + other.area() - intersection
+        return intersection / union if union > 0 else 0.0
+
     def scaled(self, factor: float) -> "BBox":
         return BBox(
             x1=self.x1 * factor,

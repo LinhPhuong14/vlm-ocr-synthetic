@@ -1,0 +1,502 @@
+{
+  "renderer": "html",
+  "image_size": [
+    576,
+    1000
+  ],
+  "metadata": {
+    "engine": "playwright",
+    "layout": "flow",
+    "scale": 1.0,
+    "bbox_space": "document",
+    "paper": {
+      "enabled": true,
+      "color": [
+        243,
+        242,
+        238
+      ],
+      "grain": 6.0,
+      "vignette": 0.18,
+      "blur": 0.35,
+      "bleed_through": 0.0,
+      "salt": 0.0,
+      "pepper": 0.0008
+    }
+  },
+  "document": {
+    "page_width": 576,
+    "page_height": 1000,
+    "blocks": [
+      {
+        "block_type": "Page-Header",
+        "content": "QUÁN ĂN THIÊN TÂN",
+        "bbox": {
+          "x1": 34.0,
+          "y1": 34.0,
+          "x2": 542.0,
+          "y2": 70.390625
+        }
+      },
+      {
+        "block_type": "Text",
+        "content": "17-19 Tôn Đản F13 Q4 TPHCM",
+        "bbox": {
+          "x1": 34.0,
+          "y1": 82.390625,
+          "x2": 542.0,
+          "y2": 111.78125
+        }
+      },
+      {
+        "block_type": "Text",
+        "content": "ĐT: 9407863 - 8259956",
+        "bbox": {
+          "x1": 34.0,
+          "y1": 123.78125,
+          "x2": 542.0,
+          "y2": 153.171875
+        }
+      },
+      {
+        "block_type": "Text",
+        "content": "* * * * * * * *",
+        "bbox": {
+          "x1": 34.0,
+          "y1": 165.171875,
+          "x2": 542.0,
+          "y2": 194.5625
+        }
+      },
+      {
+        "block_type": "Text",
+        "content": "REG        13-11-2011 20:54",
+        "bbox": {
+          "x1": 34.0,
+          "y1": 206.5625,
+          "x2": 542.0,
+          "y2": 235.953125
+        }
+      },
+      {
+        "block_type": "Text",
+        "content": "CA 1        MC #01        000887",
+        "bbox": {
+          "x1": 34.0,
+          "y1": 247.953125,
+          "x2": 542.0,
+          "y2": 277.34375
+        }
+      },
+      {
+        "block_type": "Section-header",
+        "content": "BÀN SỐ: 47",
+        "bbox": {
+          "x1": 34.0,
+          "y1": 289.34375,
+          "x2": 542.0,
+          "y2": 325.734375
+        }
+      },
+      {
+        "block_type": "Table",
+        "bbox": {
+          "x1": 34.0,
+          "y1": 337.734375,
+          "x2": 542.0,
+          "y2": 620.25
+        },
+        "table": {
+          "rows": [
+            {
+              "cells": [
+                {
+                  "content": "1",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 34.0,
+                    "y1": 337.734375,
+                    "x2": 97.0,
+                    "y2": 369.125
+                  }
+                },
+                {
+                  "content": "Bún Sinh",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 97.0,
+                    "y1": 337.734375,
+                    "x2": 409.8125,
+                    "y2": 369.125
+                  }
+                },
+                {
+                  "content": "42,000",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 409.8125,
+                    "y1": 337.734375,
+                    "x2": 542.0,
+                    "y2": 369.125
+                  }
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "content": "1",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 34.0,
+                    "y1": 369.125,
+                    "x2": 97.0,
+                    "y2": 400.515625
+                  }
+                },
+                {
+                  "content": "Mì Giòn Xào Chay",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 97.0,
+                    "y1": 369.125,
+                    "x2": 409.8125,
+                    "y2": 400.515625
+                  }
+                },
+                {
+                  "content": "37,000",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 409.8125,
+                    "y1": 369.125,
+                    "x2": 542.0,
+                    "y2": 400.515625
+                  }
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "content": "2",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 34.0,
+                    "y1": 400.515625,
+                    "x2": 97.0,
+                    "y2": 431.90625
+                  }
+                },
+                {
+                  "content": "Mì Xào Giòn Nhỏ",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 97.0,
+                    "y1": 400.515625,
+                    "x2": 409.8125,
+                    "y2": 431.90625
+                  }
+                },
+                {
+                  "content": "80,000",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 409.8125,
+                    "y1": 400.515625,
+                    "x2": 542.0,
+                    "y2": 431.90625
+                  }
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "content": "4",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 34.0,
+                    "y1": 431.90625,
+                    "x2": 97.0,
+                    "y2": 463.296875
+                  }
+                },
+                {
+                  "content": "Cơm Bát Bửu",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 97.0,
+                    "y1": 431.90625,
+                    "x2": 409.8125,
+                    "y2": 463.296875
+                  }
+                },
+                {
+                  "content": "172,000",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 409.8125,
+                    "y1": 431.90625,
+                    "x2": 542.0,
+                    "y2": 463.296875
+                  }
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "content": "1",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 34.0,
+                    "y1": 463.296875,
+                    "x2": 97.0,
+                    "y2": 494.6875
+                  }
+                },
+                {
+                  "content": "Sườn Chiên Kho Đỏ",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 97.0,
+                    "y1": 463.296875,
+                    "x2": 409.8125,
+                    "y2": 494.6875
+                  }
+                },
+                {
+                  "content": "65,000",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 409.8125,
+                    "y1": 463.296875,
+                    "x2": 542.0,
+                    "y2": 494.6875
+                  }
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "content": "1",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 34.0,
+                    "y1": 494.6875,
+                    "x2": 97.0,
+                    "y2": 526.078125
+                  }
+                },
+                {
+                  "content": "Hủ Tiếu Nhỏ",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 97.0,
+                    "y1": 494.6875,
+                    "x2": 409.8125,
+                    "y2": 526.078125
+                  }
+                },
+                {
+                  "content": "40,000",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 409.8125,
+                    "y1": 494.6875,
+                    "x2": 542.0,
+                    "y2": 526.078125
+                  }
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "content": "1",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 34.0,
+                    "y1": 526.078125,
+                    "x2": 97.0,
+                    "y2": 557.46875
+                  }
+                },
+                {
+                  "content": "Tôm Lăn Bột",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 97.0,
+                    "y1": 526.078125,
+                    "x2": 409.8125,
+                    "y2": 557.46875
+                  }
+                },
+                {
+                  "content": "65,000",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 409.8125,
+                    "y1": 526.078125,
+                    "x2": 542.0,
+                    "y2": 557.46875
+                  }
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "content": "2",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 34.0,
+                    "y1": 557.46875,
+                    "x2": 97.0,
+                    "y2": 588.859375
+                  }
+                },
+                {
+                  "content": "Pepsi",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 97.0,
+                    "y1": 557.46875,
+                    "x2": 409.8125,
+                    "y2": 588.859375
+                  }
+                },
+                {
+                  "content": "16,000",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 409.8125,
+                    "y1": 557.46875,
+                    "x2": 542.0,
+                    "y2": 588.859375
+                  }
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "content": "10",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 34.0,
+                    "y1": 588.859375,
+                    "x2": 97.0,
+                    "y2": 620.25
+                  }
+                },
+                {
+                  "content": "Trà Đá",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 97.0,
+                    "y1": 588.859375,
+                    "x2": 409.8125,
+                    "y2": 620.25
+                  }
+                },
+                {
+                  "content": "20,000",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 409.8125,
+                    "y1": 588.859375,
+                    "x2": 542.0,
+                    "y2": 620.25
+                  }
+                }
+              ]
+            }
+          ],
+          "bbox": {
+            "x1": 34.0,
+            "y1": 337.734375,
+            "x2": 542.0,
+            "y2": 620.25
+          }
+        }
+      },
+      {
+        "block_type": "Section-header",
+        "content": "TIỀN MẶT        537,000",
+        "bbox": {
+          "x1": 34.0,
+          "y1": 632.25,
+          "x2": 542.0,
+          "y2": 668.640625
+        }
+      },
+      {
+        "block_type": "Footnote",
+        "content": "CẢM ƠN QUÝ KHÁCH\nHẸN GẶP LẠI!",
+        "bbox": {
+          "x1": 34.0,
+          "y1": 680.640625,
+          "x2": 542.0,
+          "y2": 736.640625
+        }
+      }
+    ]
+  }
+}

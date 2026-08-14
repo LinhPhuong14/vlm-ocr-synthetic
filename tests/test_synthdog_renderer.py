@@ -54,7 +54,7 @@ def test_blocks_without_bbox_flow_down_the_page():
             DocumentBlock(block_type=BlockType.TEXT, content="Second paragraph."),
         ],
     )
-    result = SynthdogRenderer({"noise_sigma": 0}).render(document)
+    result = SynthdogRenderer({"paper": {"enabled": False}}).render(document)
 
     tops = [block.bbox.y1 for block in result.document.blocks]  # type: ignore[union-attr]
     assert tops == sorted(tops)
@@ -72,18 +72,18 @@ def test_explicit_bbox_pins_the_block(invoice: Document):
 
 
 @pytest.mark.slow
-def test_noise_changes_pixels_but_not_annotations(invoice: Document):
-    clean = SynthdogRenderer({"noise_sigma": 0}).render(invoice)
-    noisy = SynthdogRenderer({"noise_sigma": 12}).render(invoice)
+def test_paper_changes_pixels_but_not_annotations(invoice: Document):
+    clean = SynthdogRenderer({"paper": {"enabled": False}}).render(invoice)
+    noisy = SynthdogRenderer({"paper": {"grain": 12}}).render(invoice)
 
     assert clean.image.tobytes() != noisy.image.tobytes()
     assert clean.document == noisy.document
 
 
 @pytest.mark.slow
-def test_seed_controls_the_noise(invoice: Document):
-    a = SynthdogRenderer({"seed": 1, "noise_sigma": 12}).render(invoice)
-    b = SynthdogRenderer({"seed": 2, "noise_sigma": 12}).render(invoice)
+def test_seed_controls_the_paper_grain(invoice: Document):
+    a = SynthdogRenderer({"seed": 1, "paper": {"grain": 12}}).render(invoice)
+    b = SynthdogRenderer({"seed": 2, "paper": {"grain": 12}}).render(invoice)
 
     assert a.image.tobytes() != b.image.tobytes()
 

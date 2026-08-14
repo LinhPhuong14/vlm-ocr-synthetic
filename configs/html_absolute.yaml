@@ -10,3 +10,8 @@ layout: absolute
 
 font_size: 22
 margin: 60
+
+paper:
+  enabled: true
+  color: [250, 249, 245]
+  grain: 4.0

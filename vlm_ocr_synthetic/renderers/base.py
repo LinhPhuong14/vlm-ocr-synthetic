@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from contextlib import nullcontext
 from pathlib import Path
 from typing import Any, ClassVar, Iterable, Optional
 
@@ -64,6 +65,14 @@ class BaseRenderer(ABC):
     def render(self, document: Document) -> RenderResult:
         """Render one page."""
 
+    def session(self):
+        """Context in which several renders share expensive setup.
+
+        No-op by default; backends with a costly startup (a browser)
+        override it so a batch pays that cost once instead of per page.
+        """
+        return nullcontext(self)
+
     def render_many(
         self,
         documents: Iterable[Document],
@@ -71,9 +80,10 @@ class BaseRenderer(ABC):
         stem: str = "page",
     ) -> list[RenderResult]:
         results = []
-        for index, document in enumerate(documents):
-            result = self.render(document)
-            if out_dir is not None:
-                result.save(out_dir, f"{stem}_{index:05d}")
-            results.append(result)
+        with self.session():
+            for index, document in enumerate(documents):
+                result = self.render(document)
+                if out_dir is not None:
+                    result.save(out_dir, f"{stem}_{index:05d}")
+                results.append(result)
         return results

@@ -46,8 +46,24 @@ renders/
 *.webp
 *.pdf
 
-# Datasets and shards produced from the renders
-data/
+# Everything generated lands in data/. Full-resolution PNG pages are
+# regenerable and too big to keep, so what git tracks is the small stuff:
+# JPEG previews (~200 KB each), their annotations, and the benchmark report.
+#   python experiments/build_gallery.py     -> data/samples/
+#   python -m vlm_ocr_synthetic benchmark   -> data/benchmark/
+data/*
+!data/benchmark/
+!data/samples/
+
+data/benchmark/*
+!data/benchmark/report.md
+!data/benchmark/report.json
+!data/benchmark/preview-*.jpg
+
+data/samples/*
+!data/samples/*.jpg
+!data/samples/*.json
+
 datasets/
 *.jsonl
 *.tar

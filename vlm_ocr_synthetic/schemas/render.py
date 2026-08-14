@@ -58,15 +58,30 @@ class RenderResult:
             "document": self.document.model_dump(exclude_none=True),
         }
 
-    def save(self, out_dir: str | Path, stem: str = "page") -> tuple[Path, Path]:
-        """Write ``<stem>.png`` and ``<stem>.json`` into ``out_dir``."""
+    def save(
+        self,
+        out_dir: str | Path,
+        stem: str = "page",
+        image_format: str = "png",
+        quality: int = 88,
+    ) -> tuple[Path, Path]:
+        """Write ``<stem>.<ext>`` and ``<stem>.json`` into ``out_dir``.
+
+        PNG is the default because it is lossless; ``image_format="jpeg"``
+        is for previews that have to be small enough to keep in git (a
+        grainy page is roughly 5x smaller as JPEG at the same size).
+        """
         out_dir = Path(out_dir)
         out_dir.mkdir(parents=True, exist_ok=True)
 
-        image_path = out_dir / f"{stem}.png"
+        suffix = "jpg" if image_format.lower() in {"jpg", "jpeg"} else image_format
+        image_path = out_dir / f"{stem}.{suffix}"
         annotation_path = out_dir / f"{stem}.json"
 
-        self.image.save(image_path)
+        if suffix == "jpg":
+            self.image.convert("RGB").save(image_path, quality=quality, optimize=True)
+        else:
+            self.image.save(image_path)
         annotation_path.write_text(
             json.dumps(self.annotation(), indent=2, ensure_ascii=False),
             encoding="utf-8",
