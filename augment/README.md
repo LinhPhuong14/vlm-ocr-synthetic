@@ -69,7 +69,9 @@ python scripts/augment_samples.py --synthdog <dir> --genalog <dir> -o data/augme
 ```
 
 Writes a before/after pair per page and a contact sheet.
-[`data/augment/`](../data/augment) holds ten of them, five from each generator.
+[`data/augment/`](../data/augment) holds ten of them: five synthdog receipts and
+five pages from [genalog](https://github.com/microsoft/genalog), which is an
+external dependency here rather than part of the repository.
 
 ## About `augmentations/`
 
