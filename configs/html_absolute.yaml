@@ -1,0 +1,12 @@
+# Browser backend, blocks pinned to the bboxes in the input document.
+# Use this to compare html output against synthdog on the same geometry.
+renderer: html
+
+scale: 1.0
+seed: 42
+
+engine: playwright
+layout: absolute
+
+font_size: 22
+margin: 60
