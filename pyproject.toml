@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vlm-ocr-synthetic"
+version = "0.1.0"
+description = "Synthetic document generation for VLM/OCR training, with pluggable render backends"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pydantic>=2.0",
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+synthdog = ["Pillow>=10.0"]
+html = ["Pillow>=10.0", "Jinja2>=3.1", "playwright>=1.40"]
+dev = ["pytest>=7.0"]
+all = [
+    "Pillow>=10.0",
+    "Jinja2>=3.1",
+    "playwright>=1.40",
+    "pytest>=7.0",
+]
+
+[project.scripts]
+vlm-ocr-synthetic = "vlm_ocr_synthetic.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["vlm_ocr_synthetic*"]
+
+[tool.setuptools.package-data]
+"vlm_ocr_synthetic.renderers.html" = ["templates/*.j2"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra"
+markers = [
+    "slow: renders through a real backend (browser / rasteriser)",
+]

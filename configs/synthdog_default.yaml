@@ -1,0 +1,16 @@
+# Pillow backend: python -m vlm_ocr_synthetic render -c configs/synthdog_default.yaml
+renderer: synthdog
+
+scale: 1.0
+seed: 42
+
+font_size: 22
+title_font_size: 40
+margin: 60
+line_spacing: 1.35
+
+paper_color: [250, 249, 245]
+text_color: [25, 25, 28]
+
+noise_sigma: 4.0
+draw_table_grid: true

@@ -1,0 +1,72 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        width: {{ page_width }}px;
+        height: {{ page_height }}px;
+        background: {{ style.page_background }};
+        color: {{ style.text_color }};
+        font-family: {{ style.font_family }};
+        font-size: {{ style.font_size }}px;
+        line-height: {{ style.line_height }};
+        {% if layout == "flow" %}padding: {{ style.margin }}px;{% endif %}
+        position: relative;
+        overflow: hidden;
+      }
+      .block { margin: 0 0 {{ style.block_spacing }}px 0; }
+      {% if layout == "absolute" %}
+      .block { position: absolute; margin: 0; }
+      {% endif %}
+
+      .block-Title { font-size: {{ style.title_font_size }}px; font-weight: 700; }
+      .block-Page-Header { font-size: {{ style.header_font_size }}px; font-weight: 700; }
+      .block-Section-header { font-size: {{ style.header_font_size }}px; font-weight: 700; }
+      .block-Footnote, .block-Page-footer {
+        font-size: {{ style.footnote_font_size }}px;
+        color: {{ style.muted_color }};
+      }
+      .block-List-item { padding-left: 1.2em; }
+      .block-Formula { font-family: {{ style.mono_font_family }}; }
+
+      table { border-collapse: collapse; width: 100%; }
+      td, th {
+        border: {{ style.table_border }};
+        padding: {{ style.cell_padding }}px;
+        text-align: left;
+        vertical-align: top;
+      }
+      th { background: {{ style.header_background }}; font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    {% for block in blocks %}
+    <div
+      class="block block-{{ block.block_type }}"
+      data-block-id="{{ block.id }}"
+      {% if block.style %}style="{{ block.style }}"{% endif %}
+    >
+      {%- if block.table -%}
+      <table>
+        {%- for row in block.table.rows %}
+        <tr>
+          {%- for cell in row.cells %}
+          <{{ cell.tag }}
+            data-cell-id="{{ cell.id }}"
+            {% if cell.rowspan != 1 %}rowspan="{{ cell.rowspan }}"{% endif %}
+            {% if cell.colspan != 1 %}colspan="{{ cell.colspan }}"{% endif %}
+          >{{ cell.content }}</{{ cell.tag }}>
+          {%- endfor %}
+        </tr>
+        {%- endfor %}
+      </table>
+      {%- else -%}
+      {{ block.content }}
+      {%- endif -%}
+    </div>
+    {% endfor %}
+  </body>
+</html>
