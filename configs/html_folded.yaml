@@ -1,0 +1,26 @@
+# A page that was folded before it was scanned: quarter fold, soft creases,
+# a little corner shadow. The closest procedural stand-in for the
+# photographed sheets synthdog ships in resources/paper.
+#   python -m vlm_ocr_synthetic render -c configs/html_folded.yaml
+renderer: html
+
+scale: 1.0
+seed: 42
+
+engine: playwright
+layout: flow
+
+paper:
+  enabled: true
+  color: [248, 246, 240]
+  grain: 5.0
+
+  # One crease across, one down: the sheet was quartered.
+  fold_rows: 1
+  fold_columns: 1
+  fold_strength: 0.6
+  fold_softness: 5.0
+  fold_jitter: 0.02
+
+  blur: 0.3
+  vignette: 0.2

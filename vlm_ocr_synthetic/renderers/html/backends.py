@@ -12,6 +12,7 @@ from __future__ import annotations
 import os
 import shutil
 from abc import ABC, abstractmethod
+from contextlib import contextmanager, nullcontext
 from functools import lru_cache
 from pathlib import Path
 from typing import Optional
@@ -52,6 +53,14 @@ def resolve_chromium_path(explicit: Optional[str] = None) -> Optional[str]:
 class ScreenshotEngine(ABC):
     name: str = "base"
 
+    def session(self):
+        """Keep expensive state alive across several ``capture()`` calls.
+
+        The default is a no-op; engines with a costly startup (a browser)
+        override it so batch rendering pays that cost once.
+        """
+        return nullcontext(self)
+
     @classmethod
     @abstractmethod
     def check_available(cls) -> Optional[str]:
@@ -79,6 +88,32 @@ class PlaywrightEngine(ScreenshotEngine):
     def __init__(self, executable_path: Optional[str] = None, timeout_ms: int = 30_000):
         self.executable_path = executable_path
         self.timeout_ms = timeout_ms
+        self._browser = None  # set while a session() is open
+
+    def _launch_kwargs(self) -> dict:
+        kwargs = {"args": ["--font-render-hinting=none"]}
+        executable_path = resolve_chromium_path(self.executable_path)
+        if executable_path:
+            kwargs["executable_path"] = executable_path
+        return kwargs
+
+    @contextmanager
+    def session(self):
+        """Launch chromium once and reuse it for every capture inside."""
+        from playwright.sync_api import sync_playwright
+
+        if self._browser is not None:  # already inside a session
+            yield self
+            return
+
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(**self._launch_kwargs())
+            self._browser = browser
+            try:
+                yield self
+            finally:
+                self._browser = None
+                browser.close()
 
     @classmethod
     def check_available(cls) -> Optional[str]:
@@ -94,29 +129,43 @@ class PlaywrightEngine(ScreenshotEngine):
     ) -> tuple[bytes, dict[str, Boxes]]:
         from playwright.sync_api import sync_playwright
 
-        executable_path = resolve_chromium_path(self.executable_path)
-        launch_kwargs = {"args": ["--font-render-hinting=none"]}
-        if executable_path:
-            launch_kwargs["executable_path"] = executable_path
+        if self._browser is not None:  # inside session(): reuse the browser
+            return self._capture(self._browser, html, page_width, page_height, scale, selectors)
 
         with sync_playwright() as playwright:
-            browser = playwright.chromium.launch(**launch_kwargs)
+            browser = playwright.chromium.launch(**self._launch_kwargs())
             try:
-                page = browser.new_page(
-                    viewport={"width": int(page_width), "height": int(page_height)},
-                    device_scale_factor=scale,
+                return self._capture(
+                    browser, html, page_width, page_height, scale, selectors
                 )
-                page.set_default_timeout(self.timeout_ms)
-                page.set_content(html, wait_until="load")
-                page.wait_for_function("document.fonts.ready.then(() => true)")
-
-                boxes = {
-                    group: page.evaluate(_BOX_SCRIPT, attribute)
-                    for group, attribute in selectors.items()
-                }
-                png = page.screenshot(type="png")
             finally:
                 browser.close()
+
+    def _capture(
+        self,
+        browser,
+        html: str,
+        page_width: int,
+        page_height: int,
+        scale: float,
+        selectors: dict[str, str],
+    ) -> tuple[bytes, dict[str, Boxes]]:
+        page = browser.new_page(
+            viewport={"width": int(page_width), "height": int(page_height)},
+            device_scale_factor=scale,
+        )
+        try:
+            page.set_default_timeout(self.timeout_ms)
+            page.set_content(html, wait_until="load")
+            page.wait_for_function("document.fonts.ready.then(() => true)")
+
+            boxes = {
+                group: page.evaluate(_BOX_SCRIPT, attribute)
+                for group, attribute in selectors.items()
+            }
+            png = page.screenshot(type="png")
+        finally:
+            page.close()
 
         return png, boxes
 

@@ -1,0 +1,50 @@
+# 80mm thermal receipt, Vietnamese restaurant bill.
+#   python -m vlm_ocr_synthetic render -c configs/html_receipt_vn.yaml -s receipt_vn
+renderer: html
+
+scale: 1.0
+seed: 42
+
+engine: playwright
+layout: flow
+
+font_family: "DejaVu Sans Mono, Liberation Mono, monospace"
+font_size: 17
+header_font_size: 24
+footnote_font_size: 18
+line_height: 1.4
+
+margin: 34
+block_spacing: 12
+cell_padding: 2
+
+text_color: "#141414"
+
+# The paper bill has no rules: centred shop block, bare item table,
+# right-aligned prices.
+table_border: "none"
+extra_css: |
+  .block-Page-Header,
+  .block-Section-header,
+  .block-Footnote { text-align: center; }
+  .block-Page-Header { letter-spacing: 1px; }
+  .block-Text:nth-of-type(-n+4) { text-align: center; }
+  /* Column widths and alignment come from the document, not from here. */
+  td, th { padding: 1px 2px; white-space: pre-wrap; }
+  th { background: transparent; border-bottom: 1px dashed #4a4a4a; }
+  /* The cash total is the last table on the bill; keep it the same size
+     synthdog draws it at, so only the layout engine differs. */
+  table:last-of-type th { border: none; padding-top: 8px; }
+
+# Thermal paper: greyer, grainier, and the print head is never crisp.
+paper:
+  enabled: true
+  color: [243, 242, 238]
+  grain: 6.0
+  blur: 0.35
+  pepper: 0.0008
+  # A bill gets folded once on the way into a pocket.
+  fold_rows: 1
+  fold_strength: 0.4
+  fold_softness: 4.0
+  vignette: 0.18

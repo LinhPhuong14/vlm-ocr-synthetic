@@ -38,6 +38,8 @@ def build_invoice_table() -> TableBlock:
                 ]
             ),
         ],
+        column_widths=(0.5, 0.2, 0.3),
+        column_align=("left", "center", "right"),
         bbox=BBox(x1=100, y1=300, x2=900, y2=700),
     )
 

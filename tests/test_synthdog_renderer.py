@@ -54,7 +54,7 @@ def test_blocks_without_bbox_flow_down_the_page():
             DocumentBlock(block_type=BlockType.TEXT, content="Second paragraph."),
         ],
     )
-    result = SynthdogRenderer({"noise_sigma": 0}).render(document)
+    result = SynthdogRenderer({"paper": {"enabled": False}}).render(document)
 
     tops = [block.bbox.y1 for block in result.document.blocks]  # type: ignore[union-attr]
     assert tops == sorted(tops)
@@ -72,18 +72,18 @@ def test_explicit_bbox_pins_the_block(invoice: Document):
 
 
 @pytest.mark.slow
-def test_noise_changes_pixels_but_not_annotations(invoice: Document):
-    clean = SynthdogRenderer({"noise_sigma": 0}).render(invoice)
-    noisy = SynthdogRenderer({"noise_sigma": 12}).render(invoice)
+def test_paper_changes_pixels_but_not_annotations(invoice: Document):
+    clean = SynthdogRenderer({"paper": {"enabled": False}}).render(invoice)
+    noisy = SynthdogRenderer({"paper": {"grain": 12}}).render(invoice)
 
     assert clean.image.tobytes() != noisy.image.tobytes()
     assert clean.document == noisy.document
 
 
 @pytest.mark.slow
-def test_seed_controls_the_noise(invoice: Document):
-    a = SynthdogRenderer({"seed": 1, "noise_sigma": 12}).render(invoice)
-    b = SynthdogRenderer({"seed": 2, "noise_sigma": 12}).render(invoice)
+def test_seed_controls_the_paper_grain(invoice: Document):
+    a = SynthdogRenderer({"seed": 1, "paper": {"grain": 12}}).render(invoice)
+    b = SynthdogRenderer({"seed": 2, "paper": {"grain": 12}}).render(invoice)
 
     assert a.image.tobytes() != b.image.tobytes()
 
@@ -102,3 +102,47 @@ def test_missing_font_is_reported():
         SynthdogRenderer({"font_path": "/nope/does-not-exist.ttf"})._font_for(
             BlockType.TEXT
         )
+
+
+@pytest.mark.slow
+def test_renderer_config_aligns_columns_when_the_table_does_not(invoice: Document):
+    """The config is the fallback for tables that carry no layout."""
+    document = _without_table_layout(invoice)
+
+    left = SynthdogRenderer({"table_column_align": ["left", "left", "left"]}).render(
+        document
+    )
+    right = SynthdogRenderer({"table_column_align": ["left", "left", "right"]}).render(
+        document
+    )
+
+    assert left.image.tobytes() != right.image.tobytes()
+    # geometry is a property of the table, not of the text alignment
+    assert left.document == right.document
+
+
+@pytest.mark.slow
+def test_table_layout_wins_over_the_renderer_config(invoice: Document):
+    """A document that describes its own columns is not overridden."""
+    configured = SynthdogRenderer(
+        {"table_column_align": ["right", "right", "left"], "table_column_widths": [0.8, 0.1, 0.1]}
+    ).render(invoice)
+    plain = SynthdogRenderer().render(invoice)
+
+    assert configured.image.tobytes() == plain.image.tobytes()
+
+
+def _without_table_layout(document: Document) -> Document:
+    """Copy of a document whose tables carry no column layout."""
+    blocks = []
+    for block in document.blocks:
+        if block.table is not None:
+            block = block.model_copy(
+                update={
+                    "table": block.table.model_copy(
+                        update={"column_widths": (), "column_align": ()}
+                    )
+                }
+            )
+        blocks.append(block)
+    return document.model_copy(update={"blocks": blocks})

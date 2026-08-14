@@ -1,6 +1,6 @@
 """Render the same document with every available backend, side by side.
 
-    python experiments/render_sample.py --out outputs/compare
+    python experiments/render_sample.py --out data/compare
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ from vlm_ocr_synthetic.samples import get_sample  # noqa: E402
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sample", default="invoice")
-    parser.add_argument("--out", default="outputs/compare")
+    parser.add_argument("--out", default="data/compare")
     parser.add_argument("--scale", type=float, default=1.0)
     args = parser.parse_args()
 
