@@ -17,7 +17,10 @@
         position: relative;
         overflow: hidden;
       }
-      .block { margin: 0 0 {{ style.block_spacing }}px 0; }
+      .block {
+        margin: 0 0 {{ style.block_spacing }}px 0;
+        white-space: pre-wrap;  /* keep newlines AND column padding spaces */
+      }
       {% if layout == "absolute" %}
       .block { position: absolute; margin: 0; }
       {% endif %}
@@ -40,6 +43,9 @@
         vertical-align: top;
       }
       th { background: {{ style.header_background }}; font-weight: 700; }
+
+      /* Per-preset overrides; see HtmlConfig.extra_css. */
+      {{ style.extra_css | safe }}
     </style>
   </head>
   <body>

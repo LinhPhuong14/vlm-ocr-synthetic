@@ -1,0 +1,171 @@
+{
+  "environment": {
+    "python": "3.14.7",
+    "implementation": "cpython",
+    "platform": "Linux"
+  },
+  "settings": {
+    "pages": 3,
+    "sample": "invoice",
+    "options": {
+      "scale": 1.0
+    }
+  },
+  "backends": [
+    {
+      "label": "html-flow",
+      "renderer": "html",
+      "pages": 3,
+      "seconds_per_page": {
+        "mean": 0.2636,
+        "median": 0.2435,
+        "min": 0.231,
+        "max": 0.3162
+      },
+      "image_size": [
+        1000,
+        1400
+      ],
+      "png_bytes": 1573032,
+      "ink_coverage": 0.00659,
+      "luminance": {
+        "mean": 247.13,
+        "stdev": 15.19
+      },
+      "blocks": 4,
+      "cells": 9,
+      "boxes_complete": true,
+      "layout_fidelity": 0.1358,
+      "deterministic": true,
+      "metadata": {
+        "engine": "playwright",
+        "layout": "flow",
+        "scale": 1.0,
+        "bbox_space": "document",
+        "paper": {
+          "enabled": true,
+          "color": [
+            250,
+            249,
+            245
+          ],
+          "grain": 4.0,
+          "vignette": 0.0,
+          "blur": 0.0,
+          "bleed_through": 0.0,
+          "salt": 0.0,
+          "pepper": 0.0
+        }
+      }
+    },
+    {
+      "label": "html-absolute",
+      "renderer": "html",
+      "pages": 3,
+      "seconds_per_page": {
+        "mean": 0.2468,
+        "median": 0.2532,
+        "min": 0.222,
+        "max": 0.2652
+      },
+      "image_size": [
+        1000,
+        1400
+      ],
+      "png_bytes": 1573175,
+      "ink_coverage": 0.00635,
+      "luminance": {
+        "mean": 247.21,
+        "stdev": 15.03
+      },
+      "blocks": 4,
+      "cells": 9,
+      "boxes_complete": true,
+      "layout_fidelity": 1.0,
+      "deterministic": true,
+      "metadata": {
+        "engine": "playwright",
+        "layout": "absolute",
+        "scale": 1.0,
+        "bbox_space": "document",
+        "paper": {
+          "enabled": true,
+          "color": [
+            250,
+            249,
+            245
+          ],
+          "grain": 4.0,
+          "vignette": 0.0,
+          "blur": 0.0,
+          "bleed_through": 0.0,
+          "salt": 0.0,
+          "pepper": 0.0
+        }
+      }
+    },
+    {
+      "label": "synthdog",
+      "renderer": "synthdog",
+      "pages": 3,
+      "seconds_per_page": {
+        "mean": 0.0252,
+        "median": 0.0244,
+        "min": 0.0239,
+        "max": 0.0273
+      },
+      "image_size": [
+        1000,
+        1400
+      ],
+      "png_bytes": 1565374,
+      "ink_coverage": 0.00643,
+      "luminance": {
+        "mean": 247.66,
+        "stdev": 15.22
+      },
+      "blocks": 4,
+      "cells": 9,
+      "boxes_complete": true,
+      "layout_fidelity": 0.2559,
+      "deterministic": true,
+      "metadata": {
+        "scale": 1.0,
+        "seed": 0,
+        "bbox_space": "document",
+        "paper": {
+          "enabled": true,
+          "color": [
+            250,
+            249,
+            245
+          ],
+          "grain": 4.0,
+          "vignette": 0.0,
+          "blur": 0.0,
+          "bleed_through": 0.0,
+          "salt": 0.0,
+          "pepper": 0.0
+        }
+      }
+    }
+  ],
+  "skipped": {},
+  "agreement": {
+    "html-absolute vs html-flow": {
+      "mean_iou": 0.1358,
+      "min_iou": 0.0,
+      "blocks_compared": 4
+    },
+    "html-absolute vs synthdog": {
+      "mean_iou": 0.2559,
+      "min_iou": 0.1026,
+      "blocks_compared": 4
+    },
+    "html-flow vs synthdog": {
+      "mean_iou": 0.0462,
+      "min_iou": 0.0,
+      "blocks_compared": 4
+    }
+  }
+}

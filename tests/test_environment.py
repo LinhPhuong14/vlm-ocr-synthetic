@@ -69,7 +69,7 @@ import sys
 import vlm_ocr_synthetic.renderers.synthdog.renderer as synthdog
 from vlm_ocr_synthetic.samples import get_sample
 
-config = {"scale": 0.25, "noise_sigma": 0}
+config = {"scale": 0.25, "paper": {"enabled": False}}
 synthdog.SynthdogRenderer(config).render(get_sample("invoice"))
 
 leaked = [name for name in FORBIDDEN if name in sys.modules]

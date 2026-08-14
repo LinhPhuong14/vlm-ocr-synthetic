@@ -1,0 +1,19 @@
+# Browser backend with genalog-style degradations turned up: use this when
+# the training data should look photocopied rather than freshly printed.
+renderer: html
+
+scale: 1.0
+seed: 42
+
+engine: playwright
+layout: flow
+
+paper:
+  enabled: true
+  color: [246, 243, 232]
+  grain: 7.0
+  blur: 0.4            # scanner that cannot quite focus
+  bleed_through: 0.12  # ink from the reverse side of the sheet
+  pepper: 0.0015       # dust and scanner specks
+  salt: 0.0008         # faded ink
+  vignette: 0.25       # darker towards the corners

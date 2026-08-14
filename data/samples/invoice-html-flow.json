@@ -1,0 +1,202 @@
+{
+  "renderer": "html",
+  "image_size": [
+    1000,
+    1400
+  ],
+  "metadata": {
+    "engine": "playwright",
+    "layout": "flow",
+    "scale": 1.0,
+    "bbox_space": "document",
+    "paper": {
+      "enabled": true,
+      "color": [
+        250,
+        249,
+        245
+      ],
+      "grain": 4.0,
+      "vignette": 0.0,
+      "blur": 0.0,
+      "bleed_through": 0.0,
+      "salt": 0.0,
+      "pepper": 0.0
+    }
+  },
+  "document": {
+    "page_width": 1000,
+    "page_height": 1400,
+    "blocks": [
+      {
+        "block_type": "Page-Header",
+        "content": "INVOICE",
+        "bbox": {
+          "x1": 60.0,
+          "y1": 60.0,
+          "x2": 940.0,
+          "y2": 97.796875
+        }
+      },
+      {
+        "block_type": "Text",
+        "content": "Invoice No: INV-001",
+        "bbox": {
+          "x1": 60.0,
+          "y1": 121.796875,
+          "x2": 940.0,
+          "y2": 151.484375
+        }
+      },
+      {
+        "block_type": "Table",
+        "bbox": {
+          "x1": 60.0,
+          "y1": 175.484375,
+          "x2": 940.0,
+          "y2": 316.546875
+        },
+        "table": {
+          "rows": [
+            {
+              "cells": [
+                {
+                  "content": "Item",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": true,
+                  "bbox": {
+                    "x1": 60.5,
+                    "y1": 175.984375,
+                    "x2": 427.609375,
+                    "y2": 222.671875
+                  }
+                },
+                {
+                  "content": "Qty",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": true,
+                  "bbox": {
+                    "x1": 427.609375,
+                    "y1": 175.984375,
+                    "x2": 648.96875,
+                    "y2": 222.671875
+                  }
+                },
+                {
+                  "content": "Price",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": true,
+                  "bbox": {
+                    "x1": 648.96875,
+                    "y1": 175.984375,
+                    "x2": 939.5,
+                    "y2": 222.671875
+                  }
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "content": "Apple",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 60.5,
+                    "y1": 222.671875,
+                    "x2": 427.609375,
+                    "y2": 269.359375
+                  }
+                },
+                {
+                  "content": "2",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 427.609375,
+                    "y1": 222.671875,
+                    "x2": 648.96875,
+                    "y2": 269.359375
+                  }
+                },
+                {
+                  "content": "$10",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 648.96875,
+                    "y1": 222.671875,
+                    "x2": 939.5,
+                    "y2": 269.359375
+                  }
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "content": "Banana",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 60.5,
+                    "y1": 269.359375,
+                    "x2": 427.609375,
+                    "y2": 316.046875
+                  }
+                },
+                {
+                  "content": "3",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 427.609375,
+                    "y1": 269.359375,
+                    "x2": 648.96875,
+                    "y2": 316.046875
+                  }
+                },
+                {
+                  "content": "$15",
+                  "rowspan": 1,
+                  "colspan": 1,
+                  "is_header": false,
+                  "bbox": {
+                    "x1": 648.96875,
+                    "y1": 269.359375,
+                    "x2": 939.5,
+                    "y2": 316.046875
+                  }
+                }
+              ]
+            }
+          ],
+          "bbox": {
+            "x1": 60.0,
+            "y1": 175.484375,
+            "x2": 940.0,
+            "y2": 316.546875
+          }
+        }
+      },
+      {
+        "block_type": "Footnote",
+        "content": "* Prices include tax.",
+        "bbox": {
+          "x1": 60.0,
+          "y1": 340.546875,
+          "x2": 940.0,
+          "y2": 364.84375
+        }
+      }
+    ]
+  }
+}

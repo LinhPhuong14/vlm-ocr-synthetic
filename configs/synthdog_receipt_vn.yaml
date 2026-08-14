@@ -1,0 +1,34 @@
+# The same receipt through the Pillow rasteriser, for side-by-side checks.
+#   python -m vlm_ocr_synthetic render -c configs/synthdog_receipt_vn.yaml -s receipt_vn
+renderer: synthdog
+
+scale: 1.0
+seed: 42
+
+font_path: /usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf
+bold_font_path: /usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf
+
+font_size: 21
+section_font_size: 26
+footnote_font_size: 20
+
+margin: 34
+line_spacing: 1.4
+block_spacing: 12
+cell_padding: 2
+
+text_color: [20, 20, 20]
+draw_table_grid: false
+underline_headers: false
+center_block_types: ["Page-Header", "Section-header", "Footnote"]
+
+# Narrow quantity column, wide dish column, price on the right.
+table_column_widths: [0.12, 0.62, 0.26]
+
+paper:
+  enabled: true
+  color: [243, 242, 238]
+  grain: 6.0
+  blur: 0.35
+  pepper: 0.0008
+  vignette: 0.18
