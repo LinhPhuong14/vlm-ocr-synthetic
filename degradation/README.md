@@ -1,4 +1,4 @@
-# augment — DocCreator's degradations, in Python
+# degradation — DocCreator's models, in Python
 
 [DocCreator](https://github.com/DocCreator/DocCreator) (Journet, Mansencal,
 Kieu et al., LaBRI Bordeaux) is a C++/Qt application whose degradation models

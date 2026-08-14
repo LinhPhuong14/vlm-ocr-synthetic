@@ -1,11 +1,11 @@
 # Contributing
 
-This repository holds three independent generators. There is no shared package
+This repository holds two independent generators. There is no shared package
 and no shared virtualenv: pick the one you are working on.
 
 | working on | environment | notes |
 | --- | --- | --- |
-| `generators/synthdog/` | `make setup` | Python 3.8 – 3.12 only |
+| `generators/synthdog/` | `make setup` | Python 3.8 – 3.11 only |
 | `generators/html-table/` | `pip install -r generators/html-table/requirements.txt` | vendored; prefer upstreaming fixes |
 
 Each generator is run **from its own directory** — the paths in their configs
