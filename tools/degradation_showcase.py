@@ -36,7 +36,7 @@ SHOWCASE = {
     "blur_zones": {"radius": 2.2, "zones": 3, "coverage": 0.25},
     "blur": {"radius": 1.6},
     "shadow_binding": {"border": "left", "distance_ratio": 0.14, "intensity": 0.5},
-    "holes": {"count": 3, "placement": "border", "size_ratio": 0.04},
+    "holes": {"count": 2, "placement": "border", "size_ratio": 0.18, "fill": "black"},
 }
 
 

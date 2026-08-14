@@ -54,7 +54,7 @@ degradation/            DocCreator's degradation models, ported to Python
 ├── shadow_binding.py   shadow near a page's spine
 ├── bleed_through.py    ink from the other side of the sheet
 ├── blur_zones.py       blur in patches, not over the whole page
-├── holes.py            holes punched or torn through
+├── holes.py            tears and rips, the missing paper filled black
 └── pipeline.py         runs a recipe's chain — all three renderers call this
 
 textures/paper/         the sheets every renderer composites onto
@@ -153,8 +153,11 @@ they are the ones that stop a synthetic page looking synthetic:
 | `gradient_domain` | `GradientDomainDegradation.cpp` | pastes stains with Poisson blending (`cv::seamlessClone`, `MIXED_CLONE`) — Seuret et al., ICDAR 2015 |
 | `phantom_character` | `PhantomCharacter.cpp` | pastes leftover ink against the flanks of characters, sized from each character's own box |
 
-The rest — `ink_degradation`, `bleed_through`, `blur_zones`, `shadow_binding`,
-`holes` — are the filtering models. `make list-degradations` prints the lot.
+The rest — `ink_degradation`, `bleed_through`, `blur_zones`, `shadow_binding`
+— are the filtering models, and `holes` is the tear model: DocCreator's
+`HoleDegradation`, which cuts paper away and fills what is missing with black,
+because a page photographed over a dark surface shows dark through the tear.
+`make list-degradations` prints the lot.
 
 DocCreator ships its textures as image files under an LGPL licence; those are
 not vendored. The patterns are synthesised from a seed instead, and a directory
@@ -184,7 +187,7 @@ Two sets are committed, differing in **one attribute** of the rule-base:
 
 | set | | Tesseract token recall (synthdog / html / genalog) |
 | --- | --- | --- |
-| [`data/dataset60/`](data/dataset60) | ageing sampled from the rules | 0.40 / 0.76 / 0.71 |
+| [`data/dataset60/`](data/dataset60) | ageing sampled from the rules | 0.41 / 0.68 / 0.77 |
 | [`data/dataset60_clean/`](data/dataset60_clean) | `augmentation=khong_lam_gi`, no distortion | 0.83 / 0.85 / 0.88 |
 
 ```bash
