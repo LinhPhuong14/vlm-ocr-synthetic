@@ -75,8 +75,23 @@ Where to look for a thing:
 | to add a receipt layout | `rulebase/layouts/` |
 | to change how a page is drawn | `generators/<renderer>/` |
 | to make pages look old or scanned | `degradation/` |
-| to see what the output looks like | `data/dataset60/`, `samples/` |
+| the labelled dataset | `data/dataset60/` |
+| one picture per degradation model | `samples/degradation/` |
+| to run something end to end | `make help` — the tasks are there, not in a directory |
 | why a version is pinned | `docs/python-versions.md` |
+
+Three names appear twice in the tree and mean different things. If you are
+about to edit one, check which:
+
+| the shared one | the glyph renderer's own |
+| --- | --- |
+| `rulebase/layouts/` — the five receipt bố cục (YAML) | `generators/synthdog/layouts/` — SynthDoG's grid code, used only by its original wiki template |
+| `rulebase/corpus/vi/` — the Vietnamese receipt corpus | `generators/synthdog/resources/corpus/` — wiki text for those same original templates |
+| `textures/paper/`, `fonts/` — committed, used by all three renderers | `generators/synthdog/resources/{paper,font}/` — yours to supply, git-ignored, overrides the shared set |
+
+`generators/html/` and `generators/html-table/` are also easy to confuse: the
+first renders receipts from the rule-base, the second is vendored code for
+generic table images and does not read the rule-base at all.
 
 ---
 

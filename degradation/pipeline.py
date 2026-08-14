@@ -53,10 +53,17 @@ def apply_recipe(image: np.ndarray, recipe, seed: int | None = None) -> np.ndarr
         if name == "paper_texture":
             options.setdefault("paper", paper)
             if alpha_range and "alpha" in options:
-                # The chain says how aged the sheet is; the visual attribute
-                # says how much that sheet shows through this printer's stock.
+                # Two attributes have a say. The chain's `alpha` is how aged
+                # this scenario's sheet is; `visual.paper_alpha` is how much
+                # paper shows through *this printer's stock* -- fresh thermal
+                # roll hides its own texture, recycled stock does not.
+                #
+                # NEUTRAL is the paper_alpha at which the chain's number is
+                # used unchanged, so a scenario tuned by eye against ordinary
+                # paper keeps looking the way it was tuned.
+                neutral = 0.2
                 low, high = alpha_range
-                options["alpha"] = float(options["alpha"]) * rng.uniform(low, high) / 0.2
+                options["alpha"] = float(options["alpha"]) * rng.uniform(low, high) / neutral
         out = apply_one(out, name, options, rng)
     return out
 
