@@ -5,13 +5,13 @@ Python 3.14.7 (cpython) on Linux.
 
 | metric | html-flow | html-absolute | synthdog |
 | --- | --- | --- | --- |
-| seconds/page (median) | 0.2722 | 0.2483 | 0.0236 |
-| seconds/page (mean) | 0.2673 | 0.2466 | 0.0245 |
+| seconds/page (median) | 0.2747 | 0.266 | 0.0235 |
+| seconds/page (mean) | 0.2814 | 0.2589 | 0.0248 |
 | image size (px) | 1000x1400 | 1000x1400 | 1000x1400 |
-| png size (bytes) | 1573032 | 1573175 | 1565374 |
-| ink coverage | 0.00659 | 0.00635 | 0.00643 |
+| png size (bytes) | 1573131 | 1573313 | 1565237 |
+| ink coverage | 0.00659 | 0.00636 | 0.00643 |
 | luminance mean | 247.13 | 247.21 | 247.66 |
-| luminance stdev | 15.19 | 15.03 | 15.22 |
+| luminance stdev | 15.18 | 15.03 | 15.22 |
 | blocks annotated | 4 | 4 | 4 |
 | cells annotated | 9 | 9 | 9 |
 | all boxes present | True | True | True |

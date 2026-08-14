@@ -57,11 +57,19 @@
     >
       {%- if block.table -%}
       <table>
+        {%- if block.table.columns %}
+        <colgroup>
+          {%- for column in block.table.columns %}
+          <col style="width: {{ column.width_percent }}%" />
+          {%- endfor %}
+        </colgroup>
+        {%- endif %}
         {%- for row in block.table.rows %}
         <tr>
           {%- for cell in row.cells %}
           <{{ cell.tag }}
             data-cell-id="{{ cell.id }}"
+            style="text-align: {{ cell.align }}"
             {% if cell.rowspan != 1 %}rowspan="{{ cell.rowspan }}"{% endif %}
             {% if cell.colspan != 1 %}colspan="{{ cell.colspan }}"{% endif %}
           >{{ cell.content }}</{{ cell.tag }}>

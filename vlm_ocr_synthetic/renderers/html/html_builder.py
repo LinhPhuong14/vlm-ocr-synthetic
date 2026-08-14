@@ -49,7 +49,17 @@ def _prepare_blocks(document: Document, layout: str) -> list[dict[str, Any]]:
         }
 
         if block.table is not None:
+            table = block.table
             entry["table"] = {
+                # The document's own column layout, so a page looks the same
+                # here as it does when synthdog draws the glyphs.
+                "columns": [
+                    {
+                        "width_percent": round(fraction * 100, 4),
+                        "align": table.alignment(index),
+                    }
+                    for index, fraction in enumerate(table.width_fractions())
+                ],
                 "rows": [
                     {
                         "cells": [
@@ -59,12 +69,18 @@ def _prepare_blocks(document: Document, layout: str) -> list[dict[str, Any]]:
                                 "content": cell.content,
                                 "rowspan": cell.rowspan,
                                 "colspan": cell.colspan,
+                                "align": table.alignment(
+                                    sum(
+                                        earlier.colspan
+                                        for earlier in row.cells[:cell_index]
+                                    )
+                                ),
                             }
                             for cell_index, cell in enumerate(row.cells)
                         ]
                     }
-                    for row_index, row in enumerate(block.table.rows)
-                ]
+                    for row_index, row in enumerate(table.rows)
+                ],
             }
 
         prepared.append(entry)

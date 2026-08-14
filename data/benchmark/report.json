@@ -17,20 +17,20 @@
       "renderer": "html",
       "pages": 3,
       "seconds_per_page": {
-        "mean": 0.2673,
-        "median": 0.2722,
-        "min": 0.2235,
-        "max": 0.3062
+        "mean": 0.2814,
+        "median": 0.2747,
+        "min": 0.2529,
+        "max": 0.3166
       },
       "image_size": [
         1000,
         1400
       ],
-      "png_bytes": 1573032,
+      "png_bytes": 1573131,
       "ink_coverage": 0.00659,
       "luminance": {
         "mean": 247.13,
-        "stdev": 15.19
+        "stdev": 15.18
       },
       "blocks": 4,
       "cells": 9,
@@ -64,17 +64,17 @@
       "renderer": "html",
       "pages": 3,
       "seconds_per_page": {
-        "mean": 0.2466,
-        "median": 0.2483,
-        "min": 0.235,
-        "max": 0.2566
+        "mean": 0.2589,
+        "median": 0.266,
+        "min": 0.2278,
+        "max": 0.2828
       },
       "image_size": [
         1000,
         1400
       ],
-      "png_bytes": 1573175,
-      "ink_coverage": 0.00635,
+      "png_bytes": 1573313,
+      "ink_coverage": 0.00636,
       "luminance": {
         "mean": 247.21,
         "stdev": 15.03
@@ -111,16 +111,16 @@
       "renderer": "synthdog",
       "pages": 3,
       "seconds_per_page": {
-        "mean": 0.0245,
-        "median": 0.0236,
-        "min": 0.0232,
-        "max": 0.0267
+        "mean": 0.0248,
+        "median": 0.0235,
+        "min": 0.0234,
+        "max": 0.0275
       },
       "image_size": [
         1000,
         1400
       ],
-      "png_bytes": 1565374,
+      "png_bytes": 1565237,
       "ink_coverage": 0.00643,
       "luminance": {
         "mean": 247.66,
