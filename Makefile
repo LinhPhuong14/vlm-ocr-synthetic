@@ -4,14 +4,11 @@ SYNTHDOG      = generators/synthdog
 SYNTHDOG_VENV = generators/synthdog/.venv
 
 .DEFAULT_GOAL := help
-.PHONY: help setup receipts preview lint format check submodules clean
+.PHONY: help setup receipts preview lint format check clean
 
 help:  ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | \
 	  awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
-
-submodules:  ## Fetch genalog (a submodule with no content until initialised)
-	git submodule update --init --recursive
 
 setup:  ## Create synthdog's venv and install its pinned dependencies
 	@$(PYTHON) -c 'import sys; v=sys.version_info; \
