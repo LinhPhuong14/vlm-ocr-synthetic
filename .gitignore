@@ -3,11 +3,10 @@ __pycache__/
 *.py[cod]
 *.so
 *.egg-info/
-.eggs/
 build/
 dist/
 
-# Virtual environments (each generator has its own)
+# Virtual environments -- each generator has its own
 .venv/
 venv/
 env/
@@ -18,34 +17,28 @@ generators/*/.venv/
 .pytest_cache/
 .mypy_cache/
 .coverage
-htmlcov/
 
-# ------------------------------------------------- Generated synthetic data
-# Generators write into their own directories; none of it belongs in git.
+# ------------------------------------------------------- Generated output
+# Generators write beside themselves; none of it belongs in git.
 outputs/
 generators/*/outputs/
-data/*
-!data/augment/
 generators/*/output/
-data/
 datasets/
 *.jsonl
 *.tar
 *.parquet
 *.lmdb
 
-# Rendered pages
+# Images are ignored by default, then let back in one directory at a time.
 *.png
 *.jpg
 *.jpeg
 *.webp
 *.pdf
-!generators/synthdog/docs/**/*.jpg
-!generators/html-table/**/*.png
-# The augmentation demo: ten before/after pairs, small enough to review.
-!data/augment/
-!data/augment/*.jpg
-!data/augment/*.json
+!generators/synthdog/docs/**/*.jpg     # figures in the generator's README
+!generators/html-table/**/*.png        # figures the vendored code ships
+!samples/**/*.jpg                      # the curated examples this repo shows
+!samples/**/*.json
 
 # Fonts, paper and backgrounds are not redistributable; supply them locally.
 # See generators/synthdog/resources/README.md.
