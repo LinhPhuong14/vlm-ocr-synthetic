@@ -33,6 +33,7 @@ from .spec import (
     RuleError,
     enumerate_valid,
     load_rules,
+    parse_force,
     sample_recipe,
     validate,
 )
@@ -60,6 +61,7 @@ __all__ = [
     "inks",
     "load_rules",
     "make",
+    "parse_force",
     "sample_recipe",
     "validate",
 ]

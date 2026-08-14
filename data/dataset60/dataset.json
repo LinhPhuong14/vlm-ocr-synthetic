@@ -7,6 +7,8 @@
     "sieu_thi_gia_sl",
     "sieu_thi_vat"
   ],
+  "clean": false,
+  "force": [],
   "frameworks": {
     "synthdog": {
       "images": 20,
