@@ -11,8 +11,7 @@ dist/
 .venv/
 venv/
 env/
-synthdog/.venv/
-html-table/.venv/
+generators/*/.venv/
 
 # Tooling caches
 .ruff_cache/
@@ -24,8 +23,8 @@ htmlcov/
 # ------------------------------------------------- Generated synthetic data
 # Generators write into their own directories; none of it belongs in git.
 outputs/
-synthdog/outputs/
-html-table/output/
+generators/*/outputs/
+generators/*/output/
 data/
 datasets/
 *.jsonl
@@ -39,15 +38,17 @@ datasets/
 *.jpeg
 *.webp
 *.pdf
-!synthdog/docs/**/*.jpg
-!html-table/**/*.png
+!generators/synthdog/docs/**/*.jpg
+!generators/html-table/**/*.png
 
-# Fonts and backgrounds pulled in for rendering (redistribute separately)
+# Fonts, paper and backgrounds are not redistributable; supply them locally.
+# See generators/synthdog/resources/README.md.
 *.ttf
 *.otf
 *.ttc
-resources/fonts/
-resources/backgrounds/
+generators/synthdog/resources/font/
+generators/synthdog/resources/paper/
+generators/synthdog/resources/background/
 
 # Model checkpoints and training runs
 checkpoints/

@@ -1,6 +1,7 @@
 # Task shortcuts. Each generator has its own environment -- see README.md.
 PYTHON       ?= python3
-SYNTHDOG_VENV = synthdog/.venv
+SYNTHDOG      = generators/synthdog
+SYNTHDOG_VENV = generators/synthdog/.venv
 
 .DEFAULT_GOAL := help
 .PHONY: help setup receipts preview lint format check submodules clean
@@ -17,20 +18,20 @@ setup:  ## Create synthdog's venv and install its pinned dependencies
 	  sys.exit(0 if v < (3, 13) else "synthdog needs Python 3.8-3.12; see docs/python-314.md")'
 	$(PYTHON) -m venv $(SYNTHDOG_VENV)
 	$(SYNTHDOG_VENV)/bin/pip install -q -U pip setuptools wheel
-	$(SYNTHDOG_VENV)/bin/pip install -q -r synthdog/requirements.txt
+	$(SYNTHDOG_VENV)/bin/pip install -q -r $(SYNTHDOG)/requirements.txt
 	$(SYNTHDOG_VENV)/bin/python -c "import synthtiger, PIL, numpy, cv2; \
 	  print('synthtiger', synthtiger.__version__, '| pillow', PIL.__version__)"
 
-receipts:  ## Generate 100 Vietnamese receipts into synthdog/outputs/
-	cd synthdog && .venv/bin/synthtiger -o ./outputs/VNReceipt -c 100 -w 4 -v \
+receipts:  ## Generate 100 Vietnamese receipts into generators/synthdog/outputs/
+	cd $(SYNTHDOG) && .venv/bin/synthtiger -o ./outputs/VNReceipt -c 100 -w 4 -v \
 	  template_receipt.py SynthVNReceipt config_vi_receipt.yaml
 
 preview:  ## Render a grid of sample receipts to eyeball the config
-	cd synthdog && .venv/bin/python tools/preview_receipt.py \
+	cd $(SYNTHDOG) && .venv/bin/python tools/preview_receipt.py \
 	  --count 8 --grid 4 --seed 2026 --out /tmp/preview
 
 check:  ## Byte-compile every tracked Python file (no dependencies needed)
-	@git ls-files '*.py' | grep -v '^html-table/' | xargs -r $(PYTHON) -m py_compile && \
+	@git ls-files '*.py' | grep -v '^generators/html-table/' | xargs -r $(PYTHON) -m py_compile && \
 	  echo "all python files compile"
 
 lint:  ## Lint the generators (correctness and imports, not formatting)
@@ -40,4 +41,4 @@ format:  ## Apply the fixes ruff can make safely
 	ruff check --fix .
 
 clean:  ## Remove caches and generated output
-	rm -rf .ruff_cache **/__pycache__ synthdog/outputs /tmp/preview
+	rm -rf .ruff_cache **/__pycache__ $(SYNTHDOG)/outputs /tmp/preview
