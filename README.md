@@ -59,7 +59,7 @@ degradation/            DocCreator's degradation models, ported to Python
 
 textures/paper/         the sheets every renderer composites onto
 fonts/                  fonts every renderer uses (Vietnamese coverage checked)
-data/                   generated datasets, with labels and OCR proof
+data/                   generated datasets: aged and clean, with labels and OCR proof
 samples/                curated examples
 tools/                  drivers: dataset, proof, previews, checks
 docs/                   notes that outlive any one generator
@@ -75,7 +75,7 @@ Where to look for a thing:
 | to add a receipt layout | `rulebase/layouts/` |
 | to change how a page is drawn | `generators/<renderer>/` |
 | to make pages look old or scanned | `degradation/` |
-| the labelled dataset | `data/dataset60/` |
+| the labelled datasets | `data/dataset60/` (aged), `data/dataset60_clean/` (clean) |
 | one picture per degradation model | `samples/degradation/` |
 | to run something end to end | `make help` — the tasks are there, not in a directory |
 | why a version is pinned | `docs/python-versions.md` |
@@ -172,7 +172,7 @@ replace them with real scans under the same names and nothing else changes.
 
 ---
 
-## The dataset and the OCR proof
+## The datasets and the OCR proof
 
 `make dataset` writes 20 images per renderer, spread evenly over the five bố
 cục so a comparison is not confounded by one renderer having drawn more
@@ -180,13 +180,33 @@ supermarket receipts than another. Each image comes with a CORD-style nested
 label, the full recipe that produced it, and — for the glyph renderer —
 per-cell polygons that survive the paper curl.
 
-`make proof` reads all 60 back with Tesseract 5 (`vie`) and scores what came
+Two sets are committed, differing in **one attribute** of the rule-base:
+
+| set | | Tesseract token recall (synthdog / html / genalog) |
+| --- | --- | --- |
+| [`data/dataset60/`](data/dataset60) | ageing sampled from the rules | 0.40 / 0.76 / 0.71 |
+| [`data/dataset60_clean/`](data/dataset60_clean) | `augmentation=khong_lam_gi`, no distortion | 0.83 / 0.85 / 0.88 |
+
+```bash
+make dataset          # aged
+make dataset-clean    # clean
+make proof DATASET=data/dataset60
+```
+
+`make proof` reads a set back with Tesseract 5 (`vie`) and scores what came
 back against the labels. Scoring is order-free: Tesseract reads a two-column
 receipt in whatever order its layout analysis picks, so comparing its output to
 the label as one string would measure reading order rather than recognition.
 
+The clean set is the ceiling, and it earns its place twice over. It is near
+uniform across renderers (0.83–0.88), which says the spread in the aged set
+comes from the ageing and not from one renderer generating worse pages. And
+because a label that did not match its pixels would cap the clean score too, a
+clean run is the cheapest check that the two agree.
+
 Results, and what the numbers mean, are in
-[`data/dataset60/proof/README.md`](data/dataset60/proof/README.md).
+[`data/dataset60/proof/README.md`](data/dataset60/proof/README.md) and
+[`data/dataset60_clean/proof/README.md`](data/dataset60_clean/proof/README.md).
 
 ---
 
