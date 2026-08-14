@@ -1,9 +1,15 @@
-"""Apply the DocCreator degradations to pages from synthdog and genalog.
+"""Apply a whole degradation chain to directories of already-rendered pages.
 
-    python tools/augment_samples.py --synthdog <dir> --genalog <dir> -o samples/degradation
+    python tools/augment_samples.py --synthdog <dir> --genalog <dir> -o /tmp/aged
 
-Writes one before/after pair per page plus a contact sheet, so a chain can
-be judged by looking rather than by reading parameters.
+Writes one before/after pair per page plus a contact sheet, so a *chain* can
+be judged by looking rather than by reading parameters. For judging one model
+at a time, use `tools/degradation_showcase.py` instead.
+
+The chains here are hand-written, unlike the ones in
+`rulebase/rules/augmentation.yaml` that the renderers actually use: this tool
+exists to try a chain on pages you already have, including pages that did not
+come from this repository.
 """
 
 from __future__ import annotations

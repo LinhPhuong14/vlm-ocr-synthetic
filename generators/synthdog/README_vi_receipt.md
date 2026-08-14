@@ -1,8 +1,13 @@
 # SynthDoG-VN 🧾 — Sinh ảnh hoá đơn bán lẻ Việt Nam
 
 Template [synthtiger](https://github.com/clovaai/synthtiger) sinh ảnh hoá đơn kiểu máy in
-nhiệt (quán ăn, nhà hàng, tạp hoá) **kèm nhãn có cấu trúc**, dùng để train/fine-tune
+nhiệt (quán ăn, nhà hàng, siêu thị) **kèm nhãn có cấu trúc**, dùng để train/fine-tune
 [Donut](https://github.com/clovaai/donut) cho bài toán trích xuất thông tin từ hoá đơn.
+
+> **Nội dung KHÔNG sinh ở đây.** Chữ gì, bố cục nào, có dấu hay không, làm cũ ra sao —
+> tất cả do [`rulebase/`](../../rulebase/README.md) quyết định, dùng chung với hai
+> renderer HTML. File trong thư mục này chỉ lo phần *vẽ bằng glyph*: đặt chữ lên toạ độ,
+> cong giấy, ghép nền, chụp lại. Muốn đổi nội dung thì sửa `rulebase/`, không sửa ở đây.
 
 ![Mẫu hoá đơn sinh ra](docs/samples/receipts.jpg)
 
@@ -15,7 +20,7 @@ mặt hàng, có/không VAT, giảm giá, tiền thối; giấy nghiêng, cong v
 
 | Thành phần | Yêu cầu |
 |---|---|
-| Python | 3.8 – 3.12 (đã kiểm thử trên **3.11**) |
+| Python | 3.8 – **3.11** (đã kiểm thử trên 3.11; 3.12+ KHÔNG chạy được, xem `docs/python-versions.md`) |
 | Hệ điều hành | Linux / macOS / WSL |
 | RAM | ~1 GB mỗi worker |
 | GPU | **Không cần** — toàn bộ chạy trên CPU |
@@ -93,7 +98,7 @@ python tools/preview_receipt.py --count 8 --grid 4 --seed 2026 --out /tmp/previe
 python tools/preview_receipt.py --count 2 --grid 2 --seed 3 --clean --boxes --out /tmp/preview
 
 # kiểm tra font có đủ dấu tiếng Việt không (chạy TRƯỚC khi thêm font mới)
-python tools/check_fonts.py resources/font/vi
+python tools/check_fonts.py ../../fonts/mono
 ```
 
 **Bố cục sạch, không hiệu ứng** — mỗi màu là một nhóm trường
@@ -180,14 +185,18 @@ Donut cần Pillow/NumPy mới hơn mức synthtiger cho phép.
 | File | Vai trò |
 |---|---|
 | `template_receipt.py` | Template `SynthVNReceipt` — điều phối và lưu dữ liệu |
-| `elements/receipt.py` | `ReceiptSampler` (sinh nội dung) + `ReceiptLayout` (bố cục) + `Receipt` (render) |
+| `render.py` | Chạy template trực tiếp, chọn được seed và ghim được bố cục |
+| `elements/receipt.py` | Đổi lưới ô của rule-base thành `TextLayer` — **không sinh nội dung** |
 | `elements/warp.py` | `CurlWarp` — cong giấy phi tuyến, **có map lại toạ độ** |
-| `config_vi_receipt.yaml` | Toàn bộ tham số ngẫu nhiên |
+| `config_vi_receipt.yaml` | Tham số riêng của renderer glyph: khung ảnh, độ cong, hiệu ứng chụp |
 | `requirements.txt` | Thư viện đã ghim phiên bản |
-| `resources/corpus/vi/` | `items.txt` (78 món + khoảng giá), `shops.txt`, `streets.txt`, `footers.txt` |
-| `resources/font/vi/` | Liberation Mono (SIL OFL 1.1) — phủ đủ dấu tiếng Việt |
+| `resources/background/` | Ảnh nền — bạn tự cung cấp, không có trong repo |
+| `resources/font/<mono\|sans>/` | Font riêng của bạn; có thì được ưu tiên hơn `fonts/` ở gốc repo |
 | `tools/preview_receipt.py` | Xem trước, ghép lưới, vẽ box |
 | `tools/check_fonts.py` | Kiểm tra font có đủ glyph tiếng Việt |
+
+Nội dung, bố cục, corpus, chuỗi làm cũ: [`rulebase/`](../../rulebase/README.md).
+Các model làm cũ: [`degradation/`](../../degradation/README.md).
 
 ---
 
@@ -227,16 +236,19 @@ từng trường (nhãn). Đó là lý do box trong ảnh mục 4 vẫn bám sá
 
 ## 9. Các trục ngẫu nhiên hoá
 
-- **Có dấu / không dấu** (`ascii_fold`, mặc định 60% bỏ dấu) — máy in nhiệt đời cũ chỉ in
-  ASCII, đúng như hoá đơn thật ("QUAN AN THIEN TAN").
-- **Chữ hoa/thường** (`uppercase`), **đậm/thường** (`font.bold`), độ đậm mực (`ink`).
-- **Bề rộng giấy** tính theo số ký tự (`ncols: [32, 48]` — đúng khổ giấy nhiệt thật).
-- **Bố cục mặt hàng**: một dòng (`SL | tên | thành tiền`) hoặc hai dòng
-  (`tên` / `SL x đơn giá | thành tiền`).
-- **Khối tổng tiền**: có/không tạm tính, VAT 8%, giảm giá, tiền khách đưa, tiền thối.
-- **Định dạng tiền**: `537,000` / `537.000` / `537.000đ` / `537,000 VND`.
-- **Ký tự phân cách**: `*`, `-`, `=`, `.`, `~`, `_`.
-- **Biến dạng ảnh**: cong giấy, elastic, perspective, bóng đổ, nhoè chuyển động, nén JPEG.
+**Của rule-base** (dùng chung với hai renderer HTML — sửa ở `rulebase/rules/`):
+loại document, bố cục, có dấu/không dấu, chữ hoa/thường, định dạng tiền, VAT, khuyến
+mãi, font, cỡ chữ, độ đậm mực, tờ giấy, màu mực, chuỗi làm cũ. Xem
+[`rulebase/README.md`](../../rulebase/README.md).
+
+**Của riêng renderer này** (sửa ở `config_vi_receipt.yaml`):
+
+- **Cong giấy** — biên độ nhân thêm hệ số `visual.curl` của recipe, nên giấy nhiệt mỏng
+  cong nhiều còn hoá đơn laser trên giấy A5 gần như phẳng.
+- **Khung ảnh**: tỉ lệ tờ giấy chiếm trong khung (`canvas_fill`), tỉ lệ cạnh
+  (`canvas_aspect`), cạnh ngắn của ảnh xuất (`short_size`).
+- **Hiệu ứng "chụp lại"**: bóng đổ, tương phản, độ sáng, nhoè chuyển động, nén JPEG.
+- **Hiệu ứng mức tài liệu**: elastic distortion, nhiễu Gauss, perspective.
 
 ---
 
@@ -244,13 +256,15 @@ từng trường (nhãn). Đó là lý do box trong ảnh mục 4 vẫn bám sá
 
 | Muốn | Sửa |
 |---|---|
-| Thêm món / đổi giá | `resources/corpus/vi/items.txt` — `tên<TAB>giá_min<TAB>giá_max` |
-| Thêm tên quán / đường / dòng chân | `shops.txt` / `streets.txt` / `footers.txt` |
-| Thêm font | Bỏ vào `resources/font/vi`, **chạy `tools/check_fonts.py` trước** |
-| Giấy cong nhiều/ít | `curl.shift`, `curl.squeeze`, `curl.wave` |
-| Hoá đơn dài/ngắn | `receipt.content.num_items` |
-| Giấy rộng/hẹp | `receipt.layout.ncols` |
-| Tỉ lệ bỏ dấu | `receipt.content.ascii_fold` |
+| Thêm món / đổi giá | `rulebase/corpus/vi/items_*.txt` — `tên<TAB>giá_min<TAB>giá_max` |
+| Thêm tên quán / đường / dòng chân | `rulebase/corpus/vi/shops_*.txt`, `streets.txt`, `footers_*.txt` |
+| Thêm bố cục | `rulebase/layouts/` + khai báo ở `rulebase/rules/layout.yaml` |
+| Hoá đơn dài/ngắn | `num_items` trong `rulebase/rules/document.yaml` |
+| Giấy rộng/hẹp | `width` trong file bố cục ở `rulebase/layouts/` |
+| Tỉ lệ bỏ dấu | `prob_ascii_fold` trong `rulebase/rules/content.yaml` |
+| Đổi tỉ lệ loại hoá đơn | `weight` trong `rulebase/rules/document.yaml` |
+| Thêm font | Bỏ vào `fonts/<mono\|sans>/` (hoặc `resources/font/` nếu không phát hành lại được), **chạy `tools/check_fonts.py` trước** |
+| Giấy cong nhiều/ít | `curl.*` ở đây, và `visual.curl` ở `rulebase/rules/visual.yaml` |
 | Thêm hiệu ứng ảnh | Thêm component vào `Iterator` trong `template_receipt.py` **và** thêm khối `args` **đúng thứ tự** trong YAML — synthtiger ghép theo index, sai thứ tự **không báo lỗi** |
 
 ---
@@ -263,21 +277,22 @@ từng trường (nhãn). Đó là lý do box trong ảnh mục 4 vẫn bám sá
 | Chạy mãi không ra ảnh, không báo lỗi | synthtiger nuốt exception rồi retry vô hạn. Chạy lại với `-v` để thấy traceback. |
 | `AttributeError: 'FreeTypeFont' object has no attribute 'getsize'` | Pillow ≥ 10. Chạy `pip install "pillow<10"`. |
 | `AttributeError: np.sctypes was removed` | NumPy ≥ 2. Chạy `pip install "numpy<2"`. |
-| Chữ hiện ô vuông ▯▯▯ | Font thiếu glyph tiếng Việt. Chạy `python tools/check_fonts.py resources/font/vi`. **Nhãn vẫn ghi đúng chữ nên lỗi này không tự báo ra** — phải chủ động kiểm tra. |
+| Chữ hiện ô vuông ▯▯▯ | Font thiếu glyph tiếng Việt. Chạy `python tools/check_fonts.py ../../fonts/mono`. **Nhãn vẫn ghi đúng chữ nên lỗi này không tự báo ra** — phải chủ động kiểm tra. |
 | `FileNotFoundError: resources/...` | Phải chạy từ thư mục `generators/synthdog`, đường dẫn trong YAML là tương đối. |
 
 ---
 
 ## 12. Hạn chế đã biết
 
-- **Ảnh nền** vẫn là 9 ảnh của SynthDoG gốc (mặt trăng, hạt cà phê, bánh donut...), không
-  giống bối cảnh hoá đơn thật. Bỏ vài chục ảnh chụp mặt bàn / tay cầm hoá đơn vào
+- **Ảnh nền** không có trong repo — bỏ vài chục ảnh chụp mặt bàn / tay cầm hoá đơn vào
   `resources/background` sẽ cải thiện realism **nhiều hơn bất kỳ thay đổi code nào** —
-  đây là việc đáng làm đầu tiên.
-- **Giấy** dùng texture giấy A4 của SynthDoG, chưa có vân giấy nhiệt (bóng, hơi ngả vàng).
-- Chỉ có 2 font (Liberation Mono thường/đậm). Hoá đơn thật dùng nhiều font kim/nhiệt khác.
-- `CurlWarp` mô hình hoá giấy cong theo sóng trơn, chưa có nếp gấp gãy góc.
-- Chưa sinh mã vạch / QR / logo cửa hàng.
+  đây là việc đáng làm đầu tiên. Đây cũng là lý do renderer này khó đọc nhất trong ba
+  renderer: xem điểm OCR ở [`data/dataset60/proof/`](../../data/dataset60/proof).
+- Font: 5 mono + 5 sans, đều đã kiểm tra phủ đủ dấu tiếng Việt. Hoá đơn thật còn dùng
+  nhiều font máy kim / máy nhiệt khác nữa.
+- `CurlWarp` mô hình hoá giấy cong theo sóng trơn; nếp gấp gãy góc do
+  `degradation.paper_texture(creases=...)` lo, và nó là hiệu ứng 2D chứ không phải hình học.
+- Chưa sinh mã vạch / QR / logo cửa hàng dưới dạng hình — mã vạch mới chỉ là chữ số.
 - Giá tiền lấy theo khoảng cố định trong `items.txt`, chưa mô phỏng lạm phát theo năm in
   trên hoá đơn.
 
@@ -285,4 +300,4 @@ từng trường (nhãn). Đó là lý do box trong ảnh mục 4 vẫn bám sá
 
 ## Giấy phép
 
-Code theo MIT (kế thừa từ Donut). Font Liberation Mono theo SIL Open Font License 1.1.
+Code theo MIT (kế thừa từ Donut). Font trong `fonts/` xem [`fonts/README.md`](../../fonts/README.md).

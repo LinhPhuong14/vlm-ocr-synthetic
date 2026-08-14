@@ -1,104 +1,185 @@
 # vlm-ocr-synthetic
 
-Synthetic document images for training and evaluating VLM / OCR models, with
-structured labels. Two generators live side by side under `generators/`, each
-self-contained: its own dependencies, its own supported Python, its own README.
+Synthetic Vietnamese document images for training and evaluating VLM / OCR
+models, with structured labels.
 
-| generator | produces | how | Python | status |
-| --- | --- | --- | --- | --- |
-| [`generators/synthdog/`](generators/synthdog/README_vi_receipt.md) | Vietnamese thermal-printer receipts with structured ground truth for Donut | [synthtiger](https://github.com/clovaai/synthtiger) templates | **3.8 – 3.11** | first-party |
-| [`generators/html-table/`](generators/html-table/README.md) | table images with cell-level annotations | HTML rendered in a browser | 3.8+ | vendored |
-
-[Microsoft genalog](https://github.com/microsoft/genalog) is used too, for
-degraded pages from plain text, but it is not vendored here — `pip install
-genalog` when you need it. See [Augmentation](#augmentation).
+**One rule-base, three renderers.** What a page contains is decided once, in
+[`rulebase/`](rulebase/README.md); how it is drawn is decided three different
+ways. The same seed gives the same words in the same columns whether the page
+was drawn glyph by glyph, screenshotted from a browser, or printed through
+WeasyPrint — which is what makes a comparison between the three mean anything.
 
 ```bash
 git clone https://github.com/LinhPhuong14/vlm-ocr-synthetic.git
 cd vlm-ocr-synthetic
-make help
+make setup          # three environments, one per renderer
+make dataset        # 60 labelled images into data/dataset60/
+make proof          # read them back with Tesseract and score the labels
 ```
+
+| renderer | how it draws | looks like | Python |
+| --- | --- | --- | --- |
+| [`generators/synthdog/`](generators/synthdog/README_vi_receipt.md) | [synthtiger](https://github.com/clovaai/synthtiger) glyph layers, then curl + background | a **photograph** of a receipt on a table | **3.8 – 3.11** |
+| [`generators/html/`](generators/html/README.md) | HTML positioned on a character grid, screenshotted in Chromium | a **flat scan** | 3.9+ |
+| [`generators/genalog/`](generators/genalog/README.md) | [genalog](https://github.com/microsoft/genalog) → WeasyPrint → PDF → raster | a **print/photocopy** | 3.9+ |
+
+Those three differences are deliberate. A model that has only seen browser
+screenshots has not seen a print engine's text shaping, and one that has only
+seen flat scans has not seen a page lying under a lamp.
+
+A fourth generator, [`generators/html-table/`](generators/html-table/README.md),
+is vendored upstream code for general table images. It does not read the
+rule-base.
 
 ---
 
 ## Repository layout
 
 ```
-generators/
-├── synthdog/           SynthDoG-VN — the main generator
-│   ├── template_receipt.py     the receipt template (SynthVNReceipt)
-│   ├── template.py             the original SynthDoG template
-│   ├── config_vi_receipt.yaml  what a Vietnamese receipt looks like
-│   ├── config_{en,ja,ko,zh}.yaml
-│   ├── elements/               background, paper, content, textbox, warp
-│   ├── layouts/                grid and stacked-grid layouts
-│   ├── resources/              corpora in git; fonts and paper are not
-│   ├── tools/                  font coverage check, preview grid
-│   └── requirements.txt        pinned, and each pin has a reason
-└── html-table/         vendored TableGeneration + its dictionaries
+rulebase/               THE RULE-BASE — one source of truth for content
+├── rules/              6 thuộc tính: document, layout, content, visual,
+│                       color, augmentation. Weighted, with constraints.
+├── layouts/            5 bố cục measured off real Vietnamese receipts
+└── corpus/vi/          Vietnamese corpus, with diacritics
 
-degradation/            DocCreator's degradation models, in Python
-├── ink_degradation.py      local ink decay (the one worth having)
-├── shadow_binding.py       shadow near a page's spine
-├── bleed_through.py        ink from the other side of the sheet
-├── blur_zones.py           blur in patches, not over the whole page
-└── holes.py                holes punched or torn through
+generators/             THE RENDERERS — each with its own venv
+├── synthdog/           glyph rendering (synthtiger)
+├── html/               HTML + headless Chromium
+├── genalog/            genalog + WeasyPrint
+└── html-table/         vendored TableGeneration (not rule-base driven)
 
-samples/degradation/    twenty before/after pairs from the port
-tools/                  driver scripts (`augment_samples.py`)
+degradation/            DocCreator's degradation models, ported to Python
+├── texture.py          paper texture, gradient-domain stains, phantom chars
+├── ink_degradation.py  local ink decay
+├── shadow_binding.py   shadow near a page's spine
+├── bleed_through.py    ink from the other side of the sheet
+├── blur_zones.py       blur in patches, not over the whole page
+├── holes.py            holes punched or torn through
+└── pipeline.py         runs a recipe's chain — all three renderers call this
+
+textures/paper/         the sheets every renderer composites onto
+fonts/                  fonts every renderer uses (Vietnamese coverage checked)
+data/                   generated datasets, with labels and OCR proof
+samples/                curated examples
+tools/                  drivers: dataset, proof, previews, checks
 docs/                   notes that outlive any one generator
 Makefile                the tasks; `make help` lists them
-pyproject.toml          ruff configuration (this repo is not a package)
 ```
 
 Where to look for a thing:
 
 | you want | it is in |
 | --- | --- |
-| to generate pages | `generators/` |
+| to change what receipts say | `rulebase/corpus/`, `rulebase/rules/content.yaml` |
+| to change how often something appears | the `weight:` fields in `rulebase/rules/` |
+| to add a receipt layout | `rulebase/layouts/` |
+| to change how a page is drawn | `generators/<renderer>/` |
 | to make pages look old or scanned | `degradation/` |
-| to see what the output looks like | `samples/` |
-| to run something end to end | `tools/`, or `make help` |
-| why a version is pinned | `docs/` |
-
-**Every generator is run from its own directory**, because the paths inside
-their configs are relative to it. `make receipts` and `make preview` already
-`cd` for you.
+| to see what the output looks like | `data/dataset60/`, `samples/` |
+| why a version is pinned | `docs/python-versions.md` |
 
 ---
 
-## Vietnamese receipts
+## The rule-base
 
-The main generator: thermal-printer bills for restaurants and shops, with
-diacritics, VAT, discounts and change, on paper skewed, curled and blurred
-differently every time.
+Six attributes, drawn in order, each seeing the tags the earlier ones set:
+
+| # | thuộc tính | quyết định |
+| --- | --- | --- |
+| 1 | `document` | loại document — quán nhậu, siêu thị, hoá đơn GTGT |
+| 2 | `layout` | bố cục — cột nào, mỗi mặt hàng mấy dòng |
+| 3 | `content` | nội dung — có dấu / không dấu, IN HOA, kiểu tiền, VAT |
+| 4 | `visual` | hình thức — font, cỡ chữ, độ đậm mực, tờ giấy, độ cong |
+| 5 | `color` | màu — mực, ám giấy, màu nhấn |
+| 6 | `augmentation` | làm cũ — chuỗi degradation chạy sau khi render |
+
+Every value carries a weight, so the mix is tuned by editing numbers in
+`rulebase/rules/*.yaml` and nothing else. Values also `require` and `exclude`
+tags, which is what stops the sampler pairing a 2011 thermal printer with
+accented Vietnamese, or a quán nhậu bill with a barcode column.
 
 ```bash
-make setup      # a 3.11 venv with the pinned dependencies
-make receipts   # 100 receipts into generators/synthdog/outputs/
-make preview    # a grid of 8, to eyeball a config change
+make distribution        # what 2000 draws actually look like
+make check-rules         # unreachable values, typo'd tags, missing files
+make preview-grid        # one sampled receipt per bố cục, as text
 ```
 
-Two things to know before the first run:
+Full guide — adding attributes, layouts, corpus entries, tuning the
+distribution: **[`rulebase/README.md`](rulebase/README.md)**.
 
-- **Fonts, paper and background images are not in the repository** — they are
-  not redistributable. Put them in `generators/synthdog/resources/` first;
-  [that directory's README](generators/synthdog/resources/README.md) says what
-  goes where. Without them synthtiger **hangs rather than failing**, because it
-  swallows exceptions and retries.
-- **Python 3.13+ will not work**, and the cap is not caution: the pins in
-  `requirements.txt` each come from a real failure. See
-  [docs/python-versions.md](docs/python-versions.md) for the measurements.
+### The five bố cục
 
-Everything else — config knobs, the label format, troubleshooting — is in
-[`generators/synthdog/README_vi_receipt.md`](generators/synthdog/README_vi_receipt.md).
+Each was measured off a photograph of a real receipt; `source:` in the file
+says which.
+
+| id | dấu hiệu nhận biết |
+| --- | --- |
+| `quan_nhau_stt` | cột **Stt**, mỗi món hai dòng: tên trên, `SL / đơn giá / thành tiền` dưới |
+| `quan_an_ascii` | máy in nhiệt đời cũ: IN HOA KHÔNG DẤU, một dòng một món, không có tiêu đề cột |
+| `sieu_thi_barcode` | mã vạch + tiền ở dòng trên, tên hàng thụt xuống dòng dưới, dòng `KM` cho khuyến mãi |
+| `sieu_thi_gia_sl` | tên hàng ngắt dòng ngay trong cột `Mặt hàng`, meta nối bằng `\|` |
+| `sieu_thi_vat` | dòng `VAT x%` riêng cho từng mặt hàng, tiền hai chữ số thập phân |
+
+---
+
+## Degradation
+
+[`degradation/`](degradation/README.md) is a Python port of the degradation
+models from [DocCreator](https://github.com/DocCreator/DocCreator) (Journet,
+Mansencal, Kieu et al., LaBRI Bordeaux). It runs on whatever a renderer
+produced, so the same ageing applies to all three.
+
+Three of the models work by pasting a **texture** rather than by filtering, and
+they are the ones that stop a synthetic page looking synthetic:
+
+| model | DocCreator source | what it does |
+| --- | --- | --- |
+| `paper_texture` | `Context::BackgroundContext` | draws the page onto a sheet of paper instead of onto white, with grain and fold creases |
+| `gradient_domain` | `GradientDomainDegradation.cpp` | pastes stains with Poisson blending (`cv::seamlessClone`, `MIXED_CLONE`) — Seuret et al., ICDAR 2015 |
+| `phantom_character` | `PhantomCharacter.cpp` | pastes leftover ink against the flanks of characters, sized from each character's own box |
+
+The rest — `ink_degradation`, `bleed_through`, `blur_zones`, `shadow_binding`,
+`holes` — are the filtering models. `make list-degradations` prints the lot.
+
+DocCreator ships its textures as image files under an LGPL licence; those are
+not vendored. The patterns are synthesised from a seed instead, and a directory
+of real scans is used in preference when you point at one.
+
+```bash
+make showcase       # one before/after image per model, on the same page
+```
+
+**Every renderer ages its pages through the same `degradation.pipeline`**, and
+the paper comes from the recipe's `visual.paper`, so a recipe puts the same
+sheet under a glyph render and an HTML render. Papers live in
+[`textures/paper/`](textures/paper) and are generated by `make textures`;
+replace them with real scans under the same names and nothing else changes.
+
+---
+
+## The dataset and the OCR proof
+
+`make dataset` writes 20 images per renderer, spread evenly over the five bố
+cục so a comparison is not confounded by one renderer having drawn more
+supermarket receipts than another. Each image comes with a CORD-style nested
+label, the full recipe that produced it, and — for the glyph renderer —
+per-cell polygons that survive the paper curl.
+
+`make proof` reads all 60 back with Tesseract 5 (`vie`) and scores what came
+back against the labels. Scoring is order-free: Tesseract reads a two-column
+receipt in whatever order its layout analysis picks, so comparing its output to
+the label as one string would measure reading order rather than recognition.
+
+Results, and what the numbers mean, are in
+[`data/dataset60/proof/README.md`](data/dataset60/proof/README.md).
 
 ---
 
 ## Table images
 
 Vendored from [TIES_DataGeneration](https://github.com/hassan-mahmood/TIES_DataGeneration),
-extended with configurable cell types, merged cells and colours.
+extended with configurable cell types, merged cells and colours. Independent of
+the rule-base.
 
 ```bash
 cd generators/html-table
@@ -108,50 +189,14 @@ python generate_data.py --help
 
 ---
 
-## Augmentation
-
-[`degradation/`](degradation/README.md) is a Python port of the degradation models from
-[DocCreator](https://github.com/DocCreator/DocCreator) — local ink decay,
-bleed-through, blur zones, binding shadow, holes. It runs on whatever a
-generator produced, so the same ageing can be applied to receipts and to
-genalog pages alike.
-
-```bash
-# needs numpy and opencv -- use the synthdog venv from `make setup`
-generators/synthdog/.venv/bin/python tools/augment_samples.py \
-    --synthdog <dir> --genalog <dir> --html-table <dir> -o samples/degradation
-```
-
-[`samples/degradation/`](samples/degradation) holds twenty before/after pairs —
-ten synthdog receipts, five genalog pages, five html-table tables — each with
-the chain suited to it:
-
-| source | chain | why |
-| --- | --- | --- |
-| synthdog receipts | ink decay, blur zones, bottom shadow | a thermal bill creased in a pocket |
-| genalog pages | ink decay, bleed-through, blur zones, spine shadow, holes | an office document photocopied and bound |
-| html-table tables | ink decay, blur zones, top shadow | small and sparse: page-sized settings overwhelm it, and mirrored bleed-through lands in the empty cells and reads as a double exposure |
-
-[genalog](https://github.com/microsoft/genalog) is an external dependency, not
-part of this repository:
-
-```bash
-pip install --no-deps genalog       # its opencv pin stops at cp38; skip its deps
-pip install numpy "opencv-python<5" pillow scikit-image jinja2 cairocffi weasyprint pymupdf
-```
-
-It calls WeasyPrint's `write_png()`, removed in WeasyPrint 53, so
-`tools/augment_samples.py` renders through PDF instead.
-
----
-
 ## Contributing
 
 [CONTRIBUTING.md](CONTRIBUTING.md) covers which environment to build for which
-generator, the checks to run before pushing, and the constraints that are
+renderer, the checks to run before pushing, and the constraints that are
 deliberate.
 
 ## Licence
 
 Not yet chosen — add one before publishing. `generators/html-table/` carries its
-own `LICENSE.md`.
+own `LICENSE.md`; the fonts in `fonts/` carry theirs (see
+[`fonts/README.md`](fonts/README.md)).

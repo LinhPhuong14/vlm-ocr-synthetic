@@ -15,8 +15,8 @@
 |清单表格|
 |大单元格表格|
 
-> 上游的示例图未随本仓库一起提供。实际生成效果见
-> [`samples/degradation/`](../../samples/degradation)（`html-table_*` 开头的文件）。
+> 上游的示例图未随本仓库一起提供。本目录是上游代码，不读取 `rulebase/`；
+> 本仓库自己生成的样例见 [`data/dataset60/`](../../data/dataset60)。
 
 ## 环境准备
 

@@ -1,0 +1,36 @@
+# THUỘC TÍNH 2/6 — BỐ CỤC
+#
+# Mỗi `id` ở đây phải có một file cùng tên trong `rulebase/layouts/`. File đó
+# mô tả cột, dòng, chỗ ngắt — đo từ ảnh hoá đơn thật, xem phần `source:`.
+#
+# requires/excludes ràng buộc bố cục với loại document: bố cục siêu thị in mã
+# vạch thì chỉ dùng được cho document có gắn thẻ `has_barcode`. Không có ràng
+# buộc này thì sampler sẽ sinh ra hoá đơn quán nhậu có cột mã vạch trống.
+
+options:
+  - id: quan_nhau_stt
+    weight: 3
+    requires: [doc_quan]
+    tags: [co_cot_stt, hai_dong_moi_mon]
+
+  - id: quan_an_ascii
+    weight: 2
+    requires: [doc_quan]
+    excludes: [has_vat]        # máy in đời cũ không in dòng thuế
+    tags: [ascii_only, khong_tieu_de]
+
+  - id: sieu_thi_barcode
+    weight: 3
+    requires: [has_barcode]
+    tags: [barcode_rows]
+
+  - id: sieu_thi_gia_sl
+    weight: 3
+    requires: [doc_sieuthi]
+    excludes: [has_vat_lines]  # bố cục này không có chỗ cho dòng VAT riêng
+    tags: [ten_ngat_dong]
+
+  - id: sieu_thi_vat
+    weight: 2
+    requires: [has_vat_lines]
+    tags: [vat_rows]

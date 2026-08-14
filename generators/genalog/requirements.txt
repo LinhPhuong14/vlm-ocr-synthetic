@@ -1,0 +1,13 @@
+# genalog renderer. genalog itself is installed with --no-deps (see the Makefile
+# and generators/genalog/render.py): it pins numpy 1.18.1, WeasyPrint 51 and
+# scikit-image 0.16.2, none of which has a wheel for Python 3.9+, and none of
+# which is used by the document generation path this repository calls.
+
+weasyprint>=60            # the print engine; write_png() is long gone, so
+                          # render.py rasterises the PDF instead
+pymupdf>=1.23             # PDF -> raster
+jinja2>=3                 # genalog's template layer
+numpy>=1.24
+opencv-python-headless>=4.8,<5
+pillow>=10
+PyYAML>=6
