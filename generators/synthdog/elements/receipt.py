@@ -91,12 +91,16 @@ class Receipt:
         char_w = probe.width / 10.0
         line_h = probe.height * spacing
 
-        margin = rng.uniform(*visual.get("margin", [0.04, 0.10]))
-        margin *= rng.uniform(*self.margin_scale)
-        pad_x = grid.ncols * char_w * margin
-        pad_y = line_h * rng.uniform(0.6, 1.8)
+        # Lề trắng quanh nội dung lấy từ `rulebase.style.padding`, dùng chung
+        # với hai renderer HTML — trước đây mỗi renderer tự đặt một con số
+        # khác nhau nên cùng một recipe lại ra vị trí dòng tên quán khác nhau.
+        pad = rulebase.padding(recipe, grid, rng)
+        scale = rng.uniform(*self.margin_scale)
+        pad_x = pad["columns"] * char_w * scale
+        pad_top = line_h * pad["top"] * scale
+        pad_bottom = line_h * pad["bottom"] * scale
         width = int(grid.ncols * char_w + pad_x * 2)
-        height = int(grid.nrows * line_h + pad_y * 2)
+        height = int(grid.nrows * line_h + pad_top + pad_bottom)
 
         # Dòng tên cửa hàng và dòng tiêu đề được in bằng màu nhấn nếu có.
         accent_roles = {"store.name", "title"}
@@ -109,7 +113,7 @@ class Receipt:
             if cell.scale != 1.0:
                 layer.size = layer.size * cell.scale
 
-            y = pad_y + cell.row * line_h
+            y = pad_top + cell.row * line_h
             x0 = pad_x + cell.col0 * char_w
             x1 = pad_x + cell.col1 * char_w
             span = max(x1 - x0, 1.0)
