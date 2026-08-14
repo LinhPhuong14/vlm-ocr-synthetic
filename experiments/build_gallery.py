@@ -26,6 +26,8 @@ OUT_DIR = Path("data/samples")
 GALLERY = (
     ("receipt_vn", "configs/synthdog_receipt_vn.yaml", "receipt_vn-synthdog"),
     ("receipt_vn", "configs/html_receipt_vn.yaml", "receipt_vn-html"),
+    # Stage one on its own: the structure before any paper is applied.
+    ("receipt_vn", "configs/html_receipt_vn.yaml", "receipt_vn-html-structure"),
     ("invoice", "configs/synthdog_default.yaml", "invoice-synthdog"),
     ("invoice", "configs/html_flow.yaml", "invoice-html-flow"),
     ("invoice", "configs/html_scanned.yaml", "invoice-html-scanned"),
@@ -37,6 +39,8 @@ def main() -> int:
 
     for sample, config_path, stem in GALLERY:
         name, options = load_config(config_path)
+        if stem.endswith("-structure"):
+            options = {**options, "paper": {"enabled": False}}
         try:
             result = get_renderer(name, options).render(get_sample(sample))
         except RendererUnavailable as exc:

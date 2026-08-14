@@ -127,3 +127,72 @@ def test_vignette_darkens_corners_more_than_the_centre(page):
 def test_config_rejects_unknown_keys():
     with pytest.raises(Exception):
         PaperConfig(noise_sigma=4)
+
+
+# ------------------------------------------------ paper as a separate stage
+
+
+@pytest.mark.slow
+def test_render_returns_structure_then_paper_is_applied_on_top():
+    """A backend renders the structure; paper is a stage after it."""
+    from vlm_ocr_synthetic.renderers import get_renderer, get_renderer_class
+    from vlm_ocr_synthetic.samples import get_sample
+
+    if get_renderer_class("synthdog").check_available() is not None:
+        pytest.skip("synthdog unavailable")
+
+    document = get_sample("receipt_vn")
+    structure = get_renderer(
+        "synthdog", {"scale": 0.4, "paper": {"enabled": False}}
+    ).render(document)
+    aged = structure.with_paper(PaperConfig(grain=8, vignette=0.3))
+
+    # structure survives untouched; only pixels move
+    assert aged.document == structure.document
+    assert aged.image.size == structure.image.size
+    assert aged.image.tobytes() != structure.image.tobytes()
+    assert aged.metadata["paper"]["grain"] == 8.0
+    assert structure.metadata["paper"]["enabled"] is False
+
+
+@pytest.mark.slow
+def test_paper_applied_afterwards_matches_paper_applied_inline():
+    """Same seed, same page -- whichever way the stage is invoked."""
+    from vlm_ocr_synthetic.renderers import get_renderer, get_renderer_class
+    from vlm_ocr_synthetic.samples import get_sample
+
+    if get_renderer_class("synthdog").check_available() is not None:
+        pytest.skip("synthdog unavailable")
+
+    document = get_sample("invoice")
+    paper = {"grain": 5.0, "pepper": 0.001}
+
+    inline = get_renderer("synthdog", {"scale": 0.4, "seed": 3, "paper": paper}).render(
+        document
+    )
+    two_stage = get_renderer(
+        "synthdog", {"scale": 0.4, "seed": 3, "paper": {"enabled": False}}
+    ).render(document).with_paper(PaperConfig(**paper), seed=3)
+
+    assert inline.image.tobytes() == two_stage.image.tobytes()
+
+
+def test_several_papers_reuse_one_structural_render():
+    """The point of the split: try presets without re-rendering."""
+    from PIL import Image
+
+    from vlm_ocr_synthetic.schemas.document import Document
+    from vlm_ocr_synthetic.schemas.render import RenderResult
+
+    structure = RenderResult(
+        image=Image.new("RGB", (40, 20), (255, 255, 255)),
+        document=Document(page_width=40, page_height=20),
+        renderer="fake",
+        metadata={"seed": 1},
+    )
+
+    clean = structure.with_paper(PaperConfig(color=(250, 249, 245), grain=0))
+    scanned = structure.with_paper(PaperConfig(color=(250, 249, 245), grain=9))
+
+    assert clean.image.tobytes() != scanned.image.tobytes()
+    assert structure.image.getpixel((0, 0)) == (255, 255, 255)  # original intact

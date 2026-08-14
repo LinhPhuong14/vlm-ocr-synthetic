@@ -9,9 +9,9 @@ engine: playwright
 layout: flow
 
 font_family: "DejaVu Sans Mono, Liberation Mono, monospace"
-font_size: 21
-header_font_size: 26
-footnote_font_size: 20
+font_size: 17
+header_font_size: 24
+footnote_font_size: 18
 line_height: 1.4
 
 margin: 34
@@ -29,9 +29,13 @@ extra_css: |
   .block-Footnote { text-align: center; }
   .block-Page-Header { letter-spacing: 1px; }
   .block-Text:nth-of-type(-n+4) { text-align: center; }
-  td { padding: 1px 2px; }
-  td:first-child { width: 3em; }
-  td:last-child { text-align: right; white-space: nowrap; }
+  td, th { padding: 1px 2px; }
+  /* STT | Tên hàng | SL | Đơn giá | Thành tiền */
+  td:nth-child(1), th:nth-child(1) { width: 2.2em; text-align: center; }
+  td:nth-child(3), th:nth-child(3) { width: 2.4em; text-align: center; }
+  td:nth-child(4), th:nth-child(4),
+  td:nth-child(5), th:nth-child(5) { text-align: right; white-space: nowrap; }
+  th { background: transparent; border-bottom: 1px dashed #4a4a4a; }
 
 # Thermal paper: greyer, grainier, and the print head is never crisp.
 paper:

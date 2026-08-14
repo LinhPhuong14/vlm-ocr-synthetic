@@ -213,7 +213,8 @@ Samples: `invoice`, `receipt_vn` (pass with `-s`).
 (YAML/JSON preset) · `-d/--document` (a `Document` JSON file) · `-s/--sample`
 (built-in document, default `invoice`) · `-o/--out` (default `outputs`) ·
 `--stem` (file stem, default `page`) · `--scale` (override the config) ·
-`--strict` (exit non-zero when a backend is unavailable, for CI).
+`--no-paper` (structure only, skip the paper stage) · `--strict` (exit non-zero
+when a backend is unavailable, for CI).
 
 ---
 
@@ -321,32 +322,41 @@ them, and `experiments/build_gallery.py` regenerates the previews below.
 
 ### `receipt_vn` — Vietnamese restaurant bill
 
-80mm thermal paper, centred shop block, borderless quantity/dish/price table,
-cash total, thank-you footer. The text carries full diacritics on purpose: it is
-the cheapest end-to-end check that font shaping is not dropping Vietnamese
-marks, in **both** the Pillow backend (via raqm) and the browser.
+80mm thermal paper, centred shop block, cash total, thank-you footer, and the
+column layout Vietnamese invoices actually use:
 
-| `synthdog` | `html` |
-| --- | --- |
-| ![receipt rendered by synthdog](data/samples/receipt_vn-synthdog.jpg) | ![receipt rendered by html](data/samples/receipt_vn-html.jpg) |
-| `configs/synthdog_receipt_vn.yaml` | `configs/html_receipt_vn.yaml` |
+| STT | Tên hàng | SL | Đơn giá | Thành tiền |
+| --- | -------- | -- | ------- | ---------- |
+| 1 | Bún Sinh | 1 | 42,000 | 42,000 |
+| 4 | Cơm Bát Bửu | 4 | 43,000 | 172,000 |
 
-The line items and the total are computed together, so a generated bill always
-adds up:
+Only the item name is free text. `STT` numbers the lines, `Thành tiền` is
+`SL x Đơn giá`, and the cash total is the sum — so a generated bill always adds
+up, whatever order you feed it:
 
 ```python
-from vlm_ocr_synthetic.samples.receipt_vn import build_receipt_document
+from vlm_ocr_synthetic.samples.receipt_vn import OrderLine, build_receipt_document
 
 document = build_receipt_document(
-    order=((3, "Phở Bò", 90_000), (2, "Trà Đá", 4_000)),
+    order=(OrderLine("Phở Bò", 3, 30_000), OrderLine("Trà Đá", 2, 2_000)),
     table_number=12,
 )
 ```
 
-Receipts needed two things the general presets did not have, both added as
-config rather than as special cases in the renderers: `extra_css` on the html
-backend (centre the header, drop table borders, right-align prices) and
-`center_block_types` / `table_column_widths` / `underline_headers` on synthdog.
+The text carries full diacritics on purpose: it is the cheapest end-to-end check
+that font shaping is not dropping Vietnamese marks, in **both** the Pillow
+backend (via raqm) and the browser.
+
+| `synthdog` | `html` | `html`, structure only |
+| --- | --- | --- |
+| ![receipt rendered by synthdog](data/samples/receipt_vn-synthdog.jpg) | ![receipt rendered by html](data/samples/receipt_vn-html.jpg) | ![receipt structure without paper](data/samples/receipt_vn-html-structure.jpg) |
+| `configs/synthdog_receipt_vn.yaml` | `configs/html_receipt_vn.yaml` | `--no-paper` |
+
+Receipts needed things the general presets did not have, all added as config
+rather than as special cases in the renderers: `extra_css` on the html backend
+(centre the header, drop table borders, right-align the money columns) and
+`center_block_types` / `table_column_widths` / `table_column_align` /
+`underline_headers` on synthdog.
 
 ### `invoice` — A4 page with a bordered table
 
@@ -358,10 +368,31 @@ backend (centre the header, drop table borders, right-align prices) and
 
 ## Paper and degradation
 
-Every render — **both backends, every config** — is composited onto a paper
-sheet and degraded before it is returned. A browser screenshot is pixel-perfect
-and a rasteriser is pixel-perfect; scanned paper is neither, and a model trained
-only on clean pages learns the wrong prior.
+Rendering runs in **two stages**. A backend first produces the *structure* —
+glyphs, rules, table geometry — and the paper layer is applied to that finished
+page afterwards, for **both backends and every config**. A browser screenshot is
+pixel-perfect and a rasteriser is pixel-perfect; scanned paper is neither, and a
+model trained only on clean pages learns the wrong prior.
+
+Keeping the stages separate means you can check the structure on a clean sheet,
+then try several paper presets against the same render without paying for the
+layout again — no browser involved the second time:
+
+```bash
+python -m vlm_ocr_synthetic render -r html --no-paper     # stage one only
+```
+
+```python
+structure = get_renderer("html", {"paper": {"enabled": False}}).render(document)
+
+for preset in (PaperConfig(grain=4), PaperConfig(grain=9, blur=0.4, vignette=0.3)):
+    structure.with_paper(preset).save("data/variants")
+```
+
+`with_paper()` carries the annotations over untouched — the paper stage moves no
+geometry, which is exactly what `tests/test_paper.py` asserts. Applying paper
+afterwards is byte-identical to letting the backend do it inline with the same
+seed.
 
 `renderers/paper.py` is shared, so the paper treatment is never what makes two
 backends differ:

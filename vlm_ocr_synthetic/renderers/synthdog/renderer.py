@@ -14,7 +14,7 @@ from typing import Optional
 from ...schemas.document import BBox, BlockType, Document, DocumentBlock, TableBlock
 from ...schemas.render import RenderConfig, RenderResult
 from ..base import BaseRenderer
-from ..paper import PaperConfig, apply_paper
+from ..paper import PaperConfig
 from .fonts import find_font, load_font
 
 
@@ -43,8 +43,12 @@ class SynthdogConfig(RenderConfig):
     draw_table_grid: bool = True
 
     # Column widths as fractions of the table width; empty means equal
-    # columns. A receipt wants a narrow quantity column and a wide dish one.
+    # columns. A receipt wants a narrow STT column and a wide item one.
     table_column_widths: tuple[float, ...] = ()
+
+    # Per-column "left" / "center" / "right"; empty means all left. Money
+    # columns on an invoice read as right-aligned.
+    table_column_align: tuple[str, ...] = ()
 
     # Rule drawn under titles and section headers (off for receipts).
     underline_headers: bool = True
@@ -150,14 +154,12 @@ class SynthdogRenderer(BaseRenderer):
             rendered_blocks.append(rendered)
             cursor_y += cfg.block_spacing * cfg.scale
 
-        image = apply_paper(image, cfg.paper, rng)
-
         rendered_document = Document(
             page_width=page_width,
             page_height=page_height,
             blocks=rendered_blocks,
         )
-        return RenderResult(
+        structure = RenderResult(
             image=image,
             document=rendered_document,
             renderer=self.name,
@@ -165,9 +167,11 @@ class SynthdogRenderer(BaseRenderer):
                 "scale": cfg.scale,
                 "seed": cfg.seed,
                 "bbox_space": "document",  # multiply by scale for pixels
-                "paper": cfg.paper.model_dump(),
+                "paper": PaperConfig(enabled=False).model_dump(),
             },
         )
+        # Stage two: the finished structure goes onto paper.
+        return structure.with_paper(cfg.paper, seed=cfg.seed)
 
     def _column_edges(
         self, left: float, table_width: float, n_columns: int
@@ -182,6 +186,18 @@ class SynthdogRenderer(BaseRenderer):
         for weight in weights:
             edges.append(edges[-1] + table_width * weight / total)
         return edges
+
+    def _align_for(self, column: int) -> str:
+        alignments = self.config.table_column_align
+        return alignments[column] if column < len(alignments) else "left"
+
+    @staticmethod
+    def _align_offset(align: str, available: float, text_width: float) -> float:
+        if align == "right":
+            return max(0.0, available - text_width)
+        if align == "center":
+            return max(0.0, (available - text_width) / 2)
+        return 0.0
 
     def _px_box(self, x1, y1, x2, y2) -> BBox:
         """Pixel coordinates -> document-space bbox."""
@@ -297,15 +313,19 @@ class SynthdogRenderer(BaseRenderer):
                 height = len(lines) * line_height + 2 * padding
                 row_height = max(row_height, height)
 
-                cell_boxes.append((cell, cell_left, cell_width, lines, font))
+                cell_boxes.append(
+                    (cell, cell_left, cell_width, lines, font, self._align_for(first))
+                )
                 column_index += cell.colspan
 
             rendered_cells = []
-            for cell, cell_left, cell_width, lines, font in cell_boxes:
+            for cell, cell_left, cell_width, lines, font, align in cell_boxes:
                 text_y = y + padding
+                inner = max(cell_width - 2 * padding, 1.0)
                 for line in lines:
+                    offset = self._align_offset(align, inner, font.getlength(line))
                     draw.text(
-                        (cell_left + padding, text_y),
+                        (cell_left + padding + offset, text_y),
                         line,
                         font=font,
                         fill=cfg.text_color,

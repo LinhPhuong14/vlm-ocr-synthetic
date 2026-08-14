@@ -11,18 +11,18 @@
     "seed": 42,
     "bbox_space": "document",
     "paper": {
-      "enabled": true,
+      "enabled": false,
       "color": [
-        243,
-        242,
-        238
+        250,
+        249,
+        245
       ],
-      "grain": 6.0,
-      "vignette": 0.18,
-      "blur": 0.35,
+      "grain": 4.0,
+      "vignette": 0.0,
+      "blur": 0.0,
       "bleed_through": 0.0,
       "salt": 0.0,
-      "pepper": 0.0008
+      "pepper": 0.0
     }
   },
   "document": {
