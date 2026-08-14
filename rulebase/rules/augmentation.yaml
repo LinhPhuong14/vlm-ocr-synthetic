@@ -1,0 +1,101 @@
+# THUỘC TÍNH 6/6 — LÀM CŨ
+#
+# `chain` là danh sách [tên, tham số] chạy tuần tự qua `degradation.apply_chain`.
+# Tên phải có trong `degradation.DEGRADATIONS` — chạy `make list-degradations`
+# để xem đủ. Thứ tự KHÔNG hoán vị được: mực mòn rồi mới nhoè thì đọc ra là
+# "chữ cũ bị scan dở", nhoè rồi mới mòn thì ra "vết lem".
+#
+# Ba cái cuối là hiệu ứng texture của DocCreator:
+#   paper_texture      dán trang giấy lên texture giấy thật
+#   gradient_domain    ghép vết bẩn bằng Poisson blending (Seuret và cs. 2015)
+#   phantom_character  dán mảng mực thừa vào rìa chữ
+#
+# Bốc sau cùng, nên chỗ này thấy được mọi thẻ phía trên. Ví dụ trang in nhiệt
+# không bao giờ bị "bleed-through" vì giấy nhiệt chỉ in một mặt.
+
+options:
+  - id: khong_lam_gi
+    weight: 2
+    tags: [sach]
+    params:
+      chain: []
+
+  - id: giay_that
+    weight: 4
+    tags: [co_texture]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.35, grain: 0.5}]
+
+  - id: nhe
+    weight: 4
+    tags: [co_texture]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.30, grain: 0.4}]
+        - [ink_degradation, {level: 1}]
+        - [blur_zones, {radius: 0.9, zones: 1, coverage: 0.12}]
+
+  - id: vua
+    weight: 4
+    tags: [co_texture]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.40, grain: 0.6}]
+        - [ink_degradation, {level: 3}]
+        - [blur_zones, {radius: 1.1, zones: 2, coverage: 0.15}]
+        - [shadow_binding, {border: bottom, distance_ratio: 0.10, intensity: 0.35}]
+
+  - id: nang
+    weight: 2
+    excludes: [in_nhiet]        # giấy nhiệt in một mặt, không thấm sang mặt kia
+    tags: [co_texture, ban]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.45, grain: 0.7}]
+        - [ink_degradation, {level: 4}]
+        - [bleed_through, {intensity: 0.5, nb_iter: 6}]
+        - [blur_zones, {radius: 1.4, zones: 3, coverage: 0.18}]
+        - [shadow_binding, {border: left, distance_ratio: 0.13, intensity: 0.45}]
+        - [holes, {count: 2, placement: border, size_ratio: 0.03}]
+
+  - id: vet_ban
+    weight: 3
+    tags: [co_texture, ban]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.35, grain: 0.5}]
+        - [gradient_domain, {count: 5, strength: 0.75}]
+        - [ink_degradation, {level: 3}]
+
+  - id: chu_bong
+    weight: 3
+    tags: [co_texture, muc_thua]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.30, grain: 0.45}]
+        - [phantom_character, {frequency: rare}]
+        - [ink_degradation, {level: 2}]
+        - [blur_zones, {radius: 1.2, zones: 2, coverage: 0.15}]
+
+  - id: photocopy
+    weight: 3
+    tags: [co_texture, tuong_phan_cao]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.25, grain: 0.35}]
+        - [ink_degradation, {level: 3}]
+        - [phantom_character, {frequency: rare}]
+        - [blur, {radius: 0.8}]
+        - [shadow_binding, {border: top, distance_ratio: 0.08, intensity: 0.3}]
+
+  - id: nhau_nat
+    weight: 2
+    requires: [in_nhiet]        # chỉ tờ giấy nhiệt mỏng mới nhàu kiểu này
+    tags: [co_texture, nhau]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.50, grain: 0.8, creases: 4}]
+        - [ink_degradation, {level: 3}]
+        - [gradient_domain, {count: 3, strength: 0.6}]
+        - [blur_zones, {radius: 1.2, zones: 3, coverage: 0.18}]

@@ -45,12 +45,21 @@ datasets/
 # The curated examples this repo shows:
 !samples/**/*.jpg
 !samples/**/*.json
+# The paper every renderer composites onto -- generated, so redistributable:
+!textures/**/*.jpg
+# The published datasets, with their labels and their OCR proof:
+!data/**/*.jpg
+!data/**/*.json
+!data/**/*.jsonl
 
-# Fonts, paper and backgrounds are not redistributable; supply them locally.
-# See generators/synthdog/resources/README.md.
+# Fonts you supply yourself are not redistributable; keep them out.
+# `fonts/` is the exception: everything in it is OFL, Apache-2.0 or Bitstream
+# Vera, and without it a fresh clone cannot render at all. See fonts/README.md.
 *.ttf
 *.otf
 *.ttc
+!fonts/**/*.ttf
+!fonts/**/*.otf
 generators/synthdog/resources/font/
 generators/synthdog/resources/paper/
 generators/synthdog/resources/background/

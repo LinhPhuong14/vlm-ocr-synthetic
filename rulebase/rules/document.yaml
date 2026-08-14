@@ -1,0 +1,96 @@
+# THUỘC TÍNH 1/6 — LOẠI DOCUMENT
+#
+# Bốc trước tiên, nên đây là chỗ quyết định "tờ giấy này là cái gì". Mọi thuộc
+# tính sau đều nhìn thấy `tags` mà giá trị ở đây gắn vào, và dùng
+# requires/excludes để tự loại mình ra nếu không hợp.
+#
+# weight = tần suất tương đối. Muốn nhiều hoá đơn siêu thị hơn thì tăng weight
+# của mấy dòng doc_sieuthi, không phải sửa code.
+#
+# params đi thẳng vào `rulebase.content.build`.
+
+options:
+  - id: quan_nhau
+    weight: 3
+    tags: [doc_quan, has_table_no]
+    params:
+      profile: quan
+      titles: ["PHIẾU THANH TOÁN", "HOÁ ĐƠN THANH TOÁN", "PHIẾU TÍNH TIỀN"]
+      num_items: [3, 14]
+      prob_table: 0.85
+      total_labels:
+        subtotal: "Tiền hàng"
+        grand: "Thanh toán"
+        change: "Tiền thối lại"
+
+  - id: quan_an_binh_dan
+    weight: 3
+    tags: [doc_quan]
+    params:
+      profile: quan
+      titles: ["PHIẾU TÍNH TIỀN", "HOÁ ĐƠN", "PHIẾU THANH TOÁN"]
+      num_items: [2, 10]
+      prob_table: 0.45
+      total_labels:
+        subtotal: "Tạm tính"
+        grand: "Tiền mặt"
+        change: "Tiền thối lại"
+
+  - id: nha_hang_vat
+    weight: 2
+    tags: [doc_quan, has_vat]
+    params:
+      profile: quan
+      titles: ["HOÁ ĐƠN GTGT", "PHIẾU THANH TOÁN", "HOÁ ĐƠN BÁN HÀNG"]
+      num_items: [4, 16]
+      prob_table: 0.7
+      vat_rates: [8, 10]
+      total_labels:
+        subtotal: "Cộng tiền hàng"
+        vat: "Thuế GTGT"
+        grand: "Tổng thanh toán"
+        change: "Tiền trả lại"
+
+  - id: sieu_thi_lon
+    weight: 3
+    tags: [doc_sieuthi, has_barcode, has_vat]
+    params:
+      profile: sieuthi
+      titles: ["HOÁ ĐƠN BÁN HÀNG", "PHIẾU TÍNH TIỀN"]
+      num_items: [3, 12]
+      vat_rates: [8, 10]
+      show_tax_code: false
+      total_labels:
+        subtotal: "TỔNG TIỀN PHẢI T.TOÁN"
+        discount: "TỔNG TIỀN ĐÃ GIẢM"
+        grand: "TIỀN KHÁCH TRẢ"
+        change: "TIỀN TRẢ LẠI"
+
+  - id: cua_hang_tien_loi
+    weight: 2
+    tags: [doc_sieuthi, has_promo]
+    params:
+      profile: sieuthi
+      titles: ["PHIẾU TÍNH TIỀN", "HOÁ ĐƠN BÁN HÀNG"]
+      num_items: [2, 8]
+      show_tax_code: true
+      total_labels:
+        subtotal: "TỔNG GIÁ TRỊ ĐƠN"
+        discount: "TỔNG TIỀN GIẢM"
+        grand: "TỔNG TIỀN THANH TOÁN"
+        change: "Tiền trả lại"
+
+  - id: sieu_thi_gtgt
+    weight: 2
+    tags: [doc_sieuthi, has_barcode, has_vat, has_vat_lines]
+    params:
+      profile: sieuthi
+      titles: ["PHIẾU TÍNH TIỀN", "HOÁ ĐƠN GTGT"]
+      num_items: [3, 10]
+      vat_rates: [8, 10]
+      total_labels:
+        subtotal: "Tổng tiền"
+        discount: "Tổng tiền giảm giá"
+        vat: "Thuế GTGT"
+        grand: "Tiền khách trả"
+        change: "Tiền trả lại cho khách"

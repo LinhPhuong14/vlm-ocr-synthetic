@@ -28,6 +28,14 @@ from .blur_zones import blur, blur_zones
 from .holes import holes
 from .ink_degradation import InkDegradationConfig, ink_degradation, seed_mix
 from .shadow_binding import shadow_binding
+from .texture import (
+    PAPER_DIR,
+    STAIN_DIR,
+    TEXTURE_ROOT,
+    gradient_domain,
+    paper_texture,
+    phantom_character,
+)
 
 # name -> (function, does it take an rng?)
 DEGRADATIONS: dict[str, tuple[Callable[..., np.ndarray], bool]] = {
@@ -37,6 +45,10 @@ DEGRADATIONS: dict[str, tuple[Callable[..., np.ndarray], bool]] = {
     "blur_zones": (blur_zones, True),
     "ink_degradation": (ink_degradation, True),
     "holes": (holes, True),
+    # the texture models
+    "paper_texture": (paper_texture, True),
+    "gradient_domain": (gradient_domain, True),
+    "phantom_character": (phantom_character, True),
 }
 
 
@@ -80,8 +92,11 @@ def apply_chain(
     return out
 
 
-# A chain that reads like a page which was printed, aged, then scanned.
+# A chain that reads like a page which was printed on real paper, aged, then
+# scanned. The paper goes on first because everything after it is damage to a
+# sheet that already exists.
 DEFAULT_CHAIN: list[tuple[str, dict[str, Any]]] = [
+    ("paper_texture", {"alpha": 0.35, "grain": 0.5}),
     ("ink_degradation", {"level": 5}),
     ("bleed_through", {"intensity": 0.55, "nb_iter": 6}),
     ("blur_zones", {"radius": 1.8, "zones": 3, "coverage": 0.2}),
@@ -91,15 +106,21 @@ DEFAULT_CHAIN: list[tuple[str, dict[str, Any]]] = [
 __all__ = [
     "DEFAULT_CHAIN",
     "DEGRADATIONS",
+    "PAPER_DIR",
+    "STAIN_DIR",
+    "TEXTURE_ROOT",
     "InkDegradationConfig",
     "apply_chain",
     "apply_one",
     "bleed_through",
     "blur",
     "blur_zones",
+    "gradient_domain",
     "holes",
     "ink_degradation",
     "names",
+    "paper_texture",
+    "phantom_character",
     "seed_mix",
     "shadow_binding",
 ]

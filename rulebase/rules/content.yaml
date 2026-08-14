@@ -1,0 +1,98 @@
+# THUỘC TÍNH 3/6 — NỘI DUNG
+#
+# Chữ có dấu hay không, IN HOA hay không, tiền viết kiểu nào, có dòng thuế /
+# dòng thanh toán / dòng khuyến mãi hay không.
+#
+# Corpus luôn lưu tiếng Việt CÓ DẤU; `prob_ascii_fold` mới là chỗ quyết định
+# bỏ dấu lúc render. Bố cục `quan_an_ascii` gắn thẻ `ascii_only`, nên mọi giá
+# trị còn dấu ở đây đều phải `excludes: [ascii_only]` — nếu không sẽ sinh ra
+# hoá đơn máy in 2011 mà lại có chữ "Phở".
+#
+# money_style: dot (56.000) | comma (20,200) | comma_2dp (33,600.00)
+
+options:
+  - id: co_dau_thuong
+    weight: 3
+    excludes: [ascii_only]
+    tags: [co_dau]
+    params:
+      money_style: dot
+      prob_ascii_fold: 0.0
+      prob_uppercase: 0.15
+      show_subtotal: true
+      show_payment: true
+      num_footers: [1, 3]
+      prob_item_discount: 0.10
+
+  - id: co_dau_in_hoa
+    weight: 3
+    excludes: [ascii_only]
+    tags: [co_dau]
+    params:
+      money_style: dot
+      prob_ascii_fold: 0.0
+      prob_uppercase: 0.85
+      show_subtotal: true
+      show_payment: true
+      num_footers: [1, 3]
+      prob_item_discount: 0.10
+
+  - id: khong_dau_in_hoa
+    weight: 2
+    tags: [khong_dau]
+    params:
+      money_style: comma
+      prob_ascii_fold: 1.0
+      prob_uppercase: 1.0
+      show_subtotal: false
+      show_payment: false
+      num_footers: [1, 2]
+      prob_item_discount: 0.0
+
+  - id: sieu_thi_day_du
+    weight: 3
+    requires: [doc_sieuthi]
+    excludes: [ascii_only]
+    tags: [co_dau]
+    params:
+      money_style: comma
+      prob_ascii_fold: 0.0
+      prob_uppercase: 0.55
+      show_subtotal: true
+      show_vat: true
+      show_payment: true
+      show_item_count: false
+      num_footers: [2, 4]
+      prob_item_discount: 0.30
+      prob_weighed: 0.25
+
+  - id: sieu_thi_hai_thap_phan
+    weight: 3
+    requires: [vat_rows]
+    excludes: [ascii_only]
+    tags: [co_dau, hai_thap_phan]
+    params:
+      money_style: comma_2dp
+      prob_ascii_fold: 0.0
+      prob_uppercase: 0.30
+      show_subtotal: true
+      show_vat: true
+      show_payment: true
+      show_item_count: true
+      num_footers: [1, 3]
+      prob_item_discount: 0.20
+      prob_weighed: 0.15
+
+  - id: co_hau_to_dong
+    weight: 1
+    excludes: [ascii_only, hai_thap_phan]
+    tags: [co_dau, hau_to_tien]
+    params:
+      money_style: dot
+      money_suffix: "đ"
+      prob_ascii_fold: 0.0
+      prob_uppercase: 0.4
+      show_subtotal: true
+      show_payment: true
+      num_footers: [0, 2]
+      prob_item_discount: 0.05

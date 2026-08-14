@@ -1,0 +1,42 @@
+{
+  "per_framework": 20,
+  "layouts": [
+    "quan_an_ascii",
+    "quan_nhau_stt",
+    "sieu_thi_barcode",
+    "sieu_thi_gia_sl",
+    "sieu_thi_vat"
+  ],
+  "frameworks": {
+    "synthdog": {
+      "images": 20,
+      "by_layout": {
+        "quan_an_ascii": 4,
+        "quan_nhau_stt": 4,
+        "sieu_thi_barcode": 4,
+        "sieu_thi_gia_sl": 4,
+        "sieu_thi_vat": 4
+      }
+    },
+    "html": {
+      "images": 20,
+      "by_layout": {
+        "quan_an_ascii": 4,
+        "quan_nhau_stt": 4,
+        "sieu_thi_barcode": 4,
+        "sieu_thi_gia_sl": 4,
+        "sieu_thi_vat": 4
+      }
+    },
+    "genalog": {
+      "images": 20,
+      "by_layout": {
+        "quan_an_ascii": 4,
+        "quan_nhau_stt": 4,
+        "sieu_thi_barcode": 4,
+        "sieu_thi_gia_sl": 4,
+        "sieu_thi_vat": 4
+      }
+    }
+  }
+}

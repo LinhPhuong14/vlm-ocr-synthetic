@@ -1,0 +1,53 @@
+# THUỘC TÍNH 5/6 — MÀU
+#
+# ink: màu mực chính (RGB). tint: ám màu phủ lên cả tờ giấy, kèm alpha.
+# accent: màu riêng cho dòng tên cửa hàng / tiêu đề, để trống thì dùng `ink`.
+#
+# Máy in nhiệt và máy in kim chỉ có một màu, nên mọi giá trị nhiều màu ở đây
+# đều `excludes: [in_nhiet, in_kim]`. Đó cũng là lý do thuộc tính màu bốc SAU
+# thuộc tính hình thức chứ không phải trước.
+
+options:
+  - id: mono_den
+    weight: 5
+    tags: [mot_mau]
+    params:
+      ink: [26, 26, 26]
+      tint: [255, 255, 255]
+      tint_alpha: 0.0
+
+  - id: xam_bac_mau
+    weight: 3
+    tags: [mot_mau, bac_mau]
+    params:
+      ink: [92, 92, 96]
+      tint: [250, 249, 244]
+      tint_alpha: 0.10
+
+  - id: nhiet_ngA_vang
+    weight: 3
+    tags: [mot_mau, giay_o_vang]
+    params:
+      ink: [40, 38, 34]
+      tint: [246, 234, 200]
+      tint_alpha: 0.28
+
+  - id: muc_xanh
+    weight: 2
+    excludes: [in_nhiet, in_kim]
+    tags: [nhieu_mau]
+    params:
+      ink: [30, 30, 34]
+      accent: [24, 62, 140]
+      tint: [252, 252, 252]
+      tint_alpha: 0.04
+
+  - id: logo_do
+    weight: 2
+    excludes: [in_nhiet, in_kim, ascii_only]
+    tags: [nhieu_mau, co_logo]
+    params:
+      ink: [28, 28, 28]
+      accent: [176, 32, 38]
+      tint: [255, 254, 252]
+      tint_alpha: 0.03
