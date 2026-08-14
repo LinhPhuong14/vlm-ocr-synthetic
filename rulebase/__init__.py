@@ -37,7 +37,7 @@ from .spec import (
     sample_recipe,
     validate,
 )
-from .style import fade, hex_colour, inks
+from .style import fade, hex_colour, inks, padding
 
 __all__ = [
     "ATTRIBUTES",
@@ -61,6 +61,7 @@ __all__ = [
     "inks",
     "load_rules",
     "make",
+    "padding",
     "parse_force",
     "sample_recipe",
     "validate",

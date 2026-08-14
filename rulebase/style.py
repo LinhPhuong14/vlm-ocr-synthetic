@@ -48,8 +48,46 @@ def inks(recipe, rng: random.Random | None = None) -> dict:
     }
 
 
+def padding(recipe, grid, rng: random.Random | None = None) -> dict:
+    """Blank paper around the content, in line-heights and in columns.
+
+    Shared for the same reason `inks` is: this used to be three hardcoded
+    numbers, one per renderer, and they disagreed -- the glyph backend drew its
+    top margin from `line_h * uniform(0.6, 1.8)` while the two HTML backends
+    used `line_px * (0.6 + tallest)`. The same recipe therefore sat the shop
+    name at a different height on the sheet in each renderer, and sometimes
+    hard against the top edge.
+
+    Top and bottom are asymmetric on purpose: a till leaves a longer lead-in
+    above the print than tail below it, because the paper has to clear the cut
+    bar before the head starts printing.
+
+    `rng` is optional; without it the midpoint is taken, which is what the two
+    HTML backends want so a recipe maps to one deterministic page.
+    """
+    visual = recipe.choices["visual"].params
+
+    def draw(key: str, default: list[float]) -> float:
+        low, high = visual.get(key, default)
+        return rng.uniform(low, high) if rng else (float(low) + float(high)) / 2.0
+
+    top = draw("padding_top", [1.6, 2.6])
+    bottom = draw("padding_bottom", [1.2, 2.2])
+    columns = draw("margin", [0.04, 0.10]) * grid.ncols
+
+    # The shop name and the title are set larger than the body, and a cell at
+    # 1.7em overflows its line box upwards. Whatever the rules asked for, the
+    # top padding has to clear that or the header is clipped by the edge of the
+    # image -- which is exactly what a fixed number cannot guarantee, because
+    # how large the header is set is itself sampled per bố cục.
+    tallest = max([cell.scale for cell in grid.cells] + [1.0])
+    top = max(top, tallest + 0.5)
+
+    return {"top": top, "bottom": bottom, "columns": columns, "tallest": tallest}
+
+
 def hex_colour(rgb) -> str:
     return "#%02x%02x%02x" % tuple(int(v) for v in rgb)
 
 
-__all__ = ["fade", "hex_colour", "inks"]
+__all__ = ["fade", "hex_colour", "inks", "padding"]
