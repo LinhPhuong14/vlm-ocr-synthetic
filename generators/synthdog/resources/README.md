@@ -27,5 +27,5 @@ check here first if nothing is produced:
 Check a font actually covers Vietnamese before a long run:
 
 ```bash
-python tools/check_fonts.py --dir resources/font/vi
+python tools/check_fonts.py resources/font/vi
 ```

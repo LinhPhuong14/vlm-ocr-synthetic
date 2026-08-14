@@ -117,7 +117,9 @@ generator produced, so the same ageing can be applied to receipts and to
 genalog pages alike.
 
 ```bash
-python tools/augment_samples.py --synthdog <dir> --genalog <dir> -o samples/degradation
+# needs numpy and opencv -- use the synthdog venv from `make setup`
+generators/synthdog/.venv/bin/python tools/augment_samples.py \
+    --synthdog <dir> --genalog <dir> --html-table <dir> -o samples/degradation
 ```
 
 [`samples/degradation/`](samples/degradation) holds twenty before/after pairs —
