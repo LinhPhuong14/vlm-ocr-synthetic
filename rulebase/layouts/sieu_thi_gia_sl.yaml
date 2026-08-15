@@ -1,6 +1,5 @@
 # Bố cục cửa hàng tiện lợi: tên hàng ngắt dòng ngay trong cột đầu.
 #
-# Đo từ ảnh mẫu: WinMart — PHIẾU TÍNH TIỀN 14/04/2025.
 # Dấu hiệu nhận biết: không có mã vạch trên hoá đơn; tên hàng dài xuống 2-3
 # dòng NGAY TRONG cột "Mặt hàng" trong khi giá / SL / thành tiền vẫn nằm ở
 # dòng đầu tiên; dòng meta nối bằng dấu '|'; khuyến mãi in "KM: -x" ở mép phải.
