@@ -1,4 +1,4 @@
-"""Render rule-base receipts with the glyph backend, one seed at a time.
+"""Render rule-base receipts with the glyph backend.
 
     generators/synthdog/.venv/bin/python generators/synthdog/render.py -o outputs -c 10
 
