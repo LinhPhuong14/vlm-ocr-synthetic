@@ -13,7 +13,11 @@ synthtiger pins Pillow 9.5 and WeasyPrint needs a modern one.
 | `generators/genalog/` | `make setup-genalog` | genalog is installed `--no-deps` |
 | `generators/html-table/` | `pip install -r generators/html-table/requirements.txt` | vendored; prefer upstreaming fixes |
 
-`make setup` builds all three renderer environments.
+`make setup` builds all three renderer environments. Without `make` — on
+Windows, or anywhere — `python tasks.py setup` does the same: **every task is
+defined in `tasks.py`** and the Makefile only forwards to it, so there is one
+definition per task rather than one per platform. See
+[`docs/windows.md`](docs/windows.md).
 
 Before changing a renderer, read
 [`docs/huong-dan-va-giai-thich.md`](docs/huong-dan-va-giai-thich.md): it walks

@@ -36,7 +36,9 @@ import rulebase  # noqa: E402
 from degradation.pipeline import apply_recipe  # noqa: E402
 
 FONT_ROOT = REPO_ROOT / "fonts"
-# Playwright's own build, installed system-wide by the image.
+# Linux containers that ship a browser system-wide, this repository's own
+# included. Elsewhere -- Windows, macOS, a plain `pip install playwright` --
+# there is nothing here and Playwright resolves its own download instead.
 CHROMIUM_CANDIDATES = [
     Path("/opt/pw-browsers/chromium/chrome-linux/chrome"),
     Path("/opt/pw-browsers/chromium-1194/chrome-linux/chrome"),
@@ -46,6 +48,12 @@ CHROMIUM_CANDIDATES = [
 
 
 def find_chromium() -> str | None:
+    """A browser to launch, or None to let Playwright pick its own.
+
+    Returning None is not a failure: `launch(executable_path=None)` is the
+    normal path, and the only reason to override it is a container that already
+    has a build and must not download a second one.
+    """
     for path in CHROMIUM_CANDIDATES:
         if path.exists():
             return str(path)
@@ -176,12 +184,16 @@ class HtmlReceiptRenderer:
     def __enter__(self):
         self._playwright = sync_playwright().start()
         executable = find_chromium()
-        if executable is None:
+        try:
+            self._browser = self._playwright.chromium.launch(executable_path=executable)
+        except Exception as error:  # noqa: BLE001 -- re-raised with a fix
             raise RuntimeError(
-                "no Chromium found; expected one under /opt/pw-browsers. "
-                "Do not run `playwright install` -- the image ships a build."
-            )
-        self._browser = self._playwright.chromium.launch(executable_path=executable)
+                f"could not launch Chromium ({error}).\n"
+                "On Windows and macOS, install one first:\n"
+                "  generators/html/.venv/Scripts/python -m playwright install chromium\n"
+                "In this repository's Linux container a build already exists under "
+                "/opt/pw-browsers, so do NOT run `playwright install` there."
+            ) from error
         return self
 
     def __exit__(self, *exc):

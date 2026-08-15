@@ -11,16 +11,18 @@ so run synthtiger from there and these resolve.
 >
 > | ở đây | dùng chung ở gốc repo |
 > | --- | --- |
-> | `resources/corpus/*wiki.txt` — chữ wiki cho template SynthDoG gốc | `rulebase/corpus/vi/` — corpus hoá đơn tiếng Việt |
 > | `resources/paper/` — ảnh chụp giấy bạn tự cung cấp (gitignore) | `textures/paper/` — giấy dùng chung, có sẵn trong repo |
 > | `resources/font/` — font bạn tự cung cấp (gitignore) | `fonts/` — font dùng chung, có sẵn trong repo |
 > | `generators/synthdog/layouts/` — code xếp lưới của SynthDoG gốc | `rulebase/layouts/` — 5 bố cục hoá đơn |
 
 ## In the repository
 
-| path | what it is |
-| ---- | ---------- |
-| `corpus/{en,ja,ko,zh}wiki.txt` | wiki text for the **original** SynthDoG templates (`template.py`), not for receipts |
+Không có gì. Thư mục này chỉ chứa thứ bạn tự cung cấp — xem bảng dưới.
+
+Bản gốc của SynthDoG (`template.py`, `config_{en,ja,ko,zh}.yaml`, và corpus
+wiki 6.7 MB đi kèm) đã **bỏ khỏi repo**: chúng sinh trang wiki đa ngôn ngữ,
+không liên quan tới hoá đơn, và không có gì trong repo này gọi tới. Cần lại thì
+lấy từ lịch sử git hoặc từ [clovaai/donut](https://github.com/clovaai/donut).
 
 ## You have to supply these
 
@@ -29,16 +31,17 @@ Nothing here is required for the receipt template — it falls back to the share
 overriding that with material you cannot redistribute, and for the original
 SynthDoG templates.
 
-Generation fails without a background image, and because synthtiger swallows
-exceptions and retries, **it hangs instead of erroring** — so check here first
-if nothing is produced:
+Không có gì ở đây là bắt buộc nữa: mặt bàn lấy từ `textures/background/` và
+font lấy từ `fonts/`, cả hai đều có sẵn trong repo. Thư mục này chỉ để **ghi đè**
+bằng tài nguyên riêng của bạn.
+
+Vẫn nên biết: synthtiger nuốt exception rồi retry, nên thiếu tài nguyên thì nó
+**treo chứ không báo lỗi** — kiểm tra ở đây trước nếu chạy mãi không ra ảnh.
 
 | path | what goes in it | where to get it |
 | ---- | --------------- | --------------- |
-| `background/` | ảnh nền tờ giấy được ghép lên — **cần cho template hoá đơn** | ảnh chụp mặt bàn của bạn, hoặc [synthdog upstream](https://github.com/clovaai/donut/tree/master/synthdog/resources) |
+| `background/` | ảnh chụp mặt bàn của riêng bạn; trỏ `background.image.paths` vào đây thì nó thay cho `textures/background/` | ảnh chụp bằng điện thoại — vài chục tấm là cải thiện realism rẻ nhất |
 | `font/{mono,sans}/` | font riêng, được ưu tiên hơn `fonts/` ở gốc repo | e.g. Noto Sans, Roboto, Be Vietnam Pro |
-| `font/{en,ja,ko,zh}/` | font cho các template SynthDoG khác | Google Fonts, Noto family |
-| `paper/` | ảnh chụp giấy cho template SynthDoG gốc | as above |
 
 Check a font actually covers Vietnamese before a long run — the shared set is
 already checked, anything you add is not:

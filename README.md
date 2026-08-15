@@ -17,6 +17,18 @@ make dataset        # 60 labelled images into data/dataset60/
 make proof          # read them back with Tesseract and score the labels
 ```
 
+No `make` — on Windows, or anywhere — use the task runner directly. Every task
+is defined there and the Makefile only forwards to it, so the two cannot drift:
+
+```powershell
+py -3.11 tasks.py setup
+py tasks.py dataset
+py tasks.py            # list the tasks
+```
+
+Windows needs three things installed by hand (Python 3.11, GTK for WeasyPrint,
+Tesseract); [`docs/windows.md`](docs/windows.md) has the list.
+
 | renderer | how it draws | looks like | Python |
 | --- | --- | --- | --- |
 | [`generators/synthdog/`](generators/synthdog/README_vi_receipt.md) | [synthtiger](https://github.com/clovaai/synthtiger) glyph layers, then curl + background | a **photograph** of a receipt on a table | **3.8 – 3.11** |
@@ -57,13 +69,15 @@ degradation/            DocCreator's degradation models, ported to Python
 ├── holes.py            tears and rips, the missing paper filled black
 └── pipeline.py         runs a recipe's chain — all three renderers call this
 
-textures/paper/         the sheets every renderer composites onto
+textures/paper/         the sheets a page is printed on
+textures/background/    the surfaces a sheet is photographed on
 fonts/                  fonts every renderer uses (Vietnamese coverage checked)
 data/                   generated datasets: aged and clean, with labels and OCR proof
 samples/                curated examples
 tools/                  drivers: dataset, proof, previews, checks
 docs/                   notes that outlive any one generator
-Makefile                the tasks; `make help` lists them
+tasks.py                every task, and the only definition of them
+Makefile                forwards to tasks.py; `make help` lists them
 ```
 
 Where to look for a thing:
@@ -79,15 +93,14 @@ Where to look for a thing:
 | one picture per degradation model | `samples/degradation/` |
 | to run something end to end | `make help` — the tasks are there, not in a directory |
 | why a version is pinned | `docs/python-versions.md` |
+| to run it on Windows | [`docs/windows.md`](docs/windows.md) |
 | how a renderer works, function by function | [`docs/huong-dan-va-giai-thich.md`](docs/huong-dan-va-giai-thich.md) |
 
-Three names appear twice in the tree and mean different things. If you are
-about to edit one, check which:
+Two names appear twice in the tree and mean different things. If you are about
+to edit one, check which:
 
 | the shared one | the glyph renderer's own |
 | --- | --- |
-| `rulebase/layouts/` — the five receipt bố cục (YAML) | `generators/synthdog/layouts/` — SynthDoG's grid code, used only by its original wiki template |
-| `rulebase/corpus/vi/` — the Vietnamese receipt corpus | `generators/synthdog/resources/corpus/` — wiki text for those same original templates |
 | `textures/paper/`, `fonts/` — committed, used by all three renderers | `generators/synthdog/resources/{paper,font}/` — yours to supply, git-ignored, overrides the shared set |
 
 `generators/html/` and `generators/html-table/` are also easy to confuse: the
@@ -192,7 +205,7 @@ Two sets are committed, differing in **one attribute** of the rule-base:
 
 | set | | Tesseract token recall (synthdog / html / genalog) |
 | --- | --- | --- |
-| [`data/dataset60/`](data/dataset60) | ageing sampled from the rules | 0.41 / 0.68 / 0.76 |
+| [`data/dataset60/`](data/dataset60) | ageing sampled from the rules | 0.40 / 0.68 / 0.76 |
 | [`data/dataset60_clean/`](data/dataset60_clean) | `augmentation=khong_lam_gi`, no distortion | 0.85 / 0.85 / 0.87 |
 
 ```bash

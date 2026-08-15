@@ -46,6 +46,16 @@ Paper is different: it is shared with the renderers, so it lives in
 `rulebase/rules/visual.yaml`. Regenerate with `make textures`; replace the
 files with real scans under the same names and nothing else changes.
 
+[`textures/background/`](../textures/background) is the other half: the surface
+a sheet is *photographed on*, which only the glyph renderer uses (the two HTML
+renderers produce flat scans with no surround). DocCreator ships exactly this
+idea in `data/Mesh/Background/wood00..04.jpg` — wooden desk tops — and that is
+the right kind of surface for a receipt. Their images are LGPL data, the same
+reason the stain and phantom patterns are not vendored, so equivalents are
+generated: light and dark wood, stone, cloth. A few dozen phone photographs of
+real tables will beat them, and `background.image.paths` in
+`generators/synthdog/config_vi_receipt.yaml` is where you point at those.
+
 ## The two that were hardest to get right
 
 **`ink_degradation`** is why DocCreator is worth copying. Additive noise looks

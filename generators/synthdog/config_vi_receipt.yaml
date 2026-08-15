@@ -21,9 +21,16 @@ receipt:
   local_font_root: resources/font
   margin_scale: [0.9, 1.15]    # nhân thêm vào `visual.margin` của recipe
 
+# Mặt bàn tờ hoá đơn nằm lên. Ảnh trong `textures/background/` sinh bằng
+# `make textures` — cùng loại bề mặt mà DocCreator dùng cho khâu này
+# (`data/Mesh/Background/wood*.jpg`: mặt bàn gỗ), nhưng tự sinh chứ không
+# vendor, vì ảnh của họ là data LGPL.
+#
+# Có ảnh chụp mặt bàn thật thì trỏ thẳng vào đây — vài chục tấm chụp bằng điện
+# thoại sẽ ăn đứt ảnh sinh, và đó vẫn là cách cải thiện realism rẻ nhất.
 background:
   image:
-    paths: [resources/background]
+    paths: [../../textures/background]
     weights: [1]
   effect:
     args:

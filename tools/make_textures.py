@@ -108,23 +108,146 @@ PAPERS = {
     "giay_a5": giay_a5,
 }
 
+# --------------------------------------------------------------- surfaces
+#
+# What the sheet is photographed ON, as opposed to what it is printed on.
+# DocCreator ships exactly this idea in `data/Mesh/Background/wood00..04.jpg`
+# -- wooden desk tops -- and that is the right kind of surface: a receipt is
+# almost always shot lying on a table. Their images are LGPL data, the same
+# reason the stain and phantom patterns are not vendored either, so the same
+# surfaces are generated here instead.
+#
+# Point `background.image.paths` in config_vi_receipt.yaml at a directory of
+# real photographs whenever you have them -- a few dozen phone shots of tables
+# will beat these, and the README says so.
+
+SURFACE_SIZE = (1200, 800)
+
+
+def _wood(rng: random.Random, tint, plank_px: int, contrast: float) -> np.ndarray:
+    """Wood grain: irregularly spaced rings along each plank, plus seams.
+
+    Two properties do all the work, and both are easy to miss.
+
+    **Ring spacing is irregular.** A sinusoid gives evenly spaced ribs and the
+    result reads as corrugated panel, not timber. The gaps here are a cumulative
+    sum of random widths, so no two rings sit the same distance apart -- that
+    irregularity is what the eye actually uses to call something wood.
+
+    **A ring is a narrow dark band, not half a wave.** Latewood is a thin hard
+    line with a wide pale gap after it, so each ring is drawn as a Gaussian a
+    few pixels wide rather than as the dark half of a sine.
+
+    Each plank gets its own ring pattern and its own slight tint, because a
+    table top is sawn from several boards and they never match.
+    """
+    width, height = SURFACE_SIZE
+    field = np.ones((height, width), dtype=np.float32)
+
+    # Grain wanders slowly along the plank; sampled once per surface so the
+    # rings of one plank stay parallel to each other.
+    xs = np.linspace(0, 1, width, dtype=np.float32)
+    wander = sum(
+        amp * plank_px * np.sin(2 * np.pi * freq * xs + rng.uniform(0, 6.28))
+        for freq, amp in ((0.6, 0.10), (1.7, 0.05), (3.9, 0.02))
+    ).astype(np.float32)[None, :]
+
+    top = 0
+    while top < height:
+        depth_px = int(plank_px * rng.uniform(0.8, 1.2))
+        bottom = min(top + depth_px, height)
+        rows = np.arange(top, bottom, dtype=np.float32)[:, None]
+        position = rows - wander                       # ring coordinate
+
+        plank = np.ones((bottom - top, width), dtype=np.float32)
+        plank *= rng.uniform(0.92, 1.08)               # board-to-board variation
+
+        ring = top - plank_px * rng.uniform(0, 1)
+        while ring < bottom + plank_px:
+            ring += plank_px * rng.uniform(0.04, 0.18)  # irregular gap
+            sharpness = plank_px * rng.uniform(0.006, 0.02)
+            plank *= 1.0 - contrast * rng.uniform(0.5, 1.0) * np.exp(
+                -(((position - ring) / sharpness) ** 2)
+            )
+
+        field[top:bottom] = plank
+        if bottom < height:                            # the seam between boards
+            field[max(bottom - 1, 0):bottom + 1, :] *= rng.uniform(0.6, 0.8)
+        top = bottom
+
+    fibre = cv2.blur(_noise((height, width), 2, rng), (41, 1))  # along the grain
+    field *= 1.0 - 0.10 * contrast * (1.0 - fibre)
+    field *= _vignette((height, width), 0.22)
+    return _to_bgr(np.clip(field, 0, 1) * 255, tint)
+
+
+def go_sang(rng: random.Random) -> np.ndarray:
+    """Light wooden table -- the DocCreator `wood03` sort of surface."""
+    return _wood(rng, (150.0 / 255, 200.0 / 255, 234.0 / 255), plank_px=190, contrast=0.30)
+
+
+def go_toi(rng: random.Random) -> np.ndarray:
+    """Dark wooden table: a receipt on it is high contrast, and hard for OCR."""
+    return _wood(rng, (58.0 / 255, 78.0 / 255, 104.0 / 255), plank_px=150, contrast=0.55)
+
+
+def ban_da(rng: random.Random) -> np.ndarray:
+    """Stone or laminate counter: mottled, cool, low contrast."""
+    width, height = SURFACE_SIZE
+    field = 0.42 + 0.18 * _fbm((height, width), rng, octaves=5)
+    speck = _noise((height, width), 2, rng)
+    field += 0.10 * np.clip(speck - 0.82, 0, 1) * 6.0
+    field -= 0.08 * np.clip(0.18 - speck, 0, 1) * 6.0
+    field *= _vignette((height, width), 0.20)
+    return _to_bgr(np.clip(field, 0, 1) * 255, (196.0 / 255, 196.0 / 255, 192.0 / 255))
+
+
+def vai_ban(rng: random.Random) -> np.ndarray:
+    """Table cloth: a woven grid, so the noise has structure at one scale."""
+    width, height = SURFACE_SIZE
+    xs = np.arange(width, dtype=np.float32)[None, :]
+    ys = np.arange(height, dtype=np.float32)[:, None]
+    pitch = rng.uniform(5.0, 9.0)
+    weave = (np.sin(2 * np.pi * xs / pitch) * np.sin(2 * np.pi * ys / pitch)) * 0.5 + 0.5
+    field = 0.36 + 0.10 * weave + 0.10 * _fbm((height, width), rng, octaves=4)
+    field *= _vignette((height, width), 0.26)
+    return _to_bgr(np.clip(field, 0, 1) * 255, (120.0 / 255, 132.0 / 255, 150.0 / 255))
+
+
+SURFACES = {
+    "go_sang": go_sang,
+    "go_toi": go_toi,
+    "ban_da": ban_da,
+    "vai_ban": vai_ban,
+}
+
+
+TEXTURES = Path(__file__).resolve().parent.parent / "textures"
+
+
+def _write(catalogue: dict, out: Path, seed: int, quality: int) -> None:
+    out.mkdir(parents=True, exist_ok=True)
+    for index, (name, make) in enumerate(sorted(catalogue.items())):
+        image = make(random.Random(seed + index * 101))
+        path = out / f"{name}.jpg"
+        cv2.imwrite(str(path), image, [cv2.IMWRITE_JPEG_QUALITY, quality])
+        print(f"[ok] {path}  {image.shape[1]}x{image.shape[0]}")
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "-o", "--out", type=Path,
-        default=Path(__file__).resolve().parent.parent / "textures" / "paper",
-    )
+    parser.add_argument("-o", "--out", type=Path, default=TEXTURES,
+                        help="root; paper/ and background/ are written under it")
     parser.add_argument("--seed", type=int, default=2026)
+    parser.add_argument("--only", choices=("paper", "background"),
+                        help="regenerate just one set")
     args = parser.parse_args()
 
-    args.out.mkdir(parents=True, exist_ok=True)
-    for index, (name, make) in enumerate(sorted(PAPERS.items())):
-        rng = random.Random(args.seed + index * 101)
-        image = make(rng)
-        path = args.out / f"{name}.jpg"
-        cv2.imwrite(str(path), image, [cv2.IMWRITE_JPEG_QUALITY, 92])
-        print(f"[ok] {path}  {image.shape[1]}x{image.shape[0]}")
+    if args.only != "background":
+        _write(PAPERS, args.out / "paper", args.seed, 92)
+    if args.only != "paper":
+        # Surfaces are big and flat; 88 is plenty and halves the repository cost.
+        _write(SURFACES, args.out / "background", args.seed + 7000, 88)
     return 0
 
 
