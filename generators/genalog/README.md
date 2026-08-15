@@ -39,7 +39,8 @@ to supply the real ones.
   with PyMuPDF instead.
 * **The pins have no wheels.** genalog requires `numpy==1.18.1`,
   `WeasyPrint==51`, `scikit-image==0.16.2` and `Jinja2==2.11.1`; none has a
-  wheel for Python 3.9 or newer. It is installed with `--no-deps` and the
+  wheel for Python 3.9 or newer. Its source is vendored here rather than
+  installed, so the pins never apply, and the
   dependencies come from [`requirements.txt`](requirements.txt) at versions
   that exist. Nothing on the path this repository calls touches the pinned
   APIs — `DocumentGenerator`, `Document` and `render_pdf` only need Jinja2 and

@@ -16,9 +16,14 @@ Two things had to be worked around, both from genalog being pinned to 2020:
 * `Document.render_png()` calls WeasyPrint's `write_png()`, removed in
   WeasyPrint 53. The PDF is rasterised with PyMuPDF instead.
 * genalog pins `numpy==1.18.1`, `WeasyPrint==51` and `scikit-image==0.16.2`,
-  none of which has a wheel for Python 3.9+. It is installed with `--no-deps`
-  and the dependencies are supplied at versions that exist; nothing genalog is
+  none of which has a wheel for Python 3.9+. Its source is vendored in this
+  directory instead of installed, so the pins never apply; the dependencies
+  come from `requirements.txt` at versions that exist, and nothing genalog is
   used for here touches the pinned APIs.
+
+Because this file lives beside the vendored tree, `generators/genalog/` is
+`sys.path[0]` whenever it runs, so `import genalog` resolves to that tree and
+not to anything pip installed.
 """
 
 from __future__ import annotations

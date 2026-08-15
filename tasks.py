@@ -29,6 +29,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "tools"))
 
 from paths import (  # noqa: E402
     REPO_ROOT,
+    VENDORED,
     VENVS,
     WINDOWS,
     first_available_python,
@@ -100,16 +101,16 @@ def setup_html(args) -> None:
 
 @task("setup-genalog", "genalog renderer: WeasyPrint plus PyMuPDF")
 def setup_genalog(args) -> None:
-    venv = VENVS["genalog"]
-    run([sys.executable, "-m", "venv", venv])
-    python = venv_python(venv)
-    run([python, "-m", "pip", "install", "-q", "-U", "pip"])
-    # genalog pins numpy 1.18 / WeasyPrint 51 / scikit-image 0.16, none of which
-    # has a wheel for Python 3.9+; nothing we call touches those APIs.
-    run([python, "-m", "pip", "install", "-q", "--no-deps", "genalog"])
-    run([python, "-m", "pip", "install", "-q", "-r",
-         REPO_ROOT / "generators" / "genalog" / "requirements.txt"])
-    run([python, "-c", "import genalog, weasyprint; print('genalog renderer ready')"])
+    genalog = REPO_ROOT / "generators" / "genalog"
+    python = _make_venv("genalog", genalog / "requirements.txt")
+    # genalog itself is NOT installed from PyPI: its source is vendored under
+    # generators/genalog/, and because that directory is the script directory of
+    # render.py it lands on sys.path[0] and wins over anything pip installed.
+    # Installing the package as well would leave two copies with the vendored
+    # one silently shadowing the other.
+    run([python, "-c", "import sys; sys.path.insert(0, r'%s');"
+                       " import genalog, weasyprint;"
+                       " print('genalog renderer ready:', genalog.__file__)" % genalog])
     if WINDOWS:
         print(
             "\nNOTE: WeasyPrint on Windows needs the GTK runtime for Pango and "
@@ -210,7 +211,7 @@ def _tracked_python() -> list[Path]:
     ).stdout.split()
     return [
         REPO_ROOT / name for name in listing
-        if not name.startswith("generators/html-table/")
+        if not name.startswith(VENDORED)
     ]
 
 
