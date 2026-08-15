@@ -24,6 +24,9 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from paths import VENVS, venv_python  # noqa: E402
 
 from rulebase import available_layouts  # noqa: E402
 
@@ -32,21 +35,23 @@ from rulebase import available_layouts  # noqa: E402
 # producing an aged "clean" set.
 CLEAN_AUGMENTATION = "khong_lam_gi"
 
-# name -> (interpreter, script, working directory)
+# name -> (interpreter, script, working directory). The interpreter path is
+# resolved rather than hardcoded: a virtualenv keeps it in `bin/` on POSIX and
+# `Scripts/` on Windows.
 BACKENDS = {
     "synthdog": (
-        REPO_ROOT / "generators/synthdog/.venv/bin/python",
-        REPO_ROOT / "generators/synthdog/render.py",
-        REPO_ROOT / "generators/synthdog",
+        venv_python(VENVS["synthdog"]),
+        REPO_ROOT / "generators" / "synthdog" / "render.py",
+        REPO_ROOT / "generators" / "synthdog",
     ),
     "html": (
-        REPO_ROOT / "generators/html/.venv/bin/python",
-        REPO_ROOT / "generators/html/render.py",
+        venv_python(VENVS["html"]),
+        REPO_ROOT / "generators" / "html" / "render.py",
         REPO_ROOT,
     ),
     "genalog": (
-        REPO_ROOT / "generators/genalog/.venv/bin/python",
-        REPO_ROOT / "generators/genalog/render.py",
+        venv_python(VENVS["genalog"]),
+        REPO_ROOT / "generators" / "genalog" / "render.py",
         REPO_ROOT,
     ),
 }
@@ -64,7 +69,8 @@ def run_backend(name: str, out: Path, count: int, seed: int, layouts: list[str],
     interpreter, script, cwd = BACKENDS[name]
     if not interpreter.exists():
         raise SystemExit(
-            f"{name}: no interpreter at {interpreter}. Build it with `make setup-{name}`."
+            f"{name}: no interpreter at {interpreter}.\n"
+            f"Build it with `python tasks.py setup-{name}` (or `make setup-{name}`)."
         )
 
     out.mkdir(parents=True, exist_ok=True)

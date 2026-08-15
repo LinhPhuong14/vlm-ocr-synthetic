@@ -190,7 +190,7 @@ Donut cần Pillow/NumPy mới hơn mức synthtiger cho phép.
 | `elements/warp.py` | `CurlWarp` — cong giấy phi tuyến, **có map lại toạ độ** |
 | `config_vi_receipt.yaml` | Tham số riêng của renderer glyph: khung ảnh, độ cong, hiệu ứng chụp |
 | `requirements.txt` | Thư viện đã ghim phiên bản |
-| `resources/background/` | Ảnh nền — bạn tự cung cấp, không có trong repo |
+| `resources/background/` | Ảnh nền riêng của bạn (tuỳ chọn) — mặc định lấy từ `textures/background/` ở gốc repo |
 | `resources/font/<mono\|sans>/` | Font riêng của bạn; có thì được ưu tiên hơn `fonts/` ở gốc repo |
 | `tools/preview_receipt.py` | Xem trước, ghép lưới, vẽ box |
 | `tools/check_fonts.py` | Kiểm tra font có đủ glyph tiếng Việt |
@@ -284,10 +284,13 @@ mãi, font, cỡ chữ, độ đậm mực, tờ giấy, màu mực, chuỗi là
 
 ## 12. Hạn chế đã biết
 
-- **Ảnh nền** không có trong repo — bỏ vài chục ảnh chụp mặt bàn / tay cầm hoá đơn vào
-  `resources/background` sẽ cải thiện realism **nhiều hơn bất kỳ thay đổi code nào** —
-  đây là việc đáng làm đầu tiên. Đây cũng là lý do renderer này khó đọc nhất trong ba
-  renderer: xem điểm OCR ở [`data/dataset60/proof/`](../../data/dataset60/proof).
+- **Ảnh nền là ảnh sinh, không phải ảnh chụp.** `textures/background/` có bốn mặt
+  bàn sinh bằng `make textures` (gỗ sáng, gỗ tối, đá, vải). Bỏ vài chục ảnh **chụp
+  thật** mặt bàn / tay cầm hoá đơn vào `resources/background` rồi trỏ
+  `background.image.paths` vào đó sẽ cải thiện realism **nhiều hơn bất kỳ thay đổi
+  code nào** — đây là việc đáng làm đầu tiên. Đây cũng là lý do renderer này khó đọc
+  nhất trong ba renderer: xem điểm OCR ở
+  [`data/dataset60/proof/`](../../data/dataset60/proof).
 - Font: 5 mono + 5 sans, đều đã kiểm tra phủ đủ dấu tiếng Việt. Hoá đơn thật còn dùng
   nhiều font máy kim / máy nhiệt khác nữa.
 - `CurlWarp` mô hình hoá giấy cong theo sóng trơn; nếp gấp gãy góc do

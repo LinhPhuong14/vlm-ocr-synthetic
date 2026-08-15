@@ -27,6 +27,16 @@ như mọi chỗ "viết lạ" trong repo này đều là hậu quả của mộ
 make setup          # dựng cả ba: setup-synthdog, setup-html, setup-genalog
 ```
 
+Không có `make` (Windows chẳng hạn) thì gọi thẳng task runner — **mọi task định
+nghĩa ở `tasks.py`**, `Makefile` chỉ forward, nên hai bên không thể lệch nhau:
+
+```powershell
+py -3.11 tasks.py setup
+py tasks.py            # liệt kê task
+```
+
+Chi tiết Windows: [`windows.md`](windows.md).
+
 Ba môi trường **không gộp được**. synthtiger ghim `pillow<10` (nó gọi
 `ImageFont.getsize()`, API bị xoá ở Pillow 10) còn WeasyPrint đời mới cần
 Pillow mới. Đây là mâu thuẫn thật, không phải sự cẩn thận thừa — xem

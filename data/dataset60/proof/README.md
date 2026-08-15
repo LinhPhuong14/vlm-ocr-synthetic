@@ -9,7 +9,7 @@ one string would measure reading order rather than recognition. See
 
 | framework | ảnh | token recall | recall (bỏ dấu) | field hit | field hit (bỏ dấu) | số tiền đọc đúng |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| synthdog | 20 | 0.411 | 0.448 | 0.236 | 0.271 | 25/144 (17%) |
+| synthdog | 20 | 0.398 | 0.428 | 0.238 | 0.269 | 33/144 (23%) |
 | html | 20 | 0.682 | 0.705 | 0.588 | 0.605 | 65/141 (46%) |
 | genalog | 20 | 0.757 | 0.778 | 0.659 | 0.676 | 76/149 (51%) |
 
@@ -17,33 +17,33 @@ one string would measure reading order rather than recognition. See
 
 | giá trị | ảnh | token recall |
 | --- | ---: | ---: |
-| quan_nhau_stt | 12 | 0.729 |
-| sieu_thi_barcode | 12 | 0.699 |
-| sieu_thi_vat | 12 | 0.609 |
-| quan_an_ascii | 12 | 0.607 |
-| sieu_thi_gia_sl | 12 | 0.440 |
+| quan_nhau_stt | 12 | 0.721 |
+| sieu_thi_barcode | 12 | 0.714 |
+| quan_an_ascii | 12 | 0.604 |
+| sieu_thi_vat | 12 | 0.596 |
+| sieu_thi_gia_sl | 12 | 0.427 |
 
 ## Theo mức làm cũ
 
 | giá trị | ảnh | token recall |
 | --- | ---: | ---: |
 | khong_lam_gi | 4 | 0.907 |
-| giay_that | 10 | 0.831 |
-| chu_bong | 12 | 0.729 |
-| vua | 11 | 0.559 |
-| vet_ban | 8 | 0.528 |
-| photocopy | 9 | 0.511 |
-| rach_giay | 6 | 0.225 |
+| giay_that | 10 | 0.832 |
+| chu_bong | 12 | 0.735 |
+| vua | 11 | 0.544 |
+| vet_ban | 8 | 0.527 |
+| photocopy | 9 | 0.516 |
+| rach_giay | 6 | 0.188 |
 
 ## Theo kiểu máy in
 
 | giá trị | ảnh | token recall |
 | --- | ---: | ---: |
-| laser_net | 14 | 0.779 |
-| nhiet_mo | 22 | 0.584 |
-| nhiet_hep | 13 | 0.584 |
-| nhiet_dam | 10 | 0.548 |
-| kim_cu | 1 | 0.179 |
+| laser_net | 14 | 0.781 |
+| nhiet_hep | 13 | 0.588 |
+| nhiet_mo | 22 | 0.573 |
+| nhiet_dam | 10 | 0.526 |
+| kim_cu | 1 | 0.291 |
 
 ## Ảnh minh hoạ
 

@@ -1,14 +1,14 @@
 """
-Donut
-Copyright (c) 2022-present NAVER Corp.
+Donut / SynthDoG-VN
 MIT License
+
+Chỉ còn ba element mà template hoá đơn dùng. Các element của SynthDoG gốc
+(`Content`, `Document`, `Paper`, `TextBox`) và `layouts/` đã bỏ cùng với
+`template.py` — chúng chỉ phục vụ template sinh trang wiki đa ngôn ngữ, không
+liên quan tới hoá đơn. Cần lại thì lấy từ lịch sử git hoặc từ clovaai/donut.
 """
 from elements.background import Background
-from elements.content import Content
-from elements.document import Document
-from elements.paper import Paper
 from elements.receipt import Receipt
-from elements.textbox import TextBox
 from elements.warp import CurlWarp
 
-__all__ = ["Background", "Content", "CurlWarp", "Document", "Paper", "Receipt", "TextBox"]
+__all__ = ["Background", "CurlWarp", "Receipt"]
