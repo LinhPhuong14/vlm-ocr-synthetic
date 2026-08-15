@@ -128,7 +128,7 @@ def setup(args) -> None:
 # ------------------------------------------------------------- generation
 
 
-@task("textures", "regenerate the shared paper and background textures")
+@task("textures", "regenerate the generated paper sheets in textures/paper")
 def textures(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "make_textures.py"])
 
