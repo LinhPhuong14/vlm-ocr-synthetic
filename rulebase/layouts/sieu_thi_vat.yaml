@@ -1,6 +1,5 @@
 # Bố cục siêu thị có dòng VAT riêng cho từng mặt hàng.
 #
-# Đo từ ảnh mẫu: Saigon Co.op — PHIẾU TÍNH TIỀN, Quầy 01, 24/07/2022.
 # Dấu hiệu nhận biết: dòng đầu của mặt hàng là "mã vạch + tên"; dòng thứ hai
 # là "VAT x% + số lượng + đơn giá + thành tiền"; hàng giảm giá có thêm dòng
 # "Giá gốc:". Tiền in hai chữ số thập phân (203,500.00).
