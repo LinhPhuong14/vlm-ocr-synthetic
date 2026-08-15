@@ -79,6 +79,7 @@ Where to look for a thing:
 | one picture per degradation model | `samples/degradation/` |
 | to run something end to end | `make help` — the tasks are there, not in a directory |
 | why a version is pinned | `docs/python-versions.md` |
+| how a renderer works, function by function | [`docs/huong-dan-va-giai-thich.md`](docs/huong-dan-va-giai-thich.md) |
 
 Three names appear twice in the tree and mean different things. If you are
 about to edit one, check which:
@@ -121,6 +122,10 @@ make preview-grid        # one sampled receipt per bố cục, as text
 
 Full guide — adding attributes, layouts, corpus entries, tuning the
 distribution: **[`rulebase/README.md`](rulebase/README.md)**.
+
+A line-by-line walkthrough of all three renderers, in Vietnamese, with the
+reasoning behind each decision and a Q&A:
+**[`docs/huong-dan-va-giai-thich.md`](docs/huong-dan-va-giai-thich.md)**.
 
 ### The five bố cục
 
