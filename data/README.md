@@ -1,62 +1,66 @@
-# data — bộ dữ liệu đã sinh
+# data — the generated datasets
 
-| bộ | ảnh | mô tả |
+| set | images | what it is |
 | --- | ---: | --- |
-| [`dataset60/`](dataset60) | 60 | có làm cũ — chuỗi degradation bốc theo luật, renderer glyph còn cong giấy và chụp lại |
-| [`dataset60_clean/`](dataset60_clean) | 60 | **không augmented** — cùng rule-base, cùng 5 bố cục, tắt hết làm cũ và biến dạng |
+| [`dataset60/`](dataset60) | 60 | **aged** — a degradation chain drawn from the rules; the glyph renderer also curls the sheet and re-photographs it |
+| [`dataset60_clean/`](dataset60_clean) | 60 | **not augmented** — same rule-base, same 5 layouts, every kind of ageing and distortion off |
 
-Mỗi bộ 20 ảnh cho mỗi renderer (synthdog / html / genalog), trải đều 5 bố cục.
+20 images per renderer (synthdog / html / genalog) in each set, spread evenly
+over the 5 layouts.
 
-Sinh lại:
+Regenerate:
 
 ```bash
-make dataset                              # bộ có làm cũ
-make dataset-clean                        # bộ sạch
-make proof DATASET=data/dataset60         # đọc lại bằng Tesseract và chấm điểm
+make dataset                              # the aged set
+make dataset-clean                        # the clean set
+make proof DATASET=data/dataset60         # read it back with Tesseract and score it
 ```
 
-## Hai bộ khác nhau chỗ nào
+## What separates the two sets
 
-Chỉ khác **một thuộc tính** của rule-base: bộ sạch ghim
-`augmentation=pristine`, tức chuỗi degradation rỗng. Nội dung, bố cục,
-font, màu vẫn bốc như thường.
+Exactly **one attribute** of the rule-base: the clean set pins
+`augmentation=pristine`, an empty degradation chain. Content, layout, font and
+colour are still sampled as usual.
 
-Riêng renderer glyph còn một nguồn biến dạng nữa mà hai renderer HTML không có
-— nó cong tờ giấy, làm méo phối cảnh, thả lên nền rồi "chụp lại". `--clean`
-tắt luôn cả phần đó, nếu không thì "không augmented" chỉ đúng với hai trên ba
-renderer. Kết quả là ảnh đúng bằng khổ tờ giấy, không thấy nền.
+The glyph renderer has one more source of distortion that the two HTML
+renderers do not: it curls the sheet, warps the perspective, drops it on a
+background and "re-photographs" it. `--clean` turns that off as well —
+otherwise "not augmented" would only be true for two renderers out of three.
+The result is an image exactly the size of the sheet, with no background
+visible.
 
-Dùng bộ sạch làm **mốc trên**: nhãn có khớp ảnh không, OCR đọc được tối đa tới
-đâu khi không có gì cản. So với `dataset60/` thì phần chênh chính là cái giá
-của việc làm cũ.
+Use the clean set as the **ceiling**: does the label match the pixels, and how
+much can OCR read when nothing is in the way. The gap to `dataset60/` is the
+price of the ageing.
 
-Bộ này **được commit vào git**. Điểm chính của repo là mở ra xem được ngay mà
-không cần dựng ba môi trường trước — nên ảnh, nhãn và báo cáo OCR đều nằm trong
-repo. Còn mọi thứ renderer tự ghi ra `outputs/` thì không.
+Both sets are **committed to git**. The point of the repository is that you can
+open it and look without building three environments first, so the images, the
+labels and the OCR report are all in the repo. Anything a renderer writes to
+`outputs/` is not.
 
-## Cấu trúc
+## Structure
 
 ```
 dataset60/
-├── dataset.json            số ảnh mỗi renderer, phân bổ theo bố cục
+├── dataset.json            images per renderer, and the split by layout
 ├── synthdog/
-│   ├── synthdog_000.jpg …  20 ảnh
-│   └── metadata.jsonl      một dòng một ảnh
+│   ├── synthdog_000.jpg …  20 images
+│   └── metadata.jsonl      one line per image
 ├── html/       …
 ├── genalog/    …
 └── proof/
-    ├── README.md           bảng điểm OCR
-    ├── ocr_report.json     điểm từng ảnh + các trường đọc sai nhiều nhất
-    └── proof_*.jpg         ảnh gốc kèm khung từng từ Tesseract đọc được
+    ├── README.md           the OCR score tables
+    ├── ocr_report.json     per-image scores and the most-misread fields
+    └── proof_*.jpg         the image with a box round every word Tesseract read
 ```
 
-## Một dòng `metadata.jsonl`
+## One line of `metadata.jsonl`
 
 ```json
 {
   "file_name": "synthdog_000.jpg",
   "framework": "synthdog",
-  "layout": "quan_nhau_stt",
+  "layout": "eatery_indexed",
   "ground_truth": "{\"gt_parse\": {…}}",
   "text_sequence": "QUÁN NHẬU SEN VÀNG 251 235 Phan Xích Long …",
   "recipe": {"seed": 2026, "attributes": {…}, "tags": […]},
@@ -64,12 +68,12 @@ dataset60/
 }
 ```
 
-| trường | |
+| field | |
 | --- | --- |
-| `ground_truth` | nhãn lồng nhau kiểu CORD, dạng chuỗi JSON (Donut đọc trực tiếp) |
-| `text_sequence` | nhãn đọc-trơn, dùng cho pre-training và cho việc chấm OCR |
-| `recipe` | **đầy đủ** 6 thuộc tính đã bốc, kèm seed — dựng lại ảnh y hệt được |
-| `boxes` | toạ độ polygon từng ô, vẫn đúng sau khi tờ giấy đã bị làm cong. Chỉ renderer glyph có |
+| `ground_truth` | CORD-style nested label, as a JSON string (Donut reads it directly) |
+| `text_sequence` | flat reading label, for pre-training and for OCR scoring |
+| `recipe` | **all six** sampled attributes plus the seed — enough to rebuild the exact image |
+| `boxes` | per-cell polygons, still correct after the sheet has been curled. Glyph renderer only |
 
-`recipe.seed` là thứ làm cho bộ dữ liệu tái lập được: `rulebase.make(seed=n)` cho
-lại đúng nội dung đó, và mỗi renderer vẽ lại đúng ảnh đó.
+`recipe.seed` is what makes the set reproducible: `rulebase.make(seed=n)` gives
+back that same content, and each renderer redraws that same image.

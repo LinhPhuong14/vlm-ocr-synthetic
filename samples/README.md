@@ -1,25 +1,27 @@
-# samples — ví dụ đã chọn sẵn
+# samples — curated examples
 
-Xem được ngay, không cần dựng môi trường.
+Viewable straight away, with no environment to build.
 
-| thư mục | nội dung |
+| directory | contents |
 | --- | --- |
-| [`degradation/`](degradation) | mỗi model làm cũ áp riêng lẻ lên **cùng một trang giấy**, kèm ảnh ghép |
+| [`degradation/`](degradation) | every ageing model applied on its own to **the same page**, plus a contact sheet |
 
-Sinh lại: `make showcase`.
+Regenerate: `make showcase`.
 
-Bộ dữ liệu đầy đủ 60 ảnh — ba renderer, năm bố cục, kèm nhãn và điểm OCR — nằm ở
-[`data/dataset60/`](../data/dataset60), không phải ở đây.
+The full 60-image dataset — three renderers, five layouts, with labels and OCR
+scores — is in [`data/dataset60/`](../data/dataset60), not here.
 
-## degradation/
+## Reading the degradation showcase
 
-`showcase-before.jpg` là trang gốc; mỗi `showcase-<tên>.jpg` là trang đó sau khi
-áp **một** model. `showcase-contact.jpg` ghép tất cả lại để so sánh nhanh, và
-`showcase.json` ghi tham số đã dùng.
+`showcase-before.jpg` is the original page; each `showcase-<name>.jpg` is that
+page after **one** model. `showcase-contact.jpg` tiles them all for a quick
+comparison, and `showcase.json` records the parameters used.
 
-Áp từng model riêng chính là điểm của bộ này: dán texture giấy, ghép vết bẩn
-bằng Poisson blending, và dán mực thừa vào rìa chữ trông hoàn toàn khác nhau —
-chạy cả chuỗi thì không phân biệt được cái nào gây ra cái gì.
+Applying one model at a time is the whole point of this set: pasting a paper
+texture, blending a stain in the gradient domain, and stamping leftover ink
+against a character's flank look nothing alike — run the whole chain and you
+cannot tell which step caused what.
 
-Tham số ở đây chọn để **nhìn thấy rõ**, không phải để giống thật. Tham số dùng
-thật nằm trong [`rulebase/rules/augmentation.yaml`](../rulebase/rules/augmentation.yaml).
+The parameters here are chosen to be **clearly visible**, not to be realistic.
+The ones actually used are in
+[`rulebase/rules/augmentation.yaml`](../rulebase/rules/augmentation.yaml).

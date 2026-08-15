@@ -5,6 +5,12 @@
 #   gradient_domain    ghép vết bẩn bằng Poisson blending (Seuret và cs. 2015)
 #   phantom_character  dán mảng mực thừa vào rìa chữ
 #
+# `paper_overlay` khác `paper_texture` ở CHỖ ĐỨNG trong chuỗi, không ở ảnh dùng:
+# `paper_texture` chạy TRƯỚC, chỉ làm tối, nên tờ giấy hiện dưới chữ mà không
+# chạm vào nét mực; `paper_overlay` chạy CUỐI, phủ ảnh chụp giấy thật của
+# SynthDoG (`augmentations/data/image/`) lên trên tất cả — cả mực. Qua cả hai
+# thì trang giấy trông như được IN LÊN giấy, chứ không phải dán lên ảnh giấy.
+#
 # Bốc sau cùng, nên chỗ này thấy được mọi thẻ phía trên. Ví dụ trang in nhiệt
 # không bao giờ bị "bleed-through" vì giấy nhiệt chỉ in một mặt.
 
@@ -21,6 +27,7 @@ options:
     params:
       chain:
         - [paper_texture, {alpha: 0.35, grain: 0.5}]
+        - [paper_overlay, {alpha: 0.28, lighten: 0.3}]
 
   - id: light
     weight: 4
@@ -40,6 +47,7 @@ options:
         - [ink_degradation, {level: 3}]
         - [blur_zones, {radius: 1.1, zones: 2, coverage: 0.15}]
         - [shadow_binding, {border: bottom, distance_ratio: 0.10, intensity: 0.35}]
+        - [paper_overlay, {alpha: 0.3, lighten: 0.35}]
 
   - id: heavy
     weight: 2
@@ -83,6 +91,7 @@ options:
         - [phantom_character, {frequency: rare}]
         - [blur, {radius: 0.8}]
         - [shadow_binding, {border: top, distance_ratio: 0.08, intensity: 0.3}]
+        - [paper_overlay, {alpha: 0.22, lighten: 0.4}]
 
   - id: crumpled
     weight: 2
@@ -94,6 +103,7 @@ options:
         - [ink_degradation, {level: 3}]
         - [gradient_domain, {count: 3, strength: 0.6}]
         - [blur_zones, {radius: 1.2, zones: 3, coverage: 0.18}]
+        - [paper_overlay, {alpha: 0.34, lighten: 0.3}]
 
   - id: torn_edges
     weight: 2

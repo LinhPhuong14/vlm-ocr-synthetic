@@ -5,7 +5,8 @@
 #
 # paper: tên file (không đuôi) trong `textures/paper/`. CẢ BA renderer đều đọc
 # từ thư mục đó, nên cùng một recipe cho ra cùng một tờ giấy dù vẽ bằng glyph
-# hay bằng HTML.
+# hay bằng HTML. Viết một danh sách thì bốc ngẫu nhiên trong danh sách đó —
+# dùng cho máy in ăn nhiều loại giấy, còn máy in nhiệt thì chỉ một cuộn.
 #
 # font_dir: thư mục font cho renderer glyph; font_family: tên font cho renderer
 # HTML. Hai cái phải trỏ tới cùng một bộ chữ, nếu không hai backend sẽ ngắt
@@ -79,7 +80,8 @@ options:
       padding_bottom: [1.6, 2.8]
       ink_gray: [30, 90]
       bold: 0.20
-      paper: recycled
+      # Máy in kim ăn đủ loại giấy rời, nên bốc trong ba loại giấy thô.
+      paper: [recycled, wood_light, table_cloth, wood_dark]
       paper_alpha: [0.12, 0.30]
       curl: 0.5
 
@@ -96,6 +98,6 @@ options:
       padding_bottom: [2.0, 3.2]
       ink_gray: [0, 25]
       bold: 0.30
-      paper: office_a5
+      paper: [office_a5, stone_top]
       paper_alpha: [0.02, 0.10]
       curl: 0.25

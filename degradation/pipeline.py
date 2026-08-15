@@ -46,6 +46,13 @@ def apply_recipe(image: np.ndarray, recipe, seed: int | None = None) -> np.ndarr
     """
     rng = random.Random(recipe.seed if seed is None else seed)
     paper = recipe.get("visual", "paper", "auto")
+    if isinstance(paper, (list, tuple)):
+        # `visual.paper` may name a shortlist rather than one sheet. Drawn here
+        # rather than left to `_pick_texture`, because that helper's fallback is
+        # "any file in the directory" -- a shortlist has to stay a shortlist, or
+        # an impact printer offered three coarse stocks would also be handed the
+        # glossy thermal roll.
+        paper = rng.choice(list(paper))
     alpha_range = recipe.get("visual", "paper_alpha")
 
     out = image

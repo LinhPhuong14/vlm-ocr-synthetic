@@ -21,13 +21,13 @@ receipt:
   local_font_root: resources/font
   margin_scale: [0.9, 1.15]    # nhân thêm vào `visual.margin` của recipe
 
-# Mặt bàn tờ hoá đơn nằm lên. Ảnh trong `textures/background/` sinh bằng
-# `make textures` — cùng loại bề mặt mà DocCreator dùng cho khâu này
-# (`data/Mesh/Background/wood*.jpg`: mặt bàn gỗ), nhưng tự sinh chứ không
-# vendor, vì ảnh của họ là data LGPL.
+# Khung cảnh tờ hoá đơn nằm trong. `textures/background/` là ảnh CHỤP THẬT,
+# lấy từ `resources/background/` của SynthDoG — KHÔNG sinh bằng
+# `make textures` như `textures/paper/`. Ảnh sinh ra bằng code chính là thứ
+# làm lộ ngay một tấm ảnh ghép, nên chỗ này phải là ảnh thật.
 #
-# Có ảnh chụp mặt bàn thật thì trỏ thẳng vào đây — vài chục tấm chụp bằng điện
-# thoại sẽ ăn đứt ảnh sinh, và đó vẫn là cách cải thiện realism rẻ nhất.
+# Chỉ renderer glyph đọc tới đây; hai renderer HTML cho ra bản quét phẳng,
+# không có nền.
 background:
   image:
     paths: [../../textures/background]

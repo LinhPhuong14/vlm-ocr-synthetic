@@ -7,65 +7,66 @@ order its layout analysis picks, so comparing its output to the label as
 one string would measure reading order rather than recognition. See
 `tools/ocr_proof.py` for the definitions.
 
-| framework | ảnh | token recall | recall (bỏ dấu) | field hit | field hit (bỏ dấu) | số tiền đọc đúng |
+| framework | images | token recall | recall (folded) | field hit | field hit (folded) | money read exactly |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| synthdog | 20 | 0.849 | 0.874 | 0.765 | 0.784 | 112/144 (78%) |
+| synthdog | 20 | 0.829 | 0.856 | 0.753 | 0.781 | 105/144 (73%) |
 | html | 20 | 0.853 | 0.865 | 0.792 | 0.802 | 114/141 (81%) |
 | genalog | 20 | 0.869 | 0.877 | 0.805 | 0.805 | 109/149 (73%) |
 
-## Theo bố cục
+## By layout
 
-| giá trị | ảnh | token recall |
+| value | images | token recall |
 | --- | ---: | ---: |
-| eatery_indexed | 12 | 0.926 |
-| market_barcode | 12 | 0.917 |
-| market_vat | 12 | 0.896 |
-| market_compact | 12 | 0.780 |
-| eatery_ascii | 12 | 0.766 |
+| eatery_indexed | 12 | 0.913 |
+| market_barcode | 12 | 0.907 |
+| market_vat | 12 | 0.887 |
+| market_compact | 12 | 0.783 |
+| eatery_ascii | 12 | 0.761 |
 
-## Theo mức làm cũ
+## By level of ageing
 
-| giá trị | ảnh | token recall |
+| value | images | token recall |
 | --- | ---: | ---: |
-| pristine | 60 | 0.857 |
+| pristine | 60 | 0.850 |
 
-## Theo kiểu máy in
+## By kind of printer
 
-| giá trị | ảnh | token recall |
+| value | images | token recall |
 | --- | ---: | ---: |
-| laser_sharp | 14 | 0.943 |
-| dot_matrix | 1 | 0.846 |
-| thermal_narrow | 13 | 0.840 |
-| thermal_dark | 10 | 0.834 |
-| thermal_faint | 22 | 0.823 |
+| laser_sharp | 14 | 0.942 |
+| thermal_narrow | 13 | 0.839 |
+| thermal_dark | 10 | 0.817 |
+| thermal_faint | 22 | 0.817 |
+| dot_matrix | 1 | 0.786 |
 
-## Ảnh minh hoạ
+## The illustrations
 
-`proof_<framework>_NN.jpg` là ảnh gốc kèm khung từng từ Tesseract đọc được —
-xanh lá là độ tin cậy ≥ 70%, cam là thấp hơn.
+`proof_<framework>_NN.jpg` is the original image with a box round every
+word Tesseract read -- green where its confidence is >= 70%, orange below.
 
-## Cách đọc bảng
+## How to read these tables
 
-**Chênh lệch giữa ba renderer là có thật, không phải lỗi.** Renderer glyph
-cho ra ảnh *chụp* tờ hoá đơn nằm trên bàn — có phối cảnh, có bóng đèn, có
-nền tối; hai renderer HTML cho ra bản *quét phẳng* và bản *in*. Ảnh chụp
-khó hơn hẳn, và đó chính là lý do giữ cả ba: một model chỉ thấy bản quét
-phẳng thì chưa từng gặp trường hợp khó.
+**The spread between the three renderers is real, not a bug.** The glyph
+renderer produces a *photograph* of a receipt lying on a table -- with
+perspective, a lamp and a dark background; the two HTML renderers produce
+a *flat scan* and a *print*. A photograph is markedly harder, and that is
+precisely why all three are kept: a model that has only seen flat scans
+has never met the hard case.
 
-**Thứ tự trong bảng "mức làm cũ" là bằng chứng rule-base thật sự điều
-khiển được độ khó**: `pristine` và `real_paper` ở trên cùng,
-`crumpled` ở dưới cùng, đơn điệu suốt dải. Chỉnh `weight` trong
-`rulebase/rules/augmentation.yaml` là dịch được cả bộ dữ liệu dễ hơn hoặc
-khó hơn.
+**The order of the "ageing" table is the evidence that the rule-base
+really does control difficulty**: `pristine` and `real_paper` at the top,
+`crumpled` at the bottom, monotone across the range. Editing `weight` in
+`rulebase/rules/augmentation.yaml` shifts the whole dataset easier or
+harder.
 
-**Cột "bỏ dấu" cao hơn cột thường bao nhiêu thì phần lỗi chỉ nằm ở dấu
-thanh bấy nhiêu.** Khoảng cách ở đây nhỏ, nghĩa là lỗi chủ yếu là nhận
-nhầm ký tự chứ không phải mất dấu.
+**However much higher the "folded" column is than the plain one is how
+much of the error is tone marks alone.** The gap here is small, which means
+the errors are mostly mis-recognised characters rather than lost diacritics.
 
-Đây là điểm của **Tesseract**, một engine đa dụng chưa fine-tune trên hoá
-đơn nhiệt tiếng Việt. Nó là mốc dưới, không phải trần: điểm thấp trên ảnh
-làm cũ nặng là dấu hiệu ảnh đủ khó, không phải dấu hiệu nhãn sai. Muốn
-kiểm tra nhãn có khớp ảnh không thì nhìn `worst_fields` trong
-`ocr_report.json` — trường nào sai một cách có hệ thống trên MỌI ảnh mới
-là nhãn hỏng.
+These are **Tesseract's** scores -- a general-purpose engine that has not
+been fine-tuned on Vietnamese thermal receipts. It is a floor, not a
+ceiling: a low score on a heavily aged image is evidence the image is hard,
+not evidence the label is wrong. To check whether a label matches its
+pixels, look at `worst_fields` in `ocr_report.json` -- a field that is
+wrong systematically across EVERY image is a broken label.
 

@@ -2,7 +2,7 @@
 
     python tools/make_textures.py
 
-Every renderer composites onto `textures/paper/`, so these four sheets are what
+Every renderer composites onto `textures/paper/`, so these eight sheets are what
 a receipt is printed on whether it was drawn with glyphs or with HTML. They are
 generated rather than photographed for two reasons: photographs of paper are
 rarely redistributable, so a fresh clone would have nothing to render onto; and
@@ -110,16 +110,16 @@ PAPERS = {
 
 # --------------------------------------------------------------- surfaces
 #
-# What the sheet is photographed ON, as opposed to what it is printed on.
-# DocCreator ships exactly this idea in `data/Mesh/Background/wood00..04.jpg`
-# -- wooden desk tops -- and that is the right kind of surface: a receipt is
-# almost always shot lying on a table. Their images are LGPL data, the same
-# reason the stain and phantom patterns are not vendored either, so the same
-# surfaces are generated here instead.
+# Coarse sheets, generated the way DocCreator generates a desk top:
+# `data/Mesh/Background/wood00..04.jpg`. Their images are LGPL data, the same
+# reason the stain and phantom patterns are not vendored either, so the grain
+# is synthesised here instead.
 #
-# Point `background.image.paths` in config_vi_receipt.yaml at a directory of
-# real photographs whenever you have them -- a few dozen phone shots of tables
-# will beat these, and the README says so.
+# These started life as what a receipt was photographed ON and are now four
+# more sheets it can be printed on. `paper_texture` is multiplicative and
+# takes an `alpha`, so at 0.3-0.5 a wood or weave grain reads as coarse recycled
+# stock rather than as a table -- while `textures/background/` holds real
+# photographs, which no generator can match.
 
 SURFACE_SIZE = (1200, 800)
 
@@ -237,17 +237,25 @@ def _write(catalogue: dict, out: Path, seed: int, quality: int) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("-o", "--out", type=Path, default=TEXTURES,
-                        help="root; paper/ and background/ are written under it")
+                        help="root; everything is written under it into paper/")
     parser.add_argument("--seed", type=int, default=2026)
-    parser.add_argument("--only", choices=("paper", "background"),
+    parser.add_argument("--only", choices=("smooth", "coarse"),
                         help="regenerate just one set")
     args = parser.parse_args()
 
-    if args.only != "background":
+    # Both sets land in paper/. They are kept as two catalogues with two seed
+    # bases rather than merged into one, because `_write` seeds each sheet by
+    # its position in the sorted catalogue -- merging them would renumber every
+    # entry and silently redraw all eight files.
+    if args.only != "coarse":
         _write(PAPERS, args.out / "paper", args.seed, 92)
-    if args.only != "paper":
-        # Surfaces are big and flat; 88 is plenty and halves the repository cost.
-        _write(SURFACES, args.out / "background", args.seed + 7000, 88)
+    if args.only != "smooth":
+        # Coarse sheets are big and flat; 88 is plenty and halves the cost.
+        _write(SURFACES, args.out / "paper", args.seed + 7000, 88)
+
+    # textures/background/ is NOT generated: it holds SynthDoG's photographs of
+    # real scenes, and a synthetic table top is exactly the thing that gives a
+    # composited receipt away.
     return 0
 
 
