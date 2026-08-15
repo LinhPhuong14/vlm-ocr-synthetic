@@ -129,10 +129,10 @@ def main() -> int:
                 print(f"  - {problem}")
         else:
             counts = {
-                "items_quan": len(corpus.items("quan")),
-                "items_sieuthi": len(corpus.items("sieuthi")),
-                "shops_quan": len(corpus.shops("quan")),
-                "shops_sieuthi": len(corpus.shops("sieuthi")),
+                "items_eatery": len(corpus.items("eatery")),
+                "items_market": len(corpus.items("market")),
+                "shops_eatery": len(corpus.shops("eatery")),
+                "shops_market": len(corpus.shops("market")),
                 "streets": len(corpus.streets()),
                 "wards": len(corpus.wards()),
                 "payments": len(corpus.payments()),

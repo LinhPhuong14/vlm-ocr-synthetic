@@ -56,7 +56,7 @@ Nhanh nhất để biết luật đang sinh ra cái gì:
 
 ```bash
 make preview-grid              # mỗi bố cục một hoá đơn, in ra dạng chữ
-make preview-grid LAYOUT=quan_nhau_stt
+make preview-grid LAYOUT=eatery_indexed
 make distribution              # 2000 lần bốc, đếm theo từng thuộc tính
 ```
 
@@ -76,13 +76,13 @@ Chạy một renderer thôi:
 
 ```bash
 generators/html/.venv/bin/python generators/html/render.py \
-    -o /tmp/thu -c 5 --seed 100 --layout sieu_thi_barcode
+    -o /tmp/thu -c 5 --seed 100 --layout market_barcode
 ```
 
 Ghim thuộc tính bất kỳ (lặp lại được):
 
 ```bash
---force augmentation=rach_giay --force visual=laser_net
+--force augmentation=torn_edges --force visual=laser_sharp
 ```
 
 ### 1.4 Chấm điểm
@@ -175,7 +175,7 @@ bảo **mọi recipe sinh ra đều hợp lệ ngay từ đầu**.
 **Tại sao thứ tự đúng là `document → … → augmentation`?** Vì đó là thứ tự nhân
 quả thật: cửa hàng chọn in cái gì từ rất lâu trước khi tờ giấy quyết định nó sẽ
 bị nhàu ra sao. Nhờ vậy `augmentation` — thuộc tính hẹp nhất — nhìn thấy **mọi**
-thẻ phía trên, và viết được ràng buộc như `nhau_nat` chỉ áp cho `in_nhiet`.
+thẻ phía trên, và viết được ràng buộc như `crumpled` chỉ áp cho `thermal`.
 
 **Tại sao `Option.from_dict` từ chối khoá lạ?** Vì tham số của model nằm dưới
 `params:`. Gõ nhầm `level: 5` ở cấp ngoài thay vì trong `params:` sẽ **im lặng
@@ -277,6 +277,19 @@ sẽ bắt đầu dòng ở cột khác nhau.
 
 `corpus._columns` **bỏ qua** dòng sai số cột thay vì raise. Corpus sửa bằng tay,
 một dòng hỏng chỉ nên tốn dòng đó.
+
+`corpus.items(profile)` nhận `"eatery"` hoặc `"market"` và ghép thẳng vào tên
+file (`items_eatery.txt`). Nghĩa là **`profile` trong `rules/document.yaml` là
+tên file, không phải một enum riêng** — thêm một profile mới chỉ cần thêm ba
+file corpus cùng hậu tố, không phải sửa `corpus.py`. Đổi lại, gõ sai `profile`
+sẽ nổ ở `FileNotFoundError` chứ không ở chỗ validate; `make check-corpus` chạy
+đúng để bắt chuyện đó trước.
+
+**Tại sao `profile` là `eatery`/`market` chứ không phải `quan`/`sieuthi`?**
+Ranh giới đặt tên trong repo này chạy theo *thứ có đi vào ảnh hay không*: `id`,
+`tags`, `profile`, tên texture — code so sánh, nên tiếng Anh; `titles`,
+`total_labels`, `title:` của cột, toàn bộ `corpus/vi/` — in lên tờ giấy, nên
+tiếng Việt. Dịch nốt vế sau là đổi bộ dữ liệu chứ không phải đổi tên biến.
 
 ---
 
@@ -404,7 +417,7 @@ cao/rộng của hoá đơn (~2) làm số hạng thứ hai thua, và khung ản
 tờ giấy — không lộ nền.
 
 **Tại sao `--clean` cần tồn tại riêng, không chỉ dùng
-`--force augmentation=khong_lam_gi`?** Vì ghim thuộc tính chỉ làm rỗng chuỗi
+`--force augmentation=pristine`?** Vì ghim thuộc tính chỉ làm rỗng chuỗi
 degradation. Renderer này còn nguồn biến dạng thứ hai mà hai renderer HTML
 không có. Không tắt nó thì "không augmented" chỉ đúng với 2/3 renderer.
 
@@ -663,7 +676,7 @@ cả ba vào một process không thể tồn tại.
 `make receipts` chạy synthtiger CLI đa worker. Renderer HTML giữ một browser
 sống nên chi phí biên thấp. Nút cổ chai là `gradient_domain`
 (`cv2.seamlessClone` khá chậm) — chính DocCreator cũng ghi "This implementation
-is rather slow". Ở 100k ảnh nên hạ weight của `vet_ban`, hoặc dựng sẵn kho vết
+is rather slow". Ở 100k ảnh nên hạ weight của `stains`, hoặc dựng sẵn kho vết
 bẩn thay vì sinh từng cái.
 
 **H: Reproducibility tới đâu?**

@@ -3,9 +3,9 @@
 # Dấu hiệu nhận biết: dòng đầu của mỗi mặt hàng là mã vạch + đơn giá + SL +
 # thành tiền; dòng thứ hai thụt vào là TÊN hàng (kèm giá/KG và khối lượng nếu
 # là hàng cân); mặt hàng khuyến mãi có thêm dòng "KM" tiền âm.
-id: sieu_thi_barcode
-name: Siêu thị — mã vạch trên, tên hàng dưới
-source: "ảnh mẫu VinCommerce / VM Royal City, Hà Nội"
+id: market_barcode
+name: Supermarket — barcode first, item name underneath
+source: "photo VinCommerce / VM Royal City, Hà Nội"
 
 width: [42, 50]
 rule_char: "-"

@@ -3,18 +3,18 @@
 # Cỡ chữ, giãn dòng, lề, độ đậm mực, tờ giấy, độ cong. Đây là chỗ khác nhau
 # giữa "máy in nhiệt sắp hết giấy" và "hoá đơn laser in ở quầy lễ tân".
 #
-# paper: tên file (không đuôi) trong `rulebase/textures/paper/`. CẢ BA renderer
-# đều đọc từ thư mục đó, nên cùng một recipe cho ra cùng một tờ giấy dù vẽ bằng
-# glyph hay bằng HTML. Đặt `paper: auto` để bốc ngẫu nhiên.
+# paper: tên file (không đuôi) trong `textures/paper/`. CẢ BA renderer đều đọc
+# từ thư mục đó, nên cùng một recipe cho ra cùng một tờ giấy dù vẽ bằng glyph
+# hay bằng HTML.
 #
 # font_dir: thư mục font cho renderer glyph; font_family: tên font cho renderer
 # HTML. Hai cái phải trỏ tới cùng một bộ chữ, nếu không hai backend sẽ ngắt
 # dòng khác nhau.
 
 options:
-  - id: nhiet_dam
+  - id: thermal_dark
     weight: 3
-    tags: [in_nhiet]
+    tags: [thermal]
     params:
       font_dir: mono
       font_family: "Liberation Mono, Cousine, Noto Mono, monospace"
@@ -25,13 +25,13 @@ options:
       padding_bottom: [1.4, 2.6]
       ink_gray: [0, 45]
       bold: 0.35
-      paper: nhiet_trang
+      paper: thermal_white
       paper_alpha: [0.05, 0.20]
       curl: 0.85
 
-  - id: nhiet_mo
+  - id: thermal_faint
     weight: 3
-    tags: [in_nhiet, muc_nhat]
+    tags: [thermal, faint_ink]
     params:
       font_dir: mono
       font_family: "Liberation Mono, Cousine, Noto Mono, monospace"
@@ -45,13 +45,13 @@ options:
       # lại") cho ra ảnh không đọc được — OCR về gần 0.
       ink_gray: [55, 105]
       bold: 0.05
-      paper: nhiet_nga
+      paper: thermal_cream
       paper_alpha: [0.10, 0.28]
       curl: 0.9
 
-  - id: nhiet_hep
+  - id: thermal_narrow
     weight: 2
-    tags: [in_nhiet, giay_hep]
+    tags: [thermal, narrow_paper]
     params:
       font_dir: mono
       font_family: "Liberation Mono, Cousine, Noto Mono, monospace"
@@ -62,13 +62,13 @@ options:
       padding_bottom: [1.2, 2.2]
       ink_gray: [10, 70]
       bold: 0.15
-      paper: nhiet_trang
+      paper: thermal_white
       paper_alpha: [0.05, 0.18]
       curl: 1.0
 
-  - id: kim_cu
+  - id: dot_matrix
     weight: 2
-    tags: [in_kim]
+    tags: [impact]
     params:
       font_dir: mono
       font_family: "Cousine, Liberation Mono, Noto Mono, monospace"
@@ -79,13 +79,13 @@ options:
       padding_bottom: [1.6, 2.8]
       ink_gray: [30, 90]
       bold: 0.20
-      paper: giay_tai_che
+      paper: recycled
       paper_alpha: [0.12, 0.30]
       curl: 0.5
 
-  - id: laser_net
+  - id: laser_sharp
     weight: 2
-    tags: [in_laser, net]
+    tags: [laser, sharp]
     params:
       font_dir: sans
       font_family: "Liberation Sans, Arimo, Noto Sans, DejaVu Sans, sans-serif"
@@ -96,6 +96,6 @@ options:
       padding_bottom: [2.0, 3.2]
       ink_gray: [0, 25]
       bold: 0.30
-      paper: giay_a5
+      paper: office_a5
       paper_alpha: [0.02, 0.10]
       curl: 0.25

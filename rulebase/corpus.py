@@ -35,16 +35,16 @@ def _columns(path: Path, count: int) -> list[tuple[str, ...]]:
 
 @functools.lru_cache(maxsize=None)
 def items(profile: str) -> list[tuple[str, int, int]]:
-    """(name, price_min, price_max) for a corpus profile: 'quan' or 'sieuthi'."""
+    """(name, price_min, price_max) for a corpus profile: 'eatery' or 'market'."""
     rows = _columns(CORPUS_ROOT / f"items_{profile}.txt", 3)
     return [(name, int(lo), int(hi)) for name, lo, hi in rows]
 
 
 @functools.lru_cache(maxsize=None)
 def shops(profile: str) -> list[tuple[str, ...]]:
-    """Shop names. 'quan' gives bare names, 'sieuthi' gives (brand, branch)."""
+    """Shop names. 'eatery' gives bare names, 'market' gives (brand, branch)."""
     path = CORPUS_ROOT / f"shops_{profile}.txt"
-    return _columns(path, 2) if profile == "sieuthi" else [(n,) for n in _lines(path)]
+    return _columns(path, 2) if profile == "market" else [(n,) for n in _lines(path)]
 
 
 @functools.lru_cache(maxsize=None)
@@ -71,12 +71,12 @@ def check() -> list[str]:
     """Report anything missing or empty. Used by `make check-corpus`."""
     problems = []
     expected = {
-        "items_quan.txt": lambda: items("quan"),
-        "items_sieuthi.txt": lambda: items("sieuthi"),
-        "shops_quan.txt": lambda: shops("quan"),
-        "shops_sieuthi.txt": lambda: shops("sieuthi"),
-        "footers_quan.txt": lambda: footers("quan"),
-        "footers_sieuthi.txt": lambda: footers("sieuthi"),
+        "items_eatery.txt": lambda: items("eatery"),
+        "items_market.txt": lambda: items("market"),
+        "shops_eatery.txt": lambda: shops("eatery"),
+        "shops_market.txt": lambda: shops("market"),
+        "footers_eatery.txt": lambda: footers("eatery"),
+        "footers_market.txt": lambda: footers("market"),
         "streets.txt": streets,
         "wards.txt": wards,
         "payments.txt": payments,

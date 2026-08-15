@@ -38,7 +38,7 @@ import rulebase  # noqa: E402
 def make_clean(config: dict) -> dict:
     """Turn off everything this renderer does *after* the structure render.
 
-    `--force augmentation=khong_lam_gi` empties the degradation chain, but this
+    `--force augmentation=pristine` empties the degradation chain, but this
     backend has a second source of distortion the other two do not: it curls
     the paper, warps it, drops it on a background and photographs it. A clean
     set has to switch that off too, or "not augmented" would only be true of
@@ -73,7 +73,7 @@ def main() -> int:
     parser.add_argument("--layout", help="pin one bố cục")
     parser.add_argument(
         "--force", action="append", default=[], metavar="ATTR=ID",
-        help="pin any attribute, repeatable: --force augmentation=khong_lam_gi",
+        help="pin any attribute, repeatable: --force augmentation=pristine",
     )
     parser.add_argument("--config", type=Path, default=Path("config_vi_receipt.yaml"))
     parser.add_argument(

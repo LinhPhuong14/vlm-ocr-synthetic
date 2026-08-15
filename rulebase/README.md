@@ -27,6 +27,27 @@ rulebase/
 └── text.py         bỏ dấu, định dạng tiền, ngắt dòng
 ```
 
+### Quy ước đặt tên: định danh tiếng Anh, chữ in ra tiếng Việt
+
+Ranh giới chạy đúng một chỗ: **thứ gì code so sánh thì viết tiếng Anh, thứ gì
+đi vào ảnh thì viết tiếng Việt.**
+
+| tiếng Anh — là định danh | tiếng Việt — là nội dung |
+| --- | --- |
+| `id`, `tags`, `requires`, `excludes` | `titles`, `total_labels` trong `rules/document.yaml` |
+| `profile: eatery \| market` | `title:` của cột trong `layouts/*.yaml` |
+| `paper: thermal_white` (tên file trong `textures/paper/`) | `label:` của dòng giảm giá, `notes:` |
+| `key:` của cột, `style:`, `money_style:` | mọi thứ trong `corpus/vi/` |
+
+Lý do không dịch nốt phần bên phải: chúng **được in lên tờ hoá đơn**. Đổi
+`"Tiền hàng"` thành `"Subtotal"` là đổi bộ dữ liệu chứ không phải đổi tên biến
+— ảnh sinh ra sẽ không còn là hoá đơn Việt Nam nữa. Ngược lại, `id` và `tags`
+chỉ tồn tại bên trong sampler; giữ chúng bằng tiếng Anh để `--force
+augmentation=torn_edges` đọc được mà không cần biết tiếng Việt.
+
+Nhãn cũng theo quy ước này: `gt_parse.doc_type` giờ là `receipt_eatery` /
+`receipt_market`, còn giá trị các trường vẫn nguyên tiếng Việt.
+
 ---
 
 ## 1. Sáu thuộc tính
@@ -50,13 +71,13 @@ gì từ rất lâu trước khi tờ giấy quyết định nó sẽ bị nhàu
 ### Cấu trúc một giá trị
 
 ```yaml
-- id: sieu_thi_lon        # bắt buộc, duy nhất trong file
-  weight: 3               # tần suất tương đối; 0 = không bao giờ bốc trúng
-  tags: [doc_sieuthi, has_barcode]   # thẻ để các thuộc tính sau nhìn thấy
-  requires: [doc_sieuthi]            # chỉ bốc được nếu recipe ĐÃ có các thẻ này
+- id: supermarket                    # bắt buộc, duy nhất trong file
+  weight: 3                          # tần suất tương đối; 0 = không bao giờ bốc trúng
+  tags: [doc_market, has_barcode]    # thẻ để các thuộc tính sau nhìn thấy
+  requires: [doc_market]             # chỉ bốc được nếu recipe ĐÃ có các thẻ này
   excludes: [ascii_only]             # không bốc được nếu recipe ĐÃ có thẻ nào ở đây
   params:                            # đi thẳng vào code, không qua xử lý nào
-    profile: sieuthi
+    profile: market
     num_items: [3, 12]
 ```
 
@@ -72,12 +93,12 @@ Sửa `weight`, không sửa code.
 
 ```yaml
 # muốn 70% là hoá đơn siêu thị:
-- id: quan_nhau            # weight: 3 -> 1
-- id: sieu_thi_lon         # weight: 3 -> 5
+- id: pub_eatery            # weight: 3 -> 1
+- id: supermarket         # weight: 3 -> 5
 ```
 
 Trọng số là **tương đối trong danh sách ứng viên còn lại sau khi lọc**, không
-phải xác suất tuyệt đối. Nếu `sieu_thi_vat` bị `requires: [has_vat_lines]` loại
+phải xác suất tuyệt đối. Nếu `market_vat` bị `requires: [has_vat_lines]` loại
 ra thì trọng số của nó không tính vào mẫu số.
 
 Xem phân phối thật sự ra sao trước khi chạy dài:
@@ -193,9 +214,9 @@ lại thì không.
 
 | file | cột |
 | --- | --- |
-| `items_quan.txt`, `items_sieuthi.txt` | tên ⇥ giá tối thiểu ⇥ giá tối đa |
-| `shops_quan.txt` | tên |
-| `shops_sieuthi.txt` | thương hiệu ⇥ chi nhánh |
+| `items_eatery.txt`, `items_market.txt` | tên ⇥ giá tối thiểu ⇥ giá tối đa |
+| `shops_eatery.txt` | tên |
+| `shops_market.txt` | thương hiệu ⇥ chi nhánh |
 | `streets.txt`, `footers_*.txt` | một dòng một giá trị |
 | `wards.txt` | phường ⇥ quận ⇥ tỉnh/thành |
 | `payments.txt` | nhãn ⇥ nhóm (`tienmat`/`the`/`vi`/`qr`) |
@@ -213,7 +234,7 @@ trong `rules/augmentation.yaml`:
 ```yaml
 - id: kịch_bản_mới
   weight: 2
-  requires: [in_nhiet]
+  requires: [thermal]
   params:
     chain:
       - [paper_texture, {alpha: 0.4, grain: 0.6}]
@@ -235,7 +256,7 @@ object mà renderer dùng để vẽ**, nên nhãn không thể mô tả thứ �
 
 ```json
 {
-  "doc_type": "receipt_sieuthi",
+  "doc_type": "receipt_market",
   "title": "HOÁ ĐƠN BÁN HÀNG",
   "store": {"name": "VinCommerce", "branch": "VM Royal City", "address": "..."},
   "menu": [

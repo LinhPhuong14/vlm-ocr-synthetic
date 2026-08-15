@@ -59,7 +59,7 @@ def _to_bgr(field: np.ndarray, tint: tuple[float, float, float]) -> np.ndarray:
     return np.stack(channels, axis=2).astype(np.uint8)
 
 
-def nhiet_trang(rng: random.Random) -> np.ndarray:
+def thermal_white(rng: random.Random) -> np.ndarray:
     """Fresh thermal roll: near-white, smooth, faint vertical roller streaks."""
     width, height = SIZE
     field = 0.955 + 0.025 * _fbm((height, width), rng, octaves=3)
@@ -70,7 +70,7 @@ def nhiet_trang(rng: random.Random) -> np.ndarray:
     return _to_bgr(field * 255, (252.0 / 255, 253.0 / 255, 1.0))
 
 
-def nhiet_nga(rng: random.Random) -> np.ndarray:
+def thermal_cream(rng: random.Random) -> np.ndarray:
     """Thermal paper left in a wallet: yellowed, with blotchy heat marks."""
     width, height = SIZE
     field = 0.90 + 0.06 * _fbm((height, width), rng, octaves=4)
@@ -82,7 +82,7 @@ def nhiet_nga(rng: random.Random) -> np.ndarray:
     return _to_bgr(field * 255, (196.0 / 255, 224.0 / 255, 244.0 / 255))
 
 
-def giay_tai_che(rng: random.Random) -> np.ndarray:
+def recycled(rng: random.Random) -> np.ndarray:
     """Recycled stock: visible fibre flecks, warm, uneven."""
     width, height = SIZE
     field = 0.88 + 0.08 * _fbm((height, width), rng, octaves=5)
@@ -93,7 +93,7 @@ def giay_tai_che(rng: random.Random) -> np.ndarray:
     return _to_bgr(np.clip(field, 0, 1) * 255, (214.0 / 255, 228.0 / 255, 240.0 / 255))
 
 
-def giay_a5(rng: random.Random) -> np.ndarray:
+def office_a5(rng: random.Random) -> np.ndarray:
     """Office paper: almost flat, just enough mottling not to look synthetic."""
     width, height = SIZE
     field = 0.975 + 0.015 * _fbm((height, width), rng, octaves=3)
@@ -102,10 +102,10 @@ def giay_a5(rng: random.Random) -> np.ndarray:
 
 
 PAPERS = {
-    "nhiet_trang": nhiet_trang,
-    "nhiet_nga": nhiet_nga,
-    "giay_tai_che": giay_tai_che,
-    "giay_a5": giay_a5,
+    "thermal_white": thermal_white,
+    "thermal_cream": thermal_cream,
+    "recycled": recycled,
+    "office_a5": office_a5,
 }
 
 # --------------------------------------------------------------- surfaces
@@ -181,17 +181,17 @@ def _wood(rng: random.Random, tint, plank_px: int, contrast: float) -> np.ndarra
     return _to_bgr(np.clip(field, 0, 1) * 255, tint)
 
 
-def go_sang(rng: random.Random) -> np.ndarray:
+def wood_light(rng: random.Random) -> np.ndarray:
     """Light wooden table -- the DocCreator `wood03` sort of surface."""
     return _wood(rng, (150.0 / 255, 200.0 / 255, 234.0 / 255), plank_px=190, contrast=0.30)
 
 
-def go_toi(rng: random.Random) -> np.ndarray:
+def wood_dark(rng: random.Random) -> np.ndarray:
     """Dark wooden table: a receipt on it is high contrast, and hard for OCR."""
     return _wood(rng, (58.0 / 255, 78.0 / 255, 104.0 / 255), plank_px=150, contrast=0.55)
 
 
-def ban_da(rng: random.Random) -> np.ndarray:
+def stone_top(rng: random.Random) -> np.ndarray:
     """Stone or laminate counter: mottled, cool, low contrast."""
     width, height = SURFACE_SIZE
     field = 0.42 + 0.18 * _fbm((height, width), rng, octaves=5)
@@ -202,7 +202,7 @@ def ban_da(rng: random.Random) -> np.ndarray:
     return _to_bgr(np.clip(field, 0, 1) * 255, (196.0 / 255, 196.0 / 255, 192.0 / 255))
 
 
-def vai_ban(rng: random.Random) -> np.ndarray:
+def table_cloth(rng: random.Random) -> np.ndarray:
     """Table cloth: a woven grid, so the noise has structure at one scale."""
     width, height = SURFACE_SIZE
     xs = np.arange(width, dtype=np.float32)[None, :]
@@ -215,10 +215,10 @@ def vai_ban(rng: random.Random) -> np.ndarray:
 
 
 SURFACES = {
-    "go_sang": go_sang,
-    "go_toi": go_toi,
-    "ban_da": ban_da,
-    "vai_ban": vai_ban,
+    "wood_light": wood_light,
+    "wood_dark": wood_dark,
+    "stone_top": stone_top,
+    "table_cloth": table_cloth,
 }
 
 

@@ -33,7 +33,7 @@ from rulebase import available_layouts  # noqa: E402
 # The augmentation value whose chain is empty. Named here rather than inlined
 # so renaming it in rules/augmentation.yaml fails loudly instead of silently
 # producing an aged "clean" set.
-CLEAN_AUGMENTATION = "khong_lam_gi"
+CLEAN_AUGMENTATION = "pristine"
 
 # name -> (interpreter, script, working directory). The interpreter path is
 # resolved rather than hardcoded: a virtualenv keeps it in `bin/` on POSIX and

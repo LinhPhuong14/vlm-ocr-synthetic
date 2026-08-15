@@ -18,7 +18,7 @@ make proof DATASET=data/dataset60         # đọc lại bằng Tesseract và ch
 ## Hai bộ khác nhau chỗ nào
 
 Chỉ khác **một thuộc tính** của rule-base: bộ sạch ghim
-`augmentation=khong_lam_gi`, tức chuỗi degradation rỗng. Nội dung, bố cục,
+`augmentation=pristine`, tức chuỗi degradation rỗng. Nội dung, bố cục,
 font, màu vẫn bốc như thường.
 
 Riêng renderer glyph còn một nguồn biến dạng nữa mà hai renderer HTML không có

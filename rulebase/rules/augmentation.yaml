@@ -9,31 +9,31 @@
 # không bao giờ bị "bleed-through" vì giấy nhiệt chỉ in một mặt.
 
 options:
-  - id: khong_lam_gi
+  - id: pristine
     weight: 2
-    tags: [sach]
+    tags: [clean]
     params:
       chain: []
 
-  - id: giay_that
+  - id: real_paper
     weight: 4
-    tags: [co_texture]
+    tags: [textured]
     params:
       chain:
         - [paper_texture, {alpha: 0.35, grain: 0.5}]
 
-  - id: nhe
+  - id: light
     weight: 4
-    tags: [co_texture]
+    tags: [textured]
     params:
       chain:
         - [paper_texture, {alpha: 0.30, grain: 0.4}]
         - [ink_degradation, {level: 1}]
         - [blur_zones, {radius: 0.9, zones: 1, coverage: 0.12}]
 
-  - id: vua
+  - id: medium
     weight: 4
-    tags: [co_texture]
+    tags: [textured]
     params:
       chain:
         - [paper_texture, {alpha: 0.40, grain: 0.6}]
@@ -41,10 +41,10 @@ options:
         - [blur_zones, {radius: 1.1, zones: 2, coverage: 0.15}]
         - [shadow_binding, {border: bottom, distance_ratio: 0.10, intensity: 0.35}]
 
-  - id: nang
+  - id: heavy
     weight: 2
-    excludes: [in_nhiet]        # giấy nhiệt in một mặt, không thấm sang mặt kia
-    tags: [co_texture, ban]
+    excludes: [thermal]         # giấy nhiệt in một mặt, không thấm sang mặt kia
+    tags: [textured, dirty]
     params:
       chain:
         - [paper_texture, {alpha: 0.45, grain: 0.7}]
@@ -54,18 +54,18 @@ options:
         - [shadow_binding, {border: left, distance_ratio: 0.13, intensity: 0.45}]
         - [holes, {count: 2, placement: border, size_ratio: 0.10, fill: black}]
 
-  - id: vet_ban
+  - id: stains
     weight: 3
-    tags: [co_texture, ban]
+    tags: [textured, dirty]
     params:
       chain:
         - [paper_texture, {alpha: 0.35, grain: 0.5}]
         - [gradient_domain, {count: 5, strength: 0.75}]
         - [ink_degradation, {level: 3}]
 
-  - id: chu_bong
+  - id: ghost_text
     weight: 3
-    tags: [co_texture, muc_thua]
+    tags: [textured, ghosting]
     params:
       chain:
         - [paper_texture, {alpha: 0.30, grain: 0.45}]
@@ -75,7 +75,7 @@ options:
 
   - id: photocopy
     weight: 3
-    tags: [co_texture, tuong_phan_cao]
+    tags: [textured, high_contrast]
     params:
       chain:
         - [paper_texture, {alpha: 0.25, grain: 0.35}]
@@ -84,10 +84,10 @@ options:
         - [blur, {radius: 0.8}]
         - [shadow_binding, {border: top, distance_ratio: 0.08, intensity: 0.3}]
 
-  - id: nhau_nat
+  - id: crumpled
     weight: 2
-    requires: [in_nhiet]        # chỉ tờ giấy nhiệt mỏng mới nhàu kiểu này
-    tags: [co_texture, nhau]
+    requires: [thermal]         # chỉ tờ giấy nhiệt mỏng mới nhàu kiểu này
+    tags: [textured, creased]
     params:
       chain:
         - [paper_texture, {alpha: 0.50, grain: 0.8, creases: 4}]
@@ -95,9 +95,9 @@ options:
         - [gradient_domain, {count: 3, strength: 0.6}]
         - [blur_zones, {radius: 1.2, zones: 3, coverage: 0.18}]
 
-  - id: rach_giay
+  - id: torn_edges
     weight: 2
-    tags: [co_texture, rach]
+    tags: [textured, torn]
     params:
       chain:
         - [paper_texture, {alpha: 0.40, grain: 0.6, creases: 2}]
@@ -108,9 +108,9 @@ options:
         - [holes, {count: 1, placement: corner, size_ratio: 0.26, fill: black}]
         - [blur_zones, {radius: 1.0, zones: 2, coverage: 0.14}]
 
-  - id: thung_lo
+  - id: punched
     weight: 1
-    tags: [co_texture, rach]
+    tags: [textured, torn]
     params:
       chain:
         - [paper_texture, {alpha: 0.45, grain: 0.7}]

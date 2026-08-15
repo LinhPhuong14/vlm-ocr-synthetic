@@ -33,53 +33,53 @@
       }
     },
     "by_layout": {
-      "quan_an_ascii": {
+      "eatery_ascii": {
         "images": 12,
         "token_recall": 0.7662
       },
-      "quan_nhau_stt": {
+      "eatery_indexed": {
         "images": 12,
         "token_recall": 0.9259
       },
-      "sieu_thi_barcode": {
+      "market_barcode": {
         "images": 12,
         "token_recall": 0.9175
       },
-      "sieu_thi_gia_sl": {
+      "market_compact": {
         "images": 12,
         "token_recall": 0.7798
       },
-      "sieu_thi_vat": {
+      "market_vat": {
         "images": 12,
         "token_recall": 0.8958
       }
     },
     "by_augmentation": {
-      "khong_lam_gi": {
+      "pristine": {
         "images": 60,
         "token_recall": 0.857
       }
     },
     "by_visual": {
-      "kim_cu": {
+      "dot_matrix": {
         "images": 1,
         "token_recall": 0.8462
       },
-      "laser_net": {
+      "laser_sharp": {
         "images": 14,
         "token_recall": 0.9429
       },
-      "nhiet_dam": {
+      "thermal_dark": {
         "images": 10,
         "token_recall": 0.8342
       },
-      "nhiet_hep": {
-        "images": 13,
-        "token_recall": 0.8402
-      },
-      "nhiet_mo": {
+      "thermal_faint": {
         "images": 22,
         "token_recall": 0.8231
+      },
+      "thermal_narrow": {
+        "images": 13,
+        "token_recall": 0.8402
       }
     }
   },
@@ -111,9 +111,9 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "quan_an_ascii",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_hep",
+      "layout": "eatery_ascii",
+      "augmentation": "pristine",
+      "visual": "thermal_narrow",
       "words_found": 72
     },
     {
@@ -143,9 +143,9 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "quan_an_ascii",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_dam",
+      "layout": "eatery_ascii",
+      "augmentation": "pristine",
+      "visual": "thermal_dark",
       "words_found": 80
     },
     {
@@ -175,9 +175,9 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "quan_an_ascii",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_dam",
+      "layout": "eatery_ascii",
+      "augmentation": "pristine",
+      "visual": "thermal_dark",
       "words_found": 59
     },
     {
@@ -207,9 +207,9 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "quan_an_ascii",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_hep",
+      "layout": "eatery_ascii",
+      "augmentation": "pristine",
+      "visual": "thermal_narrow",
       "words_found": 64
     },
     {
@@ -239,9 +239,9 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "quan_nhau_stt",
-      "augmentation": "khong_lam_gi",
-      "visual": "laser_net",
+      "layout": "eatery_indexed",
+      "augmentation": "pristine",
+      "visual": "laser_sharp",
       "words_found": 117
     },
     {
@@ -271,9 +271,9 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "quan_nhau_stt",
-      "augmentation": "khong_lam_gi",
-      "visual": "laser_net",
+      "layout": "eatery_indexed",
+      "augmentation": "pristine",
+      "visual": "laser_sharp",
       "words_found": 118
     },
     {
@@ -303,9 +303,9 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "quan_nhau_stt",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_mo",
+      "layout": "eatery_indexed",
+      "augmentation": "pristine",
+      "visual": "thermal_faint",
       "words_found": 77
     },
     {
@@ -335,9 +335,9 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "quan_nhau_stt",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_mo",
+      "layout": "eatery_indexed",
+      "augmentation": "pristine",
+      "visual": "thermal_faint",
       "words_found": 77
     },
     {
@@ -367,9 +367,9 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "sieu_thi_barcode",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_mo",
+      "layout": "market_barcode",
+      "augmentation": "pristine",
+      "visual": "thermal_faint",
       "words_found": 160
     },
     {
@@ -399,9 +399,9 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "sieu_thi_barcode",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_mo",
+      "layout": "market_barcode",
+      "augmentation": "pristine",
+      "visual": "thermal_faint",
       "words_found": 177
     },
     {
@@ -431,9 +431,9 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "sieu_thi_barcode",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_mo",
+      "layout": "market_barcode",
+      "augmentation": "pristine",
+      "visual": "thermal_faint",
       "words_found": 175
     },
     {
@@ -463,9 +463,9 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "sieu_thi_barcode",
-      "augmentation": "khong_lam_gi",
-      "visual": "kim_cu",
+      "layout": "market_barcode",
+      "augmentation": "pristine",
+      "visual": "dot_matrix",
       "words_found": 143
     },
     {
@@ -495,9 +495,9 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "sieu_thi_gia_sl",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_hep",
+      "layout": "market_compact",
+      "augmentation": "pristine",
+      "visual": "thermal_narrow",
       "words_found": 141
     },
     {
@@ -527,9 +527,9 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "sieu_thi_gia_sl",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_mo",
+      "layout": "market_compact",
+      "augmentation": "pristine",
+      "visual": "thermal_faint",
       "words_found": 145
     },
     {
@@ -559,9 +559,9 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "sieu_thi_gia_sl",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_mo",
+      "layout": "market_compact",
+      "augmentation": "pristine",
+      "visual": "thermal_faint",
       "words_found": 147
     },
     {
@@ -591,9 +591,9 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "sieu_thi_gia_sl",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_mo",
+      "layout": "market_compact",
+      "augmentation": "pristine",
+      "visual": "thermal_faint",
       "words_found": 147
     },
     {
@@ -623,9 +623,9 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "sieu_thi_vat",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_dam",
+      "layout": "market_vat",
+      "augmentation": "pristine",
+      "visual": "thermal_dark",
       "words_found": 145
     },
     {
@@ -655,9 +655,9 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "sieu_thi_vat",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_dam",
+      "layout": "market_vat",
+      "augmentation": "pristine",
+      "visual": "thermal_dark",
       "words_found": 145
     },
     {
@@ -687,9 +687,9 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "sieu_thi_vat",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_dam",
+      "layout": "market_vat",
+      "augmentation": "pristine",
+      "visual": "thermal_dark",
       "words_found": 145
     },
     {
@@ -719,9 +719,9 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "sieu_thi_vat",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_dam",
+      "layout": "market_vat",
+      "augmentation": "pristine",
+      "visual": "thermal_dark",
       "words_found": 150
     },
     {
@@ -751,9 +751,9 @@
         }
       ],
       "framework": "html",
-      "layout": "quan_an_ascii",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_dam",
+      "layout": "eatery_ascii",
+      "augmentation": "pristine",
+      "visual": "thermal_dark",
       "words_found": 76
     },
     {
@@ -783,9 +783,9 @@
         }
       ],
       "framework": "html",
-      "layout": "quan_an_ascii",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_hep",
+      "layout": "eatery_ascii",
+      "augmentation": "pristine",
+      "visual": "thermal_narrow",
       "words_found": 55
     },
     {
@@ -815,9 +815,9 @@
         }
       ],
       "framework": "html",
-      "layout": "quan_an_ascii",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_dam",
+      "layout": "eatery_ascii",
+      "augmentation": "pristine",
+      "visual": "thermal_dark",
       "words_found": 57
     },
     {
@@ -847,9 +847,9 @@
         }
       ],
       "framework": "html",
-      "layout": "quan_an_ascii",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_hep",
+      "layout": "eatery_ascii",
+      "augmentation": "pristine",
+      "visual": "thermal_narrow",
       "words_found": 99
     },
     {
@@ -879,9 +879,9 @@
         }
       ],
       "framework": "html",
-      "layout": "quan_nhau_stt",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_hep",
+      "layout": "eatery_indexed",
+      "augmentation": "pristine",
+      "visual": "thermal_narrow",
       "words_found": 82
     },
     {
@@ -911,9 +911,9 @@
         }
       ],
       "framework": "html",
-      "layout": "quan_nhau_stt",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_hep",
+      "layout": "eatery_indexed",
+      "augmentation": "pristine",
+      "visual": "thermal_narrow",
       "words_found": 82
     },
     {
@@ -943,9 +943,9 @@
         }
       ],
       "framework": "html",
-      "layout": "quan_nhau_stt",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_hep",
+      "layout": "eatery_indexed",
+      "augmentation": "pristine",
+      "visual": "thermal_narrow",
       "words_found": 143
     },
     {
@@ -975,9 +975,9 @@
         }
       ],
       "framework": "html",
-      "layout": "quan_nhau_stt",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_hep",
+      "layout": "eatery_indexed",
+      "augmentation": "pristine",
+      "visual": "thermal_narrow",
       "words_found": 143
     },
     {
@@ -1007,9 +1007,9 @@
         }
       ],
       "framework": "html",
-      "layout": "sieu_thi_barcode",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_mo",
+      "layout": "market_barcode",
+      "augmentation": "pristine",
+      "visual": "thermal_faint",
       "words_found": 129
     },
     {
@@ -1039,9 +1039,9 @@
         }
       ],
       "framework": "html",
-      "layout": "sieu_thi_barcode",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_mo",
+      "layout": "market_barcode",
+      "augmentation": "pristine",
+      "visual": "thermal_faint",
       "words_found": 143
     },
     {
@@ -1071,9 +1071,9 @@
         }
       ],
       "framework": "html",
-      "layout": "sieu_thi_barcode",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_mo",
+      "layout": "market_barcode",
+      "augmentation": "pristine",
+      "visual": "thermal_faint",
       "words_found": 143
     },
     {
@@ -1103,9 +1103,9 @@
         }
       ],
       "framework": "html",
-      "layout": "sieu_thi_barcode",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_mo",
+      "layout": "market_barcode",
+      "augmentation": "pristine",
+      "visual": "thermal_faint",
       "words_found": 143
     },
     {
@@ -1135,9 +1135,9 @@
         }
       ],
       "framework": "html",
-      "layout": "sieu_thi_gia_sl",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_mo",
+      "layout": "market_compact",
+      "augmentation": "pristine",
+      "visual": "thermal_faint",
       "words_found": 111
     },
     {
@@ -1167,9 +1167,9 @@
         }
       ],
       "framework": "html",
-      "layout": "sieu_thi_gia_sl",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_mo",
+      "layout": "market_compact",
+      "augmentation": "pristine",
+      "visual": "thermal_faint",
       "words_found": 109
     },
     {
@@ -1199,9 +1199,9 @@
         }
       ],
       "framework": "html",
-      "layout": "sieu_thi_gia_sl",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_mo",
+      "layout": "market_compact",
+      "augmentation": "pristine",
+      "visual": "thermal_faint",
       "words_found": 110
     },
     {
@@ -1231,9 +1231,9 @@
         }
       ],
       "framework": "html",
-      "layout": "sieu_thi_gia_sl",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_mo",
+      "layout": "market_compact",
+      "augmentation": "pristine",
+      "visual": "thermal_faint",
       "words_found": 113
     },
     {
@@ -1263,9 +1263,9 @@
         }
       ],
       "framework": "html",
-      "layout": "sieu_thi_vat",
-      "augmentation": "khong_lam_gi",
-      "visual": "laser_net",
+      "layout": "market_vat",
+      "augmentation": "pristine",
+      "visual": "laser_sharp",
       "words_found": 199
     },
     {
@@ -1295,9 +1295,9 @@
         }
       ],
       "framework": "html",
-      "layout": "sieu_thi_vat",
-      "augmentation": "khong_lam_gi",
-      "visual": "laser_net",
+      "layout": "market_vat",
+      "augmentation": "pristine",
+      "visual": "laser_sharp",
       "words_found": 199
     },
     {
@@ -1327,9 +1327,9 @@
         }
       ],
       "framework": "html",
-      "layout": "sieu_thi_vat",
-      "augmentation": "khong_lam_gi",
-      "visual": "laser_net",
+      "layout": "market_vat",
+      "augmentation": "pristine",
+      "visual": "laser_sharp",
       "words_found": 199
     },
     {
@@ -1359,9 +1359,9 @@
         }
       ],
       "framework": "html",
-      "layout": "sieu_thi_vat",
-      "augmentation": "khong_lam_gi",
-      "visual": "laser_net",
+      "layout": "market_vat",
+      "augmentation": "pristine",
+      "visual": "laser_sharp",
       "words_found": 199
     },
     {
@@ -1391,9 +1391,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "quan_an_ascii",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_mo",
+      "layout": "eatery_ascii",
+      "augmentation": "pristine",
+      "visual": "thermal_faint",
       "words_found": 81
     },
     {
@@ -1423,9 +1423,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "quan_an_ascii",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_mo",
+      "layout": "eatery_ascii",
+      "augmentation": "pristine",
+      "visual": "thermal_faint",
       "words_found": 81
     },
     {
@@ -1455,9 +1455,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "quan_an_ascii",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_mo",
+      "layout": "eatery_ascii",
+      "augmentation": "pristine",
+      "visual": "thermal_faint",
       "words_found": 81
     },
     {
@@ -1487,9 +1487,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "quan_an_ascii",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_mo",
+      "layout": "eatery_ascii",
+      "augmentation": "pristine",
+      "visual": "thermal_faint",
       "words_found": 81
     },
     {
@@ -1519,9 +1519,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "quan_nhau_stt",
-      "augmentation": "khong_lam_gi",
-      "visual": "laser_net",
+      "layout": "eatery_indexed",
+      "augmentation": "pristine",
+      "visual": "laser_sharp",
       "words_found": 147
     },
     {
@@ -1551,9 +1551,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "quan_nhau_stt",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_dam",
+      "layout": "eatery_indexed",
+      "augmentation": "pristine",
+      "visual": "thermal_dark",
       "words_found": 173
     },
     {
@@ -1583,9 +1583,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "quan_nhau_stt",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_mo",
+      "layout": "eatery_indexed",
+      "augmentation": "pristine",
+      "visual": "thermal_faint",
       "words_found": 101
     },
     {
@@ -1615,9 +1615,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "quan_nhau_stt",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_mo",
+      "layout": "eatery_indexed",
+      "augmentation": "pristine",
+      "visual": "thermal_faint",
       "words_found": 94
     },
     {
@@ -1647,9 +1647,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "sieu_thi_barcode",
-      "augmentation": "khong_lam_gi",
-      "visual": "laser_net",
+      "layout": "market_barcode",
+      "augmentation": "pristine",
+      "visual": "laser_sharp",
       "words_found": 125
     },
     {
@@ -1679,9 +1679,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "sieu_thi_barcode",
-      "augmentation": "khong_lam_gi",
-      "visual": "laser_net",
+      "layout": "market_barcode",
+      "augmentation": "pristine",
+      "visual": "laser_sharp",
       "words_found": 149
     },
     {
@@ -1711,9 +1711,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "sieu_thi_barcode",
-      "augmentation": "khong_lam_gi",
-      "visual": "laser_net",
+      "layout": "market_barcode",
+      "augmentation": "pristine",
+      "visual": "laser_sharp",
       "words_found": 149
     },
     {
@@ -1743,9 +1743,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "sieu_thi_barcode",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_dam",
+      "layout": "market_barcode",
+      "augmentation": "pristine",
+      "visual": "thermal_dark",
       "words_found": 148
     },
     {
@@ -1775,9 +1775,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "sieu_thi_gia_sl",
-      "augmentation": "khong_lam_gi",
-      "visual": "laser_net",
+      "layout": "market_compact",
+      "augmentation": "pristine",
+      "visual": "laser_sharp",
       "words_found": 93
     },
     {
@@ -1807,9 +1807,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "sieu_thi_gia_sl",
-      "augmentation": "khong_lam_gi",
-      "visual": "laser_net",
+      "layout": "market_compact",
+      "augmentation": "pristine",
+      "visual": "laser_sharp",
       "words_found": 93
     },
     {
@@ -1839,9 +1839,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "sieu_thi_gia_sl",
-      "augmentation": "khong_lam_gi",
-      "visual": "laser_net",
+      "layout": "market_compact",
+      "augmentation": "pristine",
+      "visual": "laser_sharp",
       "words_found": 93
     },
     {
@@ -1871,9 +1871,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "sieu_thi_gia_sl",
-      "augmentation": "khong_lam_gi",
-      "visual": "laser_net",
+      "layout": "market_compact",
+      "augmentation": "pristine",
+      "visual": "laser_sharp",
       "words_found": 93
     },
     {
@@ -1903,9 +1903,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "sieu_thi_vat",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_hep",
+      "layout": "market_vat",
+      "augmentation": "pristine",
+      "visual": "thermal_narrow",
       "words_found": 201
     },
     {
@@ -1935,9 +1935,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "sieu_thi_vat",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_hep",
+      "layout": "market_vat",
+      "augmentation": "pristine",
+      "visual": "thermal_narrow",
       "words_found": 201
     },
     {
@@ -1967,9 +1967,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "sieu_thi_vat",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_hep",
+      "layout": "market_vat",
+      "augmentation": "pristine",
+      "visual": "thermal_narrow",
       "words_found": 201
     },
     {
@@ -1999,9 +1999,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "sieu_thi_vat",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_hep",
+      "layout": "market_vat",
+      "augmentation": "pristine",
+      "visual": "thermal_narrow",
       "words_found": 201
     }
   ]

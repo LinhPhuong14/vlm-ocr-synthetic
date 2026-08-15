@@ -8,29 +8,29 @@
 # buộc này thì sampler sẽ sinh ra hoá đơn quán nhậu có cột mã vạch trống.
 
 options:
-  - id: quan_nhau_stt
+  - id: eatery_indexed
     weight: 3
-    requires: [doc_quan]
-    tags: [co_cot_stt, hai_dong_moi_mon]
+    requires: [doc_eatery]
+    tags: [has_index_column, two_line_items]
 
-  - id: quan_an_ascii
+  - id: eatery_ascii
     weight: 2
-    requires: [doc_quan]
+    requires: [doc_eatery]
     excludes: [has_vat]        # máy in đời cũ không in dòng thuế
-    tags: [ascii_only, khong_tieu_de]
+    tags: [ascii_only, no_title]
 
-  - id: sieu_thi_barcode
+  - id: market_barcode
     weight: 3
     requires: [has_barcode]
     tags: [barcode_rows]
 
-  - id: sieu_thi_gia_sl
+  - id: market_compact
     weight: 3
-    requires: [doc_sieuthi]
+    requires: [doc_market]
     excludes: [has_vat_lines]  # bố cục này không có chỗ cho dòng VAT riêng
-    tags: [ten_ngat_dong]
+    tags: [wrapped_names]
 
-  - id: sieu_thi_vat
+  - id: market_vat
     weight: 2
     requires: [has_vat_lines]
     tags: [vat_rows]

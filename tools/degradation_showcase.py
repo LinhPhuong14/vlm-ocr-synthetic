@@ -28,7 +28,7 @@ from degradation import apply_one, names  # noqa: E402
 # Settings chosen to make each model visible on a receipt-sized page rather
 # than to be realistic -- this is a catalogue, not a dataset.
 SHOWCASE = {
-    "paper_texture": {"paper": "giay_tai_che", "alpha": 0.55, "grain": 0.8, "creases": 3},
+    "paper_texture": {"paper": "recycled", "alpha": 0.55, "grain": 0.8, "creases": 3},
     "gradient_domain": {"count": 6, "strength": 0.9},
     "phantom_character": {"frequency": "very_frequent"},
     "ink_degradation": {"level": 5},
