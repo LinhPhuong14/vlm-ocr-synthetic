@@ -43,6 +43,13 @@ TEXTURE_ROOT = Path(__file__).resolve().parent.parent / "textures"
 PAPER_DIR = TEXTURE_ROOT / "paper"
 STAIN_DIR = TEXTURE_ROOT / "stain"
 
+# SynthDoG's `resources/paper/`. These are photographs of real sheets, and they
+# are used differently from `textures/paper/`: a file in PAPER_DIR is the sheet
+# the text is printed ON, chosen before anything is drawn, while a file here is
+# laid OVER a finished render. Same pictures could serve either purpose; the
+# distinction is where in the pipeline they enter, so they get separate homes.
+OVERLAY_DIR = Path(__file__).resolve().parent.parent / "augmentations" / "data" / "image"
+
 # PhantomCharacter.cpp
 SPACING_MIN = 10          # closer than this and there is no room for a pattern
 SPACING_MAX = 20          # further than this and the characters are not one word
@@ -191,6 +198,63 @@ def paper_texture(
 
     field = np.clip(field, 0.0, 1.25)[:, :, None]
     return _restore(np.clip(out.astype(np.float32) * field, 0, 255).astype(np.uint8), was_gray)
+
+
+def paper_overlay(
+    image: np.ndarray,
+    overlay: str | None = None,
+    overlays_dir: str | Path | None = None,
+    alpha: float = 0.30,
+    lighten: float = 0.35,
+    rng: random.Random | None = None,
+) -> np.ndarray:
+    """Lay a photograph of paper OVER a finished render.
+
+    `paper_texture` runs before the ink and only ever darkens, so the sheet
+    shows through the page but never touches a glyph. This runs at the end and
+    is the other half of the effect: the fibre, the fold shadows and the
+    off-white cast of a real sheet sitting on top of everything, ink included.
+    A page that has been through both reads as *printed on* paper rather than
+    *pasted onto* a picture of paper.
+
+    Two blends, because paper does two things to what is under it. `alpha`
+    multiplies -- fibre and shadow darken. `lighten` screens, which is what
+    stops the result from just going dim: real paper scatters light back.
+
+    The screen is **gated by the page's own brightness**, and that gate is the
+    whole difficulty. A flat screen lifts the darkest pixels the most, which is
+    the exact opposite of how a sheet behaves -- ink absorbs, paper scatters --
+    and on faint thermal text it washed the glyphs out until Tesseract's recall
+    on the mid-ageing scenario fell by nearly half. Weighting the screen by
+    luminance means bare paper gets the lift and ink keeps its contrast.
+
+    With no overlay images present this is a no-op rather than a synthetic
+    fallback: the effect is meaningless without a photograph, and silently
+    substituting noise would make a missing directory invisible.
+    """
+    rng = rng or random.Random(0)
+    directory = Path(overlays_dir) if overlays_dir else OVERLAY_DIR
+    texture = _pick_texture(directory, overlay, rng)
+    if texture is None:
+        return image
+
+    out, was_gray = _as_bgr(image)
+    height, width = out.shape[:2]
+    sheet = cv2.cvtColor(_cover(texture, (width, height)), cv2.COLOR_BGR2GRAY)
+    sheet = sheet.astype(np.float32)[:, :, None] / 255.0
+
+    page = out.astype(np.float32) / 255.0
+    multiplied = page * (1.0 - float(alpha) * (1.0 - sheet))
+    screened = 1.0 - (1.0 - multiplied) * (1.0 - float(lighten) * sheet)
+
+    # The gate: 1 on bare paper, 0 on ink. Squared so that mid-greys -- the
+    # anti-aliased rim of a glyph -- stay closer to the ink than to the paper,
+    # which is what keeps a thin stroke from dissolving into its own halo.
+    luma = cv2.cvtColor(out, cv2.COLOR_BGR2GRAY).astype(np.float32)[:, :, None] / 255.0
+    gate = float(lighten) * np.clip(luma, 0.0, 1.0) ** 2
+
+    blended = multiplied * (1.0 - gate) + screened * gate
+    return _restore(np.clip(blended * 255.0, 0, 255).astype(np.uint8), was_gray)
 
 
 # ------------------------------------------------------- gradient domain
@@ -421,10 +485,12 @@ def _gap_to_neighbour(boxes, index, side, y, h) -> int | None:
 
 
 __all__ = [
+    "OVERLAY_DIR",
     "PAPER_DIR",
     "STAIN_DIR",
     "TEXTURE_ROOT",
     "gradient_domain",
+    "paper_overlay",
     "paper_texture",
     "phantom_character",
     "phantom_pattern",

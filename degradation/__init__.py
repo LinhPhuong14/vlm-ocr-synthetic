@@ -29,10 +29,12 @@ from .holes import holes
 from .ink_degradation import InkDegradationConfig, ink_degradation, seed_mix
 from .shadow_binding import shadow_binding
 from .texture import (
+    OVERLAY_DIR,
     PAPER_DIR,
     STAIN_DIR,
     TEXTURE_ROOT,
     gradient_domain,
+    paper_overlay,
     paper_texture,
     phantom_character,
 )
@@ -47,6 +49,7 @@ DEGRADATIONS: dict[str, tuple[Callable[..., np.ndarray], bool]] = {
     "holes": (holes, True),
     # the texture models
     "paper_texture": (paper_texture, True),
+    "paper_overlay": (paper_overlay, True),
     "gradient_domain": (gradient_domain, True),
     "phantom_character": (phantom_character, True),
 }
@@ -106,6 +109,7 @@ DEFAULT_CHAIN: list[tuple[str, dict[str, Any]]] = [
 __all__ = [
     "DEFAULT_CHAIN",
     "DEGRADATIONS",
+    "OVERLAY_DIR",
     "PAPER_DIR",
     "STAIN_DIR",
     "TEXTURE_ROOT",
@@ -119,6 +123,7 @@ __all__ = [
     "holes",
     "ink_degradation",
     "names",
+    "paper_overlay",
     "paper_texture",
     "phantom_character",
     "seed_mix",

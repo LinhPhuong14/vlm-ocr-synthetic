@@ -1,115 +1,117 @@
-# rulebase — luật sinh dùng chung cho cả ba renderer
+# rulebase — the generation rules, shared by all three renderers
 
-Mọi thứ về **nội dung** một trang giấy tổng hợp nằm ở đây. Mọi thứ về **cách vẽ
-nó ra pixel** nằm ở `generators/`. Ba renderer đều bắt đầu bằng đúng ba dòng:
+Everything about **what a synthetic page says** lives here. Everything about
+**how it becomes pixels** lives in `generators/`. All three renderers begin
+with the same three lines:
 
 ```python
-recipe  = rulebase.sample_recipe(seed=7)          # bốc một điểm trong không gian luật
-receipt = rulebase.build_receipt(recipe)          # điền nội dung vào các trường
-grid    = rulebase.build_grid(receipt, recipe.layout.id)   # xếp thành lưới ô
+recipe  = rulebase.sample_recipe(seed=7)          # draw a point in the rule space
+receipt = rulebase.build_receipt(recipe)          # fill in the fields
+grid    = rulebase.build_grid(receipt, recipe.layout.id)   # lay it out as cells
 ```
 
-hoặc gọn hơn: `recipe, receipt, grid = rulebase.make(seed=7)`.
+or, shorter: `recipe, receipt, grid = rulebase.make(seed=7)`.
 
-Cùng một seed thì ra cùng một chữ ở cùng một cột, dù vẽ bằng glyph, bằng
-Chromium hay bằng WeasyPrint. Đó là điều kiện để so sánh ba renderer với nhau
-có ý nghĩa — nếu mỗi renderer tự sinh nội dung thì cái được so là hai bộ dữ
-liệu khác nhau, không phải hai cách vẽ.
+The same seed gives the same words in the same columns, whether they are drawn
+with glyphs, with Chromium or with WeasyPrint. That is the precondition for a
+comparison between the three to mean anything — if each renderer invented its
+own content, what you compared would be two datasets, not two ways of drawing.
 
 ```
 rulebase/
-├── rules/          6 THUỘC TÍNH, mỗi file một thuộc tính  ← chỗ chỉnh phân phối
-├── layouts/        5 BỐ CỤC đo từ ảnh hoá đơn thật        ← chỗ thêm bố cục mới
-├── corpus/vi/      ngữ liệu tiếng Việt CÓ DẤU             ← chỗ thêm mặt hàng
-├── spec.py         bốc mẫu theo trọng số + ràng buộc
-├── content.py      điền nội dung + sinh nhãn
-├── layout.py       nội dung + bố cục -> lưới ô
-└── text.py         bỏ dấu, định dạng tiền, ngắt dòng
+├── rules/          6 ATTRIBUTES, one file each        ← tune the distribution here
+├── layouts/        5 LAYOUTS measured off real receipts ← add a layout here
+├── corpus/vi/      Vietnamese corpus, WITH diacritics  ← add products here
+├── spec.py         weighted sampling with constraints
+├── content.py      fills the fields and builds the label
+├── layout.py       content + layout -> a grid of cells
+└── text.py         diacritic folding, money formatting, wrapping
 ```
 
-### Quy ước đặt tên: định danh tiếng Anh, chữ in ra tiếng Việt
+### Naming: English identifiers, Vietnamese printed text
 
-Ranh giới chạy đúng một chỗ: **thứ gì code so sánh thì viết tiếng Anh, thứ gì
-đi vào ảnh thì viết tiếng Việt.**
+The boundary runs in exactly one place: **what the code compares is English,
+what reaches the image is Vietnamese.**
 
-| tiếng Anh — là định danh | tiếng Việt — là nội dung |
+| English — an identifier | Vietnamese — content |
 | --- | --- |
-| `id`, `tags`, `requires`, `excludes` | `titles`, `total_labels` trong `rules/document.yaml` |
-| `profile: eatery \| market` | `title:` của cột trong `layouts/*.yaml` |
-| `paper: thermal_white` (tên file trong `textures/paper/`) | `label:` của dòng giảm giá, `notes:` |
-| `key:` của cột, `style:`, `money_style:` | mọi thứ trong `corpus/vi/` |
+| `id`, `tags`, `requires`, `excludes` | `titles`, `total_labels` in `rules/document.yaml` |
+| `profile: eatery \| market` | a column's `title:` in `layouts/*.yaml` |
+| `paper: thermal_white` (a filename in `textures/paper/`) | the discount row's `label:`, `notes:` |
+| a column's `key:`, `style:`, `money_style:` | everything in `corpus/vi/` |
 
-Lý do không dịch nốt phần bên phải: chúng **được in lên tờ hoá đơn**. Đổi
-`"Tiền hàng"` thành `"Subtotal"` là đổi bộ dữ liệu chứ không phải đổi tên biến
-— ảnh sinh ra sẽ không còn là hoá đơn Việt Nam nữa. Ngược lại, `id` và `tags`
-chỉ tồn tại bên trong sampler; giữ chúng bằng tiếng Anh để `--force
-augmentation=torn_edges` đọc được mà không cần biết tiếng Việt.
+Why the right-hand column is not translated too: it is **printed on the
+receipt**. Turning `"Tiền hàng"` into `"Subtotal"` changes the dataset, not a
+variable name — the images would stop being Vietnamese receipts. `id` and
+`tags`, by contrast, exist only inside the sampler; keeping them English is
+what makes `--force augmentation=torn_edges` readable without knowing
+Vietnamese.
 
-Nhãn cũng theo quy ước này: `gt_parse.doc_type` giờ là `receipt_eatery` /
-`receipt_market`, còn giá trị các trường vẫn nguyên tiếng Việt.
+The label follows the same rule: `gt_parse.doc_type` is `receipt_eatery` /
+`receipt_market`, while every field *value* stays Vietnamese.
 
 ---
 
-## 1. Sáu thuộc tính
+## 1. The six attributes
 
-Bốc theo đúng thứ tự này. Mỗi thuộc tính nhìn thấy `tags` mà các thuộc tính
-trước đã gắn vào, nên thuộc tính sau tự loại mình ra nếu không hợp.
+Drawn in this order. Each attribute sees the `tags` the earlier ones set, so a
+later one can rule itself out when it does not fit.
 
-| # | thuộc tính | quyết định | file |
+| # | attribute | decides | file |
 | --- | --- | --- | --- |
-| 1 | `document` | loại document: quán nhậu, siêu thị, hoá đơn GTGT… | [rules/document.yaml](rules/document.yaml) |
-| 2 | `layout` | bố cục: cột nào, mỗi mặt hàng mấy dòng | [rules/layout.yaml](rules/layout.yaml) |
-| 3 | `content` | nội dung: có dấu / không dấu, IN HOA, kiểu tiền, có VAT | [rules/content.yaml](rules/content.yaml) |
-| 4 | `visual` | hình thức: font, cỡ chữ, độ đậm mực, **lề trắng**, tờ giấy, độ cong | [rules/visual.yaml](rules/visual.yaml) |
-| 5 | `color` | màu: mực, ám giấy, màu nhấn cho tên cửa hàng | [rules/color.yaml](rules/color.yaml) |
-| 6 | `augmentation` | làm cũ: chuỗi degradation chạy sau khi render | [rules/augmentation.yaml](rules/augmentation.yaml) |
+| 1 | `document` | what kind of document: eatery, supermarket, VAT invoice… | [rules/document.yaml](rules/document.yaml) |
+| 2 | `layout` | which columns, how many lines per item | [rules/layout.yaml](rules/layout.yaml) |
+| 3 | `content` | diacritics or not, UPPER CASE, money format, VAT | [rules/content.yaml](rules/content.yaml) |
+| 4 | `visual` | font, size, ink weight, **white margin**, sheet, curl | [rules/visual.yaml](rules/visual.yaml) |
+| 5 | `color` | ink, paper tint, accent colour for the shop name | [rules/color.yaml](rules/color.yaml) |
+| 6 | `augmentation` | ageing: the degradation chain that runs after rendering | [rules/augmentation.yaml](rules/augmentation.yaml) |
 
-Thứ tự này không tuỳ tiện — nó theo đúng thứ tự thực tế: cửa hàng chọn in cái
-gì từ rất lâu trước khi tờ giấy quyết định nó sẽ bị nhàu ra sao. Vì thế
-`document` là lựa chọn rộng nhất còn `augmentation` hẹp nhất.
+The order is not arbitrary — it follows causality. A shop decides what to print
+long before the paper decides how it will crumple. So `document` is the
+broadest choice and `augmentation` the narrowest.
 
-### Cấu trúc một giá trị
+### The shape of one value
 
 ```yaml
-- id: supermarket                    # bắt buộc, duy nhất trong file
-  weight: 3                          # tần suất tương đối; 0 = không bao giờ bốc trúng
-  tags: [doc_market, has_barcode]    # thẻ để các thuộc tính sau nhìn thấy
-  requires: [doc_market]             # chỉ bốc được nếu recipe ĐÃ có các thẻ này
-  excludes: [ascii_only]             # không bốc được nếu recipe ĐÃ có thẻ nào ở đây
-  params:                            # đi thẳng vào code, không qua xử lý nào
+- id: supermarket                    # required, unique within the file
+  weight: 3                          # relative frequency; 0 = never drawn
+  tags: [doc_market, has_barcode]    # tags the later attributes will see
+  requires: [doc_market]             # drawable only if the recipe ALREADY has these
+  excludes: [ascii_only]             # not drawable if the recipe has any of these
+  params:                            # passed straight to the code, unprocessed
     profile: market
     num_items: [3, 12]
 ```
 
-`requires` / `excludes` là thứ chặn những tổ hợp vô lý. Không có nó, sampler sẽ
-sinh ra hoá đơn quán nhậu có cột mã vạch trống, hoặc máy in nhiệt năm 2011 in
-được chữ "Phở" có dấu.
+`requires` / `excludes` is what blocks nonsense combinations. Without them the
+sampler produces an eatery bill with an empty barcode column, or a 2011 thermal
+printer that somehow prints "Phở" with its diacritics.
 
 ---
 
-## 2. Chỉnh phân phối
+## 2. Tuning the distribution
 
-Sửa `weight`, không sửa code.
+Edit `weight`, not code.
 
 ```yaml
-# muốn 70% là hoá đơn siêu thị:
-- id: pub_eatery            # weight: 3 -> 1
+# to make 70% of receipts supermarket ones:
+- id: pub_eatery          # weight: 3 -> 1
 - id: supermarket         # weight: 3 -> 5
 ```
 
-Trọng số là **tương đối trong danh sách ứng viên còn lại sau khi lọc**, không
-phải xác suất tuyệt đối. Nếu `market_vat` bị `requires: [has_vat_lines]` loại
-ra thì trọng số của nó không tính vào mẫu số.
+A weight is **relative to the candidates left after filtering**, not an
+absolute probability. If `market_vat` is ruled out by
+`requires: [has_vat_lines]`, its weight does not enter the denominator.
 
-Xem phân phối thật sự ra sao trước khi chạy dài:
+See what the distribution really is before a long run:
 
 ```bash
-make distribution            # 2000 lần bốc, đếm theo từng thuộc tính
+make distribution            # 2000 draws, counted per attribute
 ```
 
-Kiểm tra luật có chỗ nào vô nghĩa không (thẻ gõ sai, giá trị không bao giờ bốc
-trúng — sai loại này im lặng, sinh ảnh vẫn chạy, chỉ là giá trị đó không bao
-giờ xuất hiện):
+Check the rules for anything meaningless — a typo'd tag, a value that can never
+be drawn. That class of mistake is silent: generation still runs, the value
+simply never appears.
 
 ```bash
 make check-rules
@@ -117,142 +119,151 @@ make check-rules
 
 ---
 
-## 2b. Lề trắng quanh nội dung
+## 2b. The white margin around the content
 
-Ba khoá trong `rules/visual.yaml`, đọc bởi `rulebase.style.padding` và dùng
-chung cho **cả ba renderer**:
+Three keys in `rules/visual.yaml`, read by `rulebase.style.padding` and shared
+by **all three renderers**:
 
 ```yaml
-margin: [0.06, 0.13]         # lề trái/phải, theo TỈ LỆ số cột
-padding_top: [2.4, 3.6]      # lề trên, theo CHIỀU CAO DÒNG
-padding_bottom: [2.0, 3.2]   # lề dưới, theo chiều cao dòng
+margin: [0.06, 0.13]         # left/right, as a FRACTION of the column count
+padding_top: [2.4, 3.6]      # top, in LINE HEIGHTS
+padding_bottom: [2.0, 3.2]   # bottom, in line heights
 ```
 
-Trên và dưới cố ý **không đối xứng**: máy tính tiền nhả một đoạn giấy dài phía
-trên trước khi đầu in bắt đầu in, phần đuôi thì ngắn hơn.
+Top and bottom are deliberately **asymmetric**: a till feeds a long blank strip
+before the print head starts, and a shorter one after.
 
-Hai điều mà `padding` tự lo, không cần khai trong YAML:
+Two things `padding` handles by itself, with nothing to declare in YAML:
 
-* **Lề trên luôn đủ để chứa dòng chữ cao nhất.** Tên cửa hàng và tiêu đề được
-  phóng to (1.15–1.65em tuỳ bố cục), chữ tràn lên trên khỏi hộp dòng của nó.
-  `padding` lấy `max(padding_top, cỡ_lớn_nhất + 0.5)`, nên dù bạn đặt
-  `padding_top` nhỏ thì tên quán vẫn không bị cắt cụt ở mép ảnh.
-* **Cả ba renderer ra cùng một lề.** Trước đây mỗi renderer tự đặt một con số:
-  renderer glyph dùng `uniform(0.6, 1.8)` chiều cao dòng, hai renderer HTML
-  dùng `0.6 + cỡ_lớn_nhất`. Cùng một recipe mà dòng tên quán lại nằm ở độ cao
-  khác nhau.
+* **The top margin always clears the tallest line.** The shop name and the
+  title are enlarged (1.15–1.65em depending on the layout) and overflow their
+  line box upwards. `padding` takes `max(padding_top, tallest + 0.5)`, so even
+  a small `padding_top` cannot decapitate the shop name at the edge of the
+  image.
+* **All three renderers produce the same margin.** Each used to pick its own
+  number: the glyph renderer `uniform(0.6, 1.8)` line heights, the two HTML
+  renderers `0.6 + tallest`. The same recipe put the shop name at a different
+  height in each.
 
-> Với renderer HTML có một cái bẫy: **`padding` của CSS KHÔNG đẩy được các
-> phần tử `position:absolute`** — chúng bám vào *padding box* của phần tử cha,
-> nên đặt `padding-top` bao nhiêu cũng vô ích. Lề trên phải cộng thẳng vào
-> `top` của từng ô.
+> One trap in the HTML renderers: **CSS `padding` does not move
+> `position:absolute` children** — they anchor to the parent's *padding box*,
+> so no amount of `padding-top` shifts them. The top margin has to be added
+> directly to each cell's `top`.
 
 ---
 
-## 3. Thêm một bố cục mới
+## 3. Adding a layout
 
-1. Tạo `layouts/<tên>.yaml`. Chép một file gần giống nhất rồi sửa; ghi rõ
-   `source:` là đo từ ảnh nào.
-2. Khai báo nó trong `rules/layout.yaml`, kèm `requires` phù hợp.
-3. Xem thử bằng chữ, không cần render ảnh:
+1. Create `layouts/<name>.yaml`. Copy the closest existing file and edit it;
+   record in `source:` which photograph it was measured from.
+2. Declare it in `rules/layout.yaml` with the right `requires`.
+3. Preview it as text, with no image rendering:
 
 ```bash
-make preview-grid LAYOUT=<tên>
+make preview-grid LAYOUT=<name>
 ```
 
-### Ngữ pháp của một file bố cục
+### The grammar of a layout file
 
 ```yaml
-width: [40, 48]        # bề rộng giấy tính bằng KÝ TỰ (giấy nhiệt 80mm ≈ 42-48)
-gutter: 1              # số ký tự chừa giữa hai cột (0 = sát nhau)
-rule_char: "-"         # ký tự vẽ đường kẻ ngang
+width: [40, 48]        # paper width in CHARACTERS (80mm thermal ≈ 42-48)
+gutter: 1              # characters left between two columns (0 = touching)
+rule_char: "-"         # the character horizontal rules are drawn with
 
-header:                # tên cửa hàng, địa chỉ, tiêu đề
+header:                # shop name, address, title
   name_scale: [1.15, 1.45]
   title: true
-  branch: false        # bỏ hẳn một dòng: WinMart không in chi nhánh
+  branch: false        # drop a line entirely: WinMart prints no branch
 
 meta:
   style: pairs         # pairs | two_column | pipes
   rule_after: false
 
-columns:               # width 0 = "lấy phần còn thừa" (chỉ dùng cho cột name)
+columns:               # width 0 = "take what is left" (only for the name column)
   - {key: stt,        title: "Stt",      width: 4,  align: right}
   - {key: qty,        title: "Số lượng", width: 11, align: right}
 
 item:
-  wrap_name: true      # false = cắt bớt tên dài, như máy in đời cũ
-  rows:                # mỗi phần tử là MỘT DÒNG in ra
+  wrap_name: true      # false = truncate long names, like an old till
+  rows:                # each element is ONE printed line
     - - {col: stt, from: stt}
-      - {from: name, span: [qty, amount]}   # trải từ cột qty tới hết cột amount
+      - {from: name, span: [qty, amount]}   # spans from the qty column to the amount column
     - - {col: qty, from: qty}
       - {col: unit_price, from: unit_price}
-  note_row: {indent: 2}                 # dòng tên hàng thụt vào (kiểu siêu thị)
+  note_row: {indent: 2}                 # the indented item-name line (supermarket style)
   discount_row: {label: "KM"}
   original_price_row: {label: "Giá gốc:"}
 
 totals:
   emphasise_grand: true
   grand_scale: [1.20, 1.55]
-  grand_two_lines: true    # nhãn một dòng, số tiền dòng sau
+  grand_two_lines: true    # label on one line, the amount on the next
 ```
 
-Nguồn dữ liệu dùng được trong `from:`: `stt`, `name`, `qty`, `unit_price`,
-`amount`, `barcode`, `barcode_name`, `vat`, `unit`, `note`.
+Sources usable in `from:`: `stt`, `name`, `qty`, `unit_price`, `amount`,
+`barcode`, `barcode_name`, `vat`, `unit`, `note`.
 
-Dòng nào mà mọi trường đều rỗng thì bị bỏ qua — nhờ vậy một template dùng chung
-được cho cả hàng cân (có dòng khối lượng) lẫn hàng đóng gói (không có).
+A row whose every field is empty is skipped — which is what lets one template
+serve both weighed goods (with a weight line) and packaged ones (without).
 
 ---
 
-## 4. Thêm mặt hàng / cửa hàng
+## 4. Adding products and shops
 
-`corpus/vi/` là file text thuần, phân cách bằng **TAB**. Luôn viết tiếng Việt
-**CÓ DẤU** — thuộc tính `content` mới là chỗ quyết định có bỏ dấu lúc render hay
-không, và bỏ dấu là một chiều: từ "Hẹn gặp lại" ra "Hen gap lai" thì được, ngược
-lại thì không.
+`corpus/vi/` is plain text, **TAB**-separated. Always write Vietnamese **with
+diacritics** — the `content` attribute is what decides whether they are folded
+away at render time, and folding is one-way: "Hẹn gặp lại" → "Hen gap lai"
+works, the reverse does not.
 
-| file | cột |
+| file | columns |
 | --- | --- |
-| `items_eatery.txt`, `items_market.txt` | tên ⇥ giá tối thiểu ⇥ giá tối đa |
-| `shops_eatery.txt` | tên |
-| `shops_market.txt` | thương hiệu ⇥ chi nhánh |
-| `streets.txt`, `footers_*.txt` | một dòng một giá trị |
-| `wards.txt` | phường ⇥ quận ⇥ tỉnh/thành |
-| `payments.txt` | nhãn ⇥ nhóm (`tienmat`/`the`/`vi`/`qr`) |
+| `items_eatery.txt`, `items_market.txt` | name ⇥ min price ⇥ max price |
+| `shops_eatery.txt` | name |
+| `shops_market.txt` | brand ⇥ branch |
+| `streets.txt`, `footers_*.txt` | one value per line |
+| `wards.txt` | ward ⇥ district ⇥ province/city |
+| `payments.txt` | label ⇥ group (`tienmat`/`the`/`vi`/`qr`) |
 
-Dòng sai số cột bị bỏ qua chứ không làm hỏng cả lần chạy — sửa corpus bằng tay
-thì một dòng hỏng chỉ nên tốn dòng đó. Kiểm tra bằng `make check-corpus`.
+The `profile` in `rules/document.yaml` **is** the filename suffix:
+`profile: market` reads `items_market.txt`. Adding a profile means adding three
+corpus files with a matching suffix, not editing `corpus.py`.
+
+A row with the wrong number of columns is skipped rather than failing the whole
+run — a corpus is edited by hand, and one bad line should cost that line.
+Check with `make check-corpus`.
 
 ---
 
-## 5. Thêm một hiệu ứng làm cũ
+## 5. Adding an ageing effect
 
-Viết model mới trong `degradation/`, đăng ký vào `DEGRADATIONS`, rồi dùng tên đó
-trong `rules/augmentation.yaml`:
+Write the model in `degradation/`, register it in `DEGRADATIONS`, then use that
+name in `rules/augmentation.yaml`:
 
 ```yaml
-- id: kịch_bản_mới
+- id: new_scenario
   weight: 2
   requires: [thermal]
   params:
     chain:
       - [paper_texture, {alpha: 0.4, grain: 0.6}]
-      - [tên_hiệu_ứng_mới, {tham_số: 1.0}]
+      - [new_effect_name, {some_param: 1.0}]
 ```
 
-Thứ tự trong `chain` **không hoán vị được**: mực mòn rồi mới nhoè thì đọc ra là
-"chữ cũ bị scan dở", nhoè rồi mới mòn thì ra "vết lem". `paper_texture` luôn
-đứng đầu — mọi thứ sau nó là hư hại lên một tờ giấy đã tồn tại.
+The order in `chain` **does not commute**: ink decaying and then blurring reads
+as "old text, badly scanned"; blurring and then decaying reads as a smear.
+`paper_texture` always comes first — everything after it is damage to a sheet
+that already exists. `paper_overlay`, if used, comes last: it is the
+photograph of a real sheet laid over the finished page.
 
-Xem danh sách hiệu ứng có sẵn: `make list-degradations`.
+List what is available: `make list-degradations`.
 
 ---
 
-## 6. Nhãn
+## 6. The label
 
-`receipt.ground_truth()` trả về nhãn lồng nhau kiểu CORD, dựng từ **chính các
-object mà renderer dùng để vẽ**, nên nhãn không thể mô tả thứ ảnh không có.
+`receipt.ground_truth()` returns a CORD-style nested label, built from **the
+same objects the renderer draws from**, so the label cannot describe something
+the image does not contain.
 
 ```json
 {
@@ -270,9 +281,10 @@ object mà renderer dùng để vẽ**, nên nhãn không thể mô tả thứ �
 }
 ```
 
-Hàng cân đo (`weight`) in ra SL là **1** và đơn giá là **thành tiền của lần cân
-đó**, còn giá theo kilo nằm ở dòng tên hàng — đúng như máy tính tiền in. Nhãn
-ghi theo cái được in, và mang kèm khối lượng thật ở trường riêng.
+Weighed goods (`weight`) print a quantity of **1** and a unit price that is
+**the amount for that weighing**, with the per-kilo price on the item-name line
+— which is what a real till prints. The label records what was printed, and
+carries the true weight in its own field.
 
-Renderer glyph còn kèm `boxes`: toạ độ polygon từng ô, vẫn đúng sau khi tờ giấy
-đã bị làm cong.
+The glyph renderer also emits `boxes`: a polygon per cell, still correct after
+the sheet has been curled.

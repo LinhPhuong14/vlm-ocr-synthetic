@@ -52,6 +52,11 @@
       "file": "showcase-ink_degradation.jpg"
     },
     {
+      "degradation": "paper_overlay",
+      "options": {},
+      "file": "showcase-paper_overlay.jpg"
+    },
+    {
       "degradation": "paper_texture",
       "options": {
         "paper": "recycled",

@@ -17,6 +17,7 @@ came from, which is what you need to check one. Read the original with
 | here | from | what it models |
 | --- | --- | --- |
 | `paper_texture` | `Context::BackgroundContext` | the page drawn onto a sheet of paper rather than onto white, with grain and fold creases |
+| `paper_overlay` | — (SynthDoG's `resources/paper/`) | a photograph of a real sheet laid over the finished page, ink included |
 | `gradient_domain` | `GradientDomainDegradation.cpp` | stains pasted with Poisson blending (`cv::seamlessClone`, `MIXED_CLONE`) — Seuret, Chen, Eichenberger, Liwicki & Ingold, ICDAR 2015 |
 | `phantom_character` | `PhantomCharacter.cpp` | leftover ink from a worn press, pasted against the flanks of characters |
 
@@ -43,18 +44,24 @@ and a directory of real scans is used in preference whenever you point
 
 Paper is different: it is shared with the renderers, so it lives in
 [`textures/paper/`](../textures/paper) and is named by
-`rulebase/rules/visual.yaml`. Regenerate with `make textures`; replace the
-files with real scans under the same names and nothing else changes.
+`rulebase/rules/visual.yaml` — as one sheet, or as a shortlist to draw from.
+Regenerate with `make textures`; replace the files with real scans under the
+same names and nothing else changes.
 
-[`textures/background/`](../textures/background) is the other half: the surface
-a sheet is *photographed on*, which only the glyph renderer uses (the two HTML
-renderers produce flat scans with no surround). DocCreator ships exactly this
-idea in `data/Mesh/Background/wood00..04.jpg` — wooden desk tops — and that is
-the right kind of surface for a receipt. Their images are LGPL data, the same
-reason the stain and phantom patterns are not vendored, so equivalents are
-generated: light and dark wood, stone, cloth. A few dozen phone photographs of
-real tables will beat them, and `background.image.paths` in
-`generators/synthdog/config_vi_receipt.yaml` is where you point at those.
+There are three directories of surface images and the difference between them
+is **where in the pipeline they enter**, not what they show:
+
+| directory | when | what it is |
+| --- | --- | --- |
+| [`textures/paper/`](../textures/paper) | before anything is drawn | the sheet the text is printed on. `paper_texture` only ever darkens, so ink stays ink. Eight sheets, all generated: four smooth (thermal, recycled, office) and four coarse (wood, stone, weave) whose grain reads as rough stock under a 0.3–0.5 alpha. |
+| [`augmentations/data/image/`](../augmentations/data/image) | last step of the chain | photographs of real sheets, from SynthDoG's `resources/paper/`, laid over the finished page. `paper_overlay` multiplies *and* screens, so fibre darkens while the sheet's own scatter lifts the page — a render that has been through both reads as printed on paper rather than pasted onto a picture of paper. |
+| [`textures/background/`](../textures/background) | after ageing, glyph renderer only | the scene the sheet is photographed on, from SynthDoG's `resources/background/`. The two HTML renderers produce flat scans with no surround. `background.image.paths` in `generators/synthdog/config_vi_receipt.yaml` points at it. |
+
+DocCreator ships desk tops of its own in `data/Mesh/Background/wood00..04.jpg`,
+which is the same idea as the third row. Their images are LGPL data, the same
+reason the stain and phantom patterns are not vendored, so the wood, stone and
+weave here are generated — and, being generated, they earn their keep better as
+coarse *paper* than as a table a photograph would give away.
 
 ## The two that were hardest to get right
 

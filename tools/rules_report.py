@@ -64,12 +64,52 @@ def check() -> list[str]:
               .glob("*.jpg")}
     for option in rules["visual"]:
         paper = option.params.get("paper")
-        if paper and paper != "auto" and paper not in papers:
+        # `paper` is one sheet or a shortlist; every entry has to exist, since
+        # a shortlist that is wrong in one place fails only on the seeds that
+        # happen to draw that entry.
+        wanted = paper if isinstance(paper, list) else [paper]
+        for sheet in wanted:
+            if sheet and sheet != "auto" and sheet not in papers:
+                problems.append(
+                    f"visual/{option.id}: paper {sheet!r} not in textures/paper "
+                    f"({', '.join(sorted(papers)) or 'empty -- run `make textures`'})"
+                )
+
+    # A sheet nobody can draw is dead weight in the repository, and the usual
+    # cause is a rename that missed one rule.
+    used = set()
+    for option in rules["visual"]:
+        paper = option.params.get("paper")
+        used.update(paper if isinstance(paper, list) else [paper])
+    if "auto" not in used:
+        for orphan in sorted(papers - used):
             problems.append(
-                f"visual/{option.id}: paper {paper!r} not in textures/paper "
-                f"({', '.join(sorted(papers)) or 'empty -- run `make textures`'})"
+                f"textures/paper/{orphan}.jpg: no visual value names it"
             )
+
+    overlays = Path(__file__).resolve().parent.parent / "augmentations" / "data" / "image"
+    chains = [
+        name
+        for option in rules["augmentation"]
+        for name, _ in _chain_entries(option.params.get("chain") or [])
+    ]
+    if "paper_overlay" in chains and not list(overlays.glob("*.jpg")):
+        problems.append(
+            f"augmentation: a chain uses paper_overlay but {overlays} has no images; "
+            "the step would silently do nothing"
+        )
     return problems
+
+
+def _chain_entries(chain):
+    """(name, options) for each chain entry, in either YAML shape."""
+    for entry in chain:
+        if isinstance(entry, (list, tuple)):
+            yield entry[0], (entry[1] if len(entry) > 1 else {})
+        elif isinstance(entry, dict):
+            yield from entry.items()
+        else:
+            yield str(entry), {}
 
 
 def distribution(draws: int, seed: int) -> None:
