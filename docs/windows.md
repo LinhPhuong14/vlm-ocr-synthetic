@@ -24,6 +24,108 @@ Bảng đối chiếu:
 
 ---
 
+## 0. `CERTIFICATE_VERIFY_FAILED` khi pip chạy
+
+Gặp cái này ngay ở bước `setup`, lặp 5 lần rồi bỏ cuộc:
+
+```
+SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED]
+certificate verify failed: unable to get local issuer certificate'))
+```
+
+**Không phải lỗi repo.** Có thứ gì đó nằm giữa máy bạn và `pypi.org` đang ký
+lại TLS bằng một certificate mà Python không tin — gần như luôn là proxy soi
+gói của công ty. Trình duyệt vào PyPI được vì **Windows** tin CA nội bộ đó;
+Python mang kho tin cậy riêng (`certifi`) và không tin.
+
+Vì `setup` dựng ba môi trường, cách sửa phải áp cho **mọi** venv về sau, chứ
+không phải gõ cờ cho từng lệnh.
+
+### Cách 1 — cho Python dùng luôn kho tin cậy của Windows (khuyên dùng)
+
+```powershell
+py -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org pip_system_certs
+```
+
+Cài một lần vào Python gốc. Từ đó mọi tiến trình Python đọc CA từ Windows
+certificate store, nên CA nội bộ công ty được nhận tự động — kể cả trong các
+venv mà `tasks.py` tạo ra sau này. Đây là cách duy nhất ở đây **không** tắt
+xác thực: bạn vẫn kiểm chứng certificate, chỉ là kiểm theo danh sách CA mà
+IT công ty đã cài vào máy.
+
+Riêng lệnh cài `pip_system_certs` vẫn phải dùng `--trusted-host` vì lúc đó
+chưa có gì sửa được — đó là bài toán con gà quả trứng.
+
+### Cách 2 — trỏ pip vào file CA của công ty
+
+Xin IT file CA gốc (`.pem`/`.crt`), hoặc tự xuất: mở `https://pypi.org` bằng
+Edge → bấm ổ khoá → **Connection is secure** → xem certificate → tab
+**Certification Path** → chọn certificate **trên cùng** → Export → chọn
+**Base-64 encoded X.509 (.CER)**.
+
+Rồi ghi vào `%APPDATA%\pip\pip.ini` để áp cho mọi venv:
+
+```ini
+[global]
+cert = C:\Users\<ban>\certs\corp-root-ca.pem
+```
+
+Cũng vẫn là xác thực đầy đủ. Nhiều thư viện Python khác đọc biến môi trường
+thay vì `pip.ini`, nên đặt thêm cho chắc:
+
+```powershell
+setx SSL_CERT_FILE     C:\Users\<ban>\certs\corp-root-ca.pem
+setx REQUESTS_CA_BUNDLE C:\Users\<ban>\certs\corp-root-ca.pem
+```
+
+### Cách 3 — bỏ qua xác thực cho riêng PyPI (biết rõ đánh đổi rồi hãy dùng)
+
+`%APPDATA%\pip\pip.ini`:
+
+```ini
+[global]
+trusted-host = pypi.org
+               files.pythonhosted.org
+```
+
+Chạy được ngay, và pip vẫn kiểm hash gói theo lockfile của chính nó. Nhưng bạn
+**mất khả năng phát hiện** nếu có ai đó đứng giữa đổi nội dung gói tải về. Chỉ
+nên dùng khi cách 1 và 2 đều tắc, và chỉ trên máy công ty đã có proxy tin cậy.
+
+> Đừng đặt `PYTHONHTTPSVERIFY=0` hay sửa `certifi/cacert.pem` bằng tay. Cái đầu
+> tắt xác thực cho **mọi** kết nối HTTPS của Python trên máy, cái sau bị ghi đè
+> lần tới `certifi` cập nhật.
+
+### Playwright cũng đi qua proxy đó
+
+`py tasks.py setup-html` gọi `playwright install chromium`, tải từ host khác
+PyPI và dùng TLS của Node, nên nó **không** đọc `pip.ini`:
+
+```powershell
+setx NODE_EXTRA_CA_CERTS C:\Users\<ban>\certs\corp-root-ca.pem
+```
+
+Mở lại terminal rồi chạy lại `setup-html`.
+
+### Sau khi sửa
+
+Xoá các venv dở dang rồi làm lại từ đầu — chúng đang rỗng hoặc thiếu gói:
+
+```powershell
+Remove-Item -Recurse -Force generators\*\.venv
+py -3.11 tasks.py setup
+```
+
+Kiểm tra nhanh trước khi chạy lại cả `setup`:
+
+```powershell
+py -m pip download --no-deps -d $env:TEMP\piptest pip
+```
+
+Lệnh này chạy trót lọt thì `setup` cũng sẽ trót lọt.
+
+---
+
 ## 1. Python 3.11 cho renderer glyph
 
 Bắt buộc. synthtiger ghim `pillow<10`, `numpy<2`, `opencv-python<5`, và
