@@ -1,9 +1,4 @@
-# THUỘC TÍNH 6/6 — LÀM CŨ
-#
-# `chain` là danh sách [tên, tham số] chạy tuần tự qua `degradation.apply_chain`.
-# Tên phải có trong `degradation.DEGRADATIONS` — chạy `make list-degradations`
-# để xem đủ. Thứ tự KHÔNG hoán vị được: mực mòn rồi mới nhoè thì đọc ra là
-# "chữ cũ bị scan dở", nhoè rồi mới mòn thì ra "vết lem".
+# THUỘC TÍNH 6/6 — Augmented
 #
 # Ba cái cuối là hiệu ứng texture của DocCreator:
 #   paper_texture      dán trang giấy lên texture giấy thật
