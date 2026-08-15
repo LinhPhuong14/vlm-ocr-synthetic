@@ -119,7 +119,8 @@ All three write the same `metadata.jsonl` — `file_name`, `ground_truth`
 need to know which produced a file.
 
 A fourth generator, `generators/html-table/`, is vendored upstream code for
-general table images. It does not read the rule-base.
+table images. It does not read the rule-base, and it solves a different problem
+— see [Table images](#table-images) below.
 
 ---
 
@@ -151,7 +152,7 @@ textures/paper/         the sheets a page is printed ON (generated)
 textures/background/    the scenes a sheet is photographed on (photographs)
 augmentations/data/image/  paper photographs laid OVER a finished render
 fonts/                  fonts every renderer uses (Vietnamese coverage checked)
-data/                   generated datasets: aged and clean, labels and OCR proof
+data/                   generated datasets: aged, clean, and table structure
 samples/                curated examples
 tools/                  drivers: dataset, proof, previews, checks
 docs/                   notes that outlive any one generator
@@ -326,10 +327,26 @@ extended with configurable cell types, merged cells and colours. Independent of
 the rule-base.
 
 ```bash
-cd generators/html-table
-pip install -r requirements.txt
-python generate_data.py --help
+make setup-tables
+make tables              # 60 tables into data/tables60/
 ```
+
+**A different task, not more of the same data.** The receipt sets teach a model
+to *parse a document* (a nested CORD record); this one teaches it to *recover a
+table's structure* (the `<td>` tokens, the spans, a box per cell). The two
+labels share no schema — only the `metadata.jsonl` file name, so a loader finds
+them the same way. Published set and its caveats:
+[`data/tables60/`](data/tables60).
+
+`tools/generate_tables.py` wraps the vendored code without editing it, and
+supplies the three things it does not do itself: a browser it can find (it
+never sets `binary_location`, so a `google-chrome` shim goes on PATH), a
+chromedriver whose major version matches that browser, and Vietnamese cell text
+in place of upstream's 13 MB of Chinese news.
+
+Cell text is a random *character slice* of the corpus, upstream's design and
+the right one for structure recognition — so these images teach **layout, not
+language**. Use `data/dataset60/` for anything about reading.
 
 ---
 
