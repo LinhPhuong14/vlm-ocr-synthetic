@@ -61,14 +61,45 @@ def run(command, cwd: Path | None = None, check: bool = True) -> int:
 # ------------------------------------------------------------------ setup
 
 
+PIP_FAILED = """
+pip could not install into the {name} environment.
+
+If the output above says CERTIFICATE_VERIFY_FAILED, this is not a repository
+problem: something between this machine and pypi.org is re-signing TLS with a
+certificate Python does not trust -- usually a corporate inspecting proxy. The
+browser trusts it because Windows trusts it; Python ships its own trust store
+and does not.
+
+Teach Python to use the Windows store, once, and every environment this task
+builds afterwards inherits it:
+
+  py -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org pip_system_certs
+
+docs/windows.md has the alternatives (a pip.ini, PIP_CERT, an exported CA) and
+what to do about Playwright, which downloads through the same proxy.
+"""
+
+
+def _pip(python: Path, name: str, *arguments) -> None:
+    """A pip step that explains itself when the network refuses it.
+
+    Worth the wrapper because the raw failure is five identical retry warnings
+    and an OSError, which reads like a broken repository rather than like a
+    proxy -- and because it happens on the FIRST thing setup does, so there is
+    nothing else on screen to suggest otherwise.
+    """
+    if run([python, "-m", "pip", *arguments], check=False) != 0:
+        raise SystemExit(PIP_FAILED.format(name=name))
+
+
 def _make_venv(name: str, requirements: Path, extra_first: list[str] | None = None) -> Path:
     venv = VENVS[name]
     run([sys.executable, "-m", "venv", venv])
     python = venv_python(venv)
-    run([python, "-m", "pip", "install", "-q", "-U", "pip"])
+    _pip(python, name, "install", "-q", "-U", "pip")
     if extra_first:
-        run([python, "-m", "pip", "install", "-q", *extra_first])
-    run([python, "-m", "pip", "install", "-q", "-r", requirements])
+        _pip(python, name, "install", "-q", *extra_first)
+    _pip(python, name, "install", "-q", "-r", str(requirements))
     return python
 
 
