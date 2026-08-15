@@ -4,7 +4,7 @@ import os
 import pytest
 from dotenv import load_dotenv
 
-from tests.required_env import RequiredEnvVar
+from generators.genalog.tests.required_env import RequiredEnvVar
 
 ENV_FILEPATH = "tests/.env"
 
