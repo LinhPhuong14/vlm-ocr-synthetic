@@ -48,7 +48,7 @@ has never seen a page lying under a lamp.
 | **geometry** | curl, perspective, lighting | none | page box, real pagination |
 | **per-cell polygons** | yes, they follow the curl | no | no |
 | **Python** | **3.8 – 3.11** | 3.9+ | 3.9+ |
-| **speed, 20 pages** | slowest | fastest | middle |
+| **cost per page** | ~1.6 s | ~1.2 s | ~0.7 s |
 | **extra install** | — | a browser | GTK (Pango, cairo) |
 
 ### What each is good and bad at
@@ -64,7 +64,9 @@ distribution a phone photo of a receipt falls into.
 
 The cost is that it owns the whole text stack. No line breaking, no kerning, no
 font fallback comes for free; anything the grid does not specify does not
-happen. It is the slowest of the three, it is pinned below Python 3.12 by
+happen. It is the slowest of the three -- roughly 1.6 s a page against
+genalog's 0.7 s, measured warm on a 4-core container -- it is pinned below
+Python 3.12 by
 synthtiger's own dependencies (see [`docs/python-versions.md`](docs/python-versions.md)),
 and its OCR scores are the lowest — not because the pages are worse but because
 they are photographs.
@@ -73,8 +75,7 @@ they are photographs.
 so a change is a line of stylesheet and the result is inspectable in any
 browser. Chromium brings real text shaping, real font fallback and correct
 diacritic positioning for free, which matters for Vietnamese — stacked tone
-marks are exactly where a hand-rolled renderer goes wrong. It is also the
-fastest.
+marks are exactly where a hand-rolled renderer goes wrong.
 
 The cost is that the output is *flat*. There is no camera, no paper geometry
 and no lighting, so it is a scan and nothing else, and it cannot tell you where
