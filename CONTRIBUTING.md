@@ -15,6 +15,11 @@ synthtiger pins Pillow 9.5 and WeasyPrint needs a modern one.
 
 `make setup` builds all three renderer environments.
 
+Before changing a renderer, read
+[`docs/huong-dan-va-giai-thich.md`](docs/huong-dan-va-giai-thich.md): it walks
+each one function by function and says why the non-obvious parts are written
+the way they are. Most of them are a bug that was hit once already.
+
 The glyph renderer is run **from its own directory** — the paths in
 `config_vi_receipt.yaml` are relative to it. `make receipts`, `make preview` and
 `tools/generate_dataset.py` already `cd` for you. (That is also the reason
