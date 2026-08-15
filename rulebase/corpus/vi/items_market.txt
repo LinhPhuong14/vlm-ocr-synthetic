@@ -1,0 +1,111 @@
+# Mặt hàng siêu thị / cửa hàng tiện lợi Việt Nam.
+# Định dạng: tên<TAB>giá tối thiểu<TAB>giá tối đa   (đơn vị VND, giá một đơn vị bán)
+#
+# Tên viết đúng chính tả tiếng Việt CÓ DẤU. Backend nào cần chữ không dấu thì
+# tự bỏ dấu qua `rulebase.text.ascii_fold` — không lưu sẵn bản không dấu ở đây,
+# vì bỏ dấu thì không khôi phục lại được.
+#
+# Tên hàng siêu thị hay có ba phần: NHÃN HIỆU + mô tả + khối lượng. Giữ nguyên
+# kiểu đó, vì bố cục nào cũng phải ngắt dòng đúng chỗ trên tên dài.
+
+# --- rau củ quả ---
+Nho đỏ không hạt Mỹ	140000	175000
+Nho xanh không hạt Úc	160000	210000
+Táo Envy New Zealand	120000	185000
+Cam sành Vĩnh Long	28000	45000
+Bưởi da xanh Bến Tre	45000	70000
+Xoài cát Hoà Lộc	55000	90000
+Thanh long ruột đỏ Bình Thuận	30000	55000
+Chuối già Nam Mỹ	18000	32000
+Dưa hấu không hạt	15000	26000
+WINECO Xà lách lolo xanh L1 300g	14000	19000
+WINECO Cải thìa baby 300g	13000	18000
+WINECO Rau muống nước 300g	9000	14000
+WINECO Cà chua beef 500g	22000	32000
+Khoai tây Đà Lạt 1kg	28000	42000
+Hành tây tím 500g	14000	22000
+Gừng ta 200g	12000	18000
+Nấm kim châm Hàn Quốc 150g	11000	17000
+Bắp non tươi 200g	16000	24000
+
+# --- thịt, cá, hải sản ---
+Ba chỉ bò cắt lát New Zealand 475g	145000	185000
+Ba chỉ heo rút sườn 500g	78000	105000
+Nạc dăm heo 500g	72000	95000
+Ức gà phi lê 500g	48000	68000
+Đùi gà góc tư 1kg	62000	85000
+Chả cá thu tươi	120000	150000
+Chả cá quết kiểu Vũng Tàu 230g	32000	42000
+Cá basa cắt khúc 500g	42000	58000
+Tôm thẻ tươi size 40	155000	215000
+Mực ống làm sạch 300g	78000	110000
+Xúc xích Đức Việt cocktail 500g	52000	72000
+Giò lụa Vissan 500g	68000	92000
+
+# --- sữa và đồ mát ---
+MỘC CHÂU Sữa thanh trùng k.đường H 900ml	38000	46000
+VINAMILK Sữa tươi tiệt trùng ít đường 1L	32000	40000
+TH true MILK Sữa tươi nguyên chất 1L	34000	42000
+DUTCH LADY Sữa tiệt trùng socola 180ml x4	28000	38000
+YOMOST Sữa chua uống việt quất 170ml x4	26000	34000
+VINAMILK Sữa chua có đường 100g x4	24000	32000
+ANLENE Sữa bột canxi 400g	145000	195000
+PRESIDENT Bơ lạt 200g	68000	95000
+Phô mai con bò cười 8 miếng	32000	44000
+
+# --- hàng khô, gia vị ---
+NAM DƯƠNG Sốt Dầu Dấm Trộn Salad 250g	18000	24000
+NAM DƯƠNG Xì dầu ông chà và 500ml	22000	30000
+CHIN-SU Nước mắm cá cơm 500ml	38000	52000
+NAM NGƯ Nước mắm đậm đặc 750ml	42000	58000
+MAGGI Dầu hào đặc biệt 350g	26000	36000
+AJINOMOTO Bột ngọt 400g	28000	38000
+KNORR Hạt nêm thịt thăn 400g	32000	44000
+Bột tẩm gia vị Vân Lộc gói 2	18000	26000
+TƯỜNG AN Dầu đậu nành 1L	46000	62000
+NEPTUNE Dầu ăn Gold 1L	52000	68000
+Muối i-ốt Bạc Liêu 500g	6000	11000
+Đường tinh luyện Biên Hoà 1kg	22000	30000
+Nước tương Maggi đậu nành 300ml	20000	28000
+
+# --- mì, gạo, ngũ cốc ---
+Mì Deuchi HF 200g	15000	20000
+HẢO HẢO Mì tôm chua cay thùng 30 gói	105000	135000
+OMACHI Mì khoai tây sườn hầm 5 gói	38000	52000
+KOKOMI Mì đại 90g x5	26000	36000
+VĨNH THUẬN Bột bánh xèo 400g	18000	26000
+Gạo ST25 túi 5kg	175000	230000
+Gạo Jasmine thơm 5kg	105000	145000
+Bún khô Bích Chi 400g	20000	28000
+Phở khô Bích Chi 500g	24000	34000
+Miến dong Tài Ký 300g	22000	30000
+
+# --- bánh kẹo, đồ uống ---
+Bcracker MAGIC bơ dừa phồng 200g	11000	16000
+OREO Bánh quy socola 119g	16000	24000
+COSY Bánh quy bơ sữa hộp 336g	48000	66000
+CHOCO PIE Orion hộp 12 cái	52000	72000
+DANISA Bánh bơ Đan Mạch 200g	68000	95000
+OISHI Snack tôm cay 40g	7000	12000
+PEPSI Nước ngọt lon 330ml x6	52000	70000
+COCA-COLA Nước ngọt chai 1.5L	16000	24000
+AQUAFINA Nước tinh khiết 500ml x6	38000	52000
+LAVIE Nước khoáng 1.5L	9000	14000
+TRÀ XANH KHÔNG ĐỘ chai 455ml	9000	14000
+STING Nước tăng lực dâu 330ml	11000	16000
+SÀI GÒN Bia lon Special 330ml x6	105000	145000
+TIGER Bia lon bạc 330ml x6	115000	155000
+G7 Cà phê hoà tan 3in1 hộp 21 gói	58000	78000
+NESCAFÉ Cà phê sữa đá 24 gói	72000	98000
+
+# --- hoá phẩm, đồ dùng ---
+OMO Bột giặt tinh dầu thơm 5.5kg	195000	265000
+COMFORT Nước xả một lần xả 3.6L	175000	235000
+SUNLIGHT Nước rửa chén chanh 3.6kg	95000	130000
+LIFEBUOY Sữa tắm bảo vệ vượt trội 800g	135000	185000
+CLEAR Dầu gội bạc hà 630g	145000	195000
+P/S Kem đánh răng ngừa sâu răng 230g	38000	52000
+Giấy vệ sinh Bless You 10 cuộn	68000	92000
+Khăn giấy rút Pulppy 180 tờ	24000	34000
+Túi rác tự huỷ cuộn 55x65cm	26000	36000
+Nước lau sàn Gift hương chanh 3.8L	78000	105000

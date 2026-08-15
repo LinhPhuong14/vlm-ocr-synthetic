@@ -1,0 +1,103 @@
+# THUỘC TÍNH 4/6 — HÌNH THỨC
+#
+# Cỡ chữ, giãn dòng, lề, độ đậm mực, tờ giấy, độ cong. Đây là chỗ khác nhau
+# giữa "máy in nhiệt sắp hết giấy" và "hoá đơn laser in ở quầy lễ tân".
+#
+# paper: tên file (không đuôi) trong `textures/paper/`. CẢ BA renderer đều đọc
+# từ thư mục đó, nên cùng một recipe cho ra cùng một tờ giấy dù vẽ bằng glyph
+# hay bằng HTML. Viết một danh sách thì bốc ngẫu nhiên trong danh sách đó —
+# dùng cho máy in ăn nhiều loại giấy, còn máy in nhiệt thì chỉ một cuộn.
+#
+# font_dir: thư mục font cho renderer glyph; font_family: tên font cho renderer
+# HTML. Hai cái phải trỏ tới cùng một bộ chữ, nếu không hai backend sẽ ngắt
+# dòng khác nhau.
+
+options:
+  - id: thermal_dark
+    weight: 3
+    tags: [thermal]
+    params:
+      font_dir: mono
+      font_family: "Liberation Mono, Cousine, Noto Mono, monospace"
+      font_size: [22, 30]
+      line_spacing: [1.05, 1.30]
+      margin: [0.04, 0.09]
+      padding_top: [1.8, 2.8]
+      padding_bottom: [1.4, 2.6]
+      ink_gray: [0, 45]
+      bold: 0.35
+      paper: thermal_white
+      paper_alpha: [0.05, 0.20]
+      curl: 0.85
+
+  - id: thermal_faint
+    weight: 3
+    tags: [thermal, faint_ink]
+    params:
+      font_dir: mono
+      font_family: "Liberation Mono, Cousine, Noto Mono, monospace"
+      font_size: [20, 28]
+      line_spacing: [1.10, 1.45]
+      margin: [0.04, 0.10]
+      padding_top: [1.8, 3.0]
+      padding_bottom: [1.6, 3.0]
+      # Mực nhạt: máy sắp hết giấy nhiệt. Trên 105 thì chữ mờ tới mức
+      # renderer glyph (vốn còn chồng thêm tương phản + độ sáng khi "chụp
+      # lại") cho ra ảnh không đọc được — OCR về gần 0.
+      ink_gray: [55, 105]
+      bold: 0.05
+      paper: thermal_cream
+      paper_alpha: [0.10, 0.28]
+      curl: 0.9
+
+  - id: thermal_narrow
+    weight: 2
+    tags: [thermal, narrow_paper]
+    params:
+      font_dir: mono
+      font_family: "Liberation Mono, Cousine, Noto Mono, monospace"
+      font_size: [17, 23]
+      line_spacing: [1.00, 1.20]
+      margin: [0.03, 0.07]
+      padding_top: [1.5, 2.4]
+      padding_bottom: [1.2, 2.2]
+      ink_gray: [10, 70]
+      bold: 0.15
+      paper: thermal_white
+      paper_alpha: [0.05, 0.18]
+      curl: 1.0
+
+  - id: dot_matrix
+    weight: 2
+    tags: [impact]
+    params:
+      font_dir: mono
+      font_family: "Cousine, Liberation Mono, Noto Mono, monospace"
+      font_size: [21, 27]
+      line_spacing: [1.15, 1.50]
+      margin: [0.05, 0.12]
+      padding_top: [2.0, 3.2]
+      padding_bottom: [1.6, 2.8]
+      ink_gray: [30, 90]
+      bold: 0.20
+      # Máy in kim ăn đủ loại giấy rời, nên bốc trong ba loại giấy thô.
+      paper: [recycled, wood_light, table_cloth, wood_dark]
+      paper_alpha: [0.12, 0.30]
+      curl: 0.5
+
+  - id: laser_sharp
+    weight: 2
+    tags: [laser, sharp]
+    params:
+      font_dir: sans
+      font_family: "Liberation Sans, Arimo, Noto Sans, DejaVu Sans, sans-serif"
+      font_size: [23, 31]
+      line_spacing: [1.15, 1.40]
+      margin: [0.06, 0.13]
+      padding_top: [2.4, 3.6]
+      padding_bottom: [2.0, 3.2]
+      ink_gray: [0, 25]
+      bold: 0.30
+      paper: [office_a5, stone_top]
+      paper_alpha: [0.02, 0.10]
+      curl: 0.25

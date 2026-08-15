@@ -1,0 +1,50 @@
+# Bố cục cửa hàng tiện lợi: tên hàng ngắt dòng ngay trong cột đầu.
+#
+# Dấu hiệu nhận biết: không có mã vạch trên hoá đơn; tên hàng dài xuống 2-3
+# dòng NGAY TRONG cột "Mặt hàng" trong khi giá / SL / thành tiền vẫn nằm ở
+# dòng đầu tiên; dòng meta nối bằng dấu '|'; khuyến mãi in "KM: -x" ở mép phải.
+id: market_compact
+name: Convenience store — item, price, quantity, amount
+source: "photo WinMart, PHIẾU TÍNH TIỀN 2025"
+
+width: [40, 46]
+rule_char: "-"
+
+header:
+  name_scale: [1.30, 1.65]
+  name_bold: true
+  branch: false          # WinMart chỉ in thương hiệu, không in chi nhánh
+  address: false
+  address2: false
+  phone: false
+  title: true
+  title_scale: [1.10, 1.30]
+
+meta:
+  style: pipes           # "14/04/2025 08:45|MSCH:1675|INV:09017155"
+  rule_after: false
+
+column_header: true
+columns:
+  - {key: name,       title: "Mặt hàng", width: 0,  align: left}
+  - {key: unit_price, title: "Giá",      width: 10, align: right}
+  - {key: qty,        title: "SL",       width: 4,  align: right}
+  - {key: amount,     title: "T.Tiền",   width: 10, align: right}
+
+item:
+  wrap_name: true
+  rows:
+    - - {col: name, from: name}
+      - {col: unit_price, from: unit_price}
+      - {col: qty, from: qty}
+      - {col: amount, from: amount}
+  discount_row:
+    label: "KM:"
+
+totals:
+  emphasise_grand: true
+  grand_scale: [1.00, 1.15]
+  grand_two_lines: false
+
+footer:
+  rule_before: false

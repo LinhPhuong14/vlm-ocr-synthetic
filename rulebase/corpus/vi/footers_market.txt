@@ -1,0 +1,21 @@
+# Chân hoá đơn siêu thị / cửa hàng tiện lợi.
+# Khác chân hoá đơn quán ăn ở chỗ phần lớn là ghi chú thuế và chăm sóc khách
+# hàng chứ không phải lời chào — xem ảnh mẫu VinCommerce và WinMart.
+CẢM ƠN QUÝ KHÁCH VÀ HẸN GẶP LẠI
+Cảm ơn quý khách đã mua hàng
+Hẹn gặp lại quý khách
+Chỉ xuất hoá đơn trong ngày
+Tax invoice will be issued within same day
+Giá đã bao gồm thuế GTGT
+Quý khách vui lòng kiểm tra hàng trước khi ra khỏi quầy
+Hàng mua rồi xin miễn đổi trả
+Đổi trả trong 7 ngày kèm hoá đơn
+Quét QR để xuất hoá đơn điện tử
+Truy cập xuathoadon.winmart.vn trong 60 phút
+Hotline: 1900 6821
+Hotline: 0247 106 6866
+Website: www.saigonco-op.com.vn
+Website: vinmart.com
+Tích điểm để nhận ưu đãi thành viên
+Tải ứng dụng để xem hoá đơn điện tử
+Mọi thắc mắc xin liên hệ quầy dịch vụ khách hàng

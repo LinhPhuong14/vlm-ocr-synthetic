@@ -1,0 +1,5 @@
+selenium==3.8.1
+tqdm
+numpy
+opencv-python
+Pillow

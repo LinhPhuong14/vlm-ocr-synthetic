@@ -1,0 +1,25 @@
+# Chuỗi bán lẻ Việt Nam: tên thương hiệu<TAB>tên chi nhánh
+#
+
+VinCommerce	VM Royal City
+VinCommerce	VM Times City
+VinCommerce	VM Thăng Long
+WinMart	WM Trung Hoà Nhân Chính
+WinMart	WM Sài Đồng
+WinMart+	WM+ Nguyễn Văn Cừ
+Co.opmart	CoopMart Cống Quỳnh
+Co.opmart	CoopMart Nguyễn Đình Chiểu
+Co.opmart	CoopMart Rạch Miễu
+Co.opXtra	Co.opXtra Linh Trung
+Bách Hoá Xanh	BHX Phan Văn Trị
+Bách Hoá Xanh	BHX Lê Văn Việt
+Satrafoods	Satrafoods Tân Bình
+LOTTE Mart	LOTTE Mart Nam Sài Gòn
+MEGA Market	MM Bình Phú
+GO! BigC	GO! Thăng Long
+Emart	Emart Phan Văn Trị
+Circle K	CK Nguyễn Thị Minh Khai
+GS25	GS25 Hàm Nghi
+FamilyMart	FM Cách Mạng Tháng 8
+Aeon Citimart	Citimart Bình Thạnh
+Nova Market	NM Quận 7

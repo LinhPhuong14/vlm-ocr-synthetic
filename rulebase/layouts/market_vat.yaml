@@ -1,0 +1,56 @@
+# Bố cục siêu thị có dòng VAT riêng cho từng mặt hàng.
+#
+# Dấu hiệu nhận biết: dòng đầu của mặt hàng là "mã vạch + tên"; dòng thứ hai
+# là "VAT x% + số lượng + đơn giá + thành tiền"; hàng giảm giá có thêm dòng
+# "Giá gốc:". Tiền in hai chữ số thập phân (203,500.00).
+id: market_vat
+name: Supermarket — a VAT rate on every item row
+source: "photo Saigon Co.op, PHIẾU TÍNH TIỀN 2022"
+
+width: [42, 48]
+rule_char: "-"
+
+header:
+  name_scale: [1.20, 1.50]
+  name_bold: true
+  branch: false
+  title: true
+  title_scale: [1.25, 1.50]
+
+notes:
+  - "Có giá trị xuất hoá đơn GTGT trong ngày"
+
+meta:
+  style: two_column
+  rule_after: true
+
+column_header: true
+column_header_bold: true
+columns:
+  - {key: name,       title: "Tên",        width: 0,  align: left}
+  - {key: qty,        title: "S.Lượng",    width: 9,  align: right}
+  - {key: unit_price, title: "Đơn Giá",    width: 12, align: right}
+  - {key: amount,     title: "Thành Tiền", width: 13, align: right}
+
+item:
+  wrap_name: true
+  rows:
+    # dòng 1: mã vạch + tên hàng, trải hết bề ngang
+    - - {from: barcode_name, span: [name, amount], align: left}
+    # dòng 2: thuế suất nằm ở cột tên, còn lại thẳng cột
+    - - {col: name, from: vat}
+      - {col: qty, from: qty}
+      - {col: unit_price, from: unit_price}
+      - {col: amount, from: amount}
+  original_price_row:
+    label: "Giá gốc:"
+  discount_row:
+    label: "Giảm giá"
+
+totals:
+  emphasise_grand: false     # Co.op in mọi dòng tổng cùng một cỡ chữ
+  grand_scale: [1.0, 1.0]
+  grand_two_lines: false
+
+footer:
+  rule_before: true

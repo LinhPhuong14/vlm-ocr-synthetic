@@ -1,0 +1,14 @@
+# Windows checkouts get CRLF in the working tree for text files, LF in the
+# repository. Without this, a Windows clone can commit CRLF into files that the
+# Linux tooling then reads with trailing \r -- which is invisible in a diff and
+# breaks a YAML value or a corpus line silently.
+* text=auto eol=lf
+
+# Binary: never touch the bytes, never try to diff them.
+*.jpg  binary
+*.jpeg binary
+*.png  binary
+*.pdf  binary
+*.ttf  binary
+*.otf  binary
+*.ttc  binary

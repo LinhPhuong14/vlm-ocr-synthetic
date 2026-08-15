@@ -1,0 +1,88 @@
+# ---------------------------------------------------------------- Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+build/
+dist/
+
+# Virtual environments -- each generator has its own
+.venv/
+venv/
+env/
+generators/*/.venv/
+
+# Tooling caches
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+.coverage
+
+# ------------------------------------------------------- Generated output
+# Generators write beside themselves; none of it belongs in git.
+outputs/
+generators/*/outputs/
+generators/*/output/
+datasets/
+*.jsonl
+*.tar
+*.parquet
+*.lmdb
+
+# Images are ignored by default, then let back in one directory at a time.
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.pdf
+# NB: git has no inline comments in .gitignore -- a trailing "# ..." is read
+# as part of the pattern, which silently stops the negation matching anything.
+# Keep every comment on its own line.
+# Figures in the generator's README:
+!generators/synthdog/docs/**/*.jpg
+# Figures the vendored code ships:
+!generators/html-table/**/*.png
+# The curated examples this repo shows:
+!samples/**/*.jpg
+!samples/**/*.json
+# The paper every renderer composites onto -- generated, so redistributable:
+!textures/**/*.jpg
+# The published datasets, with their labels and their OCR proof:
+!data/**/*.jpg
+!data/**/*.json
+!data/**/*.jsonl
+
+# Fonts you supply yourself are not redistributable; keep them out.
+# `fonts/` is the exception: everything in it is OFL, Apache-2.0 or Bitstream
+# Vera, and without it a fresh clone cannot render at all. See fonts/README.md.
+*.ttf
+*.otf
+*.ttc
+!fonts/**/*.ttf
+!fonts/**/*.otf
+generators/synthdog/resources/font/
+generators/synthdog/resources/paper/
+generators/synthdog/resources/background/
+
+# Model checkpoints and training runs
+checkpoints/
+runs/
+wandb/
+*.ckpt
+*.pt
+*.pth
+*.safetensors
+
+# ---------------------------------------------------------- Editors / OS
+.idea/
+.vscode/
+*.swp
+*~
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
+
+# Local overrides
+.env
+.env.*
+!.env.example
