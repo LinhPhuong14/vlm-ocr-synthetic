@@ -20,7 +20,7 @@ it prints long before the page decides how it will be creased.
 
     from rulebase import sample_recipe
     recipe = sample_recipe(seed=7)
-    recipe.layout.id            -> 'sieu_thi_barcode'
+    recipe.layout.id            -> 'market_barcode'
     recipe.get("visual", "font_size")
 """
 
@@ -217,7 +217,7 @@ def sample_recipe(
 
 
 def parse_force(items: Iterable[str] | None, layout: str | None = None) -> dict[str, str] | None:
-    """Turn `["augmentation=khong_lam_gi"]` into the dict `sample_recipe` wants.
+    """Turn `["augmentation=pristine"]` into the dict `sample_recipe` wants.
 
     Every renderer takes the same `--force ATTR=ID` flag, so this lives here
     rather than being written out three times and drifting. `layout` is the

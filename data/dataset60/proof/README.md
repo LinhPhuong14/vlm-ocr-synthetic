@@ -9,7 +9,7 @@ one string would measure reading order rather than recognition. See
 
 | framework | ảnh | token recall | recall (bỏ dấu) | field hit | field hit (bỏ dấu) | số tiền đọc đúng |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| synthdog | 20 | 0.398 | 0.428 | 0.238 | 0.269 | 33/144 (23%) |
+| synthdog | 20 | 0.370 | 0.402 | 0.223 | 0.260 | 27/144 (19%) |
 | html | 20 | 0.682 | 0.705 | 0.588 | 0.605 | 65/141 (46%) |
 | genalog | 20 | 0.757 | 0.778 | 0.659 | 0.676 | 76/149 (51%) |
 
@@ -17,33 +17,33 @@ one string would measure reading order rather than recognition. See
 
 | giá trị | ảnh | token recall |
 | --- | ---: | ---: |
-| quan_nhau_stt | 12 | 0.721 |
-| sieu_thi_barcode | 12 | 0.714 |
-| quan_an_ascii | 12 | 0.604 |
-| sieu_thi_vat | 12 | 0.596 |
-| sieu_thi_gia_sl | 12 | 0.427 |
+| eatery_indexed | 12 | 0.716 |
+| market_barcode | 12 | 0.658 |
+| market_vat | 12 | 0.608 |
+| eatery_ascii | 12 | 0.602 |
+| market_compact | 12 | 0.432 |
 
 ## Theo mức làm cũ
 
 | giá trị | ảnh | token recall |
 | --- | ---: | ---: |
-| khong_lam_gi | 4 | 0.907 |
-| giay_that | 10 | 0.832 |
-| chu_bong | 12 | 0.735 |
-| vua | 11 | 0.544 |
-| vet_ban | 8 | 0.527 |
-| photocopy | 9 | 0.516 |
-| rach_giay | 6 | 0.188 |
+| pristine | 4 | 0.907 |
+| real_paper | 10 | 0.822 |
+| ghost_text | 12 | 0.691 |
+| medium | 11 | 0.561 |
+| stains | 8 | 0.517 |
+| photocopy | 9 | 0.502 |
+| torn_edges | 6 | 0.201 |
 
 ## Theo kiểu máy in
 
 | giá trị | ảnh | token recall |
 | --- | ---: | ---: |
-| laser_net | 14 | 0.781 |
-| nhiet_hep | 13 | 0.588 |
-| nhiet_mo | 22 | 0.573 |
-| nhiet_dam | 10 | 0.526 |
-| kim_cu | 1 | 0.291 |
+| laser_sharp | 14 | 0.773 |
+| thermal_narrow | 13 | 0.586 |
+| thermal_faint | 22 | 0.555 |
+| thermal_dark | 10 | 0.536 |
+| dot_matrix | 1 | 0.162 |
 
 ## Ảnh minh hoạ
 
@@ -59,8 +59,8 @@ khó hơn hẳn, và đó chính là lý do giữ cả ba: một model chỉ th�
 phẳng thì chưa từng gặp trường hợp khó.
 
 **Thứ tự trong bảng "mức làm cũ" là bằng chứng rule-base thật sự điều
-khiển được độ khó**: `khong_lam_gi` và `giay_that` ở trên cùng,
-`nhau_nat` ở dưới cùng, đơn điệu suốt dải. Chỉnh `weight` trong
+khiển được độ khó**: `pristine` và `real_paper` ở trên cùng,
+`crumpled` ở dưới cùng, đơn điệu suốt dải. Chỉnh `weight` trong
 `rulebase/rules/augmentation.yaml` là dịch được cả bộ dữ liệu dễ hơn hoặc
 khó hơn.
 

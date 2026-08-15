@@ -1,6 +1,6 @@
 """Print a sampled receipt as monospace text -- no rendering, no dependencies.
 
-    python tools/preview_grid.py --layout quan_nhau_stt --seed 3
+    python tools/preview_grid.py --layout eatery_indexed --seed 3
 
 The grid is what all three renderers draw, so if a bố cục is wrong it is wrong
 here first, and this is far quicker to look at than a JPEG. `--all` walks every

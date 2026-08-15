@@ -2,9 +2,9 @@
 
 # Bố cục này chỉ dùng được với thuộc tính content nào bật bỏ dấu — luật
 # rules/content.yaml gắn thẻ `ascii_only` để ràng buộc chuyện đó.
-id: quan_an_ascii
-name: Quán ăn — máy in nhiệt đời cũ, không dấu
-source: "ảnh mẫu QUAN AN THIEN TAN, TPHCM 2011"
+id: eatery_ascii
+name: Eatery — legacy thermal printer, no diacritics
+source: "photo QUAN AN THIEN TAN, TPHCM 2011"
 
 width: [32, 40]
 rule_char: "*"

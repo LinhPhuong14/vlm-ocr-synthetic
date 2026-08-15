@@ -3,9 +3,9 @@
 # Dấu hiệu nhận biết: không có mã vạch trên hoá đơn; tên hàng dài xuống 2-3
 # dòng NGAY TRONG cột "Mặt hàng" trong khi giá / SL / thành tiền vẫn nằm ở
 # dòng đầu tiên; dòng meta nối bằng dấu '|'; khuyến mãi in "KM: -x" ở mép phải.
-id: sieu_thi_gia_sl
-name: Cửa hàng tiện lợi — Mặt hàng, Giá, SL, T.Tiền
-source: "ảnh mẫu WinMart, PHIẾU TÍNH TIỀN 2025"
+id: market_compact
+name: Convenience store — item, price, quantity, amount
+source: "photo WinMart, PHIẾU TÍNH TIỀN 2025"
 
 width: [40, 46]
 rule_char: "-"

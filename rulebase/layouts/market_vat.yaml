@@ -3,9 +3,9 @@
 # Dấu hiệu nhận biết: dòng đầu của mặt hàng là "mã vạch + tên"; dòng thứ hai
 # là "VAT x% + số lượng + đơn giá + thành tiền"; hàng giảm giá có thêm dòng
 # "Giá gốc:". Tiền in hai chữ số thập phân (203,500.00).
-id: sieu_thi_vat
-name: Siêu thị — VAT theo từng dòng hàng
-source: "ảnh mẫu Saigon Co.op, PHIẾU TÍNH TIỀN 2022"
+id: market_vat
+name: Supermarket — a VAT rate on every item row
+source: "photo Saigon Co.op, PHIẾU TÍNH TIỀN 2022"
 
 width: [42, 48]
 rule_char: "-"

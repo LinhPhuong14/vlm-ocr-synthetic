@@ -147,11 +147,11 @@ says which.
 
 | id | dấu hiệu nhận biết |
 | --- | --- |
-| `quan_nhau_stt` | cột **Stt**, mỗi món hai dòng: tên trên, `SL / đơn giá / thành tiền` dưới |
-| `quan_an_ascii` | máy in nhiệt đời cũ: IN HOA KHÔNG DẤU, một dòng một món, không có tiêu đề cột |
-| `sieu_thi_barcode` | mã vạch + tiền ở dòng trên, tên hàng thụt xuống dòng dưới, dòng `KM` cho khuyến mãi |
-| `sieu_thi_gia_sl` | tên hàng ngắt dòng ngay trong cột `Mặt hàng`, meta nối bằng `\|` |
-| `sieu_thi_vat` | dòng `VAT x%` riêng cho từng mặt hàng, tiền hai chữ số thập phân |
+| `eatery_indexed` | cột **Stt**, mỗi món hai dòng: tên trên, `SL / đơn giá / thành tiền` dưới |
+| `eatery_ascii` | máy in nhiệt đời cũ: IN HOA KHÔNG DẤU, một dòng một món, không có tiêu đề cột |
+| `market_barcode` | mã vạch + tiền ở dòng trên, tên hàng thụt xuống dòng dưới, dòng `KM` cho khuyến mãi |
+| `market_compact` | tên hàng ngắt dòng ngay trong cột `Mặt hàng`, meta nối bằng `\|` |
+| `market_vat` | dòng `VAT x%` riêng cho từng mặt hàng, tiền hai chữ số thập phân |
 
 ---
 
@@ -205,8 +205,8 @@ Two sets are committed, differing in **one attribute** of the rule-base:
 
 | set | | Tesseract token recall (synthdog / html / genalog) |
 | --- | --- | --- |
-| [`data/dataset60/`](data/dataset60) | ageing sampled from the rules | 0.40 / 0.68 / 0.76 |
-| [`data/dataset60_clean/`](data/dataset60_clean) | `augmentation=khong_lam_gi`, no distortion | 0.85 / 0.85 / 0.87 |
+| [`data/dataset60/`](data/dataset60) | ageing sampled from the rules | 0.37 / 0.68 / 0.76 |
+| [`data/dataset60_clean/`](data/dataset60_clean) | `augmentation=pristine`, no distortion | 0.85 / 0.85 / 0.87 |
 
 ```bash
 make dataset          # aged

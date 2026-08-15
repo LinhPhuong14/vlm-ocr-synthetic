@@ -17,27 +17,27 @@ one string would measure reading order rather than recognition. See
 
 | giá trị | ảnh | token recall |
 | --- | ---: | ---: |
-| quan_nhau_stt | 12 | 0.926 |
-| sieu_thi_barcode | 12 | 0.917 |
-| sieu_thi_vat | 12 | 0.896 |
-| sieu_thi_gia_sl | 12 | 0.780 |
-| quan_an_ascii | 12 | 0.766 |
+| eatery_indexed | 12 | 0.926 |
+| market_barcode | 12 | 0.917 |
+| market_vat | 12 | 0.896 |
+| market_compact | 12 | 0.780 |
+| eatery_ascii | 12 | 0.766 |
 
 ## Theo mức làm cũ
 
 | giá trị | ảnh | token recall |
 | --- | ---: | ---: |
-| khong_lam_gi | 60 | 0.857 |
+| pristine | 60 | 0.857 |
 
 ## Theo kiểu máy in
 
 | giá trị | ảnh | token recall |
 | --- | ---: | ---: |
-| laser_net | 14 | 0.943 |
-| kim_cu | 1 | 0.846 |
-| nhiet_hep | 13 | 0.840 |
-| nhiet_dam | 10 | 0.834 |
-| nhiet_mo | 22 | 0.823 |
+| laser_sharp | 14 | 0.943 |
+| dot_matrix | 1 | 0.846 |
+| thermal_narrow | 13 | 0.840 |
+| thermal_dark | 10 | 0.834 |
+| thermal_faint | 22 | 0.823 |
 
 ## Ảnh minh hoạ
 
@@ -53,8 +53,8 @@ khó hơn hẳn, và đó chính là lý do giữ cả ba: một model chỉ th�
 phẳng thì chưa từng gặp trường hợp khó.
 
 **Thứ tự trong bảng "mức làm cũ" là bằng chứng rule-base thật sự điều
-khiển được độ khó**: `khong_lam_gi` và `giay_that` ở trên cùng,
-`nhau_nat` ở dưới cùng, đơn điệu suốt dải. Chỉnh `weight` trong
+khiển được độ khó**: `pristine` và `real_paper` ở trên cùng,
+`crumpled` ở dưới cùng, đơn điệu suốt dải. Chỉnh `weight` trong
 `rulebase/rules/augmentation.yaml` là dịch được cả bộ dữ liệu dễ hơn hoặc
 khó hơn.
 

@@ -20,8 +20,8 @@ from .text import apply_case, money, quantity
 
 # What the title line says, by document kind. Taken from the sample photos.
 TITLES = {
-    "quan": ["PHIẾU THANH TOÁN", "HOÁ ĐƠN THANH TOÁN", "PHIẾU TÍNH TIỀN", "HOÁ ĐƠN"],
-    "sieuthi": ["HOÁ ĐƠN BÁN HÀNG", "PHIẾU TÍNH TIỀN", "HOÁ ĐƠN GTGT", "PHIẾU THANH TOÁN"],
+    "eatery": ["PHIẾU THANH TOÁN", "HOÁ ĐƠN THANH TOÁN", "PHIẾU TÍNH TIỀN", "HOÁ ĐƠN"],
+    "market": ["HOÁ ĐƠN BÁN HÀNG", "PHIẾU TÍNH TIỀN", "HOÁ ĐƠN GTGT", "PHIẾU THANH TOÁN"],
 }
 SHOP_PREFIXES = [
     "Quán Ăn", "Nhà Hàng", "Cửa Hàng", "Quán", "Cafe", "Quán Nhậu",
@@ -81,7 +81,7 @@ class Store:
 
 @dataclass
 class Receipt:
-    profile: str                       # 'quan' | 'sieuthi'
+    profile: str                       # 'eatery' | 'market'
     title: str
     store: Store
     meta: list[tuple[str, str]]
@@ -169,8 +169,8 @@ def _barcode(rng: random.Random) -> str:
 
 
 def _build_store(profile: str, rng: random.Random, case) -> Store:
-    if profile == "sieuthi":
-        brand, branch = rng.choice(corpus.shops("sieuthi"))
+    if profile == "market":
+        brand, branch = rng.choice(corpus.shops("market"))
         ward, district, _city = rng.choice(corpus.wards())
         street = rng.choice(corpus.streets())
         number = rng.randrange(1, 400)
@@ -187,7 +187,7 @@ def _build_store(profile: str, rng: random.Random, case) -> Store:
             store.website = case(f"Website: www.{brand.lower().replace(' ', '').replace('.', '')}.com.vn")
         return store
 
-    name = f"{rng.choice(SHOP_PREFIXES)} {rng.choice(corpus.shops('quan'))[0]}"
+    name = f"{rng.choice(SHOP_PREFIXES)} {rng.choice(corpus.shops('eatery'))[0]}"
     if rng.random() < 0.25:
         name = f"{name} {rng.randrange(1, 300)}"
     ward, district, city = rng.choice(corpus.wards())
@@ -217,7 +217,7 @@ def _build_items(profile: str, rng: random.Random, case, params: dict) -> list[I
     items: list[Item] = []
     for index in range(count):
         name, price_lo, price_hi = rng.choice(catalogue)
-        unit_price = _round_to(rng.uniform(price_lo, price_hi), 500 if profile == "sieuthi" else 1000)
+        unit_price = _round_to(rng.uniform(price_lo, price_hi), 500 if profile == "market" else 1000)
         weighed = rng.random() < prob_weighed
         if weighed:
             qty: float = round(rng.uniform(0.1, 2.0), 3)
@@ -226,7 +226,7 @@ def _build_items(profile: str, rng: random.Random, case, params: dict) -> list[I
         else:
             qty = rng.randrange(1, 13) if rng.random() < 0.2 else rng.randrange(1, 4)
             amount = int(unit_price * qty)
-            unit = rng.choice(UNITS[2:]) if profile == "sieuthi" and rng.random() < 0.3 else ""
+            unit = rng.choice(UNITS[2:]) if profile == "market" and rng.random() < 0.3 else ""
         item = Item(
             stt=index + 1,
             name=case(name),
@@ -235,7 +235,7 @@ def _build_items(profile: str, rng: random.Random, case, params: dict) -> list[I
             amount=amount,
             unit=unit,
         )
-        if profile == "sieuthi":
+        if profile == "market":
             item.barcode = _barcode(rng)
             # A supermarket till prints the barcode and the money on one line
             # and the product name, indented, on the next. Weighed goods add
@@ -265,7 +265,7 @@ def _build_meta(profile: str, rng: random.Random, case, params: dict) -> list[tu
     )
     stamp = f"{date} {hour:02d}:{minute:02d}"
 
-    if profile == "sieuthi":
+    if profile == "market":
         meta = [
             (case("Ngày bán:"), f"{stamp}"),
             (case("HD:"), f"{rng.randrange(1, 999999):08d}"),
@@ -292,7 +292,7 @@ def build(recipe, rng: random.Random | None = None) -> Receipt:
     document = recipe.choices["document"].params
     content = recipe.choices["content"].params
 
-    profile = document.get("profile", "quan")
+    profile = document.get("profile", "eatery")
     money_style = content.get("money_style", "dot")
     folded = rng.random() < float(content.get("prob_ascii_fold", 0.0))
     upper = rng.random() < float(content.get("prob_uppercase", 0.5))

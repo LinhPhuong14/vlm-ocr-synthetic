@@ -54,7 +54,7 @@
     {
       "degradation": "paper_texture",
       "options": {
-        "paper": "giay_tai_che",
+        "paper": "recycled",
         "alpha": 0.55,
         "grain": 0.8,
         "creases": 3

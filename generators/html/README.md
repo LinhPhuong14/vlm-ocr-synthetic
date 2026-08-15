@@ -11,7 +11,7 @@ generators/html/.venv/bin/python generators/html/render.py -o outputs -c 10
 | --- | --- |
 | `-c`, `--count` | how many pages |
 | `--seed` | first seed; image *n* uses `seed + n` |
-| `--layout` | pin one bố cục (`quan_nhau_stt`, `sieu_thi_vat`, …) |
+| `--layout` | pin one bố cục (`eatery_indexed`, `market_vat`, …) |
 | `--scale` | browser device scale factor; higher renders larger before the downscale |
 
 Output: JPEGs plus a `metadata.jsonl` with the same fields the other two

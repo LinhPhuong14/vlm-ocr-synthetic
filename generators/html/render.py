@@ -241,7 +241,7 @@ def main() -> int:
     parser.add_argument("--layout", help="pin one bố cục")
     parser.add_argument(
         "--force", action="append", default=[], metavar="ATTR=ID",
-        help="pin any attribute, repeatable: --force augmentation=khong_lam_gi",
+        help="pin any attribute, repeatable: --force augmentation=pristine",
     )
     parser.add_argument("--scale", type=float, default=2.0)
     args = parser.parse_args()

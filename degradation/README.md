@@ -113,7 +113,7 @@ is tall.
 from degradation import apply_chain
 
 aged = apply_chain(image, [
-    ("paper_texture", {"paper": "nhiet_nga", "alpha": 0.4, "creases": 3}),
+    ("paper_texture", {"paper": "thermal_cream", "alpha": 0.4, "creases": 3}),
     ("ink_degradation", {"level": 3}),
     ("gradient_domain", {"count": 5, "strength": 0.75}),
     ("blur_zones", {"radius": 1.4, "zones": 3}),

@@ -2,9 +2,9 @@
 
 # Dấu hiệu nhận biết: cột đầu là Stt, mỗi mặt hàng chiếm HAI dòng — dòng trên
 # là "stt + tên món", dòng dưới là "số lượng / đơn giá / thành tiền" thụt vào.
-id: quan_nhau_stt
-name: Quán nhậu — Stt, Số lượng, Giá, Tiền
-source: "ảnh mẫu QUÁN NHẬU BÌNH DÂN 129, Đà Nẵng"
+id: eatery_indexed
+name: Eatery — index column, quantity, price, amount
+source: "photo QUÁN NHẬU BÌNH DÂN 129, Đà Nẵng"
 
 # Bề rộng giấy tính bằng ký tự (giấy nhiệt 80mm ≈ 42-48 ký tự).
 width: [40, 48]

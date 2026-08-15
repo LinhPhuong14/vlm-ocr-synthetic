@@ -6,11 +6,11 @@
     "frameworks": {
       "synthdog": {
         "images": 20,
-        "token_recall": 0.3977,
-        "token_recall_folded": 0.4285,
-        "field_hit_rate": 0.2381,
-        "field_hit_rate_folded": 0.2685,
-        "money_exact": 33,
+        "token_recall": 0.3697,
+        "token_recall_folded": 0.4024,
+        "field_hit_rate": 0.2231,
+        "field_hit_rate_folded": 0.2602,
+        "money_exact": 27,
         "money_total": 144
       },
       "html": {
@@ -33,77 +33,77 @@
       }
     },
     "by_layout": {
-      "quan_an_ascii": {
+      "eatery_ascii": {
         "images": 12,
-        "token_recall": 0.6035
+        "token_recall": 0.6017
       },
-      "quan_nhau_stt": {
+      "eatery_indexed": {
         "images": 12,
-        "token_recall": 0.7208
+        "token_recall": 0.7156
       },
-      "sieu_thi_barcode": {
+      "market_barcode": {
         "images": 12,
-        "token_recall": 0.7137
+        "token_recall": 0.6577
       },
-      "sieu_thi_gia_sl": {
+      "market_compact": {
         "images": 12,
-        "token_recall": 0.4272
+        "token_recall": 0.4321
       },
-      "sieu_thi_vat": {
+      "market_vat": {
         "images": 12,
-        "token_recall": 0.596
+        "token_recall": 0.6075
       }
     },
     "by_augmentation": {
-      "chu_bong": {
+      "ghost_text": {
         "images": 12,
-        "token_recall": 0.7347
+        "token_recall": 0.6914
       },
-      "giay_that": {
-        "images": 10,
-        "token_recall": 0.8323
-      },
-      "khong_lam_gi": {
-        "images": 4,
-        "token_recall": 0.9074
+      "medium": {
+        "images": 11,
+        "token_recall": 0.5608
       },
       "photocopy": {
         "images": 9,
-        "token_recall": 0.5162
+        "token_recall": 0.5019
       },
-      "rach_giay": {
-        "images": 6,
-        "token_recall": 0.1877
+      "pristine": {
+        "images": 4,
+        "token_recall": 0.9074
       },
-      "vet_ban": {
+      "real_paper": {
+        "images": 10,
+        "token_recall": 0.8217
+      },
+      "stains": {
         "images": 8,
-        "token_recall": 0.5267
+        "token_recall": 0.5171
       },
-      "vua": {
-        "images": 11,
-        "token_recall": 0.5436
+      "torn_edges": {
+        "images": 6,
+        "token_recall": 0.2013
       }
     },
     "by_visual": {
-      "kim_cu": {
+      "dot_matrix": {
         "images": 1,
-        "token_recall": 0.2906
+        "token_recall": 0.1624
       },
-      "laser_net": {
+      "laser_sharp": {
         "images": 14,
-        "token_recall": 0.7807
+        "token_recall": 0.7726
       },
-      "nhiet_dam": {
+      "thermal_dark": {
         "images": 10,
-        "token_recall": 0.5258
+        "token_recall": 0.536
       },
-      "nhiet_hep": {
-        "images": 13,
-        "token_recall": 0.5881
-      },
-      "nhiet_mo": {
+      "thermal_faint": {
         "images": 22,
-        "token_recall": 0.5732
+        "token_recall": 0.5555
+      },
+      "thermal_narrow": {
+        "images": 13,
+        "token_recall": 0.5857
       }
     }
   },
@@ -111,9 +111,9 @@
     {
       "file_name": "synthdog_000.jpg",
       "fields": 11,
-      "token_recall": 0.7166666666666667,
+      "token_recall": 0.75,
       "field_hit_rate": 0.45454545454545453,
-      "token_recall_folded": 0.7666666666666667,
+      "token_recall_folded": 0.8,
       "field_hit_rate_folded": 0.5454545454545454,
       "money_total": 4,
       "money_exact": 1,
@@ -135,21 +135,26 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "quan_an_ascii",
-      "augmentation": "giay_that",
-      "visual": "nhiet_hep",
-      "words_found": 75
+      "layout": "eatery_ascii",
+      "augmentation": "real_paper",
+      "visual": "thermal_narrow",
+      "words_found": 74
     },
     {
       "file_name": "synthdog_001.jpg",
       "fields": 19,
-      "token_recall": 0.5294117647058824,
-      "field_hit_rate": 0.2631578947368421,
+      "token_recall": 0.5147058823529411,
+      "field_hit_rate": 0.21052631578947367,
       "token_recall_folded": 0.5294117647058824,
-      "field_hit_rate_folded": 0.2631578947368421,
+      "field_hit_rate_folded": 0.21052631578947367,
       "money_total": 7,
       "money_exact": 0,
       "worst_fields": [
+        {
+          "role": "store.phone",
+          "expected": "DT: 0395850638",
+          "score": 0.0
+        },
         {
           "role": "menu[0].price",
           "expected": "96,000",
@@ -159,66 +164,56 @@
           "role": "menu[1].price",
           "expected": "75,000",
           "score": 0.0
-        },
-        {
-          "role": "menu[2].price",
-          "expected": "156,000",
-          "score": 0.0
         }
       ],
       "framework": "synthdog",
-      "layout": "quan_an_ascii",
-      "augmentation": "vua",
-      "visual": "nhiet_dam",
-      "words_found": 95
+      "layout": "eatery_ascii",
+      "augmentation": "medium",
+      "visual": "thermal_dark",
+      "words_found": 92
     },
     {
       "file_name": "synthdog_002.jpg",
       "fields": 9,
-      "token_recall": 0.46808510638297873,
-      "field_hit_rate": 0.1111111111111111,
-      "token_recall_folded": 0.46808510638297873,
-      "field_hit_rate_folded": 0.1111111111111111,
+      "token_recall": 0.44680851063829785,
+      "field_hit_rate": 0.0,
+      "token_recall_folded": 0.44680851063829785,
+      "field_hit_rate_folded": 0.0,
       "money_total": 2,
-      "money_exact": 1,
+      "money_exact": 0,
       "worst_fields": [
-        {
-          "role": "title",
-          "expected": "PHIEU TINH TIEN",
-          "score": 0.0
-        },
         {
           "role": "menu[0].price",
           "expected": "141,000",
           "score": 0.0
         },
         {
-          "role": "total[TIEN MAT]",
-          "expected": "TIEN MAT 204,000",
+          "role": "menu[1].price",
+          "expected": "63,000",
+          "score": 0.0
+        },
+        {
+          "role": "title",
+          "expected": "PHIEU TINH TIEN",
           "score": 0.333
         }
       ],
       "framework": "synthdog",
-      "layout": "quan_an_ascii",
-      "augmentation": "rach_giay",
-      "visual": "nhiet_dam",
-      "words_found": 60
+      "layout": "eatery_ascii",
+      "augmentation": "torn_edges",
+      "visual": "thermal_dark",
+      "words_found": 50
     },
     {
       "file_name": "synthdog_003.jpg",
       "fields": 9,
-      "token_recall": 0.2549019607843137,
-      "field_hit_rate": 0.0,
-      "token_recall_folded": 0.3333333333333333,
-      "field_hit_rate_folded": 0.0,
+      "token_recall": 0.23529411764705882,
+      "field_hit_rate": 0.1111111111111111,
+      "token_recall_folded": 0.29411764705882354,
+      "field_hit_rate_folded": 0.2222222222222222,
       "money_total": 2,
       "money_exact": 0,
       "worst_fields": [
-        {
-          "role": "store.name",
-          "expected": "NHA HANG - KARAOKE THIEN TAN",
-          "score": 0.0
-        },
         {
           "role": "title",
           "expected": "HOA DON",
@@ -228,24 +223,34 @@
           "role": "menu[0].price",
           "expected": "110,000",
           "score": 0.0
+        },
+        {
+          "role": "menu[1].price",
+          "expected": "30,000",
+          "score": 0.0
         }
       ],
       "framework": "synthdog",
-      "layout": "quan_an_ascii",
-      "augmentation": "vua",
-      "visual": "nhiet_hep",
-      "words_found": 62
+      "layout": "eatery_ascii",
+      "augmentation": "medium",
+      "visual": "thermal_narrow",
+      "words_found": 66
     },
     {
       "file_name": "synthdog_004.jpg",
       "fields": 27,
-      "token_recall": 0.8607594936708861,
-      "field_hit_rate": 0.7777777777777778,
-      "token_recall_folded": 0.8607594936708861,
-      "field_hit_rate_folded": 0.7777777777777778,
+      "token_recall": 0.8354430379746836,
+      "field_hit_rate": 0.7037037037037037,
+      "token_recall_folded": 0.8354430379746836,
+      "field_hit_rate_folded": 0.7037037037037037,
       "money_total": 11,
-      "money_exact": 6,
+      "money_exact": 4,
       "worst_fields": [
+        {
+          "role": "menu[2].price",
+          "expected": "138,000",
+          "score": 0.0
+        },
         {
           "role": "menu[5].price",
           "expected": "250,000",
@@ -255,66 +260,56 @@
           "role": "menu[6].price",
           "expected": "105,000",
           "score": 0.0
-        },
-        {
-          "role": "menu[7].price",
-          "expected": "117,000",
-          "score": 0.0
         }
       ],
       "framework": "synthdog",
-      "layout": "quan_nhau_stt",
-      "augmentation": "giay_that",
-      "visual": "laser_net",
-      "words_found": 127
+      "layout": "eatery_indexed",
+      "augmentation": "real_paper",
+      "visual": "laser_sharp",
+      "words_found": 89
     },
     {
       "file_name": "synthdog_005.jpg",
       "fields": 27,
-      "token_recall": 0.7215189873417721,
+      "token_recall": 0.6329113924050633,
       "field_hit_rate": 0.7407407407407407,
-      "token_recall_folded": 0.7341772151898734,
-      "field_hit_rate_folded": 0.7777777777777778,
+      "token_recall_folded": 0.6329113924050633,
+      "field_hit_rate_folded": 0.7407407407407407,
       "money_total": 11,
-      "money_exact": 9,
+      "money_exact": 8,
       "worst_fields": [
         {
-          "role": "menu[5].price",
-          "expected": "250,000",
+          "role": "store.name",
+          "expected": "BEP NGOC SUONG 246",
           "score": 0.0
         },
         {
-          "role": "menu[6].price",
-          "expected": "105,000",
+          "role": "store.address",
+          "expected": "26-193 XUAN THUY - HUE - THUA THIEN HUE",
           "score": 0.0
         },
         {
-          "role": "total[THANH TOAN]",
-          "expected": "THANH TOAN 1,046,000",
+          "role": "menu[2].price",
+          "expected": "138,000",
           "score": 0.0
         }
       ],
       "framework": "synthdog",
-      "layout": "quan_nhau_stt",
-      "augmentation": "giay_that",
-      "visual": "laser_net",
-      "words_found": 98
+      "layout": "eatery_indexed",
+      "augmentation": "real_paper",
+      "visual": "laser_sharp",
+      "words_found": 78
     },
     {
       "file_name": "synthdog_006.jpg",
       "fields": 15,
-      "token_recall": 0.5517241379310345,
+      "token_recall": 0.5689655172413793,
       "field_hit_rate": 0.3333333333333333,
-      "token_recall_folded": 0.5689655172413793,
+      "token_recall_folded": 0.5862068965517241,
       "field_hit_rate_folded": 0.3333333333333333,
       "money_total": 5,
-      "money_exact": 2,
+      "money_exact": 3,
       "worst_fields": [
-        {
-          "role": "menu[2].price",
-          "expected": "126,000",
-          "score": 0.0
-        },
         {
           "role": "menu[3].price",
           "expected": "36,000",
@@ -324,20 +319,25 @@
           "role": "menu[4].nm",
           "expected": "7UP",
           "score": 0.0
+        },
+        {
+          "role": "menu[4].price",
+          "expected": "24,000",
+          "score": 0.0
         }
       ],
       "framework": "synthdog",
-      "layout": "quan_nhau_stt",
-      "augmentation": "vet_ban",
-      "visual": "nhiet_mo",
-      "words_found": 91
+      "layout": "eatery_indexed",
+      "augmentation": "stains",
+      "visual": "thermal_faint",
+      "words_found": 74
     },
     {
       "file_name": "synthdog_007.jpg",
       "fields": 15,
-      "token_recall": 0.0,
+      "token_recall": 0.034482758620689655,
       "field_hit_rate": 0.0,
-      "token_recall_folded": 0.0,
+      "token_recall_folded": 0.034482758620689655,
       "field_hit_rate_folded": 0.0,
       "money_total": 5,
       "money_exact": 0,
@@ -359,20 +359,20 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "quan_nhau_stt",
-      "augmentation": "vet_ban",
-      "visual": "nhiet_mo",
-      "words_found": 12
+      "layout": "eatery_indexed",
+      "augmentation": "stains",
+      "visual": "thermal_faint",
+      "words_found": 17
     },
     {
       "file_name": "synthdog_008.jpg",
       "fields": 24,
-      "token_recall": 0.788135593220339,
-      "field_hit_rate": 0.6666666666666666,
-      "token_recall_folded": 0.8220338983050848,
-      "field_hit_rate_folded": 0.75,
+      "token_recall": 0.7627118644067796,
+      "field_hit_rate": 0.7083333333333334,
+      "token_recall_folded": 0.8389830508474576,
+      "field_hit_rate_folded": 0.8333333333333334,
       "money_total": 6,
-      "money_exact": 2,
+      "money_exact": 3,
       "worst_fields": [
         {
           "role": "menu[0].price",
@@ -380,61 +380,61 @@
           "score": 0.0
         },
         {
-          "role": "menu[1].price",
-          "expected": "196,000",
+          "role": "menu[3].price",
+          "expected": "83,000",
           "score": 0.0
         },
         {
-          "role": "menu[3].price",
-          "expected": "83,000",
+          "role": "menu[5].price",
+          "expected": "280,500",
           "score": 0.0
         }
       ],
       "framework": "synthdog",
-      "layout": "sieu_thi_barcode",
-      "augmentation": "giay_that",
-      "visual": "nhiet_mo",
-      "words_found": 155
+      "layout": "market_barcode",
+      "augmentation": "real_paper",
+      "visual": "thermal_faint",
+      "words_found": 163
     },
     {
       "file_name": "synthdog_009.jpg",
       "fields": 35,
-      "token_recall": 0.6870229007633588,
-      "field_hit_rate": 0.5142857142857142,
-      "token_recall_folded": 0.7557251908396947,
-      "field_hit_rate_folded": 0.6,
+      "token_recall": 0.1450381679389313,
+      "field_hit_rate": 0.08571428571428572,
+      "token_recall_folded": 0.20610687022900764,
+      "field_hit_rate_folded": 0.14285714285714285,
       "money_total": 12,
-      "money_exact": 5,
+      "money_exact": 0,
       "worst_fields": [
         {
-          "role": "menu[0].price",
-          "expected": "660.000",
+          "role": "store.name",
+          "expected": "SATRAFOODS",
           "score": 0.0
         },
         {
-          "role": "menu[3].price",
-          "expected": "168.000",
+          "role": "store.branch",
+          "expected": "SATRAFOODS TÂN BÌNH",
           "score": 0.0
         },
         {
-          "role": "menu[4].price",
-          "expected": "24.000",
+          "role": "store.address",
+          "expected": "SỐ 6A ĐƯỜNG HOÀNG DIỆU",
           "score": 0.0
         }
       ],
       "framework": "synthdog",
-      "layout": "sieu_thi_barcode",
-      "augmentation": "chu_bong",
-      "visual": "nhiet_mo",
-      "words_found": 163
+      "layout": "market_barcode",
+      "augmentation": "ghost_text",
+      "visual": "thermal_faint",
+      "words_found": 36
     },
     {
       "file_name": "synthdog_010.jpg",
       "fields": 35,
-      "token_recall": 0.6412213740458015,
-      "field_hit_rate": 0.45714285714285713,
-      "token_recall_folded": 0.7404580152671756,
-      "field_hit_rate_folded": 0.6,
+      "token_recall": 0.6641221374045801,
+      "field_hit_rate": 0.4857142857142857,
+      "token_recall_folded": 0.7251908396946565,
+      "field_hit_rate_folded": 0.6285714285714286,
       "money_total": 12,
       "money_exact": 5,
       "worst_fields": [
@@ -455,24 +455,24 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "sieu_thi_barcode",
-      "augmentation": "chu_bong",
-      "visual": "nhiet_mo",
-      "words_found": 174
+      "layout": "market_barcode",
+      "augmentation": "ghost_text",
+      "visual": "thermal_faint",
+      "words_found": 173
     },
     {
       "file_name": "synthdog_011.jpg",
       "fields": 24,
-      "token_recall": 0.2905982905982906,
-      "field_hit_rate": 0.125,
-      "token_recall_folded": 0.3504273504273504,
-      "field_hit_rate_folded": 0.16666666666666666,
+      "token_recall": 0.1623931623931624,
+      "field_hit_rate": 0.08333333333333333,
+      "token_recall_folded": 0.23076923076923078,
+      "field_hit_rate_folded": 0.125,
       "money_total": 7,
       "money_exact": 0,
       "worst_fields": [
         {
-          "role": "store.address2",
-          "expected": "P.TÂN MAI, Q.BIÊN HOÀ",
+          "role": "menu[0].nm",
+          "expected": "TRÀ XANH KHÔNG ĐỘ CHAI 455ML",
           "score": 0.0
         },
         {
@@ -481,23 +481,23 @@
           "score": 0.0
         },
         {
-          "role": "menu[1].price",
-          "expected": "489.500",
+          "role": "menu[1].nm",
+          "expected": "P/S KEM ĐÁNH RĂNG NGỪA SÂU RĂNG 230G",
           "score": 0.0
         }
       ],
       "framework": "synthdog",
-      "layout": "sieu_thi_barcode",
-      "augmentation": "vet_ban",
-      "visual": "kim_cu",
-      "words_found": 126
+      "layout": "market_barcode",
+      "augmentation": "stains",
+      "visual": "dot_matrix",
+      "words_found": 63
     },
     {
       "file_name": "synthdog_012.jpg",
       "fields": 29,
-      "token_recall": 0.04411764705882353,
+      "token_recall": 0.0,
       "field_hit_rate": 0.0,
-      "token_recall_folded": 0.051470588235294115,
+      "token_recall_folded": 0.0,
       "field_hit_rate_folded": 0.0,
       "money_total": 9,
       "money_exact": 0,
@@ -519,17 +519,81 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "sieu_thi_gia_sl",
+      "layout": "market_compact",
       "augmentation": "photocopy",
-      "visual": "nhiet_hep",
-      "words_found": 100
+      "visual": "thermal_narrow",
+      "words_found": 0
     },
     {
       "file_name": "synthdog_013.jpg",
       "fields": 28,
-      "token_recall": 0.0661764705882353,
+      "token_recall": 0.04411764705882353,
       "field_hit_rate": 0.0,
-      "token_recall_folded": 0.10294117647058823,
+      "token_recall_folded": 0.11764705882352941,
+      "field_hit_rate_folded": 0.0,
+      "money_total": 9,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.name",
+          "expected": "MEGA MARKET",
+          "score": 0.0
+        },
+        {
+          "role": "store.branch",
+          "expected": "MM BÌNH PHÚ",
+          "score": 0.0
+        },
+        {
+          "role": "store.address",
+          "expected": "SỐ 348A ĐƯỜNG LÊ VĂN SỸ",
+          "score": 0.0
+        }
+      ],
+      "framework": "synthdog",
+      "layout": "market_compact",
+      "augmentation": "torn_edges",
+      "visual": "thermal_faint",
+      "words_found": 117
+    },
+    {
+      "file_name": "synthdog_014.jpg",
+      "fields": 28,
+      "token_recall": 0.0,
+      "field_hit_rate": 0.0,
+      "token_recall_folded": 0.007352941176470588,
+      "field_hit_rate_folded": 0.0,
+      "money_total": 9,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.name",
+          "expected": "MEGA MARKET",
+          "score": 0.0
+        },
+        {
+          "role": "store.branch",
+          "expected": "MM BÌNH PHÚ",
+          "score": 0.0
+        },
+        {
+          "role": "store.address",
+          "expected": "SỐ 348A ĐƯỜNG LÊ VĂN SỸ",
+          "score": 0.0
+        }
+      ],
+      "framework": "synthdog",
+      "layout": "market_compact",
+      "augmentation": "torn_edges",
+      "visual": "thermal_faint",
+      "words_found": 22
+    },
+    {
+      "file_name": "synthdog_015.jpg",
+      "fields": 28,
+      "token_recall": 0.125,
+      "field_hit_rate": 0.0,
+      "token_recall_folded": 0.15441176470588236,
       "field_hit_rate_folded": 0.03571428571428571,
       "money_total": 9,
       "money_exact": 0,
@@ -545,88 +609,24 @@
           "score": 0.0
         },
         {
-          "role": "store.address2",
-          "expected": "P.PHƯỜNG 4, Q.TÂN BÌNH",
-          "score": 0.0
-        }
-      ],
-      "framework": "synthdog",
-      "layout": "sieu_thi_gia_sl",
-      "augmentation": "rach_giay",
-      "visual": "nhiet_mo",
-      "words_found": 49
-    },
-    {
-      "file_name": "synthdog_014.jpg",
-      "fields": 28,
-      "token_recall": 0.0,
-      "field_hit_rate": 0.0,
-      "token_recall_folded": 0.0,
-      "field_hit_rate_folded": 0.0,
-      "money_total": 9,
-      "money_exact": 0,
-      "worst_fields": [
-        {
-          "role": "store.name",
-          "expected": "MEGA MARKET",
-          "score": 0.0
-        },
-        {
-          "role": "store.branch",
-          "expected": "MM BÌNH PHÚ",
-          "score": 0.0
-        },
-        {
           "role": "store.address",
           "expected": "SỐ 348A ĐƯỜNG LÊ VĂN SỸ",
           "score": 0.0
         }
       ],
       "framework": "synthdog",
-      "layout": "sieu_thi_gia_sl",
-      "augmentation": "rach_giay",
-      "visual": "nhiet_mo",
-      "words_found": 0
-    },
-    {
-      "file_name": "synthdog_015.jpg",
-      "fields": 28,
-      "token_recall": 0.0,
-      "field_hit_rate": 0.0,
-      "token_recall_folded": 0.0,
-      "field_hit_rate_folded": 0.0,
-      "money_total": 9,
-      "money_exact": 0,
-      "worst_fields": [
-        {
-          "role": "store.name",
-          "expected": "MEGA MARKET",
-          "score": 0.0
-        },
-        {
-          "role": "store.branch",
-          "expected": "MM BÌNH PHÚ",
-          "score": 0.0
-        },
-        {
-          "role": "store.address",
-          "expected": "SỐ 348A ĐƯỜNG LÊ VĂN SỸ",
-          "score": 0.0
-        }
-      ],
-      "framework": "synthdog",
-      "layout": "sieu_thi_gia_sl",
-      "augmentation": "rach_giay",
-      "visual": "nhiet_mo",
-      "words_found": 11
+      "layout": "market_compact",
+      "augmentation": "torn_edges",
+      "visual": "thermal_faint",
+      "words_found": 117
     },
     {
       "file_name": "synthdog_016.jpg",
       "fields": 22,
-      "token_recall": 0.35106382978723405,
-      "field_hit_rate": 0.09090909090909091,
-      "token_recall_folded": 0.4148936170212766,
-      "field_hit_rate_folded": 0.13636363636363635,
+      "token_recall": 0.4148936170212766,
+      "field_hit_rate": 0.18181818181818182,
+      "token_recall_folded": 0.4787234042553192,
+      "field_hit_rate_folded": 0.22727272727272727,
       "money_total": 6,
       "money_exact": 1,
       "worst_fields": [
@@ -647,17 +647,17 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "sieu_thi_vat",
-      "augmentation": "vua",
-      "visual": "nhiet_dam",
-      "words_found": 143
+      "layout": "market_vat",
+      "augmentation": "medium",
+      "visual": "thermal_dark",
+      "words_found": 136
     },
     {
       "file_name": "synthdog_017.jpg",
       "fields": 22,
-      "token_recall": 0.4148936170212766,
+      "token_recall": 0.425531914893617,
       "field_hit_rate": 0.13636363636363635,
-      "token_recall_folded": 0.43617021276595747,
+      "token_recall_folded": 0.44680851063829785,
       "field_hit_rate_folded": 0.13636363636363635,
       "money_total": 6,
       "money_exact": 1,
@@ -673,35 +673,35 @@
           "score": 0.0
         },
         {
-          "role": "store.address2",
-          "expected": "P.Vĩnh Ninh, Q.Huế",
+          "role": "store.phone",
+          "expected": "ĐT: 027.74563698",
           "score": 0.0
         }
       ],
       "framework": "synthdog",
-      "layout": "sieu_thi_vat",
-      "augmentation": "vua",
-      "visual": "nhiet_dam",
-      "words_found": 151
+      "layout": "market_vat",
+      "augmentation": "medium",
+      "visual": "thermal_dark",
+      "words_found": 138
     },
     {
       "file_name": "synthdog_018.jpg",
       "fields": 22,
-      "token_recall": 0.3404255319148936,
-      "field_hit_rate": 0.045454545454545456,
-      "token_recall_folded": 0.35106382978723405,
-      "field_hit_rate_folded": 0.09090909090909091,
+      "token_recall": 0.48936170212765956,
+      "field_hit_rate": 0.22727272727272727,
+      "token_recall_folded": 0.5212765957446809,
+      "field_hit_rate_folded": 0.2727272727272727,
       "money_total": 6,
-      "money_exact": 0,
+      "money_exact": 1,
       "worst_fields": [
-        {
-          "role": "store.name",
-          "expected": "Co.opmart",
-          "score": 0.0
-        },
         {
           "role": "store.branch",
           "expected": "CoopMart Cống Quỳnh",
+          "score": 0.0
+        },
+        {
+          "role": "store.phone",
+          "expected": "ĐT: 027.74563698",
           "score": 0.0
         },
         {
@@ -711,17 +711,17 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "sieu_thi_vat",
-      "augmentation": "vua",
-      "visual": "nhiet_dam",
-      "words_found": 118
+      "layout": "market_vat",
+      "augmentation": "medium",
+      "visual": "thermal_dark",
+      "words_found": 148
     },
     {
       "file_name": "synthdog_019.jpg",
       "fields": 22,
-      "token_recall": 0.22641509433962265,
-      "field_hit_rate": 0.045454545454545456,
-      "token_recall_folded": 0.2830188679245283,
+      "token_recall": 0.14150943396226415,
+      "field_hit_rate": 0.0,
+      "token_recall_folded": 0.16037735849056603,
       "field_hit_rate_folded": 0.045454545454545456,
       "money_total": 6,
       "money_exact": 0,
@@ -743,10 +743,10 @@
         }
       ],
       "framework": "synthdog",
-      "layout": "sieu_thi_vat",
+      "layout": "market_vat",
       "augmentation": "photocopy",
-      "visual": "nhiet_dam",
-      "words_found": 96
+      "visual": "thermal_dark",
+      "words_found": 70
     },
     {
       "file_name": "html_000.jpg",
@@ -775,9 +775,9 @@
         }
       ],
       "framework": "html",
-      "layout": "quan_an_ascii",
-      "augmentation": "vet_ban",
-      "visual": "nhiet_dam",
+      "layout": "eatery_ascii",
+      "augmentation": "stains",
+      "visual": "thermal_dark",
       "words_found": 78
     },
     {
@@ -807,9 +807,9 @@
         }
       ],
       "framework": "html",
-      "layout": "quan_an_ascii",
-      "augmentation": "giay_that",
-      "visual": "nhiet_hep",
+      "layout": "eatery_ascii",
+      "augmentation": "real_paper",
+      "visual": "thermal_narrow",
       "words_found": 58
     },
     {
@@ -839,9 +839,9 @@
         }
       ],
       "framework": "html",
-      "layout": "quan_an_ascii",
-      "augmentation": "rach_giay",
-      "visual": "nhiet_dam",
+      "layout": "eatery_ascii",
+      "augmentation": "torn_edges",
+      "visual": "thermal_dark",
       "words_found": 61
     },
     {
@@ -871,9 +871,9 @@
         }
       ],
       "framework": "html",
-      "layout": "quan_an_ascii",
-      "augmentation": "vua",
-      "visual": "nhiet_hep",
+      "layout": "eatery_ascii",
+      "augmentation": "medium",
+      "visual": "thermal_narrow",
       "words_found": 114
     },
     {
@@ -903,9 +903,9 @@
         }
       ],
       "framework": "html",
-      "layout": "quan_nhau_stt",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_hep",
+      "layout": "eatery_indexed",
+      "augmentation": "pristine",
+      "visual": "thermal_narrow",
       "words_found": 82
     },
     {
@@ -935,9 +935,9 @@
         }
       ],
       "framework": "html",
-      "layout": "quan_nhau_stt",
-      "augmentation": "khong_lam_gi",
-      "visual": "nhiet_hep",
+      "layout": "eatery_indexed",
+      "augmentation": "pristine",
+      "visual": "thermal_narrow",
       "words_found": 82
     },
     {
@@ -967,9 +967,9 @@
         }
       ],
       "framework": "html",
-      "layout": "quan_nhau_stt",
+      "layout": "eatery_indexed",
       "augmentation": "photocopy",
-      "visual": "nhiet_hep",
+      "visual": "thermal_narrow",
       "words_found": 136
     },
     {
@@ -999,9 +999,9 @@
         }
       ],
       "framework": "html",
-      "layout": "quan_nhau_stt",
+      "layout": "eatery_indexed",
       "augmentation": "photocopy",
-      "visual": "nhiet_hep",
+      "visual": "thermal_narrow",
       "words_found": 139
     },
     {
@@ -1031,9 +1031,9 @@
         }
       ],
       "framework": "html",
-      "layout": "sieu_thi_barcode",
-      "augmentation": "rach_giay",
-      "visual": "nhiet_mo",
+      "layout": "market_barcode",
+      "augmentation": "torn_edges",
+      "visual": "thermal_faint",
       "words_found": 0
     },
     {
@@ -1063,9 +1063,9 @@
         }
       ],
       "framework": "html",
-      "layout": "sieu_thi_barcode",
-      "augmentation": "giay_that",
-      "visual": "nhiet_mo",
+      "layout": "market_barcode",
+      "augmentation": "real_paper",
+      "visual": "thermal_faint",
       "words_found": 142
     },
     {
@@ -1095,9 +1095,9 @@
         }
       ],
       "framework": "html",
-      "layout": "sieu_thi_barcode",
-      "augmentation": "giay_that",
-      "visual": "nhiet_mo",
+      "layout": "market_barcode",
+      "augmentation": "real_paper",
+      "visual": "thermal_faint",
       "words_found": 144
     },
     {
@@ -1127,9 +1127,9 @@
         }
       ],
       "framework": "html",
-      "layout": "sieu_thi_barcode",
-      "augmentation": "giay_that",
-      "visual": "nhiet_mo",
+      "layout": "market_barcode",
+      "augmentation": "real_paper",
+      "visual": "thermal_faint",
       "words_found": 143
     },
     {
@@ -1159,9 +1159,9 @@
         }
       ],
       "framework": "html",
-      "layout": "sieu_thi_gia_sl",
+      "layout": "market_compact",
       "augmentation": "photocopy",
-      "visual": "nhiet_mo",
+      "visual": "thermal_faint",
       "words_found": 110
     },
     {
@@ -1191,9 +1191,9 @@
         }
       ],
       "framework": "html",
-      "layout": "sieu_thi_gia_sl",
+      "layout": "market_compact",
       "augmentation": "photocopy",
-      "visual": "nhiet_mo",
+      "visual": "thermal_faint",
       "words_found": 113
     },
     {
@@ -1223,9 +1223,9 @@
         }
       ],
       "framework": "html",
-      "layout": "sieu_thi_gia_sl",
+      "layout": "market_compact",
       "augmentation": "photocopy",
-      "visual": "nhiet_mo",
+      "visual": "thermal_faint",
       "words_found": 126
     },
     {
@@ -1255,9 +1255,9 @@
         }
       ],
       "framework": "html",
-      "layout": "sieu_thi_gia_sl",
+      "layout": "market_compact",
       "augmentation": "photocopy",
-      "visual": "nhiet_mo",
+      "visual": "thermal_faint",
       "words_found": 112
     },
     {
@@ -1287,9 +1287,9 @@
         }
       ],
       "framework": "html",
-      "layout": "sieu_thi_vat",
-      "augmentation": "chu_bong",
-      "visual": "laser_net",
+      "layout": "market_vat",
+      "augmentation": "ghost_text",
+      "visual": "laser_sharp",
       "words_found": 193
     },
     {
@@ -1319,9 +1319,9 @@
         }
       ],
       "framework": "html",
-      "layout": "sieu_thi_vat",
-      "augmentation": "chu_bong",
-      "visual": "laser_net",
+      "layout": "market_vat",
+      "augmentation": "ghost_text",
+      "visual": "laser_sharp",
       "words_found": 201
     },
     {
@@ -1351,9 +1351,9 @@
         }
       ],
       "framework": "html",
-      "layout": "sieu_thi_vat",
-      "augmentation": "chu_bong",
-      "visual": "laser_net",
+      "layout": "market_vat",
+      "augmentation": "ghost_text",
+      "visual": "laser_sharp",
       "words_found": 209
     },
     {
@@ -1383,9 +1383,9 @@
         }
       ],
       "framework": "html",
-      "layout": "sieu_thi_vat",
-      "augmentation": "chu_bong",
-      "visual": "laser_net",
+      "layout": "market_vat",
+      "augmentation": "ghost_text",
+      "visual": "laser_sharp",
       "words_found": 194
     },
     {
@@ -1415,9 +1415,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "quan_an_ascii",
-      "augmentation": "vua",
-      "visual": "nhiet_mo",
+      "layout": "eatery_ascii",
+      "augmentation": "medium",
+      "visual": "thermal_faint",
       "words_found": 79
     },
     {
@@ -1447,9 +1447,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "quan_an_ascii",
-      "augmentation": "vua",
-      "visual": "nhiet_mo",
+      "layout": "eatery_ascii",
+      "augmentation": "medium",
+      "visual": "thermal_faint",
       "words_found": 76
     },
     {
@@ -1479,9 +1479,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "quan_an_ascii",
-      "augmentation": "vua",
-      "visual": "nhiet_mo",
+      "layout": "eatery_ascii",
+      "augmentation": "medium",
+      "visual": "thermal_faint",
       "words_found": 85
     },
     {
@@ -1511,9 +1511,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "quan_an_ascii",
-      "augmentation": "vua",
-      "visual": "nhiet_mo",
+      "layout": "eatery_ascii",
+      "augmentation": "medium",
+      "visual": "thermal_faint",
       "words_found": 75
     },
     {
@@ -1543,9 +1543,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "quan_nhau_stt",
-      "augmentation": "vua",
-      "visual": "laser_net",
+      "layout": "eatery_indexed",
+      "augmentation": "medium",
+      "visual": "laser_sharp",
       "words_found": 145
     },
     {
@@ -1575,9 +1575,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "quan_nhau_stt",
-      "augmentation": "chu_bong",
-      "visual": "nhiet_dam",
+      "layout": "eatery_indexed",
+      "augmentation": "ghost_text",
+      "visual": "thermal_dark",
       "words_found": 174
     },
     {
@@ -1607,9 +1607,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "quan_nhau_stt",
-      "augmentation": "chu_bong",
-      "visual": "nhiet_mo",
+      "layout": "eatery_indexed",
+      "augmentation": "ghost_text",
+      "visual": "thermal_faint",
       "words_found": 101
     },
     {
@@ -1639,9 +1639,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "quan_nhau_stt",
-      "augmentation": "giay_that",
-      "visual": "nhiet_mo",
+      "layout": "eatery_indexed",
+      "augmentation": "real_paper",
+      "visual": "thermal_faint",
       "words_found": 95
     },
     {
@@ -1671,9 +1671,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "sieu_thi_barcode",
+      "layout": "market_barcode",
       "augmentation": "photocopy",
-      "visual": "laser_net",
+      "visual": "laser_sharp",
       "words_found": 128
     },
     {
@@ -1703,9 +1703,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "sieu_thi_barcode",
-      "augmentation": "khong_lam_gi",
-      "visual": "laser_net",
+      "layout": "market_barcode",
+      "augmentation": "pristine",
+      "visual": "laser_sharp",
       "words_found": 149
     },
     {
@@ -1735,9 +1735,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "sieu_thi_barcode",
-      "augmentation": "khong_lam_gi",
-      "visual": "laser_net",
+      "layout": "market_barcode",
+      "augmentation": "pristine",
+      "visual": "laser_sharp",
       "words_found": 149
     },
     {
@@ -1767,9 +1767,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "sieu_thi_barcode",
-      "augmentation": "giay_that",
-      "visual": "nhiet_dam",
+      "layout": "market_barcode",
+      "augmentation": "real_paper",
+      "visual": "thermal_dark",
       "words_found": 148
     },
     {
@@ -1799,9 +1799,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "sieu_thi_gia_sl",
-      "augmentation": "vet_ban",
-      "visual": "laser_net",
+      "layout": "market_compact",
+      "augmentation": "stains",
+      "visual": "laser_sharp",
       "words_found": 93
     },
     {
@@ -1831,9 +1831,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "sieu_thi_gia_sl",
-      "augmentation": "vet_ban",
-      "visual": "laser_net",
+      "layout": "market_compact",
+      "augmentation": "stains",
+      "visual": "laser_sharp",
       "words_found": 92
     },
     {
@@ -1863,9 +1863,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "sieu_thi_gia_sl",
-      "augmentation": "vet_ban",
-      "visual": "laser_net",
+      "layout": "market_compact",
+      "augmentation": "stains",
+      "visual": "laser_sharp",
       "words_found": 94
     },
     {
@@ -1895,9 +1895,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "sieu_thi_gia_sl",
-      "augmentation": "vet_ban",
-      "visual": "laser_net",
+      "layout": "market_compact",
+      "augmentation": "stains",
+      "visual": "laser_sharp",
       "words_found": 101
     },
     {
@@ -1927,10 +1927,10 @@
         }
       ],
       "framework": "genalog",
-      "layout": "sieu_thi_vat",
-      "augmentation": "chu_bong",
-      "visual": "nhiet_hep",
-      "words_found": 222
+      "layout": "market_vat",
+      "augmentation": "ghost_text",
+      "visual": "thermal_narrow",
+      "words_found": 221
     },
     {
       "file_name": "genalog_017.jpg",
@@ -1959,9 +1959,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "sieu_thi_vat",
-      "augmentation": "chu_bong",
-      "visual": "nhiet_hep",
+      "layout": "market_vat",
+      "augmentation": "ghost_text",
+      "visual": "thermal_narrow",
       "words_found": 215
     },
     {
@@ -1991,9 +1991,9 @@
         }
       ],
       "framework": "genalog",
-      "layout": "sieu_thi_vat",
-      "augmentation": "chu_bong",
-      "visual": "nhiet_hep",
+      "layout": "market_vat",
+      "augmentation": "ghost_text",
+      "visual": "thermal_narrow",
       "words_found": 221
     },
     {
@@ -2023,10 +2023,10 @@
         }
       ],
       "framework": "genalog",
-      "layout": "sieu_thi_vat",
-      "augmentation": "chu_bong",
-      "visual": "nhiet_hep",
-      "words_found": 247
+      "layout": "market_vat",
+      "augmentation": "ghost_text",
+      "visual": "thermal_narrow",
+      "words_found": 246
     }
   ]
 }
