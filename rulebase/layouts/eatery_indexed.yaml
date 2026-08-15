@@ -1,0 +1,50 @@
+# Bố cục quán nhậu / quán ăn, có cột số thứ tự.
+
+# Dấu hiệu nhận biết: cột đầu là Stt, mỗi mặt hàng chiếm HAI dòng — dòng trên
+# là "stt + tên món", dòng dưới là "số lượng / đơn giá / thành tiền" thụt vào.
+id: eatery_indexed
+name: Eatery — index column, quantity, price, amount
+source: "photo QUÁN NHẬU BÌNH DÂN 129, Đà Nẵng"
+
+# Bề rộng giấy tính bằng ký tự (giấy nhiệt 80mm ≈ 42-48 ký tự).
+width: [40, 48]
+rule_char: "-"
+
+header:
+  name_scale: [1.15, 1.45]
+  name_bold: true
+  title: true
+  title_scale: [1.20, 1.45]
+
+meta:
+  style: two_column     # "Số phiếu: 8793" trái, "Bàn 5" phải — như ảnh mẫu
+  rule_after: false
+
+column_header: true
+column_header_bold: false
+columns:
+  - {key: stt,        title: "Stt",      width: 4,  align: right}
+  - {key: qty,        title: "Số lượng", width: 11, align: right}
+  - {key: unit_price, title: "Giá",      width: 12, align: right}
+  - {key: amount,     title: "Tiền",     width: 13, align: right}
+
+item:
+  wrap_name: true
+  rows:
+    # dòng 1: số thứ tự, rồi tên món trải từ cột "Số lượng" tới hết cột "Tiền"
+    - - {col: stt, from: stt}
+      - {from: name, span: [qty, amount], align: left}
+    # dòng 2: số lượng, đơn giá, thành tiền — thẳng cột với tiêu đề bảng
+    - - {col: qty, from: qty}
+      - {col: unit_price, from: unit_price}
+      - {col: amount, from: amount}
+  discount_row:
+    label: "Giảm giá"
+
+totals:
+  emphasise_grand: true
+  grand_scale: [1.20, 1.55]
+  grand_two_lines: true
+
+footer:
+  rule_before: false

@@ -1,0 +1,38 @@
+# This repository is a collection of generators, not an installable package:
+# synthdog/ and html-table/ each have their own dependencies and their own
+# supported Python range. What lives here is the tooling configuration shared
+# across them.
+
+[tool.ruff]
+line-length = 90
+# synthdog targets Python 3.8, so ruff must not suggest newer syntax --
+# `zip(strict=)` and friends would break the environment it actually runs in.
+target-version = "py38"
+# Vendored third-party code keeps its own style and its own pre-commit config.
+# `generators/genalog/` is only partly vendored -- render.py, templates/ and its
+# README are ours -- so the upstream subdirectories are named individually.
+# Keep this list in step with VENDORED in tools/paths.py, which is what
+# `tasks.py check` uses.
+extend-exclude = [
+    "generators/html-table",
+    "generators/genalog/genalog",
+    "generators/genalog/tests",
+    "generators/genalog/example",
+    "generators/genalog/devops",
+    "generators/genalog/docs",
+    "generators/genalog/setup.py",
+    "augmentations",
+    ".venv*",
+]
+
+[tool.ruff.lint]
+# Correctness and imports; not a style crusade over code adapted from upstream.
+select = ["E", "F", "I"]
+ignore = [
+    "E501",  # long lines
+    "E731",  # assigned lambdas read fine in the layout helpers
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Kept close to clovaai/donut so upstream changes still merge cleanly.
+"generators/synthdog/template.py" = ["F841"]

@@ -1,0 +1,36 @@
+# Phường / quận, viết theo kiểu vẫn in trên hoá đơn: "P.<phường>, Q.<quận>".
+# Định dạng: phường<TAB>quận<TAB>tỉnh-thành
+Thượng Đình	Thanh Xuân	Hà Nội
+Nhân Chính	Thanh Xuân	Hà Nội
+Dịch Vọng	Cầu Giấy	Hà Nội
+Mai Dịch	Cầu Giấy	Hà Nội
+Vĩnh Tuy	Hai Bà Trưng	Hà Nội
+Bạch Mai	Hai Bà Trưng	Hà Nội
+Cửa Nam	Hoàn Kiếm	Hà Nội
+Hàng Bài	Hoàn Kiếm	Hà Nội
+Ngọc Khánh	Ba Đình	Hà Nội
+Bến Nghé	1	TPHCM
+Bến Thành	1	TPHCM
+Đa Kao	1	TPHCM
+Tân Định	1	TPHCM
+Võ Thị Sáu	3	TPHCM
+Tân Phong	7	TPHCM
+Tân Thuận Đông	7	TPHCM
+Hiệp Bình Chánh	Thủ Đức	TPHCM
+Linh Trung	Thủ Đức	TPHCM
+Bình Thọ	Thủ Đức	TPHCM
+Nguyễn Cư Trinh	1	TPHCM
+Phường 12	Bình Thạnh	TPHCM
+Phường 25	Bình Thạnh	TPHCM
+Phường 4	Tân Bình	TPHCM
+Phường 11	Phú Nhuận	TPHCM
+Hải Châu 1	Hải Châu	Đà Nẵng
+Thạch Thang	Hải Châu	Đà Nẵng
+An Hải Bắc	Sơn Trà	Đà Nẵng
+Mỹ An	Ngũ Hành Sơn	Đà Nẵng
+Vĩnh Ninh	Huế	Thừa Thiên Huế
+Lộc Thọ	Nha Trang	Khánh Hoà
+Ninh Kiều	Ninh Kiều	Cần Thơ
+Máy Chai	Ngô Quyền	Hải Phòng
+Hoà Phú	Thủ Dầu Một	Bình Dương
+Tân Mai	Biên Hoà	Đồng Nai

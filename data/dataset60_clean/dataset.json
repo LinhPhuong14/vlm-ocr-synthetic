@@ -1,0 +1,46 @@
+{
+  "per_framework": 20,
+  "layouts": [
+    "eatery_ascii",
+    "eatery_indexed",
+    "market_barcode",
+    "market_compact",
+    "market_vat"
+  ],
+  "clean": true,
+  "force": [
+    "augmentation=pristine"
+  ],
+  "frameworks": {
+    "synthdog": {
+      "images": 20,
+      "by_layout": {
+        "eatery_ascii": 4,
+        "eatery_indexed": 4,
+        "market_barcode": 4,
+        "market_compact": 4,
+        "market_vat": 4
+      }
+    },
+    "html": {
+      "images": 20,
+      "by_layout": {
+        "eatery_ascii": 4,
+        "eatery_indexed": 4,
+        "market_barcode": 4,
+        "market_compact": 4,
+        "market_vat": 4
+      }
+    },
+    "genalog": {
+      "images": 20,
+      "by_layout": {
+        "eatery_ascii": 4,
+        "eatery_indexed": 4,
+        "market_barcode": 4,
+        "market_compact": 4,
+        "market_vat": 4
+      }
+    }
+  }
+}

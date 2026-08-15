@@ -1,0 +1,42 @@
+# Bố cục máy in nhiệt đời cũ: một dòng một món, không có tiêu đề bảng.
+
+# Bố cục này chỉ dùng được với thuộc tính content nào bật bỏ dấu — luật
+# rules/content.yaml gắn thẻ `ascii_only` để ràng buộc chuyện đó.
+id: eatery_ascii
+name: Eatery — legacy thermal printer, no diacritics
+source: "photo QUAN AN THIEN TAN, TPHCM 2011"
+
+width: [32, 40]
+rule_char: "*"
+
+header:
+  name_scale: [1.0, 1.25]
+  name_bold: false
+  title: false              # loại máy này không in dòng tiêu đề phiếu
+  address: true
+  phone: true
+
+meta:
+  style: two_column
+  rule_after: false
+
+column_header: false
+columns:
+  - {key: qty,    width: 3,  align: right}
+  - {key: name,   width: 0,  align: left}
+  - {key: amount, width: 11, align: right}
+
+item:
+  wrap_name: false           # tên dài thì cắt bớt
+  rows:
+    - - {col: qty, from: qty}
+      - {col: name, from: name}
+      - {col: amount, from: amount}
+
+totals:
+  emphasise_grand: true
+  grand_scale: [1.35, 1.75]
+  grand_two_lines: true      # "TIEN MAT" một dòng, "537,000" dòng sau
+
+footer:
+  rule_before: false
