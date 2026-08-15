@@ -47,7 +47,7 @@ Dựng riêng từng cái nếu chỉ cần một:
 ```bash
 make setup-synthdog    # cần Python 3.8–3.11, Makefile chặn 3.12+
 make setup-html        # playwright; KHÔNG chạy `playwright install`
-make setup-genalog     # genalog cài --no-deps, xem §6
+make setup-genalog     # genalog vendor sẵn trong repo, xem §6
 ```
 
 ### 1.2 Xem trước, không cần render
@@ -534,9 +534,16 @@ bằng PyMuPDF, ghép dọc nếu WeasyPrint tách trang.
 
 **Ghim phiên bản của genalog:** `numpy==1.18.1`, `WeasyPrint==51`,
 `scikit-image==0.16.2`, `Jinja2==2.11.1` — **không cái nào có wheel cho Python
-3.9+**. Nên cài `--no-deps` và cấp dependency ở phiên bản có thật. Đường code
-mình gọi (`DocumentGenerator`, `Document`, `render_pdf`) chỉ cần Jinja2 và
-WeasyPrint, cả hai đều ổn định ở phần template này dùng.
+3.9+**. Source của genalog **vendor thẳng vào `generators/genalog/`** nên các
+ghim đó không áp dụng; dependency lấy từ `requirements.txt` ở phiên bản có
+thật. Đường code mình gọi (`DocumentGenerator`, `Document`, `render_pdf`) chỉ
+cần Jinja2 và WeasyPrint, cả hai đều ổn định ở phần template này dùng.
+
+Một hệ quả phải biết: `render.py` nằm cùng thư mục với cây vendor, nên
+`generators/genalog/` là `sys.path[0]` mỗi khi nó chạy và `import genalog`
+**luôn lấy cây vendor**, kể cả khi pip có cài một bản khác. Vì thế
+`setup-genalog` cố tình không cài genalog từ PyPI — hai bản mà một bản che bản
+kia là đúng loại bẫy im lặng.
 
 **Tại sao vẫn giữ genalog mà không tự viết WeasyPrint?** Vì nó là một **đường
 render khác thật**: print engine có page box, phân trang thật, text shaper

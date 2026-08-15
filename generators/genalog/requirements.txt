@@ -1,7 +1,12 @@
-# genalog renderer. genalog itself is installed with --no-deps (see the Makefile
-# and generators/genalog/render.py): it pins numpy 1.18.1, WeasyPrint 51 and
-# scikit-image 0.16.2, none of which has a wheel for Python 3.9+, and none of
-# which is used by the document generation path this repository calls.
+# genalog renderer. `genalog` itself is deliberately NOT listed: its source is
+# vendored in this directory, and `render.py` lives here too, so `generators/
+# genalog/` is sys.path[0] whenever it runs and the vendored tree wins over any
+# installed copy. Installing the package as well would leave two of them with
+# one silently shadowing the other.
+#
+# That vendoring also side-steps genalog's pins -- numpy 1.18.1, WeasyPrint 51,
+# scikit-image 0.16.2, none of which has a wheel for Python 3.9+ -- because
+# nothing on the path this repository calls touches those APIs.
 
 weasyprint>=60            # the print engine; write_png() is long gone, so
                           # render.py rasterises the PDF instead

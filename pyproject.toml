@@ -9,7 +9,21 @@ line-length = 90
 # `zip(strict=)` and friends would break the environment it actually runs in.
 target-version = "py38"
 # Vendored third-party code keeps its own style and its own pre-commit config.
-extend-exclude = ["generators/html-table", ".venv*"]
+# `generators/genalog/` is only partly vendored -- render.py, templates/ and its
+# README are ours -- so the upstream subdirectories are named individually.
+# Keep this list in step with VENDORED in tools/paths.py, which is what
+# `tasks.py check` uses.
+extend-exclude = [
+    "generators/html-table",
+    "generators/genalog/genalog",
+    "generators/genalog/tests",
+    "generators/genalog/example",
+    "generators/genalog/devops",
+    "generators/genalog/docs",
+    "generators/genalog/setup.py",
+    "augmentations",
+    ".venv*",
+]
 
 [tool.ruff.lint]
 # Correctness and imports; not a style crusade over code adapted from upstream.

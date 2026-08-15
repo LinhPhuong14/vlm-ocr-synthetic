@@ -19,6 +19,22 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 WINDOWS = os.name == "nt"
 
+# Third-party code that is checked in as-is. It keeps its own style, so linting
+# and byte-compiling skip it. `generators/genalog/` is only PARTLY vendored --
+# render.py, templates/ and README.md are ours -- so the upstream
+# subdirectories are listed rather than the whole directory.
+# Mirrored by `extend-exclude` in pyproject.toml, which ruff reads directly.
+VENDORED = (
+    "generators/html-table/",
+    "generators/genalog/genalog/",
+    "generators/genalog/tests/",
+    "generators/genalog/example/",
+    "generators/genalog/devops/",
+    "generators/genalog/docs/",
+    "generators/genalog/setup.py",
+    "augmentations/",
+)
+
 VENVS = {
     "synthdog": REPO_ROOT / "generators" / "synthdog" / ".venv",
     "html": REPO_ROOT / "generators" / "html" / ".venv",
@@ -67,6 +83,7 @@ def first_available_python() -> Path:
 
 __all__ = [
     "REPO_ROOT",
+    "VENDORED",
     "VENVS",
     "WINDOWS",
     "first_available_python",
