@@ -3,9 +3,9 @@ import warnings
 
 import pytest
 
-from genalog.text import alignment
-from genalog.text.alignment import GAP_CHAR
-from tests.unit.cases.text_alignment import ALIGNMENT_REGRESSION_TEST_CASES
+from generators.genalog.genalog.text import alignment
+from generators.genalog.genalog.text.alignment import GAP_CHAR
+from generators.genalog.tests.unit.cases.text_alignment import ALIGNMENT_REGRESSION_TEST_CASES
 
 
 def random_utf8_char(byte_len=1):

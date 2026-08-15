@@ -1,8 +1,6 @@
 # Chuỗi bán lẻ Việt Nam: tên thương hiệu<TAB>tên chi nhánh
 #
-# Hai cột, vì hoá đơn siêu thị in thương hiệu ở dòng đầu (chữ to, hay có logo)
-# rồi chi nhánh ở dòng thứ hai — xem ảnh mẫu VinCommerce / VM Royal City.
-# Tên chi nhánh để trống thì bố cục bỏ luôn dòng đó.
+
 VinCommerce	VM Royal City
 VinCommerce	VM Times City
 VinCommerce	VM Thăng Long
