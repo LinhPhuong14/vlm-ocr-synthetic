@@ -1,0 +1,21 @@
+# The order the attributes are drawn in, and the only place it is written down.
+#
+# Causal, not alphabetical: each attribute sees the tags of the ones before it,
+# so `document` is the widest choice and `augmentation` the narrowest. A shop
+# decides what it prints long before the paper decides how it will crease.
+# Reordering this file changes which constraints can be expressed at all -- a
+# value can only `require` a tag an EARLIER attribute sets.
+#
+# Adding an attribute is a new `rules/<name>.yaml` plus a line here. Leave the
+# file out of this list and loading fails: auto-discovery without that check
+# would trade a constant nobody can forget for a file everybody can.
+#
+# The leading underscore keeps this file from being read as an attribute.
+
+order:
+  - document
+  - layout
+  - content
+  - visual
+  - color
+  - augmentation

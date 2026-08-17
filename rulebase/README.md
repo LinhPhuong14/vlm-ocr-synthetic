@@ -66,6 +66,16 @@ later one can rule itself out when it does not fit.
 | 5 | `color` | ink, paper tint, accent colour for the shop name | [rules/color.yaml](rules/color.yaml) |
 | 6 | `augmentation` | ageing: the degradation chain that runs after rendering | [rules/augmentation.yaml](rules/augmentation.yaml) |
 
+**The list is not in the Python.** Attributes are discovered from `rules/*.yaml`
+and ordered by [rules/_order.yaml](rules/_order.yaml), so a seventh criterion is
+a new YAML file and a line in that manifest -- nothing else.
+
+The manifest is not a formality. Discovery alone would be a downgrade: a
+hard-coded tuple cannot forget a file, a directory listing can. Three mistakes
+raise rather than pass silently -- a rules file the manifest never mentions
+(which would simply never be drawn), a manifest entry with no file behind it,
+and the same attribute listed twice.
+
 The order is not arbitrary — it follows causality. A shop decides what to print
 long before the paper decides how it will crumple. So `document` is the
 broadest choice and `augmentation` the narrowest.

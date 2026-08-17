@@ -34,20 +34,89 @@ from typing import Any, Iterable, Sequence
 import yaml
 
 RULES_ROOT = Path(__file__).resolve().parent / "rules"
-
-# Drawn in this order; each attribute sees the tags of the ones before it.
-ATTRIBUTES: tuple[str, ...] = (
-    "document",
-    "layout",
-    "content",
-    "visual",
-    "color",
-    "augmentation",
-)
+ORDER_FILE = "_order.yaml"
 
 
 class RuleError(ValueError):
     """A rules file asks for something impossible."""
+
+
+def attribute_order(root: Path | str = RULES_ROOT) -> tuple[str, ...]:
+    """The attributes, in the order they are drawn, from `rules/_order.yaml`.
+
+    Attributes are discovered rather than hard-coded, so a seventh criterion is
+    a new YAML file and a line in the manifest -- no Python edit. The manifest
+    exists because auto-discovery alone would be a downgrade: a hard-coded
+    tuple is impossible to forget, a directory listing is not. Three ways to
+    get it wrong, all of them loud:
+
+    * a `rules/foo.yaml` the manifest never mentions -- the file would simply
+      never be drawn, and generation would carry on without it;
+    * a manifest entry with no file behind it;
+    * the same attribute listed twice, which would draw it twice and let the
+      second draw see the first one's tags.
+
+    Order is not cosmetic. A value can only `require` a tag that an *earlier*
+    attribute sets, so this list decides which constraints are expressible;
+    `validate()` reports the ones that are not.
+    """
+    root = Path(root)
+    path = root / ORDER_FILE
+    if not path.exists():
+        raise RuleError(f"missing {path}: it lists the attributes and their order")
+    raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    order = raw.get("order")
+    if not order:
+        raise RuleError(f"{path}: no 'order:' list")
+    order = [str(name) for name in order]
+
+    duplicates = sorted({name for name in order if order.count(name) > 1})
+    if duplicates:
+        raise RuleError(f"{path}: {duplicates} listed more than once")
+
+    present = {p.stem for p in root.glob("*.yaml") if not p.name.startswith("_")}
+    listed = set(order)
+    forgotten = sorted(present - listed)
+    if forgotten:
+        raise RuleError(
+            f"{path}: {forgotten} exist in {root} but are not listed, so they "
+            f"would never be drawn; add them or delete the files"
+        )
+    missing = sorted(listed - present)
+    if missing:
+        raise RuleError(f"{path}: lists {missing}, but there is no rules file for them")
+    return tuple(order)
+
+
+class _Attributes(Sequence):
+    """`ATTRIBUTES` as it always was, but read from the manifest.
+
+    A module-level tuple would freeze the order at import time, before a test
+    or a tool has had the chance to point at a different rules directory. This
+    reads on use and stays a plain sequence, so `for a in ATTRIBUTES`,
+    `a in ATTRIBUTES`, indexing and `len()` all behave as they did.
+    """
+
+    def _order(self) -> tuple[str, ...]:
+        return attribute_order()
+
+    def __getitem__(self, index):
+        return self._order()[index]
+
+    def __len__(self) -> int:
+        return len(self._order())
+
+    def __repr__(self) -> str:
+        return repr(self._order())
+
+    def __eq__(self, other) -> bool:
+        return tuple(self._order()) == tuple(other)
+
+    def __hash__(self) -> int:
+        return hash(self._order())
+
+
+ATTRIBUTES: Sequence[str] = _Attributes()
 
 
 @dataclass(frozen=True)
@@ -123,25 +192,37 @@ class Recipe:
 
 
 def load_rules(root: Path | str = RULES_ROOT) -> dict[str, list[Option]]:
-    """Read `rules/<attribute>.yaml` for every attribute."""
+    """Read every `rules/<attribute>.yaml`, in the order the manifest gives.
+
+    The returned dict is insertion-ordered in draw order, and everything
+    downstream iterates *it* rather than a module-level constant. That is what
+    lets a caller load a different rules directory -- a test, a preflight
+    against a candidate tree -- and have the sampler honour its order.
+
+    Files are read and checked before the manifest is consulted, so a broken
+    YAML is reported as a broken YAML rather than as a manifest mismatch.
+    """
     root = Path(root)
-    rules: dict[str, list[Option]] = {}
-    for attribute in ATTRIBUTES:
-        path = root / f"{attribute}.yaml"
-        if not path.exists():
-            raise RuleError(f"missing rules file {path}")
+    files = sorted(path for path in root.glob("*.yaml") if not path.name.startswith("_"))
+    if not files:
+        raise RuleError(f"missing rules files in {root}")
+
+    parsed: dict[str, list[Option]] = {}
+    for path in files:
+        attribute = path.stem
         raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
         options = raw.get("options")
         if not options:
             raise RuleError(f"{path}: no options")
-        parsed = [Option.from_dict(item, attribute) for item in options]
+        entries = [Option.from_dict(item, attribute) for item in options]
         seen: set[str] = set()
-        for option in parsed:
+        for option in entries:
             if option.id in seen:
                 raise RuleError(f"{path}: duplicate option id {option.id!r}")
             seen.add(option.id)
-        rules[attribute] = parsed
-    return rules
+        parsed[attribute] = entries
+
+    return {attribute: parsed[attribute] for attribute in attribute_order(root)}
 
 
 def _weighted_choice(options: Sequence[Option], rng: random.Random) -> Option:
@@ -172,7 +253,11 @@ def sample_recipe(
     """
     rules = rules or load_rules()
     force = force or {}
-    unknown = set(force) - set(ATTRIBUTES)
+    # The order comes from the rules mapping, not from the manifest on disk:
+    # a caller that built `rules` by hand decides its own order, and reading
+    # the shipped manifest here would ignore that.
+    order = tuple(rules)
+    unknown = set(force) - set(order)
     if unknown:
         raise RuleError(f"cannot force unknown attributes {sorted(unknown)}")
 
@@ -183,7 +268,7 @@ def sample_recipe(
     tags: set[str] = set()
     choices: dict[str, Option] = {}
 
-    for attribute in ATTRIBUTES:
+    for attribute in order:
         options = rules[attribute]
         candidates = [option for option in options if option.allowed(tags)]
         if attribute in force:
@@ -261,7 +346,7 @@ def validate(rules: dict[str, list[Option]] | None = None) -> list[str]:
 
     # Every tag that could ever be set by an earlier attribute.
     reachable: set[str] = set()
-    for attribute in ATTRIBUTES:
+    for attribute in rules:
         for option in rules[attribute]:
             missing = option.requires - reachable
             if missing:
@@ -274,7 +359,7 @@ def validate(rules: dict[str, list[Option]] | None = None) -> list[str]:
         reachable |= {tag for option in rules[attribute] for tag in option.tags}
 
     # Something has to be drawable for every attribute in the worst case.
-    for attribute in ATTRIBUTES:
+    for attribute in rules:
         if not any(option.weight > 0 for option in rules[attribute]):
             problems.append(f"{attribute}: every option has weight 0")
     return problems
@@ -282,6 +367,8 @@ def validate(rules: dict[str, list[Option]] | None = None) -> list[str]:
 
 __all__ = [
     "ATTRIBUTES",
+    "ORDER_FILE",
+    "attribute_order",
     "Option",
     "Recipe",
     "RuleError",
