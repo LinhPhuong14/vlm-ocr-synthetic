@@ -129,8 +129,11 @@ def build_html(grid, recipe, receipt) -> str:
         # past its column, or a 1.6em grand total runs off the edge of the paper.
         scale = min(cell.scale, width / max(len(cell.text), 1))
         inner = f"font-size:{scale:.3f}em;" + ("font-weight:700;" if cell.bold else "")
+        # `data-kind` rides along so the box extractor does not have to re-derive
+        # the role from the grid and risk drifting out of step with it.
         spans.append(
-            f'<span style="{style}"><i style="{inner}">{html.escape(cell.text)}</i></span>'
+            f'<span data-kind="{html.escape(cell.role)}" style="{style}">'
+            f'<i style="{inner}">{html.escape(cell.text)}</i></span>'
         )
 
     tint_layer = (
@@ -172,6 +175,58 @@ html,body{{margin:0;padding:0;background:#fff;}}
 <body><div id="sheet">{"".join(spans)}{tint_layer}</div></body></html>"""
 
 
+# Ask the browser where every cell's *text* ended up, in CSS pixels relative to
+# the sheet. Read from the inner <i>, not the positioned <span>: the span is a
+# whole column wide and mostly empty for a right-aligned amount, whereas the
+# glyph renderer's quads hug the text. Boxes that mean different things in two
+# backends are worse than boxes in only one.
+CELL_RECTS_JS = """() => {
+  const sheet = document.querySelector('#sheet').getBoundingClientRect();
+  return [...document.querySelectorAll('#sheet span[data-kind]')].map(span => {
+    const box = (span.firstElementChild || span).getBoundingClientRect();
+    return {
+      kind: span.dataset.kind,
+      text: span.textContent,
+      x: box.left - sheet.left,
+      y: box.top - sheet.top,
+      w: box.width,
+      h: box.height,
+    };
+  });
+}"""
+
+
+def quads_from_rects(rects, scale: float, factor: float) -> list[dict]:
+    """Browser rects -> the same `{kind, text, quad}` the glyph renderer writes.
+
+    Two multiplications, and both are easy to forget. `scale` is the page's
+    device scale factor: the screenshot is taken at that resolution while
+    `getBoundingClientRect` reports CSS pixels. `factor` is the downscale
+    applied afterwards to land in the glyph renderer's size band.
+
+    Separators are dropped, as they are in `template_receipt.py` -- a row of
+    dashes is not a field, and a detector trained to find one learns to fire on
+    every rule on the page.
+    """
+    ratio = scale * factor
+    quads = []
+    for rect in rects:
+        if rect["kind"] == "sep" or rect["w"] <= 0 or rect["h"] <= 0:
+            continue
+        x0, y0 = rect["x"] * ratio, rect["y"] * ratio
+        x1, y1 = x0 + rect["w"] * ratio, y0 + rect["h"] * ratio
+        quads.append({
+            "kind": rect["kind"],
+            "text": rect["text"],
+            # Axis-aligned, but written as four corners so the schema matches
+            # the glyph renderer's, whose quads are genuinely rotated by the
+            # paper curl. One loader reads both.
+            "quad": [[round(x0, 1), round(y0, 1)], [round(x1, 1), round(y0, 1)],
+                     [round(x1, 1), round(y1, 1)], [round(x0, 1), round(y1, 1)]],
+        })
+    return quads
+
+
 class HtmlReceiptRenderer:
     """Keeps one browser alive across a run -- launching costs ~300 ms each time."""
 
@@ -211,6 +266,10 @@ class HtmlReceiptRenderer:
             page.set_content(markup, wait_until="load")
             page.wait_for_timeout(60)  # let the embedded faces settle
             sheet = page.query_selector("#sheet")
+            # Measured before the screenshot and from the same laid-out page, so
+            # the boxes describe the pixels that were captured rather than a
+            # second, re-measured layout.
+            rects = page.evaluate(CELL_RECTS_JS)
             shot = sheet.screenshot(type="png")
         finally:
             page.close()
@@ -228,9 +287,23 @@ class HtmlReceiptRenderer:
                 (max(int(image.shape[1] * factor), 1), max(int(image.shape[0] * factor), 1)),
                 interpolation=cv2.INTER_AREA,
             )
+        else:
+            factor = 1.0
 
+        boxes = quads_from_rects(rects, self.scale, factor)
+
+        # Ageing runs after the boxes are computed and must not move a pixel --
+        # every model in `degradation/` filters or composites in place. Asserted
+        # rather than assumed: a resize slipped into the chain would shift every
+        # box without changing anything visible about the image.
+        before = image.shape[:2]
         aged = apply_recipe(image, recipe, seed=seed)
-        return recipe, receipt, grid, aged
+        if aged.shape[:2] != before:
+            raise RuntimeError(
+                f"a degradation resized the page ({before} -> {aged.shape[:2]}); "
+                "the boxes no longer describe it"
+            )
+        return recipe, receipt, grid, aged, boxes
 
 
 def main() -> int:
@@ -252,7 +325,7 @@ def main() -> int:
 
     with HtmlReceiptRenderer(scale=args.scale) as renderer:
         for index in range(args.count):
-            recipe, receipt, _grid, image = renderer.render(args.seed + index, force)
+            recipe, receipt, _grid, image, boxes = renderer.render(args.seed + index, force)
             name = f"html_{index:03d}.jpg"
             cv2.imwrite(str(args.out / name), image, [cv2.IMWRITE_JPEG_QUALITY, 90])
             records.append({
@@ -261,8 +334,10 @@ def main() -> int:
                                            ensure_ascii=False),
                 "text_sequence": receipt.text_sequence(),
                 "recipe": recipe.to_dict(),
+                "boxes": boxes,
             })
-            print(f"[ok] {name}  {image.shape[1]}x{image.shape[0]}  {recipe.layout.id}")
+            print(f"[ok] {name}  {image.shape[1]}x{image.shape[0]}  "
+                  f"{recipe.layout.id}  {len(boxes)} boxes")
 
     with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as fp:
         for record in records:
