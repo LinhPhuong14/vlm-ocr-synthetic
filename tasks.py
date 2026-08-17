@@ -210,6 +210,11 @@ def proof(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "ocr_proof.py", args.dataset])
 
 
+@task("check-boxes", "verify every renderer's boxes still land on its text")
+def check_boxes(args) -> None:
+    run([first_available_python(), REPO_ROOT / "tools" / "check_boxes.py", args.dataset])
+
+
 @task("showcase", "one before/after image per degradation model")
 def showcase(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "degradation_showcase.py"])

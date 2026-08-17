@@ -46,7 +46,7 @@ has never seen a page lying under a lamp.
 | **output** | a **photograph** of a receipt on a table | a **flat scan** | a **print / photocopy** |
 | **text layout** | ours, per glyph | the browser's | WeasyPrint's |
 | **geometry** | curl, perspective, lighting | none | page box, real pagination |
-| **per-cell polygons** | yes, they follow the curl | no | no |
+| **per-cell boxes** | yes, quads that follow the curl | yes, from the browser's layout | yes, from the PDF's text layer |
 | **Python** | **3.8 – 3.11** | 3.9+ | 3.9+ |
 | **cost per page** | ~1.6 s | ~1.2 s | ~0.7 s |
 | **extra install** | — | a browser | GTK (Pango, cairo) |
@@ -55,10 +55,9 @@ has never seen a page lying under a lamp.
 
 **synthdog — glyph rendering.** It positions every text layer itself, so it is
 the only one that knows where each cell ended up *after* the paper was curled
-and the photograph taken. That is why it is the only renderer that emits
-per-cell polygons, and it is the reason to keep it: detection and
-text-spotting training needs boxes, and the other two cannot produce them
-without re-running OCR on their own output. It also produces by far the hardest
+and the photograph taken. Its quads are therefore genuinely
+rotated, while the other two are axis-aligned -- a distortion no flat renderer
+can supply. It also produces by far the hardest
 images — background, perspective, lamp, shadow — which is exactly the
 distribution a phone photo of a receipt falls into.
 
@@ -111,12 +110,27 @@ Rendering aside, the three differ in what kind of training signal they produce:
 | **what varies between two seeds** | content, paper, curl, camera, light | content, paper | content, paper, pagination |
 | **degrees of freedom the renderer adds** | many — the scene is sampled | none — deterministic given the grid | few — the page engine decides breaks |
 | **failure mode to watch** | text unreadable under heavy ageing | too easy; a model overfits to clean scans | a long page silently paginates |
-| **labels it can support** | parsing, detection, spotting | parsing | parsing |
+| **labels it can support** | parsing, detection, spotting | parsing, detection, spotting | parsing, detection, spotting |
 | **use it for** | robustness to real photos | volume, and the clean-set ceiling | shaping variety, print-like domain |
 
 All three write the same `metadata.jsonl` — `file_name`, `ground_truth`
-(CORD-style nested), `text_sequence`, `recipe` — so a training script does not
-need to know which produced a file.
+(CORD-style nested), `text_sequence`, `recipe`, `boxes` — so a training script
+does not need to know which produced a file.
+
+### Boxes
+
+Every renderer emits one `{kind, text, quad}` per drawn field, in one schema,
+each from the only source that is exact for it:
+
+| | where the box comes from |
+| --- | --- |
+| synthdog | the `TextLayer` it positioned, pushed through the same warp as the pixels |
+| html | `getBoundingClientRect()` on the inner `<i>`, times the device scale factor and the downscale |
+| genalog | the PDF's own text layer via PyMuPDF, times `dpi/72` and the downscale |
+
+None of them re-reads its own output — no OCR is involved, so a box cannot
+inherit a recognition error. `make check-boxes` verifies coverage, that every
+corner is inside the frame, and that there is ink under each box.
 
 A fourth generator, `generators/html-table/`, is vendored upstream code for
 table images. It does not read the rule-base, and it solves a different problem
