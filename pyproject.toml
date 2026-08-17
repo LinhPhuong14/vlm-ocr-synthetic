@@ -36,3 +36,12 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 # Kept close to clovaai/donut so upstream changes still merge cleanly.
 "generators/synthdog/template.py" = ["F841"]
+
+[tool.pytest.ini_options]
+# `pythonpath` so `import rulebase` works without installing the package, and
+# so `conftest.py` helpers are importable by name from the test modules.
+testpaths = ["tests"]
+pythonpath = [".", "tests"]
+# No `-x`: stopping at the first failure hides every later one, and the whole
+# point of a suite this small is seeing the full picture in one run.
+addopts = "-q --strict-markers"
