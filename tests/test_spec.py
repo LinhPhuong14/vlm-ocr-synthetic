@@ -208,3 +208,89 @@ def test_recipe_to_dict_carries_seed_and_every_attribute(real_rules):
     assert payload["seed"] == 99
     assert set(payload["attributes"]) == set(ATTRIBUTES)
     assert payload["tags"] == sorted(recipe.tags)
+
+
+# ------------------------------------------------------- the order manifest
+
+
+def test_order_manifest_drives_the_attribute_list():
+    from rulebase.spec import attribute_order
+
+    assert tuple(ATTRIBUTES) == attribute_order()
+    assert ATTRIBUTES[0] == "document", "document must be drawn first"
+    assert ATTRIBUTES[-1] == "augmentation", "augmentation must be drawn last"
+
+
+def test_a_rules_file_the_manifest_forgets_is_an_error(tmp_path):
+    # The whole risk of auto-discovery: a hard-coded tuple cannot forget a
+    # file, a directory listing can. Left unchecked this would be a new silent
+    # failure -- the value simply never drawn -- which is the class of bug the
+    # discovery was meant to remove, not add.
+    spec = {attribute: [{"id": f"{attribute}0", "weight": 1}] for attribute in ATTRIBUTES}
+    root = write_rules_dir(tmp_path / "rules", spec)
+    (root / "orphan.yaml").write_text(
+        yaml.safe_dump({"options": [{"id": "x", "weight": 1}]}), encoding="utf-8")
+    with pytest.raises(RuleError, match="orphan"):
+        load_rules(root)
+
+
+def test_a_manifest_entry_without_a_file_is_an_error(tmp_path):
+    spec = {attribute: [{"id": f"{attribute}0", "weight": 1}] for attribute in ATTRIBUTES}
+    root = write_rules_dir(tmp_path / "rules", spec,
+                           order=list(ATTRIBUTES) + ["ghost"])
+    with pytest.raises(RuleError, match="ghost"):
+        load_rules(root)
+
+
+def test_a_repeated_manifest_entry_is_an_error(tmp_path):
+    # Drawn twice, the second draw would see the first one's tags -- a value
+    # excluding its own tag would become undrawable for reasons nobody could
+    # find in the YAML.
+    spec = {attribute: [{"id": f"{attribute}0", "weight": 1}] for attribute in ATTRIBUTES}
+    root = write_rules_dir(tmp_path / "rules", spec,
+                           order=list(ATTRIBUTES) + ["color"])
+    with pytest.raises(RuleError, match="more than once"):
+        load_rules(root)
+
+
+def test_a_missing_manifest_is_an_error(tmp_path):
+    root = tmp_path / "rules"
+    root.mkdir()
+    for attribute in ATTRIBUTES:
+        (root / f"{attribute}.yaml").write_text(
+            yaml.safe_dump({"options": [{"id": "x", "weight": 1}]}), encoding="utf-8")
+    with pytest.raises(RuleError, match="_order.yaml"):
+        load_rules(root)
+
+
+def test_a_seventh_attribute_needs_no_python(tmp_path):
+    """Adding a criterion is a YAML file and a manifest line."""
+    spec = {attribute: [{"id": f"{attribute}0", "weight": 1}] for attribute in ATTRIBUTES}
+    spec["binding"] = [{"id": "stapled", "weight": 1, "params": {"corner": "top_left"}}]
+    root = write_rules_dir(tmp_path / "rules", spec)
+
+    rules = load_rules(root)
+    assert list(rules)[-1] == "binding", "the manifest decides the position"
+    recipe = sample_recipe(seed=3, rules=rules)
+    assert recipe.ids()["binding"] == "stapled"
+    assert recipe.get("binding", "corner") == "top_left"
+    assert "binding" in recipe.to_dict()["attributes"]
+
+
+def test_the_sampler_follows_the_order_it_was_given(tmp_path):
+    # Reversing the order must make a forward dependency unsatisfiable: proof
+    # the order is honoured rather than merely stored.
+    spec = {
+        "document": [{"id": "d", "weight": 1, "tags": ["early"]}],
+        "layout": [{"id": "l", "weight": 1, "requires": ["early"]}],
+        **{attribute: [{"id": f"{attribute}0", "weight": 1}]
+           for attribute in ("content", "visual", "color", "augmentation")},
+    }
+    forward = write_rules_dir(tmp_path / "fwd", spec)
+    assert sample_recipe(seed=0, rules=load_rules(forward)).ids()["layout"] == "l"
+
+    backward = write_rules_dir(
+        tmp_path / "bwd", spec,
+        order=["layout", "document", "content", "visual", "color", "augmentation"])
+    with pytest.raises(RuleError, match="nothing satisfies"):
+        sample_recipe(seed=0, rules=load_rules(backward))

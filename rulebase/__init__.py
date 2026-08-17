@@ -31,6 +31,7 @@ from .spec import (
     Option,
     Recipe,
     RuleError,
+    attribute_order,
     enumerate_valid,
     load_rules,
     parse_force,
@@ -41,6 +42,7 @@ from .style import fade, hex_colour, inks, padding
 
 __all__ = [
     "ATTRIBUTES",
+    "attribute_order",
     "CORPUS_ROOT",
     "Cell",
     "Grid",
