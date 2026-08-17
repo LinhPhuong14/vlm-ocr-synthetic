@@ -17,7 +17,7 @@ LAYOUT  ?=
 .DEFAULT_GOAL := help
 .PHONY: help setup setup-synthdog setup-html setup-genalog textures \
         receipts preview preview-grid dataset dataset-clean proof showcase \
-        check-rules check-corpus distribution list-degradations \
+        check-rules check-corpus check-boxes distribution list-degradations \
         lint format check clean
 
 help:  ## Show this help
@@ -50,6 +50,8 @@ tables:          ## Table-structure images from the vendored generator (TABLES=6
 	$(TASKS) tables -o data/tables60 -n $(TABLES)
 proof:           ## Run Tesseract over $(DATASET) and score it against the labels
 	$(TASKS) proof --dataset $(DATASET)
+check-boxes:     ## Verify every renderer's boxes still land on its text
+	$(TASKS) check-boxes --dataset $(DATASET)
 showcase:        ## One before/after image per degradation into samples/degradation/
 	$(TASKS) showcase
 preview:         ## Render a grid of sample receipts to eyeball the config

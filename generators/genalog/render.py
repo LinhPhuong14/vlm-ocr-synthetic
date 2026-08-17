@@ -103,6 +103,80 @@ def styles_for(recipe, grid, line_px: float, pad_ch: float) -> dict:
     }
 
 
+def _normalise(text: str) -> str:
+    return " ".join(text.split())
+
+
+def match_boxes(grid, spans: list[dict]) -> list[dict]:
+    """Give each grid cell the PDF span that drew it.
+
+    Matching is by text in document order, not by index. WeasyPrint emits the
+    cells in the order the template lists them, so the two sequences line up --
+    but it is free to break one cell into several spans when the shaper changes
+    font mid-string, which a positional match would silently misalign for every
+    cell after it. Walking forwards and *concatenating* spans until they equal
+    the cell's text absorbs that.
+
+    **Separators are matched, then discarded.** They are not fields -- a
+    detector taught to find a row of dashes fires on every rule on the page --
+    but they *are* drawn, so skipping them in this walk leaves their span in
+    front of the cursor. That is what desynchronised the first version: from
+    the first separator onwards every cell matched against the previous cell's
+    span, and coverage fell to 82% with the losses all after the item list.
+
+    A cell whose text cannot be found is dropped rather than guessed at: a box
+    on the wrong words is worse than a missing one, and nothing downstream would
+    catch it.
+    """
+    boxes: list[dict] = []
+    cursor = 0
+    for cell in grid.cells:
+        wanted = _normalise(cell.text)
+        if not wanted:
+            continue
+        found = _consume(spans, cursor, wanted)
+        if found is None:
+            continue
+        cursor, box = found
+        if cell.role == "sep":
+            continue
+        x0, y0, x1, y1 = box
+        boxes.append({
+            "kind": cell.role,
+            "text": cell.text,
+            # Four corners, axis-aligned, matching the schema the glyph renderer
+            # writes -- its quads are genuinely rotated by the paper curl, so one
+            # loader reads both.
+            "quad": [[round(x0, 1), round(y0, 1)], [round(x1, 1), round(y0, 1)],
+                     [round(x1, 1), round(y1, 1)], [round(x0, 1), round(y1, 1)]],
+        })
+    return boxes
+
+
+def _consume(spans: list[dict], cursor: int, wanted: str, lookahead: int = 4):
+    """`(next_cursor, bbox)` for the spans that spell `wanted`, or None.
+
+    Tries each start within `lookahead` of the cursor rather than the cursor
+    alone, so one unexpected span costs one cell instead of every cell after it.
+    Spans are concatenated forwards because WeasyPrint may split a cell when the
+    shaper changes font mid-string.
+    """
+    for start in range(cursor, min(cursor + lookahead, len(spans))):
+        merged, box = "", None
+        for probe in range(start, len(spans)):
+            span = spans[probe]
+            merged = _normalise(merged + span["text"])
+            sx0, sy0, sx1, sy1 = span["bbox"]
+            box = (sx0, sy0, sx1, sy1) if box is None else (
+                min(box[0], sx0), min(box[1], sy0), max(box[2], sx1), max(box[3], sy1)
+            )
+            if merged == wanted:
+                return probe + 1, box
+            if len(merged) >= len(wanted):
+                break  # overshot: this start cannot spell it
+    return None
+
+
 class GenalogReceiptRenderer:
     def __init__(self, dpi: int = 150, short_size: tuple[int, int] = (960, 1400)):
         self.generator = DocumentGenerator(template_path=str(TEMPLATE_DIR))
@@ -134,7 +208,8 @@ class GenalogReceiptRenderer:
 
         # render_png() is gone from modern WeasyPrint; go through PDF.
         pdf = document.render_pdf()
-        image = self._rasterise(pdf)
+        image, spans = self._rasterise(pdf)
+        boxes = match_boxes(grid, spans)
 
         target = random.Random(seed).randint(*self.short_size)
         factor = target / min(image.shape[:2])
@@ -144,14 +219,37 @@ class GenalogReceiptRenderer:
                 (max(int(image.shape[1] * factor), 1), max(int(image.shape[0] * factor), 1)),
                 interpolation=cv2.INTER_AREA,
             )
+            for box in boxes:
+                box["quad"] = [[round(x * factor, 1), round(y * factor, 1)]
+                               for x, y in box["quad"]]
 
+        # Ageing composites and filters in place; nothing in `degradation/`
+        # resizes. Checked rather than trusted -- a resize slipped into the
+        # chain would shift every box while the image still looked right.
+        before = image.shape[:2]
         aged = apply_recipe(image, recipe, seed=seed)
-        return recipe, receipt, grid, aged
+        if aged.shape[:2] != before:
+            raise RuntimeError(
+                f"a degradation resized the page ({before} -> {aged.shape[:2]}); "
+                "the boxes no longer describe it"
+            )
+        return recipe, receipt, grid, aged, boxes
 
-    def _rasterise(self, pdf: bytes) -> np.ndarray:
-        """PDF bytes to one BGR image, stacking pages if WeasyPrint split them."""
+    def _rasterise(self, pdf: bytes) -> tuple[np.ndarray, list[dict]]:
+        """PDF bytes to one BGR image plus the text spans, in image pixels.
+
+        The spans come out of the PDF's own text layer, so they are exact --
+        this is not OCR of our own output. They are collected in the same loop
+        as the raster because both need the same two transforms: PDF points to
+        pixels at `dpi`, and, when WeasyPrint has split the receipt across
+        pages, the y-offset of the page each span sits on.
+        """
+        scale = self.dpi / 72.0        # PDF user space is 72 points per inch
+        pages: list[np.ndarray] = []
+        spans: list[dict] = []
+        offset = 0.0
+
         with fitz.open(stream=io.BytesIO(pdf), filetype="pdf") as document:
-            pages = []
             for page in document:
                 pixmap = page.get_pixmap(dpi=self.dpi)
                 buffer = np.frombuffer(pixmap.samples, dtype=np.uint8)
@@ -162,16 +260,35 @@ class GenalogReceiptRenderer:
                     array = cv2.cvtColor(array, cv2.COLOR_RGB2BGR)
                 else:
                     array = cv2.cvtColor(array, cv2.COLOR_GRAY2BGR)
+
+                for block in page.get_text("dict")["blocks"]:
+                    for line in block.get("lines", []):
+                        for span in line["spans"]:
+                            # WeasyPrint emits whitespace-only spans between
+                            # cells. They carry no ink, but they carry a bbox,
+                            # and letting them into the sequence both inflates
+                            # the box they get merged into and desynchronises
+                            # the walk in `match_boxes`.
+                            if not span["text"].strip():
+                                continue
+                            x0, y0, x1, y1 = span["bbox"]
+                            spans.append({
+                                "text": span["text"],
+                                "bbox": (x0 * scale, y0 * scale + offset,
+                                         x1 * scale, y1 * scale + offset),
+                            })
+                offset += array.shape[0]
                 pages.append(array)
+
         if len(pages) == 1:
-            return pages[0]
+            return pages[0], spans
         width = max(page.shape[1] for page in pages)
         padded = [
             cv2.copyMakeBorder(p, 0, 0, 0, width - p.shape[1], cv2.BORDER_CONSTANT,
                                value=(255, 255, 255))
             for p in pages
         ]
-        return np.vstack(padded)
+        return np.vstack(padded), spans
 
 
 def main() -> int:
@@ -193,7 +310,7 @@ def main() -> int:
     records = []
 
     for index in range(args.count):
-        recipe, receipt, _grid, image = renderer.render(args.seed + index, force)
+        recipe, receipt, _grid, image, boxes = renderer.render(args.seed + index, force)
         name = f"genalog_{index:03d}.jpg"
         cv2.imwrite(str(args.out / name), image, [cv2.IMWRITE_JPEG_QUALITY, 90])
         records.append({
@@ -201,8 +318,10 @@ def main() -> int:
             "ground_truth": json.dumps({"gt_parse": receipt.ground_truth()}, ensure_ascii=False),
             "text_sequence": receipt.text_sequence(),
             "recipe": recipe.to_dict(),
+            "boxes": boxes,
         })
-        print(f"[ok] {name}  {image.shape[1]}x{image.shape[0]}  {recipe.layout.id}")
+        print(f"[ok] {name}  {image.shape[1]}x{image.shape[0]}  "
+              f"{recipe.layout.id}  {len(boxes)} boxes")
 
     with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as fp:
         for record in records:

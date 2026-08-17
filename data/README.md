@@ -73,7 +73,25 @@ dataset60/
 | `ground_truth` | CORD-style nested label, as a JSON string (Donut reads it directly) |
 | `text_sequence` | flat reading label, for pre-training and for OCR scoring |
 | `recipe` | **all six** sampled attributes plus the seed — enough to rebuild the exact image |
-| `boxes` | per-cell polygons, still correct after the sheet has been curled. Glyph renderer only |
+| `boxes` | one `{kind, text, quad}` per drawn field, from **all three** renderers. synthdog's quads are rotated by the paper curl; the other two are axis-aligned |
 
-`recipe.seed` is what makes the set reproducible: `rulebase.make(seed=n)` gives
-back that same content, and each renderer redraws that same image.
+`recipe.seed` reproduces the content — but **only together with the attributes
+recorded beside it**. `generate_dataset.py` pins the layout so each renderer
+draws all five equally often, and a pin does not merely filter: with `layout`
+restricted to one value the tags it sets differ, so every attribute drawn after
+it diverges. To rebuild an image exactly, pin all six ids back:
+
+```python
+force = {name: value["id"] for name, value in record["recipe"]["attributes"].items()}
+recipe, receipt, grid = rulebase.make(seed=record["recipe"]["seed"], force=force)
+```
+
+`tools/check_boxes.py` does exactly this, and it is how the requirement was
+found — rebuilding from the bare seed reported every field of every image as
+missing a box.
+
+Verify a set after regenerating it:
+
+```bash
+make check-boxes DATASET=data/dataset60
+```
