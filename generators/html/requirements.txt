@@ -11,3 +11,4 @@ numpy>=1.24
 opencv-python-headless>=4.8,<5    # headless: no GUI libs needed in a container
 pillow>=10
 PyYAML>=6                 # rulebase reads its rules from YAML
+fonttools
