@@ -245,6 +245,11 @@ def preview_grid(args) -> None:
 # -------------------------------------------------------------- the rules
 
 
+@task("preflight", "every check that must pass before generating an image")
+def preflight(args) -> None:
+    run([first_available_python(), REPO_ROOT / "pipeline" / "preflight.py"])
+
+
 @task("check-rules", "validate rules/: unreachable values, bad tags, missing files")
 def check_rules(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "rules_report.py", "--check"])
