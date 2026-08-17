@@ -17,7 +17,7 @@ LAYOUT  ?=
 .DEFAULT_GOAL := help
 .PHONY: help setup setup-synthdog setup-html setup-genalog textures \
         receipts preview preview-grid dataset dataset-clean proof showcase \
-        check-rules check-corpus check-boxes distribution list-degradations \
+        preflight check-rules check-corpus check-boxes distribution list-degradations \
         lint format check clean
 
 help:  ## Show this help
@@ -61,6 +61,8 @@ preview-grid:    ## Print a sampled receipt as text (LAYOUT=<id> to pin one)
 
 # ------------------------------------------------------------- the rules
 
+preflight:       ## Every check that must pass before generating an image
+	@$(TASKS) preflight
 check-rules:     ## Validate rules/: unreachable values, bad tags, missing files
 	$(TASKS) check-rules
 check-corpus:    ## Validate corpus/: missing files, wrong column counts

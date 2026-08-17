@@ -229,10 +229,19 @@ tags, which is what stops the sampler pairing a 2011 thermal printer with
 accented Vietnamese, or an eatery bill with a barcode column.
 
 ```bash
+make preflight           # everything that must hold before generating
 make distribution        # what 2000 draws actually look like
 make check-rules         # unreachable values, typo'd tags, missing files
 make preview-grid        # one sampled receipt per layout, as text
 ```
+
+`make preflight` is the gate: rules, layouts, papers, degradation chains,
+corpus, and **glyph coverage over every character this rule-base can print** --
+which is wider than the corpus, because uppercase Vietnamese uses different
+codepoints and the rules turn uppercase on most of the time. 33 characters here
+are reachable only through `.upper()`; a font checked against lowercase alone
+passes while printing boxes. It runs in under half a second, so it costs nothing
+to run before a five-image job.
 
 Full guide — adding attributes, layouts, corpus entries, tuning the
 distribution: **[`rulebase/README.md`](rulebase/README.md)**.
