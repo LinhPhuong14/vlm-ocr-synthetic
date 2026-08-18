@@ -34,8 +34,23 @@ shard:
 # quietly leaving the weights alone.
 overrides: {}
 
-# Read and carried, unused until W2. Declared now so pipeline.yaml does not
-# change shape between waves.
 quality:
+  # How far a shard's mix may sit from the mix the plan asked for, measured as
+  # total variation distance. In words:
+  #
+  #   0.15 means at most 15% of a shard's draws would have to be moved from one
+  #   value to another to turn what was drawn into what was expected -- OVER AND
+  #   ABOVE what a sample that size scatters by anyway.
+  #
+  # The second clause is the load-bearing one. Forty draws over eleven
+  # augmentation values land about 0.19 from their own weights by chance, so a
+  # tolerance read as a flat ceiling warns on runs that have not drifted; the
+  # first real run it was tried on warned at 0.17 with nothing wrong. The
+  # scatter is computed per attribute and per shard and printed in the warning,
+  # so this number keeps one meaning whether a shard holds 40 draws or 4000.
+  #
+  # Raising it is a decision about what size of drift is acceptable, not a way
+  # to quieten a noisy run -- the noise is already accounted for.
   drift_tolerance: 0.15
+  # Reserved for the OCR sampling wave; read and carried, not yet used.
   sample_for_ocr: 500

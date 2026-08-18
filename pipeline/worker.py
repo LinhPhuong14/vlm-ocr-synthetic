@@ -48,7 +48,7 @@ for extra in (REPO_ROOT, REPO_ROOT / "tools"):
 
 from paths import VENVS, venv_python  # noqa: E402
 
-from pipeline import invariants, record  # noqa: E402
+from pipeline import drift, invariants, record  # noqa: E402
 from pipeline.config import RULES_ENV  # noqa: E402
 from pipeline.plan import image_name  # noqa: E402
 
@@ -57,8 +57,9 @@ DONE = "DONE"
 # What each shard writes down about its own content, beside its metadata.
 # Separate from `metadata.jsonl` because that file is hashed by the golden
 # baseline: a measurement added to it would make every W1 verification fail for
-# a reason that has nothing to do with what W1 verifies.
-INVARIANTS = "invariants.json"
+# a reason that has nothing to do with what W1 verifies. `drift.json` sits
+# beside it for the same reason.
+INVARIANTS = invariants.INVARIANTS_NAME
 
 # name -> (script, working directory). The interpreter is resolved at call time
 # through `venv_python`, which knows that a virtualenv keeps it in `bin/` on
@@ -71,7 +72,7 @@ BACKENDS = {
     "genalog": (REPO_ROOT / "generators" / "genalog" / "render.py", REPO_ROOT),
 }
 
-CLEAN_AUGMENTATION = "pristine"
+CLEAN_AUGMENTATION = invariants.CLEAN_AUGMENTATION
 
 
 class ShardError(RuntimeError):
@@ -213,6 +214,16 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
     budget = tally.problems()
     if budget:
         raise ShardError(f"shard {shard['index']}: " + "; ".join(budget))
+
+    # The quality vector, written here because this is where the shard's images
+    # and metadata are. Comparing it against the plan's expectation needs the
+    # whole plan and happens in `pipeline/run.py`; what cannot wait is the
+    # content-source axis, which is not drift but a fault, and stops the shard.
+    vector = drift.shard_vector(directory, shard)
+    drift.write_vector(vector, directory)
+    _warnings, stops, _notes = drift.compare(vector, {})
+    if stops:
+        raise ShardError(f"shard {shard['index']}: " + "; ".join(stops))
 
     mark_done(directory, {
         "shard": shard["index"],

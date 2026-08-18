@@ -71,6 +71,15 @@ from typing import Any, Iterator
 # a check that passed, and it says which of the two it was.
 UNCHECKED = "unchecked:"
 
+# What a shard leaves beside its metadata. Named here rather than in the worker
+# so `pipeline/drift.py` can read it without importing the module that writes it.
+INVARIANTS_NAME = "invariants.json"
+
+# The augmentation value whose chain is empty -- what `--clean` pins. Named
+# rather than inlined so renaming it in rules/augmentation.yaml fails loudly
+# instead of silently producing an aged "clean" set.
+CLEAN_AUGMENTATION = "pristine"
+
 # Characters that mean a font had nothing to draw. They reach the label only
 # through a corpus or a font change, and both are worth stopping for.
 REPLACEMENT = "�"
@@ -647,6 +656,8 @@ def attribute_names() -> tuple[str, ...]:
 
 __all__ = [
     "BUDGETS",
+    "CLEAN_AUGMENTATION",
+    "INVARIANTS_NAME",
     "MIN_COUNT",
     "SUPPRESSED",
     "UNCHECKED",

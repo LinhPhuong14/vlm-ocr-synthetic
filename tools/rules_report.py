@@ -112,18 +112,32 @@ def _chain_entries(chain):
             yield str(entry), {}
 
 
-def distribution(draws: int, seed: int) -> None:
+def sample_distribution(draws: int, seed: int, rules=None,
+                        force: dict[str, str] | None = None
+                        ) -> tuple[dict[str, Counter], int]:
+    """Draw `draws` recipes and count what came out. Returns (counts, failures).
+
+    Split out from `distribution` so `pipeline/drift.py` can ask the same
+    question without going through a printed report. `force` is here because a
+    plan that pins the layout does not have the rule-base's layout mix, and
+    comparing a run against an expectation that ignores its own pins would
+    report drift on every run forever.
+    """
     counters = {attribute: Counter() for attribute in ATTRIBUTES}
     failures = 0
     for index in range(draws):
         try:
-            recipe = sample_recipe(seed=seed + index)
-        except Exception:
+            recipe = sample_recipe(seed=seed + index, rules=rules, force=force)
+        except Exception:  # noqa: BLE001 - counted, and reported by the caller
             failures += 1
             continue
         for attribute, option in recipe.choices.items():
             counters[attribute][option.id] += 1
+    return counters, failures
 
+
+def distribution(draws: int, seed: int) -> None:
+    counters, failures = sample_distribution(draws, seed)
     total = draws - failures
     print(f"{total} lần bốc thành công / {draws}\n")
     for attribute in ATTRIBUTES:
