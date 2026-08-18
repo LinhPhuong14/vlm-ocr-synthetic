@@ -70,7 +70,7 @@ def _font_faces() -> str:
     with the label still claiming they were printed.
     """
     faces = []
-    for group in ("mono", "sans"):
+    for group in ("mono", "sans", "serif"):
         directory = FONT_ROOT / group
         if not directory.is_dir():
             continue
@@ -230,9 +230,13 @@ def quads_from_rects(rects, scale: float, factor: float) -> list[dict]:
 class HtmlReceiptRenderer:
     """Keeps one browser alive across a run -- launching costs ~300 ms each time."""
 
-    def __init__(self, scale: float = 2.0, short_size: tuple[int, int] = (960, 1400)):
+    def __init__(self, scale: float = 2.0, short_size: tuple[int, int] = (960, 1400),
+                 template: str | None = None):
         self.scale = scale
         self.short_size = short_size
+        # None keeps the character-grid page every layout has used until now.
+        # A name switches to `a4.py`, which lays the same receipt out with CSS.
+        self.template = template
         self._playwright = None
         self._browser = None
 
@@ -259,7 +263,13 @@ class HtmlReceiptRenderer:
 
     def render(self, seed: int, force: dict[str, str] | None = None):
         recipe, receipt, grid = rulebase.make(seed=seed, force=force)
-        markup = build_html(grid, recipe, receipt)
+        if self.template:
+            from a4 import build as build_template
+
+            markup = build_template(recipe, receipt, self.template)
+            markup = markup.replace("{FONT_FACES}", _font_faces())
+        else:
+            markup = build_html(grid, recipe, receipt)
 
         page = self._browser.new_page(device_scale_factor=self.scale)
         try:
@@ -317,13 +327,18 @@ def main() -> int:
         help="pin any attribute, repeatable: --force augmentation=pristine",
     )
     parser.add_argument("--scale", type=float, default=2.0)
+    parser.add_argument(
+        "--template", metavar="NAME",
+        help="lay the page out with CSS instead of the character grid; see a4.py. "
+             "Only the browser backends can draw one",
+    )
     args = parser.parse_args()
 
     args.out.mkdir(parents=True, exist_ok=True)
     force = rulebase.parse_force(args.force, args.layout)
     records = []
 
-    with HtmlReceiptRenderer(scale=args.scale) as renderer:
+    with HtmlReceiptRenderer(scale=args.scale, template=args.template) as renderer:
         for index in range(args.count):
             recipe, receipt, _grid, image, boxes = renderer.render(args.seed + index, force)
             name = f"html_{index:03d}.jpg"
