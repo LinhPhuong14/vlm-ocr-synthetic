@@ -78,25 +78,16 @@ def make(seed: int | None = None, force: dict[str, str] | None = None, attempts:
     the paper is.
 
     Pinning an attribute can clash with what an earlier attribute drew -- a
-    supermarket bố cục on a seed that drew a quán nhậu. Rather than make every
-    caller write the same retry, the seed is advanced until the pin fits, and
-    the recipe reports the seed that actually produced it.
+    supermarket layout on a seed that drew a street eatery. `sample_recipe`
+    re-draws from the same rng stream until the pin fits, so `recipe.seed` is
+    always the seed that was asked for and two different seeds give two
+    different recipes.
+
+    Until W1b this walked to `seed + 1`, `seed + 2`, ... instead, which made
+    `make` many-to-one: whole runs of consecutive seeds returned one recipe, and
+    half of a "twenty image" dataset was duplicates. See `sample_recipe`.
     """
-    if not force:
-        recipe = sample_recipe(seed=seed, force=force)
-    else:
-        start = random.randrange(2**31) if seed is None else seed
-        for offset in range(attempts):
-            try:
-                recipe = sample_recipe(seed=start + offset, force=force)
-                break
-            except RuleError:
-                continue
-        else:
-            raise RuleError(
-                f"no seed within {attempts} of {start} satisfies {force}; the rules "
-                f"may make that combination impossible"
-            )
+    recipe = sample_recipe(seed=seed, force=force, attempts=attempts)
     rng = random.Random(recipe.seed)
     receipt = build_receipt(recipe, rng)
     grid = build_grid(receipt, recipe.layout.id, rng)
