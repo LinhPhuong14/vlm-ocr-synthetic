@@ -146,6 +146,13 @@ def assemble(out: Path, plan: dict, shards_root: Path) -> tuple[dict, list[str]]
         target.mkdir(parents=True)
 
         by_layout: dict[str, int] = {}
+        # Counted, not assumed. Before W1b a pinned draw walked to the next
+        # fitting seed, so twenty images held ten receipts and every denominator
+        # in the proof reports was wrong by a factor of two. A dataset that does
+        # not report its own distinct-sample count lets that happen again at a
+        # larger size with nobody watching.
+        seeds: set[int] = set()
+        labels: set[str] = set()
         written = 0
         with open(target / "metadata.jsonl", "w", encoding="utf-8") as index:
             for shard in sorted((s for s in plan["shards"] if s["backend"] == backend),
@@ -166,8 +173,20 @@ def assemble(out: Path, plan: dict, shards_root: Path) -> tuple[dict, list[str]]
                     json.dump(item, index, ensure_ascii=False)
                     index.write("\n")
                     by_layout[item["layout"]] = by_layout.get(item["layout"], 0) + 1
+                    seeds.add((item.get("recipe") or {}).get("seed"))
+                    labels.add(hashlib.sha256(
+                        str(item.get("ground_truth", "")).encode("utf-8")).hexdigest())
                     written += 1
-        frameworks[backend] = {"images": written, "by_layout": by_layout}
+        frameworks[backend] = {
+            "images": written,
+            "distinct_seeds": len(seeds),
+            "distinct_labels": len(labels),
+            "by_layout": by_layout,
+        }
+        if written and len(labels) < written:
+            warnings.append(
+                f"{backend}: {written} images but only {len(labels)} distinct "
+                f"labels; the sample is smaller than the file count says")
     return frameworks, warnings
 
 
@@ -298,6 +317,9 @@ def execute(config: Config, *, workers: int | None = None,
     (out / "dataset.json").write_text(json.dumps({
         "per_framework": plan["per_backend"],
         "layouts": plan["layouts"],
+        # Downstream tools read this file rather than the manifest, and a
+        # comparison between renderers only means something under `paired`.
+        "pairing": plan.get("pairing", "paired"),
         "clean": plan["clean"],
         "force": plan["force"],
         "frameworks": frameworks,
