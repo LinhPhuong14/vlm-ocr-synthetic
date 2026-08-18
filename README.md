@@ -365,7 +365,7 @@ replace them with real scans under the same names and nothing else changes.
 
 ## The datasets and the OCR proof
 
-`make dataset` writes 20 images per renderer, spread evenly over the five
+`make dataset` writes 20 images per renderer, spread evenly over the fourteen
 layouts so a comparison is not confounded by one renderer having drawn more
 supermarket receipts than another. Each image comes with a CORD-style nested
 label, the full recipe that produced it, and — for the glyph renderer —
