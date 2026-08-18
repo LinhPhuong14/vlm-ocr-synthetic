@@ -185,3 +185,103 @@ def test_marks_reach_the_serialised_grid():
     assert len(data["marks"]) == len(ruled.marks)
     assert set(data["marks"][0]) == {"kind", "row0", "col0", "row1", "col1",
                                      "weight", "tone"}
+
+
+def test_the_verticals_of_a_frame_reach_the_rules_they_bound():
+    """A box open at both ends is not a box.
+
+    The call sites count in ASCII rows, where a rule spends a row of its own and
+    the first `|` goes one row inside it. Drawn, the rule sits *on* the boundary
+    and a vertical that started one row in leaves a visible gap at the top and
+    bottom of every frame on the page.
+    """
+    _plain, ruled = _ruled("invoice_vat_form")
+    horizontals = [m for m in ruled.marks if m.kind == "rule" and m.row0 == m.row1]
+    verticals = [m for m in ruled.marks if m.kind == "rule" and m.col0 == m.col1]
+    assert horizontals and verticals
+
+    for bar in verticals:
+        # Something horizontal closes it off at each end, at the same row and
+        # crossing the column the vertical stands in.
+        for row in (bar.row0, bar.row1):
+            assert any(rule.row0 == row and rule.col0 <= bar.col0 <= rule.col1
+                       for rule in horizontals), (bar, row)
+
+
+def test_a_shaded_band_is_a_fill_under_the_column_titles():
+    ruled = rulebase.make(seed=77, force={"layout": "invoice_vat_summary"})[2]
+    fills = [m for m in ruled.marks if m.kind == "fill"]
+    assert fills, "invoice_vat_summary asks for `shade:` on both of its tables"
+    titles = [c.row for c in ruled.cells if c.role == "colhdr"]
+    for fill in fills:
+        assert 0 < fill.tone < 1, fill          # a tint, not ink
+        assert fill.col1 > fill.col0 and fill.row1 > fill.row0, fill
+        assert any(fill.row0 <= row < fill.row1 for row in titles), fill
+
+
+def test_a_layout_that_does_not_ask_for_shading_gets_none():
+    """`shade:` is opt-in twice over -- by the layout, and by being ruled.
+
+    A till roll can print a line of `-`; it cannot print a grey box, so the
+    ASCII half of a layout must not grow one however the YAML is written.
+    """
+    plain, ruled = _ruled("invoice_vat_form")   # ruled, and asks for no shade
+    assert not [m for m in plain.marks if m.kind == "fill"]
+    assert not [m for m in ruled.marks if m.kind == "fill"]
+
+    import random
+
+    import rulebase.layout as L
+    receipt = rulebase.make(seed=77, force={"layout": "invoice_vat_summary"})[1]
+    original = L.load_layout
+    spec = dict(original("invoice_vat_summary"))
+    spec["rules"] = "ascii"                     # keeps `shade:` in place
+    L.load_layout = lambda lid, root=L.LAYOUTS_ROOT: (
+        spec if lid == "invoice_vat_summary" else original(lid, root))
+    try:
+        ascii_grid = L.build_grid(receipt, "invoice_vat_summary", random.Random(77))
+    finally:
+        L.load_layout = original
+    assert ascii_grid.marks == []
+
+
+def test_the_outer_border_of_a_table_is_drawn_heavier_than_its_row_rules():
+    _plain, ruled = _ruled("invoice_vat_form")
+    frames = [m for m in ruled.marks if m.kind == "frame"]
+    assert frames, "a framed table draws its boundary with a heavier pen"
+    for frame in frames:
+        assert frame.weight > 1.0, frame
+        assert frame.col1 > frame.col0 and frame.row1 > frame.row0, frame
+    assert all(m.weight == 1.0 for m in ruled.marks if m.kind == "rule")
+
+
+def test_shading_is_listed_before_the_lines_that_bound_it():
+    """Painter's order, decided once here instead of three times downstream.
+
+    `marks` is back to front. A tint listed after the rule along its edge would
+    be painted over that rule and rub it out.
+    """
+    ruled = rulebase.make(seed=77, force={"layout": "invoice_vat_summary"})[2]
+    kinds = [m.kind for m in ruled.marks]
+    assert "fill" in kinds and "rule" in kinds
+    assert kinds.index("rule") > max(i for i, k in enumerate(kinds) if k == "fill")
+
+
+def test_a_separator_between_blocks_still_spends_its_row():
+    """A table rule costs no row; a separator does.
+
+    Both are drawn lines, and the difference is what they separate: the rule
+    between two rows of a table is the boundary those rows already share, while
+    a rule between two blocks is a gap with a line in it. Take that row away and
+    the line lands on the shoulders of the next line of type.
+    """
+    # Two layouts, because there are two separators: the till's (`_Builder.rule`,
+    # under the footer of the power bill) and the form's (`_full_rule`, under the
+    # strip of the export invoice). Only one of them is exercised by either page.
+    for layout_id in ("invoice_power", "invoice_export"):
+        _plain, ruled = _ruled(layout_id)
+        strays = [m for m in ruled.marks if m.row0 == m.row1 and m.row0 != int(m.row0)]
+        assert strays, f"{layout_id} separates two blocks with a drawn rule"
+        for mark in strays:
+            assert mark.row0 - int(mark.row0) == 0.5, (layout_id, mark)
+            assert not [c for c in ruled.cells if c.row == int(mark.row0)], mark

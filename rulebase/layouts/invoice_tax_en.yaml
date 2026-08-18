@@ -17,6 +17,10 @@ width: [72, 84]
 gutter: 2
 rule_char: "-"
 
+# Kẻ bằng NÉT chứ không bằng ký tự — xem `invoice_vat_form.yaml`. Máy in kẻ tờ
+# này, và một đường kẻ vẽ thật không tốn một dòng văn bản.
+rules: marks
+
 sections: [letterhead, doctitle, parties, table, totals, notes, footer]
 
 letterhead:
@@ -54,6 +58,8 @@ columns:
 
 table:
   frame: false
+  # Tờ do phần mềm kế toán in ra: dải tiêu đề cột có nền nhạt.
+  shade: 0.10
 
 item:
   wrap_name: true

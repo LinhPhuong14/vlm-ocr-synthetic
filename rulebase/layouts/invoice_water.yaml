@@ -17,6 +17,10 @@ width: [84, 92]
 gutter: 3
 rule_char: "-"
 
+# Kẻ bằng NÉT chứ không bằng ký tự — xem `invoice_vat_form.yaml`. Máy in kẻ tờ
+# này, và một đường kẻ vẽ thật không tốn một dòng văn bản.
+rules: marks
+
 sections: [letterhead, doctitle, parties, table, totals, words, signatures, footer]
 
 letterhead:
@@ -55,6 +59,7 @@ columns:
 table:
   frame: true
   row_rules: true
+  shade: 0.08
   # Tờ hoá đơn in sẵn bốn dòng trống dưới dòng cuối cùng, dùng hay không dùng
   # thì khung vẫn cao bằng đó — bốn dòng trống có kẻ ô là đặc trưng của tờ này.
   blank_rows: 4

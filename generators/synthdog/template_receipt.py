@@ -89,7 +89,12 @@ class SynthVNReceipt(templates.Template):
 
         out = self.receipt.generate(seed=seed, force=force)
         text_layers, fields = out["text_layers"], out["fields"]
-        mark_layers = out.get("mark_layers") or []
+        # Reversed: `Group` composites front to back -- index 0 is the topmost
+        # layer, which is why the paper goes last -- while `Grid.marks` is in
+        # painter's order, back to front, because that is what the two HTML
+        # backends need. Without the flip the shading under a column header is
+        # laid on top of the rules that bound it and rubs them out.
+        mark_layers = list(reversed(out.get("mark_layers") or []))
         recipe, receipt = out["recipe"], out["receipt"]
         width, height = out["size"]
 

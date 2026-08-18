@@ -163,7 +163,11 @@ def build_html(grid, recipe, receipt) -> str:
         else:
             style = (f"left:{x0:.3f}ch;top:{top:.2f}px;"
                      f"width:{span_ch:.3f}ch;height:{max(height, thick):.2f}px;")
-        marks.append(f'<div class="mark" style="{style}background:{shade};"></div>')
+        # A frame is hollow: the border is the ink and the middle is paper, or
+        # the box would black out everything it encloses.
+        paint = (f"border:{thick:.2f}px solid {shade};box-sizing:border-box;"
+                 if mark.kind == "frame" else f"background:{shade};")
+        marks.append(f'<div class="mark" style="{style}{paint}"></div>')
 
     tint_layer = (
         f'<div id="tint" style="background:rgb({tint[0]},{tint[1]},{tint[2]});'

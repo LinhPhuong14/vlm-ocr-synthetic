@@ -19,6 +19,10 @@ width: [106, 118]
 gutter: 3
 rule_char: "-"
 
+# Kẻ bằng NÉT chứ không bằng ký tự — xem `invoice_vat_form.yaml`. Máy in kẻ tờ
+# này, và một đường kẻ vẽ thật không tốn một dòng văn bản.
+rules: marks
+
 # Tiêu đề đứng TRƯỚC khối người bán: trên tờ mẫu nó nằm ở đỉnh trang, ngang
 # hàng với khối mẫu số bên phải, chứ không nằm dưới tên công ty.
 sections: [doctitle, letterhead, parties, table, totals, vat_summary, words, signatures, footer]
@@ -65,6 +69,9 @@ table:
   frame: true
   row_rules: false
   blank_rows: 2
+  # Dải tiêu đề cột có nền xám nhạt — tờ này do phần mềm in ra chứ không
+  # phải tờ mẫu in sẵn, và đây là chỗ dễ nhận ra nhất.
+  shade: 0.10
 
 item:
   wrap_name: true
@@ -86,6 +93,7 @@ totals:
 # cùng trang giấy. Dòng cuối — số phải trả — in đậm.
 vat_summary:
   frame: true
+  shade: 0.10
   column_header: true
   column_header_bold: true
   emphasise_total: true
