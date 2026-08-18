@@ -350,33 +350,24 @@ def _weighted_choice(options: Sequence[Option], rng: random.Random) -> Option:
     return options[-1]  # only reachable through float rounding
 
 
-def sample_recipe(
-    seed: int | None = None,
-    rules: dict[str, list[Option]] | None = None,
-    force: dict[str, str] | None = None,
-) -> Recipe:
-    """Draw one value per attribute, honouring weights and constraints.
+class _Clash(RuleError):
+    """A pin did not fit what *this attempt* happened to draw before it.
 
-    `force` pins an attribute to a named value -- how the dataset driver gets
-    an even spread over layouts instead of the weighted mix that a single
-    random image should have. A pinned value still has to satisfy its own
-    `requires`/`excludes`, otherwise the recipe it produced would be one the
-    rules say cannot exist.
+    A `RuleError` subclass on purpose: without `force` there is nothing to
+    retry, so it propagates and reads exactly as it always did.
     """
-    rules = rules or load_rules()
-    force = force or {}
-    # The order comes from the rules mapping, not from the manifest on disk:
-    # a caller that built `rules` by hand decides its own order, and reading
-    # the shipped manifest here would ignore that.
-    order = tuple(rules)
-    unknown = set(force) - set(order)
-    if unknown:
-        raise RuleError(f"cannot force unknown attributes {sorted(unknown)}")
 
-    if seed is None:
-        seed = random.randrange(2**31)
-    rng = random.Random(seed)
 
+# How many times one seed may re-draw before the pin is declared unreachable.
+# Whether it really is unreachable is then decided by `_reachable_tags`, not by
+# having run out of patience -- see `sample_recipe`.
+DRAW_ATTEMPTS = 500
+
+
+def _draw_once(order: tuple[str, ...], rules: dict[str, list[Option]],
+               force: dict[str, str], rng: random.Random
+               ) -> tuple[dict[str, Option], set[str]]:
+    """One pass down the attributes. Raises `_Clash` if a pin does not fit."""
     tags: set[str] = set()
     choices: dict[str, Option] = {}
 
@@ -387,6 +378,8 @@ def sample_recipe(
             wanted = force[attribute]
             by_id = {option.id: option for option in options}
             if wanted not in by_id:
+                # Not a clash: no draw will ever conjure a value that is not in
+                # the rules, so retrying would only delay the same answer.
                 raise RuleError(
                     f"{attribute}: no option {wanted!r}; have "
                     f"{', '.join(sorted(by_id))}"
@@ -394,7 +387,7 @@ def sample_recipe(
             pinned = by_id[wanted]
             if not pinned.allowed(tags):
                 blocking = sorted((pinned.requires - tags) | (pinned.excludes & tags))
-                raise RuleError(
+                raise _Clash(
                     f"{attribute}={wanted!r} is not compatible with the recipe so "
                     f"far ({', '.join(sorted(tags)) or 'no tags'}); tags at fault: "
                     f"{', '.join(blocking)}"
@@ -402,7 +395,7 @@ def sample_recipe(
             chosen = pinned
         else:
             if not candidates:
-                raise RuleError(
+                raise _Clash(
                     f"{attribute}: nothing satisfies the tags chosen so far "
                     f"({', '.join(sorted(tags)) or 'none'})"
                 )
@@ -410,7 +403,120 @@ def sample_recipe(
         choices[attribute] = chosen
         tags |= chosen.tags
 
-    return Recipe(seed=seed, choices=choices, tags=frozenset(tags))
+    return choices, tags
+
+
+def _reachable_tags(order: tuple[str, ...], rules: dict[str, list[Option]],
+                    force: dict[str, str], upto: int) -> set[frozenset[str]]:
+    """Every tag set the attributes before `upto` can possibly produce.
+
+    A breadth-first sweep over tag sets rather than over recipes: two different
+    draws that leave the same tags are the same thing to everything downstream,
+    so the state space stays small even though the recipe space does not.
+
+    Used only when a seed has failed every attempt, to answer the question that
+    decides which of two messages the caller gets: is this pin unreachable, or
+    was this seed merely unlucky? Answering it by "we gave up" would be a guess.
+    """
+    states: set[frozenset[str]] = {frozenset()}
+    for attribute in order[:upto]:
+        options = rules[attribute]
+        if attribute in force:
+            options = [option for option in options if option.id == force[attribute]]
+        following: set[frozenset[str]] = set()
+        for tags in states:
+            for option in options:
+                # weight 0 means never drawn, so it cannot supply a tag either.
+                if option.weight > 0 and option.allowed(tags):
+                    following.add(frozenset(tags | option.tags))
+        states = following
+        if not states:
+            break
+    return states
+
+
+def sample_recipe(
+    seed: int | None = None,
+    rules: dict[str, list[Option]] | None = None,
+    force: dict[str, str] | None = None,
+    attempts: int = DRAW_ATTEMPTS,
+) -> Recipe:
+    """Draw one value per attribute, honouring weights and constraints.
+
+    `force` pins an attribute to a named value -- how the dataset driver gets
+    an even spread over layouts instead of the weighted mix that a single
+    random image should have. A pinned value still has to satisfy its own
+    `requires`/`excludes`, otherwise the recipe it produced would be one the
+    rules say cannot exist.
+
+    **A pin that clashes re-draws; it does not move to another seed.** Until
+    W1b, `make()` handled a clash by trying `seed + 1`, `seed + 2` and so on
+    until one fitted. That kept the function deterministic and quietly made it
+    many-to-one: every seed in the gap before a fitting one returned that same
+    recipe, so 2000 consecutive seeds pinned to `market_vat` produced 217
+    distinct recipes and a run of 36 seeds could collapse onto a single page.
+    A dataset built that way reports twenty images and holds ten.
+
+    Re-drawing from the same `random.Random(seed)` fixes it without touching the
+    contract everything else depends on: `recipe.seed` is still the seed that
+    was asked for, and it still reproduces the page. The alternatives were
+    worse -- a separate `effective_seed` leaves two kinds of seed for every
+    reader to keep straight, and pre-computing which seeds fit puts knowledge of
+    the rules into the scheduling layer.
+
+    Without `force` nothing can clash, the loop returns on its first pass, and
+    the draw is bit-for-bit what it was before.
+    """
+    rules = rules or load_rules()
+    force = force or {}
+    # The order comes from the rules mapping, not from the manifest on disk:
+    # a caller that built `rules` by hand decides its own order, and reading
+    # the shipped manifest here would ignore that.
+    order = tuple(rules)
+    unknown = set(force) - set(order)
+    if unknown:
+        raise RuleError(f"cannot force unknown attributes {sorted(unknown)}")
+    if attempts < 1:
+        raise RuleError(f"attempts must be at least 1, got {attempts}")
+
+    if seed is None:
+        seed = random.randrange(2**31)
+    rng = random.Random(seed)
+
+    clash: _Clash | None = None
+    for _ in range(attempts):
+        try:
+            choices, tags = _draw_once(order, rules, force, rng)
+        except _Clash as unlucky:
+            if not force:
+                raise            # nothing to re-draw around; this is the answer
+            clash = unlucky
+            continue
+        return Recipe(seed=seed, choices=choices, tags=frozenset(tags))
+
+    # Out of attempts. Which of the two failures this is has to be decided, not
+    # assumed: "impossible" and "unlucky" want different actions from a caller.
+    impossible = [
+        f"{attribute}={force[attribute]!r}"
+        for index, attribute in enumerate(order)
+        if attribute in force
+        and not any(
+            option.allowed(tags)
+            for option in rules[attribute] if option.id == force[attribute]
+            for tags in _reachable_tags(order, rules, force, index)
+        )
+    ]
+    if impossible:
+        raise RuleError(
+            f"{', '.join(impossible)} cannot be drawn at all: no legal choice of the "
+            f"attributes before it produces the tags it needs. The rules forbid this "
+            f"combination, so no seed will satisfy it.\n  last clash: {clash}"
+        )
+    raise RuleError(
+        f"seed {seed} failed {attempts} draws with {force}; the combination is "
+        f"legal, so this seed is unlucky rather than impossible -- raise `attempts` "
+        f"or use another seed.\n  last clash: {clash}"
+    )
 
 
 def parse_force(items: Iterable[str] | None, layout: str | None = None) -> dict[str, str] | None:
