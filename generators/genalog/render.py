@@ -76,6 +76,32 @@ def cells_for_template(grid, recipe, line_px: float, pad_ch: float) -> list[dict
     return cells
 
 
+def marks_for(grid, recipe, line_px: float, pad_ch: float) -> list[dict]:
+    """`Grid.marks` in the units this template writes.
+
+    The third renderer of the same primitive. A rule is degenerate on one axis,
+    so it is given the pen's thickness there rather than a zero that WeasyPrint
+    would draw as nothing.
+    """
+    ink = rulebase.inks(recipe)["ink"]
+    hairline = max(1.0, line_px * 0.055)
+    out = []
+    for mark in getattr(grid, "marks", ()):
+        span = max(mark.col1 - mark.col0, 0.0)
+        height = max((mark.row1 - mark.row0) * line_px, 0.0)
+        thick = hairline * mark.weight
+        shade = _hex(tuple(int(round(255 - (255 - channel) * mark.tone))
+                           for channel in ink))
+        out.append({
+            "left": f"{mark.col0 + pad_ch:.3f}",
+            "top": f"{mark.row0 * line_px:.2f}px",
+            "width": f"{span:.3f}ch" if span > 0 else f"{thick:.2f}px",
+            "height": f"{max(height, thick):.2f}px",
+            "shade": shade,
+        })
+    return out
+
+
 def styles_for(recipe, grid, line_px: float, pad_ch: float) -> dict:
     visual = recipe.visual.params
     # Shared palette, so `visual.ink_gray` fades this backend's text the same
@@ -198,13 +224,15 @@ class GenalogReceiptRenderer:
         pad_ch = rulebase.padding(recipe, grid)["columns"]
 
         cells = cells_for_template(grid, recipe, line_px, pad_ch)
+        marks = marks_for(grid, recipe, line_px, pad_ch)
         # Build the Document straight from genalog's template environment
         # rather than via create_generator(): that yields a Document already
         # compiled against genalog's *default* prose styles, and this template
         # has no meaning for them -- it fails on the first render, before
         # update_style() gets a chance to supply the real ones.
         template = self.generator.template_env.get_template(TEMPLATE)
-        document = Document(cells, template, **styles_for(recipe, grid, line_px, pad_ch))
+        document = Document(cells, template, marks=marks,
+                            **styles_for(recipe, grid, line_px, pad_ch))
 
         # render_png() is gone from modern WeasyPrint; go through PDF.
         pdf = document.render_pdf()

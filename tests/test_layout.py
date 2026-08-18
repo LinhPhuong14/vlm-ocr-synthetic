@@ -104,3 +104,84 @@ def test_scale_and_alignment_stay_in_range():
             assert 0.5 <= cell.scale <= 3.0, (
                 f"{layout} seed={seed}: {cell.text!r} scale={cell.scale}"
             )
+
+
+# ------------------------------------------------- marks: the non-text layer
+
+
+def _ruled(layout_id: str, seed: int = 2026):
+    """The same layout built both ways, so the difference is only the flag."""
+    import random
+
+    import rulebase.layout as L
+
+    receipt = rulebase.make(seed=seed, force={"layout": layout_id})[1]
+    original = L.load_layout
+
+    def built(mode):
+        spec = dict(original(layout_id))
+        spec["rules"] = mode
+        L.load_layout = lambda lid, root=L.LAYOUTS_ROOT: (
+            spec if lid == layout_id else original(lid, root))
+        try:
+            return L.build_grid(receipt, layout_id, random.Random(seed))
+        finally:
+            L.load_layout = original
+
+    # Both modes stated, neither inherited: the layout on disk may already ask
+    # for one of them, and a test that read the default would silently compare
+    # a thing with itself.
+    return built("ascii"), built("marks")
+
+
+def test_a_layout_that_does_not_ask_gets_no_marks():
+    """The whole reason `rules:` is opt-in.
+
+    Five thermal layouts draw their separators with characters because a till
+    really does print them that way, and every committed image depends on it.
+    """
+    for layout_id in ("eatery_ascii", "eatery_indexed", "market_barcode",
+                      "market_compact", "market_vat"):
+        grid = rulebase.make(seed=7, force={"layout": layout_id})[2]
+        assert grid.marks == [], layout_id
+        assert "marks" not in grid.to_dict()
+
+
+def test_asking_for_marks_replaces_the_ascii_rules_with_drawn_ones():
+    plain, ruled = _ruled("invoice_vat_form")
+    assert not plain.marks and ruled.marks
+
+    # Every `+---+` and `|` cell is gone, and the same lines are marks instead.
+    assert sum(1 for c in plain.cells if c.role == "sep") > 100
+    assert sum(1 for c in ruled.cells if c.role == "sep") == 0
+
+    # A drawn rule sits between two rows and costs no row, so the page is
+    # shorter -- which is why a real printed form fits more on a page than its
+    # ASCII rendering of the same fields does.
+    assert ruled.nrows < plain.nrows
+
+
+def test_the_text_of_a_page_is_the_same_either_way():
+    """Marks change how the page is ruled, never what it says."""
+    plain, ruled = _ruled("invoice_vat_form")
+    said = lambda grid: [(c.role, c.text) for c in grid.cells if c.role != "sep"]  # noqa: E731
+    assert said(plain) == said(ruled)
+
+
+def test_a_mark_stays_on_the_grid_it_is_measured_in():
+    _plain, ruled = _ruled("invoice_vat_form")
+    for mark in ruled.marks:
+        assert mark.kind in ("rule", "fill", "frame")
+        assert 0 <= mark.col0 <= mark.col1 <= ruled.ncols, mark
+        assert 0 <= mark.row0 <= mark.row1 <= ruled.nrows, mark
+        # A rule is degenerate on exactly one axis; a mark that is degenerate on
+        # both is a point and draws nothing.
+        assert (mark.col1 > mark.col0) or (mark.row1 > mark.row0), mark
+
+
+def test_marks_reach_the_serialised_grid():
+    _plain, ruled = _ruled("invoice_vat_form")
+    data = ruled.to_dict()
+    assert len(data["marks"]) == len(ruled.marks)
+    assert set(data["marks"][0]) == {"kind", "row0", "col0", "row1", "col1",
+                                     "weight", "tone"}

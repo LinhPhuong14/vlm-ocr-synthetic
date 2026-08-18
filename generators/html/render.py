@@ -136,6 +136,35 @@ def build_html(grid, recipe, receipt) -> str:
             f'<i style="{inner}">{html.escape(cell.text)}</i></span>'
         )
 
+    # Non-text primitives on the same character grid the spans use. A `Mark` is
+    # a rectangle in (row, column) units, so it needs the two numbers already in
+    # hand and nothing else -- which is the point of putting it on that grid
+    # rather than inventing a second coordinate system for decoration.
+    hairline = max(1.0, line_px * 0.055)
+    marks = []
+    for mark in getattr(grid, "marks", ()):
+        x0 = (mark.col0 + pad_ch)
+        span_ch = max(mark.col1 - mark.col0, 0.0)
+        top = pad_top + mark.row0 * line_px
+        height = max((mark.row1 - mark.row0) * line_px, 0.0)
+        thick = hairline * mark.weight
+        shade = "#%02x%02x%02x" % tuple(
+            int(round(255 - (255 - channel) * mark.tone)) for channel in ink)
+        if mark.kind == "rule":
+            # Degenerate on one axis: give it the pen's thickness there.
+            style = (f"left:{x0:.3f}ch;top:{top:.2f}px;"
+                     f"width:{span_ch:.3f}ch;height:{max(height, thick):.2f}px;"
+                     if span_ch > 0 else
+                     f"left:{x0:.3f}ch;top:{top:.2f}px;"
+                     f"width:{thick:.2f}px;height:{max(height, thick):.2f}px;")
+            if span_ch > 0 and height <= 0:
+                style = (f"left:{x0:.3f}ch;top:{top:.2f}px;"
+                         f"width:{span_ch:.3f}ch;height:{thick:.2f}px;")
+        else:
+            style = (f"left:{x0:.3f}ch;top:{top:.2f}px;"
+                     f"width:{span_ch:.3f}ch;height:{max(height, thick):.2f}px;")
+        marks.append(f'<div class="mark" style="{style}background:{shade};"></div>')
+
     tint_layer = (
         f'<div id="tint" style="background:rgb({tint[0]},{tint[1]},{tint[2]});'
         f'opacity:{tint_alpha:.3f}"></div>'
@@ -170,9 +199,12 @@ html,body{{margin:0;padding:0;background:#fff;}}
   line-height:{line_px:.2f}px;
 }}
 #sheet i{{font-style:normal;}}
+/* Behind the text: a printed rule is drawn by the press and the words sit in
+   the cell it makes, so a line across a word would be wrong. */
+#sheet .mark{{position:absolute;pointer-events:none;}}
 #tint{{position:absolute;inset:0;pointer-events:none;}}
 </style></head>
-<body><div id="sheet">{"".join(spans)}{tint_layer}</div></body></html>"""
+<body><div id="sheet">{"".join(marks)}{"".join(spans)}{tint_layer}</div></body></html>"""
 
 
 # Ask the browser where every cell's *text* ended up, in CSS pixels relative to

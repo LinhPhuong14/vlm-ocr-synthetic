@@ -45,6 +45,44 @@ SEPARATORS = ["-", "=", "*", ".", "~", "_"]
 
 
 @dataclass
+class Mark:
+    """A line, a shaded box or a frame -- everything on a page that is not text.
+
+    On the **same coordinate system as `Cell`**: rows measured in text lines,
+    columns in character widths, fractions allowed so a rule can sit between two
+    rows rather than on one. That is what makes it general. Every renderer
+    already converts (row, column) to pixels in order to place text; a mark
+    needs no new machinery in any of them, only the multiplication they are
+    already doing.
+
+    This is the seam that lets a printed form stop being drawn out of `+---+`.
+    ASCII rules are honest on a thermal till roll, which really does draw them
+    with characters, and wrong on an A4 invoice, which is ruled by the printer.
+    A layout says which it wants; nothing here decides for it.
+
+    `tone` is a fraction of the page's ink: 1.0 is a full-strength rule, 0.08 a
+    shaded table header. `weight` is the line thickness in hairlines, so a
+    renderer scales it with its own resolution rather than being handed pixels.
+    """
+
+    kind: str                 # 'rule' | 'fill' | 'frame'
+    row0: float
+    col0: float
+    row1: float
+    col1: float
+    weight: float = 1.0
+    tone: float = 1.0
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "kind": self.kind,
+            "row0": round(self.row0, 3), "col0": round(self.col0, 3),
+            "row1": round(self.row1, 3), "col1": round(self.col1, 3),
+            "weight": round(self.weight, 3), "tone": round(self.tone, 3),
+        }
+
+
+@dataclass
 class Cell:
     text: str
     role: str                 # where it belongs in the label: 'menu.nm', 'total.grand', ...
@@ -70,14 +108,20 @@ class Grid:
     nrows: int
     layout_id: str
     columns: list[dict[str, Any]] = field(default_factory=list)
+    # Non-text primitives, empty for every layout that does not ask for them --
+    # which is every thermal receipt, so their pixels are unchanged.
+    marks: list[Mark] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        out = {
             "layout": self.layout_id,
             "ncols": self.ncols,
             "nrows": self.nrows,
             "cells": [cell.to_dict() for cell in self.cells],
         }
+        if self.marks:
+            out["marks"] = [mark.to_dict() for mark in self.marks]
+        return out
 
 
 def load_layout(layout_id: str, root: Path | str = LAYOUTS_ROOT) -> dict[str, Any]:
@@ -95,10 +139,22 @@ def available(root: Path | str = LAYOUTS_ROOT) -> list[str]:
 class _Builder:
     """Accumulates cells row by row. Every emitter below goes through this."""
 
-    def __init__(self, ncols: int):
+    def __init__(self, ncols: int, ruled: bool = False):
         self.ncols = ncols
         self.row = 0
         self.cells: list[Cell] = []
+        self.marks: list[Mark] = []
+        # `rules: marks` in the layout. Off by default, so every layout that
+        # does not ask draws exactly the characters it drew before.
+        self.ruled = ruled
+
+    def mark(self, kind, row0, col0, row1, col1, weight=1.0, tone=1.0) -> None:
+        # Degenerate on *both* axes is a point: it draws nothing, and a table
+        # with no body rows produces one per column boundary. Dropped rather
+        # than emitted, so the label never carries a primitive with no extent.
+        if row0 == row1 and col0 == col1:
+            return
+        self.marks.append(Mark(kind, row0, col0, row1, col1, weight, tone))
 
     def put(self, text, role, col0=0, col1=None, align="left", scale=1.0, bold=False):
         text = "" if text is None else str(text)
@@ -742,6 +798,12 @@ def _rule_row(builder, positions, char: str = "-", junction: str = "+",
     buyer's empty signature space as well.
     """
     col1 = builder.ncols if col1 is None else col1
+    if builder.ruled:
+        # A ruled form draws the line *between* two rows and spends no line on
+        # it, which is why a real form fits more on a page than its ASCII
+        # rendering does. `_paint_bars` puts the verticals in.
+        builder.mark("rule", builder.row, col0, builder.row, col1)
+        return
     line = [char] * (col1 - col0)
     for position in positions:
         if col0 <= position < col1:
@@ -759,6 +821,14 @@ def _paint_bars(builder, positions, first: int, last: int) -> None:
     cells on the same characters print on top of each other in all three
     renderers at once.
     """
+    if builder.ruled:
+        # One mark per boundary for the whole height, instead of one `|` cell
+        # per row per boundary. It also removes the reason `_paint_bars` had to
+        # dodge cells that span their columns: a drawn line passes behind text
+        # instead of overwriting it.
+        for position in positions:
+            builder.mark("rule", first, position, last, position)
+        return
     occupied: dict[int, list[tuple[int, int]]] = {}
     for cell in builder.cells:
         occupied.setdefault(cell.row, []).append((cell.col0, cell.col1))
@@ -1078,7 +1148,10 @@ def build_grid(receipt: Receipt, layout_id: str, rng: random.Random | None = Non
     ncols = rng.randint(int(width_range[0]), int(width_range[1]))
     columns = _resolve_columns(spec, ncols)
 
-    builder = _Builder(ncols)
+    # `rules: marks` asks for drawn lines instead of rows of `+---+`. Absent --
+    # which is every layout that existed before this -- keeps the characters,
+    # so no committed image moves.
+    builder = _Builder(ncols, ruled=str(spec.get("rules", "ascii")) == "marks")
     sections = spec.get("sections") or DEFAULT_SECTIONS
     unknown = [name for name in sections if name not in SECTIONS]
     if unknown:
@@ -1094,6 +1167,7 @@ def build_grid(receipt: Receipt, layout_id: str, rng: random.Random | None = Non
         nrows=builder.row + 1,
         layout_id=layout_id,
         columns=columns,
+        marks=builder.marks,
     )
 
 

@@ -40,6 +40,10 @@
       line-height: {{ line_height }};
     }
     #sheet i { font-style: normal; }
+    /* Non-text primitives, behind the words: a printed rule is drawn by the
+       press and the text sits in the cell it makes. Same (row, column) grid
+       the spans use, so nothing here needs a second coordinate system. */
+    #sheet .mark { position: absolute; }
     .accent { color: {{ accent }}; }
     #tint {
       position: absolute;
@@ -51,6 +55,9 @@
 </head>
 <body>
   <div id="sheet">
+    {%- for mark in marks %}
+    <div class="mark" style="left:{{ mark.left }}ch;top:{{ mark.top }};width:{{ mark.width }};height:{{ mark.height }};background:{{ mark.shade }}"></div>
+    {%- endfor %}
     {%- for cell in content %}
     <span style="left:{{ cell.left }}ch;top:{{ cell.top }};width:{{ cell.width }}ch;text-align:{{ cell.align }}"{% if cell.accent %} class="accent"{% endif %}><i style="font-size:{{ cell.scale }}em{% if cell.bold %};font-weight:700{% endif %}">{{ cell.text }}</i></span>
     {%- endfor %}

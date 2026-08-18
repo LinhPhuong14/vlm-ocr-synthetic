@@ -99,6 +99,37 @@ class Receipt:
         # Dòng tên cửa hàng và dòng tiêu đề được in bằng màu nhấn nếu có.
         accent_roles = {"store.name", "title"}
 
+        # --- non-text primitives, drawn behind the text
+        #
+        # synthtiger was never the reason this renderer looked like a terminal:
+        # `RectLayer` takes any size and colour and sits anywhere, exactly like
+        # `TextLayer`. The character grid was the reason. A `Mark` is on that
+        # same grid, so a rule is one multiplication away from the numbers this
+        # function already computed.
+        hairline = max(1, int(round(line_h * 0.055)))
+        mark_layers = []
+        for mark in getattr(grid, "marks", ()):
+            x0 = pad_x + mark.col0 * char_w
+            x1 = pad_x + mark.col1 * char_w
+            y0 = pad_y + mark.row0 * line_h
+            y1 = pad_y + mark.row1 * line_h
+            if mark.kind == "rule":
+                thick = max(1, int(round(hairline * mark.weight)))
+                # A rule is a degenerate rectangle: zero extent on one axis, so
+                # it is given the pen's own thickness there.
+                w = max(int(round(x1 - x0)), thick)
+                h = max(int(round(y1 - y0)), thick)
+            else:
+                w = max(int(round(x1 - x0)), 1)
+                h = max(int(round(y1 - y0)), 1)
+            # `tone` fades the ink towards the paper: 1.0 is a full rule, 0.08
+            # the shading behind a column header.
+            shade = tuple(int(round(255 - (255 - channel) * mark.tone))
+                          for channel in ink[:3])
+            layer = layers.RectLayer((w, h), (*shade, 255))
+            layer.left, layer.top = x0, y0
+            mark_layers.append(layer)
+
         text_layers, fields = [], []
         for cell in grid.cells:
             bold = cell.bold or rng.random() < bold_prob
@@ -128,6 +159,7 @@ class Receipt:
         return {
             "size": (width, height),
             "text_layers": text_layers,
+            "mark_layers": mark_layers,
             "fields": fields,
             "recipe": recipe,
             "receipt": receipt,
