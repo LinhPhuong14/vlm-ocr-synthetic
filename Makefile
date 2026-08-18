@@ -17,7 +17,8 @@ LAYOUT  ?=
 .DEFAULT_GOAL := help
 .PHONY: help setup setup-synthdog setup-html setup-genalog textures \
         receipts preview preview-grid dataset dataset-clean proof showcase \
-        preflight check-rules check-corpus check-boxes distribution list-degradations \
+        preflight check-rules check-corpus check-boxes distribution monitor \
+        list-degradations \
         lint format check clean
 
 help:  ## Show this help
@@ -75,6 +76,8 @@ check-corpus:    ## Validate corpus/: missing files, wrong column counts
 	@$(TASKS) check-corpus
 distribution:    ## Show what 2000 draws from the rules actually look like
 	@$(TASKS) distribution
+monitor:         ## Rule space; add RUN=data/run01 to watch a run instead
+	@$(TASKS) monitor $(if $(RUN),--run $(RUN),)
 list-degradations:  ## Names usable in an augmentation chain
 	@$(TASKS) list-degradations
 
