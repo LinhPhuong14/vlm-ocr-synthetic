@@ -201,6 +201,15 @@ def shard_runs(runs: list[Run], backend: str, size: int,
     return shards
 
 
+def pinned_layout(force) -> str | None:
+    """The layout `--force` pins, if it pins one."""
+    for item in force or ():
+        name, _, value = str(item).partition("=")
+        if name.strip() == "layout" and value.strip():
+            return value.strip()
+    return None
+
+
 def build_plan(config, layouts: list[str]) -> dict[str, Any]:
     """The full plan: shards, seeds, names. No absolute paths anywhere.
 
@@ -209,6 +218,23 @@ def build_plan(config, layouts: list[str]) -> dict[str, Any]:
     is supplied at run time.
     """
     pairing = getattr(config, "pairing", "paired")
+
+    # `--force layout=X` narrows the plan, it does not ride along beside it.
+    #
+    # Without this the plan still spreads the run across all fourteen layouts
+    # and hands each renderer `--layout Y --force layout=X`. The renderer draws
+    # X, because `--force` wins; the worker then stamps `item["layout"] = Y`
+    # from the plan. The image is X and the label says Y -- and the invariants,
+    # which read the layout to know what that layout is allowed to suppress,
+    # then judge X's page against Y's rules and fail on a correct run.
+    pinned = pinned_layout(getattr(config, "force", ()))
+    if pinned is not None:
+        if pinned not in layouts:
+            raise ValueError(
+                f"--force layout={pinned!r}: no such layout; "
+                f"have {', '.join(sorted(layouts))}"
+            )
+        layouts = [pinned]
     runs_by_backend: dict[str, list[Run]] = {}
     for backend_index, backend in enumerate(config.backends):
         runs_by_backend[backend] = backend_runs(

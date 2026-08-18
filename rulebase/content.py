@@ -1055,6 +1055,19 @@ def build(recipe, rng: random.Random | None = None) -> Receipt:
             # since an empty shortlist is a typo, not a receipt with no total.
             choices = [entry for entry in choices if entry[1] in wanted] or choices
         label, group = rng.choice(choices)
+        # A payment row labelled the same as a row already above it does not
+        # survive `ground_truth`, whose `total` is a dict keyed by the drawn
+        # label: the page prints both rows and the label carries one. 1.3% of
+        # receipts drew such a pair -- "TIỀN KHÁCH TRẢ" over a grand total the
+        # document also calls "TIỀN KHÁCH TRẢ".
+        #
+        # Re-drawn from what is left rather than filtering before the choice,
+        # so the 98.7% that never collided keep the exact draw they had.
+        used = {existing for existing, _ in totals}
+        if case(label) in used:
+            free = [entry for entry in choices if case(entry[0]) not in used]
+            if free:
+                label, group = free[rng.randrange(len(free))]
         paid = grand if group != "tienmat" else _round_to(grand + rng.uniform(0, 60000), 10000)
         paid = max(paid, grand)
         totals.append((case(label), cash(paid)))

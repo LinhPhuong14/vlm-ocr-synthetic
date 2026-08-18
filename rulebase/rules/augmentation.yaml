@@ -6,8 +6,10 @@
 #   phantom_character  dán mảng mực thừa vào rìa chữ
 #
 # `paper_overlay` khác `paper_texture` ở CHỖ ĐỨNG trong chuỗi, không ở ảnh dùng:
-# `paper_texture` chạy TRƯỚC, chỉ làm tối, nên tờ giấy hiện dưới chữ mà không
-# chạm vào nét mực; `paper_overlay` chạy CUỐI, phủ ảnh chụp giấy thật của
+# `paper_texture` chạy ĐẦU chuỗi và NHÂN chứ không hoà, nên tờ giấy hiện dưới
+# chữ mà không làm bệt nét mực (`alpha` chỉ làm tối; `grain` và `creases` thì
+# hai chiều — nếp gấp bắt sáng thì sáng hơn mặt giấy quanh nó);
+# `paper_overlay` chạy CUỐI, phủ ảnh chụp giấy thật của
 # SynthDoG (`augmentations/data/image/`) lên trên tất cả — cả mực. Qua cả hai
 # thì trang giấy trông như được IN LÊN giấy, chứ không phải dán lên ảnh giấy.
 #
