@@ -50,7 +50,7 @@ for extra in (REPO_ROOT, REPO_ROOT / "tools"):
     if str(extra) not in sys.path:
         sys.path.insert(0, str(extra))
 
-from pipeline import preflight, record  # noqa: E402
+from pipeline import invariants, preflight, record  # noqa: E402
 from pipeline.config import Config, apply_overrides, materialise_rules  # noqa: E402
 from pipeline.plan import build_plan, write_plan  # noqa: E402
 from pipeline.worker import (  # noqa: E402
@@ -206,6 +206,18 @@ def execute(config: Config, *, workers: int | None = None,
 
     # 3. Plan.
     plan = build_plan(config, layouts)
+
+    # Before a single page is drawn: under `paired` the backends must actually
+    # be drawing the same receipts. Cheap, and the alternative is finding out
+    # from a proof report months later that three renderers were compared on
+    # three different corpora -- which is what happened before W1b.
+    mismatched = invariants.paired_content(plan)
+    if mismatched:
+        print(f"PAIRING: {len(mismatched)} vấn đề — không chạy\n")
+        for problem in mismatched:
+            print(f"  - {problem}")
+        return 1
+
     plan_path = write_plan(plan, out / "plan.json")
     plan_sha = hashlib.sha256(plan_path.read_bytes()).hexdigest()
 
@@ -240,6 +252,10 @@ def execute(config: Config, *, workers: int | None = None,
     manifest = {
         "plan_sha256": plan_sha,
         "seed": plan["seed"],
+        # Which mode produced this dataset. Not decoration: every
+        # side-by-side number computed from it is only interpretable
+        # once you know whether the backends drew the same receipts.
+        "pairing": plan.get("pairing", "paired"),
         "per_backend": plan["per_backend"],
         "backends": plan["backends"],
         "layouts": plan["layouts"],
