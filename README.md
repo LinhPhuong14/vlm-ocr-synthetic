@@ -212,7 +212,7 @@ separates them is **where in the pipeline they enter**, not what they show:
 
 | directory | when it is used | what it does |
 | --- | --- | --- |
-| `textures/paper/` | before anything is drawn | the sheet the text is printed on. `paper_texture` is multiplicative, so it darkens and never lightens — ink stays ink. Named by `visual.paper`. |
+| `textures/paper/` | head of the ageing chain | the sheet the text is printed on. `paper_texture` turns it into a field the finished render is *multiplied* by rather than cross-faded with, so ink stays ink. `alpha` only darkens; `grain` and `creases` go both ways, since a fold catching the light is brighter than the sheet around it. Named by `visual.paper`. |
 | `augmentations/data/image/` | last step of the chain | a photograph of a real sheet laid over the finished page, ink included. This is what gives fibre, fold shadow and the off-white cast. Used by `paper_overlay`. |
 | `textures/background/` | after ageing, glyph renderer only | the scene the sheet is photographed on. Only synthdog composites onto one; the other two produce a sheet with no surroundings. |
 

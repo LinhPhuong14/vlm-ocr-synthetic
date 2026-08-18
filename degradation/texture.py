@@ -171,12 +171,17 @@ def paper_texture(
 ) -> np.ndarray:
     """Composite the page onto a sheet of paper.
 
-    Multiplicative, not a cross-fade: paper darkens what is printed on it and
-    never lightens it, so ink stays ink. A cross-fade at alpha 0.4 would wash
-    40% of the paper's brightness over every black glyph and grey out the text.
+    Multiplicative, not a cross-fade: the sheet becomes a field the finished
+    render is multiplied by, so ink stays ink. A cross-fade at alpha 0.4 would
+    wash 40% of the paper's brightness over every black glyph and grey the text
+    out. It runs early in the chain -- before the wear, not before the text,
+    which is already drawn by the time any degradation sees the image.
 
-    `alpha` is how much of the paper's own shading comes through, `grain` the
-    strength of the fibre on top of it, `creases` how many folds to add.
+    `alpha` is how much of the paper's own shading comes through and only ever
+    darkens (`1 - alpha*(1 - sheet)` is at most 1). `grain` and `creases`
+    multiply that field by `1 ± something` and so go both ways, up to the 1.25
+    clip below: a fibre or a fold catching the light is brighter than the sheet
+    around it, and a paper model that could only darken would have neither.
     """
     rng = rng or random.Random(0)
     out, was_gray = _as_bgr(image)
@@ -210,8 +215,8 @@ def paper_overlay(
 ) -> np.ndarray:
     """Lay a photograph of paper OVER a finished render.
 
-    `paper_texture` runs before the ink and only ever darkens, so the sheet
-    shows through the page but never touches a glyph. This runs at the end and
+    `paper_texture` runs at the head of the chain and multiplies, so the sheet
+    shows through the page without flattening a glyph. This runs at the end and
     is the other half of the effect: the fibre, the fold shadows and the
     off-white cast of a real sheet sitting on top of everything, ink included.
     A page that has been through both reads as *printed on* paper rather than

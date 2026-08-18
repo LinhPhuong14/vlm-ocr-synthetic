@@ -369,3 +369,42 @@ def test_the_paired_invariant_catches_a_sampler_that_moved_the_seed(monkeypatch)
     plan = build_plan(make_config(per_backend=10, size=10), LAYOUTS)
     problems = paired_content(plan)
     assert problems and "the sampler returned" in problems[0], problems
+
+
+# ------------------------------------------------------- a pinned layout
+
+
+def test_forcing_a_layout_narrows_the_plan_instead_of_riding_beside_it():
+    """`--force layout=X` decides which layouts the plan renders.
+
+    Left alone, the plan still spread the run across every layout and handed
+    each renderer `--layout Y --force layout=X`. The renderer drew X -- force
+    wins -- and the worker then stamped the plan's Y onto the item. The image
+    was one layout and the label said another, which the invariants met as a
+    failure on a correct run, because they read the layout to know what that
+    layout is allowed to leave unprinted.
+    """
+    plan = build_plan(make_config(per_backend=6, force=["layout=market_vat"]), LAYOUTS)
+    assert plan["layouts"] == ["market_vat"]
+    drawn = {run["layout"] for shard in plan["shards"] for run in shard["runs"]}
+    assert drawn == {"market_vat"}
+    assert sum(run["count"] for shard in plan["shards"] for run in shard["runs"]) == 18
+
+
+def test_forcing_something_other_than_a_layout_leaves_the_plan_alone():
+    plan = build_plan(make_config(force=["augmentation=pristine"]), LAYOUTS)
+    assert plan["layouts"] == LAYOUTS
+
+
+def test_forcing_a_layout_nobody_ships_is_refused_before_anything_is_drawn():
+    with pytest.raises(ValueError, match="no such layout"):
+        build_plan(make_config(force=["layout=not_a_layout"]), LAYOUTS)
+
+
+def test_a_pinned_plan_still_gives_every_backend_the_same_receipts():
+    """The point of `paired`, and the pin must not quietly break it."""
+    from pipeline.invariants import paired_content
+
+    plan = build_plan(make_config(per_backend=4, size=4, force=["layout=eatery_ascii"]),
+                      LAYOUTS)
+    assert paired_content(plan) == []
