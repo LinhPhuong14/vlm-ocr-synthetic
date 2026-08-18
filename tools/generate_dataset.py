@@ -2,118 +2,37 @@
 
     python tools/generate_dataset.py -o data/dataset60 -n 20
 
-Each renderer needs its own interpreter -- synthtiger pins Pillow 9.5,
-WeasyPrint wants a modern one -- so this drives them as subprocesses through
-the venv each one owns, rather than importing all three into one process that
-cannot exist.
+A thin shell over `pipeline/run.py` since W1. The flags are unchanged and mean
+what they always meant, so `make dataset`, `make dataset-clean` and every
+committed invocation keep working; what changed underneath is that the work is
+now planned into shards, rendered by a pool of processes, and resumable.
 
-The `-n` images per renderer are spread evenly over the bố cục available, so a
-comparison between renderers is not confounded by one of them having drawn
-more supermarket receipts than another. Within a bố cục everything else is
-still sampled from the rules.
+The old loop is gone rather than kept beside the new one. Two drivers that are
+supposed to produce identical datasets is precisely the arrangement where one of
+them drifts and nobody notices for a month -- and the golden baseline in
+`tests/golden/baseline.json` exists to prove this shell still produces what that
+loop produced.
+
+For a long job, prefer `pipeline.yaml` and `make run`: it takes shard size,
+worker count and per-run rule overrides, none of which fit sensibly on a command
+line.
 """
 
 from __future__ import annotations
 
 import argparse
-import json
-import shutil
-import subprocess
 import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
-from paths import VENVS, venv_python  # noqa: E402
-
-from rulebase import available_layouts  # noqa: E402
 
 # The augmentation value whose chain is empty. Named here rather than inlined
 # so renaming it in rules/augmentation.yaml fails loudly instead of silently
 # producing an aged "clean" set.
 CLEAN_AUGMENTATION = "pristine"
 
-# name -> (interpreter, script, working directory). The interpreter path is
-# resolved rather than hardcoded: a virtualenv keeps it in `bin/` on POSIX and
-# `Scripts/` on Windows.
-BACKENDS = {
-    "synthdog": (
-        venv_python(VENVS["synthdog"]),
-        REPO_ROOT / "generators" / "synthdog" / "render.py",
-        REPO_ROOT / "generators" / "synthdog",
-    ),
-    "html": (
-        venv_python(VENVS["html"]),
-        REPO_ROOT / "generators" / "html" / "render.py",
-        REPO_ROOT,
-    ),
-    "genalog": (
-        venv_python(VENVS["genalog"]),
-        REPO_ROOT / "generators" / "genalog" / "render.py",
-        REPO_ROOT,
-    ),
-}
-
-
-def plan(count: int, layouts: list[str]) -> list[tuple[str, int]]:
-    """(layout, how many) so the count divides as evenly as the layouts allow."""
-    base, extra = divmod(count, len(layouts))
-    return [(layout, base + (1 if index < extra else 0))
-            for index, layout in enumerate(layouts)]
-
-
-def run_backend(name: str, out: Path, count: int, seed: int, layouts: list[str],
-                extra: list[str] | None = None) -> list[dict]:
-    interpreter, script, cwd = BACKENDS[name]
-    if not interpreter.exists():
-        raise SystemExit(
-            f"{name}: no interpreter at {interpreter}.\n"
-            f"Build it with `python tasks.py setup-{name}` (or `make setup-{name}`)."
-        )
-
-    out.mkdir(parents=True, exist_ok=True)
-    records: list[dict] = []
-    offset = 0
-    for layout, quota in plan(count, layouts):
-        if quota == 0:
-            continue
-        staging = out / f".{layout}"
-        if staging.exists():
-            shutil.rmtree(staging)
-        command = [
-            str(interpreter), str(script),
-            "-o", str(staging),
-            "-c", str(quota),
-            "--seed", str(seed + offset * 1000),
-            "--layout", layout,
-        ] + list(extra or [])
-        print(f"  [{name}/{layout}] {quota} ảnh")
-        result = subprocess.run(command, cwd=cwd, capture_output=True, text=True)
-        if result.returncode != 0:
-            tail = (result.stderr or result.stdout).strip().splitlines()[-12:]
-            raise SystemExit(f"{name}/{layout} failed:\n" + "\n".join(tail))
-
-        metadata = staging / "metadata.jsonl"
-        for line in metadata.read_text(encoding="utf-8").splitlines():
-            record = json.loads(line)
-            # Rename into a flat, collision-free namespace across layouts.
-            source = staging / record["file_name"]
-            target_name = f"{name}_{len(records):03d}.jpg"
-            shutil.move(str(source), str(out / target_name))
-            record["file_name"] = target_name
-            record["framework"] = name
-            record["layout"] = layout
-            records.append(record)
-        shutil.rmtree(staging)
-        offset += 1
-
-    with open(out / "metadata.jsonl", "w", encoding="utf-8") as fp:
-        for record in records:
-            json.dump(record, fp, ensure_ascii=False)
-            fp.write("\n")
-    return records
+BACKENDS = ("synthdog", "html", "genalog")
 
 
 def main() -> int:
@@ -134,50 +53,33 @@ def main() -> int:
         "--force", action="append", default=[], metavar="ATTR=ID",
         help="pin any attribute for the whole run, repeatable",
     )
+    parser.add_argument("--workers", type=int, default=1,
+                        help="processes to render with; 1 keeps the old behaviour")
     args = parser.parse_args()
 
-    # Absolute: the glyph backend is run from `generators/synthdog/`, because
-    # the paths in its config are relative to that directory, so a relative
-    # output path would land inside the generator instead of where it was asked
-    # for -- and silently, since it creates the directory it writes to.
-    args.out = args.out.resolve()
+    from pipeline.config import Config
+    from pipeline.run import execute
 
-    layouts = available_layouts()
-    args.out.mkdir(parents=True, exist_ok=True)
-
-    forced = list(args.force)
-    if args.clean and not any(f.startswith("augmentation=") for f in forced):
-        forced.append(f"augmentation={CLEAN_AUGMENTATION}")
-    summary = {
-        "per_framework": args.per_framework,
-        "layouts": layouts,
-        "clean": bool(args.clean),
-        "force": forced,
-        "frameworks": {},
-    }
-
-    for index, name in enumerate(args.frameworks):
-        print(f"[{name}]")
-        extra = [arg for value in forced for arg in ("--force", value)]
-        # Only the glyph backend has distortion of its own to switch off.
-        if args.clean and name == "synthdog":
-            extra.append("--clean")
-        records = run_backend(
-            name, args.out / name, args.per_framework, args.seed + index * 100000,
-            layouts, extra,
-        )
-        counts: dict[str, int] = {}
-        for record in records:
-            counts[record["layout"]] = counts.get(record["layout"], 0) + 1
-        summary["frameworks"][name] = {"images": len(records), "by_layout": counts}
-        print(f"  -> {len(records)} ảnh vào {args.out / name}\n")
-
-    (args.out / "dataset.json").write_text(
-        json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8"
-    )
-    total = sum(entry["images"] for entry in summary["frameworks"].values())
-    print(f"{total} ảnh -> {args.out}")
-    return 0
+    config = Config.from_dict({
+        "run": {
+            # Absolute: the glyph backend runs from `generators/synthdog/`
+            # because the paths in its config are relative to that directory, so
+            # a relative output path would land inside the generator instead --
+            # silently, since it creates the directory it writes to.
+            "out": str(args.out.resolve()),
+            "per_backend": args.per_framework,
+            "seed": args.seed,
+            "workers": args.workers,
+            "clean": bool(args.clean),
+            "force": list(args.force),
+        },
+        "backends": list(args.frameworks),
+        # One shard per backend. This is the small-job path -- `make dataset
+        # N=20` is twenty images -- and splitting further would only add process
+        # startup. `pipeline.yaml` is where a long job sets a real shard size.
+        "shard": {"size": max(args.per_framework, 1)},
+    })
+    return execute(config)
 
 
 if __name__ == "__main__":

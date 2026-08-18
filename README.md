@@ -326,6 +326,19 @@ make dataset-clean    # clean
 make proof DATASET=data/dataset60
 ```
 
+For a long job use `pipeline.yaml` and `make run`, which plans the work into
+shards, renders them across processes, and **resumes**: a shard is finished only
+when its `DONE` marker exists, and a shard without one is deleted and redone
+rather than appended to, because appending to a half-written `metadata.jsonl`
+duplicates records and a duplicate in a training set does not announce itself.
+`make baseline-verify` regenerates two fixed plans and compares every image hash
+against `tests/golden/baseline.json`, which is how the parallel path is held to
+producing exactly what the sequential one produced.
+
+Durations live in `timings.json`, never in `manifest.json` -- the manifest has
+to compare byte-for-byte between a 1-worker and an 8-worker run, and a duration
+never would.
+
 `make proof` reads a set back with Tesseract 5 (`vie`) and scores what came
 back against the labels. Scoring is order-free: Tesseract reads a two-column
 receipt in whatever order its layout analysis picks, so comparing its output to
