@@ -320,7 +320,7 @@ class HtmlReceiptRenderer:
 def structure_from_cells(cells: list[dict]) -> list[str]:
     """PPStructure tokens for the cells, in row order.
 
-    Same format the vendored `html-table` writes, so anything that reads that
+    Same format `tables.py` and PP-Structure write, so anything that reads those
     reads this. Built from the measured cells rather than from the template, so
     it describes the table the browser actually laid out.
     """

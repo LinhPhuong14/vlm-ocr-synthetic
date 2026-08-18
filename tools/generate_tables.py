@@ -4,7 +4,7 @@
 
 The generator itself is `generators/html/tables.py`, next to the receipt
 renderer, because it is the same renderer: Chromium, and boxes measured off the
-laid-out DOM. It used to be `generators/html-table/`, driven through Selenium,
+laid-out DOM. It used to be a vendored generator driven through Selenium,
 and this file was three workarounds for running that -- a `google-chrome` shim
 on PATH, a chromedriver whose major version matched the browser, and a corpus
 file to keep the cells out of Chinese. None of the three has anything to do
