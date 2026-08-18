@@ -17,6 +17,7 @@ redistributable and a clone with no fonts cannot render anything at all.
 | `sans/` | Liberation Sans, Arimo | OFL 1.1 / Apache 2.0 |
 | `sans/` | DejaVu Sans (Regular, Bold) | Bitstream Vera / Public domain additions |
 | `sans/` | Noto Sans | SIL Open Font License 1.1 |
+| `serif/` | Liberation Serif (Regular, Bold) | SIL Open Font License 1.1 |
 
 ## Vietnamese coverage is not optional
 
