@@ -17,6 +17,10 @@ width: [78, 90]
 gutter: 2
 rule_char: "="
 
+# Kẻ bằng NÉT chứ không bằng ký tự — xem `invoice_vat_form.yaml`. Máy in kẻ tờ
+# này, và một đường kẻ vẽ thật không tốn một dòng văn bản.
+rules: marks
+
 sections: [header, strip, parties, table, totals, signatures, footer]
 
 header:
