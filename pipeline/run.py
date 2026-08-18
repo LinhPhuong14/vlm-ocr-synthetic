@@ -42,6 +42,7 @@ import shutil
 import sys
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from dataclasses import replace
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -123,30 +124,17 @@ def assemble(out: Path, plan: dict, shards_root: Path) -> tuple[dict, list[str]]
     return frameworks, warnings
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__,
-                                     formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("-c", "--config", type=Path, default=REPO_ROOT / "pipeline.yaml")
-    parser.add_argument("--workers", type=int, help="override run.workers")
-    parser.add_argument("-o", "--out", type=Path, help="override run.out")
-    parser.add_argument("--no-preflight", action="store_true",
-                        help=argparse.SUPPRESS)  # for testing preflight itself
-    args = parser.parse_args()
+def execute(config: Config, *, workers: int | None = None,
+            skip_preflight: bool = False) -> int:
+    """Run one job. The entry point for both the CLI and `generate_dataset.py`.
 
-    config = Config.load(args.config)
-    if args.out:
-        config = Config.from_dict({
-            "run": {"out": str(args.out), "per_backend": config.per_backend,
-                    "seed": config.seed, "workers": args.workers or config.workers,
-                    "clean": config.clean, "force": list(config.force)},
-            "backends": list(config.backends),
-            "shard": {"size": config.shard_size},
-            "overrides": config.overrides, "quality": config.quality,
-        })
-    workers = args.workers or config.workers
+    Taking a `Config` rather than a path is what lets the compatibility shell
+    reuse this without writing a temporary YAML file and parsing it back.
+    """
+    workers = workers or config.workers
 
     # 1. Preflight. Everything, before anything.
-    if not args.no_preflight:
+    if not skip_preflight:
         problems = preflight.check()
         if problems:
             print(f"PREFLIGHT: {len(problems)} vấn đề — không chạy\n")
@@ -260,6 +248,22 @@ def main() -> int:
         # A shard that failed must never look like a smaller run that succeeded.
         return 1
     return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("-c", "--config", type=Path, default=REPO_ROOT / "pipeline.yaml")
+    parser.add_argument("--workers", type=int, help="override run.workers")
+    parser.add_argument("-o", "--out", type=Path, help="override run.out")
+    parser.add_argument("--no-preflight", action="store_true",
+                        help=argparse.SUPPRESS)  # for testing preflight itself
+    args = parser.parse_args()
+
+    config = Config.load(args.config)
+    if args.out:
+        config = replace(config, out=Path(args.out).expanduser().resolve())
+    return execute(config, workers=args.workers, skip_preflight=args.no_preflight)
 
 
 if __name__ == "__main__":
