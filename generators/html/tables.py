@@ -1,10 +1,10 @@
 """Table-structure pages, drawn by the browser this backend already launches.
 
-`generators/html-table/` was vendored for this job: a generator that builds a
-random table and labels it the way PubTabNet does -- the `<td>` token sequence,
-the row and column spans, a box per cell. The label format is the right one and
-is kept here byte for byte, so anything that reads PubTabNet or PP-Structure
-reads this.
+A generator used to be vendored for this job: it builds a random table and
+labels it the way PubTabNet does -- the `<td>` token sequence, the row and
+column spans, a box per cell. The label format is the right one and is kept
+here byte for byte, so anything that reads PubTabNet or PP-Structure reads
+this.
 
 The *renderer* was never a second method. It is Selenium driving Chrome, with
 boxes read from `element.location` and `element.size` -- the same engine and the

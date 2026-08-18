@@ -25,7 +25,6 @@ WINDOWS = os.name == "nt"
 # subdirectories are listed rather than the whole directory.
 # Mirrored by `extend-exclude` in pyproject.toml, which ruff reads directly.
 VENDORED = (
-    "generators/html-table/",
     "generators/genalog/genalog/",
     "generators/genalog/tests/",
     "generators/genalog/example/",

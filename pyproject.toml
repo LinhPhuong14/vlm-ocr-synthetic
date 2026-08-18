@@ -14,7 +14,6 @@ target-version = "py38"
 # Keep this list in step with VENDORED in tools/paths.py, which is what
 # `tasks.py check` uses.
 extend-exclude = [
-    "generators/html-table",
     "generators/genalog/genalog",
     "generators/genalog/tests",
     "generators/genalog/example",

@@ -120,7 +120,7 @@ CELL_RECTS_JS = """() => {
 # One box per table cell, with its position and span. A merged cell -- a totals
 # row spanning six columns, a stub running down four -- has a text box that says
 # nothing about the span, so the cell rect and the span are collected too. The
-# idea and the token format come from the vendored `generators/html-table`.
+# idea and the token format come from TIES_DataGeneration by way of PaddleOCR.
 CELL_REGIONS_JS = """() => {
   const sheet = document.querySelector('#sheet').getBoundingClientRect();
   return [...document.querySelectorAll('#sheet [data-cell]')].map(td => {
