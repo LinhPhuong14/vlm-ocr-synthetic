@@ -56,7 +56,7 @@
 <body>
   <div id="sheet">
     {%- for mark in marks %}
-    <div class="mark" style="left:{{ mark.left }}ch;top:{{ mark.top }};width:{{ mark.width }};height:{{ mark.height }};background:{{ mark.shade }}"></div>
+    <div class="mark" style="left:{{ mark.left }}ch;top:{{ mark.top }};width:{{ mark.width }};height:{{ mark.height }};{{ mark.paint }}"></div>
     {%- endfor %}
     {%- for cell in content %}
     <span style="left:{{ cell.left }}ch;top:{{ cell.top }};width:{{ cell.width }}ch;text-align:{{ cell.align }}"{% if cell.accent %} class="accent"{% endif %}><i style="font-size:{{ cell.scale }}em{% if cell.bold %};font-weight:700{% endif %}">{{ cell.text }}</i></span>

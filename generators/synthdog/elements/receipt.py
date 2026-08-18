@@ -113,22 +113,30 @@ class Receipt:
             x1 = pad_x + mark.col1 * char_w
             y0 = pad_y + mark.row0 * line_h
             y1 = pad_y + mark.row1 * line_h
+            thick = max(1, int(round(hairline * mark.weight)))
+            w = max(int(round(x1 - x0)), 1)
+            h = max(int(round(y1 - y0)), 1)
             if mark.kind == "rule":
-                thick = max(1, int(round(hairline * mark.weight)))
                 # A rule is a degenerate rectangle: zero extent on one axis, so
                 # it is given the pen's own thickness there.
-                w = max(int(round(x1 - x0)), thick)
-                h = max(int(round(y1 - y0)), thick)
+                w, h = max(w, thick), max(h, thick)
+                rects = [(x0, y0, w, h)]
+            elif mark.kind == "frame":
+                # Hollow, not solid -- four rules, which is what a border is.
+                # Drawn as one filled box it would black out the table it is
+                # supposed to enclose.
+                rects = [(x0, y0, w, thick), (x0, y1 - thick, w, thick),
+                         (x0, y0, thick, h), (x1 - thick, y0, thick, h)]
             else:
-                w = max(int(round(x1 - x0)), 1)
-                h = max(int(round(y1 - y0)), 1)
+                rects = [(x0, y0, w, h)]
             # `tone` fades the ink towards the paper: 1.0 is a full rule, 0.08
             # the shading behind a column header.
             shade = tuple(int(round(255 - (255 - channel) * mark.tone))
                           for channel in ink[:3])
-            layer = layers.RectLayer((w, h), (*shade, 255))
-            layer.left, layer.top = x0, y0
-            mark_layers.append(layer)
+            for left, top, width_px, height_px in rects:
+                layer = layers.RectLayer((width_px, height_px), (*shade, 255))
+                layer.left, layer.top = left, top
+                mark_layers.append(layer)
 
         text_layers, fields = [], []
         for cell in grid.cells:

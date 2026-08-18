@@ -171,6 +171,17 @@ class _Builder:
     def rule(self, rng: random.Random, char: str | None = None) -> None:
         char = char or rng.choice(SEPARATORS)
         width = self.ncols if rng.random() < 0.8 else int(self.ncols * rng.uniform(0.4, 0.9))
+        if self.ruled:
+            # Both draws are made either way, so a layout that switches to drawn
+            # rules does not shift every later sample by two numbers. `char` is
+            # then thrown away: a drawn line is a drawn line whether the till
+            # would have printed it with `-` or with `~`.
+            width = max(width, 4)
+            start = (self.ncols - width) // 2
+            # Mid-row, and the row is still spent -- see `_full_rule`.
+            self.mark("rule", self.row + 0.5, start, self.row + 0.5, start + width)
+            self.newline()
+            return
         self.put(char * max(width, 4), "sep", 0, self.ncols, "center")
         self.newline()
 
@@ -181,6 +192,17 @@ def _full_rule(builder, spec) -> None:
     Not `_Builder.rule`: that one is a till's separator and draws a short
     centred dash one time in five. A ruling of a form is a ruling of the form.
     """
+    if builder.ruled:
+        # Drawn, not typed: a layout that says its lines are drawn should have
+        # no line of `-` left anywhere on it.
+        #
+        # Unlike a table rule this one still spends its row, and sits in the
+        # middle of it. A rule between two blocks is a gap with a line in it --
+        # take the row away and the line lands on the shoulders of the next
+        # line of type, which is how a strikethrough looks, not a separator.
+        builder.mark("rule", builder.row + 0.5, 0, builder.row + 0.5, builder.ncols - 1)
+        builder.newline()
+        return
     char = str(spec.get("rule_char", "-"))[:1] or "-"
     builder.put(char * builder.ncols, "sep", 0, builder.ncols, "left")
     builder.newline()
@@ -650,7 +672,8 @@ def _emit_letterhead(builder, spec, receipt, columns, rng) -> None:
     if invoice is None:
         if framed:
             _rule_row(builder, edges)
-            _paint_bars(builder, edges, frame_top + 1, builder.row - 1)
+            _paint_bars(builder, edges, frame_top + 1, builder.row - 1,
+                        span=(frame_top, builder.row))
         return
     # The serial block sits beside the letterhead, not under it, so it is
     # written back onto the rows the letterhead already used.
@@ -673,7 +696,8 @@ def _emit_letterhead(builder, spec, receipt, columns, rng) -> None:
     builder.row = max(bottom, builder.row)
     if framed:
         _rule_row(builder, edges)
-        _paint_bars(builder, edges, frame_top + 1, builder.row - 1)
+        _paint_bars(builder, edges, frame_top + 1, builder.row - 1,
+                    span=(frame_top, builder.row))
     builder.newline()
 
 
@@ -802,7 +826,11 @@ def _rule_row(builder, positions, char: str = "-", junction: str = "+",
         # A ruled form draws the line *between* two rows and spends no line on
         # it, which is why a real form fits more on a page than its ASCII
         # rendering does. `_paint_bars` puts the verticals in.
-        builder.mark("rule", builder.row, col0, builder.row, col1)
+        #
+        # `col1 - 1`, not `col1`: the last character column is where the closing
+        # vertical stands (`_bar_positions` ends at `ncols - 1`), and a rule
+        # drawn to `col1` would stick a character's width out past the corner.
+        builder.mark("rule", builder.row, col0, builder.row, col1 - 1)
         return
     line = [char] * (col1 - col0)
     for position in positions:
@@ -812,7 +840,8 @@ def _rule_row(builder, positions, char: str = "-", junction: str = "+",
     builder.newline()
 
 
-def _paint_bars(builder, positions, first: int, last: int) -> None:
+def _paint_bars(builder, positions, first: int, last: int,
+                span: tuple[int, int] | None = None) -> None:
     """Drop the verticals down every row of the table, `first` to `last`.
 
     A position already covered by a cell is skipped rather than overwritten: a
@@ -820,14 +849,22 @@ def _paint_bars(builder, positions, first: int, last: int) -> None:
     width of the frame, an item name spilling into the next column -- and two
     cells on the same characters print on top of each other in all three
     renderers at once.
+
+    `first`/`last` are the *text* rows to put a `|` on, which is not where a
+    drawn vertical starts and stops: an ASCII rule spends a row of its own, so
+    the caller counts from one row inside the frame, while a drawn rule sits on
+    the boundary between two rows and the vertical has to reach it or the frame
+    is left open at both ends. `span` is that pair of boundary rows -- every
+    caller knows it, none of them can be guessed from `first`/`last`.
     """
     if builder.ruled:
         # One mark per boundary for the whole height, instead of one `|` cell
         # per row per boundary. It also removes the reason `_paint_bars` had to
         # dodge cells that span their columns: a drawn line passes behind text
         # instead of overwriting it.
+        row0, row1 = span if span else (first, last)
         for position in positions:
-            builder.mark("rule", first, position, last, position)
+            builder.mark("rule", row0, position, row1, position)
         return
     occupied: dict[int, list[tuple[int, int]]] = {}
     for cell in builder.cells:
@@ -841,6 +878,38 @@ def _paint_bars(builder, positions, first: int, last: int) -> None:
                 continue
             builder.put("|", "sep", position, position + 1, "left")
     builder.row = keep
+
+
+def _shade_band(builder, settings, top: int, col0: int, col1: int) -> None:
+    """The tint a printed form lays under a band of rows.
+
+    Under the column titles, and under the line the reader is meant to find
+    first -- the amount owed. Both are the same primitive over a different band,
+    which is the whole reason `Mark` has a `tone`.
+
+    Off unless the layout asks (`shade:` is a fraction of the page's ink), and
+    unavailable to an ASCII layout at all: a till roll can print a line of `-`
+    and cannot print a grey box, so a thermal receipt that asked for one would
+    be drawn something its real printer could not produce.
+    """
+    tone = float(settings.get("shade", 0) or 0)
+    if not builder.ruled or tone <= 0 or builder.row <= top:
+        return
+    builder.mark("fill", top, col0, builder.row, col1, tone=tone)
+
+
+def _outline(builder, settings, top: int, col0: int, bottom: int, col1: int) -> None:
+    """The heavier border a form draws around a table, inside its hairlines.
+
+    A printed form is not ruled with one pen. The outer boundary is drawn
+    thicker than the row rules inside it -- which is most of what makes a table
+    read as a table from across the room -- and `weight` is exactly the number a
+    renderer needs to do that at its own resolution.
+    """
+    weight = float(settings.get("border", 1.8) or 0)
+    if not builder.ruled or weight <= 1.0:
+        return
+    builder.mark("frame", top, col0, bottom, col1, weight=weight)
 
 
 def _emit_column_numbers(builder, spec, receipt, columns) -> None:
@@ -868,7 +937,9 @@ def _emit_table(builder, spec, receipt, columns, rng) -> None:
         # open.
         if table.get("header_rules"):
             _full_rule(builder, spec)
+        head = builder.row
         _emit_column_header(builder, spec, receipt, columns)
+        _shade_band(builder, table, head, 0, builder.ncols - 1)
         if table.get("header_rules"):
             _full_rule(builder, spec)
         _emit_items(builder, spec, receipt, columns, rng)
@@ -880,6 +951,7 @@ def _emit_table(builder, spec, receipt, columns, rng) -> None:
     _emit_column_header(builder, spec, receipt, columns)
     if table.get("column_numbers"):
         _emit_column_numbers(builder, spec, receipt, columns)
+    _shade_band(builder, table, top, positions[0], positions[-1])
     _rule_row(builder, positions)
 
     after = (lambda: _rule_row(builder, positions)) if table.get("row_rules") else None
@@ -890,7 +962,8 @@ def _emit_table(builder, spec, receipt, columns, rng) -> None:
             _rule_row(builder, positions)
     if not table.get("row_rules"):
         _rule_row(builder, positions)
-    _paint_bars(builder, positions, top + 1, builder.row - 1)
+    _paint_bars(builder, positions, top + 1, builder.row - 1, span=(top, builder.row))
+    _outline(builder, table, top, positions[0], builder.row, positions[-1])
 
 
 def _emit_framed_totals(builder, spec, receipt, columns, rng) -> None:
@@ -908,12 +981,18 @@ def _emit_framed_totals(builder, spec, receipt, columns, rng) -> None:
     for index, (label, value) in enumerate(receipt.totals):
         is_grand = settings.get("emphasise_grand", True) and index == receipt.grand_index
         role = "total.grand" if is_grand else "total.line"
+        band = builder.row
         builder.put(fit(label, split - 3), f"{role}.label", 2, split - 1, "left", bold=is_grand)
         builder.put(fit(value, builder.ncols - split - 3), role,
                     split, builder.ncols - 2, "right", bold=is_grand)
         builder.newline()
+        # The amount owed carries the tint, not the whole block: shading every
+        # total would make the emphasis mean nothing.
+        if is_grand:
+            _shade_band(builder, settings, band, positions[0], positions[-1])
         _rule_row(builder, positions)
-    _paint_bars(builder, positions, top, builder.row - 1)
+    _paint_bars(builder, positions, top, builder.row - 1, span=(top, builder.row))
+    _outline(builder, settings, top, positions[0], builder.row, positions[-1])
 
 
 def _emit_vat_summary(builder, spec, receipt, columns, rng) -> None:
@@ -946,7 +1025,9 @@ def _emit_vat_summary(builder, spec, receipt, columns, rng) -> None:
     top = builder.row
     if framed:
         _rule_row(builder, positions)
+    head = builder.row
     _emit_column_header(builder, settings, receipt, resolved)
+    _shade_band(builder, settings, head, positions[0], positions[-1])
     if framed:
         _rule_row(builder, positions)
 
@@ -977,7 +1058,9 @@ def _emit_vat_summary(builder, spec, receipt, columns, rng) -> None:
         if framed:
             _rule_row(builder, positions)
     if framed:
-        _paint_bars(builder, positions, top + 1, builder.row - 1)
+        _paint_bars(builder, positions, top + 1, builder.row - 1,
+                    span=(top, builder.row))
+        _outline(builder, settings, top, positions[0], builder.row, positions[-1])
     builder.newline()
 
 
@@ -1003,7 +1086,8 @@ def _emit_words(builder, spec, receipt, columns, rng) -> None:
         builder.newline()
     if framed:
         _rule_row(builder, [0, builder.ncols - 1])
-        _paint_bars(builder, [0, builder.ncols - 1], top, builder.row - 1)
+        _paint_bars(builder, [0, builder.ncols - 1], top, builder.row - 1,
+                    span=(top, builder.row))
     builder.newline()
 
 
@@ -1112,7 +1196,7 @@ def _emit_signatures(builder, spec, receipt, columns, rng) -> None:
         builder.put(line, role, col0 + 2, builder.ncols - 2, "left")
         builder.newline()
     _rule_row(builder, edges, col0=col0)
-    _paint_bars(builder, edges, top + 1, builder.row - 1)
+    _paint_bars(builder, edges, top + 1, builder.row - 1, span=(top, builder.row))
 
 
 # The sections a layout may ask for, and the order a till receipt uses when it
@@ -1167,7 +1251,14 @@ def build_grid(receipt: Receipt, layout_id: str, rng: random.Random | None = Non
         nrows=builder.row + 1,
         layout_id=layout_id,
         columns=columns,
-        marks=builder.marks,
+        # Paint order, once, here rather than three times in the renderers: the
+        # shading is the ground, the lines go on it, the text goes on both. A
+        # header tint emitted after the rule that bounds it would otherwise be
+        # painted over that rule and rub it out.
+        #
+        # The list is back to front, which is what a DOM is; the glyph backend
+        # composites the other way round and reverses it on the way in.
+        marks=sorted(builder.marks, key=lambda mark: mark.kind != "fill"),
     )
 
 

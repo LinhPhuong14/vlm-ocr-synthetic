@@ -98,6 +98,10 @@ def marks_for(grid, recipe, line_px: float, pad_ch: float) -> list[dict]:
             "width": f"{span:.3f}ch" if span > 0 else f"{thick:.2f}px",
             "height": f"{max(height, thick):.2f}px",
             "shade": shade,
+            # A frame is hollow: the border is the ink and the middle is paper,
+            # or the box would black out everything it encloses.
+            "paint": (f"border:{thick:.2f}px solid {shade};box-sizing:border-box"
+                      if mark.kind == "frame" else f"background:{shade}"),
         })
     return out
 
