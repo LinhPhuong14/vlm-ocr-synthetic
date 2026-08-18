@@ -1,0 +1,15 @@
+
+# Chân hoá đơn khách sạn.
+#
+# Không phải lời chào quán ăn và cũng không phải dòng nhắc đối chiếu của hoá
+# đơn GTGT: khách sạn nhắc chuyện trả phòng, chuyện đã gồm thuế phí, và cảm
+# ơn theo lối chỗ nghỉ chứ không theo lối cửa hàng.
+
+Cảm ơn Quý khách đã lựa chọn nghỉ dưỡng tại khách sạn
+Quý khách vui lòng kiểm tra hoá đơn trước khi rời khách sạn
+Giá đã bao gồm thuế GTGT và phí phục vụ
+Rất hân hạnh được đón tiếp Quý khách trong lần tới
+Mọi thắc mắc về hoá đơn xin liên hệ quầy lễ tân
+Giờ trả phòng tiêu chuẩn: 12:00 trưa
+Hoá đơn điện tử sẽ được gửi tới địa chỉ email Quý khách đăng ký
+Kính chúc Quý khách thượng lộ bình an
