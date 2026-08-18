@@ -1,0 +1,16 @@
+# Suburb<TAB>state<TAB>country, laid out like the Vietnamese `wards.txt` so the
+# same address builder serves both languages.
+South Brisbane	QLD	Australia
+Fortitude Valley	QLD	Australia
+West End	QLD	Australia
+Newstead	QLD	Australia
+Woolloongabba	QLD	Australia
+Milton	QLD	Australia
+Hawthorne	QLD	Australia
+Chermside	QLD	Australia
+Carlton	VIC	Australia
+Richmond	VIC	Australia
+Surry Hills	NSW	Australia
+Alexandria	NSW	Australia
+Osborne Park	WA	Australia
+Norwood	SA	Australia

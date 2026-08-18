@@ -1,0 +1,13 @@
+# Bên bán trên hoá đơn tiền nước: công ty cấp nước<TAB>xí nghiệp trực thuộc.
+#
+# Tách khỏi `shops_utility_power.txt` chứ không lọc từ một file chung: hoá
+# đơn tiền nước do công ty nước phát hành, và một sampler bốc chung sẽ cho
+# ra tờ hoá đơn tiền nước mang tên Tổng công ty Điện lực.
+
+CÔNG TY TNHH MỘT THÀNH VIÊN NƯỚC SẠCH HÀ NỘI	Xí nghiệp Kinh doanh Nước sạch Cầu Giấy
+CÔNG TY TNHH MỘT THÀNH VIÊN NƯỚC SẠCH HÀ NỘI	Xí nghiệp Kinh doanh Nước sạch Ba Đình
+CÔNG TY CỔ PHẦN CẤP NƯỚC THỦ ĐỨC	Đội Quản lý Khách hàng số 2
+CÔNG TY CỔ PHẦN CẤP NƯỚC CHỢ LỚN	Tổ Thu ngân Quận 6
+TỔNG CÔNG TY CẤP NƯỚC SÀI GÒN	Chi nhánh Cấp nước Bến Thành
+CÔNG TY CỔ PHẦN CẤP NƯỚC HẢI PHÒNG	Xí nghiệp Sản xuất Nước An Dương
+CÔNG TY CỔ PHẦN CẤP THOÁT NƯỚC ĐÀ NẴNG	Xí nghiệp Nước Cầu Đỏ

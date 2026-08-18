@@ -1,0 +1,24 @@
+# Seller on an English-language tax invoice: legal name<TAB>trading division.
+#
+# This corpus exists for ONE document kind -- the `invoice_tax_en` layout, an
+# Australian-style tax invoice. Everything else in the rule-base is Vietnamese;
+# see rulebase/README.md on why printed text is not translated. Here English IS
+# the printed text, so the corpus is English.
+#
+# Names are invented for synthetic data, assembled the way a real trading name
+# is; none of them is a company that exists.
+
+Harbourline Trading Pty Ltd	Wholesale Division
+Redgum Supply Co Pty Ltd	Brisbane Warehouse
+Northbridge Coffee Roasters	Wholesale Orders
+Fernvale Office Solutions	Commercial Sales
+Stonecrest Building Supplies	Trade Counter
+Bluewater Marine Services	Service Department
+Kestrel Print & Signage	Production Studio
+Ironbark Timber Merchants	Yard Sales
+Summerhill Catering Supplies	Hospitality Division
+Two Rivers Electrical Pty Ltd	Contracting Division
+Wattle Grove Nursery	Landscape Supply
+Claremont Safety Equipment	Industrial Sales
+Perigee Software Group	Licensing Desk
+Halden Freight Australia	Interstate Linehaul

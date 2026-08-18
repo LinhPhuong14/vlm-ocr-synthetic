@@ -1,0 +1,38 @@
+# Hàng hoá, dịch vụ ghi trên hoá đơn GTGT.
+# Định dạng: tên<TAB>đơn giá tối thiểu<TAB>đơn giá tối đa   (đơn vị VND)
+#
+# Khác `items_market.txt`: đây là mặt hàng BÁN GIỮA HAI DOANH NGHIỆP, nên đơn
+# giá lớn hơn nhiều và tên hàng viết theo lối chứng từ ("Cung cấp và lắp đặt",
+# "Phí dịch vụ") chứ không phải tên hàng trên quầy.
+#
+# Tên viết CÓ DẤU; bố cục nào cần chữ không dấu thì `rulebase.text.ascii_fold`
+# bỏ dấu lúc render.
+
+Cung cấp và lắp đặt hệ thống điện nhẹ	4500000	38000000
+Dịch vụ tư vấn thiết kế công trình	6000000	45000000
+Phí dịch vụ bảo trì thiết bị	1200000	9500000
+Máy tính để bàn Dell OptiPlex	9800000	17500000
+Máy in laser đen trắng	3200000	8400000
+Giấy in A4 định lượng 70gsm	52000	78000
+Mực in laser chính hãng	850000	2400000
+Bàn làm việc gỗ công nghiệp	1450000	4600000
+Ghế xoay văn phòng lưng lưới	890000	3200000
+Tủ hồ sơ sắt sơn tĩnh điện	2100000	5800000
+Cáp mạng CAT6 cuộn 305m	1650000	2900000
+Thiết bị chuyển mạch 24 cổng	4200000	11500000
+Camera quan sát ngoài trời	1350000	4800000
+Dịch vụ vận chuyển nội địa	450000	6800000
+Phí lưu kho và bốc xếp	320000	4200000
+Vật tư xây dựng - xi măng PCB40	1450000	1750000
+Thép cuộn xây dựng phi 8	14500000	18600000
+Sơn nước nội thất thùng 18 lít	1250000	3400000
+Dịch vụ vệ sinh công nghiệp	2800000	14000000
+Phí thuê giàn giáo theo tháng	1800000	7500000
+Bảo hộ lao động - áo phản quang	95000	260000
+Dịch vụ in ấn ấn phẩm quảng cáo	1600000	12500000
+Phần mềm kế toán bản quyền	5900000	28000000
+Phí duy trì tên miền và lưu trữ	1200000	4800000
+Dịch vụ kiểm định thiết bị đo lường	850000	6400000
+Điều hoà treo tường 12000 BTU	7200000	13800000
+Máy phát điện chạy dầu 5kVA	18500000	42000000
+Dịch vụ đào tạo an toàn lao động	3500000	16000000
