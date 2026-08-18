@@ -1,0 +1,80 @@
+# Hoá đơn khu nghỉ dưỡng — một dòng một đêm.
+#
+# Dấu hiệu nhận biết: đầu trang là tên cơ sở và cách liên hệ ĐẶT GIỮA, không
+# phải một letterhead lệch trái; dưới tiêu đề là một DÃY khoá chạy ngang —
+# số hoá đơn, ngày, mã đặt phòng, mã kênh, nguồn khách; rồi khối đặt phòng
+# hai cột (nhận phòng / trả phòng / loại phòng / số đêm); bảng có cột NGÀY và
+# cột PHÒNG mà không bảng nào khác có; và cuối trang hai ô chữ ký có in sẵn
+# tên người ký.
+#
+# Bảng cố tình để mỗi đêm một dòng cùng đơn giá: người đọc cộng lại được, và
+# số đêm ở khối trên phải khớp số dòng ở bảng dưới — xem `_build_stay`.
+id: invoice_hotel_stay
+name: Resort folio — key strip, booking block, one row per night
+source: "ảnh hoá đơn một khu nghỉ dưỡng, số INV001421, đặt qua kênh trực tuyến"
+
+width: [88, 100]
+gutter: 2
+rule_char: "-"
+
+sections: [header, strip, parties, table, totals, signatures, footer]
+
+header:
+  name_scale: [1.25, 1.50]
+  name_bold: true
+  title: true
+  title_scale: [1.25, 1.50]
+
+strip:
+  separator: "|"
+  rule_after: true
+
+parties:
+  style: two_column
+  split: 0.55
+  gap: 3
+  leader: ""
+
+column_header: true
+column_header_bold: true
+columns:
+  - {key: stt,        title: "#",           width: 4,  align: center, title_align: center}
+  - {key: date,       title: "Ngày",        width: 13, align: center, title_align: center}
+  - {key: ref,        title: "Phòng",       width: 9,  align: center, title_align: center}
+  - {key: name,       title: "Nội dung",    width: 0,  align: left,   title_align: left}
+  - {key: qty,        title: "Số lượng",    width: 10, align: right,  title_align: center}
+  - {key: unit_price, title: "Đơn giá",     width: 17, align: right,  title_align: right}
+  - {key: amount,     title: "Thành tiền",  width: 18, align: right,  title_align: right}
+
+table:
+  frame: false
+
+item:
+  wrap_name: true
+  rows:
+    # Dòng thứ hai là chú thích của dòng hàng — "Bao gồm bữa sáng" — in trong
+    # CỘT NỘI DUNG chứ không chạy hết bề ngang; dòng nào không có chú thích thì
+    # cả dòng rỗng và bị bỏ qua.
+    - - {col: stt, from: stt}
+      - {col: date, from: date}
+      - {col: ref, from: ref}
+      - {col: name, from: name}
+      - {col: qty, from: qty}
+      - {col: unit_price, from: unit_price}
+      - {col: amount, from: amount}
+    - - {col: name, from: note}
+
+totals:
+  # Dồn về nửa phải: khối tổng của tờ hoá đơn tự thiết kế không chạy hết bề
+  # ngang mà nép vào lề phải, để trống nửa trái dưới bảng.
+  frame: false
+  indent: 0.42
+  emphasise_grand: true
+  grand_scale: [1.10, 1.30]
+  grand_two_lines: false
+
+signatures:
+  name_gap: 3
+
+footer:
+  rule_before: false

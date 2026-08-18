@@ -6,31 +6,141 @@
 # requires/excludes ràng buộc bố cục với loại document: bố cục siêu thị in mã
 # vạch thì chỉ dùng được cho document có gắn thẻ `has_barcode`. Không có ràng
 # buộc này thì sampler sẽ sinh ra hoá đơn quán nhậu có cột mã vạch trống.
+#
+# ---------------------------------------------------------------------------
+# NODE CHA (`groups:`) — vì "bố cục" đã không còn là MỘT loại việc
+#
+# Danh sách phẳng nói được "có bao nhiêu bố cục", nhưng không nói được rằng tờ
+# giấy tính tiền in nhiệt và tờ hoá đơn xuất khẩu song ngữ chỉ giống nhau đúng
+# ở chỗ cùng đo bằng ký tự. `groups:` là chỗ ghi điều đó: mỗi node là một HỌ
+# giấy tờ, có `id` cho code và `label` cho người đọc.
+#
+# Node không phải để trang trí. `tags`, `requires`, `excludes` viết trên node
+# được HỢP vào từng giá trị bên dưới, nên ràng buộc đúng cho cả họ thì viết
+# một lần — và bố cục thêm vào sau này không thể quên nó. Xem `rulebase/spec.py`.
+#
+# File luật dùng `options:` HOẶC `groups:`, không dùng cả hai.
 
-options:
-  - id: eatery_indexed
-    weight: 3
-    requires: [doc_eatery]
-    tags: [has_index_column, two_line_items]
+groups:
 
-  - id: eatery_ascii
-    weight: 2
-    requires: [doc_eatery]
-    excludes: [has_vat]        # máy in đời cũ không in dòng thuế
-    tags: [ascii_only, no_title]
+  # ------------------------------------------------------------------------
+  - id: retail_receipt
+    label: "Hoá đơn tiêu dùng — giấy tính tiền in tại quầy"
+    # Giấy cuộn, in xong đưa tay khách. Không ghi tên ai, không có chữ ký,
+    # không có số hoá đơn để tra cứu: nó ghi lại một lần mua, không phải một
+    # chứng từ. Cả họ này bị loại khỏi mọi document là hoá đơn.
+    excludes: [doc_invoice]
+    tags: [till_receipt]
+    options:
+      - id: eatery_indexed
+        weight: 3
+        requires: [doc_eatery]
+        tags: [has_index_column, two_line_items]
 
-  - id: market_barcode
-    weight: 3
-    requires: [has_barcode]
-    tags: [barcode_rows]
+      - id: eatery_ascii
+        weight: 2
+        requires: [doc_eatery]
+        excludes: [has_vat]        # máy in đời cũ không in dòng thuế
+        tags: [ascii_only, no_title]
 
-  - id: market_compact
-    weight: 3
-    requires: [doc_market]
-    excludes: [has_vat_lines]  # bố cục này không có chỗ cho dòng VAT riêng
-    tags: [wrapped_names]
+      - id: market_barcode
+        weight: 3
+        requires: [has_barcode]
+        tags: [barcode_rows]
 
-  - id: market_vat
-    weight: 2
-    requires: [has_vat_lines]
-    tags: [vat_rows]
+      - id: market_compact
+        weight: 3
+        requires: [doc_market]
+        excludes: [has_vat_lines]  # bố cục này không có chỗ cho dòng VAT riêng
+        tags: [wrapped_names]
+
+      - id: market_vat
+        weight: 2
+        requires: [has_vat_lines]
+        tags: [vat_rows]
+
+  # ------------------------------------------------------------------------
+  - id: statutory_invoice
+    label: "Hoá đơn theo mẫu — tờ khung in sẵn, có Mẫu số / Ký hiệu / Số"
+    # Tờ A4 in sẵn khung: mẫu số, ký hiệu, số nhảy; bảng có kẻ ô và có dòng
+    # đánh số cột; cuối trang là chữ ký hai bên. Khung bảng đòi font đều nét
+    # (xem `laser_invoice` trong rules/visual.yaml), nên `ruled_table` đi kèm
+    # cả họ.
+    requires: [doc_invoice]
+    tags: [wide_paper, printed_form, ruled_table]
+    options:
+      - id: invoice_vat_form
+        weight: 2
+        requires: [invoice_form]
+        tags: [dotted_fields]
+
+      # Bản in ra của hoá đơn điện tử: khối người bán trong khung, và tờ kết
+      # bằng bảng chia tiền theo từng thuế suất thay vì một dòng thuế.
+      - id: invoice_vat_summary
+        weight: 2
+        requires: [invoice_summary]
+        tags: [summary_table, boxed_letterhead]
+
+      # Tờ song ngữ. Không có `letterhead`: bên bán trên mẫu xuất khẩu là một
+      # khối trường có nhãn như bên mua, không phải một dòng tiêu đề.
+      - id: invoice_export
+        weight: 2
+        requires: [doc_export]
+        excludes: [has_vat]        # hàng xuất khẩu chịu thuế suất 0%
+        tags: [bilingual, numbered_columns, stacked_parties]
+
+  # ------------------------------------------------------------------------
+  - id: utility_invoice
+    label: "Hoá đơn dịch vụ tiện ích — điện, nước, tính theo chỉ số công tơ"
+    # Cũng là tờ mẫu, nhưng bán một thứ đo được chứ không bán một giỏ hàng:
+    # số lượng là HIỆU của hai chỉ số in ngay cạnh nó, nên bảng luôn có cột
+    # chỉ số và người đọc trừ lại được.
+    requires: [doc_utility]
+    tags: [wide_paper, printed_form, ruled_table]
+    options:
+      - id: invoice_water
+        weight: 2
+        requires: [metered_water]
+        tags: [meter_rows]
+
+      - id: invoice_power
+        weight: 2
+        requires: [metered_power]
+        tags: [tier_rows]
+
+  # ------------------------------------------------------------------------
+  - id: lodging_invoice
+    label: "Hoá đơn lưu trú — khách sạn, khu nghỉ dưỡng, một dòng một đêm"
+    # Bán một khoảng THỜI GIAN chứ không bán một giỏ hàng: bảng có cột ngày và
+    # cột phòng, số dòng bằng số đêm, và tờ giấy kết bằng dòng đã trả / còn
+    # lại vì khách thanh toán khi trả phòng.
+    requires: [doc_lodging]
+    tags: [wide_paper, no_frame, key_strip, dated_rows]
+    options:
+      - id: invoice_hotel_stay
+        weight: 2
+        tags: [signature_names]
+
+      - id: invoice_hotel_compact
+        weight: 2
+        tags: [signature_names, narrow_sheet]
+
+  # ------------------------------------------------------------------------
+  - id: modern_invoice
+    label: "Hoá đơn thiết kế riêng — không kẻ khung, tổng tiền dồn về lề phải"
+    # Không phải tờ mẫu: doanh nghiệp tự thiết kế, in laser. Dấu hiệu là chỗ
+    # KHÔNG có — không khung, không dòng đánh số cột, không ô chữ ký đóng dấu
+    # — và chỗ có: khối tổng tiền nép sát lề phải thay vì chạy hết bề ngang.
+    requires: [doc_invoice]
+    tags: [wide_paper, no_frame]
+    options:
+      - id: invoice_tax_en
+        weight: 2
+        requires: [lang_en]
+
+      # Tờ của tiệm bánh: địa chỉ cửa hàng xuống chân trang, chân trang chia
+      # hai khối cạnh nhau.
+      - id: invoice_brand
+        weight: 2
+        requires: [doc_brand]
+        tags: [key_strip, footer_columns]

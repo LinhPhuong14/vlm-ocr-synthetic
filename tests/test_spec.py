@@ -2,14 +2,18 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 import yaml
 from conftest import build_rules, write_rules_dir
 
 from rulebase.spec import (
     ATTRIBUTES,
+    Group,
     Option,
     RuleError,
+    load_groups,
     load_rules,
     parse_force,
     sample_recipe,
@@ -66,6 +70,123 @@ def test_empty_options_is_rejected(tmp_path):
             yaml.safe_dump({"options": []}), encoding="utf-8")
     with pytest.raises(RuleError, match="no options"):
         load_rules(root)
+
+
+# ---------------------------------------------------------- parent nodes
+
+
+def _grouped(root: Path, groups: list[dict], attribute: str = "layout") -> Path:
+    """A rules directory where one attribute is sorted into nodes."""
+    spec = {name: [{"id": f"{name}1", "weight": 1}] for name in ATTRIBUTES}
+    spec.pop(attribute)
+    root = write_rules_dir(root, spec, order=list(ATTRIBUTES))
+    (root / f"{attribute}.yaml").write_text(
+        yaml.safe_dump({"groups": groups}, allow_unicode=True, sort_keys=False),
+        encoding="utf-8",
+    )
+    return root
+
+
+def test_a_grouped_file_loads_as_a_flat_list_of_values(tmp_path):
+    """The sampler never sees a node: it draws values, flattened in file order."""
+    root = _grouped(tmp_path / "rules", [
+        {"id": "till", "label": "giấy tính tiền", "options": [
+            {"id": "a", "weight": 1}, {"id": "b", "weight": 1}]},
+        {"id": "form", "label": "tờ mẫu", "options": [{"id": "c", "weight": 1}]},
+    ])
+    values = load_rules(root)["layout"]
+    assert [option.id for option in values] == ["a", "b", "c"]
+    assert [option.group for option in values] == ["till", "till", "form"]
+
+
+def test_a_node_hands_its_constraints_to_every_value_under_it(tmp_path):
+    """The point of the node: one constraint, not one per value."""
+    root = _grouped(tmp_path / "rules", [
+        {"id": "till", "tags": ["paper"], "excludes": ["invoice"],
+         "options": [
+             {"id": "a", "weight": 1, "tags": ["narrow"]},
+             {"id": "b", "weight": 1, "requires": ["barcode"]},
+         ]},
+    ])
+    by_id = {option.id: option for option in load_rules(root)["layout"]}
+    assert by_id["a"].tags == frozenset({"paper", "narrow"})
+    assert by_id["a"].excludes == frozenset({"invoice"})
+    # Inherited and own constraints are merged, not replaced.
+    assert by_id["b"].requires == frozenset({"barcode"})
+    assert by_id["b"].excludes == frozenset({"invoice"})
+    assert not by_id["b"].allowed({"invoice", "barcode"})
+    assert by_id["b"].allowed({"barcode"})
+
+
+def test_a_value_cannot_name_its_own_parent(tmp_path):
+    # Structure decides which node a value is in. A `group:` key on the value
+    # would let two nodes claim it and the file stop saying which.
+    with pytest.raises(RuleError, match="unknown keys"):
+        Option.from_dict({"id": "x", "group": "till"}, "layout")
+
+
+def test_a_file_may_not_use_both_shapes(tmp_path):
+    root = tmp_path / "rules"
+    spec = {name: [{"id": f"{name}1", "weight": 1}] for name in ATTRIBUTES}
+    spec.pop("layout")
+    write_rules_dir(root, spec, order=list(ATTRIBUTES))
+    (root / "layout.yaml").write_text(
+        yaml.safe_dump({
+            "options": [{"id": "loose", "weight": 1}],
+            "groups": [{"id": "g", "options": [{"id": "inside", "weight": 1}]}],
+        }, allow_unicode=True, sort_keys=False),
+        encoding="utf-8",
+    )
+    with pytest.raises(RuleError, match="both"):
+        load_rules(root)
+
+
+def test_an_empty_node_is_rejected(tmp_path):
+    root = _grouped(tmp_path / "rules", [{"id": "till", "options": []}])
+    with pytest.raises(RuleError, match="no options"):
+        load_rules(root)
+
+
+def test_two_nodes_may_not_share_an_id(tmp_path):
+    root = _grouped(tmp_path / "rules", [
+        {"id": "till", "options": [{"id": "a", "weight": 1}]},
+        {"id": "till", "options": [{"id": "b", "weight": 1}]},
+    ])
+    with pytest.raises(RuleError, match="duplicate group id"):
+        load_rules(root)
+
+
+def test_a_node_carries_no_params(tmp_path):
+    root = _grouped(tmp_path / "rules", [
+        {"id": "till", "params": {"width": 40}, "options": [{"id": "a", "weight": 1}]},
+    ])
+    with pytest.raises(RuleError, match="unknown keys"):
+        load_rules(root)
+
+
+def test_load_groups_reports_the_nodes_with_their_labels(tmp_path):
+    root = _grouped(tmp_path / "rules", [
+        {"id": "till", "label": "giấy tính tiền", "options": [{"id": "a", "weight": 1}]},
+    ])
+    groups = load_groups(root)
+    assert groups["layout"] == [Group(id="till", label="giấy tính tiền")]
+    # An attribute listed flat has no nodes, and says so with an empty list
+    # rather than by being absent.
+    assert groups["document"] == []
+
+
+def test_every_shipped_layout_belongs_to_a_node(real_rules):
+    """A layout added outside the taxonomy is one nobody can classify."""
+    nodes = {group.id for group in load_groups()["layout"]}
+    assert nodes, "rules/layout.yaml no longer sorts its values into nodes"
+    for option in real_rules["layout"]:
+        assert option.group in nodes, f"{option.id} sits under no parent node"
+
+
+def test_the_shipped_nodes_are_labelled():
+    for attribute, groups in load_groups().items():
+        for group in groups:
+            assert group.label.strip(), f"{attribute}/{group.id} has no label"
 
 
 # ------------------------------------------------------------ determinism
