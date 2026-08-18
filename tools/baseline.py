@@ -19,12 +19,15 @@ field is excluded. If a path or a timestamp ever enters `metadata.jsonl` this
 verification starts failing on every machine, which is the correct outcome: both
 belong in `timings.json`, not in a label.
 
-Two fixed plans, because one is not enough:
+Three fixed plans, because one is not enough:
 
 * `n3` is the plan the W1 brief names, `--seed 2026 -n 3`.
-* `n5` exists because `-n 3` over five layouts gives three of them one image and
-  the last two none, so three quarters of the layout code is unexercised. Five
-  is the smallest count that reaches every layout.
+* `n5` exists because `-n 3` gives the first three layouts one image each and
+  the rest none. It was the smallest count reaching every layout when there
+  were five of them.
+* `n14` is that same intent at the current count: one image per layout, so the
+  nine invoice layouts added after `n5` are covered too. `-n 5` now reaches
+  five of fourteen, which is the sort of gap a baseline exists to close.
 
 This needs all three renderer virtualenvs, so it is a hand-run command and not
 part of the `tests` CI job. Keeping that job down to pytest and pyyaml is what
@@ -50,6 +53,7 @@ GOLDEN = REPO_ROOT / "tests" / "golden" / "baseline.json"
 PLANS: dict[str, list[str]] = {
     "n3": ["-n", "3", "--seed", "2026"],
     "n5": ["-n", "5", "--seed", "2026"],
+    "n14": ["-n", "14", "--seed", "2026"],
 }
 
 
