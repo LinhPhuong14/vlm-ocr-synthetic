@@ -291,6 +291,23 @@ def main() -> int:
             for name, values in sorted(buckets.items())
         }
 
+    # What the numbers may be compared to. Under `paired` every renderer drew
+    # the same receipts, so a difference between two of them is a difference in
+    # drawing; under `independent` they drew different ones and a side-by-side
+    # reading of the frameworks table means nothing. Read from the dataset
+    # rather than assumed, because both look the same from here.
+    summary_path = args.dataset / "dataset.json"
+    if summary_path.exists():
+        declared = json.loads(summary_path.read_text(encoding="utf-8"))
+        report["pairing"] = declared.get("pairing", "unknown")
+        report["distinct_labels"] = {
+            name: entry.get("distinct_labels")
+            for name, entry in (declared.get("frameworks") or {}).items()
+        }
+    else:
+        report["pairing"] = "unknown"
+        report["distinct_labels"] = {}
+
     (out / "ocr_report.json").write_text(
         json.dumps({"summary": report, "images": per_image}, indent=2, ensure_ascii=False),
         encoding="utf-8",
@@ -298,6 +315,69 @@ def main() -> int:
     write_markdown(report, per_image, out / "README.md")
     print(f"\n-> {out / 'ocr_report.json'}")
     return 0
+
+
+def _pairing_note(report: dict) -> list[str]:
+    """Say what the frameworks table may be compared across, and on how much.
+
+    Written from the report rather than fixed in the source. Before W1b this
+    file carried a sentence about the spread between renderers while the three
+    renderers were drawing different receipts, and the sentence had no way of
+    knowing.
+    """
+    pairing = report.get("pairing", "unknown")
+    distinct = [n for n in report.get("distinct_labels", {}).values() if n]
+    images = sum(entry["images"] for entry in report["frameworks"].values())
+    if pairing == "paired":
+        receipts = max(distinct) if distinct else 0
+        return [
+            "**Every renderer drew the same receipts** (`pairing: paired`), so a",
+            "difference between two rows of the first table is a difference in",
+            f"drawing and nothing else. The {images} images are {receipts} receipts",
+            f"drawn {len(report['frameworks'])} ways -- count the sample as "
+            f"{receipts}, not {images}.",
+        ]
+    if pairing == "independent":
+        return [
+            "**The renderers drew different receipts** (`pairing: independent`), so",
+            "the rows of the first table are not comparable with each other: a gap",
+            "between two of them may be a gap between two sets of pages. Regenerate",
+            "with `pairing: paired` before drawing any conclusion about a renderer.",
+        ]
+    return [
+        "**This dataset does not say whether the renderers drew the same receipts.**",
+        "Without that, the first table cannot be read across rows. Regenerate it.",
+    ]
+
+
+def _ageing_note(report: dict) -> list[str]:
+    """Whether the ageing attribute actually ordered the scores, measured.
+
+    The claim this replaces named `pristine` at the top and `crumpled` at the
+    bottom and was printed whatever the table said -- including for datasets in
+    which `crumpled` was never drawn at all.
+    """
+    rows = sorted(report.get("by_augmentation", {}).items(),
+                  key=lambda item: -item[1]["token_recall"])
+    if not rows:
+        return ["(no ageing breakdown in this report)"]
+    best, worst = rows[0], rows[-1]
+    spread = best[1]["token_recall"] - worst[1]["token_recall"]
+    verdict = (
+        f"a spread of {spread:.3f} between them, so the rule-base is controlling "
+        f"difficulty" if spread >= 0.05 else
+        f"only {spread:.3f} between them, which is too little to say the rule-base "
+        f"is controlling difficulty in this sample"
+    )
+    return [
+        "**The ageing table is where difficulty is supposed to be controlled.**",
+        f"Easiest here is `{best[0]}` at {best[1]['token_recall']:.3f} over "
+        f"{best[1]['images']} images, hardest is `{worst[0]}` at "
+        f"{worst[1]['token_recall']:.3f} over {worst[1]['images']} images --",
+        f"{verdict}. Editing `weight` in `rulebase/rules/augmentation.yaml` shifts",
+        "the whole dataset. Values missing from the table were never drawn in this",
+        "sample rather than scoring zero.",
+    ]
 
 
 def write_markdown(report: dict, per_image: list[dict], path: Path) -> None:
@@ -346,6 +426,8 @@ def write_markdown(report: dict, per_image: list[dict], path: Path) -> None:
         "",
         "## How to read these tables",
         "",
+        *_pairing_note(report),
+        "",
         "**The spread between the three renderers is real, not a bug.** The glyph",
         "renderer produces a *photograph* of a receipt lying on a table -- with",
         "perspective, a lamp and a dark background; the two HTML renderers produce",
@@ -353,11 +435,7 @@ def write_markdown(report: dict, per_image: list[dict], path: Path) -> None:
         "precisely why all three are kept: a model that has only seen flat scans",
         "has never met the hard case.",
         "",
-        "**The order of the \"ageing\" table is the evidence that the rule-base",
-        "really does control difficulty**: `pristine` and `real_paper` at the top,",
-        "`crumpled` at the bottom, monotone across the range. Editing `weight` in",
-        "`rulebase/rules/augmentation.yaml` shifts the whole dataset easier or",
-        "harder.",
+        *_ageing_note(report),
         "",
         "**However much higher the \"folded\" column is than the plain one is how",
         "much of the error is tone marks alone.** The gap here is small, which means",

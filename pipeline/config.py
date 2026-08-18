@@ -5,7 +5,8 @@
 
 `pipeline.yaml`:
 
-    run:      {out: data/run01, per_backend: 5000, seed: 2026, workers: auto}
+    run:      {out: data/run01, per_backend: 5000, seed: 2026, workers: auto,
+               pairing: paired}
     backends: [synthdog, html, genalog]
     shard:    {size: 250}
     overrides:
@@ -43,10 +44,26 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 # byte-identical to one from before this existed.
 RULES_ENV = "VLM_RULES_ROOT"
 
-RUN_KEYS = {"out", "per_backend", "seed", "workers", "clean", "force"}
+RUN_KEYS = {"out", "per_backend", "seed", "workers", "clean", "force", "pairing"}
 SHARD_KEYS = {"size"}
 QUALITY_KEYS = {"drift_tolerance", "sample_for_ocr"}
 TOP_KEYS = {"run", "backends", "shard", "overrides", "quality"}
+
+# Whether the backends draw the same receipts or different ones.
+#
+#   paired       all backends share one seed range: the same receipt, drawn
+#                three ways. This is what makes "the same seed gives the same
+#                words in the same columns whether the page was drawn glyph by
+#                glyph or screenshotted from a browser" a fact about the data
+#                rather than a claim about the sampler, and it is the only mode
+#                in which comparing the renderers means anything.
+#   independent  each backend gets its own seed block, so N backends give N
+#                times the distinct pages. For volume, not for comparison.
+#
+# `paired` is the default because the comparison is what this repository is
+# for, and because a dataset built the other way looks identical from outside.
+PAIRINGS = ("paired", "independent")
+DEFAULT_PAIRING = "paired"
 
 
 class ConfigError(ValueError):
@@ -71,6 +88,7 @@ class Config:
     shard_size: int
     clean: bool = False
     force: tuple[str, ...] = ()
+    pairing: str = DEFAULT_PAIRING
     overrides: dict[str, Any] = field(default_factory=dict)
     quality: dict[str, Any] = field(default_factory=dict)
     source: Path | None = None
@@ -122,6 +140,11 @@ class Config:
         if not isinstance(overrides, dict):
             raise ConfigError("overrides: must be a mapping of 'attr.id.field' to value")
 
+        pairing = str(run.get("pairing", DEFAULT_PAIRING))
+        if pairing not in PAIRINGS:
+            raise ConfigError(
+                f"run.pairing: expected one of {list(PAIRINGS)}, got {pairing!r}")
+
         return cls(
             # Absolute here, at the edge, once. A relative output path handed to
             # the glyph backend lands inside generators/synthdog/ instead --
@@ -135,6 +158,7 @@ class Config:
             shard_size=size,
             clean=bool(run.get("clean", False)),
             force=tuple(str(item) for item in (run.get("force") or ())),
+            pairing=pairing,
             overrides=dict(overrides),
             quality=dict(quality),
             source=source,

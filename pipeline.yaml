@@ -10,6 +10,16 @@ run:
   seed: 2026
   workers: auto          # auto = CPUs - 1, so the machine stays usable
 
+  # paired       every backend draws the SAME receipts, so a difference between
+  #              two renderers is a difference in drawing and nothing else.
+  # independent  each backend gets its own seed block: three times the distinct
+  #              pages, and no basis at all for comparing the renderers.
+  #
+  # Before W1b this was `independent` and nothing said so, which is why the
+  # published proof numbers compared three different corpora. The mode is
+  # written into manifest.json for the same reason.
+  pairing: paired
+
 backends: [synthdog, html, genalog]
 
 shard:

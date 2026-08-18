@@ -9,35 +9,35 @@ one string would measure reading order rather than recognition. See
 
 | framework | images | token recall | recall (folded) | field hit | field hit (folded) | money read exactly |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| synthdog | 20 | 0.829 | 0.856 | 0.753 | 0.781 | 105/144 (73%) |
-| html | 20 | 0.853 | 0.865 | 0.792 | 0.802 | 114/141 (81%) |
-| genalog | 20 | 0.869 | 0.877 | 0.805 | 0.805 | 109/149 (73%) |
+| synthdog | 20 | 0.815 | 0.850 | 0.752 | 0.790 | 99/128 (77%) |
+| html | 20 | 0.851 | 0.858 | 0.771 | 0.777 | 92/128 (72%) |
+| genalog | 20 | 0.841 | 0.850 | 0.770 | 0.780 | 90/128 (70%) |
 
 ## By layout
 
 | value | images | token recall |
 | --- | ---: | ---: |
-| eatery_indexed | 12 | 0.913 |
-| market_barcode | 12 | 0.907 |
-| market_vat | 12 | 0.887 |
-| market_compact | 12 | 0.783 |
-| eatery_ascii | 12 | 0.761 |
+| eatery_indexed | 12 | 0.926 |
+| market_barcode | 12 | 0.867 |
+| market_vat | 12 | 0.834 |
+| eatery_ascii | 12 | 0.787 |
+| market_compact | 12 | 0.762 |
 
 ## By level of ageing
 
 | value | images | token recall |
 | --- | ---: | ---: |
-| pristine | 60 | 0.850 |
+| pristine | 60 | 0.836 |
 
 ## By kind of printer
 
 | value | images | token recall |
 | --- | ---: | ---: |
-| laser_sharp | 14 | 0.942 |
-| thermal_narrow | 13 | 0.839 |
-| thermal_dark | 10 | 0.817 |
-| thermal_faint | 22 | 0.817 |
-| dot_matrix | 1 | 0.786 |
+| laser_sharp | 9 | 0.931 |
+| thermal_faint | 21 | 0.848 |
+| thermal_dark | 15 | 0.821 |
+| thermal_narrow | 9 | 0.797 |
+| dot_matrix | 6 | 0.740 |
 
 ## The illustrations
 
@@ -46,6 +46,11 @@ word Tesseract read -- green where its confidence is >= 70%, orange below.
 
 ## How to read these tables
 
+**Every renderer drew the same receipts** (`pairing: paired`), so a
+difference between two rows of the first table is a difference in
+drawing and nothing else. The 60 images are 20 receipts
+drawn 3 ways -- count the sample as 20, not 60.
+
 **The spread between the three renderers is real, not a bug.** The glyph
 renderer produces a *photograph* of a receipt lying on a table -- with
 perspective, a lamp and a dark background; the two HTML renderers produce
@@ -53,11 +58,11 @@ a *flat scan* and a *print*. A photograph is markedly harder, and that is
 precisely why all three are kept: a model that has only seen flat scans
 has never met the hard case.
 
-**The order of the "ageing" table is the evidence that the rule-base
-really does control difficulty**: `pristine` and `real_paper` at the top,
-`crumpled` at the bottom, monotone across the range. Editing `weight` in
-`rulebase/rules/augmentation.yaml` shifts the whole dataset easier or
-harder.
+**The ageing table is where difficulty is supposed to be controlled.**
+Easiest here is `pristine` at 0.836 over 60 images, hardest is `pristine` at 0.836 over 60 images --
+only 0.000 between them, which is too little to say the rule-base is controlling difficulty in this sample. Editing `weight` in `rulebase/rules/augmentation.yaml` shifts
+the whole dataset. Values missing from the table were never drawn in this
+sample rather than scoring zero.
 
 **However much higher the "folded" column is than the plain one is how
 much of the error is tone marks alone.** The gap here is small, which means

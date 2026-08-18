@@ -50,7 +50,7 @@ for extra in (REPO_ROOT, REPO_ROOT / "tools"):
     if str(extra) not in sys.path:
         sys.path.insert(0, str(extra))
 
-from pipeline import preflight, record  # noqa: E402
+from pipeline import invariants, preflight, record  # noqa: E402
 from pipeline.config import Config, apply_overrides, materialise_rules  # noqa: E402
 from pipeline.plan import build_plan, write_plan  # noqa: E402
 from pipeline.worker import (  # noqa: E402
@@ -146,6 +146,13 @@ def assemble(out: Path, plan: dict, shards_root: Path) -> tuple[dict, list[str]]
         target.mkdir(parents=True)
 
         by_layout: dict[str, int] = {}
+        # Counted, not assumed. Before W1b a pinned draw walked to the next
+        # fitting seed, so twenty images held ten receipts and every denominator
+        # in the proof reports was wrong by a factor of two. A dataset that does
+        # not report its own distinct-sample count lets that happen again at a
+        # larger size with nobody watching.
+        seeds: set[int] = set()
+        labels: set[str] = set()
         written = 0
         with open(target / "metadata.jsonl", "w", encoding="utf-8") as index:
             for shard in sorted((s for s in plan["shards"] if s["backend"] == backend),
@@ -166,8 +173,20 @@ def assemble(out: Path, plan: dict, shards_root: Path) -> tuple[dict, list[str]]
                     json.dump(item, index, ensure_ascii=False)
                     index.write("\n")
                     by_layout[item["layout"]] = by_layout.get(item["layout"], 0) + 1
+                    seeds.add((item.get("recipe") or {}).get("seed"))
+                    labels.add(hashlib.sha256(
+                        str(item.get("ground_truth", "")).encode("utf-8")).hexdigest())
                     written += 1
-        frameworks[backend] = {"images": written, "by_layout": by_layout}
+        frameworks[backend] = {
+            "images": written,
+            "distinct_seeds": len(seeds),
+            "distinct_labels": len(labels),
+            "by_layout": by_layout,
+        }
+        if written and len(labels) < written:
+            warnings.append(
+                f"{backend}: {written} images but only {len(labels)} distinct "
+                f"labels; the sample is smaller than the file count says")
     return frameworks, warnings
 
 
@@ -206,6 +225,18 @@ def execute(config: Config, *, workers: int | None = None,
 
     # 3. Plan.
     plan = build_plan(config, layouts)
+
+    # Before a single page is drawn: under `paired` the backends must actually
+    # be drawing the same receipts. Cheap, and the alternative is finding out
+    # from a proof report months later that three renderers were compared on
+    # three different corpora -- which is what happened before W1b.
+    mismatched = invariants.paired_content(plan)
+    if mismatched:
+        print(f"PAIRING: {len(mismatched)} vấn đề — không chạy\n")
+        for problem in mismatched:
+            print(f"  - {problem}")
+        return 1
+
     plan_path = write_plan(plan, out / "plan.json")
     plan_sha = hashlib.sha256(plan_path.read_bytes()).hexdigest()
 
@@ -240,6 +271,10 @@ def execute(config: Config, *, workers: int | None = None,
     manifest = {
         "plan_sha256": plan_sha,
         "seed": plan["seed"],
+        # Which mode produced this dataset. Not decoration: every
+        # side-by-side number computed from it is only interpretable
+        # once you know whether the backends drew the same receipts.
+        "pairing": plan.get("pairing", "paired"),
         "per_backend": plan["per_backend"],
         "backends": plan["backends"],
         "layouts": plan["layouts"],
@@ -282,6 +317,9 @@ def execute(config: Config, *, workers: int | None = None,
     (out / "dataset.json").write_text(json.dumps({
         "per_framework": plan["per_backend"],
         "layouts": plan["layouts"],
+        # Downstream tools read this file rather than the manifest, and a
+        # comparison between renderers only means something under `paired`.
+        "pairing": plan.get("pairing", "paired"),
         "clean": plan["clean"],
         "force": plan["force"],
         "frameworks": frameworks,
