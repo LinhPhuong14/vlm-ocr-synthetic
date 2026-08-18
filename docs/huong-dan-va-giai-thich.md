@@ -95,12 +95,20 @@ make proof DATASET=data/dataset60_clean
 Đọc lại bằng Tesseract 5 (`vie`), chấm với nhãn, ghi
 `<DATASET>/proof/{README.md, ocr_report.json, proof_*.jpg}`.
 
-Số hiện tại:
+Số hiện tại — `token_recall`, đo lại sau W1b:
 
 | bộ | synthdog | html | genalog |
 | --- | ---: | ---: | ---: |
-| có làm cũ | 0.41 | 0.68 | 0.76 |
-| sạch | 0.85 | 0.85 | 0.87 |
+| có làm cũ | 0.506 | **0.729** | 0.659 |
+| sạch | 0.815 | **0.851** | 0.841 |
+
+Bảng cũ ở đây ghi 0.41 / 0.68 / 0.76 và kết luận genalog dễ đọc nhất. Sai hai
+lần. Một: con số 0.76 chưa bao giờ có trong `ocr_report.json` — số thật lúc đó
+là 0.638, và html 0.671 đã cao hơn rồi. Hai: ba renderer khi ấy vẽ **ba bộ hoá
+đơn khác nhau** (xem `pipeline/plan.py`, `pairing`), nên ba cột đó không so
+được với nhau dù số có đúng. Bảng trên là bộ đã sinh lại với `pairing: paired`,
+cùng 20 hoá đơn cho cả ba renderer, `money_total` bằng nhau (128) ở cả ba cột —
+đó mới là điều kiện để đọc bảng theo hàng ngang.
 
 ### 1.5 Kiểm tra trước khi commit
 
@@ -560,9 +568,12 @@ kia là đúng loại bẫy im lặng.
 
 **Tại sao vẫn giữ genalog mà không tự viết WeasyPrint?** Vì nó là một **đường
 render khác thật**: print engine có page box, phân trang thật, text shaper
-riêng. Model chỉ nhìn ảnh chụp màn hình trình duyệt thì chưa từng gặp nó. Điểm
-OCR chứng minh: genalog là renderer **dễ đọc nhất** ở bộ có làm cũ (0.76), khác
-hẳn hai cái kia.
+riêng. Model chỉ nhìn ảnh chụp màn hình trình duyệt thì chưa từng gặp nó.
+
+Chỗ này trước đây viết "genalog là renderer dễ đọc nhất ở bộ có làm cũ (0.76)".
+Bỏ. Trên cùng một bộ hoá đơn (`pairing: paired`, W1b) genalog được **0.659**,
+thấp hơn html **0.729**. Lý do giữ genalog không phải vì nó dễ đọc nhất — mà vì
+nó là đường render thứ ba, và đó là lý do đủ.
 
 ---
 
@@ -592,20 +603,29 @@ Ba model đáng nói nhất: `ink_degradation` (mô hình nhiễu cục bộ c�
 
 ## 8. Kiểm thử
 
-Repo này **không có unit test**. Cách kiểm chứng là bốn công cụ, và lý do là
-đầu ra của nó là ảnh: assert trên pixel vừa giòn vừa không phát hiện được thứ
-sai thật sự (chữ đè lên nhau, nhãn không khớp ảnh).
+Từ W0, repo có bộ test `pytest` (`pytest -q`, chạy trong CI, chỉ cần pytest và
+pyyaml) phủ **tầng dữ liệu**: luật, bố cục, nội dung, kế hoạch, bất biến từng
+ảnh. Phần *ảnh* thì không: assert trên pixel vừa giòn vừa không phát hiện được
+thứ sai thật sự (chữ đè lên nhau, nhãn không khớp ảnh). Chỗ đó dùng bốn công cụ.
 
 | công cụ | bắt được gì |
 | --- | --- |
+| `pytest -q` | luật, bố cục, số học nội dung, kế hoạch shard, bất biến từng ảnh |
 | `make check-rules` | thẻ gõ sai, giá trị không bao giờ bốc trúng, bố cục/giấy/degradation không tồn tại |
 | `make check-corpus` | corpus thiếu file, sai số cột |
 | `make preview-grid` | bố cục sai — nhìn bằng chữ, nhanh hơn nhìn JPEG rất nhiều |
 | `make proof` | nhãn có khớp ảnh không, ảnh có đọc được không |
 
 **`make proof` trên bộ sạch là bài test nhãn rẻ nhất.** Nhãn sai thì bộ sạch
-cũng không thể đạt 0.85. Bộ sạch gần như đồng đều giữa ba renderer
-(0.85 / 0.85 / 0.87) — chênh lệch ở bộ làm cũ **là do làm cũ**.
+cũng không thể đạt 0.8. Bộ sạch gần như đồng đều giữa ba renderer
+(0.815 / 0.851 / 0.841) — chênh lệch ở bộ làm cũ (0.506 / 0.729 / 0.659)
+**là do làm cũ**.
+
+Suy luận đó chỉ đứng được từ W1b trở đi. Trước W1b ba renderer vẽ ba bộ hoá đơn
+khác nhau, nên "bộ sạch đồng đều ⇒ chênh lệch là do làm cũ" là so ba corpus
+khác nhau rồi quy kết cho một biến. Giờ cả ba vẽ **cùng 20 hoá đơn**
+(`pairing: paired`), `money_total` bằng nhau 128/128/128, và câu trên là một
+phép so sánh có cặp thật.
 
 Chấm điểm trong `tools/ocr_proof.py` **không phụ thuộc thứ tự đọc**: Tesseract
 đọc hoá đơn hai cột theo thứ tự do layout analysis của nó quyết, nên so chuỗi

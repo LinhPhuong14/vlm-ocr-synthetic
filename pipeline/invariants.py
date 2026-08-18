@@ -539,6 +539,101 @@ class Tally:
         }
 
 
+# ------------------------------------------------- the plan, before rendering
+
+
+# How many images per backend the content check actually rebuilds. The
+# structural half is free and covers every image; this half costs a receipt
+# each, so it is capped -- a 100k run must not spend minutes proving something
+# a dozen pages already demonstrate.
+PAIRED_SAMPLE = 12
+
+
+def paired_content(plan: dict[str, Any], *, sample: int = PAIRED_SAMPLE) -> list[str]:
+    """Under `paired`, check the backends really do draw the same receipts.
+
+    Two halves, because they fail differently:
+
+    * **structural** -- the (seed, layout, index) list must be identical for
+      every backend. Free, covers every image, and catches the actual W1b
+      defect: three backends on three disjoint seed blocks.
+    * **content** -- rebuild a sample of images from *each backend's own* plan
+      entry and check the sampler gives back what the plan claims: the seed it
+      was asked for, the layout it was pinned to, and the same receipt for
+      every backend. Comparing the three labels alone would be redundant with
+      the structural half -- identical inputs to a deterministic function --
+      so what earns this half its cost is the other two: a plan naming a layout
+      the rules no longer have, or a sampler that has stopped returning the
+      seed it was given, both of which look perfectly well-formed on paper and
+      fail an hour into rendering.
+
+    Returns problems, empty under `independent` -- where the backends are
+    *supposed* to differ, so there is nothing here to check.
+    """
+    if plan.get("pairing", "paired") != "paired":
+        return []
+
+    jobs: dict[str, list[tuple[int, str, int]]] = {}
+    for shard in plan.get("shards", []):
+        entries = jobs.setdefault(shard["backend"], [])
+        for run in shard["runs"]:
+            for offset in range(run["count"]):
+                entries.append((run["seed"] + offset, run["layout"],
+                                run["first_index"] + offset))
+    for entries in jobs.values():
+        entries.sort(key=lambda entry: entry[2])
+
+    problems: list[str] = []
+    backends = sorted(jobs)
+    if len(backends) < 2:
+        return problems
+    reference = backends[0]
+    for backend in backends[1:]:
+        if jobs[backend] != jobs[reference]:
+            mismatched = [a for a, b in zip(jobs[backend], jobs[reference]) if a != b]
+            problems.append(
+                f"pairing is 'paired' but {backend} and {reference} do not draw the "
+                f"same pages: {len(mismatched)} of {len(jobs[reference])} differ, "
+                f"first at index {mismatched[0][2] if mismatched else '?'}")
+    try:
+        import rulebase
+    except ImportError as error:  # pragma: no cover - rulebase is always there
+        return problems + [
+            f"{UNCHECKED} could not import rulebase ({error}), so no content "
+            f"was compared"]
+
+    for position in range(min(max(sample, 0), len(jobs[reference]))):
+        labels: dict[str, str] = {}
+        for backend in backends:
+            if position >= len(jobs[backend]):
+                continue
+            seed, layout, index = jobs[backend][position]
+            try:
+                recipe, receipt, grid = rulebase.make(seed=seed,
+                                                      force={"layout": layout})
+            except Exception as error:  # noqa: BLE001 - a stale layout lands here
+                problems.append(
+                    f"{backend} image {index}: the plan asks for layout {layout!r} at "
+                    f"seed {seed}, which the rules will not produce: {error}")
+                continue
+            if recipe.seed != seed:
+                problems.append(
+                    f"{backend} image {index}: asked for seed {seed}, the sampler "
+                    f"returned {recipe.seed}; the plan cannot be reproduced from it")
+            if grid.layout_id != layout:
+                problems.append(
+                    f"{backend} image {index}: pinned to layout {layout!r}, drew "
+                    f"{grid.layout_id!r}")
+            labels[backend] = json.dumps(receipt.ground_truth(), sort_keys=True,
+                                         ensure_ascii=False)
+        if len(set(labels.values())) > 1:
+            differing = sorted(b for b in labels if labels[b] != labels.get(reference))
+            problems.append(
+                f"image {position} would be a different receipt in "
+                f"{', '.join(differing)} than in {reference}, but pairing is 'paired'")
+    return problems
+
+
 def attribute_names() -> tuple[str, ...]:
     """The attributes a recipe must name, from `rules/_order.yaml`.
 
