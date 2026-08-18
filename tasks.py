@@ -149,29 +149,6 @@ def setup_genalog(args) -> None:
         )
 
 
-@task("setup-tables", "table generator: selenium plus a chromedriver")
-def setup_tables(args) -> None:
-    venv = VENVS["tables"]
-    run([sys.executable, "-m", "venv", venv])
-    python = venv_python(venv)
-    _pip(python, "tables", "install", "-q", "-U", "pip")
-    # NOT `-r generators/html-table/requirements.txt`: that file is upstream's
-    # and pins `selenium==3.8.1`, whose ChromeOptions API modern chromedriver
-    # cannot talk to. The vendored code itself works unchanged on Selenium 4 --
-    # it builds the driver as `Chrome(options=...)`, which is still the current
-    # signature -- so the pin is the only thing standing in the way.
-    _pip(python, "tables", "install", "-q",
-         "selenium", "tqdm", "numpy", "opencv-python<5", "Pillow")
-    run([python, "-c", "import selenium; print('table generator ready:',"
-                       " 'selenium', selenium.__version__)"])
-    print(
-        "\nNOTE: this needs a chromedriver matching your Chrome. Selenium\n"
-        "      downloads one automatically unless the network blocks\n"
-        "      googlechromelabs.github.io -- then pass --chromedriver or set\n"
-        "      $CHROMEDRIVER. See the README."
-    )
-
-
 @task("setup", "build all three renderer environments")
 def setup(args) -> None:
     setup_synthdog(args)
@@ -199,9 +176,12 @@ def dataset_clean(args) -> None:
          "-o", f"{args.out}_clean", "-n", str(args.count), "--clean"])
 
 
-@task("tables", "table-structure images from the vendored generator")
+@task("tables", "table-structure images, from the html backend")
 def tables(args) -> None:
-    run([venv_python(VENVS["tables"]), REPO_ROOT / "tools" / "generate_tables.py",
+    # The html backend's interpreter, because the table generator IS the html
+    # backend: same Chromium, same boxes off the same laid-out DOM. There is no
+    # fourth environment to build any more.
+    run([venv_python(VENVS["html"]), REPO_ROOT / "tools" / "generate_tables.py",
          "-o", args.out, "-n", str(args.count)])
 
 
