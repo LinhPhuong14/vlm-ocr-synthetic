@@ -1,0 +1,25 @@
+# Line items on an English tax invoice.
+# Format: name<TAB>minimum unit price<TAB>maximum unit price   (in cents)
+#
+# Cents, not dollars: `rulebase.content` works in whole currency units and the
+# `cents` money style divides by 100 on the way out, so "6000" here prints as
+# "$60.00". Storing dollars would make every price a round number.
+
+Premium Beans 1kg	4500	9500
+House Blend Beans 1kg	3200	6800
+Decaf Beans 500g	2800	5200
+Filter Papers Box of 100	850	1900
+Ceramic Cups Set of 6	2400	5600
+Takeaway Cups Carton of 1000	7800	14500
+Milk Frothing Jug 600ml	1900	3800
+Espresso Machine Service	12000	38000
+Grinder Burr Replacement	6500	18000
+Delivery Within Metro Area	850	2500
+Bulk Storage Container 20L	3400	7200
+Loyalty Card Printing 500pc	4600	11000
+Barista Training Half Day	22000	48000
+Cleaning Tablets Tub of 100	1600	3400
+Scales 2kg Digital	4900	9800
+Reusable Cup 350ml	1200	2600
+Syrup Bottle 750ml	1400	2900
+Cold Brew Concentrate 2L	3600	7400

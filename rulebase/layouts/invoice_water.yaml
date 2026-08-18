@@ -1,0 +1,87 @@
+# Hoá đơn GTGT tiền nước của công ty cấp nước.
+#
+# Dấu hiệu nhận biết: bảng có SÁU cột chỉ số công tơ — "Số Đọc Tháng Này",
+# "Số Đọc Tháng Trước", "Số Lượng Tiêu Thụ", "Định Mức Tiêu Thụ", "Đơn giá",
+# "Thành tiền"; mỗi bậc giá chiếm HAI dòng, dòng trên là chỉ số, dòng dưới là
+# tiền; các dòng tổng nằm TRONG khung kẻ chứ không nằm dưới khung; cuối trang
+# có ô ký số màu xanh của bên bán.
+#
+# Logo và mã QR trên tờ gốc KHÔNG được vẽ: grid chỉ mang chữ, và một ô trống
+# vẽ thay logo sẽ dạy mô hình đọc chữ ở chỗ không có chữ.
+id: invoice_water
+name: Water utility — meter readings, a ruled table, totals inside the frame
+source: "ảnh hoá đơn Công ty TNHH MTV Nước sạch Hà Nội, ký hiệu 1K25TAE, tháng 01/2025"
+
+# A4 dọc in kim/laser ≈ 84-92 ký tự, rộng gấp đôi giấy nhiệt.
+width: [84, 92]
+gutter: 3
+rule_char: "-"
+
+sections: [letterhead, doctitle, parties, table, totals, words, signatures, footer]
+
+letterhead:
+  name_scale: [1.05, 1.25]
+  name_bold: true
+  serial_width: 24
+  # Nhãn của khối tiêu đề thư. Đây là chữ IN LÊN GIẤY nên viết tiếng Việt;
+  # `id`/`key` mới là định danh trong code — xem rulebase/README.md.
+  labels:
+    address: "Địa chỉ:"
+    tax_code: "Mã số thuế:"
+    phone: ""
+    branch: ""
+    serial: "Ký hiệu:"
+    number: "Số:"
+
+doctitle:
+  scale: [1.20, 1.45]
+
+parties:
+  style: two_column
+  split: 0.56
+  gap: 2
+  leader: ""
+
+column_header: true
+column_header_bold: true
+columns:
+  - {key: meter_now,  title: "Số Đọc Tháng Này",       width: 14, align: center, title_align: center}
+  - {key: meter_prev, title: "Số Đọc Tháng Trước",     width: 14, align: center, title_align: center}
+  - {key: qty,        title: "Số Lượng Tiêu Thụ (m3)", width: 14, align: center, title_align: center}
+  - {key: quota,      title: "Định Mức Tiêu Thụ (m3)", width: 14, align: right,  title_align: center}
+  - {key: unit_price, title: "Đơn giá (đ)",            width: 14, align: right,  title_align: center}
+  - {key: amount,     title: "Thành tiền (đ)",         width: 12, align: right,  title_align: center}
+
+table:
+  frame: true
+  row_rules: true
+  # Tờ hoá đơn in sẵn bốn dòng trống dưới dòng cuối cùng, dùng hay không dùng
+  # thì khung vẫn cao bằng đó — bốn dòng trống có kẻ ô là đặc trưng của tờ này.
+  blank_rows: 4
+
+item:
+  wrap_name: false
+  rows:
+    # dòng 1: chỉ số công tơ. Chỉ bậc đầu tiên có chỉ số, nên với bậc thứ hai
+    # trở đi dòng này rỗng và bị bỏ qua.
+    - - {col: meter_now, from: meter_now}
+      - {col: meter_prev, from: meter_prev}
+      - {col: qty, from: qty}
+    # dòng 2: định mức, mã giá + đơn giá ("DV 29.000"), thành tiền
+    - - {col: quota, from: quota}
+      - {col: unit_price, from: tier_price}
+      - {col: amount, from: amount}
+
+totals:
+  frame: true
+  emphasise_grand: true
+
+words:
+  frame: true
+
+signatures:
+  stamp_width: 46
+  stamp_gap: 2
+
+footer:
+  rule_before: false

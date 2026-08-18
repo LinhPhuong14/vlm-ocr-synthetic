@@ -3,6 +3,12 @@
 One corpus for every framework. The files are plain text so a Vietnamese
 speaker can fix a wrong dish name without touching Python, and tab-separated
 where a line carries more than a name (an item also carries its price range).
+
+The corpus is split by **language** and then by **profile**. Vietnamese is the
+whole of it bar one document kind: the English tax invoice prints English, so
+its words live in `corpus/en/`. Everything reads through the same functions
+with `lang` defaulting to Vietnamese, which is what keeps a caller that has
+never heard of the second language working unchanged.
 """
 
 from __future__ import annotations
@@ -10,7 +16,17 @@ from __future__ import annotations
 import functools
 from pathlib import Path
 
-CORPUS_ROOT = Path(__file__).resolve().parent / "corpus" / "vi"
+CORPUS_ROOT = Path(__file__).resolve().parent / "corpus"
+DEFAULT_LANG = "vi"
+
+
+def languages(root: Path | str = CORPUS_ROOT) -> list[str]:
+    """The language directories that exist, so nothing has to hard-code them."""
+    return sorted(path.name for path in Path(root).iterdir() if path.is_dir())
+
+
+def _dir(lang: str) -> Path:
+    return CORPUS_ROOT / lang
 
 
 def _lines(path: Path) -> list[str]:
@@ -34,70 +50,104 @@ def _columns(path: Path, count: int) -> list[tuple[str, ...]]:
 
 
 @functools.lru_cache(maxsize=None)
-def items(profile: str) -> list[tuple[str, int, int]]:
-    """(name, price_min, price_max) for a corpus profile: 'eatery' or 'market'."""
-    rows = _columns(CORPUS_ROOT / f"items_{profile}.txt", 3)
+def items(profile: str, lang: str = DEFAULT_LANG) -> list[tuple[str, int, int]]:
+    """(name, price_min, price_max) for a corpus profile: 'eatery', 'market'..."""
+    rows = _columns(_dir(lang) / f"items_{profile}.txt", 3)
     return [(name, int(lo), int(hi)) for name, lo, hi in rows]
 
 
 @functools.lru_cache(maxsize=None)
-def shops(profile: str) -> list[tuple[str, ...]]:
-    """Shop names. 'eatery' gives bare names, 'market' gives (brand, branch)."""
-    path = CORPUS_ROOT / f"shops_{profile}.txt"
-    return _columns(path, 2) if profile == "market" else [(n,) for n in _lines(path)]
+def shops(profile: str, lang: str = DEFAULT_LANG) -> list[tuple[str, ...]]:
+    """Shop names: one column, or two where the profile carries a branch.
+
+    Which it is comes from the file, not from a list of profile names in here.
+    `rulebase/README.md` promises that adding a profile is three corpus files
+    and nothing else; a `profile == "market"` test in this function is exactly
+    the Python edit that promise rules out, and the tab is a perfectly good
+    signal for what the file holds.
+    """
+    rows = _lines(_dir(lang) / f"shops_{profile}.txt")
+    if any("\t" in row for row in rows):
+        return _columns(_dir(lang) / f"shops_{profile}.txt", 2)
+    return [(row,) for row in rows]
 
 
 @functools.lru_cache(maxsize=None)
-def footers(profile: str) -> list[str]:
-    return _lines(CORPUS_ROOT / f"footers_{profile}.txt")
+def footers(profile: str, lang: str = DEFAULT_LANG) -> list[str]:
+    return _lines(_dir(lang) / f"footers_{profile}.txt")
 
 
 @functools.lru_cache(maxsize=None)
-def streets() -> list[str]:
-    return _lines(CORPUS_ROOT / "streets.txt")
+def people(lang: str = DEFAULT_LANG) -> list[str]:
+    """Personal names. A till prints none; a VAT invoice names its buyer."""
+    return _lines(_dir(lang) / "people.txt")
 
 
 @functools.lru_cache(maxsize=None)
-def wards() -> list[tuple[str, str, str]]:
-    return [tuple(row) for row in _columns(CORPUS_ROOT / "wards.txt", 3)]  # type: ignore[misc]
+def streets(lang: str = DEFAULT_LANG) -> list[str]:
+    return _lines(_dir(lang) / "streets.txt")
 
 
 @functools.lru_cache(maxsize=None)
-def payments() -> list[tuple[str, str]]:
-    return [tuple(row) for row in _columns(CORPUS_ROOT / "payments.txt", 2)]  # type: ignore[misc]
+def wards(lang: str = DEFAULT_LANG) -> list[tuple[str, str, str]]:
+    return [tuple(row) for row in _columns(_dir(lang) / "wards.txt", 3)]  # type: ignore[misc]
 
 
-def check() -> list[str]:
+@functools.lru_cache(maxsize=None)
+def payments(lang: str = DEFAULT_LANG) -> list[tuple[str, str]]:
+    return [tuple(row) for row in _columns(_dir(lang) / "payments.txt", 2)]  # type: ignore[misc]
+
+
+# Which files a language directory has to carry, and how to read each one. The
+# profiles are discovered from the filenames rather than listed, so a new
+# `items_x.txt` + `shops_x.txt` + `footers_x.txt` is checked without an edit
+# here -- and a set that is missing one of the three is reported.
+_SHARED = {
+    "streets.txt": streets,
+    "wards.txt": wards,
+    "payments.txt": payments,
+    "people.txt": people,
+}
+
+
+def check(root: Path | str = CORPUS_ROOT) -> list[str]:
     """Report anything missing or empty. Used by `make check-corpus`."""
-    problems = []
-    expected = {
-        "items_eatery.txt": lambda: items("eatery"),
-        "items_market.txt": lambda: items("market"),
-        "shops_eatery.txt": lambda: shops("eatery"),
-        "shops_market.txt": lambda: shops("market"),
-        "footers_eatery.txt": lambda: footers("eatery"),
-        "footers_market.txt": lambda: footers("market"),
-        "streets.txt": streets,
-        "wards.txt": wards,
-        "payments.txt": payments,
-    }
-    for name, load in expected.items():
-        path = CORPUS_ROOT / name
-        if not path.exists():
-            problems.append(f"{name}: missing")
-            continue
-        rows = load()
-        if not rows:
-            problems.append(f"{name}: no usable rows (check the tab count)")
+    problems: list[str] = []
+    for lang in languages(root):
+        directory = Path(root) / lang
+        for name, load in _SHARED.items():
+            if not (directory / name).exists():
+                problems.append(f"{lang}/{name}: missing")
+            elif not load(lang):
+                problems.append(f"{lang}/{name}: no usable rows (check the tab count)")
+
+        profiles = sorted(path.stem[len("items_"):] for path in directory.glob("items_*.txt"))
+        if not profiles:
+            problems.append(f"{lang}/: no items_<profile>.txt, so no profile can be built")
+        for profile in profiles:
+            for prefix, load in (
+                ("items", items), ("shops", shops), ("footers", footers)
+            ):
+                path = directory / f"{prefix}_{profile}.txt"
+                if not path.exists():
+                    problems.append(
+                        f"{lang}/{path.name}: missing, but {lang}/items_{profile}.txt "
+                        f"declares the {profile!r} profile"
+                    )
+                elif not load(profile, lang):
+                    problems.append(f"{lang}/{path.name}: no usable rows (check the tab count)")
     return problems
 
 
 __all__ = [
     "CORPUS_ROOT",
+    "DEFAULT_LANG",
     "check",
     "footers",
     "items",
+    "languages",
     "payments",
+    "people",
     "shops",
     "streets",
     "wards",
