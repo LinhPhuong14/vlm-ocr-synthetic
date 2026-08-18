@@ -32,7 +32,8 @@ def make_config(**changes) -> Config:
         "shard": {"size": 7},
     }
     for key, value in changes.items():
-        if key in ("out", "per_backend", "seed", "workers", "clean", "force"):
+        if key in ("out", "per_backend", "seed", "workers", "clean", "force",
+                   "pairing"):
             raw["run"][key] = value
         elif key == "size":
             raw["shard"]["size"] = value
@@ -181,17 +182,107 @@ def test_shards_cover_every_image_exactly_once():
         assert sorted(indices) == list(range(23)), backend
 
 
+def seeds_of(plan, backend=None):
+    return [run["seed"] + offset
+            for shard in plan["shards"]
+            if backend is None or shard["backend"] == backend
+            for run in shard["runs"]
+            for offset in range(run["count"])]
+
+
 def test_seed_ranges_are_disjoint_at_scale():
-    # Constructed rather than sampled: 2000 per backend over five layouts is
-    # 400 seeds per layout, well inside the 1000-seed block, and this is the
-    # size the brief asks to be proved.
-    config = make_config(per_backend=2000, size=250)
-    plan = build_plan(config, LAYOUTS)
-    seeds = [run["seed"] + offset
-             for shard in plan["shards"]
-             for run in shard["runs"]
-             for offset in range(run["count"])]
-    assert len(seeds) == len(set(seeds)), "two images would share a seed"
+    """Within one backend, no two images may share a seed.
+
+    Constructed rather than sampled: 2000 per backend over five layouts is 400
+    seeds per layout, well inside the 1000-seed block, and this is the size the
+    brief asks to be proved. Across backends the answer depends on the pairing
+    mode, which the two tests below cover.
+    """
+    plan = build_plan(make_config(per_backend=2000, size=250), LAYOUTS)
+    for backend in plan["backends"]:
+        seeds = seeds_of(plan, backend)
+        assert len(seeds) == len(set(seeds)), f"{backend}: two images share a seed"
+
+
+# --------------------------------------------------------------- pairing (W1b)
+
+
+def test_paired_is_the_default_and_gives_every_backend_the_same_seeds():
+    """The claim `README.md` opens with, asserted where it is decided.
+
+    Before W1b the seed carried `backend_index * 100_000`, so the three
+    renderers shared not one seed and the published side-by-side numbers were
+    comparing three different corpora.
+    """
+    plan = build_plan(make_config(per_backend=20, size=7), LAYOUTS)
+    assert plan["pairing"] == "paired"
+    sets = [set(seeds_of(plan, backend)) for backend in plan["backends"]]
+    assert len(sets[0]) == 20
+    for other in sets[1:]:
+        assert other == sets[0], "paired backends do not share their seeds"
+
+
+def test_independent_keeps_the_blocks_apart():
+    plan = build_plan(make_config(per_backend=20, size=7, pairing="independent"),
+                      LAYOUTS)
+    assert plan["pairing"] == "independent"
+    sets = [set(seeds_of(plan, backend)) for backend in plan["backends"]]
+    assert set.intersection(*sets) == set(), "independent backends share a seed"
+    assert len(set.union(*sets)) == 60
+
+
+def test_an_unknown_pairing_is_rejected():
+    with pytest.raises(ConfigError, match="run.pairing"):
+        make_config(pairing="sometimes")
+
+
+def test_the_guard_does_not_cry_wolf_in_either_mode():
+    """`disjoint_seeds` must stay useful under both modes.
+
+    Under `paired` the backends cover the same seeds deliberately, so a guard
+    that compared them would fire on every correct run and be switched off.
+    """
+    for pairing in ("paired", "independent"):
+        runs = {backend: backend_runs(index, 2000, 2026, LAYOUTS, pairing)
+                for index, backend in enumerate(["synthdog", "html", "genalog"])}
+        assert disjoint_seeds(runs, pairing) == [], pairing
+
+
+def test_an_overlap_inside_one_backend_is_still_caught_when_paired():
+    per_backend = (LAYOUT_STRIDE + 2) * len(LAYOUTS)
+    runs = {backend: backend_runs(index, per_backend, 0, LAYOUTS, "paired")
+            for index, backend in enumerate(["synthdog", "html"])}
+    problems = disjoint_seeds(runs, "paired")
+    assert problems and "overlap" in problems[0]
+
+
+def test_the_paired_invariant_sees_a_plan_whose_backends_diverge():
+    """Law 2: the condition is built, not waited for.
+
+    A plan that says `paired` while its backends sit on different seeds is what
+    the whole of W1b is about, so it is constructed here rather than trusted not
+    to happen.
+    """
+    from pipeline.invariants import paired_content
+
+    good = build_plan(make_config(per_backend=10, size=10), LAYOUTS)
+    assert paired_content(good) == []
+
+    broken = json.loads(json.dumps(good))
+    for shard in broken["shards"]:
+        if shard["backend"] != broken["backends"][0]:
+            for run in shard["runs"]:
+                run["seed"] += 100_000
+    problems = paired_content(broken)
+    assert problems and "do not draw the same pages" in problems[0], problems
+
+
+def test_the_paired_invariant_says_nothing_about_an_independent_plan():
+    from pipeline.invariants import paired_content
+
+    plan = build_plan(make_config(per_backend=10, size=10, pairing="independent"),
+                      LAYOUTS)
+    assert paired_content(plan) == []
 
 
 def test_an_overlapping_plan_is_refused_rather_than_emitted():
@@ -237,3 +328,44 @@ def test_shard_indices_are_unique_across_backends():
     plan = build_plan(make_config(per_backend=20, size=7), LAYOUTS)
     indices = [shard["index"] for shard in plan["shards"]]
     assert len(indices) == len(set(indices))
+
+
+def test_the_paired_invariant_catches_a_plan_naming_a_layout_the_rules_lost():
+    """The half the structural check cannot do.
+
+    Comparing three identical (seed, layout) pairs through a deterministic
+    sampler proves nothing on its own. What this half is for is a plan that is
+    perfectly well-formed and still cannot be rendered -- a layout renamed in
+    `rulebase/rules/layout.yaml` since the plan was written, which otherwise
+    surfaces as a dead worker an hour in.
+    """
+    from pipeline.invariants import paired_content
+
+    plan = build_plan(make_config(per_backend=10, size=10), LAYOUTS)
+    for shard in plan["shards"]:
+        for run in shard["runs"]:
+            run["layout"] = "a_layout_nobody_ships"
+    problems = paired_content(plan)
+    assert problems, "a plan pinned to a layout that does not exist passed"
+    assert "will not produce" in problems[0], problems
+
+
+def test_the_paired_invariant_catches_a_sampler_that_moved_the_seed(monkeypatch):
+    """A pin that walks to another seed makes the plan unreproducible.
+
+    This is the W1b defect seen from the scheduling side: the plan says seed
+    2026 and the sampler hands back 2031, so `recipe.seed` no longer indexes
+    the plan and nothing downstream can line the two up.
+    """
+    import rulebase
+    from pipeline.invariants import paired_content
+
+    real = rulebase.make
+
+    def walked(seed=None, force=None, **kwargs):
+        return real(seed=(seed or 0) + 5, force=force, **kwargs)
+
+    monkeypatch.setattr(rulebase, "make", walked)
+    plan = build_plan(make_config(per_backend=10, size=10), LAYOUTS)
+    problems = paired_content(plan)
+    assert problems and "the sampler returned" in problems[0], problems

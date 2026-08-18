@@ -7,11 +7,14 @@
     "market_compact",
     "market_vat"
   ],
+  "pairing": "paired",
   "clean": false,
   "force": [],
   "frameworks": {
     "synthdog": {
       "images": 20,
+      "distinct_seeds": 20,
+      "distinct_labels": 20,
       "by_layout": {
         "eatery_ascii": 4,
         "eatery_indexed": 4,
@@ -22,6 +25,8 @@
     },
     "html": {
       "images": 20,
+      "distinct_seeds": 20,
+      "distinct_labels": 20,
       "by_layout": {
         "eatery_ascii": 4,
         "eatery_indexed": 4,
@@ -32,6 +37,8 @@
     },
     "genalog": {
       "images": 20,
+      "distinct_seeds": 20,
+      "distinct_labels": 20,
       "by_layout": {
         "eatery_ascii": 4,
         "eatery_indexed": 4,

@@ -415,3 +415,126 @@ def test_the_sampler_follows_the_order_it_was_given(tmp_path):
         order=["layout", "document", "content", "visual", "color", "augmentation"])
     with pytest.raises(RuleError, match="nothing satisfies"):
         sample_recipe(seed=0, rules=load_rules(backward))
+
+
+# -------------------------------------------------- forcing is injective (W1b)
+
+
+def test_forcing_maps_distinct_seeds_to_distinct_recipes(real_rules):
+    """Law 7: deterministic was never the whole question. Is it one-to-one?
+
+    Until W1b a clashing pin was handled by trying `seed + 1`, `seed + 2` until
+    one fitted, so every seed in the gap returned the *same* recipe. Measured
+    on the shipped rule-base, 2000 consecutive seeds gave 249 distinct results
+    for `market_vat` and 837 for `eatery_ascii`, with runs of up to 36 seeds
+    collapsing onto one. The shipped 60-image dataset therefore held 33
+    receipts, not 60.
+
+    Two hundred seeds is enough to catch it without slowing the suite: the old
+    code gave 30 here for `market_vat` and 114 for the least affected layout.
+    """
+    from rulebase import available_layouts
+
+    for layout in available_layouts():
+        seeds = [sample_recipe(seed=k, rules=real_rules, force={"layout": layout}).seed
+                 for k in range(200)]
+        assert len(set(seeds)) == 200, (
+            f"{layout}: {len(set(seeds))} distinct recipes from 200 seeds")
+
+
+def test_a_forced_recipe_reports_the_seed_it_was_asked_for(real_rules):
+    """Everything that rebuilds a page from `recipe.seed` depends on this."""
+    from rulebase import available_layouts
+
+    for layout in available_layouts():
+        for seed in range(0, 200, 7):
+            recipe = sample_recipe(seed=seed, rules=real_rules, force={"layout": layout})
+            assert recipe.seed == seed
+
+
+def test_a_forced_draw_is_still_deterministic(real_rules):
+    for seed in range(0, 120, 3):
+        first = sample_recipe(seed=seed, rules=real_rules, force={"layout": "market_vat"})
+        second = sample_recipe(seed=seed, rules=real_rules, force={"layout": "market_vat"})
+        assert first.ids() == second.ids()
+
+
+def test_an_unforced_draw_never_needs_a_second_attempt(real_rules):
+    """The re-draw loop must not touch the unforced path.
+
+    Every committed dataset and the golden baseline were drawn without a pin,
+    and `attempts=1` proves the loop returns on its first pass rather than
+    quietly relying on retries.
+    """
+    for seed in range(200):
+        sample_recipe(seed=seed, rules=real_rules, attempts=1)
+
+
+def test_an_unlucky_seed_and_an_impossible_pin_say_different_things(constraint_rules):
+    """The cap has to distinguish the two, or a caller cannot act on either."""
+    # Legal, but this seed's first draw of `document` happened to block it.
+    unlucky = None
+    for seed in range(20):
+        try:
+            sample_recipe(seed=seed, rules=constraint_rules,
+                          force={"layout": "needs_x"}, attempts=1)
+        except RuleError as error:
+            unlucky = str(error)
+            break
+    assert unlucky and "unlucky rather than impossible" in unlucky
+    assert "tags at fault" in unlucky, unlucky
+
+    # Impossible: `sets_y` never sets x, so no number of attempts will help.
+    with pytest.raises(RuleError, match="cannot be drawn at all") as caught:
+        sample_recipe(seed=0, rules=constraint_rules,
+                      force={"document": "sets_y", "layout": "needs_x"})
+    assert "tags at fault" in str(caught.value)
+
+
+def test_a_legal_pin_is_found_however_unlucky_the_seed(constraint_rules):
+    # Half the seeds draw `sets_y` first and must re-draw; none may fail.
+    for seed in range(60):
+        recipe = sample_recipe(seed=seed, rules=constraint_rules,
+                               force={"layout": "needs_x"})
+        assert recipe.ids() == {"document": "sets_x", "layout": "needs_x",
+                                "content": "c1", "visual": "v1",
+                                "color": "k1", "augmentation": "a1"}
+        assert recipe.seed == seed
+
+
+def test_a_weight_zero_option_cannot_rescue_an_impossible_pin():
+    """Reachability must ignore what the sampler will never draw.
+
+    A value with weight 0 is switched off, so the tag it would have set is not
+    available to anything -- counting it would report a pin as reachable that
+    no draw can ever reach.
+    """
+    rules = build_rules({
+        "document": [{"id": "off", "weight": 0, "tags": ["x"]},
+                     {"id": "on", "weight": 1, "tags": ["y"]}],
+        "layout": [{"id": "needs_x", "weight": 1, "requires": ["x"]}],
+        **{attribute: [{"id": f"{attribute}0", "weight": 1}]
+           for attribute in ("content", "visual", "color", "augmentation")},
+    })
+    with pytest.raises(RuleError, match="cannot be drawn at all"):
+        sample_recipe(seed=0, rules=rules, force={"layout": "needs_x"})
+
+
+def test_an_unforced_failure_is_reported_directly_not_as_an_unlucky_seed():
+    """Without a pin there is nothing to re-draw around, so retrying is wrong.
+
+    Not merely slower: a rule-base with an unreachable attribute would be
+    reported as "this seed is unlucky, try another", which sends a reader
+    looking for a seed that does not exist instead of at the rules.
+    """
+    rules = build_rules({
+        "document": [{"id": "d", "weight": 1, "tags": ["x"]}],
+        "layout": [{"id": "l", "weight": 1, "excludes": ["x"]}],
+        **{attribute: [{"id": f"{attribute}0", "weight": 1}]
+           for attribute in ("content", "visual", "color", "augmentation")},
+    })
+    with pytest.raises(RuleError) as caught:
+        sample_recipe(seed=0, rules=rules)
+    message = str(caught.value)
+    assert message.startswith("layout: nothing satisfies"), message
+    assert "unlucky" not in message and "last clash" not in message, message
