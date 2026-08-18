@@ -48,6 +48,10 @@ dataset-clean:   ## The same dataset with no ageing and no distortion at all
 	$(TASKS) dataset-clean -o $(DATASET) -n $(N)
 tables:          ## Table-structure images from the vendored generator (TABLES=60)
 	$(TASKS) tables -o data/tables60 -n $(TABLES)
+baseline-write:  ## Capture the golden fingerprint of the generator
+	$(TASKS) baseline-write
+baseline-verify: ## Regenerate the fixed plans and compare to the golden file
+	$(TASKS) baseline-verify
 proof:           ## Run Tesseract over $(DATASET) and score it against the labels
 	$(TASKS) proof --dataset $(DATASET)
 check-boxes:     ## Verify every renderer's boxes still land on its text
