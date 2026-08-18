@@ -32,56 +32,19 @@ from playwright.sync_api import sync_playwright
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
+# The browser, the fonts and the two box-reading snippets live in `page.py`:
+# two producers sit on this backend now -- receipts here, tables in
+# `tables.py` -- and both need all four.
+from page import (  # noqa: E402
+    CELL_RECTS_JS,
+    CELL_REGIONS_JS,
+    find_chromium,
+    font_faces,
+    served,
+)
+
 import rulebase  # noqa: E402
 from degradation.pipeline import apply_recipe  # noqa: E402
-
-FONT_ROOT = REPO_ROOT / "fonts"
-# Linux containers that ship a browser system-wide, this repository's own
-# included. Elsewhere -- Windows, macOS, a plain `pip install playwright` --
-# there is nothing here and Playwright resolves its own download instead.
-CHROMIUM_CANDIDATES = [
-    Path("/opt/pw-browsers/chromium/chrome-linux/chrome"),
-    Path("/opt/pw-browsers/chromium-1194/chrome-linux/chrome"),
-    Path("/usr/bin/chromium"),
-    Path("/usr/bin/chromium-browser"),
-]
-
-
-def find_chromium() -> str | None:
-    """A browser to launch, or None to let Playwright pick its own.
-
-    Returning None is not a failure: `launch(executable_path=None)` is the
-    normal path, and the only reason to override it is a container that already
-    has a build and must not download a second one.
-    """
-    for path in CHROMIUM_CANDIDATES:
-        if path.exists():
-            return str(path)
-    for path in sorted(Path("/opt/pw-browsers").glob("chromium*/chrome-linux/chrome")):
-        return str(path)
-    return None
-
-
-def _font_faces() -> str:
-    """Embed the repo's fonts so the browser cannot silently substitute.
-
-    A CSS stack that falls through to whatever the container happens to have
-    is how a receipt ends up rendered in a font with no Vietnamese diacritics,
-    with the label still claiming they were printed.
-    """
-    faces = []
-    for group in ("mono", "sans", "serif"):
-        directory = FONT_ROOT / group
-        if not directory.is_dir():
-            continue
-        for path in sorted(directory.glob("*.ttf")):
-            family = path.stem.replace("-Regular", "").replace("-Bold", "")
-            weight = "700" if path.stem.endswith("-Bold") else "400"
-            faces.append(
-                "@font-face{font-family:'%s';font-weight:%s;src:url('file://%s') format('truetype');}"
-                % (family.replace("-", " "), weight, path)
-            )
-    return "\n".join(faces)
 
 
 def build_html(grid, recipe, receipt) -> str:
@@ -178,7 +141,7 @@ def build_html(grid, recipe, receipt) -> str:
 
     return f"""<!doctype html>
 <html><head><meta charset="utf-8"><style>
-{_font_faces()}
+{font_faces()}
 html,body{{margin:0;padding:0;background:#fff;}}
 #sheet{{
   position:relative;
@@ -209,50 +172,6 @@ html,body{{margin:0;padding:0;background:#fff;}}
 #tint{{position:absolute;inset:0;pointer-events:none;}}
 </style></head>
 <body><div id="sheet">{"".join(marks)}{"".join(spans)}{tint_layer}</div></body></html>"""
-
-
-# Ask the browser where every cell's *text* ended up, in CSS pixels relative to
-# the sheet. Read from the inner <i>, not the positioned <span>: the span is a
-# whole column wide and mostly empty for a right-aligned amount, whereas the
-# glyph renderer's quads hug the text. Boxes that mean different things in two
-# backends are worse than boxes in only one.
-CELL_RECTS_JS = """() => {
-  const sheet = document.querySelector('#sheet').getBoundingClientRect();
-  return [...document.querySelectorAll('#sheet span[data-kind]')].map(span => {
-    const box = (span.firstElementChild || span).getBoundingClientRect();
-    return {
-      kind: span.dataset.kind,
-      text: span.textContent,
-      x: box.left - sheet.left,
-      y: box.top - sheet.top,
-      w: box.width,
-      h: box.height,
-    };
-  });
-}"""
-
-
-# The cells of a table, as opposed to the text inside them. Read from
-# `data-cell` elements, which only the A4 template emits. A merged cell -- the
-# totals row spanning six columns -- has a text box that says nothing about the
-# span, so the cell rect and the span are collected as well. The idea and the
-# token format are taken from the vendored `generators/html-table`; the
-# mechanism is not, because one `evaluate` returns every rect at once where that
-# generator makes one Selenium round trip per cell.
-CELL_REGIONS_JS = """() => {
-  const sheet = document.querySelector('#sheet').getBoundingClientRect();
-  return [...document.querySelectorAll('#sheet [data-cell]')].map(td => {
-    const box = td.getBoundingClientRect();
-    return {
-      kind: td.dataset.cell,
-      text: td.textContent.trim(),
-      row: Number(td.dataset.row), col: Number(td.dataset.col),
-      colspan: td.colSpan || 1, rowspan: td.rowSpan || 1,
-      x: box.left - sheet.left, y: box.top - sheet.top,
-      w: box.width, h: box.height,
-    };
-  });
-}"""
 
 
 def regions_from_rects(rects, scale: float, factor: float) -> list[dict]:
@@ -345,13 +264,15 @@ class HtmlReceiptRenderer:
             from a4 import build as build_template
 
             markup = build_template(recipe, receipt, self.template)
-            markup = markup.replace("{FONT_FACES}", _font_faces())
+            markup = markup.replace("{FONT_FACES}", font_faces())
         else:
             markup = build_html(grid, recipe, receipt)
 
         page = self._browser.new_page(device_scale_factor=self.scale)
         try:
-            page.set_content(markup, wait_until="load")
+            # Served from a file, not `set_content`: see `page.served`.
+            with served(markup) as uri:
+                page.goto(uri, wait_until="load")
             page.wait_for_timeout(60)  # let the embedded faces settle
             sheet = page.query_selector("#sheet")
             # Measured before the screenshot and from the same laid-out page, so

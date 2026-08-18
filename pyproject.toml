@@ -1,5 +1,5 @@
 # This repository is a collection of generators, not an installable package:
-# synthdog/ and html-table/ each have their own dependencies and their own
+# synthdog/ and genalog/ each have their own dependencies and their own
 # supported Python range. What lives here is the tooling configuration shared
 # across them.
 

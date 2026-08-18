@@ -11,7 +11,6 @@ synthtiger pins Pillow 9.5 and WeasyPrint needs a modern one.
 | `generators/synthdog/` | `make setup-synthdog` | **Python 3.8 – 3.11 only** |
 | `generators/html/` | `make setup-html` | needs a browser; see its README |
 | `generators/genalog/` | `make setup-genalog` | genalog's source is vendored here, not installed |
-| `generators/html-table/` | `pip install -r generators/html-table/requirements.txt` | vendored; prefer upstreaming fixes |
 
 `make setup` builds all three renderer environments. Without `make` — on
 Windows, or anywhere — `python tasks.py setup` does the same: **every task is
@@ -86,7 +85,8 @@ smudged scan.
 `ruff` for linting, configured in `pyproject.toml`. It checks correctness and
 imports, not formatting: much of the Python here is adapted from upstream and
 reformatting it would only make future merges harder. Vendored code
-(`generators/html-table/`) is excluded entirely.
+(`generators/genalog/`'s own source and tests) is excluded entirely; see
+`tools/paths.py`.
 
 `target-version` is `py38` because that is what the glyph renderer supports, so
 ruff will not suggest `zip(strict=)` or other newer syntax that would break it.

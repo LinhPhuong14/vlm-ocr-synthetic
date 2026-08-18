@@ -34,8 +34,6 @@ setup-html:      ## HTML renderer: playwright + a headless browser
 	$(TASKS) setup-html
 setup-genalog:   ## genalog renderer: WeasyPrint + PyMuPDF
 	$(TASKS) setup-genalog
-setup-tables:    ## table generator: selenium + a chromedriver
-	$(TASKS) setup-tables
 textures:        ## Regenerate the shared paper and background textures
 	$(TASKS) textures
 
@@ -47,7 +45,7 @@ dataset:         ## Build a labelled dataset with all three renderers (N=20 each
 	$(TASKS) dataset -o $(DATASET) -n $(N)
 dataset-clean:   ## The same dataset with no ageing and no distortion at all
 	$(TASKS) dataset-clean -o $(DATASET) -n $(N)
-tables:          ## Table-structure images from the vendored generator (TABLES=60)
+tables:          ## Table-structure images, from the html backend (TABLES=60)
 	$(TASKS) tables -o data/tables60 -n $(TABLES)
 run:             ## Run pipeline.yaml: preflight, shards in parallel, assemble
 	$(TASKS) run

@@ -37,9 +37,9 @@ sys.path.insert(0, str(REPO_ROOT))
 
 import rulebase  # noqa: E402
 
-# Frameworks that emit boxes. `html-table` writes its own per-cell bboxes in a
-# different schema and against a different task, so it is checked by its own
-# generator rather than here.
+# Frameworks that emit boxes. The table generator writes per-cell bboxes in a
+# different schema and against a different task, so `data/tables60/` is checked
+# by `tests/test_tables.py` and by its own generator rather than here.
 FRAMEWORKS = ("synthdog", "html", "genalog")
 
 
