@@ -886,11 +886,21 @@ def _emit_vat_summary(builder, spec, receipt, columns, rng) -> None:
         # way it sets a grand total anywhere else.
         bold = settings.get("emphasise_total", True) and index == last
         for column in resolved:
-            text = row.get(str(column.get("key", "")), "")
+            key = str(column.get("key", ""))
+            text = row.get(key, "")
             if not text:
                 continue
             width = column["col1"] - column["col0"]
-            builder.put(fit(text, width), f"summary.{column['key']}",
+            # Same rule the letterhead and the totals block already follow: a
+            # narrow column cuts the text short, and the label then has to say
+            # what was printed rather than what was sampled. Without this,
+            # "HÀNG HOÁ KHÔNG CHỊU THUẾ GTGT:" is drawn as "...THUẾ GT" while
+            # `ground_truth` keeps the full string -- a label describing text no
+            # reader can see, on 145 of 300 pages of this layout.
+            shown = fit(text, width)
+            if shown != text:
+                row[key] = shown
+            builder.put(shown, f"summary.{column['key']}",
                         column["col0"], column["col1"],
                         column.get("align", "left"), bold=bold)
         builder.newline()
