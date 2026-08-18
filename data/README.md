@@ -8,6 +8,22 @@
 20 images per renderer (synthdog / html / genalog) in each set, spread evenly
 over the 5 layouts.
 
+**60 images, 20 receipts.** Both sets are built `paired`: all three renderers
+draw the *same* twenty receipts, so `synthdog_000.jpg`, `html_000.jpg` and
+`genalog_000.jpg` are one receipt photographed, scanned and printed. That is
+what makes a comparison between the renderers mean anything, and it is also why
+the sample is twenty and not sixty — `dataset.json` reports
+`distinct_labels` per renderer so nobody has to work it out.
+
+Both sets also carry the *same* twenty receipts as each other, so the aged set
+and the clean set differ in exactly one thing: the ageing.
+
+Before W1b neither of those was true. The three renderers sat on disjoint seed
+blocks and drew three different sets of receipts, and a pinned draw walked to
+the next fitting seed, so twenty images held ten or thirteen distinct labels.
+Every side-by-side number published from those sets compared three different
+corpora over a sample half the size it claimed.
+
 Regenerate:
 
 ```bash
