@@ -124,7 +124,12 @@ options:
       padding_top: [1.6, 2.6]
       padding_bottom: [1.6, 2.6]
       ink_gray: [0, 22]
-      bold: 0.30
+      # KHÔNG bốc đậm ngẫu nhiên. `bold` mô phỏng đầu in nhiệt gõ hai lần —
+      # có thật trên giấy nhiệt, không có thật trên máy laser: máy laser in
+      # đúng một độ đậm. Để 0.30 thì mỗi tờ hoá đơn có dăm ba ô in đậm không
+      # theo quy luật nào, trong khi bố cục đã tự nói ô nào cần đậm (tên công
+      # ty, tiêu đề, dòng tổng) qua `bold: true` của chính nó.
+      bold: 0
       paper: [office_a5, stone_top]
       paper_alpha: [0.02, 0.10]
       curl: 0.15
@@ -144,7 +149,10 @@ options:
       padding_top: [1.8, 2.8]
       padding_bottom: [1.6, 2.8]
       ink_gray: [25, 80]
-      bold: 0.18
+      # Như `laser_invoice`. Máy in kim gõ không đều thật, nhưng cái không đều
+      # đó là ĐỘ ĐẬM MỰC — `ink_gray` và `ink_degradation` đã tả — chứ không
+      # phải chữ chuyển sang kiểu đậm giữa dòng.
+      bold: 0
       paper: [recycled, office_a5]
       paper_alpha: [0.10, 0.26]
       curl: 0.30
