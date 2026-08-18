@@ -23,6 +23,7 @@ from rulebase import (  # noqa: E402
     ATTRIBUTES,
     available_layouts,
     corpus,  # noqa: E402
+    load_groups,
     load_rules,
     sample_recipe,
     validate,
@@ -114,6 +115,8 @@ def _chain_entries(chain):
 
 def distribution(draws: int, seed: int) -> None:
     counters = {attribute: Counter() for attribute in ATTRIBUTES}
+    families = {attribute: Counter() for attribute in ATTRIBUTES}
+    groups = load_groups()
     failures = 0
     for index in range(draws):
         try:
@@ -123,11 +126,24 @@ def distribution(draws: int, seed: int) -> None:
             continue
         for attribute, option in recipe.choices.items():
             counters[attribute][option.id] += 1
+            if option.group:
+                families[attribute][option.group] += 1
 
     total = draws - failures
     print(f"{total} lần bốc thành công / {draws}\n")
     for attribute in ATTRIBUTES:
         print(f"[{attribute}]")
+        # An attribute sorted into parent nodes is reported by node first. A
+        # weight is relative to the candidates left after filtering, so a
+        # family of five rare layouts and a family of one common one can read
+        # identically value by value and be nothing alike as a mix.
+        labels = {group.id: group.label for group in groups.get(attribute, [])}
+        for name, count in families[attribute].most_common():
+            share = count / total if total else 0
+            print(f"  ({name}) {labels.get(name, '')}".rstrip())
+            print(f"  {'':<28} {count:>5}  {share:>6.1%}")
+        if families[attribute]:
+            print()
         for name, count in counters[attribute].most_common():
             share = count / total if total else 0
             bar = "#" * int(share * 40)
