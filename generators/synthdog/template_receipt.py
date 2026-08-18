@@ -89,14 +89,19 @@ class SynthVNReceipt(templates.Template):
 
         out = self.receipt.generate(seed=seed, force=force)
         text_layers, fields = out["text_layers"], out["fields"]
+        mark_layers = out.get("mark_layers") or []
         recipe, receipt = out["recipe"], out["receipt"]
         width, height = out["size"]
 
         # ----- 1. chữ trên tờ giấy trắng -----
         sheet = layers.RectLayer((width, height), (255, 255, 255, 255))
-        self.doc_effect.apply([*text_layers, sheet])
+        # Marks go between the text and the paper: a table rule is drawn by the
+        # printer and the text sits in the cell it makes, so a line that crossed
+        # a word would be wrong. The distortion is applied to all of them
+        # together, or the rules would not follow the text when the sheet warps.
+        self.doc_effect.apply([*text_layers, *mark_layers, sheet])
 
-        doc_group = layers.Group([*text_layers, sheet])
+        doc_group = layers.Group([*text_layers, *mark_layers, sheet])
         origin = doc_group.topleft
         quads = np.array([layer.quad for layer in text_layers], dtype=np.float32) - origin
         doc_image = doc_group.output()
