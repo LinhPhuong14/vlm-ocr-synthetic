@@ -26,6 +26,7 @@ it prints long before the page decides how it will be creased.
 
 from __future__ import annotations
 
+import os
 import random
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -33,7 +34,12 @@ from typing import Any, Iterable, Sequence
 
 import yaml
 
-RULES_ROOT = Path(__file__).resolve().parent / "rules"
+# A run may need rules of its own -- `pipeline.yaml` can re-weight a value for
+# one job without editing the shipped files. The renderers are separate
+# processes, so the only way to hand them a variation is a directory on disk and
+# an environment variable pointing at it. Unset, which is the normal case, this
+# is exactly the shipped path and nothing about generation changes.
+RULES_ROOT = Path(os.environ.get("VLM_RULES_ROOT") or Path(__file__).resolve().parent / "rules")
 ORDER_FILE = "_order.yaml"
 
 
