@@ -16,6 +16,12 @@ width: [104, 118]
 gutter: 3
 rule_char: "-"
 
+# Kẻ bằng NÉT chứ không bằng ký tự. Một tờ A4 được máy in kẻ, không phải được
+# vẽ bằng `+---+`; và một dòng kẻ vẽ thật không tốn một dòng văn bản, nên trang
+# ngắn lại đúng như tờ giấy thật. Năm bố cục giấy nhiệt không khai khoá này —
+# ở đó `+---+` mới là thứ máy in nhiệt thật sự in ra.
+rules: marks
+
 sections: [letterhead, doctitle, parties, table, totals, words, signatures, footer]
 
 letterhead:
