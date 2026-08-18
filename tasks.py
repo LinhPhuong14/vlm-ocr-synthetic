@@ -205,6 +205,14 @@ def tables(args) -> None:
          "-o", args.out, "-n", str(args.count)])
 
 
+@task("run", "run pipeline.yaml: preflight, shards in parallel, assemble")
+def run_pipeline(args) -> None:
+    command = [first_available_python(), REPO_ROOT / "pipeline" / "run.py"]
+    if args.out != str(Path("data") / "dataset60"):
+        command += ["-o", args.out]
+    run(command)
+
+
 @task("baseline-write", "capture the golden fingerprint of the generator")
 def baseline_write(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "baseline.py", "--write"])
