@@ -16,3 +16,11 @@ numpy>=1.24
 opencv-python-headless>=4.8,<5
 pillow>=10
 PyYAML>=6
+cairocffi                 # NOT used by anything this repository calls: it is
+                          # imported at the top of the vendored
+                          # `genalog/generation/document.py` for `render_png()`,
+                          # which render.py replaced with render_pdf() + PyMuPDF.
+                          # WeasyPrint dropped its own cairocffi dependency at
+                          # 53, so without this line `import genalog.generation.
+                          # document` raises ModuleNotFoundError and every
+                          # genalog render fails before it starts.
