@@ -50,7 +50,7 @@ for extra in (REPO_ROOT, REPO_ROOT / "tools"):
     if str(extra) not in sys.path:
         sys.path.insert(0, str(extra))
 
-from pipeline import invariants, preflight, record  # noqa: E402
+from pipeline import drift, invariants, preflight, record  # noqa: E402
 from pipeline.config import Config, apply_overrides, materialise_rules  # noqa: E402
 from pipeline.plan import build_plan, write_plan  # noqa: E402
 from pipeline.worker import (  # noqa: E402
@@ -103,6 +103,41 @@ def gather_invariants(plan: dict, shards_root: Path) -> dict:
         "notes": dict(sorted(notes.items())),
         "unchecked": sorted(unchecked),
     }
+
+
+def gather_drift(plan: dict, shards_root: Path, quality: dict | None,
+                 rules=None) -> tuple[dict, list[str]]:
+    """Compare every finished shard's mix against what the plan asked for.
+
+    Done here rather than in the worker because the expectation is a property of
+    the whole plan, and because a shard that is merely *unusual* should not fail
+    -- the run reports it and returns non-zero, which is loud without throwing
+    away an hour of rendering. The content-source axis is the exception and is
+    already handled in the worker: that one is a fault, not a mix.
+    """
+    tolerance = drift.tolerance_of(quality)
+    vectors: list[dict] = []
+    warnings: list[str] = []
+    notes: list[str] = []
+
+    for shard in sorted(plan["shards"], key=lambda s: s["index"]):
+        path = shard_dir(shards_root, shard["index"]) / drift.VECTOR
+        if not path.exists():
+            continue
+        vector = json.loads(path.read_text(encoding="utf-8"))
+        vectors.append(vector)
+        shares, problems = drift.expected_shares(shard, plan, rules=rules)
+        warnings += [f"shard {shard['index']}: {problem}" for problem in problems]
+        found, stops, said = drift.compare(vector, shares, tolerance=tolerance)
+        warnings += [f"shard {shard['index']}: {message}" for message in found + stops]
+        notes += [f"shard {shard['index']}: {message}" for message in said]
+
+    summary = drift.summarise(vectors, plan.get("pairing", "paired"))
+    summary["tolerance"] = tolerance
+    # Not warnings: "too small to judge" is a fact about the request, not a
+    # fault, and a correct 60-image run must not exit non-zero because of it.
+    summary["notes"] = sorted(set(notes))
+    return summary, sorted(set(warnings))
 
 
 def _render_one(job: dict) -> dict:
@@ -219,9 +254,10 @@ def execute(config: Config, *, workers: int | None = None,
 
     # 2. Overrides become a rules directory the renderer subprocesses can read.
     rules_root = None
+    rendered_rules = None
     if config.overrides:
-        rules_root = materialise_rules(
-            apply_overrides(load_rules(), config.overrides), out / ".rules")
+        rendered_rules = apply_overrides(load_rules(), config.overrides)
+        rules_root = materialise_rules(rendered_rules, out / ".rules")
 
     # 3. Plan.
     plan = build_plan(config, layouts)
@@ -266,6 +302,11 @@ def execute(config: Config, *, workers: int | None = None,
 
     # 4. Assemble whatever finished, then report honestly about the rest.
     frameworks, warnings = assemble(out, plan, shards_root)
+    # The rules the run actually rendered with, overrides included: comparing an
+    # overridden run against the shipped weights would report drift on every one.
+    quality, drifting = gather_drift(plan, shards_root, config.quality,
+                                     rules=rendered_rules)
+    warnings += drifting
     failed = sorted((r for r in results if r["error"]), key=lambda r: r["shard"])
 
     manifest = {
@@ -293,6 +334,9 @@ def execute(config: Config, *, workers: int | None = None,
         "frameworks": frameworks,
         # Counts, not durations: see the note below about what this file is for.
         "invariants": gather_invariants(plan, shards_root),
+        # The run's mix, and the tolerance it was judged against. Also counts,
+        # for the same reason: two runs of one plan must agree here byte for byte.
+        "quality": quality,
         "failed": [{"shard": r["shard"], "backend": r["backend"], "error": r["error"]}
                    for r in failed],
         "warnings": sorted(warnings),
