@@ -1,0 +1,12 @@
+
+# Chân hoá đơn tiệm bánh.
+#
+# Tờ hoá đơn tự thiết kế kết bằng lời cảm ơn và cách đặt hàng lần sau, không
+# bằng dòng nhắc đối chiếu của hoá đơn GTGT.
+
+Cảm ơn Quý khách đã tin tưởng và đặt bánh tại cửa hàng
+Bánh đặt theo yêu cầu xin báo trước 24 giờ
+Bánh ngon nhất trong 48 giờ kể từ khi ra lò
+Hẹn gặp lại Quý khách vào lần đặt bánh tới
+Đơn hàng từ 500.000đ được miễn phí giao trong nội thành
+Vui lòng bảo quản bánh trong ngăn mát trước khi dùng

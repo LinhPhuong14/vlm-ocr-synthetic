@@ -1,0 +1,107 @@
+# Bản thể hiện của hoá đơn điện tử GTGT — tờ kết bằng bảng TỔNG HỢP.
+#
+# Dấu hiệu nhận biết, theo thứ tự từ trên xuống: tiêu đề đỏ ở đỉnh trang với
+# khối "Mẫu số / Ký hiệu / Số" nằm bên phải; khối người bán NẰM TRONG KHUNG,
+# có mã QR bên trái (QR không phải chữ nên không vẽ, khung thì vẽ); bảng hàng
+# tám cột có cột thuế suất và cột tiền thuế riêng; dưới bảng CHỈ một dòng
+# "Cộng tiền hàng chưa có thuế GTGT"; rồi bảng "Tổng hợp" chia tiền theo từng
+# thuế suất — 0%, 5%, 10% in sẵn dù có bán ở mức đó hay không.
+#
+# Bảng tổng hợp là chỗ khác `invoice_vat_form`. Tờ kia kết bằng ba dòng tổng
+# trong khung; tờ này kết bằng một bảng năm cột, vì hai dòng hàng trên cùng
+# tờ hoá đơn có thể chịu hai mức thuế khác nhau và một dòng "Thuế GTGT 10%"
+# sẽ nói sai về một nửa số dòng.
+id: invoice_vat_summary
+name: VAT e-invoice rendition — boxed seller block, summary by tax rate
+source: "ảnh hoá đơn GTGT mẫu 01GTKT0/001, ký hiệu AA/18E, của một chuỗi bán lẻ"
+
+width: [106, 118]
+gutter: 3
+rule_char: "-"
+
+# Tiêu đề đứng TRƯỚC khối người bán: trên tờ mẫu nó nằm ở đỉnh trang, ngang
+# hàng với khối mẫu số bên phải, chứ không nằm dưới tên công ty.
+sections: [doctitle, letterhead, parties, table, totals, vat_summary, words, signatures, footer]
+
+doctitle:
+  scale: [1.35, 1.60]
+
+letterhead:
+  frame: true
+  name_scale: [1.05, 1.20]
+  name_bold: true
+  serial_width: 30
+  labels:
+    address: "Địa chỉ:"
+    tax_code: "Mã số thuế:"
+    phone: "Điện thoại:"
+    account: "Số tài khoản:"
+    branch: ""
+    form_no: "Mẫu số:"
+    serial: "Ký hiệu:"
+    number: "Số:"
+
+parties:
+  # Hai cột: người mua bên trái, các số tra cứu bên phải. Không có dòng chấm —
+  # đây là bản in ra của hoá đơn điện tử, không phải tờ để điền tay.
+  style: two_column
+  split: 0.62
+  gap: 3
+  leader: ""
+
+column_header: true
+column_header_bold: true
+columns:
+  - {key: stt,        title: "STT",                          width: 6,  align: center, title_align: center}
+  - {key: name,       title: "Tên hàng hoá, dịch vụ",        width: 0,  align: left,   title_align: center}
+  - {key: unit,       title: "Đơn vị",                       width: 11, align: center, title_align: center}
+  - {key: qty,        title: "Số lượng",                     width: 12, align: right,  title_align: center}
+  - {key: unit_price, title: "Đơn giá",                      width: 14, align: right,  title_align: center}
+  - {key: amount,     title: "Thành tiền chưa có thuế GTGT", width: 16, align: right,  title_align: center}
+  - {key: vat_rate,   title: "Thuế suất",                    width: 10, align: center, title_align: center}
+  - {key: vat_amount, title: "Tiền thuế GTGT",               width: 15, align: right,  title_align: center}
+
+table:
+  frame: true
+  row_rules: false
+  blank_rows: 2
+
+item:
+  wrap_name: true
+  rows:
+    - - {col: stt, from: stt}
+      - {col: name, from: name}
+      - {col: unit, from: unit}
+      - {col: qty, from: qty}
+      - {col: unit_price, from: unit_price}
+      - {col: amount, from: amount}
+      - {col: vat_rate, from: vat_rate}
+      - {col: vat_amount, from: vat_amount}
+
+totals:
+  frame: true
+  emphasise_grand: true
+
+# Bảng "Tổng hợp": cột riêng, độ rộng riêng, giải như một bảng thứ hai trên
+# cùng trang giấy. Dòng cuối — số phải trả — in đậm.
+vat_summary:
+  frame: true
+  column_header: true
+  column_header_bold: true
+  emphasise_total: true
+  columns:
+    - {key: label, title: "Tổng hợp",                  width: 0,  align: left,   title_align: center}
+    - {key: rate,  title: "Thuế suất (VAT rate)",      width: 14, align: center, title_align: center}
+    - {key: net,   title: "Trị giá chưa có thuế GTGT", width: 22, align: right,  title_align: center}
+    - {key: vat,   title: "Tiền thuế GTGT",            width: 18, align: right,  title_align: center}
+    - {key: gross, title: "Trị giá thanh toán",        width: 20, align: right,  title_align: center}
+
+words:
+  frame: true
+
+signatures:
+  stamp_width: 44
+  stamp_gap: 2
+
+footer:
+  rule_before: false

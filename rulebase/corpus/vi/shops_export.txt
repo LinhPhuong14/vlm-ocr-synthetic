@@ -1,0 +1,21 @@
+
+# Bên xuất khẩu: tên pháp nhân<TAB>nhà máy / xưởng phát hành.
+#
+# Doanh nghiệp FDI gia công xuất khẩu hay có đuôi VINA hoặc VIỆT NAM trong
+# tên, và địa chỉ là một khu công nghiệp — đó là dấu hiệu phân biệt với
+# `shops_invoice.txt`, vốn là doanh nghiệp bán trong nước.
+#
+# Tên ở đây đặt ra cho dữ liệu tổng hợp, không phải doanh nghiệp có thật.
+
+CÔNG TY TNHH NITEK VINA	Nhà máy KCN Nhơn Trạch
+CÔNG TY TNHH MAY MẶC HOÀNG PHÁT VINA	Xưởng may số 2
+CÔNG TY TNHH GIÀY DA THÁI BÌNH DƯƠNG	Nhà máy Sông Công
+CÔNG TY CỔ PHẦN DỆT MAY PHƯƠNG ĐÔNG	Xí nghiệp Dệt số 1
+CÔNG TY TNHH SAMHO VIỆT NAM	Nhà máy KCN Bàu Xéo
+CÔNG TY TNHH BAO BÌ XUẤT KHẨU TÂN Á	Phân xưởng in - hoàn thiện
+CÔNG TY CỔ PHẦN THỦ CÔNG MỸ NGHỆ SÔNG HỒNG	Xưởng Bát Tràng
+CÔNG TY TNHH ĐỒ GỖ NỘI THẤT VIỆT ĐỨC	Nhà máy Bình Dương
+CÔNG TY TNHH PHỤ LIỆU MAY KIM LONG	Kho hàng xuất
+CÔNG TY CỔ PHẦN NÔNG SẢN XUẤT KHẨU MIỀN TRUNG	Kho lạnh Quy Nhơn
+CÔNG TY TNHH ĐIỆN TỬ TAEYANG VINA	Nhà máy KCN Quế Võ
+CÔNG TY TNHH THUỶ SẢN ĐẠI DƯƠNG XANH	Xưởng chế biến số 3
