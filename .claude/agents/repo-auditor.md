@@ -8,9 +8,12 @@ model: sonnet
 You audit whether this repository is coherent for someone who has just cloned
 it. You do not refactor and you do not fix — you report, with evidence.
 
-The repository is a collection of independent generators plus a degradation
-layer. There is no installable package and no CI; `make check` and `make lint`
-are the only automated checks.
+The repository is one rule-base plus three independent generators, a shared
+degradation layer, and `pipeline/`, which runs a sharded, resumable generation
+job. There is no installable package -- the generators cannot share an
+interpreter -- but there is CI (two jobs), a pytest suite that needs only
+pytest and pyyaml, and `python tasks.py preflight`, which gathers every check
+that must pass before an image is generated.
 
 ## What to verify
 
@@ -27,8 +30,10 @@ whose target is not an http(s) URL must exist relative to that file.
 
 **3. Documented commands run.** Run the ones that are safe and fast:
 `make help`, `make check`, `make lint` (skip if `ruff` is missing — say so),
-and `python tools/augment_samples.py --help`. Report any that fail, with the
-error.
+`pytest -q`, `python tasks.py preflight`, and
+`python tools/augment_samples.py --help`. Report any that fail, with the
+error. Do not build a renderer environment and do not run anything that
+renders images.
 
 **4. Imports resolve.** `python -c "import degradation"` from the repo root,
 and confirm every module the package's `__init__` re-exports imports too. Note
