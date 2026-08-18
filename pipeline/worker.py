@@ -24,6 +24,10 @@ Three details decide whether the resume story is true rather than approximate:
   its size and a kill leaves a prefix rather than nothing.
 * **One log per worker.** Eight workers interleaved on one stdout is unreadable
   exactly when it matters.
+
+Since W2 a shard also checks what it drew -- `pipeline/invariants.py`, called
+once, here -- and leaves the numbers in `invariants.json` beside its metadata.
+An image whose label describes text no box printed does not reach `DONE`.
 """
 
 from __future__ import annotations
@@ -44,11 +48,17 @@ for extra in (REPO_ROOT, REPO_ROOT / "tools"):
 
 from paths import VENVS, venv_python  # noqa: E402
 
-from pipeline import record  # noqa: E402
+from pipeline import invariants, record  # noqa: E402
 from pipeline.config import RULES_ENV  # noqa: E402
 from pipeline.plan import image_name  # noqa: E402
 
 DONE = "DONE"
+
+# What each shard writes down about its own content, beside its metadata.
+# Separate from `metadata.jsonl` because that file is hashed by the golden
+# baseline: a measurement added to it would make every W1 verification fail for
+# a reason that has nothing to do with what W1 verifies.
+INVARIANTS = "invariants.json"
 
 # name -> (script, working directory). The interpreter is resolved at call time
 # through `venv_python`, which knows that a virtualenv keeps it in `bin/` on
@@ -137,6 +147,11 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
     if rules_root is not None:
         environment[RULES_ENV] = str(rules_root)
 
+    # One call site for the content checks, here rather than in each renderer.
+    # Three copies of an invariant is three chances for one of them to be
+    # quietly relaxed, and the renderer that skips it is the one to worry about.
+    tally = invariants.Tally(invariants.attribute_names())
+
     written = 0
     metadata_path = directory / "metadata.jsonl"
     with open(metadata_path, "w", encoding="utf-8") as metadata:
@@ -170,6 +185,12 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
                     item["framework"] = backend
                     item["layout"] = run["layout"]
                     record.check(item, where=target)
+                    try:
+                        tally.inspect(item, image=directory / target, where=target)
+                    except invariants.InvariantError as error:
+                        raise ShardError(
+                            f"shard {shard['index']} {backend}/{run['layout']}: "
+                            f"{error}") from error
                     json.dump(item, metadata, ensure_ascii=False)
                     metadata.write("\n")
                     written += 1
@@ -183,6 +204,15 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
     expected = sum(run["count"] for run in shard["runs"])
     if written != expected:
         raise ShardError(f"shard {shard['index']}: wrote {written} of {expected}")
+
+    # Written before the verdict, so a shard that trips a budget still leaves
+    # the numbers behind to argue with.
+    (directory / INVARIANTS).write_text(
+        json.dumps(tally.report(), indent=2, ensure_ascii=False, sort_keys=True) + "\n",
+        encoding="utf-8")
+    budget = tally.problems()
+    if budget:
+        raise ShardError(f"shard {shard['index']}: " + "; ".join(budget))
 
     mark_done(directory, {
         "shard": shard["index"],
