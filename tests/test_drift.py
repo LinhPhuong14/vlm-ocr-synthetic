@@ -192,7 +192,7 @@ def test_a_small_paired_run_missing_its_rare_values_stays_silent():
     warnings, stops, notes = drift.compare(vector_for(observed), SHARES)
     assert warnings == [] and stops == []
     # And it says why nothing fired, rather than looking clean by accident.
-    assert notes and "scatter" in notes[0]
+    assert notes and "too few" in notes[0]
 
 
 def test_a_large_run_missing_the_same_value_says_so():
@@ -242,26 +242,39 @@ def test_the_threshold_grows_when_the_sample_is_small_and_shrinks_when_it_is_not
     assert small / large == pytest.approx(10.0, rel=0.05)
 
 
-def test_a_mix_no_weighting_produces_is_caught_even_in_a_small_shard():
+def test_a_mix_no_weighting_produces_is_caught_at_the_smallest_judged_size():
     """Drift big enough to see through the noise is seen through the noise.
 
-    Twenty draws of two values, when seven were expected, is not a plausible
+    Forty draws of two values, when seven were expected, is not a plausible
     sample of anything -- and unlike the case above, it does speak.
     """
-    lumpy = {"real_paper": 10, "medium": 10}
+    lumpy = {"real_paper": 20, "medium": 20}
     warnings, _stops, _notes = drift.compare(vector_for(lumpy), SHARES)
     assert [w for w in warnings if "mix is" in w], "a two-value mix passed as ordinary"
 
 
-def test_a_plausible_small_sample_and_an_implausible_one_are_told_apart():
+def test_a_plausible_sample_and_an_implausible_one_are_told_apart():
     """The pair that matters, side by side and at the same size."""
-    plausible = {"real_paper": 6, "medium": 4, "photocopy": 3, "stains": 3,
-                 "ghost_text": 2, "torn_edges": 2}
-    implausible = {"stains": 18, "real_paper": 2}
+    plausible = {"real_paper": 12, "medium": 8, "photocopy": 6, "stains": 5,
+                 "ghost_text": 4, "torn_edges": 3, "crumpled": 2}
+    implausible = {"stains": 36, "real_paper": 4}
     quiet, _s, _n = drift.compare(vector_for(plausible), SHARES)
     loud, _s, _n = drift.compare(vector_for(implausible), SHARES)
-    assert not [w for w in quiet if "mix is" in w]
+    assert not [w for w in quiet if "mix is" in w], quiet
     assert [w for w in loud if "mix is" in w]
+
+
+def test_a_shard_below_the_judged_size_says_so_and_judges_nothing():
+    """MIN_DRAWS is measured, not chosen -- see the table beside it.
+
+    Twelve shards of ten draws produced two warnings on a run where nothing was
+    wrong, which is what set this floor.
+    """
+    warnings, _stops, notes = drift.compare(
+        vector_for({"real_paper": 5, "medium": 5}), SHARES)
+    assert not [w for w in warnings if "mix is" in w]
+    assert notes and "too few to say anything" in notes[0]
+    assert drift.MIN_DRAWS == 30
 
 
 def test_the_warning_says_what_the_threshold_was_made_of():
