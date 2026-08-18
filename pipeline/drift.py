@@ -351,7 +351,7 @@ def expected_shares(shard: dict, plan: dict, *, rules=None,
         weight_total += weight
         # A different block of sampling seeds per run, so two runs pinned to the
         # same layout do not contribute the same draws twice.
-        counters, failures = sample_distribution(
+        counters, _families, failures = sample_distribution(
             draws, EXPECT_SEED + index * 1_000_000, rules=rules, force=pinned)
         if failures:
             problems.append(

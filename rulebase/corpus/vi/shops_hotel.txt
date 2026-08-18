@@ -1,0 +1,24 @@
+
+# Bên bán trên hoá đơn lưu trú: tên khách sạn<TAB>cơ sở / chi nhánh.
+#
+# Khách sạn in tên thương hiệu chứ không in tên pháp nhân — khác
+# `shops_invoice.txt` ở đúng chỗ đó. Dòng thứ hai là cơ sở, vì một thương
+# hiệu thường có nhiều địa điểm và tờ hoá đơn phải nói khách đã ở cơ sở nào.
+#
+# Tên ở đây đặt ra cho dữ liệu tổng hợp, không phải cơ sở lưu trú có thật.
+
+KHÁCH SẠN THÁI AN	Cơ sở 2 - Trần Phú
+HAPPY HOLIDAY RESORT	Chi nhánh Nha Trang
+KHÁCH SẠN HƯƠNG SEN	Cơ sở Hoàn Kiếm
+MƯỜNG THANH GRAND	Chi nhánh Đà Nẵng
+KHÁCH SẠN BIỂN NGỌC	Cơ sở Bãi Sau
+SAPA VIEW HOTEL	Cơ sở Cầu Mây
+KHÁCH SẠN AN PHÚ	Chi nhánh Quận 1
+PHƯƠNG NAM BOUTIQUE HOTEL	Cơ sở Nguyễn Huệ
+KHU NGHỈ DƯỠNG CỬA ĐẠI	Khu villa B
+KHÁCH SẠN HOÀNG GIA	Cơ sở Lê Lợi
+SUNRISE BEACH RESORT	Khu Bungalow
+KHÁCH SẠN ĐÔNG ĐÔ	Cơ sở Bà Triệu
+HOMESTAY NÚI RỪNG TÂY BẮC	Khu nhà sàn
+KHÁCH SẠN MINH CHÂU	Chi nhánh Hạ Long
+LOTUS RIVERSIDE HOTEL	Cơ sở Bến Nghé

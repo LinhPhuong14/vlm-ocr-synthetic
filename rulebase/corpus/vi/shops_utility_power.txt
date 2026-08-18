@@ -1,0 +1,13 @@
+# Bên bán trên hoá đơn tiền điện: tổng công ty<TAB>công ty điện lực quận.
+#
+# Hoá đơn điện luôn in HAI cấp — tổng công ty ở dòng tên, điện lực quận ở
+# dòng dưới — vì tiền thu về tổng công ty còn công tơ do điện lực quận quản
+# lý. Bố cục nào bỏ dòng thứ hai thì đặt `branch: false`.
+
+TỔNG CÔNG TY ĐIỆN LỰC THÀNH PHỐ HÀ NỘI	Công ty Điện lực Cầu Giấy
+TỔNG CÔNG TY ĐIỆN LỰC THÀNH PHỐ HÀ NỘI	Công ty Điện lực Thanh Xuân
+TỔNG CÔNG TY ĐIỆN LỰC TP HỒ CHÍ MINH	Công ty Điện lực Tân Thuận
+TỔNG CÔNG TY ĐIỆN LỰC TP HỒ CHÍ MINH	Công ty Điện lực Gia Định
+TỔNG CÔNG TY ĐIỆN LỰC MIỀN BẮC	Công ty Điện lực Bắc Ninh
+TỔNG CÔNG TY ĐIỆN LỰC MIỀN TRUNG	Công ty Điện lực Đà Nẵng
+TỔNG CÔNG TY ĐIỆN LỰC MIỀN NAM	Công ty Điện lực Biên Hoà

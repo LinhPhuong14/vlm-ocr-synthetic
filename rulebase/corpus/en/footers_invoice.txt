@@ -1,0 +1,9 @@
+# Footer lines on an English tax invoice.
+
+Please quote your order number as a payment reference.
+Once you have deposited the full amount, please email to confirm your payment.
+Please email a copy of your deposit or transfer receipt.
+Goods remain the property of the seller until paid in full.
+Thank you for your business.
+All prices are in AUD and include GST where applicable.
+Returns accepted within 14 days with proof of purchase.

@@ -1,0 +1,88 @@
+# Mẫu hoá đơn GTGT in sẵn — tờ khung có dòng chấm để điền.
+#
+# Dấu hiệu nhận biết: khối người bán và người mua nằm trong khung kẻ, mỗi
+# trường là một DÒNG CHẤM chạy hết bề ngang; dưới tiêu đề cột có thêm một dòng
+# ĐÁNH SỐ CỘT ("1", "2", ... "6 = 4x5"); bảng luôn cao bằng số dòng đã in sẵn
+# nên dưới dòng hàng cuối cùng còn mấy dòng trống có kẻ ô.
+#
+# Đây là bố cục của cả tờ mẫu để trắng lẫn tờ mẫu đã điền một phần (tờ có chữ
+# "HOÁ ĐƠN MẪU" đóng chìm) — khác nhau ở nội dung, không khác ở bố cục.
+id: invoice_vat_form
+name: VAT invoice form — boxed party block, dotted fields, numbered columns
+source: "ảnh mẫu hoá đơn GTGT ký hiệu 1K22DAA số 6830, và mẫu có dấu HOÁ ĐƠN MẪU"
+
+# Tờ A4 in ngang cột, 12 cpi ≈ 100 ký tự. Hẹp hơn thì tám cột không đủ chỗ.
+width: [104, 118]
+gutter: 3
+rule_char: "-"
+
+sections: [letterhead, doctitle, parties, table, totals, words, signatures, footer]
+
+letterhead:
+  name_scale: [1.0, 1.15]
+  name_bold: true
+  serial_width: 26
+  labels:
+    address: "Địa chỉ:"
+    tax_code: "Mã số thuế:"
+    phone: "Điện thoại:"
+    account: "Số tài khoản:"
+    branch: ""
+    form_no: "Mẫu số:"
+    serial: "Ký hiệu:"
+    number: "Số:"
+
+doctitle:
+  scale: [1.30, 1.55]
+
+parties:
+  # Một trường một dòng, chạy hết bề ngang — đúng tờ mẫu, và cũng là cách duy
+  # nhất dòng chấm dài ra đủ để nhìn như tờ in sẵn.
+  style: stacked
+  leader: "."
+
+column_header: true
+column_header_bold: true
+columns:
+  - {key: stt,             title: "STT",                          width: 6,  align: center, title_align: center, number: 1}
+  - {key: name,            title: "Tên hàng hoá, dịch vụ",        width: 0,  align: left,   title_align: center, number: 2}
+  - {key: unit,            title: "Đơn vị tính",                  width: 11, align: center, title_align: center, number: 3}
+  - {key: qty,             title: "Số lượng",                     width: 10, align: right,  title_align: center, number: 4}
+  - {key: unit_price,      title: "Đơn giá",                      width: 14, align: right,  title_align: center, number: 5}
+  - {key: amount,          title: "Thành tiền chưa có thuế GTGT", width: 14, align: right,  title_align: center, number: "6 = 4x5"}
+  - {key: vat_rate,        title: "Thuế suất GTGT",               width: 10, align: center, title_align: center, number: 7}
+  - {key: amount_with_vat, title: "Thành tiền có thuế GTGT",      width: 15, align: right,  title_align: center, number: "8 = 6+6x7"}
+
+table:
+  frame: true
+  column_numbers: true
+  row_rules: true
+  blank_rows: 5
+
+item:
+  wrap_name: true
+  rows:
+    - - {col: stt, from: stt}
+      - {col: name, from: name}
+      - {col: unit, from: unit}
+      - {col: qty, from: qty}
+      - {col: unit_price, from: unit_price}
+      - {col: amount, from: amount}
+      - {col: vat_rate, from: vat_rate}
+      - {col: amount_with_vat, from: amount_with_vat}
+
+totals:
+  # Trong khung, như tờ mẫu: ba dòng tổng là ba dòng cuối của bảng chứ không
+  # phải ba dòng rời nằm dưới bảng.
+  frame: true
+  emphasise_grand: true
+
+words:
+  frame: true
+
+signatures:
+  stamp_width: 46
+  stamp_gap: 2
+
+footer:
+  rule_before: false

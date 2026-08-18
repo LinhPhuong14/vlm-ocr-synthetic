@@ -1,0 +1,13 @@
+# Bậc thang giá nước sạch.
+# Định dạng: tên<TAB>đơn giá tối thiểu<TAB>đơn giá tối đa   (VND cho 1 m3)
+#
+# Đơn giá là giá MỘT m3, nên `price_step` phải để 1 — xem
+# `items_utility_power.txt`.
+
+Tiền nước sinh hoạt bậc 1 (0-10m3)	7500	8500
+Tiền nước sinh hoạt bậc 2 (10-20m3)	8800	10200
+Tiền nước sinh hoạt bậc 3 (20-30m3)	11000	12800
+Tiền nước sinh hoạt bậc 4 (trên 30m3)	20000	24500
+Tiền nước kinh doanh dịch vụ	22000	29000
+Tiền nước cơ quan hành chính	11500	14200
+Tiền nước sản xuất vật chất	9500	12000

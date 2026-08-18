@@ -19,14 +19,20 @@ own content, what you compared would be two datasets, not two ways of drawing.
 
 ```
 rulebase/
-├── rules/          6 ATTRIBUTES, one file each        ← tune the distribution here
-├── layouts/        5 LAYOUTS measured off real receipts ← add a layout here
+├── rules/          6 ATTRIBUTES, one file each         ← tune the distribution here
+├── layouts/        14 LAYOUTS measured off real paper  ← add a layout here
 ├── corpus/vi/      Vietnamese corpus, WITH diacritics  ← add products here
+├── corpus/en/      one document kind prints English
 ├── spec.py         weighted sampling with constraints
 ├── content.py      fills the fields and builds the label
 ├── layout.py       content + layout -> a grid of cells
 └── text.py         diacritic folding, money formatting, wrapping
 ```
+
+The fourteen layouts are not fourteen variations on a receipt. A thermal till
+receipt, a printed VAT form, a metered utility bill, a hotel folio and a
+self-designed order confirmation share a character grid and very little else,
+so `rules/layout.yaml` sorts them into **parent nodes** — see §1b.
 
 ### Naming: English identifiers, Vietnamese printed text
 
@@ -99,6 +105,54 @@ printer that somehow prints "Phở" with its diacritics.
 
 ---
 
+## 1b. Parent nodes
+
+A file may list its values flat under `options:`, or sort them into `groups:` —
+each node an `id`, a `label` a reader can understand, and its own `options:`.
+
+```yaml
+groups:
+  - id: retail_receipt
+    label: "Hoá đơn tiêu dùng — giấy tính tiền in tại quầy"
+    excludes: [doc_invoice]        # inherited by every value below
+    tags: [till_receipt]           # likewise
+    options:
+      - id: market_barcode
+        weight: 3
+        requires: [has_barcode]
+```
+
+The node is **not decoration**. `tags`, `requires` and `excludes` written on it
+are merged into every value beneath it, so a constraint that holds for the whole
+family is written once — and the next layout added to that family cannot forget
+it. `Option.group` records which node a value came from, and it is stored next
+to the image in `metadata.jsonl`, which is what lets a finished dataset be
+filtered by document family.
+
+A file uses `options:` **or** `groups:`, never both: two places to add a value
+is two places to forget one.
+
+`rules/layout.yaml` is the file that needed this. Its five nodes:
+
+| node | what the family is |
+| --- | --- |
+| `retail_receipt` | giấy tính tiền in tại quầy — thermal roll, names nobody, signed by nobody |
+| `statutory_invoice` | tờ mẫu in sẵn — Mẫu số / Ký hiệu / Số, a ruled table, signatures |
+| `utility_invoice` | điện, nước — charges a meter reading rather than a basket |
+| `lodging_invoice` | khách sạn — one line per night, dated rows, paid/outstanding |
+| `modern_invoice` | tờ tự thiết kế — no frame, totals against the right margin |
+
+```bash
+make distribution        # the mix per node, then per value
+```
+
+Reading the mix per node is what a weight change should be judged by: a weight
+is relative to the candidates left after filtering, so a family of five rare
+layouts and a family of one common one can read identically value by value and
+be nothing alike as a mix.
+
+---
+
 ## 2. Tuning the distribution
 
 Edit `weight`, not code.
@@ -166,12 +220,52 @@ Two things `padding` handles by itself, with nothing to declare in YAML:
 
 1. Create `layouts/<name>.yaml`. Copy the closest existing file and edit it;
    record in `source:` which photograph it was measured from.
-2. Declare it in `rules/layout.yaml` with the right `requires`.
+2. Declare it in `rules/layout.yaml`, **under the node whose family it joins**,
+   with whatever `requires` the node does not already give it.
 3. Preview it as text, with no image rendering:
 
 ```bash
 make preview-grid LAYOUT=<name>
 ```
+
+4. Check that the label still describes only what the page shows. A layout that
+   drops a column keeps the field in `ground_truth()` — that is the one defect
+   this rule-base measures rather than assumes:
+
+```bash
+python -m pytest tests/test_content.py -q     # the budget on unprinted fields
+make preflight                                # glyph coverage over the new strings
+```
+
+### The sections of a page
+
+A page is a **sequence of sections**, and `sections:` in the layout file says
+which of them run and in what order. A till receipt is one such sequence and
+stays the default, so the five thermal layouts declare none:
+
+```yaml
+sections: [header, meta, columns, items, totals, footer]     # the default
+```
+
+| section | what it draws |
+| --- | --- |
+| `header` | shop name, address, title — all centred, the thermal opening |
+| `meta` | the till's key/value block (`Số phiếu`, `Bàn`, `Thời gian`) |
+| `columns` / `items` | column titles and the item rows, unruled |
+| `letterhead` | the issuer on the left, `Mẫu số / Ký hiệu / Số` on the right |
+| `doctitle` | the centred title, its subtitle, and the period it covers |
+| `strip` | the run of keys across the top of a designed invoice |
+| `parties` | who is billed — two columns, or stacked full-width dotted fields |
+| `table` | the item table, ruled or not, with blank rows if the form has them |
+| `totals` | the totals, in the frame or against the right margin |
+| `vat_summary` | "Tổng hợp": the money regrouped by tax rate |
+| `words` | the amount spelled out, so the figure cannot be altered |
+| `notes` | a block of lines; `style: two_column` splits it on a blank line |
+| `signatures` | the signature titles, the names under them, the e-signature box |
+| `footer` | the closing lines |
+
+Every invoice-only section checks `Receipt.invoice` before drawing, so listing
+one on a till layout costs nothing but draws nothing.
 
 ### The grammar of a layout file
 
@@ -189,7 +283,7 @@ meta:
   style: pairs         # pairs | two_column | pipes
   rule_after: false
 
-columns:               # width 0 = "take what is left" (only for the name column)
+columns:               # width 0 = "take what is left" — exactly one column
   - {key: stt,        title: "Stt",      width: 4,  align: right}
   - {key: qty,        title: "Số lượng", width: 11, align: right}
 
@@ -208,13 +302,52 @@ totals:
   emphasise_grand: true
   grand_scale: [1.20, 1.55]
   grand_two_lines: true    # label on one line, the amount on the next
+  indent: 0.42             # a designed invoice hugs the right margin instead
 ```
 
 Sources usable in `from:`: `stt`, `name`, `qty`, `unit_price`, `amount`,
-`barcode`, `barcode_name`, `vat`, `unit`, `note`.
+`barcode`, `barcode_name`, `vat`, `vat_rate`, `vat_amount`, `amount_with_vat`,
+`unit`, `note`, `meter_now`, `meter_prev`, `quota`, `tier`, `tier_price`,
+`date`, `ref`.
 
 A row whose every field is empty is skipped — which is what lets one template
-serve both weighed goods (with a weight line) and packaged ones (without).
+serve both weighed goods (with a weight line) and packaged ones (without), and
+one folio template serve a night with a note under it and one without.
+
+### A form, rather than a receipt
+
+The keys an A4 document adds:
+
+```yaml
+letterhead:
+  frame: true            # the boxed seller block of an e-invoice rendition
+  serial_width: 30       # how much of the top-right the Mẫu số block takes
+  serial: false          # drop that row: the number is in the `strip` instead
+  labels: {address: "Địa chỉ:", tax_code: "Mã số thuế:"}
+
+parties:
+  style: stacked         # stacked | two_column
+  leader: "."            # the dotted run of a blank form
+  split: 0.55            # where the two columns divide
+
+table:
+  frame: true            # draw it with + - |, never with box-drawing characters
+  column_numbers: true   # the "(1) (2) ... (6 = 4 x 5)" row a form carries
+  row_rules: true        # a rule under every item, not just under the block
+  blank_rows: 4          # a form has the rows it was printed with
+  header_rules: true     # unframed: rule above and below the column titles
+
+vat_summary:             # its own columns, resolved on their own
+  frame: true
+  columns:
+    - {key: label, title: "Tổng hợp", width: 0, align: left}
+    - {key: rate,  title: "Thuế suất (VAT rate)", width: 14, align: center}
+```
+
+Ruled tables are drawn with `+ - |` and not with U+2500 box-drawing: two of the
+fonts in `fonts/` have no box-drawing block at all, so a frame drawn with `─`
+would render as a row of empty rectangles in a fifth of the dataset — with the
+label still claiming a table.
 
 ---
 
@@ -227,16 +360,28 @@ works, the reverse does not.
 
 | file | columns |
 | --- | --- |
-| `items_eatery.txt`, `items_market.txt` | name ⇥ min price ⇥ max price |
-| `shops_eatery.txt` | name |
-| `shops_market.txt` | brand ⇥ branch |
-| `streets.txt`, `footers_*.txt` | one value per line |
+| `items_<profile>.txt` | name ⇥ min price ⇥ max price |
+| `shops_<profile>.txt` | name — or brand ⇥ branch, where the profile has one |
+| `footers_<profile>.txt`, `streets.txt` | one value per line |
 | `wards.txt` | ward ⇥ district ⇥ province/city |
 | `payments.txt` | label ⇥ group (`tienmat`/`the`/`vi`/`qr`) |
+| `people.txt` | one name per line — a till prints none, an invoice names its buyer |
 
 The `profile` in `rules/document.yaml` **is** the filename suffix:
 `profile: market` reads `items_market.txt`. Adding a profile means adding three
-corpus files with a matching suffix, not editing `corpus.py`.
+corpus files with a matching suffix, not editing `corpus.py`. The eight so far:
+
+| profile | what it stocks |
+| --- | --- |
+| `eatery`, `market` | dishes and shelf goods, priced as a customer sees them |
+| `invoice` | goods and services sold between businesses, priced accordingly |
+| `utility_water`, `utility_power` | tariff bands — **order matters**, they are consecutive |
+| `hotel` | room charges then extras — **order matters**, `room_items` counts the leading room lines |
+| `export` | goods named bilingually, because the export form prints both |
+| `bakery` | cakes and drinks, ordered ahead rather than eaten at a table |
+
+`corpus/en/` holds the one document kind that prints English. It is a different
+document, not a translated one — see the naming rule at the top of this file.
 
 A row with the wrong number of columns is skipped rather than failing the whole
 run — a corpus is edited by hand, and one bad line should cost that line.
@@ -290,6 +435,41 @@ the image does not contain.
   "footer": ["CẢM ƠN QUÝ KHÁCH VÀ HẸN GẶP LẠI"]
 }
 ```
+
+An invoice adds a second block, because an invoice carries what a till receipt
+does not — both parties, a serial the tax office can look up, the amount in
+words, who signed:
+
+```json
+{
+  "doc_type": "receipt_invoice",
+  "invoice": {
+    "serial": "1K25TAE", "number": "00006830", "form_no": "01GTKT0/001",
+    "subtitle": "Bản thể hiện của hoá đơn điện tử",
+    "period": "Ngày (date) 09/01/2025",
+    "strip": {"Số hoá đơn:": "INV001421", "Mã đặt phòng:": "001421"},
+    "left":  {"Tên người mua hàng:": "Lê Quang Đạo", "Mã số thuế:": "3709983607"},
+    "right": {"Số bảo mật:": "6244075"},
+    "summary": [
+      {"label": "Hàng hoá chịu thuế suất:", "rate": "10%",
+       "net": "39.124.000", "vat": "3.912.400", "gross": "43.036.400"},
+      {"label": "Tổng cộng tiền thanh toán:",
+       "net": "48.022.000", "vat": "4.357.300", "gross": "52.379.300"}
+    ],
+    "words": "Năm mươi hai triệu ... đồng",
+    "signed_by": "Được ký bởi: CÔNG TY ...", "signed_at": "Ngày ký: 09/01/2025"
+  }
+}
+```
+
+Every entry here is something a layout prints. That is not a style rule:
+`tests/test_content.py` measures how much of the label the page never shows, and
+`pipeline/invariants.py` treats an unprinted field as an error unless the layout
+is on a list of known suppressions. A field recorded but not drawn teaches a
+model to hallucinate it.
+
+A stay invoice adds `date` and `ref` to each line — the night it covers and the
+room it was slept in — because its table rules a column for each.
 
 Weighed goods (`weight`) print a quantity of **1** and a unit price that is
 **the amount for that weighing**, with the per-kilo price on the item-name line

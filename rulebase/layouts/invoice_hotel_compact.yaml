@@ -1,0 +1,72 @@
+# Hoá đơn khách sạn nhỏ — cùng nội dung, một phần ba khổ giấy.
+#
+# Khác `invoice_hotel_stay` ở chỗ nào cũng hẹp hơn: giấy hẹp hơn hai chục ký
+# tự, khối đặt phòng chia đôi sát nhau thay vì hai cột rộng, bảng bỏ cột "#"
+# và gộp ngày với phòng vào hai cột hẹp, chú thích dòng hàng không in. Đây là
+# tờ in ở quầy lễ tân một khách sạn hai ba chục phòng, không phải tờ của một
+# khu nghỉ dưỡng có bộ phận kế toán riêng.
+#
+# Vẫn phải in đủ mọi trường mà document lưu trú dựng ra — dãy khoá, khối đặt
+# phòng, tên người ký — vì nhãn dữ liệu ghi chúng, và một trường có trong nhãn
+# mà không có trên ảnh là đúng thứ `pipeline/invariants.py` bắt lỗi.
+id: invoice_hotel_compact
+name: Small-hotel folio — the same fields on a third less paper
+source: "ảnh hoá đơn một khách sạn nhỏ, khối liên hệ hai cột ở chân trang"
+
+width: [78, 90]
+gutter: 2
+rule_char: "="
+
+sections: [header, strip, parties, table, totals, signatures, footer]
+
+header:
+  name_scale: [1.20, 1.40]
+  name_bold: true
+  title: true
+  title_scale: [1.15, 1.35]
+
+strip:
+  separator: "|"
+  rule_after: true
+
+parties:
+  style: two_column
+  split: 0.52
+  gap: 2
+  leader: ""
+
+column_header: true
+column_header_bold: false
+columns:
+  - {key: date,       title: "Ngày",       width: 13, align: center, title_align: center}
+  - {key: ref,        title: "Phòng",      width: 7,  align: center, title_align: center}
+  - {key: name,       title: "Nội dung",   width: 0,  align: left,   title_align: left}
+  - {key: qty,        title: "SL",         width: 5,  align: right,  title_align: right}
+  - {key: unit_price, title: "Đơn giá",    width: 16, align: right,  title_align: right}
+  - {key: amount,     title: "Thành tiền", width: 17, align: right,  title_align: right}
+
+table:
+  frame: false
+
+item:
+  wrap_name: true
+  rows:
+    - - {col: date, from: date}
+      - {col: ref, from: ref}
+      - {col: name, from: name}
+      - {col: qty, from: qty}
+      - {col: unit_price, from: unit_price}
+      - {col: amount, from: amount}
+    - - {col: name, from: note}
+
+totals:
+  frame: false
+  indent: 0.38
+  emphasise_grand: true
+  grand_scale: [1.10, 1.25]
+
+signatures:
+  name_gap: 2
+
+footer:
+  rule_before: false

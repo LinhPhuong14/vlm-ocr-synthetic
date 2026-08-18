@@ -23,6 +23,7 @@ from rulebase import (  # noqa: E402
     ATTRIBUTES,
     available_layouts,
     corpus,  # noqa: E402
+    load_groups,
     load_rules,
     sample_recipe,
     validate,
@@ -114,8 +115,10 @@ def _chain_entries(chain):
 
 def sample_distribution(draws: int, seed: int, rules=None,
                         force: dict[str, str] | None = None
-                        ) -> tuple[dict[str, Counter], int]:
-    """Draw `draws` recipes and count what came out. Returns (counts, failures).
+                        ) -> tuple[dict[str, Counter], dict[str, Counter], int]:
+    """Draw `draws` recipes and count what came out.
+
+    Returns (counts by value, counts by parent node, failures).
 
     Split out from `distribution` so `pipeline/drift.py` can ask the same
     question without going through a printed report. `force` is here because a
@@ -128,6 +131,7 @@ def sample_distribution(draws: int, seed: int, rules=None,
     # parse of the rule-base per draw -- two thousand of them for one report.
     rules = load_rules() if rules is None else rules
     counters = {attribute: Counter() for attribute in ATTRIBUTES}
+    families = {attribute: Counter() for attribute in ATTRIBUTES}
     failures = 0
     for index in range(draws):
         try:
@@ -137,15 +141,29 @@ def sample_distribution(draws: int, seed: int, rules=None,
             continue
         for attribute, option in recipe.choices.items():
             counters[attribute][option.id] += 1
-    return counters, failures
+            if option.group:
+                families[attribute][option.group] += 1
+    return counters, families, failures
 
 
 def distribution(draws: int, seed: int) -> None:
-    counters, failures = sample_distribution(draws, seed)
+    counters, families, failures = sample_distribution(draws, seed)
+    groups = load_groups()
     total = draws - failures
     print(f"{total} lần bốc thành công / {draws}\n")
     for attribute in ATTRIBUTES:
         print(f"[{attribute}]")
+        # An attribute sorted into parent nodes is reported by node first. A
+        # weight is relative to the candidates left after filtering, so a
+        # family of five rare layouts and a family of one common one can read
+        # identically value by value and be nothing alike as a mix.
+        labels = {group.id: group.label for group in groups.get(attribute, [])}
+        for name, count in families[attribute].most_common():
+            share = count / total if total else 0
+            print(f"  ({name}) {labels.get(name, '')}".rstrip())
+            print(f"  {'':<28} {count:>5}  {share:>6.1%}")
+        if families[attribute]:
+            print()
         for name, count in counters[attribute].most_common():
             share = count / total if total else 0
             bar = "#" * int(share * 40)
@@ -186,16 +204,23 @@ def main() -> int:
             for problem in problems:
                 print(f"  - {problem}")
         else:
-            counts = {
-                "items_eatery": len(corpus.items("eatery")),
-                "items_market": len(corpus.items("market")),
-                "shops_eatery": len(corpus.shops("eatery")),
-                "shops_market": len(corpus.shops("market")),
-                "streets": len(corpus.streets()),
-                "wards": len(corpus.wards()),
-                "payments": len(corpus.payments()),
-            }
-            print("\ncorpus hợp lệ: " + ", ".join(f"{k}={v}" for k, v in counts.items()))
+            # Profiles are discovered, not listed: `rulebase/README.md` promises
+            # that adding one is three text files and nothing else, and a
+            # hard-coded pair here quietly left every profile added since off
+            # the report while `corpus.check()` was validating them.
+            for lang in corpus.languages():
+                counts = {}
+                for path in sorted((corpus.CORPUS_ROOT / lang).glob("items_*.txt")):
+                    profile = path.stem[len("items_"):]
+                    counts[profile] = len(corpus.items(profile, lang))
+                shared = {
+                    "streets": len(corpus.streets(lang)),
+                    "wards": len(corpus.wards(lang)),
+                    "payments": len(corpus.payments(lang)),
+                    "people": len(corpus.people(lang)),
+                }
+                print(f"\ncorpus {lang}/ hợp lệ: "
+                      + ", ".join(f"{k}={v}" for k, v in {**counts, **shared}.items()))
 
     if args.distribution:
         print()

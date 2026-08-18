@@ -1,0 +1,80 @@
+# Hoá đơn GTGT tiền điện của tổng công ty điện lực.
+#
+# Dấu hiệu nhận biết: bảng BẬC THANG — mỗi dòng là một bậc giá ("Bậc 1", "Bậc
+# 2"...) với số kWh, đơn giá và thành tiền của riêng bậc đó; chỉ số công tơ cũ
+# và mới nằm ở dòng đầu bảng; khối thông tin khách hàng có mã khách hàng và số
+# công tơ; các dòng tổng nằm ngoài khung, canh phải.
+#
+# Biểu đồ sản lượng 12 tháng và mã QR trên tờ gốc KHÔNG được vẽ — xem
+# `invoice_water.yaml` về lý do.
+id: invoice_power
+name: Electricity utility — one row per tariff band, totals under the frame
+source: "ảnh hoá đơn Tổng công ty Điện lực TP HCM, Điện lực Tân Thuận, 01/2021"
+
+width: [84, 92]
+gutter: 3
+rule_char: "="
+
+sections: [letterhead, doctitle, parties, table, totals, words, signatures, footer]
+
+letterhead:
+  name_scale: [1.05, 1.20]
+  name_bold: true
+  serial_width: 26
+  labels:
+    address: "Địa chỉ:"
+    tax_code: "Mã số thuế:"
+    phone: "Điện thoại:"
+    branch: ""
+    serial: "Ký hiệu:"
+    number: "Số:"
+
+doctitle:
+  scale: [1.15, 1.35]
+
+parties:
+  style: two_column
+  split: 0.58
+  gap: 2
+  leader: ""
+
+column_header: true
+column_header_bold: true
+columns:
+  # Cột tên bậc lấy hết phần còn lại: tên bậc là chuỗi dài nhất trên bảng
+  # ("Điện sinh hoạt bậc 3 (101-200kWh)") và nó phải xuống dòng chứ không bị cắt.
+  - {key: name,       title: "Chỉ số cũ - Chỉ số mới - Bậc thang", width: 0,  align: left}
+  - {key: qty,        title: "Điện tiêu thụ (kWh)",  width: 13, align: right, title_align: center}
+  - {key: unit_price, title: "Đơn giá (đ/kWh)",      width: 14, align: right, title_align: center}
+  - {key: amount,     title: "Thành tiền (đ)",       width: 14, align: right, title_align: center}
+
+table:
+  frame: true
+  row_rules: false
+  blank_rows: 1
+
+item:
+  wrap_name: true
+  rows:
+    # dòng 1: chỉ số cũ và mới, chỉ có ở bậc đầu tiên -- các bậc sau dùng chung
+    # một công tơ nên dòng này rỗng và bị bỏ qua.
+    - - {col: name, from: meter_prev}
+      - {col: qty, from: meter_now}
+    # dòng 2: tên bậc, sản lượng, đơn giá, thành tiền
+    - - {col: name, from: name}
+      - {col: qty, from: qty}
+      - {col: unit_price, from: unit_price}
+      - {col: amount, from: amount}
+
+totals:
+  frame: false
+  emphasise_grand: true
+  grand_scale: [1.15, 1.35]
+  grand_two_lines: false
+
+signatures:
+  stamp_width: 44
+  stamp_gap: 2
+
+footer:
+  rule_before: true

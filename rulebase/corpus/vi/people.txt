@@ -1,0 +1,31 @@
+# Họ tên người mua hàng / người ký, viết CÓ DẤU.
+#
+# Hoá đơn bán lẻ không ghi tên khách, hoá đơn GTGT thì có: "Tên khách hàng",
+# "Người mua hàng", và dòng ký ở cuối trang. Tên ở đây là tên tổng hợp, ghép
+# theo đúng cách một họ tên tiếng Việt được đặt.
+
+Nguyễn Văn Hùng
+Trần Thị Mai Lan
+Lê Quang Đạo
+Phạm Thị Bích Ngọc
+Hoàng Minh Tuấn
+Vũ Thị Thanh Hằng
+Đặng Quốc Cường
+Bùi Thị Kim Oanh
+Đỗ Văn Thắng
+Ngô Thị Hồng Nhung
+Dương Hải Nam
+Quách Kim Cúc
+Huỳnh Thị Nga
+Phan Trọng Nghĩa
+Trương Thị Ánh Tuyết
+Lý Gia Bảo
+Mai Thị Thu Trang
+Đinh Công Khanh
+Tạ Thị Lệ Thuỷ
+Chu Văn Lâm
+Lương Thị Hồng Vân
+Hồ Sỹ Nguyên
+Nguyễn Thị Phương Thảo
+Trần Đức Anh
+Lê Thị Kiều Trinh

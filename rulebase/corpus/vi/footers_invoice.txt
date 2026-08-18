@@ -1,0 +1,13 @@
+# Chân hoá đơn GTGT.
+#
+# Không phải lời chào như hoá đơn quán ăn: hoá đơn GTGT in dòng nhắc đối chiếu
+# và địa chỉ tra cứu hoá đơn điện tử, thường trong ngoặc đơn và cỡ chữ nhỏ.
+
+(Cần kiểm tra, đối chiếu khi lập, giao, nhận hoá đơn)
+(Ký, ghi rõ họ tên hoặc ký số theo quy định)
+Hoá đơn được lập theo Nghị định 123/2020/NĐ-CP
+Tra cứu hoá đơn tại địa chỉ: https://hoadondientu.gdt.gov.vn
+(Khởi tạo từ phần mềm hoá đơn điện tử của nhà cung cấp dịch vụ)
+Hoá đơn này là bản thể hiện của hoá đơn điện tử
+Người mua hàng có trách nhiệm kiểm tra thông tin trước khi thanh toán
+(Chứng từ này không có giá trị thay thế hoá đơn gốc nếu chưa ký số)

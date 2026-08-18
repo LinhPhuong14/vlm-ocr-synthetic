@@ -253,3 +253,97 @@ def test_ground_truth_has_the_shape_donut_expects():
 def test_both_profiles_are_reachable(profile):
     seen = any(receipt.profile == profile for _seed, receipt, _grid in receipts())
     assert seen, f"no seed in the sweep produced a {profile} receipt"
+
+
+# ------------------------------------------------ documents that summarise
+
+
+def _forced(layout: str, seed: int = 3):
+    return rulebase.make(seed=seed, force={"layout": layout})[1:]
+
+
+def test_the_summary_by_rate_adds_up_to_what_is_owed():
+    """The "Tổng hợp" block and the amount in words must agree.
+
+    They are computed in different places -- the block from the lines grouped
+    by rate, the words from the total `build()` arrived at -- so this is the
+    one arithmetic that can silently drift apart. It is also the arithmetic a
+    reader of the paper checks first.
+    """
+    for seed in range(6):
+        receipt, _grid = _forced("invoice_vat_summary", seed)
+        rows = receipt.invoice.summary
+        assert rows, f"seed={seed}: no summary block"
+        net = sum(item.amount for item in receipt.items)
+        assert receipt.numbers["subtotal"] == net
+        # The closing row is what is owed, and `numbers` is where the same
+        # figure is recorded for the label.
+        assert rows[-1]["gross"] == receipt.cash(receipt.numbers["grand"]), f"seed={seed}"
+        assert rows[-1]["net"] == receipt.cash(net), f"seed={seed}"
+        assert receipt.numbers["grand"] == net + receipt.numbers["vat"], f"seed={seed}"
+
+
+def test_a_summarising_form_prints_no_grand_total_line():
+    """The amount owed belongs to the summary block, and appears once."""
+    for seed in range(4):
+        receipt, _grid = _forced("invoice_vat_summary", seed)
+        assert receipt.grand_index >= len(receipt.totals), (
+            f"seed={seed}: the totals list still marks a grand total, so the "
+            f"figure would be set in bold twice on the same page"
+        )
+        owed = receipt.cash(receipt.numbers["grand"])
+        assert owed not in [value for _label, value in receipt.totals], f"seed={seed}"
+
+
+def test_every_rate_the_form_carries_gets_a_row():
+    receipt, _grid = _forced("invoice_vat_summary", 5)
+    printed = [row["rate"] for row in receipt.invoice.summary if row["rate"]]
+    assert printed == ["0%", "5%", "10%"], (
+        "a blank rate row is part of the printed form; dropping it would make "
+        "every generated form a different shape"
+    )
+
+
+# ---------------------------------------------------------- stay invoices
+
+
+@pytest.mark.parametrize("layout", ["invoice_hotel_stay", "invoice_hotel_compact"])
+def test_a_stay_bills_one_line_per_night(layout):
+    """The nights in the party block must equal the room rows in the table.
+
+    This is the error a reader of a hotel bill notices immediately, and the
+    reason `_build_stay` draws the booking once and hands it to both halves.
+    """
+    for seed in range(6):
+        receipt, _grid = _forced(layout, seed)
+        nights = dict(receipt.invoice.left + receipt.invoice.right).get("Số đêm lưu trú:")
+        if nights is None:          # a document whose block spells it differently
+            continue
+        rooms = [item for item in receipt.items if item.qty == 1
+                 and item.name == receipt.items[0].name]
+        assert len(rooms) >= int(nights), (
+            f"{layout} seed={seed}: the block says {nights} nights but the "
+            f"table has {len(rooms)} room rows"
+        )
+        dates = [item.date for item in receipt.items]
+        assert all(date for date in dates), f"{layout} seed={seed}: a line with no date"
+        assert dates == sorted(dates, key=lambda d: d.split("/")[::-1]), (
+            f"{layout} seed={seed}: a folio is printed in date order"
+        )
+
+
+def test_a_stay_line_costs_the_same_every_night():
+    for seed in range(6):
+        receipt, _grid = _forced("invoice_hotel_stay", seed)
+        rooms = [item for item in receipt.items if item.name == receipt.items[0].name]
+        assert len({item.unit_price for item in rooms}) == 1, (
+            f"seed={seed}: the nightly rate changed inside one booking"
+        )
+
+
+def test_an_export_invoice_states_no_tax():
+    """Exported goods are zero-rated, whatever the content value says."""
+    for seed in range(5):
+        receipt, _grid = _forced("invoice_export", seed)
+        assert "vat" not in receipt.numbers, f"seed={seed}: an export invoice with VAT"
+        assert receipt.invoice.words, f"seed={seed}: no amount in words"

@@ -1,0 +1,28 @@
+
+# Các khoản thu trên hoá đơn khách sạn / khu nghỉ dưỡng.
+# Định dạng: tên<TAB>đơn giá tối thiểu<TAB>đơn giá tối đa   (đơn vị VND)
+#
+# Khác `items_eatery.txt`: một dòng ở đây là MỘT ĐÊM hoặc một lần dùng dịch
+# vụ, nên "số lượng" trên tờ hoá đơn là số đêm chứ không phải số phần ăn. Vì
+# thế đơn giá tiền phòng đứng riêng một khoảng, cao hơn hẳn các dịch vụ lẻ.
+
+Tiền phòng	450000	3200000
+Tiền phòng Superior	550000	1450000
+Tiền phòng Deluxe	800000	2400000
+Tiền phòng Suite hướng biển	1800000	6500000
+Tiền phòng Studio	700000	1900000
+Phụ thu giường phụ	150000	450000
+Phụ thu khách thứ ba	200000	600000
+Phụ thu trả phòng muộn	150000	800000
+Phụ thu nhận phòng sớm	150000	700000
+Ăn sáng buffet	80000	350000
+Dịch vụ giặt là	35000	280000
+Đồ uống minibar	25000	220000
+Dịch vụ đưa đón sân bay	250000	950000
+Thuê xe máy theo ngày	120000	300000
+Dịch vụ spa và massage	300000	1500000
+Thuê phòng họp theo buổi	800000	4500000
+Nước uống đóng chai	15000	60000
+Dịch vụ giữ hành lý	30000	120000
+Vé tham quan đặt hộ	150000	900000
+Suất ăn tại phòng	120000	650000

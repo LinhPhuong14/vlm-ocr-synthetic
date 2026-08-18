@@ -90,7 +90,7 @@ def static_report(draws: int = STATIC_DRAWS, seed: int = STATIC_SEED) -> int:
 
     print(f"[layouts]  {', '.join(available_layouts())}\n")
 
-    counters, failures = sample_distribution(draws, seed)
+    counters, families, failures = sample_distribution(draws, seed)
     drawn = draws - failures
     print(f"DRAWN -- {drawn} of {draws} draws, seed {seed}")
     print("(a weight is relative to the candidates left after filtering, so this")

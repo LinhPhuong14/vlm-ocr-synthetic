@@ -1,0 +1,80 @@
+# Hoá đơn tiệm bánh / quán cà phê — tờ tự thiết kế.
+#
+# Dấu hiệu nhận biết nằm ở chỗ KHÔNG có: không khung, không dòng đánh số cột,
+# không mẫu số, không số tiền bằng chữ, không ô chữ ký. Và chỗ có: tên hiệu
+# với một dòng chữ nhỏ dưới nó ở đỉnh trang; địa chỉ, điện thoại của cửa hàng
+# KHÔNG in ở đầu trang mà để xuống chân trang; khối tổng nép hẳn về lề phải;
+# và chân trang là HAI khối cạnh nhau — chuyển khoản bên trái, liên hệ bên
+# phải — ngăn nhau bằng một dòng trống trong `notes` của document.
+#
+# Bảng trên tờ mẫu có thêm cột ảnh sản phẩm. Ảnh không phải chữ nên không có
+# cột nào cho nó ở đây; mọi thứ còn lại giữ nguyên thứ tự.
+id: invoice_brand
+name: Branded order invoice — right-hand totals, two-column footer blocks
+source: "ảnh hoá đơn một tiệm bánh, khối chuyển khoản và khối liên hệ ở chân trang"
+
+width: [66, 78]
+gutter: 2
+rule_char: "-"
+
+sections: [header, strip, parties, table, totals, notes, footer]
+
+header:
+  name_scale: [1.35, 1.60]
+  name_bold: true
+  title: true
+  title_scale: [1.30, 1.55]
+  # Địa chỉ và điện thoại xuống chân trang, in trong khối `notes`.
+  address: false
+  address2: false
+  phone: false
+  website: false
+
+strip:
+  separator: "|"
+  rule_after: false
+
+parties:
+  # Khối khách hàng nép về nửa phải, nửa trái để trống — trên tờ mẫu chỗ đó là
+  # một dòng chữ thiết kế, không phải một trường có dữ liệu.
+  style: two_column
+  split: 0.38
+  gap: 3
+  leader: ""
+
+column_header: true
+column_header_bold: false
+columns:
+  - {key: stt,        title: "Mục",        width: 5,  align: center, title_align: center}
+  - {key: name,       title: "Sản phẩm",   width: 0,  align: left,   title_align: left}
+  - {key: qty,        title: "Số lượng",   width: 10, align: right,  title_align: right}
+  - {key: unit_price, title: "Đơn giá",    width: 14, align: right,  title_align: right}
+  - {key: amount,     title: "Thành tiền", width: 15, align: right,  title_align: right}
+
+table:
+  frame: false
+  # Tiêu đề cột nằm giữa hai đường kẻ ngang, phần còn lại của bảng để trống.
+  header_rules: true
+
+item:
+  wrap_name: true
+  rows:
+    - - {col: stt, from: stt}
+      - {col: name, from: name}
+      - {col: qty, from: qty}
+      - {col: unit_price, from: unit_price}
+      - {col: amount, from: amount}
+
+totals:
+  frame: false
+  indent: 0.40
+  emphasise_grand: true
+  grand_scale: [1.10, 1.30]
+  grand_two_lines: false
+
+notes:
+  style: two_column
+  split: 0.52
+
+footer:
+  rule_before: false
