@@ -88,10 +88,24 @@ DEFAULT_TOLERANCE = 0.15
 # and one-in-three such shards would legitimately contain none.
 MIN_EXPECTED = 5
 
-# Below this many draws nothing is reported about the mix at all -- not because
-# the arithmetic breaks, but because there is no honest sentence to write about
-# an attribute seen five times.
-MIN_DRAWS = 10
+# Below this many draws the mix is not judged at all. `sampling_noise` uses the
+# *mean* deviation of a correct sample, and a mean is not a ceiling: half of all
+# correct shards land above it, so at small n a meaningful fraction clear
+# tolerance + mean as well. Measured, 4000 simulated correct shards per cell,
+# as the share that would have warned:
+#
+#     draws     augmentation (11 values)   visual (5 values)
+#        10              5.0%                    6.2%
+#        20              1.2%                    1.7%
+#        30              0.5%                    0.7%
+#        40              0.2%                    0.2%
+#       100              0.0%                    0.0%
+#
+# Ten was the first guess and a real run showed why it was wrong: twelve shards
+# of ten draws produced two warnings with nothing wrong. Thirty is where the
+# per-attribute rate drops under a percent. Shards of 100-250, which is what
+# `pipeline.yaml` recommends, are far past it.
+MIN_DRAWS = 30
 
 # Where the text came from. W2 always writes `corpus`; W6 introduces the others
 # and will declare its own expected mix. `fallback` means the intended source
