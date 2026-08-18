@@ -33,7 +33,7 @@ CHAINS = {
     # bleed-through is worse than useless -- the mirrored text lands in the
     # empty cells and reads as a double exposure rather than as ink. What is
     # left is a printed table that went through a copier.
-    "html-table": [
+    "tables": [
         ("ink_degradation", {"level": 3}),
         ("blur_zones", {"radius": 1.1, "zones": 2, "coverage": 0.18}),
         ("shadow_binding", {"border": "top", "distance_ratio": 0.07, "intensity": 0.3}),
@@ -86,7 +86,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--synthdog", type=Path, help="directory of synthdog renders")
     parser.add_argument("--genalog", type=Path, help="directory of genalog renders")
-    parser.add_argument("--html-table", type=Path, help="directory of html-table renders")
+    parser.add_argument("--tables", type=Path,
+                        help="directory of table renders, e.g. data/tables60/img")
     parser.add_argument("-n", "--per-source", type=int, default=5)
     parser.add_argument("-o", "--out", type=Path, default=Path("samples/degradation"))
     parser.add_argument("--seed", type=int, default=2026)
@@ -96,7 +97,7 @@ def main() -> int:
     manifest = []
     sheets = {}
 
-    for source in ("synthdog", "genalog", "html-table"):
+    for source in ("synthdog", "genalog", "tables"):
         directory = getattr(args, source.replace("-", "_"))
         if directory is None or not directory.exists():
             print(f"[skip] {source}: no directory")

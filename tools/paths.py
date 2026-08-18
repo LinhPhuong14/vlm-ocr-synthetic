@@ -39,7 +39,6 @@ VENVS = {
     "synthdog": REPO_ROOT / "generators" / "synthdog" / ".venv",
     "html": REPO_ROOT / "generators" / "html" / ".venv",
     "genalog": REPO_ROOT / "generators" / "genalog" / ".venv",
-    "tables": REPO_ROOT / "generators" / "html-table" / ".venv",
 }
 
 

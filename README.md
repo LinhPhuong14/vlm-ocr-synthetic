@@ -142,9 +142,9 @@ None of them re-reads its own output — no OCR is involved, so a box cannot
 inherit a recognition error. `make check-boxes` verifies coverage, that every
 corner is inside the frame, and that there is ink under each box.
 
-A fourth generator, `generators/html-table/`, is vendored upstream code for
-table images. It does not read the rule-base, and it solves a different problem
-— see [Table images](#table-images) below.
+A fourth kind of page — generic tables, labelled by structure rather than
+parsed into a record — is built by `generators/html/tables.py`, on the same
+browser the html receipts use. See [Table images](#table-images) below.
 
 ---
 
@@ -162,8 +162,11 @@ rulebase/               THE RULE-BASE — one source of truth for content
 generators/             THE RENDERERS — each with its own venv
 ├── synthdog/           glyph rendering (synthtiger)
 ├── html/               HTML + headless Chromium
-├── genalog/            genalog + WeasyPrint (source vendored)
-└── html-table/         vendored TableGeneration (not rule-base driven)
+│   ├── render.py       receipts and invoices, from the rule-base
+│   ├── a4.py           the A4 invoice as real CSS rather than a grid
+│   ├── tables.py       generic tables, labelled by structure
+│   └── page.py         what all three need: the browser, the fonts, the boxes
+└── genalog/            genalog + WeasyPrint (source vendored)
 
 degradation/            DocCreator's degradation models, ported to Python
 ├── texture.py          paper texture and overlay, stains, phantom chars
@@ -213,9 +216,10 @@ separates them is **where in the pipeline they enter**, not what they show:
 | `augmentations/data/image/` | last step of the chain | a photograph of a real sheet laid over the finished page, ink included. This is what gives fibre, fold shadow and the off-white cast. Used by `paper_overlay`. |
 | `textures/background/` | after ageing, glyph renderer only | the scene the sheet is photographed on. Only synthdog composites onto one; the other two produce a sheet with no surroundings. |
 
-`generators/html/` and `generators/html-table/` are also easy to confuse: the
-first renders receipts from the rule-base, the second is vendored code for
-generic table images and does not read the rule-base at all.
+Inside `generators/html/`, `render.py` and `tables.py` are easy to confuse:
+the first draws receipts and invoices from the rule-base, the second draws
+generic tables and reads only the corpus. They share `page.py` — one browser,
+one set of embedded fonts, one way of reading boxes off the laid-out DOM.
 
 ---
 
@@ -412,12 +416,13 @@ Results, and what the numbers mean, are in
 
 ## Table images
 
-Vendored from [TIES_DataGeneration](https://github.com/hassan-mahmood/TIES_DataGeneration),
-extended with configurable cell types, merged cells and colours. Independent of
-the rule-base.
+The table model comes from [TIES_DataGeneration](https://github.com/hassan-mahmood/TIES_DataGeneration)
+by way of PaddleOCR's TableGeneration — the seven border styles, the first-row
+column spans, the first-column row spans, the missing cells — and so does the
+label format, so anything that reads PubTabNet or PP-Structure reads this.
 
 ```bash
-make setup-tables
+make setup-html
 make tables              # 60 tables into data/tables60/
 ```
 
@@ -428,11 +433,18 @@ labels share no schema — only the `metadata.jsonl` file name, so a loader find
 them the same way. Published set and its caveats:
 [`data/tables60/`](data/tables60).
 
-`tools/generate_tables.py` wraps the vendored code without editing it, and
-supplies the three things it does not do itself: a browser it can find (it
-never sets `binary_location`, so a `google-chrome` shim goes on PATH), a
-chromedriver whose major version matches that browser, and Vietnamese cell text
-in place of upstream's 13 MB of Chinese news.
+**No fourth environment.** This used to be vendored code driven through
+Selenium, which was never a second rendering method: `element.location`/`.size`
+is the same Chromium and the same DOM geometry `render.py` reads from
+`getBoundingClientRect`. It cost a second virtualenv, a `google-chrome` shim on
+`PATH` and a chromedriver whose major version had to match the browser. The
+generator now lives in `generators/html/tables.py` and none of that is needed.
+
+Cells hold whole Vietnamese words from `rulebase/corpus/vi/` rather than
+upstream's random *character* slices of a 13 MB Chinese news file, money is
+spelled by the same `rulebase.text.money` the receipts use, the repo's fonts
+are embedded so tone marks cannot be substituted away, and each image is seeded
+on its own — image 40 rebuilds without rebuilding 0–39.
 
 Cell text is a random *character slice* of the corpus, upstream's design and
 the right one for structure recognition — so these images teach **layout, not
@@ -448,6 +460,7 @@ deliberate.
 
 ## Licence
 
-Not yet chosen — add one before publishing. `generators/html-table/` carries its
-own `LICENSE.md`; `generators/genalog/` carries genalog's (MIT); the fonts in
-`fonts/` carry theirs (see [`fonts/README.md`](fonts/README.md)).
+Not yet chosen — add one before publishing. `generators/genalog/` carries
+genalog's (MIT); the table model in `generators/html/tables.py` derives from
+TIES_DataGeneration by way of PaddleOCR (Apache-2.0) and says so in the file;
+the fonts in `fonts/` carry theirs (see [`fonts/README.md`](fonts/README.md)).
