@@ -37,7 +37,7 @@ from typing import Any
 import yaml
 
 from .content import Receipt
-from .text import apply_case, fit, money, quantity, wrap
+from .text import apply_case, fit, quantity, wrap
 
 LAYOUTS_ROOT = Path(__file__).resolve().parent / "layouts"
 
@@ -119,30 +119,42 @@ class _Builder:
         self.newline()
 
 
-def _resolve_columns(spec: dict[str, Any], ncols: int) -> list[dict[str, Any]]:
+def _full_rule(builder, spec) -> None:
+    """A rule from edge to edge, in the character the layout draws rules with.
+
+    Not `_Builder.rule`: that one is a till's separator and draws a short
+    centred dash one time in five. A ruling of a form is a ruling of the form.
+    """
+    char = str(spec.get("rule_char", "-"))[:1] or "-"
+    builder.put(char * builder.ncols, "sep", 0, builder.ncols, "left")
+    builder.newline()
+
+
+def _resolve(columns: list[dict[str, Any]], ncols: int, gutter: int,
+             inset: int) -> list[dict[str, Any]]:
     """Give every column a concrete [col0, col1) in characters.
 
-    Widths in the spec are relative weights; the name column takes whatever is
-    left. Doing it here rather than in the YAML means one layout works at 32
-    columns and at 48 without a second set of numbers.
+    Widths in the spec are fixed; the ONE column written `width: 0` takes
+    whatever is left. Doing it here rather than in the YAML means one layout
+    works at 32 columns and at 48 without a second set of numbers.
 
     A framed table is inset by one character at each edge so the frame has
     somewhere to be, and the gutter between two columns is where the `|` goes
     -- which is why a framed layout wants `gutter: 3` and a thermal one is
     happy with 1.
+
+    Taken as a function of a column list rather than of a layout because a page
+    may carry two tables: a VAT form ends with a summary by tax rate, whose
+    columns are its own and whose widths have to be resolved the same way.
     """
-    columns = [dict(column) for column in spec.get("columns", [])]
+    columns = [dict(column) for column in columns]
     if not columns:
         return []
-    gutter = int(spec.get("gutter", 1))
-    # Two characters at each edge, not one: the frame takes the first and the
-    # second is the space that keeps a column title off the `|` beside it.
-    inset = 2 if spec.get("table", {}).get("frame") else 0
     usable = ncols - 2 * inset
-    fixed = sum(int(column["width"]) for column in columns if column.get("key") != "name")
+    fixed = sum(int(column["width"]) for column in columns if int(column["width"]))
     cursor = inset
     for index, column in enumerate(columns):
-        if column.get("key") == "name":
+        if not int(column["width"]):
             width = max(usable - fixed, 8)
         else:
             width = int(column["width"])
@@ -154,6 +166,18 @@ def _resolve_columns(spec: dict[str, Any], ncols: int) -> list[dict[str, Any]]:
         column["col1"] = cursor - gutter if index < len(columns) - 1 else cursor
     columns[-1]["col1"] = ncols - inset
     return columns
+
+
+def _resolve_columns(spec: dict[str, Any], ncols: int) -> list[dict[str, Any]]:
+    """The item table's columns, inset when the layout draws a frame."""
+    # Two characters at each edge, not one: the frame takes the first and the
+    # second is the space that keeps a column title off the `|` beside it.
+    return _resolve(
+        spec.get("columns", []),
+        ncols,
+        int(spec.get("gutter", 1)),
+        2 if spec.get("table", {}).get("frame") else 0,
+    )
 
 
 def _column(columns: list[dict[str, Any]], key: str) -> dict[str, Any] | None:
@@ -206,7 +230,11 @@ def _emit_header(builder, spec, receipt, columns, rng) -> None:
         builder.put(receipt.title, "title", align="center", scale=title_scale, bold=True)
         builder.newline(2 if title_scale > 1.25 else 1)
 
-    for line in spec.get("notes", []):
+    # `header: notes:` and not a top-level `notes:` -- the notes SECTION reads
+    # the top-level key for its own settings, and one key meaning a list of
+    # printed lines in one place and a dict of settings in another is a trap
+    # that prints the word "style" on the receipt.
+    for line in header.get("notes", []):
         builder.put(_case(receipt, line), "note", align="center")
         builder.newline()
 
@@ -297,6 +325,10 @@ def _item_values(item, receipt) -> dict[str, str]:
         "vat_rate": f"{item.vat_rate}%" if item.vat_rate else "",
         "unit": item.unit,
         "note": item.note,
+        # A stay invoice rules a column for the night a line covers and another
+        # for the room it was slept in.
+        "date": item.date,
+        "ref": item.ref,
         # A utility bill: the two readings, the allowance the tariff is measured
         # against, and the tariff code that shares the price column with the
         # price itself ("DV 29.000" on the Nước sạch Hà Nội bill).
@@ -431,22 +463,31 @@ def _emit_totals(builder, spec, receipt, columns, rng) -> None:
     came back, and setting the change in 1.6x bold is not what a till does.
     """
     settings = spec.get("totals", {})
+    # A till's totals run the width of the paper; a self-designed invoice sets
+    # them in a block against the right margin with the table left empty
+    # beneath it. `indent` is that left edge -- a fraction of the sheet, or a
+    # character count if it is 1 or more.
+    indent = float(settings.get("indent", 0))
+    left = int(builder.ncols * indent) if 0 < indent < 1 else int(indent)
+    left = max(min(left, builder.ncols - 12), 0)
+
     for index, (label, value) in enumerate(receipt.totals):
         is_grand = settings.get("emphasise_grand", True) and index == receipt.grand_index
         role = "total.grand" if is_grand else "total.line"
         scale = rng.uniform(*settings.get("grand_scale", [1.2, 1.6])) if is_grand else 1.0
 
         if is_grand and settings.get("grand_two_lines") and rng.random() < 0.5:
-            builder.put(label, f"{role}.label", align="center", scale=scale, bold=True)
+            builder.put(label, f"{role}.label", left, builder.ncols, "center",
+                        scale=scale, bold=True)
             builder.newline(2)
-            builder.put(value, role, align="right", scale=scale, bold=True)
+            builder.put(value, role, left, builder.ncols, "right", scale=scale, bold=True)
             builder.newline(2)
             continue
 
         # Give the label whatever the amount does not need. Splitting at the
         # midpoint truncates "Ví điện tử của VinID Pay" to "Ví điện tử của VinID P".
-        split = max(builder.ncols - len(value) - 1, builder.ncols // 3)
-        builder.put(fit(label, split), f"{role}.label", 0, split, "left",
+        split = max(builder.ncols - len(value) - 1, left + (builder.ncols - left) // 3)
+        builder.put(fit(label, split - left), f"{role}.label", left, split, "left",
                     scale=scale, bold=is_grand)
         builder.put(value, role, split, builder.ncols, "right",
                     scale=scale, bold=is_grand)
@@ -514,11 +555,24 @@ def _emit_letterhead(builder, spec, receipt, columns, rng) -> None:
     invoice = receipt.invoice
     right_width = int(settings.get("serial_width", 26))
     split = max(builder.ncols - right_width, builder.ncols // 2)
+    # An e-invoice rendition boxes the seller's details -- name, address, tax
+    # code, bank -- and prints a QR beside them. The frame is what survives
+    # into a character grid; the QR is not text and is not drawn.
+    framed = bool(settings.get("frame"))
+    edges = [0, builder.ncols - 1]
+    frame_top = builder.row
+    # Inside a box the text starts at column 2, not at column 0: the frame owns
+    # the first character, and a cell sitting on it would take the column that
+    # `_paint_bars` needs for the `|` -- the box would then be drawn with three
+    # sides and look like a mistake rather than like a form.
+    left = 2 if framed else 0
+    if framed:
+        _rule_row(builder, edges)
 
     top = builder.row
     scale = rng.uniform(*settings.get("name_scale", [1.05, 1.25]))
-    for line in wrap(receipt.store.name, split - 1):
-        builder.put(line, "store.name", 0, split - 1, "left",
+    for line in wrap(receipt.store.name, split - 1 - left):
+        builder.put(line, "store.name", left, split - 1, "left",
                     scale=scale, bold=settings.get("name_bold", True))
         builder.newline()
     for attribute, role in (
@@ -532,27 +586,38 @@ def _emit_letterhead(builder, spec, receipt, columns, rng) -> None:
         if not value or not settings.get(attribute, True):
             continue
         shown = _put_field(builder, _case(receipt, labels.get(attribute, "")), value,
-                           0, split - 1, role)
+                           left, split - 1, role)
         if shown != value:
             setattr(receipt.store, attribute, shown)
         builder.newline()
 
     if invoice is None:
+        if framed:
+            _rule_row(builder, edges)
+            _paint_bars(builder, edges, frame_top + 1, builder.row - 1)
         return
     # The serial block sits beside the letterhead, not under it, so it is
     # written back onto the rows the letterhead already used.
     bottom = builder.row
     builder.row = top
-    for label, value, role in (
-        (labels.get("form_no", "Mẫu số:"), invoice.form_no, "invoice.form_no"),
-        (labels.get("serial", "Ký hiệu:"), invoice.serial, "invoice.serial"),
-        (labels.get("number", "Số:"), invoice.number, "invoice.number"),
+    for key, default, value, role in (
+        ("form_no", "Mẫu số:", invoice.form_no, "invoice.form_no"),
+        ("serial", "Ký hiệu:", invoice.serial, "invoice.serial"),
+        ("number", "Số:", invoice.number, "invoice.number"),
     ):
-        if not value:
+        # `serial: false` drops the row: a modern invoice puts its number in
+        # the strip across the top and nowhere else, and printing it twice
+        # would leave the layout naming the same field in two places.
+        if not value or not settings.get(key, True):
             continue
-        _put_field(builder, _case(receipt, label), value, split, builder.ncols, role)
+        label = labels.get(key, default)
+        _put_field(builder, _case(receipt, label), value, split,
+                   builder.ncols - (2 if framed else 0), role)
         builder.newline()
     builder.row = max(bottom, builder.row)
+    if framed:
+        _rule_row(builder, edges)
+        _paint_bars(builder, edges, frame_top + 1, builder.row - 1)
     builder.newline()
 
 
@@ -590,7 +655,10 @@ def _emit_parties(builder, spec, receipt, columns, rng) -> None:
     split = builder.ncols if stacked else int(builder.ncols * float(settings.get("split", 0.55)))
 
     columns_of_fields = [
-        (invoice.left_title, invoice.left, 0, split - gap),
+        # Stacked, the two blocks run one under the other and must be the same
+        # width: a dotted field two characters longer than the one above it
+        # reads as a fault in the printing, not as a second block.
+        (invoice.left_title, invoice.left, 0, builder.ncols if stacked else split - gap),
         (invoice.right_title, invoice.right, 0 if stacked else split, builder.ncols),
     ]
     if any(title for title, *_ in columns_of_fields):
@@ -618,6 +686,43 @@ def _emit_parties(builder, spec, receipt, columns, rng) -> None:
             top = builder.row
     builder.row = lowest
     builder.newline()
+
+
+def _emit_strip(builder, spec, receipt, columns, rng) -> None:
+    """The run of keys a modern invoice sets across the top of the page.
+
+    "Số hoá đơn: INV001421 | Ngày: 30/09/2024 17:11 | Mã đặt phòng: 001421" --
+    the same (label, value) pairs the party block is made of, laid left to
+    right instead of down a column. Label and value stay separate cells: the
+    ground truth quotes the value alone, and a single cell reading
+    "Số hoá đơn: INV001421" is not equal to "INV001421".
+    """
+    invoice = receipt.invoice
+    if invoice is None or not invoice.strip:
+        return
+    settings = spec.get("strip", {})
+    separator = str(settings.get("separator", "|"))
+    cursor = 0
+    top = builder.row
+    for label, value in invoice.strip:
+        label = fit(label, builder.ncols)
+        value = fit(value, builder.ncols)
+        width = len(value) + (len(label) + 1 if label else 0)
+        if cursor and cursor + len(separator) + 2 + width > builder.ncols:
+            builder.newline()
+            cursor = 0
+        elif cursor:
+            builder.put(separator, "sep", cursor + 1, cursor + 1 + len(separator), "left")
+            cursor += len(separator) + 2
+        if label:
+            builder.put(label, "invoice.field.label", cursor, cursor + len(label), "left")
+            cursor += len(label) + 1
+        builder.put(value, "invoice.field", cursor, cursor + len(value), "left")
+        cursor += len(value)
+    if builder.row > top or cursor:
+        builder.newline()
+    if settings.get("rule_after", True):
+        _full_rule(builder, spec)
 
 
 def _bar_positions(columns, ncols: int) -> list[int]:
@@ -688,7 +793,14 @@ def _emit_table(builder, spec, receipt, columns, rng) -> None:
     """
     table = spec.get("table", {})
     if not table.get("frame"):
+        # An unruled table may still rule its heading: a designed invoice sets
+        # the column titles between two lines and leaves the rest of the table
+        # open.
+        if table.get("header_rules"):
+            _full_rule(builder, spec)
         _emit_column_header(builder, spec, receipt, columns)
+        if table.get("header_rules"):
+            _full_rule(builder, spec)
         _emit_items(builder, spec, receipt, columns, rng)
         return
 
@@ -734,6 +846,61 @@ def _emit_framed_totals(builder, spec, receipt, columns, rng) -> None:
     _paint_bars(builder, positions, top, builder.row - 1)
 
 
+def _emit_vat_summary(builder, spec, receipt, columns, rng) -> None:
+    """"Tổng hợp": the money by tax rate, in a ruled table of its own.
+
+    A VAT form does not end with one tax line. It ends with a small table --
+    what was sold exempt, what at each rate, what that came to in tax, and the
+    amount owed -- because two lines of the same invoice may be taxed
+    differently and a single "Thuế GTGT 10%" would be a lie about half of them.
+
+    Its columns are not the item table's, so the layout declares them under
+    `vat_summary:` and they are resolved on their own. `content.py` has already
+    spelled the money; this only decides where each string sits.
+    """
+    invoice = receipt.invoice
+    if invoice is None or not invoice.summary:
+        return
+    settings = spec.get("vat_summary", {})
+    framed = settings.get("frame", True)
+    resolved = _resolve(
+        settings.get("columns") or [],
+        builder.ncols,
+        int(spec.get("gutter", 1)),
+        2 if framed else 0,
+    )
+    if not resolved:
+        return
+
+    positions = _bar_positions(resolved, builder.ncols)
+    top = builder.row
+    if framed:
+        _rule_row(builder, positions)
+    _emit_column_header(builder, settings, receipt, resolved)
+    if framed:
+        _rule_row(builder, positions)
+
+    last = len(invoice.summary) - 1
+    for index, row in enumerate(invoice.summary):
+        # The closing row is the amount owed, and a form sets it in bold the
+        # way it sets a grand total anywhere else.
+        bold = settings.get("emphasise_total", True) and index == last
+        for column in resolved:
+            text = row.get(str(column.get("key", "")), "")
+            if not text:
+                continue
+            width = column["col1"] - column["col0"]
+            builder.put(fit(text, width), f"summary.{column['key']}",
+                        column["col0"], column["col1"],
+                        column.get("align", "left"), bold=bold)
+        builder.newline()
+        if framed:
+            _rule_row(builder, positions)
+    if framed:
+        _paint_bars(builder, positions, top + 1, builder.row - 1)
+    builder.newline()
+
+
 def _emit_totals_section(builder, spec, receipt, columns, rng) -> None:
     if spec.get("totals", {}).get("frame"):
         _emit_framed_totals(builder, spec, receipt, columns, rng)
@@ -761,10 +928,49 @@ def _emit_words(builder, spec, receipt, columns, rng) -> None:
 
 
 def _emit_notes(builder, spec, receipt, columns, rng) -> None:
-    """The block an English invoice heads "Payment Options"."""
+    """The block an English invoice heads "Payment Options".
+
+    A self-designed invoice ends in two of them side by side -- where to send
+    the money on the left, how to reach the shop on the right. A blank line in
+    `notes:` is the break between the two; with `style: two_column` it becomes
+    the column boundary instead of an empty line.
+    """
     invoice = receipt.invoice
     if invoice is None or not invoice.notes:
         return
+    settings = spec.get("notes", {})
+    if settings.get("style") == "two_column":
+        builder.newline()
+        blocks: list[list[str]] = [[]]
+        for line in invoice.notes:
+            if line.strip():
+                blocks[-1].append(line)
+            else:
+                blocks.append([])
+        blocks = [block for block in blocks if block][:2]
+        split = int(builder.ncols * float(settings.get("split", 0.55)))
+        top = builder.row
+        lowest = top
+        for index, block in enumerate(blocks):
+            col0 = 0 if index == 0 else split
+            col1 = split - 2 if index == 0 else builder.ncols
+            # A role per column, not one for both. Cells are read in row order,
+            # so a single role would interleave the two blocks and an address
+            # wrapped over two lines could never be reassembled from it -- and
+            # reassembling by role is how the label proves the page shows what
+            # it claims.
+            role = "note.left" if index == 0 else "note.right"
+            builder.row = top
+            for line in block:
+                bold = line.endswith(":")
+                for wrapped in wrap(line.rstrip(":"), col1 - col0):
+                    builder.put(wrapped, role, col0, col1, "left", bold=bold)
+                    builder.newline()
+            lowest = max(lowest, builder.row)
+        builder.row = lowest
+        builder.newline()
+        return
+
     for line in invoice.notes:
         if not line.strip():
             builder.newline()
@@ -796,6 +1002,18 @@ def _emit_signatures(builder, spec, receipt, columns, rng) -> None:
             builder.put(fit(instruction, col1 - col0), "sign.note", col0, col1, "center")
         builder.newline()
 
+        # A hotel bill leaves room for two signatures and then prints both
+        # names under them, so the page says who signed even when nobody has.
+        if invoice.signature_names:
+            builder.newline(int(settings.get("name_gap", 3)))
+            top = builder.row
+            for index, name in enumerate(invoice.signature_names[:len(blocks)]):
+                col0 = index * width
+                col1 = builder.ncols if index == len(blocks) - 1 else col0 + width
+                builder.row = top
+                builder.put(fit(name, col1 - col0), "sign.name", col0, col1, "center")
+            builder.newline()
+
     if not invoice.signed_by:
         return
     # The green box a Vietnamese e-invoice prints where the seller's wet
@@ -822,6 +1040,8 @@ def _emit_signatures(builder, spec, receipt, columns, rng) -> None:
 # nothing in this module decides which sequence is the normal one.
 SECTIONS = {
     "header": _emit_header,
+    "strip": _emit_strip,
+    "vat_summary": _emit_vat_summary,
     "meta": _emit_meta,
     "columns": _emit_column_header,
     "items": _emit_items,

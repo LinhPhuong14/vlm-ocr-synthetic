@@ -1,0 +1,21 @@
+
+# Tiệm bánh / quán cà phê: tên hiệu<TAB>dòng chữ nhỏ dưới tên.
+#
+# Dòng thứ hai KHÔNG phải chi nhánh mà là câu định vị in nhỏ, giãn chữ, ngay
+# dưới tên hiệu — đó là cách một tờ hoá đơn tự thiết kế mở đầu, và bố cục
+# `invoice_brand` in nó ở đúng chỗ ấy.
+#
+# Tên ở đây đặt ra cho dữ liệu tổng hợp, không phải cửa hàng có thật.
+
+NGUYỄN HOÀNG SANG	CÀ PHÊ & ĐỒ ĂN SÁNG
+TIỆM BÁNH MÙA THU	BÁNH NGỌT THỦ CÔNG
+MAISON HƯƠNG	BÁNH PHÁP & TRÀ CHIỀU
+CÀ PHÊ GÓC PHỐ	RANG XAY TẠI CHỖ
+BÁNH NGỌT AN NHIÊN	ĐẶT BÁNH THEO YÊU CẦU
+THE MORNING BAKERY	BÁNH MÌ & CÀ PHÊ
+TIỆM BÁNH NHÀ BÊ	HANDMADE MỖI SÁNG
+CHÁO CÀ PHÊ HÀ THÀNH	CÀ PHÊ TRỨNG TRUYỀN THỐNG
+SEN BAKERY & COFFEE	BÁNH TƯƠI TRONG NGÀY
+TIỆM BÁNH BỐN MÙA	QUÀ TẶNG & TIỆC TRÀ
+CÀ PHÊ MÂY LANG THANG	ĐỒ UỐNG & BÁNH NGỌT
+LỘC BAKERY	BÁNH KEM SINH NHẬT

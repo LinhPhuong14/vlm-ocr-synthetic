@@ -144,8 +144,10 @@ table images. It does not read the rule-base, and it solves a different problem
 rulebase/               THE RULE-BASE — one source of truth for content
 ├── rules/              6 attributes: document, layout, content, visual,
 │                       color, augmentation. Weighted, with constraints.
-├── layouts/            5 layouts measured off real Vietnamese receipts
-└── corpus/vi/          Vietnamese corpus, with diacritics
+├── layouts/            14 layouts measured off real Vietnamese paper,
+│                       sorted into 5 families by what the document IS
+├── corpus/vi/          Vietnamese corpus, with diacritics
+└── corpus/en/          the one document kind that prints English
 
 generators/             THE RENDERERS — each with its own venv
 ├── synthdog/           glyph rendering (synthtiger)
@@ -228,6 +230,12 @@ Every value carries a weight, so the mix is tuned by editing numbers in
 tags, which is what stops the sampler pairing a 2011 thermal printer with
 accented Vietnamese, or an eatery bill with a barcode column.
 
+An attribute whose values stopped being one kind of thing sorts them into
+**parent nodes** — `groups:` in the rules file, each node with an `id`, a
+`label` and the constraints its whole family shares. `rules/layout.yaml` is
+sorted that way, and `make distribution` reports the mix per node before it
+reports it per value.
+
 ```bash
 make preflight           # everything that must hold before generating
 make distribution        # what 2000 draws actually look like
@@ -250,10 +258,13 @@ A line-by-line walkthrough of all three renderers, in Vietnamese, with the
 reasoning behind each decision and a Q&A:
 **[`docs/huong-dan-va-giai-thich.md`](docs/huong-dan-va-giai-thich.md)**.
 
-### The five layouts
+### The fourteen layouts, in five families
 
-Each was measured off a photograph of a real receipt; `source:` in the file
-says which.
+Each was measured off a photograph of a real document; `source:` in the file
+says which. The family is the parent node in `rulebase/rules/layout.yaml`.
+
+**`retail_receipt` — hoá đơn tiêu dùng.** Thermal roll, printed at the counter
+and handed over. Names nobody, signed by nobody.
 
 | id | how to recognise it |
 | --- | --- |
@@ -262,6 +273,39 @@ says which.
 | `market_barcode` | barcode and money on the first line, item name indented on the next, a `KM` line for promotions |
 | `market_compact` | the item name wraps inside the `Mặt hàng` column, meta joined with `\|` |
 | `market_vat` | a `VAT x%` line per item, money to two decimal places |
+
+**`statutory_invoice` — tờ mẫu in sẵn.** A4, a ruled table, `Mẫu số / Ký hiệu /
+Số`, the amount in words, signatures.
+
+| id | how to recognise it |
+| --- | --- |
+| `invoice_vat_form` | dotted fields to fill in by hand, a numbered column row, blank ruled rows under the last item |
+| `invoice_vat_summary` | the seller's block in a box; ends in **"Tổng hợp"**, a table of the money by tax rate |
+| `invoice_export` | every label bilingual — "Số vận đơn (Bill of lading No.)"; no tax column; one signature |
+
+**`utility_invoice` — điện, nước.** Charges a meter reading rather than a
+basket: the quantity is the difference between two numbers printed beside it.
+
+| id | how to recognise it |
+| --- | --- |
+| `invoice_water` | six meter columns, two rows per tariff band, totals inside the frame |
+| `invoice_power` | the old and new readings and the band on one line, the money on the next |
+
+**`lodging_invoice` — khách sạn.** One line per night, at one nightly rate, with
+the date and room ruled as columns of their own.
+
+| id | how to recognise it |
+| --- | --- |
+| `invoice_hotel_stay` | a strip of keys across the top, a booking block, two named signatures |
+| `invoice_hotel_compact` | the same fields on a third less paper |
+
+**`modern_invoice` — tờ tự thiết kế.** No frame, no form number, no signature
+box; the totals hug the right margin.
+
+| id | how to recognise it |
+| --- | --- |
+| `invoice_tax_en` | English; "Ship to" and "Billed to" side by side, a "Payment Options" block |
+| `invoice_brand` | the shop's address moved to a two-column footer, bank details beside it |
 
 ---
 
