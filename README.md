@@ -9,6 +9,16 @@ ways. The same seed gives the same words in the same columns whether the page
 was drawn glyph by glyph, screenshotted from a browser, or printed through
 WeasyPrint — which is what makes a comparison between the three mean anything.
 
+That is a property of the *dataset*, not only of the sampler, and it is
+declared: `run.pairing` in [`pipeline.yaml`](pipeline.yaml) is `paired` by
+default, every dataset records which mode it was built in, and a run stops
+before drawing anything if the backends would not receive the same receipts.
+The committed sets are paired, so `dataset60/synthdog/synthdog_000.jpg`,
+`html_000.jpg` and `genalog_000.jpg` are one receipt photographed, scanned and
+printed. Count the sample accordingly: 60 images are 20 receipts drawn three
+ways. `pairing: independent` gives three times the distinct pages and no basis
+at all for comparing the renderers.
+
 ```bash
 git clone https://github.com/LinhPhuong14/vlm-ocr-synthetic.git
 cd vlm-ocr-synthetic
