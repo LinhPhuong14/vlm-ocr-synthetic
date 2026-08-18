@@ -1,0 +1,105 @@
+{
+  "plans": {
+    "n3": {
+      "images": {
+        "genalog/genalog_000.jpg": "31ff122447adfa95f3363b9a85be2c5e9b2f69a0f7cca057f8c9e83ce919c3b3",
+        "genalog/genalog_001.jpg": "f36d66a54bb3bad7658402f61824cfef9afe888a91e5418bb64f7706dceab7b0",
+        "genalog/genalog_002.jpg": "2e0129763a86b0e9ee57430a8a35850be373fbc5188af876e2a289f97225704b",
+        "html/html_000.jpg": "d6203291e97df1a2172bd0e20de2634ce8b400da3c0791569ddfc2ae5439eb32",
+        "html/html_001.jpg": "68a6335894b6e57e624a188bb68ad763f1ff29c15baadda1fbf1b89df3f8e2b4",
+        "html/html_002.jpg": "05293e48888bd88ffa86d0f10845879e869d4f3e2d64f42503932dd95c8c15df",
+        "synthdog/synthdog_000.jpg": "65ef46f3bd22999e3fa1ba82650909ef1b5c44af5ee0b52504efdcffc5d76da5",
+        "synthdog/synthdog_001.jpg": "ae6733ba0f18a6a34a5d590da1d241ab721d2f06c2649b3d9beb16e7dc15bbfb",
+        "synthdog/synthdog_002.jpg": "bdd0c92e6872005bdb5bc68b111edd972af3a0cd7081bf3cab115b28247d330b"
+      },
+      "metadata": {
+        "genalog": [
+          "bef4fdb4e2cd2eb80b97a8fe14480adebf8e79d74c8e469b60ec6f430be9437d",
+          "317cfe14f11b49297216f6cdb3deded86a6e265a46a9396afe4426dead25fb10",
+          "36d37896d8b5b55e32de1e918f1909d771b1e08d2d14aec45f4888e385ad4c56"
+        ],
+        "html": [
+          "1d20c036aef71c40aea95d28f72b14e586c3132a4f7234e98e97ac6d54f7568c",
+          "bc6f1abbcb50c317b2cd7b92209dfc95247799cac3d9e62461b24d97119260b7",
+          "5f95c870b13dfb53125bcc151b2d6c45a3818861cac42af9e33b21183a211ea6"
+        ],
+        "synthdog": [
+          "7a34220fbfea30878dbf5bd77fdc5c100fd6075d06af20ce563aeb252521f893",
+          "192b0161ec17d291591b5b3c0d6429bb5d0286671b56971c00257da8121b11a5",
+          "84b9de4e0ea4a36975558e31e2c4d392031493215ec310b1a9edd63b06b2afc4"
+        ]
+      },
+      "counts": {
+        "by_backend": {
+          "genalog": 3,
+          "html": 3,
+          "synthdog": 3
+        },
+        "by_layout": {
+          "eatery_ascii": 3,
+          "eatery_indexed": 3,
+          "market_barcode": 3
+        }
+      },
+      "dataset_json": "809aeedad5f8144d5c6fa0818358460e9c47776473dceebe8e5abf5d8c9d9b05"
+    },
+    "n5": {
+      "images": {
+        "genalog/genalog_000.jpg": "31ff122447adfa95f3363b9a85be2c5e9b2f69a0f7cca057f8c9e83ce919c3b3",
+        "genalog/genalog_001.jpg": "f36d66a54bb3bad7658402f61824cfef9afe888a91e5418bb64f7706dceab7b0",
+        "genalog/genalog_002.jpg": "2e0129763a86b0e9ee57430a8a35850be373fbc5188af876e2a289f97225704b",
+        "genalog/genalog_003.jpg": "f1e8f0a1f95cb6d14ec5728eedb0ea903bec56c5ac536e9276072d903d656a85",
+        "genalog/genalog_004.jpg": "8fddd0e8e2f160cb695eaec71346615f73530e5b0a03b45255d3d86053e6f5bd",
+        "html/html_000.jpg": "d6203291e97df1a2172bd0e20de2634ce8b400da3c0791569ddfc2ae5439eb32",
+        "html/html_001.jpg": "68a6335894b6e57e624a188bb68ad763f1ff29c15baadda1fbf1b89df3f8e2b4",
+        "html/html_002.jpg": "05293e48888bd88ffa86d0f10845879e869d4f3e2d64f42503932dd95c8c15df",
+        "html/html_003.jpg": "531e68053d8f4a785e3b468164df476658c56e99cf51bf2a48d5b0fb1fc39ebb",
+        "html/html_004.jpg": "899efcf88aa90955906af645c3dfc0c7f5637f6bbe29f5443d95dac59f5cad18",
+        "synthdog/synthdog_000.jpg": "65ef46f3bd22999e3fa1ba82650909ef1b5c44af5ee0b52504efdcffc5d76da5",
+        "synthdog/synthdog_001.jpg": "ae6733ba0f18a6a34a5d590da1d241ab721d2f06c2649b3d9beb16e7dc15bbfb",
+        "synthdog/synthdog_002.jpg": "bdd0c92e6872005bdb5bc68b111edd972af3a0cd7081bf3cab115b28247d330b",
+        "synthdog/synthdog_003.jpg": "c280e3d0ab729e10c8a300f9ae427c6e68016fe6eac3d4edd4728085d0afa273",
+        "synthdog/synthdog_004.jpg": "47c8d4d6de418a6bb24d54e8366b12d5fc2eb9a02d92b6967ff76ce1575d142d"
+      },
+      "metadata": {
+        "genalog": [
+          "bef4fdb4e2cd2eb80b97a8fe14480adebf8e79d74c8e469b60ec6f430be9437d",
+          "317cfe14f11b49297216f6cdb3deded86a6e265a46a9396afe4426dead25fb10",
+          "36d37896d8b5b55e32de1e918f1909d771b1e08d2d14aec45f4888e385ad4c56",
+          "cd285fed17e852263420653d3407dd527453a61c0b4ab53f1a01f71d190f7b29",
+          "972b7d0d0d0d8556dce5e5ac082f4d28a4284fd1a4a4155d678fa9ce5c450e62"
+        ],
+        "html": [
+          "1d20c036aef71c40aea95d28f72b14e586c3132a4f7234e98e97ac6d54f7568c",
+          "bc6f1abbcb50c317b2cd7b92209dfc95247799cac3d9e62461b24d97119260b7",
+          "5f95c870b13dfb53125bcc151b2d6c45a3818861cac42af9e33b21183a211ea6",
+          "e32f30cd6b3ff2b321c5a55b239996c93ebaae3e5cb5d9e182ea6cc6a75b2370",
+          "bfb289860cc06ce05b50a8d88697f3b75da661005fc0d0e8daf7b1b8bd12dcd3"
+        ],
+        "synthdog": [
+          "7a34220fbfea30878dbf5bd77fdc5c100fd6075d06af20ce563aeb252521f893",
+          "192b0161ec17d291591b5b3c0d6429bb5d0286671b56971c00257da8121b11a5",
+          "84b9de4e0ea4a36975558e31e2c4d392031493215ec310b1a9edd63b06b2afc4",
+          "ef400370dd397e9aab3a087e6f1d1c75695dba0a1a68a16aa917f45673e22bd0",
+          "144ca9fc935f342b4c838433da8936f0fa2aecdafc7331a199b74c7ad9738f8f"
+        ]
+      },
+      "counts": {
+        "by_backend": {
+          "genalog": 5,
+          "html": 5,
+          "synthdog": 5
+        },
+        "by_layout": {
+          "eatery_ascii": 3,
+          "eatery_indexed": 3,
+          "market_barcode": 3,
+          "market_compact": 3,
+          "market_vat": 3
+        }
+      },
+      "dataset_json": "079852a52b9b466c97317b1f7fc04aabc0d10a79fcd1b169f1e1052475f10377"
+    }
+  },
+  "normalisation": "each metadata line is json.loads then json.dumps(sort_keys=True, ensure_ascii=False); no field is excluded"
+}
