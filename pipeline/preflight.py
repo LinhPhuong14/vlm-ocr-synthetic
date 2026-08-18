@@ -66,10 +66,17 @@ def printable_text() -> set[str]:
       lowercase forms. A font checked only against lowercase passes while
       printing boxes for exactly the characters most often missing.
     * the ascii-folded form, which an old thermal till prints instead.
-    * strings the rules own rather than the corpus: column titles in the
-      layouts, `titles` and `total_labels` in `rules/document.yaml`, the
-      `label:` of discount and original-price rows, and each layout's
-      `rule_char`.
+    * strings the rules own rather than the corpus, which by now is most of a
+      document: column titles, field labels, signature captions, the summary
+      block's row labels, units, payment methods, bank and port names.
+
+    Those last are collected by walking the WHOLE of each layout file and each
+    document's `params`, minus the keys that exist only for a reader. An
+    allow-list of keys was what this did before, and it aged badly: every
+    section added to `rulebase/layout.py` printed strings from a key the list
+    had never heard of, silently, and the check went on passing. A deny-list
+    fails the other way -- a new key is covered the day it is added, and the
+    worst it can do is check a few ASCII identifiers nobody prints.
     """
     seen: set[str] = set(ALWAYS)
 
@@ -96,19 +103,20 @@ def printable_text() -> set[str]:
             for value in node:
                 walk(value)
 
-    # Layout-owned strings: column titles, row labels, notes, rule characters.
+    # Layout-owned strings: everything but the three keys that are there for
+    # whoever reads the file rather than for the page.
     for path in sorted(LAYOUTS_ROOT.glob("*.yaml")):
         spec = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-        for key in ("columns", "item", "totals", "notes", "header", "meta"):
-            walk(spec.get(key))
-        add(str(spec.get("rule_char", "")))
+        walk({key: value for key, value in spec.items()
+              if key not in ("id", "name", "source")})
 
-    # Rule-owned strings: titles and total labels live in the document rules.
+    # Rule-owned strings: titles, total labels, field labels, signature
+    # captions, units, bank and port names -- all of `params`.
     for option in load_rules()["document"]:
-        walk(option.params.get("titles"))
-        walk(option.params.get("total_labels"))
+        walk(option.params)
     for option in load_rules()["content"]:
         add(str(option.params.get("money_suffix", "")))
+        add(str(option.params.get("money_prefix", "")))
 
     # Combining marks are not drawn on their own; the composed form is what a
     # cmap is asked for, and NFC has already produced it.

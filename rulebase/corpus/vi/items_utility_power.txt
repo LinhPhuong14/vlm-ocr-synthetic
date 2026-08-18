@@ -1,0 +1,17 @@
+# Bậc thang giá điện sinh hoạt và giá điện ngoài sinh hoạt.
+# Định dạng: tên<TAB>đơn giá tối thiểu<TAB>đơn giá tối đa   (VND cho 1 kWh)
+#
+# Đơn giá ở đây là giá MỘT kWh, chỉ vài nghìn đồng — `price_step` trong
+# `rules/document.yaml` phải để 1, nếu không làm tròn sẽ nuốt mất đơn giá.
+#
+# Thứ tự dòng là thứ tự BẬC: `rulebase.content` đọc từ trên xuống nên bậc 1
+# luôn nằm trên bậc 2, đúng như hoá đơn EVN in.
+
+Điện sinh hoạt bậc 1 (0-50kWh)	1700	1900
+Điện sinh hoạt bậc 2 (51-100kWh)	1750	1980
+Điện sinh hoạt bậc 3 (101-200kWh)	2010	2320
+Điện sinh hoạt bậc 4 (201-300kWh)	2530	2920
+Điện sinh hoạt bậc 5 (301-400kWh)	2830	3260
+Điện sinh hoạt bậc 6 (trên 400kWh)	2920	3370
+Điện kinh doanh giờ bình thường	2660	3050
+Điện sản xuất giờ thấp điểm	1100	1620

@@ -13,7 +13,7 @@
 options:
   - id: diacritics_mixed
     weight: 3
-    excludes: [ascii_only]
+    excludes: [ascii_only, doc_invoice]
     tags: [diacritics]
     params:
       money_style: dot
@@ -26,7 +26,7 @@ options:
 
   - id: diacritics_upper
     weight: 3
-    excludes: [ascii_only]
+    excludes: [ascii_only, doc_invoice]
     tags: [diacritics]
     params:
       money_style: dot
@@ -39,6 +39,7 @@ options:
 
   - id: ascii_upper
     weight: 2
+    excludes: [doc_invoice]
     tags: [no_diacritics]
     params:
       money_style: comma
@@ -52,7 +53,7 @@ options:
   - id: market_full
     weight: 3
     requires: [doc_market]
-    excludes: [ascii_only]
+    excludes: [ascii_only, doc_invoice]
     tags: [diacritics]
     params:
       money_style: comma
@@ -69,7 +70,7 @@ options:
   - id: market_decimals
     weight: 3
     requires: [vat_rows]
-    excludes: [ascii_only]
+    excludes: [ascii_only, doc_invoice]
     tags: [diacritics, two_decimals]
     params:
       money_style: comma_2dp
@@ -85,7 +86,7 @@ options:
 
   - id: dong_suffix
     weight: 1
-    excludes: [ascii_only, two_decimals]
+    excludes: [ascii_only, two_decimals, doc_invoice]
     tags: [diacritics, currency_suffix]
     params:
       money_style: dot
@@ -96,3 +97,103 @@ options:
       show_payment: true
       num_footers: [0, 2]
       prob_item_discount: 0.05
+
+  # Nội dung cho hoá đơn GTGT. Khác giấy tính tiền ở ba chỗ: KHÔNG có dòng
+  # "tiền khách trả / tiền trả lại" (hoá đơn ghi số phải trả, không ghi việc
+  # trả tiền), luôn có dòng thuế, và không bao giờ có dòng khuyến mãi.
+  - id: invoice_vi
+    weight: 3
+    requires: [doc_invoice]
+    excludes: [lang_en]
+    tags: [diacritics, invoice_text]
+    params:
+      money_style: dot
+      prob_ascii_fold: 0.0
+      prob_uppercase: 0.10
+      show_subtotal: true
+      show_vat: true
+      show_payment: false
+      num_footers: [1, 2]
+      prob_item_discount: 0.0
+
+  - id: invoice_vi_upper
+    weight: 1
+    requires: [doc_invoice]
+    excludes: [lang_en]
+    tags: [diacritics, invoice_text]
+    params:
+      money_style: dot
+      prob_ascii_fold: 0.0
+      prob_uppercase: 0.80
+      show_subtotal: true
+      show_vat: true
+      show_payment: false
+      num_footers: [1, 2]
+      prob_item_discount: 0.0
+
+  # Hoá đơn GTGT in kim những năm 2000: không dấu, in hoa, dấu phẩy ngăn nghìn.
+  - id: invoice_ascii
+    weight: 1
+    requires: [doc_invoice]
+    excludes: [lang_en]
+    tags: [no_diacritics, invoice_text]
+    params:
+      money_style: comma
+      prob_ascii_fold: 1.0
+      prob_uppercase: 1.0
+      show_subtotal: true
+      show_vat: true
+      show_payment: false
+      num_footers: [1, 2]
+      prob_item_discount: 0.0
+
+  # Hoá đơn tiếng Anh: corpus lưu giá theo cent nên `cents` chia lại cho 100
+  # lúc in, và ký hiệu tiền tệ đứng TRƯỚC con số chứ không đứng sau như "đ".
+  - id: invoice_en
+    weight: 2
+    requires: [lang_en]
+    tags: [no_diacritics, invoice_text]
+    params:
+      money_style: cents
+      money_prefix: "$"
+      prob_ascii_fold: 0.0
+      prob_uppercase: 0.0
+      show_subtotal: true
+      show_vat: true
+      show_payment: false
+      num_footers: [1, 3]
+      prob_item_discount: 0.0
+
+  # Hoá đơn tự thiết kế (khách sạn, tiệm bánh) hay in ĐƠN VỊ TIỀN ngay sau con
+  # số — "800.000đ", "1.600.000 VND" — chứ không để trần như hoá đơn GTGT. Hai
+  # giá trị dưới đây là hai cách viết đó; `invoice_vi` vẫn bốc được cho cùng
+  # document, nên cùng một tờ vẫn có ba lối in tiền.
+  - id: invoice_service_dong
+    weight: 2
+    requires: [doc_service]
+    tags: [diacritics, invoice_text, currency_suffix]
+    params:
+      money_style: dot
+      money_suffix: "đ"
+      prob_ascii_fold: 0.0
+      prob_uppercase: 0.10
+      show_subtotal: true
+      show_vat: true
+      show_payment: false
+      num_footers: [1, 2]
+      prob_item_discount: 0.0
+
+  - id: invoice_service_vnd
+    weight: 2
+    requires: [doc_service]
+    tags: [diacritics, invoice_text, currency_suffix]
+    params:
+      money_style: dot
+      money_suffix: " VND"
+      prob_ascii_fold: 0.0
+      prob_uppercase: 0.15
+      show_subtotal: true
+      show_vat: true
+      show_payment: false
+      num_footers: [1, 2]
+      prob_item_discount: 0.0

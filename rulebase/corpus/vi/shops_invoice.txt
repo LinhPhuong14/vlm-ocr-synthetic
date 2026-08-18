@@ -1,0 +1,27 @@
+# Bên bán trên hoá đơn GTGT: tên pháp nhân<TAB>đơn vị / chi nhánh phát hành.
+#
+# Khác `shops_market.txt` ở chỗ đây là TÊN PHÁP NHÂN đầy đủ — "CÔNG TY TNHH",
+# "CÔNG TY CỔ PHẦN" — vì hoá đơn GTGT in tên trên giấy phép kinh doanh chứ
+# không in tên thương hiệu ngoài biển hiệu.
+#
+# Tên doanh nghiệp ở đây là tên đặt ra cho dữ liệu tổng hợp, không phải doanh
+# nghiệp có thật; đặt theo đúng cách một tên công ty Việt Nam được ghép lại.
+
+CÔNG TY TNHH THƯƠNG MẠI VÀ DỊCH VỤ TRUNG KIÊN	Chi nhánh Hà Nội
+CÔNG TY TNHH MỘT THÀNH VIÊN XÂY LẮP ĐÔNG PHONG	Xí nghiệp Xây lắp số 2
+CÔNG TY CỔ PHẦN ĐẦU TƯ VÀ PHÁT TRIỂN AN BÌNH	Chi nhánh Cầu Giấy
+CÔNG TY CỔ PHẦN VẬT TƯ NÔNG NGHIỆP HOÀNG LONG	Trạm Vật tư Gia Lâm
+CÔNG TY TNHH KỸ THUẬT VÀ TỰ ĐỘNG HOÁ TÂN PHÁT	Nhà máy Bắc Ninh
+CÔNG TY TNHH SẢN XUẤT BAO BÌ MINH ĐỨC	Phân xưởng số 1
+CÔNG TY CỔ PHẦN VẬN TẢI VÀ GIAO NHẬN HẢI ÂU	Chi nhánh Hải Phòng
+CÔNG TY TNHH THIẾT BỊ Y TẾ PHÚC AN	Kho Trung tâm
+CÔNG TY CỔ PHẦN CƠ KHÍ VÀ XÂY DỰNG THÀNH ĐẠT	Đội thi công số 3
+CÔNG TY TNHH TIN HỌC VÀ VIỄN THÔNG NAM HÀ	Trung tâm Bảo hành
+CÔNG TY CỔ PHẦN THỰC PHẨM SẠCH ĐỒNG XANH	Chi nhánh Long Biên
+CÔNG TY TNHH NỘI THẤT VÀ TRANG TRÍ VIỆT MỸ	Xưởng Hoài Đức
+CÔNG TY CỔ PHẦN DƯỢC PHẨM TRƯỜNG SƠN	Chi nhánh Miền Bắc
+CÔNG TY TNHH IN VÀ QUẢNG CÁO ĐẠI DƯƠNG	Xưởng in Thanh Trì
+CÔNG TY CỔ PHẦN XUẤT NHẬP KHẨU HƯƠNG GIANG	Chi nhánh Đà Nẵng
+CÔNG TY TNHH MỘT THÀNH VIÊN DỊCH VỤ BẢO VỆ SAO MAI	Đội Bảo vệ số 5
+CÔNG TY CỔ PHẦN ĐIỆN MÁY VÀ GIA DỤNG HỒNG HÀ	Siêu thị Ba Đình
+CÔNG TY TNHH XÂY DỰNG VÀ THƯƠNG MẠI PHƯƠNG NAM	Ban Điều hành Dự án
