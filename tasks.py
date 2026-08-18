@@ -205,6 +205,16 @@ def tables(args) -> None:
          "-o", args.out, "-n", str(args.count)])
 
 
+@task("baseline-write", "capture the golden fingerprint of the generator")
+def baseline_write(args) -> None:
+    run([first_available_python(), REPO_ROOT / "tools" / "baseline.py", "--write"])
+
+
+@task("baseline-verify", "regenerate the fixed plans and compare to the golden file")
+def baseline_verify(args) -> None:
+    run([first_available_python(), REPO_ROOT / "tools" / "baseline.py"])
+
+
 @task("proof", "read a dataset back with Tesseract and score it")
 def proof(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "ocr_proof.py", args.dataset])
