@@ -55,6 +55,13 @@ def main() -> int:
     )
     parser.add_argument("--workers", type=int, default=1,
                         help="processes to render with; 1 keeps the old behaviour")
+    parser.add_argument(
+        "--pairing", choices=["paired", "independent"], default="paired",
+        help="paired: every renderer draws the same receipts, so a difference "
+             "between two of them is a difference in drawing. independent: "
+             "separate seed blocks, three times the distinct pages, no basis "
+             "for comparing renderers",
+    )
     args = parser.parse_args()
 
     from pipeline.config import Config
@@ -72,6 +79,7 @@ def main() -> int:
             "workers": args.workers,
             "clean": bool(args.clean),
             "force": list(args.force),
+            "pairing": args.pairing,
         },
         "backends": list(args.frameworks),
         # One shard per backend. This is the small-job path -- `make dataset
