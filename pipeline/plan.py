@@ -11,15 +11,35 @@ layout forever. Cutting by range lets a later wave hand a worker one browser and
 a list of pages. The price of the layout cut does not show up now -- it shows up
 two waves later, when it is expensive to undo.
 
-**Seeds are assigned exactly as the sequential driver assigned them.** W1 is a
-change of scheduling and nothing else, so every image keeps the seed, the layout
-and the output name it had before. That is what makes the golden baseline a
-usable check rather than a formality.
+**Whether the backends share their seeds is declared, not implied.** The
+arithmetic is `seed + backend_offset + layout_index * 1000 + k`, and
+`backend_offset` is what `run.pairing` decides:
 
-The arithmetic is `seed + backend_index * 100000 + layout_index * 1000 + k`,
-inherited. It is not obviously collision-free -- 100 images of one layout would
+    paired        0                                  (the default)
+    independent   backend_index * BACKEND_STRIDE
+
+W1 inherited the strided form unconditionally, from the sequential driver, and
+kept it deliberately -- W1 changed scheduling and nothing else, which is what
+made the golden baseline a usable check. But the consequence was that the three
+renderers were never drawing the same receipts. They shared no seed at all, so
+the three sets of pages differed in their *content*, and every side-by-side
+number in the proof reports -- `money_total` at 144, 141 and 149 -- was
+comparing three different corpora and reading the difference as a property of
+the renderers. `README.md` says the opposite is the point of the repository.
+
+`independent` keeps the old behaviour for the case it is actually good for:
+three backends over disjoint seeds give three times the distinct pages, which
+is what a volume run wants and a comparison run must not have. Because the two
+modes produce datasets that look identical from outside, the mode is written
+into `manifest.json`; a dataset that cannot say which one it is cannot be
+interpreted.
+
+The stride is not obviously collision-free -- 1001 images of one layout would
 run into the next layout's block -- so `disjoint_seeds()` computes the ranges
 and says so, and `build_plan` refuses to emit a plan whose blocks overlap.
+Under `paired` the backends overlap *by design*, so the check is applied per
+backend rather than across them; overlapping there would still be the bug it
+always was.
 """
 
 from __future__ import annotations
@@ -29,8 +49,9 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
-# Inherited from tools/generate_dataset.py, deliberately unchanged: altering
-# either would change every seed and therefore every pixel.
+# Inherited from tools/generate_dataset.py. `BACKEND_STRIDE` is only applied
+# under `pairing: independent` since W1b -- see the module docstring -- but it
+# is kept rather than deleted because that mode still needs it.
 BACKEND_STRIDE = 100_000
 LAYOUT_STRIDE = 1_000
 
@@ -80,10 +101,24 @@ def split_by_layout(count: int, layouts: list[str]) -> list[tuple[str, int]]:
             for index, layout in enumerate(layouts)]
 
 
+def backend_offset(backend_index: int, pairing: str) -> int:
+    """How far this backend's seed block sits from the run's base seed.
+
+    Zero under `paired`, which is what makes all three backends draw the same
+    receipts. Named rather than inlined so the one place the modes differ is
+    the one place to read.
+    """
+    if pairing == "paired":
+        return 0
+    if pairing == "independent":
+        return backend_index * BACKEND_STRIDE
+    raise ValueError(f"unknown pairing {pairing!r}; have paired, independent")
+
+
 def backend_runs(backend_index: int, per_backend: int, seed: int,
-                 layouts: list[str]) -> list[Run]:
+                 layouts: list[str], pairing: str = "paired") -> list[Run]:
     """Every render invocation for one backend, in output order."""
-    base = seed + backend_index * BACKEND_STRIDE
+    base = seed + backend_offset(backend_index, pairing)
     runs: list[Run] = []
     offset = 0        # counts only layouts that got a quota, as the driver does
     produced = 0
@@ -97,7 +132,8 @@ def backend_runs(backend_index: int, per_backend: int, seed: int,
     return runs
 
 
-def disjoint_seeds(runs_by_backend: dict[str, list[Run]]) -> list[str]:
+def disjoint_seeds(runs_by_backend: dict[str, list[Run]],
+                   pairing: str = "paired") -> list[str]:
     """Report any two runs whose seed ranges overlap.
 
     A renderer walks `seed .. seed + count - 1`, so a layout with more images
@@ -105,20 +141,31 @@ def disjoint_seeds(runs_by_backend: dict[str, list[Run]]) -> list[str]:
     out identical -- with different file names, which is the reason nobody would
     notice. Checked rather than reasoned about, because the stride is inherited
     and the counts are not.
+
+    Under `paired` the backends deliberately cover the same seeds, so they are
+    checked one at a time; an overlap *within* a backend is the bug it always
+    was. Under `independent` the blocks are supposed to be disjoint across
+    backends too, so everything is checked together.
     """
-    spans: list[tuple[int, int, str]] = []
-    for backend, runs in runs_by_backend.items():
-        for run in runs:
-            spans.append((run.seed, run.seed + run.count - 1,
-                          f"{backend}/{run.layout}"))
-    spans.sort()
+    if pairing == "paired":
+        groups = [{backend: runs} for backend, runs in sorted(runs_by_backend.items())]
+    else:
+        groups = [runs_by_backend]
+
     problems = []
-    for (a_lo, a_hi, a_name), (b_lo, b_hi, b_name) in zip(spans, spans[1:]):
-        if b_lo <= a_hi:
-            problems.append(
-                f"seed ranges overlap: {a_name} covers {a_lo}..{a_hi} and "
-                f"{b_name} starts at {b_lo}"
-            )
+    for group in groups:
+        spans: list[tuple[int, int, str]] = []
+        for backend, runs in group.items():
+            for run in runs:
+                spans.append((run.seed, run.seed + run.count - 1,
+                              f"{backend}/{run.layout}"))
+        spans.sort()
+        for (a_lo, a_hi, a_name), (b_lo, b_hi, b_name) in zip(spans, spans[1:]):
+            if b_lo <= a_hi:
+                problems.append(
+                    f"seed ranges overlap: {a_name} covers {a_lo}..{a_hi} and "
+                    f"{b_name} starts at {b_lo}"
+                )
     return problems
 
 
@@ -161,12 +208,13 @@ def build_plan(config, layouts: list[str]) -> dict[str, Any]:
     this one has no business in it. The output directory lives in the config and
     is supplied at run time.
     """
+    pairing = getattr(config, "pairing", "paired")
     runs_by_backend: dict[str, list[Run]] = {}
     for backend_index, backend in enumerate(config.backends):
         runs_by_backend[backend] = backend_runs(
-            backend_index, config.per_backend, config.seed, layouts)
+            backend_index, config.per_backend, config.seed, layouts, pairing)
 
-    overlaps = disjoint_seeds(runs_by_backend)
+    overlaps = disjoint_seeds(runs_by_backend, pairing)
     if overlaps:
         raise ValueError(
             "the plan would render duplicate images:\n  " + "\n  ".join(overlaps)
@@ -181,6 +229,7 @@ def build_plan(config, layouts: list[str]) -> dict[str, Any]:
 
     return {
         "seed": config.seed,
+        "pairing": pairing,
         "per_backend": config.per_backend,
         "backends": list(config.backends),
         "layouts": list(layouts),
@@ -211,6 +260,7 @@ __all__ = [
     "LAYOUT_STRIDE",
     "Run",
     "Shard",
+    "backend_offset",
     "backend_runs",
     "build_plan",
     "disjoint_seeds",
