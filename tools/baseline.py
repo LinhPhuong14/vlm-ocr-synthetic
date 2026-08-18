@@ -57,6 +57,23 @@ def _sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def _label_schema() -> int:
+    """Which shape of label this fingerprint covers. See `rulebase.LABEL_SCHEMA`.
+
+    Recorded because the two halves of this fingerprint fail for completely
+    different reasons. An image hash that moves means the *generator* changed
+    and something is probably wrong. A metadata hash that moves while every
+    image matches means the *label* changed, which is sometimes exactly what was
+    intended -- and telling a person "48 metadata lines differ" when the answer
+    is "you renamed a field on purpose, recapture" wastes the afternoon this
+    file exists to save.
+    """
+    sys.path.insert(0, str(REPO_ROOT))
+    from rulebase import LABEL_SCHEMA
+
+    return LABEL_SCHEMA
+
+
 def _normalise(line: str) -> str:
     """One metadata line, in a form that hashes the same everywhere."""
     return json.dumps(json.loads(line), sort_keys=True, ensure_ascii=False)
@@ -86,6 +103,7 @@ def fingerprint(root: Path) -> dict:
 
     summary = root / "dataset.json"
     return {
+        "label_schema": _label_schema(),
         "images": images,
         "metadata": metadata,
         "counts": {"by_backend": by_backend, "by_layout": by_layout},
@@ -123,6 +141,21 @@ def capture(driver: list[str]) -> dict:
             "ensure_ascii=False); no field is excluded"
         ),
     }
+
+
+def schema_gap(expected: dict, actual: dict) -> str:
+    """One sentence when the baseline predates the current label shape."""
+    was = {plan.get("label_schema", 1) for plan in expected["plans"].values()}
+    now = {plan.get("label_schema") for plan in actual["plans"].values()}
+    if was == now:
+        return ""
+    return (
+        f"the label schema moved from {sorted(was)} to {sorted(now)} since this "
+        f"baseline was captured, so every metadata hash below is expected to "
+        f"differ and none of them means the generator regressed. The image "
+        f"hashes are still a real check -- read those first, then recapture with "
+        f"`make baseline-write`."
+    )
 
 
 def compare(expected: dict, actual: dict) -> list[str]:
@@ -195,6 +228,9 @@ def main() -> int:
     expected = json.loads(GOLDEN.read_text(encoding="utf-8"))
     problems = compare(expected, actual)
     if problems:
+        gap = schema_gap(expected, actual)
+        if gap:
+            print(f"\nNOTE: {gap}")
         print(f"\nBASELINE: {len(problems)} khác biệt\n")
         for problem in problems[:40]:
             print(f"  - {problem}")

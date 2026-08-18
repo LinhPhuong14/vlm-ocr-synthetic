@@ -35,6 +35,25 @@ class RecordError(ValueError):
     """A metadata line is not what a loader will expect."""
 
 
+def doc_type(record: dict[str, Any]) -> str:
+    """Which node of `taxonomy/` this record says it is, read from its label.
+
+    From the label rather than from the plan that asked for it: the label is
+    what a consumer of the dataset sees, so if the two ever disagreed the label
+    would be the one that mattered. Copying it to the top level is the same
+    convenience `framework` and `layout` are -- filtering a dataset by type
+    without parsing a JSON string in every line.
+    """
+    raw = record.get("ground_truth")
+    if not isinstance(raw, str):
+        return ""
+    try:
+        parsed = json.loads(raw).get("gt_parse") or {}
+    except (json.JSONDecodeError, AttributeError):
+        return ""
+    return str(parsed.get("doc_type") or "")
+
+
 def validate(record: dict[str, Any], *, strict: bool = True) -> list[str]:
     """Everything wrong with one record, most important first.
 
@@ -129,6 +148,7 @@ __all__ = [
     "ASSEMBLY_KEYS",
     "RENDERER_KEYS",
     "REQUIRED",
+    "doc_type",
     "RecordError",
     "check",
     "read",

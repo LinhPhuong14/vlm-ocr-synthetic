@@ -20,13 +20,40 @@ own content, what you compared would be two datasets, not two ways of drawing.
 ```
 rulebase/
 ├── rules/          6 ATTRIBUTES, one file each        ← tune the distribution here
+│   └── document/   ...except `document`: one file per FAMILY of taxonomy/
 ├── layouts/        5 LAYOUTS measured off real receipts ← add a layout here
 ├── corpus/vi/      Vietnamese corpus, WITH diacritics  ← add products here
 ├── spec.py         weighted sampling with constraints
 ├── content.py      fills the fields and builds the label
+├── documents.py    which builder fills in which document type
 ├── layout.py       content + layout -> a grid of cells
 └── text.py         diacritic folding, money formatting, wrapping
 ```
+
+### The rule-base does not decide what a document *is*
+
+That comes from [`taxonomy/`](../taxonomy/README.md): twelve families and 98
+document types, declared as data. Every value in `rules/document/` names the
+leaf of that tree it realises, and the leaf is what the label records:
+
+```yaml
+- id: supermarket
+  doc_type: business.receipt.retail    # a leaf of taxonomy/families/01-business.yaml
+```
+
+Several values may realise one type — a supermarket and a convenience store both
+print a retail receipt — because a type is what a dataset is balanced over and
+what a model is asked to predict, while a value is one way of producing it. So a
+run pins a *type*, not a value:
+
+```python
+rulebase.make(seed=7, doc_type="retail")            # any unambiguous name
+rulebase.make(seed=7, force={"document": "supermarket"})   # one specific value
+```
+
+`make check-rules` verifies the join in both directions: a `doc_type` naming
+nothing, naming a branch, or naming an alias is an error, and so is a type the
+hierarchy calls `ready` that no value here realises.
 
 ### Naming: English identifiers, Vietnamese printed text
 
@@ -35,7 +62,7 @@ what reaches the image is Vietnamese.**
 
 | English — an identifier | Vietnamese — content |
 | --- | --- |
-| `id`, `tags`, `requires`, `excludes` | `titles`, `total_labels` in `rules/document.yaml` |
+| `id`, `tags`, `requires`, `excludes` | `titles`, `total_labels` in `rules/document/` |
 | `profile: eatery \| market` | a column's `title:` in `layouts/*.yaml` |
 | `paper: thermal_white` (a filename in `textures/paper/`) | the discount row's `label:`, `notes:` |
 | a column's `key:`, `style:`, `money_style:` | everything in `corpus/vi/` |
@@ -47,8 +74,9 @@ variable name — the images would stop being Vietnamese receipts. `id` and
 what makes `--force augmentation=torn_edges` readable without knowing
 Vietnamese.
 
-The label follows the same rule: `gt_parse.doc_type` is `receipt_eatery` /
-`receipt_market`, while every field *value* stays Vietnamese.
+The label follows the same rule: `gt_parse.doc_type` is a hierarchy id such as
+`business.receipt.retail` and `doc_path` its English names, while every field
+*value* stays Vietnamese.
 
 ---
 
@@ -59,7 +87,7 @@ later one can rule itself out when it does not fit.
 
 | # | attribute | decides | file |
 | --- | --- | --- | --- |
-| 1 | `document` | what kind of document: eatery, supermarket, VAT invoice… | [rules/document.yaml](rules/document.yaml) |
+| 1 | `document` | which type from the hierarchy, and what its fields say | [rules/document/](rules/document/) |
 | 2 | `layout` | which columns, how many lines per item | [rules/layout.yaml](rules/layout.yaml) |
 | 3 | `content` | diacritics or not, UPPER CASE, money format, VAT | [rules/content.yaml](rules/content.yaml) |
 | 4 | `visual` | font, size, ink weight, **white margin**, sheet, curl | [rules/visual.yaml](rules/visual.yaml) |
@@ -83,7 +111,8 @@ broadest choice and `augmentation` the narrowest.
 ### The shape of one value
 
 ```yaml
-- id: supermarket                    # required, unique within the file
+- id: supermarket                    # required, unique across the attribute
+  doc_type: business.receipt.retail  # which leaf of taxonomy/ this produces
   weight: 3                          # relative frequency; 0 = never drawn
   tags: [doc_market, has_barcode]    # tags the later attributes will see
   requires: [doc_market]             # drawable only if the recipe ALREADY has these
@@ -234,7 +263,7 @@ works, the reverse does not.
 | `wards.txt` | ward ⇥ district ⇥ province/city |
 | `payments.txt` | label ⇥ group (`tienmat`/`the`/`vi`/`qr`) |
 
-The `profile` in `rules/document.yaml` **is** the filename suffix:
+The `profile` in `rules/document/` **is** the filename suffix:
 `profile: market` reads `items_market.txt`. Adding a profile means adding three
 corpus files with a matching suffix, not editing `corpus.py`.
 
@@ -277,7 +306,9 @@ the image does not contain.
 
 ```json
 {
-  "doc_type": "receipt_market",
+  "doc_type": "business.receipt.retail",
+  "doc_family": "business",
+  "doc_path": ["Structured Business Document", "Receipt", "Retail Receipt"],
   "title": "HOÁ ĐƠN BÁN HÀNG",
   "store": {"name": "VinCommerce", "branch": "VM Royal City", "address": "..."},
   "menu": [

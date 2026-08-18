@@ -268,6 +268,22 @@ def preflight(args) -> None:
     run([first_available_python(), REPO_ROOT / "pipeline" / "preflight.py"])
 
 
+@task("taxonomy", "the document hierarchy: what exists, what can be generated")
+def taxonomy_report(args) -> None:
+    run([sys.executable, REPO_ROOT / "tools" / "taxonomy_report.py"])
+
+
+@task("taxonomy-check", "does the hierarchy agree with the rules and the builders?")
+def taxonomy_check(args) -> None:
+    run([sys.executable, REPO_ROOT / "tools" / "taxonomy_report.py", "--check"])
+
+
+@task("coverage", "which document types a generated dataset actually contains")
+def coverage(args) -> None:
+    run([sys.executable, REPO_ROOT / "tools" / "taxonomy_report.py",
+         "--summary", "--dataset", str(args.dataset)])
+
+
 @task("check-rules", "validate rules/: unreachable values, bad tags, missing files")
 def check_rules(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "rules_report.py", "--check"])

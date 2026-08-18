@@ -76,6 +76,19 @@ UNCHECKED = "unchecked:"
 REPLACEMENT = "�"
 MISSING_GLYPH = "□"
 
+# The label's classification block: where the page sits in `taxonomy/`. These
+# are the only fields that are *supposed* to appear on no box -- a receipt does
+# not print the words "Retail Receipt" anywhere, it simply is one. Every other
+# label value has to be found in the drawn text or be a budgeted suppression.
+#
+# Named rather than pattern-matched. This used to skip any value starting with
+# `receipt_`, which was a test on the *value* and would have silently started
+# checking the type against the pixels the moment the hierarchy renamed it.
+# Written out by `rulebase.content.Receipt.classification`; the two lists are
+# kept in step by a test, not by an import, because this module deliberately
+# depends on nothing but the standard library.
+CLASSIFICATION = frozenset({"doc_type", "doc_family", "doc_path"})
+
 # The ten fields a layout is known to suppress, and how much of one may go
 # unprinted in a layout that is NOT recorded below as suppressing it. Anything
 # not named here is an error, whatever its rate; that is the point of the list.
@@ -423,8 +436,8 @@ def inspect(item: dict[str, Any], *, order: tuple[str, ...] | list[str],
         except (json.JSONDecodeError, AttributeError):
             gt = {}
     for name, value in leaves(gt):
-        if not value.strip() or value.startswith("receipt_"):
-            continue          # doc_type is a class, not text on the page
+        if not value.strip() or name in CLASSIFICATION:
+            continue          # a class, not text on the page
         out.values += 1
         if REPLACEMENT in value or MISSING_GLYPH in value:
             out.errors.append(f"label {name} {value!r} carries a missing glyph")

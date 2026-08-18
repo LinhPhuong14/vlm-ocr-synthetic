@@ -18,7 +18,7 @@ LAYOUT  ?=
 .PHONY: help setup setup-synthdog setup-html setup-genalog textures \
         receipts preview preview-grid dataset dataset-clean proof showcase \
         preflight check-rules check-corpus check-boxes distribution list-degradations \
-        lint format check clean
+        taxonomy taxonomy-check coverage lint format check clean
 
 help:  ## Show this help
 	@$(TASKS)
@@ -64,6 +64,15 @@ preview:         ## Render a grid of sample receipts to eyeball the config
 	$(TASKS) preview
 preview-grid:    ## Print a sampled receipt as text (LAYOUT=<id> to pin one)
 	@$(TASKS) preview-grid $(if $(LAYOUT),--layout $(LAYOUT),)
+
+# --------------------------------------------------------- the hierarchy
+
+taxonomy:        ## The document tree: 12 families, what each type still needs
+	@$(TASKS) taxonomy
+taxonomy-check:  ## Does the tree agree with the rules and the builders?
+	@$(TASKS) taxonomy-check
+coverage:        ## Which document types $(DATASET) actually contains
+	@$(TASKS) coverage --dataset $(DATASET)
 
 # ------------------------------------------------------------- the rules
 

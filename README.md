@@ -3,10 +3,14 @@
 Synthetic Vietnamese document images for training and evaluating VLM / OCR
 models, with structured labels.
 
-**One rule-base, three renderers.** What a page contains is decided once, in
-[`rulebase/`](rulebase/README.md); how it is drawn is decided three different
-ways. The same seed gives the same words in the same columns whether the page
-was drawn glyph by glyph, screenshotted from a browser, or printed through
+**One hierarchy, one rule-base, three renderers.** *What kind of document* a
+page is comes from [`taxonomy/`](taxonomy/README.md) — twelve families, 98
+document types, declared as data and read by everything. *What it says* is
+decided once in [`rulebase/`](rulebase/README.md); *how it is drawn* is decided
+three different ways.
+
+The same seed gives the same words in the same columns whether the page was
+drawn glyph by glyph, screenshotted from a browser, or printed through
 WeasyPrint — which is what makes a comparison between the three mean anything.
 
 That is a property of the *dataset*, not only of the sampler, and it is
@@ -22,9 +26,11 @@ at all for comparing the renderers.
 ```bash
 git clone https://github.com/LinhPhuong14/vlm-ocr-synthetic.git
 cd vlm-ocr-synthetic
+make taxonomy       # the document hierarchy, and what each type still needs
 make setup          # three environments, one per renderer
 make dataset        # 60 labelled images into data/dataset60/
 make proof          # read them back with Tesseract and score the labels
+make coverage       # which document types that dataset actually contains
 ```
 
 No `make` — on Windows, or anywhere — use the task runner directly. Every task
@@ -38,6 +44,68 @@ py tasks.py            # list the tasks
 
 Windows needs three things installed by hand (Python 3.11, GTK for WeasyPrint,
 Tesseract); [`docs/windows.md`](docs/windows.md) has the list.
+
+---
+
+## The document hierarchy
+
+Every image is an instance of one node of a twelve-family tree, and the node id
+is what the label says it is:
+
+```json
+{"doc_type": "business.receipt.retail",
+ "doc_family": "business",
+ "doc_path": ["Structured Business Document", "Receipt", "Retail Receipt"]}
+```
+
+```
+DOCUMENT
+├──  1. Structured Business Document   invoice · receipt · purchase/sales · financial
+├──  2. Form & Administrative          application · registration · declaration · …
+├──  3. Identity & Official            ID card · passport · licence · certificate · …
+├──  4. Legal                          contract · agreement · terms · policy · …
+├──  5. Medical / Healthcare           prescription · lab report · discharge · …
+├──  6. Academic / Research            paper · thesis · exam · transcript · …
+├──  7. Technical                      manual · specification · datasheet · API · …
+├──  8. Report / Information           business · audit · project · incident · …
+├──  9. Communication                  letter · memo · notice · minutes · …
+├── 10. List / Catalog / Directory     catalogue · price list · schedule · menu · …
+├── 11. Log / Operational              system · event · maintenance · inspection · …
+└── 12. Visual / Mixed                 poster · flyer · infographic · chart · map · …
+```
+
+**Two of the ninety-eight can be generated today** — retail and restaurant
+receipts, which is everything this repository could do before the tree existed.
+The rest are declared, and each one says what it is waiting for. `make taxonomy`
+prints the tree with that verdict per type; the summary is the part worth
+reading:
+
+| engine | built | types | what is missing |
+| --- | --- | ---: | --- |
+| `grid` | **yes** | 49 | corpus, a layout, a builder — no new machinery |
+| `flow` | no | 33 | paginated prose: reflow, page breaks, a label schema for running text |
+| `card` | no | 5 | fixed geometry in millimetres, photographs, security patterns |
+| `canvas` | no | 11 | free composition, and a label that says which text belongs to which figure |
+
+That is the design decision the hierarchy is really for. "Support a hundred
+document types" is not one unbounded task — it is three engines, and half the
+tree needs none of them. Adding a type inside the `grid` half is YAML, a corpus
+and one registered function: [`taxonomy/README.md §3`](taxonomy/README.md) walks
+through `medical.prescription` end to end.
+
+A run says which slice of the tree it wants and how to balance it:
+
+```yaml
+taxonomy:
+  include: [business.receipt, medical]
+  balance: family        # every family the same budget, not every leaf
+```
+
+and any single command can pin one type, by any unambiguous name:
+
+```bash
+python generators/html/render.py --doc retail -c 5 -o /tmp/out
+```
 
 ---
 
@@ -151,11 +219,18 @@ table images. It does not read the rule-base, and it solves a different problem
 ## Repository layout
 
 ```
+taxonomy/               THE HIERARCHY — what kinds of document exist
+├── document.yaml       the vocabulary: statuses, engines, the root
+├── families/           12 families, 101 declarations, 98 distinct documents
+└── __init__.py         loader, validation, lookup — nothing else knows the tree
+
 rulebase/               THE RULE-BASE — one source of truth for content
 ├── rules/              6 attributes: document, layout, content, visual,
-│                       color, augmentation. Weighted, with constraints.
+│   └── document/       color, augmentation. Weighted, with constraints.
+│                       `document/` is one file per family of the hierarchy.
 ├── layouts/            5 layouts measured off real Vietnamese receipts
-└── corpus/vi/          Vietnamese corpus, with diacritics
+├── corpus/vi/          Vietnamese corpus, with diacritics
+└── documents.py        which builder fills in which document type
 
 generators/             THE RENDERERS — each with its own venv
 ├── synthdog/           glyph rendering (synthtiger)
@@ -188,9 +263,12 @@ Where to look for a thing:
 
 | you want | it is in |
 | --- | --- |
+| to see which document types exist, and what each still needs | `make taxonomy` |
+| to add a document type or a family | [`taxonomy/README.md`](taxonomy/README.md) §3 |
 | to change what receipts say | `rulebase/corpus/`, `rulebase/rules/content.yaml` |
 | to change how often something appears | the `weight:` fields in `rulebase/rules/` |
 | to add a receipt layout | `rulebase/layouts/` |
+| to balance a run over the tree | `taxonomy:` in [`pipeline.yaml`](pipeline.yaml) |
 | to change how a page is drawn | `generators/<renderer>/render.py` |
 | to make pages look old or scanned | `degradation/` |
 | the labelled datasets | `data/dataset60/` (aged), `data/dataset60_clean/` (clean) |
@@ -223,7 +301,7 @@ Six attributes, drawn in order, each seeing the tags the earlier ones set:
 
 | # | attribute | decides |
 | --- | --- | --- |
-| 1 | `document` | what kind of document — eatery, supermarket, VAT invoice |
+| 1 | `document` | which type from [`taxonomy/`](taxonomy/README.md), and its fields |
 | 2 | `layout` | which columns, how many lines per item |
 | 3 | `content` | diacritics or not, upper case, money format, VAT |
 | 4 | `visual` | font, size, ink weight, white margin, sheet, curl |

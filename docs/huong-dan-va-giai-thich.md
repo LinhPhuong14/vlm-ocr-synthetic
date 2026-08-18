@@ -287,7 +287,7 @@ sẽ bắt đầu dòng ở cột khác nhau.
 một dòng hỏng chỉ nên tốn dòng đó.
 
 `corpus.items(profile)` nhận `"eatery"` hoặc `"market"` và ghép thẳng vào tên
-file (`items_eatery.txt`). Nghĩa là **`profile` trong `rules/document.yaml` là
+file (`items_eatery.txt`). Nghĩa là **`profile` trong `rules/document/` là
 tên file, không phải một enum riêng** — thêm một profile mới chỉ cần thêm ba
 file corpus cùng hậu tố, không phải sửa `corpus.py`. Đổi lại, gõ sai `profile`
 sẽ nổ ở `FileNotFoundError` chứ không ở chỗ validate; `make check-corpus` chạy
@@ -707,7 +707,9 @@ một ảnh mà code hiện tại không tạo ra nữa.
 
 **H: Nhãn có format gì? Dùng train được luôn không?**
 `ground_truth` là chuỗi JSON `{"gt_parse": {...}}` lồng nhau kiểu CORD —
-`DonutDataset` đọc trực tiếp. Thêm `text_sequence` cho pre-training đọc trơn, và
+`DonutDataset` đọc trực tiếp. Mở đầu là khối phân loại: `doc_type` (một lá của
+[`taxonomy/`](../taxonomy/README.md), ví dụ `business.receipt.retail`),
+`doc_family`, và `doc_path` là đường đi bằng tên tiếng Anh. Thêm `text_sequence` cho pre-training đọc trơn, và
 `boxes` (polygon 4 điểm mỗi ô, **vẫn đúng sau khi giấy cong**) cho detection.
 Renderer glyph có `boxes`; hai renderer HTML thì chưa.
 
@@ -727,10 +729,17 @@ Ba chỗ, xếp theo mức độ:
    không bỏ dấu). Cả hai đều bị bắt bằng cách **nhìn ảnh**, không phải bằng test.
 
 **H: Thêm một loại document mới (ví dụ hoá đơn điện) mất bao lâu?**
-Một buổi. Thêm giá trị vào `rules/document.yaml`, một file bố cục trong
-`layouts/`, corpus tương ứng, khai bố cục ở `rules/layout.yaml` kèm
-`requires`. Không phải sửa Python nếu bố cục dùng được ngữ pháp có sẵn
-(cột, span, `note_row`, `discount_row`). `make preview-grid LAYOUT=<id>` để soi.
+Một buổi — NẾU loại đó nằm trong nửa `grid` của cây phân cấp (49/98 loại).
+Năm bước, [`taxonomy/README.md`](../taxonomy/README.md) §3 làm mẫu đầy đủ với
+`medical.prescription`: khai (hoặc nâng trạng thái) lá trong
+`taxonomy/families/`, thêm giá trị vào `rules/document/<họ>.yaml` kèm
+`doc_type:`, một file bố cục trong `layouts/` khai ở `rules/layout.yaml` kèm
+`requires`, corpus tương ứng, và một builder `@register(...)` trong
+`rulebase/documents.py`. `make preview-grid LAYOUT=<id>` để soi, `make
+taxonomy-check` để chắc cây và luật khớp nhau.
+
+Loại gắn `engine: flow`, `card` hay `canvas` thì KHÔNG phải một buổi: engine đó
+chưa tồn tại. `make taxonomy` in ra loại nào cần engine nào.
 
 **H: Sao không dùng Albumentations/imgaug cho phần augmentation?**
 Chúng làm rất tốt biến đổi **tổng quát** (xoay, méo, nhiễu, đổi màu) — và

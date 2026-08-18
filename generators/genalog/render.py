@@ -187,8 +187,10 @@ class GenalogReceiptRenderer:
         self.dpi = dpi
         self.short_size = short_size
 
-    def render(self, seed: int, force: dict[str, str] | None = None):
-        recipe, receipt, grid = rulebase.make(seed=seed, force=force)
+    def render(self, seed: int, force: dict[str, str] | None = None,
+               doc_type: str | None = None):
+        recipe, receipt, grid = rulebase.make(seed=seed, force=force,
+                                              doc_type=doc_type)
         visual = recipe.visual.params
 
         size_lo, size_hi = visual.get("font_size", [22, 30])
@@ -298,6 +300,11 @@ def main() -> int:
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--layout", help="pin one bố cục")
     parser.add_argument(
+        "--doc", metavar="TYPE",
+        help="pin a document type from taxonomy/: retail, receipt.retail, "
+             "business.receipt.retail",
+    )
+    parser.add_argument(
         "--force", action="append", default=[], metavar="ATTR=ID",
         help="pin any attribute, repeatable: --force augmentation=pristine",
     )
@@ -310,7 +317,7 @@ def main() -> int:
     records = []
 
     for index in range(args.count):
-        recipe, receipt, _grid, image, boxes = renderer.render(args.seed + index, force)
+        recipe, receipt, _grid, image, boxes = renderer.render(args.seed + index, force, args.doc)
         name = f"genalog_{index:03d}.jpg"
         cv2.imwrite(str(args.out / name), image, [cv2.IMWRITE_JPEG_QUALITY, 90])
         records.append({

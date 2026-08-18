@@ -77,7 +77,7 @@ dataset60/
   "file_name": "synthdog_000.jpg",
   "framework": "synthdog",
   "layout": "eatery_indexed",
-  "ground_truth": "{\"gt_parse\": {…}}",
+  "ground_truth": "{\"gt_parse\": {\"doc_type\": \"business.receipt.restaurant\", …}}",
   "text_sequence": "QUÁN NHẬU SEN VÀNG 251 235 Phan Xích Long …",
   "recipe": {"seed": 2026, "attributes": {…}, "tags": […]},
   "boxes": [{"kind": "menu.nm", "text": "…", "quad": [[x,y],…]}]
@@ -86,9 +86,9 @@ dataset60/
 
 | field | |
 | --- | --- |
-| `ground_truth` | CORD-style nested label, as a JSON string (Donut reads it directly) |
+| `ground_truth` | CORD-style nested label, as a JSON string (Donut reads it directly). Opens with the classification block: `doc_type` (a node of [`taxonomy/`](../taxonomy/README.md)), `doc_family`, `doc_path` |
 | `text_sequence` | flat reading label, for pre-training and for OCR scoring |
-| `recipe` | **all six** sampled attributes plus the seed — enough to rebuild the exact image |
+| `recipe` | **all six** sampled attributes, the document type, and the seed — enough to rebuild the exact image |
 | `boxes` | one `{kind, text, quad}` per drawn field, from **all three** renderers. synthdog's quads are rotated by the paper curl; the other two are axis-aligned |
 
 `recipe.seed` reproduces the content — but **only together with the attributes
@@ -111,3 +111,29 @@ Verify a set after regenerating it:
 ```bash
 make check-boxes DATASET=data/dataset60
 ```
+
+## The label schema changed once
+
+These datasets were generated before `taxonomy/` existed, when a label's type
+was `receipt_eatery` or `receipt_market` — two names invented here that meant
+nothing outside this repository. They now carry the hierarchy:
+
+```json
+{"doc_type": "business.receipt.restaurant",
+ "doc_family": "business",
+ "doc_path": ["Structured Business Document", "Receipt", "Restaurant Receipt"]}
+```
+
+**The images were not regenerated, and did not need to be.** A document type is
+a classification: it is never printed on the page, which is why
+`pipeline.invariants` exempts it from "every label value must appear on some
+box". So the pixels are exactly the bytes they always were and only the labels
+were rewritten, by `tools/migrate_labels.py`, which produces character for
+character what a fresh run writes today — a property checked by
+`tests/test_doc_types.py` rather than asserted.
+
+One consequence to know about: the metadata half of
+[`tests/golden/baseline.json`](../tests/golden/baseline.json) was captured
+under the old schema and no longer matches. `make baseline-verify` says so in
+one sentence instead of printing forty-eight hash differences, and the fix is
+`make baseline-write` on a machine with the three renderer environments.

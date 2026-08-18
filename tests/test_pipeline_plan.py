@@ -369,3 +369,65 @@ def test_the_paired_invariant_catches_a_sampler_that_moved_the_seed(monkeypatch)
     plan = build_plan(make_config(per_backend=10, size=10), LAYOUTS)
     problems = paired_content(plan)
     assert problems and "the sampler returned" in problems[0], problems
+
+
+# ------------------------------------------- planning over the hierarchy
+
+
+STRATA = [("business.receipt.retail", "market_barcode", 4),
+          ("business.receipt.retail", "market_vat", 3),
+          ("business.receipt.restaurant", "eatery_indexed", 3)]
+
+
+def test_a_stratified_run_carries_the_type_into_every_run():
+    runs = backend_runs(0, 10, 2026, strata=STRATA)
+    assert [(r.doc_type, r.layout, r.count) for r in runs] == [
+        ("business.receipt.retail", "market_barcode", 4),
+        ("business.receipt.retail", "market_vat", 3),
+        ("business.receipt.restaurant", "eatery_indexed", 3)]
+    # Every block still gets its own thousand-seed window, as layouts always did.
+    assert [r.seed for r in runs] == [2026, 2026 + LAYOUT_STRIDE, 2026 + 2 * LAYOUT_STRIDE]
+
+
+def test_the_seed_arithmetic_does_not_depend_on_which_way_the_run_was_planned():
+    """A stratum is a stratum. The type is carried, it does not move any seed.
+
+    This is what makes the change safe for everything already committed: a plan
+    with the same blocks in the same order produces the same seeds, so the same
+    images, whether the blocks came from the layouts or from the hierarchy.
+    """
+    from_layouts = backend_runs(0, 20, 2026, LAYOUTS)
+    as_strata = backend_runs(0, 20, 2026, strata=[
+        ("", run.layout, run.count) for run in from_layouts])
+    assert [(r.layout, r.seed, r.count, r.first_index) for r in as_strata] == \
+        [(r.layout, r.seed, r.count, r.first_index) for r in from_layouts]
+
+
+def test_a_plan_must_be_told_one_way_or_the_other():
+    with pytest.raises(ValueError, match="either layouts or strata"):
+        backend_runs(0, 20, 2026)
+    with pytest.raises(ValueError, match="either layouts or strata"):
+        backend_runs(0, 20, 2026, LAYOUTS, strata=STRATA)
+
+
+def test_a_split_shard_keeps_the_type_of_the_run_it_came_from():
+    """Otherwise half a shard would render as the wrong document."""
+    runs = backend_runs(0, 10, 2026, strata=STRATA)
+    shards = shard_runs(runs, "html", size=3, start_index=0)
+    for shard in shards:
+        for run in shard.runs:
+            assert run.doc_type, f"shard {shard.index} lost its document type"
+    assert sum(shard.count for shard in shards) == 10
+
+
+def test_the_plan_records_which_types_it_covers():
+    """A dataset that cannot say which slice of the tree it holds cannot be read."""
+    plan = build_plan(make_config(), strata=STRATA)
+    assert plan["doc_types"] == ["business.receipt.retail", "business.receipt.restaurant"]
+    assert plan["layouts"] == ["market_barcode", "market_vat", "eatery_indexed"]
+
+
+def test_a_layout_only_plan_names_no_types_rather_than_guessing():
+    plan = build_plan(make_config(), LAYOUTS)
+    assert plan["doc_types"] == []
+    assert plan["layouts"] == LAYOUTS

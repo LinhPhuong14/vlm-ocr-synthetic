@@ -37,6 +37,8 @@ from typing import Any
 
 import yaml
 
+from .quota import BALANCES, DEFAULT_BALANCE
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 # Where a run-specific rules directory is announced to the renderers. Unset
@@ -47,7 +49,8 @@ RULES_ENV = "VLM_RULES_ROOT"
 RUN_KEYS = {"out", "per_backend", "seed", "workers", "clean", "force", "pairing"}
 SHARD_KEYS = {"size"}
 QUALITY_KEYS = {"drift_tolerance", "sample_for_ocr"}
-TOP_KEYS = {"run", "backends", "shard", "overrides", "quality"}
+TAXONOMY_KEYS = {"include", "exclude", "balance"}
+TOP_KEYS = {"run", "backends", "shard", "overrides", "quality", "taxonomy"}
 
 # Whether the backends draw the same receipts or different ones.
 #
@@ -91,7 +94,20 @@ class Config:
     pairing: str = DEFAULT_PAIRING
     overrides: dict[str, Any] = field(default_factory=dict)
     quality: dict[str, Any] = field(default_factory=dict)
+    taxonomy: dict[str, Any] = field(default_factory=dict)
     source: Path | None = None
+
+    @property
+    def stratified(self) -> bool:
+        """Is this run balanced over the hierarchy, or only over the layouts?
+
+        Absent `taxonomy:`, a run splits its images over the layouts exactly as
+        every run did before the hierarchy existed. That is not a deprecated
+        path kept for politeness: it is what the golden baseline pins, and a
+        config that says nothing about document types should not silently start
+        planning by them.
+        """
+        return bool(self.taxonomy)
 
     @classmethod
     def load(cls, path: Path | str) -> "Config":
@@ -117,6 +133,19 @@ class Config:
 
         quality = raw.get("quality") or {}
         _reject_unknown("quality", quality, QUALITY_KEYS)
+
+        taxonomy_section = raw.get("taxonomy") or {}
+        if not isinstance(taxonomy_section, dict):
+            raise ConfigError("taxonomy: must be a mapping")
+        _reject_unknown("taxonomy", taxonomy_section, TAXONOMY_KEYS)
+        balance = str(taxonomy_section.get("balance", DEFAULT_BALANCE))
+        if taxonomy_section and balance not in BALANCES:
+            raise ConfigError(
+                f"taxonomy.balance: expected one of {list(BALANCES)}, got {balance!r}")
+        for key in ("include", "exclude"):
+            value = taxonomy_section.get(key)
+            if value is not None and not isinstance(value, list):
+                raise ConfigError(f"taxonomy.{key}: must be a list of document types")
 
         backends = raw.get("backends")
         if not backends:
@@ -161,6 +190,14 @@ class Config:
             pairing=pairing,
             overrides=dict(overrides),
             quality=dict(quality),
+            taxonomy=(
+                {
+                    "include": [str(v) for v in (taxonomy_section.get("include") or [])],
+                    "exclude": [str(v) for v in (taxonomy_section.get("exclude") or [])],
+                    "balance": balance,
+                }
+                if taxonomy_section else {}
+            ),
             source=source,
         )
 
@@ -225,6 +262,7 @@ def apply_overrides(rules: dict, overrides: dict[str, Any]) -> dict:
             "requires": sorted(option.requires),
             "excludes": sorted(option.excludes),
             "params": option.params,
+            "doc_type": option.doc_type,
         }
         raw[attr] = value
         patched[attribute][index] = Option.from_dict(raw, attribute)
@@ -238,6 +276,13 @@ def materialise_rules(rules: dict, destination: Path) -> Path:
     override cannot be handed over as a Python object -- it has to become files.
     `_order.yaml` is written from the mapping's own order, which is where draw
     order lives since W0.
+
+    An attribute that is a *directory* of files in `rulebase/rules/` is written
+    back out as a single file. That is deliberate: the split exists so a person
+    can find the family they want to edit, and nobody edits a materialised copy.
+    `doc_type` has to survive the round trip or the run would relabel every
+    image it produced -- an override that silently changed the document type
+    would be the worst kind of quiet failure this file exists to prevent.
     """
     destination.mkdir(parents=True, exist_ok=True)
     for attribute, options in rules.items():
@@ -245,6 +290,7 @@ def materialise_rules(rules: dict, destination: Path) -> Path:
             {
                 "id": option.id,
                 "weight": option.weight,
+                **({"doc_type": option.doc_type} if option.doc_type else {}),
                 **({"tags": sorted(option.tags)} if option.tags else {}),
                 **({"requires": sorted(option.requires)} if option.requires else {}),
                 **({"excludes": sorted(option.excludes)} if option.excludes else {}),
@@ -262,6 +308,7 @@ def materialise_rules(rules: dict, destination: Path) -> Path:
 __all__ = [
     "Config",
     "ConfigError",
+    "TAXONOMY_KEYS",
     "RULES_ENV",
     "apply_overrides",
     "materialise_rules",

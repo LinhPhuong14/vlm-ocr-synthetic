@@ -29,6 +29,28 @@ shard:
   # 250 puts a shard in the one-to-five-minute band that resume is designed for.
   size: 100
 
+# Which slice of the document hierarchy this run covers, and how it is balanced
+# between the types in it. Leave the section out entirely -- as it is here -- and
+# the run splits its images over the LAYOUTS exactly as every run did before
+# `taxonomy/` existed, which is what the golden baseline pins.
+#
+#   include   subtrees or single types; everything, if omitted
+#   exclude   subtrees or single types to drop again
+#   balance   family  every family gets the same budget, split evenly inside it.
+#                     The default: sixteen types under family 1 and six under
+#                     family 11 is how the tree was drawn, not how common the
+#                     documents are.
+#             equal   every TYPE gets the same number
+#             weight  the mix the rules already describe, scaled up
+#
+# A type in the selected subtree that nothing can generate yet is dropped and
+# named. A type named directly that cannot be generated stops the run.
+#
+# taxonomy:
+#   include: [business.receipt]
+#   exclude: []
+#   balance: family
+
 # Re-weight a value for this run only, without editing rules/. Every entry must
 # name something that exists; one that does not stops the run rather than
 # quietly leaving the weights alone.

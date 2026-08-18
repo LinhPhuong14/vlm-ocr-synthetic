@@ -33,6 +33,14 @@ from rulebase.layout import LAYOUTS_ROOT  # noqa: E402
 def check() -> list[str]:
     problems = validate()
 
+    # The hierarchy itself: a family with one child, a `ready` type whose engine
+    # was never built. `validate()` already checked the rules *against* the tree
+    # -- doc_types that name nothing, types marked ready that nothing realises --
+    # so what is left here is the tree's own consistency.
+    import taxonomy
+
+    problems += [f"taxonomy: {problem}" for problem in taxonomy.tree().validate()]
+
     # Every bố cục named in the rules must have a file, and vice versa.
     rules = load_rules()
     declared = {option.id for option in rules["layout"]}
@@ -114,6 +122,7 @@ def _chain_entries(chain):
 
 def distribution(draws: int, seed: int) -> None:
     counters = {attribute: Counter() for attribute in ATTRIBUTES}
+    by_type: Counter = Counter()
     failures = 0
     for index in range(draws):
         try:
@@ -123,9 +132,22 @@ def distribution(draws: int, seed: int) -> None:
             continue
         for attribute, option in recipe.choices.items():
             counters[attribute][option.id] += 1
+        if recipe.doc_type:
+            by_type[recipe.doc_type] += 1
 
     total = draws - failures
     print(f"{total} lần bốc thành công / {draws}\n")
+
+    # Document types first: it is what the label records and what a run is
+    # balanced over, and several rules values can produce one type -- so the
+    # per-attribute table below does not answer "what mix of documents is this".
+    if by_type:
+        print("[doc_type]")
+        for name, count in by_type.most_common():
+            share = count / total if total else 0
+            print(f"  {name:<28} {count:>5}  {share:>6.1%} {'#' * int(share * 40)}")
+        print()
+
     for attribute in ATTRIBUTES:
         print(f"[{attribute}]")
         for name, count in counters[attribute].most_common():

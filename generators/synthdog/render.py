@@ -72,6 +72,11 @@ def main() -> int:
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--layout", help="pin one bố cục")
     parser.add_argument(
+        "--doc", metavar="TYPE",
+        help="pin a document type from taxonomy/: retail, receipt.retail, "
+             "business.receipt.retail",
+    )
+    parser.add_argument(
         "--force", action="append", default=[], metavar="ATTR=ID",
         help="pin any attribute, repeatable: --force augmentation=pristine",
     )
@@ -98,7 +103,7 @@ def main() -> int:
         template.seed_base = args.seed + index
         template._counter = 0
 
-        data = template.generate(force=force)
+        data = template.generate(force=force, doc_type=args.doc)
         name = f"synthdog_{index:03d}.jpg"
         Image.fromarray(data["image"].astype(np.uint8)).save(
             args.out / name, quality=data["quality"]

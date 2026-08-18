@@ -67,7 +67,7 @@ def printable_text() -> set[str]:
       printing boxes for exactly the characters most often missing.
     * the ascii-folded form, which an old thermal till prints instead.
     * strings the rules own rather than the corpus: column titles in the
-      layouts, `titles` and `total_labels` in `rules/document.yaml`, the
+      layouts, `titles` and `total_labels` in `rules/document/`, the
       `label:` of discount and original-price rows, and each layout's
       `rule_char`.
     """

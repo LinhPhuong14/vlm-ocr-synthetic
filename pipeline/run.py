@@ -50,9 +50,11 @@ for extra in (REPO_ROOT, REPO_ROOT / "tools"):
     if str(extra) not in sys.path:
         sys.path.insert(0, str(extra))
 
+import taxonomy  # noqa: E402
 from pipeline import invariants, preflight, record  # noqa: E402
 from pipeline.config import Config, apply_overrides, materialise_rules  # noqa: E402
 from pipeline.plan import build_plan, write_plan  # noqa: E402
+from pipeline.quota import QuotaError, select_types, strata  # noqa: E402
 from pipeline.worker import (  # noqa: E402
     INVARIANTS,
     ShardError,
@@ -146,6 +148,10 @@ def assemble(out: Path, plan: dict, shards_root: Path) -> tuple[dict, list[str]]
         target.mkdir(parents=True)
 
         by_layout: dict[str, int] = {}
+        # Counted beside the layouts rather than instead of them: a dataset is
+        # now balanced over document types and drawn with layouts, and a reader
+        # asking "what is in this set" means the first.
+        by_doc_type: dict[str, int] = {}
         # Counted, not assumed. Before W1b a pinned draw walked to the next
         # fitting seed, so twenty images held ten receipts and every denominator
         # in the proof reports was wrong by a factor of two. A dataset that does
@@ -173,6 +179,9 @@ def assemble(out: Path, plan: dict, shards_root: Path) -> tuple[dict, list[str]]
                     json.dump(item, index, ensure_ascii=False)
                     index.write("\n")
                     by_layout[item["layout"]] = by_layout.get(item["layout"], 0) + 1
+                    kind = item.get("doc_type") or record.doc_type(item)
+                    if kind:
+                        by_doc_type[kind] = by_doc_type.get(kind, 0) + 1
                     seeds.add((item.get("recipe") or {}).get("seed"))
                     labels.add(hashlib.sha256(
                         str(item.get("ground_truth", "")).encode("utf-8")).hexdigest())
@@ -182,6 +191,7 @@ def assemble(out: Path, plan: dict, shards_root: Path) -> tuple[dict, list[str]]
             "distinct_seeds": len(seeds),
             "distinct_labels": len(labels),
             "by_layout": by_layout,
+            "by_doc_type": dict(sorted(by_doc_type.items())),
         }
         if written and len(labels) < written:
             warnings.append(
@@ -223,8 +233,39 @@ def execute(config: Config, *, workers: int | None = None,
         rules_root = materialise_rules(
             apply_overrides(load_rules(), config.overrides), out / ".rules")
 
-    # 3. Plan.
-    plan = build_plan(config, layouts)
+    # 3. Plan. Either over the layouts, as every run did before the hierarchy
+    #    existed, or over the document types the config asked for.
+    if config.stratified:
+        from rulebase import reachable_options
+
+        try:
+            selected, unavailable = select_types(config)
+            blocks = strata(
+                [node_id for node_id, _count in selected],
+                [count for _node, count in selected],
+                lambda node_id: [option.id for option in
+                                 reachable_options("layout", doc_type=node_id)])
+        except (QuotaError, ValueError) as error:
+            print(f"TAXONOMY: {error}")
+            return 1
+        empty = [node_id for node_id, count in selected if count == 0]
+        print(f"cây phân cấp: {len(selected) - len(empty)} loại document"
+              f" x {len(config.backends)} backend")
+        for node_id, count in selected:
+            if count:
+                print(f"  {node_id:<40} {count:>5}")
+        if unavailable:
+            print(f"  ({len(unavailable)} loại trong nhánh đã chọn chưa sinh được: "
+                  f"{', '.join(unavailable[:4])}{', ...' if len(unavailable) > 4 else ''})")
+        if empty:
+            # Said out loud rather than left to be noticed: `per_backend` too
+            # small for the slice of the tree asked for is a dataset that covers
+            # part of it, and the part it misses is not obvious from the output.
+            print(f"  ({len(empty)} loại không có ảnh nào: per_backend quá nhỏ — "
+                  f"{', '.join(empty[:4])}{', ...' if len(empty) > 4 else ''})")
+        plan = build_plan(config, strata=blocks)
+    else:
+        plan = build_plan(config, layouts)
 
     # Before a single page is drawn: under `paired` the backends must actually
     # be drawing the same receipts. Cheap, and the alternative is finding out
@@ -278,6 +319,11 @@ def execute(config: Config, *, workers: int | None = None,
         "per_backend": plan["per_backend"],
         "backends": plan["backends"],
         "layouts": plan["layouts"],
+        # Which slice of `taxonomy/` this dataset covers, and how it was
+        # balanced. Empty for a run planned the old way, over layouts only.
+        "doc_types": plan.get("doc_types", []),
+        "taxonomy": dict(config.taxonomy),
+        "taxonomy_version": taxonomy.tree().version,
         "shard_size": plan["shard_size"],
         "clean": plan["clean"],
         "force": plan["force"],
@@ -317,6 +363,7 @@ def execute(config: Config, *, workers: int | None = None,
     (out / "dataset.json").write_text(json.dumps({
         "per_framework": plan["per_backend"],
         "layouts": plan["layouts"],
+        "doc_types": plan.get("doc_types", []),
         # Downstream tools read this file rather than the manifest, and a
         # comparison between renderers only means something under `paired`.
         "pairing": plan.get("pairing", "paired"),

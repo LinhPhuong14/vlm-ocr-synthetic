@@ -41,7 +41,8 @@
           "market_barcode": 3
         }
       },
-      "dataset_json": "7a2caa8097935d354b763c6d8e344f91997b1a980729a3a05a148d5ea515ddf6"
+      "dataset_json": "7a2caa8097935d354b763c6d8e344f91997b1a980729a3a05a148d5ea515ddf6",
+      "label_schema": 1
     },
     "n5": {
       "images": {
@@ -98,7 +99,8 @@
           "market_vat": 3
         }
       },
-      "dataset_json": "5df3ee345c0854c8f75c7a7e7825759fd57e8b4625daad1d51cdcbb44f138ab5"
+      "dataset_json": "5df3ee345c0854c8f75c7a7e7825759fd57e8b4625daad1d51cdcbb44f138ab5",
+      "label_schema": 1
     }
   },
   "normalisation": "each metadata line is json.loads then json.dumps(sort_keys=True, ensure_ascii=False); no field is excluded"

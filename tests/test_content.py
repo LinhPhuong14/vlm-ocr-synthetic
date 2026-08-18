@@ -12,6 +12,7 @@ from __future__ import annotations
 import pytest
 
 import rulebase
+from pipeline.invariants import CLASSIFICATION
 
 SEEDS = tuple(range(40))
 
@@ -25,6 +26,19 @@ def receipts():
     if _RECEIPTS is None:
         _RECEIPTS = [(seed,) + rulebase.make(seed=seed)[1:] for seed in SEEDS]
     return _RECEIPTS
+
+
+def _printed_label(receipt) -> dict:
+    """The label minus its classification block.
+
+    `doc_type`, `doc_family` and `doc_path` say where the page sits in
+    `taxonomy/`; a receipt does not print the words "Retail Receipt" on itself
+    any more than it prints "receipt_market" before the hierarchy existed. They
+    are dropped here rather than pattern-matched on their value, which is what
+    `pipeline.invariants` does with the same list of names.
+    """
+    return {key: value for key, value in receipt.ground_truth().items()
+            if key not in CLASSIFICATION}
 
 
 def _strings(value) -> list[str]:
@@ -196,8 +210,8 @@ def _unprinted_label_values(receipt, grid) -> list[str]:
     joined = {role: " ".join(" ".join(texts).split()) for role, texts in by_role.items()}
 
     missing = []
-    for value in _strings(receipt.ground_truth()):
-        if not value.strip() or value.startswith("receipt_"):
+    for value in _strings(_printed_label(receipt)):
+        if not value.strip():
             continue
         wanted = " ".join(value.split())
         if wanted in page or any(wanted in text for text in joined.values()):
@@ -232,8 +246,7 @@ def test_the_suppressed_field_defect_has_not_grown():
     """
     total = unprinted = 0
     for _seed, receipt, grid in receipts():
-        total += len([v for v in _strings(receipt.ground_truth())
-                      if v.strip() and not v.startswith("receipt_")])
+        total += len([v for v in _strings(_printed_label(receipt)) if v.strip()])
         unprinted += len(_unprinted_label_values(receipt, grid))
     share = unprinted / total
     assert share <= 0.13, f"unprinted label values rose to {share:.2%} (was 11.4%)"
@@ -243,10 +256,41 @@ def test_ground_truth_has_the_shape_donut_expects():
     for seed, receipt, _grid in receipts():
         label = receipt.ground_truth()
         assert set(label) >= {"doc_type", "title", "store", "menu", "total", "footer"}, seed
-        assert label["doc_type"].startswith("receipt_"), seed
         assert isinstance(label["menu"], list) and label["menu"], seed
         for entry in label["menu"]:
             assert "nm" in entry and "price" in entry, f"seed={seed}: {entry}"
+
+
+def test_the_label_places_the_page_in_the_hierarchy():
+    """The type is an id from `taxonomy/`, and the names come with it.
+
+    A label is read years later and far from this repository, so it carries the
+    path as well as the id -- `business.receipt.retail` alone would send the
+    reader looking for a file they do not have.
+    """
+    import taxonomy
+
+    tree = taxonomy.tree()
+    for seed, receipt, _grid in receipts():
+        label = receipt.ground_truth()
+        node = tree.node(label["doc_type"])
+        assert node.is_leaf, f"seed={seed}: {node.id} is a branch, not a document type"
+        assert node.status == "ready", f"seed={seed}: generated a {node.status} type"
+        assert label["doc_family"] == node.family, seed
+        assert label["doc_path"] == list(node.names), seed
+
+
+def test_the_classification_block_is_the_one_the_invariants_skip():
+    """Two modules name these fields; a third of a name apart is a silent bug.
+
+    `pipeline.invariants` deliberately imports nothing from `rulebase`, so the
+    list of fields that are allowed to appear on no box is written out twice.
+    If `classification()` ever grows a field that `CLASSIFICATION` does not
+    know, every image fails the invariants with "appears on no box"; if it loses
+    one, that field stops being checked against the pixels and nobody notices.
+    """
+    _seed, receipt, _grid = receipts()[0]
+    assert set(receipt.classification()) == set(CLASSIFICATION)
 
 
 @pytest.mark.parametrize("profile", ["eatery", "market"])

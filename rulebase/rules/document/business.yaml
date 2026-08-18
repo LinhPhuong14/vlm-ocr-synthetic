@@ -1,4 +1,14 @@
-# THUỘC TÍNH 1/6 — LOẠI DOCUMENT
+# THUỘC TÍNH 1/6 — LOẠI DOCUMENT · họ 1: CHỨNG TỪ KINH DOANH
+#
+# Một file cho mỗi HỌ trong `taxonomy/families/`. File này là họ 1
+# (`business`), và hiện là họ duy nhất sinh được ảnh. Thêm họ mới = thêm
+# `rules/document/<family>.yaml`, không sửa file này và không sửa code.
+#
+# `doc_type` nối giá trị ở đây với một LÁ trong cây phân cấp. Nhiều giá trị có
+# thể cùng trỏ về một lá — siêu thị và cửa hàng tiện lợi đều in "hoá đơn bán
+# lẻ" — vì lá là cái ghi vào nhãn và cái dùng để cân bằng dataset, còn giá trị
+# chỉ là một cách in ra lá đó. Trỏ sai tên, trỏ vào nhánh thay vì lá, hay trỏ
+# vào lá còn `planned`: `make check-rules` báo cả ba.
 #
 # Bốc trước tiên, nên đây là chỗ quyết định "tờ giấy này là cái gì". Mọi thuộc
 # tính sau đều nhìn thấy `tags` mà giá trị ở đây gắn vào, và dùng
@@ -14,6 +24,7 @@
 
 options:
   - id: pub_eatery
+    doc_type: business.receipt.restaurant
     weight: 3
     tags: [doc_eatery, has_table_no]
     params:
@@ -27,6 +38,7 @@ options:
         change: "Tiền thối lại"
 
   - id: street_eatery
+    doc_type: business.receipt.restaurant
     weight: 3
     tags: [doc_eatery]
     params:
@@ -40,6 +52,7 @@ options:
         change: "Tiền thối lại"
 
   - id: restaurant_vat
+    doc_type: business.receipt.restaurant
     weight: 2
     tags: [doc_eatery, has_vat]
     params:
@@ -55,6 +68,7 @@ options:
         change: "Tiền trả lại"
 
   - id: supermarket
+    doc_type: business.receipt.retail
     weight: 3
     tags: [doc_market, has_barcode, has_vat]
     params:
@@ -70,6 +84,7 @@ options:
         change: "TIỀN TRẢ LẠI"
 
   - id: convenience_store
+    doc_type: business.receipt.retail
     weight: 2
     tags: [doc_market, has_promo]
     params:
@@ -84,6 +99,7 @@ options:
         change: "Tiền trả lại"
 
   - id: supermarket_vat
+    doc_type: business.receipt.retail
     weight: 2
     tags: [doc_market, has_barcode, has_vat, has_vat_lines]
     params:

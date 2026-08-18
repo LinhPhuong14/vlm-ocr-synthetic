@@ -1,0 +1,33 @@
+# 12. VISUAL / MIXED DOCUMENT
+#
+# Where the reading order stops being a consequence of the layout and becomes a
+# design decision. Everything here needs the `canvas` engine and a label schema
+# this repository does not have: a poster's ground truth has to say which text
+# belongs to which figure, and in what order a human reads it.
+
+id: visual
+number: 12
+name: Visual / Mixed Document
+name_vi: Tài liệu trực quan và hỗn hợp
+engine: canvas
+status: planned
+notes: >
+  The furthest from what exists, and the reason `engine` is a field rather than
+  an assumption. A grid-shaped repository that grew this family by adding YAML
+  would produce posters that look like receipts with pictures glued on.
+
+children:
+  - {id: poster,        name: Poster,        name_vi: Áp phích}
+  - {id: flyer,         name: Flyer,         name_vi: Tờ rơi}
+  - {id: brochure,      name: Brochure,      name_vi: Tờ gấp giới thiệu}
+  - {id: advertisement, name: Advertisement, name_vi: Quảng cáo}
+  - {id: infographic,   name: Infographic,   name_vi: Đồ hoạ thông tin}
+  - {id: diagram,       name: Diagram,       name_vi: Sơ đồ}
+  - {id: chart,         name: Chart,         name_vi: Biểu đồ}
+  - {id: map,           name: Map,           name_vi: Bản đồ}
+  - id: image_text
+    name: Image + Text Document
+    name_vi: Tài liệu ảnh kèm chữ
+    notes: >
+      The catch-all: a photograph with text laid over or beside it. Useful as
+      the fallback class when a page does not fit anywhere else in the tree.

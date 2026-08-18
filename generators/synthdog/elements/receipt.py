@@ -64,8 +64,9 @@ class Receipt:
 
     # ---------- sinh ----------
 
-    def generate(self, seed=None, force=None):
-        recipe, receipt, grid = rulebase.make(seed=seed, force=force)
+    def generate(self, seed=None, force=None, doc_type=None):
+        recipe, receipt, grid = rulebase.make(seed=seed, force=force,
+                                              doc_type=doc_type)
         rng = random.Random(recipe.seed)
         visual = recipe.visual.params
 

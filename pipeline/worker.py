@@ -112,6 +112,11 @@ def renderer_command(backend: str, staging: Path, run: dict,
         "--seed", str(run["seed"]),
         "--layout", run["layout"],
     ]
+    # Only when the plan stratified by document type. A layout-only plan sends
+    # no `--doc` at all, so the renderer command line -- and every seed behind
+    # it -- is character for character what it was before the hierarchy.
+    if run.get("doc_type"):
+        command += ["--doc", run["doc_type"]]
     forced = list(force)
     if clean and not any(item.startswith("augmentation=") for item in forced):
         forced.append(f"augmentation={CLEAN_AUGMENTATION}")
@@ -184,6 +189,10 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
                     item["file_name"] = target
                     item["framework"] = backend
                     item["layout"] = run["layout"]
+                    # Taken from the label, so it is right whether or not the
+                    # plan pinned a type -- and cannot drift from what the
+                    # label says this image is.
+                    item["doc_type"] = record.doc_type(item)
                     record.check(item, where=target)
                     try:
                         tally.inspect(item, image=directory / target, where=target)

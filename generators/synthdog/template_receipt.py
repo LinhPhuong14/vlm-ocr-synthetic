@@ -80,14 +80,14 @@ class SynthVNReceipt(templates.Template):
 
     # ------------------------------------------------------------------
 
-    def generate(self, force=None):
+    def generate(self, force=None, doc_type=None):
         # synthtiger không truyền chỉ số vào generate(), nên seed tự đếm ở đây;
         # `seed_base` cho phép chạy hai lần mà không ra trùng ảnh. `force` chỉ
         # dùng khi gọi trực tiếp từ `render.py` để ghim một bố cục.
         seed = self.seed_base + self._counter
         self._counter += 1
 
-        out = self.receipt.generate(seed=seed, force=force)
+        out = self.receipt.generate(seed=seed, force=force, doc_type=doc_type)
         text_layers, fields = out["text_layers"], out["fields"]
         recipe, receipt = out["recipe"], out["receipt"]
         width, height = out["size"]

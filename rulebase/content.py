@@ -23,6 +23,27 @@ TITLES = {
     "eatery": ["PHIẾU THANH TOÁN", "HOÁ ĐƠN THANH TOÁN", "PHIẾU TÍNH TIỀN", "HOÁ ĐƠN"],
     "market": ["HOÁ ĐƠN BÁN HÀNG", "PHIẾU TÍNH TIỀN", "HOÁ ĐƠN GTGT", "PHIẾU THANH TOÁN"],
 }
+
+# The shape of `ground_truth()`, so that a stored fingerprint of a label can say
+# which shape it fingerprinted.
+#
+#   1  doc_type was `receipt_eatery` / `receipt_market`, invented here
+#   2  doc_type is a node of `taxonomy/`, with doc_family and doc_path beside it
+#
+# Bumped when the label's *shape* changes, not when a value does. Read by
+# `tools/baseline.py`, which cannot otherwise tell "the generator regressed"
+# from "the label schema moved on" -- two failures that want opposite responses.
+LABEL_SCHEMA = 2
+
+# Which node of `taxonomy/` a profile lands on when nothing said. A fallback,
+# not the source of truth: every value in `rules/document/` declares its own
+# `doc_type` and that is what a generated receipt carries. This covers a rules
+# directory that does not -- one written by hand, or materialised by a run that
+# predates the hierarchy -- which would otherwise label an image with no type.
+PROFILE_DOC_TYPES = {
+    "eatery": "business.receipt.restaurant",
+    "market": "business.receipt.retail",
+}
 SHOP_PREFIXES = [
     "Quán Ăn", "Nhà Hàng", "Cửa Hàng", "Quán", "Cafe", "Quán Nhậu",
     "Bếp", "Tiệm Ăn", "Nhà Hàng - Karaoke", "Siêu Thị Mini",
@@ -82,6 +103,7 @@ class Store:
 @dataclass
 class Receipt:
     profile: str                       # 'eatery' | 'market'
+    doc_type: str                      # a leaf of `taxonomy/`: business.receipt.retail
     title: str
     store: Store
     meta: list[tuple[str, str]]
@@ -95,6 +117,31 @@ class Receipt:
     # the cash tendered and the change come after it.
     grand_index: int = 0
     numbers: dict[str, Any] = field(default_factory=dict)
+
+    def classification(self) -> dict[str, Any]:
+        """Where this page sits in the hierarchy -- the first block of the label.
+
+        Three fields rather than one string, because three different consumers
+        ask three different questions. A classifier trains on `doc_type`, the id,
+        which is stable and machine-readable. A family-level model -- "is this
+        business paperwork or is it medical" -- trains on `doc_family`, which is
+        the coarse label and would otherwise have to be recovered by splitting
+        the id on a dot. A human reading one label, or an error message about
+        one, wants `doc_path`: the names, in order, root-most first.
+
+        `doc_path` is denormalised on purpose. A label is written once and read
+        for years, often far from this repository, and a reader who has to fetch
+        `taxonomy/` to learn what `business.receipt.retail` means has a label
+        that only half describes the image.
+        """
+        import taxonomy
+
+        node = taxonomy.tree().node(self.doc_type or PROFILE_DOC_TYPES[self.profile])
+        return {
+            "doc_type": node.id,
+            "doc_family": node.family,
+            "doc_path": list(node.names),
+        }
 
     def ground_truth(self) -> dict[str, Any]:
         """CORD-style nested label, built from the same objects as the render."""
@@ -127,7 +174,7 @@ class Receipt:
                 entry["vatrate"] = f"{item.vat_rate}%"
             menu.append(entry)
         return {
-            "doc_type": f"receipt_{self.profile}",
+            **self.classification(),
             "title": self.title,
             "store": store,
             "menu": menu,
@@ -355,6 +402,7 @@ def build(recipe, rng: random.Random | None = None) -> Receipt:
 
     return Receipt(
         profile=profile,
+        doc_type=recipe.doc_type or PROFILE_DOC_TYPES[profile],
         title=title,
         store=store,
         meta=meta,
@@ -369,4 +417,4 @@ def build(recipe, rng: random.Random | None = None) -> Receipt:
     )
 
 
-__all__ = ["Item", "Receipt", "Store", "build"]
+__all__ = ["LABEL_SCHEMA", "Item", "Receipt", "Store", "build"]

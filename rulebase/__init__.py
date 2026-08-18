@@ -1,4 +1,4 @@
-"""One rule-base, six attributes, three renderers.
+"""One rule-base, six attributes, three renderers, one hierarchy.
 
 Everything about *what* a synthetic page contains lives here; everything about
 *how it is drawn* lives in `generators/`. A backend does three things:
@@ -12,17 +12,28 @@ same seed gives the same words in the same columns whether it was drawn with
 glyphs, with HTML in a browser, or with WeasyPrint -- which is the only way a
 comparison between them means anything.
 
-Adding to the space is editing YAML: a new value in `rules/<attribute>.yaml`,
-a new bố cục in `layouts/`, new lines in `corpus/vi/`. See README.md.
+Which *kind* of document a recipe is comes from `taxonomy/`, not from here:
+every value in `rules/document/` names the leaf of that tree it realises, and
+`recipe.doc_type` is what ends up in the label and what a run is balanced over.
+
+    rulebase.make(seed=n, doc_type="retail")      # pin a type from the tree
+    rulebase.make(seed=n, force={"layout": ...})  # pin a rules value
+
+Adding to the space is editing YAML: a new value in `rules/<attribute>.yaml` or
+`rules/document/<family>.yaml`, a new bố cục in `layouts/`, new lines in
+`corpus/vi/`. See README.md and taxonomy/README.md.
 """
 
 from __future__ import annotations
 
 import random
 
-from .content import Item, Receipt, Store
+from . import documents
+from .content import LABEL_SCHEMA, Item, Receipt, Store
 from .content import build as build_receipt
 from .corpus import CORPUS_ROOT
+from .documents import NoBuilder
+from .documents import build as build_document
 from .layout import LAYOUTS_ROOT, Cell, Grid, build_grid
 from .layout import available as available_layouts
 from .spec import (
@@ -35,13 +46,17 @@ from .spec import (
     enumerate_valid,
     load_rules,
     parse_force,
+    reachable_options,
+    resolve_doc_type,
     sample_recipe,
     validate,
+    validate_doc_types,
 )
 from .style import fade, hex_colour, inks, padding
 
 __all__ = [
     "ATTRIBUTES",
+    "LABEL_SCHEMA",
     "attribute_order",
     "CORPUS_ROOT",
     "Cell",
@@ -55,8 +70,11 @@ __all__ = [
     "RuleError",
     "Store",
     "available_layouts",
+    "NoBuilder",
+    "build_document",
     "build_grid",
     "build_receipt",
+    "documents",
     "enumerate_valid",
     "fade",
     "hex_colour",
@@ -65,12 +83,16 @@ __all__ = [
     "make",
     "padding",
     "parse_force",
+    "reachable_options",
+    "resolve_doc_type",
     "sample_recipe",
     "validate",
+    "validate_doc_types",
 ]
 
 
-def make(seed: int | None = None, force: dict[str, str] | None = None, attempts: int = 500):
+def make(seed: int | None = None, force: dict[str, str] | None = None,
+         attempts: int = 500, doc_type: str | None = None):
     """Recipe, contents and grid in one call -- what every backend starts with.
 
     One `random.Random(seed)` is threaded through content and layout so a seed
@@ -86,9 +108,14 @@ def make(seed: int | None = None, force: dict[str, str] | None = None, attempts:
     Until W1b this walked to `seed + 1`, `seed + 2`, ... instead, which made
     `make` many-to-one: whole runs of consecutive seeds returned one recipe, and
     half of a "twenty image" dataset was duplicates. See `sample_recipe`.
+
+    `doc_type` asks for a document type from `taxonomy/` -- `retail`,
+    `receipt.retail` or the full `business.receipt.retail` -- rather than for a
+    rules value. That is what a dataset is balanced over, so it is what the
+    planner and all three renderers pass down.
     """
-    recipe = sample_recipe(seed=seed, force=force, attempts=attempts)
+    recipe = sample_recipe(seed=seed, force=force, attempts=attempts, doc_type=doc_type)
     rng = random.Random(recipe.seed)
-    receipt = build_receipt(recipe, rng)
+    receipt = build_document(recipe, rng)
     grid = build_grid(receipt, recipe.layout.id, rng)
     return recipe, receipt, grid

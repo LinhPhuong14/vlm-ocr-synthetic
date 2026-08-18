@@ -58,12 +58,19 @@ LAYOUT_STRIDE = 1_000
 
 @dataclass(frozen=True)
 class Run:
-    """One invocation of a renderer: consecutive seeds, one layout."""
+    """One invocation of a renderer: consecutive seeds, one stratum.
+
+    A stratum is a layout, and -- once a run is balanced over `taxonomy/` -- a
+    document type as well. `doc_type` is empty for a run that does not stratify
+    by type, which is what keeps a plan built the old way byte-identical to the
+    one that produced the committed datasets.
+    """
 
     layout: str
     seed: int          # the first seed; the renderer walks seed..seed+count-1
     count: int
     first_index: int   # position of the first image in the backend's numbering
+    doc_type: str = ""
 
 
 @dataclass
@@ -116,17 +123,39 @@ def backend_offset(backend_index: int, pairing: str) -> int:
 
 
 def backend_runs(backend_index: int, per_backend: int, seed: int,
-                 layouts: list[str], pairing: str = "paired") -> list[Run]:
-    """Every render invocation for one backend, in output order."""
+                 layouts: list[str] | None = None, pairing: str = "paired",
+                 strata: list[tuple[str, str, int]] | None = None) -> list[Run]:
+    """Every render invocation for one backend, in output order.
+
+    Two ways to say what to render, and only one of them may be given:
+
+    * `layouts` -- the count split evenly over the layouts, which is how every
+      committed dataset was built and what the golden baseline pins.
+    * `strata` -- `(document type, layout, count)` from `pipeline.quota`, which
+      is how a run balanced over the hierarchy says it.
+
+    They meet immediately: both become a list of blocks, each block gets its own
+    thousand-seed window, and everything downstream sees the same `Run`. The
+    seed arithmetic is deliberately unchanged -- block index times the stride --
+    so a layout-only plan produces exactly the seeds it always did.
+    """
+    if (layouts is None) == (strata is None):
+        raise ValueError("backend_runs takes either layouts or strata, not both")
+    if strata is None:
+        blocks = [(layout, quota, "") for layout, quota in
+                  split_by_layout(per_backend, layouts or [])]
+    else:
+        blocks = [(layout, count, doc_type) for doc_type, layout, count in strata]
+
     base = seed + backend_offset(backend_index, pairing)
     runs: list[Run] = []
-    offset = 0        # counts only layouts that got a quota, as the driver does
+    offset = 0        # counts only blocks that got a quota, as the driver does
     produced = 0
-    for layout, quota in split_by_layout(per_backend, layouts):
+    for layout, quota, doc_type in blocks:
         if quota == 0:
             continue
         runs.append(Run(layout=layout, seed=base + offset * LAYOUT_STRIDE,
-                        count=quota, first_index=produced))
+                        count=quota, first_index=produced, doc_type=doc_type))
         produced += quota
         offset += 1
     return runs
@@ -158,7 +187,7 @@ def disjoint_seeds(runs_by_backend: dict[str, list[Run]],
         for backend, runs in group.items():
             for run in runs:
                 spans.append((run.seed, run.seed + run.count - 1,
-                              f"{backend}/{run.layout}"))
+                              f"{backend}/{run.doc_type or 'any'}/{run.layout}"))
         spans.sort()
         for (a_lo, a_hi, a_name), (b_lo, b_hi, b_name) in zip(spans, spans[1:]):
             if b_lo <= a_hi:
@@ -189,6 +218,7 @@ def shard_runs(runs: list[Run], backend: str, size: int,
                 seed=run.seed + taken,
                 count=take,
                 first_index=run.first_index + taken,
+                doc_type=run.doc_type,
             ))
             taken += take
             room -= take
@@ -201,18 +231,26 @@ def shard_runs(runs: list[Run], backend: str, size: int,
     return shards
 
 
-def build_plan(config, layouts: list[str]) -> dict[str, Any]:
+def build_plan(config, layouts: list[str] | None = None,
+               strata: list[tuple[str, str, int]] | None = None) -> dict[str, Any]:
     """The full plan: shards, seeds, names. No absolute paths anywhere.
 
     `plan.json` is what reproduces a dataset on another machine, so a path from
     this one has no business in it. The output directory lives in the config and
     is supplied at run time.
+
+    `strata` replaces `layouts` when the run is balanced over the hierarchy;
+    see `backend_runs`. The document types are recorded in the plan either way,
+    so a plan file always says what mix it was going to produce -- a dataset
+    that cannot say which slice of the tree it covers cannot be interpreted, the
+    same argument that put `pairing` in here.
     """
     pairing = getattr(config, "pairing", "paired")
     runs_by_backend: dict[str, list[Run]] = {}
     for backend_index, backend in enumerate(config.backends):
         runs_by_backend[backend] = backend_runs(
-            backend_index, config.per_backend, config.seed, layouts, pairing)
+            backend_index, config.per_backend, config.seed, layouts, pairing,
+            strata=strata)
 
     overlaps = disjoint_seeds(runs_by_backend, pairing)
     if overlaps:
@@ -227,12 +265,18 @@ def build_plan(config, layouts: list[str]) -> dict[str, Any]:
         shards += shard_runs(runs_by_backend[backend], backend,
                              config.shard_size, len(shards))
 
+    ordered_layouts = list(layouts) if layouts is not None else list(
+        dict.fromkeys(layout for _type, layout, _count in strata or ()))
+    doc_types = list(dict.fromkeys(
+        run.doc_type for runs in runs_by_backend.values() for run in runs if run.doc_type))
+
     return {
         "seed": config.seed,
         "pairing": pairing,
         "per_backend": config.per_backend,
         "backends": list(config.backends),
-        "layouts": list(layouts),
+        "layouts": ordered_layouts,
+        "doc_types": doc_types,
         "shard_size": config.shard_size,
         "clean": config.clean,
         "force": list(config.force),

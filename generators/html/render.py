@@ -257,8 +257,10 @@ class HtmlReceiptRenderer:
         if self._playwright:
             self._playwright.stop()
 
-    def render(self, seed: int, force: dict[str, str] | None = None):
-        recipe, receipt, grid = rulebase.make(seed=seed, force=force)
+    def render(self, seed: int, force: dict[str, str] | None = None,
+               doc_type: str | None = None):
+        recipe, receipt, grid = rulebase.make(seed=seed, force=force,
+                                              doc_type=doc_type)
         markup = build_html(grid, recipe, receipt)
 
         page = self._browser.new_page(device_scale_factor=self.scale)
@@ -313,6 +315,11 @@ def main() -> int:
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--layout", help="pin one bố cục")
     parser.add_argument(
+        "--doc", metavar="TYPE",
+        help="pin a document type from taxonomy/: retail, receipt.retail, "
+             "business.receipt.retail",
+    )
+    parser.add_argument(
         "--force", action="append", default=[], metavar="ATTR=ID",
         help="pin any attribute, repeatable: --force augmentation=pristine",
     )
@@ -325,7 +332,7 @@ def main() -> int:
 
     with HtmlReceiptRenderer(scale=args.scale) as renderer:
         for index in range(args.count):
-            recipe, receipt, _grid, image, boxes = renderer.render(args.seed + index, force)
+            recipe, receipt, _grid, image, boxes = renderer.render(args.seed + index, force, args.doc)
             name = f"html_{index:03d}.jpg"
             cv2.imwrite(str(args.out / name), image, [cv2.IMWRITE_JPEG_QUALITY, 90])
             records.append({

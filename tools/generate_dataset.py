@@ -13,6 +13,12 @@ them drifts and nobody notices for a month -- and the golden baseline in
 `tests/golden/baseline.json` exists to prove this shell still produces what that
 loop produced.
 
+    python tools/generate_dataset.py --doc retail --doc restaurant -n 10
+
+`--doc` selects part of the hierarchy in `taxonomy/` and balances the run over
+the types in it. Without it the images are split over the layouts, which is
+what every committed dataset did and what the golden baseline pins.
+
 For a long job, prefer `pipeline.yaml` and `make run`: it takes shard size,
 worker count and per-run rule overrides, none of which fit sensibly on a command
 line.
@@ -56,6 +62,17 @@ def main() -> int:
     parser.add_argument("--workers", type=int, default=1,
                         help="processes to render with; 1 keeps the old behaviour")
     parser.add_argument(
+        "--doc", action="append", default=[], metavar="TYPE",
+        help="build only this part of the document hierarchy, repeatable: "
+             "--doc retail --doc medical. Without it the run splits over the "
+             "layouts, exactly as it always did",
+    )
+    parser.add_argument(
+        "--balance", choices=["family", "equal", "weight"], default="family",
+        help="how to divide the images between the selected document types "
+             "(only meaningful with --doc)",
+    )
+    parser.add_argument(
         "--pairing", choices=["paired", "independent"], default="paired",
         help="paired: every renderer draws the same receipts, so a difference "
              "between two of them is a difference in drawing. independent: "
@@ -86,6 +103,11 @@ def main() -> int:
         # N=20` is twenty images -- and splitting further would only add process
         # startup. `pipeline.yaml` is where a long job sets a real shard size.
         "shard": {"size": max(args.per_framework, 1)},
+        # Only when asked for. An empty `taxonomy:` section would switch this
+        # driver to type-stratified planning for every caller, and `make
+        # dataset` has to keep producing what the golden baseline recorded.
+        **({"taxonomy": {"include": list(args.doc), "balance": args.balance}}
+           if args.doc else {}),
     })
     return execute(config)
 

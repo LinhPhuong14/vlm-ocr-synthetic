@@ -47,6 +47,45 @@ class RuleError(ValueError):
     """A rules file asks for something impossible."""
 
 
+def _sources(root: Path | str) -> dict[str, list[Path]]:
+    """`{attribute: [file, ...]}` -- one YAML file, or a directory of them.
+
+    `rules/layout.yaml` and `rules/document/business.yaml` are both the
+    attribute they are named after. The directory form exists because the
+    document attribute is the one that grows with the hierarchy: six receipt
+    values fit in one file, ninety-eight document types across twelve families
+    do not, and splitting them family by family is the only way the file a
+    person needs to edit stays findable.
+
+    Both forms for one attribute is an error rather than a merge. Two places to
+    look for the same option is how a run ends up drawing from the copy nobody
+    was editing.
+    """
+    root = Path(root)
+    if not root.is_dir():
+        # Reported by the caller as "missing rules files in ...", which is what
+        # it always said. Listing a directory that is not there would raise an
+        # OSError from three frames down instead.
+        return {}
+    found: dict[str, list[Path]] = {}
+    for path in sorted(root.glob("*.yaml")):
+        if not path.name.startswith("_"):
+            found[path.stem] = [path]
+    for directory in sorted(p for p in root.iterdir() if p.is_dir()):
+        if directory.name.startswith("_"):
+            continue
+        files = sorted(directory.glob("*.yaml"))
+        if not files:
+            raise RuleError(f"{directory}: an attribute directory with no *.yaml in it")
+        if directory.name in found:
+            raise RuleError(
+                f"{root}: {directory.name} exists both as {directory.name}.yaml and as "
+                f"a directory; keep one"
+            )
+        found[directory.name] = files
+    return found
+
+
 def attribute_order(root: Path | str = RULES_ROOT) -> tuple[str, ...]:
     """The attributes, in the order they are drawn, from `rules/_order.yaml`.
 
@@ -56,8 +95,8 @@ def attribute_order(root: Path | str = RULES_ROOT) -> tuple[str, ...]:
     tuple is impossible to forget, a directory listing is not. Three ways to
     get it wrong, all of them loud:
 
-    * a `rules/foo.yaml` the manifest never mentions -- the file would simply
-      never be drawn, and generation would carry on without it;
+    * a `rules/foo.yaml` -- or a `rules/foo/` directory -- the manifest never
+      mentions, which would simply never be drawn while generation carried on;
     * a manifest entry with no file behind it;
     * the same attribute listed twice, which would draw it twice and let the
       second draw see the first one's tags.
@@ -80,7 +119,7 @@ def attribute_order(root: Path | str = RULES_ROOT) -> tuple[str, ...]:
     if duplicates:
         raise RuleError(f"{path}: {duplicates} listed more than once")
 
-    present = {p.stem for p in root.glob("*.yaml") if not p.name.startswith("_")}
+    present = set(_sources(root))
     listed = set(order)
     forgotten = sorted(present - listed)
     if forgotten:
@@ -127,7 +166,14 @@ ATTRIBUTES: Sequence[str] = _Attributes()
 
 @dataclass(frozen=True)
 class Option:
-    """One value of one attribute."""
+    """One value of one attribute.
+
+    `doc_type` is the join to the hierarchy in `taxonomy/`: it names the node
+    this value realises, e.g. `business.receipt.retail`. Several values may
+    realise one type -- a supermarket and a convenience store both print a
+    retail receipt -- and that is the point: the type is what the label says and
+    what a dataset is balanced over, the value is one way of producing it.
+    """
 
     id: str
     weight: float = 1.0
@@ -135,10 +181,11 @@ class Option:
     requires: frozenset[str] = frozenset()
     excludes: frozenset[str] = frozenset()
     params: dict[str, Any] = field(default_factory=dict)
+    doc_type: str = ""
 
     @classmethod
     def from_dict(cls, raw: dict[str, Any], attribute: str) -> "Option":
-        known = {"id", "weight", "tags", "requires", "excludes", "params"}
+        known = {"id", "weight", "tags", "requires", "excludes", "params", "doc_type"}
         unknown = set(raw) - known
         if unknown:
             raise RuleError(
@@ -157,11 +204,24 @@ class Option:
             requires=frozenset(raw.get("requires") or ()),
             excludes=frozenset(raw.get("excludes") or ()),
             params=dict(raw.get("params") or {}),
+            doc_type=str(raw.get("doc_type") or ""),
         )
 
     def allowed(self, tags: Iterable[str]) -> bool:
         tags = set(tags)
         return self.requires <= tags and not (self.excludes & tags)
+
+    def realises(self, doc_type: str) -> bool:
+        """Does this value produce `doc_type`, or something under it?
+
+        Subtree-wide, so a run can ask for `business.receipt` and get all four
+        kinds of receipt, or for `business` and get the whole family. The prefix
+        test is on dotted segments rather than characters: `business.receipt`
+        must not match a hypothetical `business.receipt_draft`.
+        """
+        if not self.doc_type or not doc_type:
+            return False
+        return self.doc_type == doc_type or self.doc_type.startswith(doc_type + ".")
 
 
 @dataclass(frozen=True)
@@ -185,10 +245,28 @@ class Recipe:
     def ids(self) -> dict[str, str]:
         return {name: option.id for name, option in self.choices.items()}
 
+    @property
+    def doc_type(self) -> str:
+        """Which node of `taxonomy/` this recipe is an instance of.
+
+        Read off whichever drawn value declares one -- in practice the
+        `document` attribute, but the sampler does not need to know that, which
+        is what lets a later attribute refine the type (a `layout` value that
+        turns a retail receipt into an ATM slip) without a special case here.
+        The last declaration down the draw order wins, since later attributes
+        see everything the earlier ones chose.
+        """
+        found = ""
+        for option in self.choices.values():
+            if option.doc_type:
+                found = option.doc_type
+        return found
+
     def to_dict(self) -> dict[str, Any]:
         """Provenance to store next to the image."""
         return {
             "seed": self.seed,
+            "doc_type": self.doc_type,
             "attributes": {
                 name: {"id": option.id, "params": option.params}
                 for name, option in self.choices.items()
@@ -207,25 +285,36 @@ def load_rules(root: Path | str = RULES_ROOT) -> dict[str, list[Option]]:
 
     Files are read and checked before the manifest is consulted, so a broken
     YAML is reported as a broken YAML rather than as a manifest mismatch.
+
+    An attribute may be one file or a directory of them (see `_sources`). A
+    directory's files are concatenated in name order and the ids must still be
+    unique across all of them -- two families defining `certificate` would
+    otherwise shadow each other depending on which file sorted first.
     """
     root = Path(root)
-    files = sorted(path for path in root.glob("*.yaml") if not path.name.startswith("_"))
-    if not files:
+    sources = _sources(root)
+    if not sources:
         raise RuleError(f"missing rules files in {root}")
 
     parsed: dict[str, list[Option]] = {}
-    for path in files:
-        attribute = path.stem
-        raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-        options = raw.get("options")
-        if not options:
-            raise RuleError(f"{path}: no options")
-        entries = [Option.from_dict(item, attribute) for item in options]
-        seen: set[str] = set()
-        for option in entries:
-            if option.id in seen:
-                raise RuleError(f"{path}: duplicate option id {option.id!r}")
-            seen.add(option.id)
+    for attribute, files in sources.items():
+        entries: list[Option] = []
+        seen: dict[str, Path] = {}
+        for path in files:
+            raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+            options = raw.get("options")
+            if not options:
+                raise RuleError(f"{path}: no options")
+            for item in options:
+                option = Option.from_dict(item, attribute)
+                if option.id in seen:
+                    raise RuleError(
+                        f"{path}: duplicate option id {option.id!r}"
+                        + (f" (also in {seen[option.id].name})"
+                           if seen[option.id] != path else "")
+                    )
+                seen[option.id] = path
+                entries.append(option)
         parsed[attribute] = entries
 
     return {attribute: parsed[attribute] for attribute in attribute_order(root)}
@@ -259,7 +348,7 @@ DRAW_ATTEMPTS = 500
 
 
 def _draw_once(order: tuple[str, ...], rules: dict[str, list[Option]],
-               force: dict[str, str], rng: random.Random
+               force: dict[str, str], rng: random.Random, doc_type: str = ""
                ) -> tuple[dict[str, Option], set[str]]:
     """One pass down the attributes. Raises `_Clash` if a pin does not fit."""
     tags: set[str] = set()
@@ -267,9 +356,24 @@ def _draw_once(order: tuple[str, ...], rules: dict[str, list[Option]],
 
     for attribute in order:
         options = rules[attribute]
-        candidates = [option for option in options if option.allowed(tags)]
+        if doc_type and any(option.doc_type for option in options):
+            # This attribute is one that names document types, so the request
+            # narrows it. Attributes that name none are untouched -- asking for
+            # a prescription must not stop the paper from being thermal.
+            narrowed = [option for option in options if option.realises(doc_type)]
+            if not narrowed:
+                raise RuleError(
+                    f"{attribute}: no value realises doc_type {doc_type!r}. The type "
+                    f"exists in the hierarchy but nothing in the rules produces it yet"
+                )
+        else:
+            narrowed = options
+        candidates = [option for option in narrowed if option.allowed(tags)]
         if attribute in force:
             wanted = force[attribute]
+            # Looked up in the *unnarrowed* list so that pinning a value the
+            # doc_type rules out reads as the conflict it is, rather than as a
+            # value that does not exist.
             by_id = {option.id: option for option in options}
             if wanted not in by_id:
                 # Not a clash: no draw will ever conjure a value that is not in
@@ -279,6 +383,12 @@ def _draw_once(order: tuple[str, ...], rules: dict[str, list[Option]],
                     f"{', '.join(sorted(by_id))}"
                 )
             pinned = by_id[wanted]
+            if pinned not in narrowed:
+                raise RuleError(
+                    f"{attribute}={wanted!r} produces "
+                    f"{pinned.doc_type or 'no document type'}, but this run asked for "
+                    f"{doc_type!r}. Pin one or the other, not both"
+                )
             if not pinned.allowed(tags):
                 blocking = sorted((pinned.requires - tags) | (pinned.excludes & tags))
                 raise _Clash(
@@ -301,7 +411,8 @@ def _draw_once(order: tuple[str, ...], rules: dict[str, list[Option]],
 
 
 def _reachable_tags(order: tuple[str, ...], rules: dict[str, list[Option]],
-                    force: dict[str, str], upto: int) -> set[frozenset[str]]:
+                    force: dict[str, str], upto: int,
+                    doc_type: str = "") -> set[frozenset[str]]:
     """Every tag set the attributes before `upto` can possibly produce.
 
     A breadth-first sweep over tag sets rather than over recipes: two different
@@ -315,6 +426,8 @@ def _reachable_tags(order: tuple[str, ...], rules: dict[str, list[Option]],
     states: set[frozenset[str]] = {frozenset()}
     for attribute in order[:upto]:
         options = rules[attribute]
+        if doc_type and any(option.doc_type for option in options):
+            options = [option for option in options if option.realises(doc_type)]
         if attribute in force:
             options = [option for option in options if option.id == force[attribute]]
         following: set[frozenset[str]] = set()
@@ -329,11 +442,28 @@ def _reachable_tags(order: tuple[str, ...], rules: dict[str, list[Option]],
     return states
 
 
+def resolve_doc_type(query: str | None) -> str:
+    """A document type as a person typed it -> its full id in `taxonomy/`.
+
+    `retail`, `receipt.retail` and `business.receipt.retail` are the same
+    request; a name that matches two nodes -- `certificate` does -- is an error
+    naming both rather than a guess. Kept here so every entry point that takes a
+    document type (three renderers, the planner, the report) resolves it the
+    same way.
+    """
+    if not query:
+        return ""
+    import taxonomy
+
+    return taxonomy.tree().resolve(str(query)).id
+
+
 def sample_recipe(
     seed: int | None = None,
     rules: dict[str, list[Option]] | None = None,
     force: dict[str, str] | None = None,
     attempts: int = DRAW_ATTEMPTS,
+    doc_type: str | None = None,
 ) -> Recipe:
     """Draw one value per attribute, honouring weights and constraints.
 
@@ -342,6 +472,13 @@ def sample_recipe(
     random image should have. A pinned value still has to satisfy its own
     `requires`/`excludes`, otherwise the recipe it produced would be one the
     rules say cannot exist.
+
+    `doc_type` pins the *document type* instead of a rules value: it restricts
+    every attribute that names types to the ones under that node of the
+    hierarchy, and leaves the rest of the draw alone. The distinction matters
+    once the tree is wide -- a run is balanced over document types, which are
+    stable and public and appear in the label, not over rules values, which are
+    an implementation detail and get split and renamed as a family grows.
 
     **A pin that clashes re-draws; it does not move to another seed.** Until
     W1b, `make()` handled a clash by trying `seed + 1`, `seed + 2` and so on
@@ -372,6 +509,7 @@ def sample_recipe(
         raise RuleError(f"cannot force unknown attributes {sorted(unknown)}")
     if attempts < 1:
         raise RuleError(f"attempts must be at least 1, got {attempts}")
+    wanted_type = resolve_doc_type(doc_type)
 
     if seed is None:
         seed = random.randrange(2**31)
@@ -380,9 +518,9 @@ def sample_recipe(
     clash: _Clash | None = None
     for _ in range(attempts):
         try:
-            choices, tags = _draw_once(order, rules, force, rng)
+            choices, tags = _draw_once(order, rules, force, rng, wanted_type)
         except _Clash as unlucky:
-            if not force:
+            if not force and not wanted_type:
                 raise            # nothing to re-draw around; this is the answer
             clash = unlucky
             continue
@@ -397,17 +535,43 @@ def sample_recipe(
         and not any(
             option.allowed(tags)
             for option in rules[attribute] if option.id == force[attribute]
-            for tags in _reachable_tags(order, rules, force, index)
+            for tags in _reachable_tags(order, rules, force, index, wanted_type)
         )
     ]
-    if impossible:
-        raise RuleError(
-            f"{', '.join(impossible)} cannot be drawn at all: no legal choice of the "
-            f"attributes before it produces the tags it needs. The rules forbid this "
-            f"combination, so no seed will satisfy it.\n  last clash: {clash}"
+    # The same question for a pinned document type: is there any attribute that
+    # nothing can satisfy once the type has narrowed the ones before it? A type
+    # whose rules exist but whose layouts do not lands here, and saying which
+    # attribute ran dry is the difference between a fixable message and a shrug.
+    starved = [
+        attribute
+        for index, attribute in enumerate(order)
+        if wanted_type
+        and not any(
+            option.allowed(tags)
+            for option in rules[attribute]
+            if option.weight > 0 and (not option.doc_type or option.realises(wanted_type))
+            for tags in _reachable_tags(order, rules, force, index, wanted_type)
         )
+    ]
+    if impossible or starved:
+        parts = []
+        if impossible:
+            parts.append(f"{', '.join(impossible)} cannot be drawn at all")
+        if starved:
+            parts.append(
+                f"doc_type {wanted_type!r} leaves {', '.join(starved)} with nothing "
+                f"drawable"
+            )
+        raise RuleError(
+            f"{'; '.join(parts)}: no legal choice of the attributes before it "
+            f"produces the tags it needs. The rules forbid this combination, so no "
+            f"seed will satisfy it.\n  last clash: {clash}"
+        )
+    asked_for = ", ".join(
+        part for part in (str(force) if force else "", f"doc_type={wanted_type}"
+                          if wanted_type else "") if part)
     raise RuleError(
-        f"seed {seed} failed {attempts} draws with {force}; the combination is "
+        f"seed {seed} failed {attempts} draws with {asked_for}; the combination is "
         f"legal, so this seed is unlucky rather than impossible -- raise `attempts` "
         f"or use another seed.\n  last clash: {clash}"
     )
@@ -446,6 +610,40 @@ def enumerate_valid(
     return [option.id for option in rules[attribute] if option.allowed(tags)]
 
 
+def reachable_options(
+    attribute: str,
+    rules: dict[str, list[Option]] | None = None,
+    doc_type: str | None = None,
+) -> list[Option]:
+    """Which values of `attribute` a run could ever draw for a document type.
+
+    `enumerate_valid` answers the question for one known tag set; this answers
+    it for *all* of them at once, by sweeping every tag set the earlier
+    attributes can produce. That is what a planner needs and a renderer does
+    not: to spread a retail receipt's images over its layouts, the planner has
+    to know which layouts a retail receipt can legally have -- pinning
+    `eatery_ascii` on a supermarket is a run that fails a hundred images in.
+
+    With no `doc_type` this is "every value anything could draw", which is the
+    old behaviour of listing the layouts directory, minus the values the rules
+    have made unreachable.
+    """
+    rules = rules or load_rules()
+    order = tuple(rules)
+    if attribute not in order:
+        raise RuleError(f"unknown attribute {attribute!r}; have {', '.join(order)}")
+    wanted = resolve_doc_type(doc_type)
+    states = _reachable_tags(order, rules, {}, order.index(attribute), wanted)
+
+    options = rules[attribute]
+    if wanted and any(option.doc_type for option in options):
+        options = [option for option in options if option.realises(wanted)]
+    return [
+        option for option in options
+        if option.weight > 0 and any(option.allowed(tags) for tags in states)
+    ]
+
+
 def validate(rules: dict[str, list[Option]] | None = None) -> list[str]:
     """Static check of the rules: unreachable values, unsatisfiable tags.
 
@@ -474,6 +672,75 @@ def validate(rules: dict[str, list[Option]] | None = None) -> list[str]:
     for attribute in rules:
         if not any(option.weight > 0 for option in rules[attribute]):
             problems.append(f"{attribute}: every option has weight 0")
+
+    problems.extend(validate_doc_types(rules))
+    return problems
+
+
+def validate_doc_types(rules: dict[str, list[Option]] | None = None) -> list[str]:
+    """Check the rules against `taxonomy/`, in both directions.
+
+    Forwards: a value that names a type the hierarchy does not have, or names a
+    branch rather than a leaf, or names an alias instead of the node the
+    document is really filed under.
+
+    Backwards, and this is the one that matters: a type the hierarchy calls
+    `ready` that no value realises. That combination is exactly the lie the
+    status field exists to prevent -- a coverage report showing a green type
+    that no run can produce -- and it is invisible from either file alone.
+    """
+    import taxonomy
+
+    rules = rules if rules is not None else load_rules()
+    tree = taxonomy.tree()
+    problems: list[str] = []
+    realised: set[str] = set()
+
+    for attribute, options in rules.items():
+        for option in options:
+            if not option.doc_type:
+                continue
+            if option.doc_type not in tree:
+                problems.append(
+                    f"{attribute}/{option.id}: doc_type {option.doc_type!r} is not in "
+                    f"the hierarchy; see taxonomy/families/"
+                )
+                continue
+            node = tree.node(option.doc_type)
+            if not node.is_leaf:
+                problems.append(
+                    f"{attribute}/{option.id}: doc_type {node.id!r} is a branch with "
+                    f"{len(node.children)} types under it; name one of them"
+                )
+                continue
+            if node.is_alias:
+                problems.append(
+                    f"{attribute}/{option.id}: doc_type {node.id!r} is an alias of "
+                    f"{node.same_as!r}; generate the canonical one"
+                )
+                continue
+            if node.status == "planned":
+                problems.append(
+                    f"{attribute}/{option.id}: realises {node.id!r}, which is still "
+                    f"marked planned; move it to draft or ready"
+                )
+            realised.add(node.id)
+
+    from .documents import covered
+
+    builders = covered()
+    for node in tree.leaves():
+        if node.status != "ready":
+            continue
+        if node.id not in realised:
+            problems.append(
+                f"taxonomy: {node.id} is marked ready but no rules value realises it"
+            )
+        if node.id not in builders:
+            problems.append(
+                f"taxonomy: {node.id} is marked ready but no builder is registered "
+                f"for it in rulebase/documents.py"
+            )
     return problems
 
 
@@ -488,6 +755,9 @@ __all__ = [
     "enumerate_valid",
     "load_rules",
     "parse_force",
+    "reachable_options",
+    "resolve_doc_type",
     "sample_recipe",
     "validate",
+    "validate_doc_types",
 ]

@@ -1,11 +1,12 @@
 # Contributing
 
-This repository holds one rule-base and three renderers. There is no shared
-package and no shared virtualenv: the renderers cannot share one, because
+This repository holds one document hierarchy, one rule-base and three
+renderers. There is no shared package and no shared virtualenv: the renderers cannot share one, because
 synthtiger pins Pillow 9.5 and WeasyPrint needs a modern one.
 
 | working on | environment | notes |
 | --- | --- | --- |
+| `taxonomy/` | any Python 3.9+ with `PyYAML` | the document tree; data and a loader, nothing else |
 | `rulebase/` | any Python 3.9+ with `PyYAML` | pure content logic; no image libraries |
 | `degradation/` | any Python 3.9+ with `numpy`, `opencv` | shared by all three renderers |
 | `generators/synthdog/` | `make setup-synthdog` | **Python 3.8 – 3.11 only** |
@@ -38,11 +39,42 @@ make check           # every tracked .py parses, no dependencies needed
 make lint            # ruff: correctness and imports
 make check-rules     # unreachable rule values, typo'd tags, missing layouts
 make check-corpus    # missing corpus files, wrong column counts
+make taxonomy-check  # the hierarchy against the rules and the builders
 ```
 
 `make check-rules` is the one people forget. A tag typo does not raise: the
 value it is on simply never gets drawn, generation carries on, and you find out
 weeks later that a bố cục never appeared in the dataset.
+
+`make taxonomy-check` is the same class of silence one level up. A type marked
+`ready` in `taxonomy/families/` that nothing can actually produce does not break
+a run — it makes every coverage report overstate what exists.
+
+## Adding a document type
+
+The hierarchy has 98 types and generates two of them, so this is the most
+common change there is. Five steps, worked through end to end in
+[`taxonomy/README.md`](taxonomy/README.md) §3:
+
+1. **Declare it** — or promote it — in `taxonomy/families/NN-<family>.yaml`.
+   Every type in the tree is already named; most are `status: planned`.
+2. **Rules**: `rulebase/rules/document/<family>.yaml`, with `doc_type:` naming
+   the leaf. One file per family so two people adding two families never edit
+   one file.
+3. **Layout**: `rulebase/layouts/<name>.yaml`, declared in `rules/layout.yaml`
+   with `requires:` tight enough that no other type can draw it.
+4. **Corpus**: `rulebase/corpus/vi/*_<profile>.txt`. The profile is the
+   filename suffix; no Python changes.
+5. **Builder**: `@register("<node id>")` in `rulebase/documents.py`.
+
+Then `make taxonomy-check` should be silent and
+`python generators/html/render.py --doc <type> -c 5 -o /tmp/out` should produce
+five of them.
+
+Check the `engine` on the node before you start. `grid` is the only one that
+exists — 49 of the 98 types need nothing more. A type marked `flow`, `card` or
+`canvas` needs that engine written first, and that is a much larger piece of
+work than five steps.
 
 If you touched anything a renderer draws:
 
