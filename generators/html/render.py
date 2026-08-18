@@ -196,6 +196,48 @@ CELL_RECTS_JS = """() => {
 }"""
 
 
+# The cells of a table, as opposed to the text inside them. Read from
+# `data-cell` elements, which only the A4 template emits. A merged cell -- the
+# totals row spanning six columns -- has a text box that says nothing about the
+# span, so the cell rect and the span are collected as well. The idea and the
+# token format are taken from the vendored `generators/html-table`; the
+# mechanism is not, because one `evaluate` returns every rect at once where that
+# generator makes one Selenium round trip per cell.
+CELL_REGIONS_JS = """() => {
+  const sheet = document.querySelector('#sheet').getBoundingClientRect();
+  return [...document.querySelectorAll('#sheet [data-cell]')].map(td => {
+    const box = td.getBoundingClientRect();
+    return {
+      kind: td.dataset.cell,
+      text: td.textContent.trim(),
+      row: Number(td.dataset.row), col: Number(td.dataset.col),
+      colspan: td.colSpan || 1, rowspan: td.rowSpan || 1,
+      x: box.left - sheet.left, y: box.top - sheet.top,
+      w: box.width, h: box.height,
+    };
+  });
+}"""
+
+
+def regions_from_rects(rects, scale: float, factor: float) -> list[dict]:
+    """Cell rects, keeping the grid position and the span with each one."""
+    ratio = scale * factor
+    cells = []
+    for rect in rects:
+        if rect["w"] <= 0 or rect["h"] <= 0:
+            continue
+        x0, y0 = rect["x"] * ratio, rect["y"] * ratio
+        x1, y1 = x0 + rect["w"] * ratio, y0 + rect["h"] * ratio
+        cells.append({
+            "kind": rect["kind"], "text": rect["text"],
+            "row": rect["row"], "col": rect["col"],
+            "colspan": rect["colspan"], "rowspan": rect["rowspan"],
+            "quad": [[round(x0, 1), round(y0, 1)], [round(x1, 1), round(y0, 1)],
+                     [round(x1, 1), round(y1, 1)], [round(x0, 1), round(y1, 1)]],
+        })
+    return cells
+
+
 def quads_from_rects(rects, scale: float, factor: float) -> list[dict]:
     """Browser rects -> the same `{kind, text, quad}` the glyph renderer writes.
 
@@ -280,6 +322,7 @@ class HtmlReceiptRenderer:
             # the boxes describe the pixels that were captured rather than a
             # second, re-measured layout.
             rects = page.evaluate(CELL_RECTS_JS)
+            regions = page.evaluate(CELL_REGIONS_JS) if self.template else []
             shot = sheet.screenshot(type="png")
         finally:
             page.close()
@@ -301,6 +344,7 @@ class HtmlReceiptRenderer:
             factor = 1.0
 
         boxes = quads_from_rects(rects, self.scale, factor)
+        cells = regions_from_rects(regions, self.scale, factor)
 
         # Ageing runs after the boxes are computed and must not move a pixel --
         # every model in `degradation/` filters or composites in place. Asserted
@@ -313,7 +357,23 @@ class HtmlReceiptRenderer:
                 f"a degradation resized the page ({before} -> {aged.shape[:2]}); "
                 "the boxes no longer describe it"
             )
-        return recipe, receipt, grid, aged, boxes
+        return recipe, receipt, grid, aged, boxes, cells
+
+
+def structure_from_cells(cells: list[dict]) -> list[str]:
+    """PPStructure tokens for the cells, in row order.
+
+    Same format the vendored `html-table` writes, so anything that reads that
+    reads this. Built from the measured cells rather than from the template, so
+    it describes the table the browser actually laid out.
+    """
+    from a4 import structure_tokens
+
+    rows: dict[int, list[dict]] = {}
+    for cell in cells:
+        rows.setdefault(cell["row"], []).append(cell)
+    ordered = [sorted(rows[row], key=lambda c: c["col"]) for row in sorted(rows)]
+    return structure_tokens(ordered)
 
 
 def main() -> int:
@@ -340,7 +400,8 @@ def main() -> int:
 
     with HtmlReceiptRenderer(scale=args.scale, template=args.template) as renderer:
         for index in range(args.count):
-            recipe, receipt, _grid, image, boxes = renderer.render(args.seed + index, force)
+            recipe, receipt, _grid, image, boxes, cells = renderer.render(
+                args.seed + index, force)
             name = f"html_{index:03d}.jpg"
             cv2.imwrite(str(args.out / name), image, [cv2.IMWRITE_JPEG_QUALITY, 90])
             records.append({
@@ -351,6 +412,12 @@ def main() -> int:
                 "recipe": recipe.to_dict(),
                 "boxes": boxes,
             })
+            if cells:
+                # Additive, and only for a template render: the structure half
+                # of the label, so a merged cell is recoverable. `boxes` is
+                # untouched, so every existing loader keeps working.
+                records[-1]["cells"] = cells
+                records[-1]["structure"] = structure_from_cells(cells)
             print(f"[ok] {name}  {image.shape[1]}x{image.shape[0]}  "
                   f"{recipe.layout.id}  {len(boxes)} boxes")
 

@@ -113,6 +113,57 @@ def _logo(mark: str, colour: str) -> str:
     )
 
 
+def _cell(tag: str, row: int, col: int, inner: str, *, cls: str = "",
+          kind: str = "", colspan: int = 1, rowspan: int = 1) -> str:
+    """One table cell, carrying where it sits and how far it spans.
+
+    Borrowed from the vendored `generators/html-table`, which labels each `<td>`
+    rather than only the text inside it. The distinction is the whole point for
+    a merged cell: the totals row of an invoice spans six columns, and the text
+    box round "Tổng tiền thanh toán" says nothing about that. A model asked to
+    reconstruct the table needs the *cell* extent and the span; a model asked to
+    read the text needs the text box. Both are emitted, and `data-cell` is what
+    tells the extractor which elements are cells.
+    """
+    attrs = [f'data-cell="{_e(kind)}"', f'data-row="{row}"', f'data-col="{col}"']
+    if colspan > 1:
+        attrs.append(f'colspan="{colspan}"')
+    if rowspan > 1:
+        attrs.append(f'rowspan="{rowspan}"')
+    if cls:
+        attrs.append(f'class="{cls}"')
+    return f"<{tag} {' '.join(attrs)}>{inner}</{tag}>"
+
+
+def structure_tokens(rows: list[list[dict]]) -> list[str]:
+    """The table as PPStructure tokens: `<tr>`, `<td`, ` colspan="6"`, `>`, ...
+
+    The same shape `html-table` writes, so a dataset built here can be read by
+    anything that already reads that format, and so the structure survives
+    independently of the text. Splicing the cell text back between the tokens
+    reconstructs the table -- which is the check that the two halves describe
+    one thing.
+    """
+    tokens: list[str] = []
+    for row in rows:
+        tokens.append("<tr>")
+        for cell in row:
+            span = []
+            if cell.get("colspan", 1) > 1:
+                span.append(f' colspan="{cell["colspan"]}"')
+            if cell.get("rowspan", 1) > 1:
+                span.append(f' rowspan="{cell["rowspan"]}"')
+            if span:
+                tokens.append("<td")
+                tokens.extend(span)
+                tokens.append(">")
+            else:
+                tokens.append("<td>")
+            tokens.append("</td>")
+        tokens.append("</tr>")
+    return tokens
+
+
 def _party_rows(pairs: dict[str, str] | list, kind_label: str, kind_value: str) -> str:
     rows = pairs.items() if isinstance(pairs, dict) else pairs
     out = []
@@ -190,40 +241,48 @@ def build(recipe, receipt, theme: str = "brand") -> str:
 </div>"""
 
     # ---- the item table, with the blank ruled rows a printed form always has
-    head = """
-<tr>
-  <th class="c-stt">STT</th><th class="c-name">Tên hàng hoá, dịch vụ</th>
-  <th class="c-unit">ĐVT</th><th class="c-vat">Thuế<br>suất</th>
-  <th class="c-qty">SL</th><th class="c-price">Đơn giá</th>
-  <th class="c-amt">Thành tiền</th>
-</tr>
-<tr class="colnum"><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7=5x6</td></tr>"""
+    titles = ["STT", "Tên hàng hoá, dịch vụ", "ĐVT", "Thuế suất", "SL",
+              "Đơn giá", "Thành tiền"]
+    classes = ["c-stt", "c-name", "c-unit", "c-vat", "c-qty", "c-price", "c-amt"]
+    head = "<tr>" + "".join(
+        _cell("th", 0, column, f'<span data-kind="colhdr">{_e(text)}</span>',
+              cls=cls, kind="colhdr")
+        for column, (text, cls) in enumerate(zip(titles, classes))) + "</tr>"
+    head += "<tr class='colnum'>" + "".join(
+        _cell("td", 1, column, _e(text), kind="colnum")
+        for column, text in enumerate(["1", "2", "3", "4", "5", "6", "7=5x6"])) + "</tr>"
 
     rows = []
+    row_no = 2
     for index, entry in enumerate(menu, start=1):
-        rows.append(f"""
-<tr>
-  <td class="c-stt">{_span("menu.stt", index)}</td>
-  <td class="c-name">{_span("menu.name", entry.get("nm"))}</td>
-  <td class="c-unit">{_span("menu.unit", entry.get("unit"))}</td>
-  <td class="c-vat">{_span("menu.vat_rate", entry.get("vatrate"))}</td>
-  <td class="c-qty">{_span("menu.qty", entry.get("cnt"))}</td>
-  <td class="c-price">{_span("menu.unit_price", entry.get("unitprice"))}</td>
-  <td class="c-amt">{_span("menu.amount", entry.get("price"))}</td>
-</tr>""")
+        fields = [("menu.stt", index), ("menu.name", entry.get("nm")),
+                  ("menu.unit", entry.get("unit")), ("menu.vat_rate", entry.get("vatrate")),
+                  ("menu.qty", entry.get("cnt")), ("menu.unit_price", entry.get("unitprice")),
+                  ("menu.amount", entry.get("price"))]
+        rows.append("<tr>" + "".join(
+            _cell("td", row_no, column, _span(kind, value), cls=cls, kind=kind)
+            for column, ((kind, value), cls) in enumerate(zip(fields, classes))) + "</tr>")
+        row_no += 1
     # A printed form is ruled to a fixed depth, so the rows below the last item
     # are empty and still boxed. Two to four of them, by seed.
     for _ in range(rng.randint(2, 4)):
-        rows.append("<tr class='blank'>" + "<td></td>" * 7 + "</tr>")
+        rows.append("<tr class='blank'>" + "".join(
+            _cell("td", row_no, column, "", kind="blank")
+            for column in range(7)) + "</tr>")
+        row_no += 1
 
     total_rows = []
     for label, value in totals.items():
         last = label == list(totals)[-1]
         total_rows.append(
             f"<tr class='total{' grand' if last else ''}'>"
-            f"<td colspan='6' class='tlabel'>{_span('total.line.label', label)}</td>"
-            f"<td class='c-amt'>{_span('total.line', value)}</td></tr>"
+            + _cell("td", row_no, 0, _span("total.line.label", label),
+                    cls="tlabel", kind="total.line.label", colspan=6)
+            + _cell("td", row_no, 6, _span("total.line", value),
+                    cls="c-amt", kind="total.line")
+            + "</tr>"
         )
+        row_no += 1
 
     table = f"<table class='items'>{head}{''.join(rows)}{''.join(total_rows)}</table>"
 
