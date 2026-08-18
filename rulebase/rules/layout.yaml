@@ -74,6 +74,21 @@ groups:
         requires: [invoice_form]
         tags: [dotted_fields]
 
+      # Bản in ra của hoá đơn điện tử: khối người bán trong khung, và tờ kết
+      # bằng bảng chia tiền theo từng thuế suất thay vì một dòng thuế.
+      - id: invoice_vat_summary
+        weight: 2
+        requires: [invoice_summary]
+        tags: [summary_table, boxed_letterhead]
+
+      # Tờ song ngữ. Không có `letterhead`: bên bán trên mẫu xuất khẩu là một
+      # khối trường có nhãn như bên mua, không phải một dòng tiêu đề.
+      - id: invoice_export
+        weight: 2
+        requires: [doc_export]
+        excludes: [has_vat]        # hàng xuất khẩu chịu thuế suất 0%
+        tags: [bilingual, numbered_columns, stacked_parties]
+
   # ------------------------------------------------------------------------
   - id: utility_invoice
     label: "Hoá đơn dịch vụ tiện ích — điện, nước, tính theo chỉ số công tơ"
@@ -94,6 +109,23 @@ groups:
         tags: [tier_rows]
 
   # ------------------------------------------------------------------------
+  - id: lodging_invoice
+    label: "Hoá đơn lưu trú — khách sạn, khu nghỉ dưỡng, một dòng một đêm"
+    # Bán một khoảng THỜI GIAN chứ không bán một giỏ hàng: bảng có cột ngày và
+    # cột phòng, số dòng bằng số đêm, và tờ giấy kết bằng dòng đã trả / còn
+    # lại vì khách thanh toán khi trả phòng.
+    requires: [doc_lodging]
+    tags: [wide_paper, no_frame, key_strip, dated_rows]
+    options:
+      - id: invoice_hotel_stay
+        weight: 2
+        tags: [signature_names]
+
+      - id: invoice_hotel_compact
+        weight: 2
+        tags: [signature_names, narrow_sheet]
+
+  # ------------------------------------------------------------------------
   - id: modern_invoice
     label: "Hoá đơn thiết kế riêng — không kẻ khung, tổng tiền dồn về lề phải"
     # Không phải tờ mẫu: doanh nghiệp tự thiết kế, in laser. Dấu hiệu là chỗ
@@ -105,3 +137,10 @@ groups:
       - id: invoice_tax_en
         weight: 2
         requires: [lang_en]
+
+      # Tờ của tiệm bánh: địa chỉ cửa hàng xuống chân trang, chân trang chia
+      # hai khối cạnh nhau.
+      - id: invoice_brand
+        weight: 2
+        requires: [doc_brand]
+        tags: [key_strip, footer_columns]

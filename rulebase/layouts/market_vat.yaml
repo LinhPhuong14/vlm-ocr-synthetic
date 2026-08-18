@@ -16,9 +16,9 @@ header:
   branch: false
   title: true
   title_scale: [1.25, 1.50]
-
-notes:
-  - "Có giá trị xuất hoá đơn GTGT trong ngày"
+  # Dòng in nhỏ dưới tiêu đề, căn giữa.
+  notes:
+    - "Có giá trị xuất hoá đơn GTGT trong ngày"
 
 meta:
   style: two_column

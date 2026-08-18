@@ -163,3 +163,37 @@ options:
       show_payment: false
       num_footers: [1, 3]
       prob_item_discount: 0.0
+
+  # Hoá đơn tự thiết kế (khách sạn, tiệm bánh) hay in ĐƠN VỊ TIỀN ngay sau con
+  # số — "800.000đ", "1.600.000 VND" — chứ không để trần như hoá đơn GTGT. Hai
+  # giá trị dưới đây là hai cách viết đó; `invoice_vi` vẫn bốc được cho cùng
+  # document, nên cùng một tờ vẫn có ba lối in tiền.
+  - id: invoice_service_dong
+    weight: 2
+    requires: [doc_service]
+    tags: [diacritics, invoice_text, currency_suffix]
+    params:
+      money_style: dot
+      money_suffix: "đ"
+      prob_ascii_fold: 0.0
+      prob_uppercase: 0.10
+      show_subtotal: true
+      show_vat: true
+      show_payment: false
+      num_footers: [1, 2]
+      prob_item_discount: 0.0
+
+  - id: invoice_service_vnd
+    weight: 2
+    requires: [doc_service]
+    tags: [diacritics, invoice_text, currency_suffix]
+    params:
+      money_style: dot
+      money_suffix: " VND"
+      prob_ascii_fold: 0.0
+      prob_uppercase: 0.15
+      show_subtotal: true
+      show_vat: true
+      show_payment: false
+      num_footers: [1, 2]
+      prob_item_discount: 0.0

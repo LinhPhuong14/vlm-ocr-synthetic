@@ -62,12 +62,17 @@ table:
 item:
   wrap_name: false
   rows:
-    # dòng 1: chỉ số công tơ. Chỉ bậc đầu tiên có chỉ số, nên với bậc thứ hai
+    # dòng 1: TÊN BẬC GIÁ, chạy hết bề ngang bảng. Sáu cột chỉ số đã chiếm hết
+    # chiều rộng nên tên bậc không có cột riêng — trên tờ gốc nó cũng nằm vắt
+    # ngang như vậy. Thiếu dòng này thì "Tiền nước sinh hoạt bậc 1 (0-10m3)"
+    # có trong nhãn dữ liệu mà không có trên ảnh.
+    - - {from: name, span: [meter_now, amount]}
+    # dòng 2: chỉ số công tơ. Chỉ bậc đầu tiên có chỉ số, nên với bậc thứ hai
     # trở đi dòng này rỗng và bị bỏ qua.
     - - {col: meter_now, from: meter_now}
       - {col: meter_prev, from: meter_prev}
       - {col: qty, from: qty}
-    # dòng 2: định mức, mã giá + đơn giá ("DV 29.000"), thành tiền
+    # dòng 3: định mức, mã giá + đơn giá ("DV 29.000"), thành tiền
     - - {col: quota, from: quota}
       - {col: unit_price, from: tier_price}
       - {col: amount, from: amount}

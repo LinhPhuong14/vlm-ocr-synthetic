@@ -184,16 +184,23 @@ def main() -> int:
             for problem in problems:
                 print(f"  - {problem}")
         else:
-            counts = {
-                "items_eatery": len(corpus.items("eatery")),
-                "items_market": len(corpus.items("market")),
-                "shops_eatery": len(corpus.shops("eatery")),
-                "shops_market": len(corpus.shops("market")),
-                "streets": len(corpus.streets()),
-                "wards": len(corpus.wards()),
-                "payments": len(corpus.payments()),
-            }
-            print("\ncorpus hợp lệ: " + ", ".join(f"{k}={v}" for k, v in counts.items()))
+            # Profiles are discovered, not listed: `rulebase/README.md` promises
+            # that adding one is three text files and nothing else, and a
+            # hard-coded pair here quietly left every profile added since off
+            # the report while `corpus.check()` was validating them.
+            for lang in corpus.languages():
+                counts = {}
+                for path in sorted((corpus.CORPUS_ROOT / lang).glob("items_*.txt")):
+                    profile = path.stem[len("items_"):]
+                    counts[profile] = len(corpus.items(profile, lang))
+                shared = {
+                    "streets": len(corpus.streets(lang)),
+                    "wards": len(corpus.wards(lang)),
+                    "payments": len(corpus.payments(lang)),
+                    "people": len(corpus.people(lang)),
+                }
+                print(f"\ncorpus {lang}/ hợp lệ: "
+                      + ", ".join(f"{k}={v}" for k, v in {**counts, **shared}.items()))
 
     if args.distribution:
         print()

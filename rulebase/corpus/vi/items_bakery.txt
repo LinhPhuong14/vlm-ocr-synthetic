@@ -1,0 +1,30 @@
+
+# Bánh và đồ uống trên hoá đơn tiệm bánh / quán cà phê.
+# Định dạng: tên<TAB>đơn giá tối thiểu<TAB>đơn giá tối đa   (đơn vị VND)
+#
+# Khác `items_eatery.txt` — vốn là món ăn gọi tại bàn — ở chỗ đây là hàng ĐẶT
+# TRƯỚC: bánh nguyên chiếc, set nhiều cái, phần đặt theo hộp. Vì thế đơn giá
+# cao hơn một suất ăn và số lượng trên hoá đơn thường chỉ một, hai dòng.
+
+Bánh nhung đỏ	180000	450000
+Bánh cupcake Vani (set 12 cái)	220000	520000
+Bánh cà rốt truyền thống	160000	380000
+Bánh kem sinh nhật cỡ vừa	280000	750000
+Bánh mousse chanh dây	195000	420000
+Bánh tiramisu hộp giấy	175000	360000
+Bánh su kem (hộp 9 cái)	120000	260000
+Bánh quy bơ hộp thiếc	150000	480000
+Bánh mì bơ tỏi (phần 4 cái)	45000	95000
+Bánh croissant trứng muối	38000	72000
+Bánh flan caramen (set 6 hũ)	90000	180000
+Bánh trung thu thập cẩm	85000	260000
+Cà phê sữa đá	29000	65000
+Cà phê phin đen	25000	55000
+Bạc xỉu đá	35000	72000
+Trà đào cam sả	42000	85000
+Trà sữa trân châu đường đen	45000	78000
+Nước ép cam tươi	40000	80000
+Sinh tố bơ sữa dừa	48000	95000
+Sô cô la nóng	45000	88000
+Set quà tặng bánh và trà	350000	1250000
+Phí đóng gói quà tặng	20000	80000
