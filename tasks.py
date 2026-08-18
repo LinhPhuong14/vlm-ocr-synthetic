@@ -283,6 +283,16 @@ def distribution(args) -> None:
     run([sys.executable, REPO_ROOT / "tools" / "rules_report.py", "--distribution"])
 
 
+@task("monitor", "the whole rule space, or a run while it is still going")
+def monitor(args) -> None:
+    # `--static` needs nothing but the rules; a run directory needs nothing at
+    # all beyond what is already on disk. Either way it writes nothing, so it is
+    # safe to point at a job a pool of workers is in the middle of.
+    command = [first_available_python(), REPO_ROOT / "tools" / "monitor.py"]
+    command += [args.run] if getattr(args, "run", None) else ["--static"]
+    run(command)
+
+
 @task("list-degradations", "names usable in an augmentation chain")
 def list_degradations(args) -> None:
     run([first_available_python(), "-c",
@@ -378,6 +388,10 @@ def main() -> int:
     parser.add_argument("--dataset", default=str(Path("data") / "dataset60"),
                         help="dataset to score (proof)")
     parser.add_argument("--layout", help="pin one bố cục (preview-grid)")
+    # No default on purpose: `monitor` with nothing to point at reports the rule
+    # space, and a default would silently turn that into "monitor whichever
+    # dataset happens to be the usual one".
+    parser.add_argument("--run", help="a run directory to monitor")
     args = parser.parse_args()
 
     if not args.task:

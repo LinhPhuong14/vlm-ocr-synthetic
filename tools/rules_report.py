@@ -123,6 +123,10 @@ def sample_distribution(draws: int, seed: int, rules=None,
     comparing a run against an expectation that ignores its own pins would
     report drift on every run forever.
     """
+    # Once, not once per draw. `sample_recipe(rules=None)` re-reads every YAML
+    # file every time it is called, so leaving it to default here costs a full
+    # parse of the rule-base per draw -- two thousand of them for one report.
+    rules = load_rules() if rules is None else rules
     counters = {attribute: Counter() for attribute in ATTRIBUTES}
     failures = 0
     for index in range(draws):
