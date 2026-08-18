@@ -117,7 +117,7 @@ def _cell(tag: str, row: int, col: int, inner: str, *, cls: str = "",
           kind: str = "", colspan: int = 1, rowspan: int = 1) -> str:
     """One table cell, carrying where it sits and how far it spans.
 
-    Borrowed from the vendored `generators/html-table`, which labels each `<td>`
+    Borrowed from PaddleOCR's TableGeneration, which labels each `<td>`
     rather than only the text inside it. The distinction is the whole point for
     a merged cell: the totals row of an invoice spans six columns, and the text
     box round "Tổng tiền thanh toán" says nothing about that. A model asked to
@@ -138,7 +138,7 @@ def _cell(tag: str, row: int, col: int, inner: str, *, cls: str = "",
 def structure_tokens(rows: list[list[dict]]) -> list[str]:
     """The table as PPStructure tokens: `<tr>`, `<td`, ` colspan="6"`, `>`, ...
 
-    The same shape `html-table` writes, so a dataset built here can be read by
+    The same shape `tables.py` writes, so a dataset built here can be read by
     anything that already reads that format, and so the structure survives
     independently of the text. Splicing the cell text back between the tokens
     reconstructs the table -- which is the check that the two halves describe
