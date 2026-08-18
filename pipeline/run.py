@@ -53,9 +53,56 @@ for extra in (REPO_ROOT, REPO_ROOT / "tools"):
 from pipeline import preflight, record  # noqa: E402
 from pipeline.config import Config, apply_overrides, materialise_rules  # noqa: E402
 from pipeline.plan import build_plan, write_plan  # noqa: E402
-from pipeline.worker import ShardError, is_done, render_shard, shard_dir  # noqa: E402
+from pipeline.worker import (  # noqa: E402
+    INVARIANTS,
+    ShardError,
+    is_done,
+    render_shard,
+    shard_dir,
+)
 
 SHARDS_DIR = ".shards"
+
+
+def gather_invariants(plan: dict, shards_root: Path) -> dict:
+    """Add up what every finished shard measured about its own content.
+
+    Counts only, summed in shard order, so two runs of the same plan produce
+    the same bytes here -- `manifest.json` is compared whole, and W1's headline
+    check is that one worker and eight agree on it.
+    """
+    images = boxes = 0
+    values: dict[str, int] = {}
+    unprinted: dict[str, dict[str, int]] = {}
+    notes: dict[str, int] = {}
+    unchecked: set[str] = set()
+
+    for shard in sorted(plan["shards"], key=lambda s: s["index"]):
+        path = shard_dir(shards_root, shard["index"]) / INVARIANTS
+        if not path.exists():
+            continue
+        report = json.loads(path.read_text(encoding="utf-8"))
+        images += report.get("images", 0)
+        boxes += report.get("boxes", 0)
+        for layout, count in (report.get("label_values") or {}).items():
+            values[layout] = values.get(layout, 0) + count
+        for layout, fields in (report.get("unprinted") or {}).items():
+            for name, count in fields.items():
+                bucket = unprinted.setdefault(layout, {})
+                bucket[name] = bucket.get(name, 0) + count
+        for name, count in (report.get("notes") or {}).items():
+            notes[name] = notes.get(name, 0) + count
+        unchecked.update(report.get("unchecked") or [])
+
+    return {
+        "images": images,
+        "boxes": boxes,
+        "label_values": dict(sorted(values.items())),
+        "unprinted": {layout: dict(sorted(fields.items()))
+                      for layout, fields in sorted(unprinted.items())},
+        "notes": dict(sorted(notes.items())),
+        "unchecked": sorted(unchecked),
+    }
 
 
 def _render_one(job: dict) -> dict:
@@ -209,6 +256,8 @@ def execute(config: Config, *, workers: int | None = None,
             for s in sorted(plan["shards"], key=lambda s: s["index"])
         ],
         "frameworks": frameworks,
+        # Counts, not durations: see the note below about what this file is for.
+        "invariants": gather_invariants(plan, shards_root),
         "failed": [{"shard": r["shard"], "backend": r["backend"], "error": r["error"]}
                    for r in failed],
         "warnings": sorted(warnings),
