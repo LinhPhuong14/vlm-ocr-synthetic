@@ -221,6 +221,7 @@ def test_static_mode_draws_what_make_distribution_draws():
     from rules_report import sample_distribution
 
     assert monitor.STATIC_DRAWS == 2000 and monitor.STATIC_SEED == 0
-    counters, failures = sample_distribution(monitor.STATIC_DRAWS, monitor.STATIC_SEED)
+    counters, _families, failures = sample_distribution(
+        monitor.STATIC_DRAWS, monitor.STATIC_SEED)
     assert failures == 0
     assert sum(counters["augmentation"].values()) == monitor.STATIC_DRAWS

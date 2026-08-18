@@ -1,0 +1,74 @@
+# English-language tax invoice — the modern, unruled kind.
+#
+# How to recognise it: no frame anywhere, just a rule under the column titles;
+# two unlabelled address blocks side by side under the headings "Ship to" and
+# "Billed to"; the totals hug the right margin instead of running the width;
+# and a "Payment Options" block under them listing how the money may be sent.
+#
+# The one layout in this rule-base whose printed strings are English. That is
+# not a translation of a Vietnamese receipt -- it is a different document, with
+# its own corpus in `rulebase/corpus/en/`. See rulebase/README.md on where the
+# language boundary runs.
+id: invoice_tax_en
+name: Tax invoice (English) — ship-to and billed-to, right-hand totals
+source: "photo of an Australian tax invoice, ABN 1234, invoiced 28/06/2017"
+
+width: [72, 84]
+gutter: 2
+rule_char: "-"
+
+sections: [letterhead, doctitle, parties, table, totals, notes, footer]
+
+letterhead:
+  name_scale: [1.05, 1.25]
+  name_bold: true
+  serial_width: 24
+  # No bank account in the letterhead: it belongs under "Payment Options",
+  # and the sample invoice prints it in exactly one place.
+  account: false
+  labels:
+    address: ""
+    tax_code: "ABN:"
+    phone: "Phone:"
+    branch: ""
+    serial: "Invoice #"
+    number: "No."
+
+doctitle:
+  scale: [1.35, 1.70]
+
+parties:
+  style: two_column
+  split: 0.50
+  gap: 3
+  leader: ""
+
+column_header: true
+column_header_bold: true
+columns:
+  - {key: qty,        title: "QTY",        width: 7,  align: right}
+  - {key: name,       title: "Name",       width: 0,  align: left}
+  - {key: unit_price, title: "Unit Price", width: 13, align: right, title_align: right}
+  - {key: vat_rate,   title: "Tax",        width: 9,  align: right, title_align: right}
+  - {key: amount,     title: "Subtotal",   width: 13, align: right, title_align: right}
+
+table:
+  frame: false
+
+item:
+  wrap_name: true
+  rows:
+    - - {col: qty, from: qty}
+      - {col: name, from: name}
+      - {col: unit_price, from: unit_price}
+      - {col: vat_rate, from: vat_rate}
+      - {col: amount, from: amount}
+
+totals:
+  frame: false
+  emphasise_grand: true
+  grand_scale: [1.15, 1.40]
+  grand_two_lines: false
+
+footer:
+  rule_before: true

@@ -1,0 +1,9 @@
+# Payment method<TAB>group. Groups match the Vietnamese file so the same code
+# reads both: tienmat = cash (the only one that can be overpaid and give change).
+Cash	tienmat
+Visa	the
+Mastercard	the
+EFTPOS	the
+Bank Transfer	vi
+PayPal	vi
+Direct Debit	vi

@@ -126,6 +126,48 @@ ATTRIBUTES: Sequence[str] = _Attributes()
 
 
 @dataclass(frozen=True)
+class Group:
+    """A parent node: a family of values, and what the family has in common.
+
+    A rules file lists its values flat under `options:`, or sorts them into
+    `groups:` -- each node an `id`, a `label` a reader can understand, and its
+    own `options:`. `rules/layout.yaml` uses the second form, because "bố cục"
+    stopped being one kind of thing: a thermal till receipt and a printed VAT
+    form share a grid and nothing else, and a flat list said so nowhere.
+
+    The node is not decoration. `tags`, `requires` and `excludes` written on it
+    are merged into every value beneath it, so a constraint that holds for the
+    whole family is stated once and cannot be forgotten on the next value
+    added to it.
+    """
+
+    id: str
+    label: str = ""
+    tags: frozenset[str] = frozenset()
+    requires: frozenset[str] = frozenset()
+    excludes: frozenset[str] = frozenset()
+
+    @classmethod
+    def from_dict(cls, raw: dict[str, Any], attribute: str) -> "Group":
+        known = {"id", "label", "tags", "requires", "excludes", "options"}
+        unknown = set(raw) - known
+        if unknown:
+            raise RuleError(
+                f"{attribute}: group {raw.get('id', '?')!r} has unknown keys "
+                f"{sorted(unknown)}; a node carries no params of its own"
+            )
+        if "id" not in raw:
+            raise RuleError(f"{attribute}: a group has no id")
+        return cls(
+            id=str(raw["id"]),
+            label=str(raw.get("label", "")),
+            tags=frozenset(raw.get("tags") or ()),
+            requires=frozenset(raw.get("requires") or ()),
+            excludes=frozenset(raw.get("excludes") or ()),
+        )
+
+
+@dataclass(frozen=True)
 class Option:
     """One value of one attribute."""
 
@@ -135,9 +177,14 @@ class Option:
     requires: frozenset[str] = frozenset()
     excludes: frozenset[str] = frozenset()
     params: dict[str, Any] = field(default_factory=dict)
+    # Which parent node this value sits under, "" for a flat file. Set from the
+    # structure of the file and never from a key on the value itself: a value
+    # that could name its own parent would let two nodes claim it.
+    group: str = ""
 
     @classmethod
-    def from_dict(cls, raw: dict[str, Any], attribute: str) -> "Option":
+    def from_dict(cls, raw: dict[str, Any], attribute: str,
+                  parent: "Group | None" = None) -> "Option":
         known = {"id", "weight", "tags", "requires", "excludes", "params"}
         unknown = set(raw) - known
         if unknown:
@@ -150,13 +197,15 @@ class Option:
         weight = float(raw.get("weight", 1.0))
         if weight < 0:
             raise RuleError(f"{attribute}/{raw['id']}: negative weight")
+        inherited = parent or Group(id="")
         return cls(
             id=str(raw["id"]),
             weight=weight,
-            tags=frozenset(raw.get("tags") or ()),
-            requires=frozenset(raw.get("requires") or ()),
-            excludes=frozenset(raw.get("excludes") or ()),
+            tags=frozenset(raw.get("tags") or ()) | inherited.tags,
+            requires=frozenset(raw.get("requires") or ()) | inherited.requires,
+            excludes=frozenset(raw.get("excludes") or ()) | inherited.excludes,
             params=dict(raw.get("params") or {}),
+            group=inherited.id,
         )
 
     def allowed(self, tags: Iterable[str]) -> bool:
@@ -190,11 +239,71 @@ class Recipe:
         return {
             "seed": self.seed,
             "attributes": {
-                name: {"id": option.id, "params": option.params}
+                name: (
+                    {"id": option.id, "group": option.group, "params": option.params}
+                    if option.group
+                    else {"id": option.id, "params": option.params}
+                )
                 for name, option in self.choices.items()
             },
             "tags": sorted(self.tags),
         }
+
+
+def _read_values(
+    raw: dict[str, Any], attribute: str, path: Path
+) -> tuple[list[Option], list[Group]]:
+    """The values of one attribute, flat or sorted into parent nodes.
+
+    A file writes `options:` or `groups:`, never both. Two places to add a
+    value is two places to forget one, and a half-sorted file no longer says
+    at a glance whether the attribute has a taxonomy at all.
+    """
+    flat, nodes = raw.get("options"), raw.get("groups")
+    if flat and nodes:
+        raise RuleError(
+            f"{path}: has both 'options:' and 'groups:'; a file sorts its values "
+            f"into parent nodes or lists them flat, not half of each"
+        )
+    if not flat and not nodes:
+        raise RuleError(f"{path}: no options")
+    if flat:
+        return [Option.from_dict(item, attribute) for item in flat], []
+
+    groups: list[Group] = []
+    options: list[Option] = []
+    seen: set[str] = set()
+    for item in nodes:
+        group = Group.from_dict(item, attribute)
+        if group.id in seen:
+            raise RuleError(f"{path}: duplicate group id {group.id!r}")
+        seen.add(group.id)
+        members = item.get("options")
+        if not members:
+            raise RuleError(
+                f"{path}: group {group.id!r} has no options; an empty node is a "
+                f"family nobody can draw from"
+            )
+        groups.append(group)
+        options += [Option.from_dict(member, attribute, group) for member in members]
+    return options, groups
+
+
+def load_groups(root: Path | str = RULES_ROOT) -> dict[str, list[Group]]:
+    """The parent nodes of each attribute; `[]` for an attribute listed flat.
+
+    Separate from `load_rules` because the sampler has no use for a node -- it
+    draws values, and a value already carries everything its node gave it. The
+    nodes themselves are for the reader: `tools/rules_report.py` counts draws
+    per family, and the docs name them.
+    """
+    root = Path(root)
+    groups: dict[str, list[Group]] = {}
+    for attribute in attribute_order(root):
+        path = root / f"{attribute}.yaml"
+        raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        groups[attribute] = _read_values(raw, attribute, path)[1]
+    return groups
 
 
 def load_rules(root: Path | str = RULES_ROOT) -> dict[str, list[Option]]:
@@ -217,10 +326,7 @@ def load_rules(root: Path | str = RULES_ROOT) -> dict[str, list[Option]]:
     for path in files:
         attribute = path.stem
         raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-        options = raw.get("options")
-        if not options:
-            raise RuleError(f"{path}: no options")
-        entries = [Option.from_dict(item, attribute) for item in options]
+        entries = _read_values(raw, attribute, path)[0]
         seen: set[str] = set()
         for option in entries:
             if option.id in seen:
@@ -481,11 +587,13 @@ __all__ = [
     "ATTRIBUTES",
     "ORDER_FILE",
     "attribute_order",
+    "Group",
     "Option",
     "Recipe",
     "RuleError",
     "RULES_ROOT",
     "enumerate_valid",
+    "load_groups",
     "load_rules",
     "parse_force",
     "sample_recipe",

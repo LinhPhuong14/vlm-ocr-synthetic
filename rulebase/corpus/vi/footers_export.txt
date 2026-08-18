@@ -1,0 +1,13 @@
+
+# Chân hoá đơn xuất khẩu.
+#
+# Cùng dòng nhắc đối chiếu như hoá đơn GTGT, cộng thêm dòng in ở đáy tờ mẫu
+# (tên nhà in và mã số thuế của nhà in) — thứ chỉ có trên giấy IN SẴN, và là
+# cách nhanh nhất để phân biệt tờ mẫu với tờ tự thiết kế.
+
+(Cần kiểm tra, đối chiếu khi lập, giao, nhận hoá đơn)
+(Liên 1: Lưu - Copy 1: Save)
+In tại Công ty CP In và Thương mại - MST 0101234567
+Hoá đơn xuất khẩu lập theo hợp đồng ngoại thương đã ký
+Hàng đã kiểm đếm và niêm phong trước khi giao vận
+(Chứng từ đi kèm: hợp đồng, packing list, vận đơn)

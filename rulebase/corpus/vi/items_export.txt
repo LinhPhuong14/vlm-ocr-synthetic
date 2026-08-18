@@ -1,0 +1,31 @@
+
+# Hàng hoá trên hoá đơn xuất khẩu.
+# Định dạng: tên<TAB>đơn giá tối thiểu<TAB>đơn giá tối đa   (đơn vị VND)
+#
+# Tên hàng ghi SONG NGỮ ngay trong corpus, vì tờ hoá đơn xuất khẩu in cả hai
+# thứ tiếng trên cùng một dòng — phần tiếng Anh trong ngoặc là một phần của
+# tên hàng, không phải bản dịch của nhãn cột (nhãn cột nằm trong layout).
+#
+# Đơn giá là giá MỘT đơn vị hàng gia công, nên nhỏ; số lượng thì lớn (xem
+# `qty_range` trong rules/document.yaml) — đúng cách một lô hàng được ghi.
+
+Áo sơ mi nam dài tay (Men's long-sleeve shirt)	78000	185000
+Áo thun cotton (Cotton T-shirt)	42000	110000
+Quần jean nữ (Women's jeans)	125000	320000
+Quần âu nam (Men's trousers)	98000	260000
+Áo khoác gió (Windbreaker jacket)	180000	480000
+Váy liền thân (One-piece dress)	140000	390000
+Giày thể thao (Sport shoes)	210000	620000
+Dép đi trong nhà (Indoor slippers)	28000	75000
+Ba lô vải (Fabric backpack)	150000	420000
+Găng tay bảo hộ (Safety gloves)	12000	45000
+Khăn bông cotton (Cotton towel)	35000	120000
+Vải dệt kim khổ 1m6 (Knitted fabric)	48000	165000
+Chỉ may công nghiệp (Industrial sewing thread)	18000	62000
+Cúc áo nhựa (Plastic buttons)	800	4500
+Khoá kéo kim loại (Metal zipper)	2500	12000
+Nhãn dệt thương hiệu (Woven label)	600	3200
+Thùng carton 5 lớp (5-ply carton box)	14000	38000
+Móc treo quần áo (Garment hanger)	3500	15000
+Túi PE đóng gói (PE packing bag)	500	2800
+Mũ lưỡi trai (Baseball cap)	38000	125000
