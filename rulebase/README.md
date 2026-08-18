@@ -331,23 +331,56 @@ parties:
   split: 0.55            # where the two columns divide
 
 table:
-  frame: true            # draw it with + - |, never with box-drawing characters
+  frame: true            # a ruled table rather than a block of items
   column_numbers: true   # the "(1) (2) ... (6 = 4 x 5)" row a form carries
   row_rules: true        # a rule under every item, not just under the block
   blank_rows: 4          # a form has the rows it was printed with
   header_rules: true     # unframed: rule above and below the column titles
+  shade: 0.10            # a tint under the column titles, as a fraction of ink
+  border: 1.8            # the outer boundary, in hairlines (1.0 = no emphasis)
 
 vat_summary:             # its own columns, resolved on their own
   frame: true
+  shade: 0.10
   columns:
     - {key: label, title: "Tổng hợp", width: 0, align: left}
     - {key: rate,  title: "Thuế suất (VAT rate)", width: 14, align: center}
 ```
 
-Ruled tables are drawn with `+ - |` and not with U+2500 box-drawing: two of the
-fonts in `fonts/` have no box-drawing block at all, so a frame drawn with `─`
-would render as a row of empty rectangles in a fifth of the dataset — with the
-label still claiming a table.
+### Drawn rules, or typed ones
+
+```yaml
+rules: marks             # default: ascii
+```
+
+A till roll really does print its rules as rows of `-` and `|`, because a
+thermal head prints characters. A page printer does not: it *draws* the line,
+and a drawn line costs no line of text, which is why a real form fits more on a
+page than its ASCII rendering of the same fields does.
+
+`rules: marks` says which of the two this layout is. It turns every rule on the
+page into a `Mark` — a rectangle on the **same (row, column) grid the cells
+use**, so no renderer needs a second coordinate system for it. All three draw
+it: the glyph backend as a `RectLayer`, the two HTML backends as a `div`. Three
+kinds:
+
+| kind | what it is | who emits it |
+| --- | --- | --- |
+| `rule` | a line, degenerate on one axis; `weight` in hairlines | every `_rule_row` and every vertical of a framed table |
+| `fill` | a tint, `tone` a fraction of the page's ink | `shade:` under column titles or under the amount owed |
+| `frame` | a hollow border, `weight` in hairlines | `border:` around a framed table |
+
+Marks are listed back to front — shading, then the lines on it, then the text
+over both.
+
+The nine layouts a page printer produces set `rules: marks`; the five thermal
+ones deliberately do not, and `shade:` is ignored without it, because a till
+roll can print a line of `-` and cannot print a grey box.
+
+An ASCII-ruled table is drawn with `+ - |` and never with U+2500 box-drawing:
+two of the fonts in `fonts/` have no box-drawing block at all, so a frame drawn
+with `─` would render as a row of empty rectangles in a fifth of the dataset —
+with the label still claiming a table.
 
 ---
 
