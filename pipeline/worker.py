@@ -168,10 +168,21 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
                 result = subprocess.run(command, cwd=cwd, env=environment,
                                         capture_output=True, text=True)
                 if result.returncode != 0:
-                    tail = (result.stderr or result.stdout).strip().splitlines()[-15:]
+                    # The exit code, always. A renderer that dies *after* writing
+                    # its image prints `[ok] ...` as its last line, so a message
+                    # made only of the tail reads as a success followed by the
+                    # word "failed" and says nothing about what went wrong.
+                    # Negative means a signal: -11 is a segfault in a native
+                    # library, which is a very different thing to debug from a
+                    # traceback.
+                    how = (f"killed by signal {-result.returncode}"
+                           if result.returncode < 0 else f"exit {result.returncode}")
+                    tail = "\n".join(
+                        (result.stderr.strip() + "\n" + result.stdout.strip())
+                        .strip().splitlines()[-15:])
                     raise ShardError(
-                        f"shard {shard['index']} {backend}/{run['layout']} failed:\n"
-                        + "\n".join(tail))
+                        f"shard {shard['index']} {backend}/{run['layout']} failed "
+                        f"({how}):\n" + tail)
 
                 produced = record.read(staging / "metadata.jsonl")
                 if len(produced) != run["count"]:
