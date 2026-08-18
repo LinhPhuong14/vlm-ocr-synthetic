@@ -1,0 +1,31 @@
+# One run, declared. `python pipeline/run.py` reads this file.
+#
+# Unknown keys are rejected rather than ignored: a config with `ouput:` in it
+# that runs anyway, on the default, is exactly the silent failure this
+# repository keeps getting bitten by.
+
+run:
+  out: data/run01
+  per_backend: 20
+  seed: 2026
+  workers: auto          # auto = CPUs - 1, so the machine stays usable
+
+backends: [synthdog, html, genalog]
+
+shard:
+  # Images per shard. Too small and subprocess and browser startup dominate;
+  # too large and a kill loses more work and the load spreads unevenly. At the
+  # measured cost of a page -- synthdog 1.6s, html 1.2s, genalog 0.7s -- 100 to
+  # 250 puts a shard in the one-to-five-minute band that resume is designed for.
+  size: 100
+
+# Re-weight a value for this run only, without editing rules/. Every entry must
+# name something that exists; one that does not stops the run rather than
+# quietly leaving the weights alone.
+overrides: {}
+
+# Read and carried, unused until W2. Declared now so pipeline.yaml does not
+# change shape between waves.
+quality:
+  drift_tolerance: 0.15
+  sample_for_ocr: 500
