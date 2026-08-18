@@ -1,0 +1,12 @@
+# Chân hoá đơn tiền nước.
+#
+# Gần như luôn là dòng nhắc tra cứu và tổng đài chăm sóc khách hàng, in nhỏ
+# dưới cùng trang — xem ảnh mẫu hoá đơn Nước sạch Hà Nội và EVN.
+
+(Cần kiểm tra, đối chiếu khi lập, giao nhận hoá đơn)
+Tra cứu hoá đơn điện tử tại cổng thông tin của đơn vị cấp nước
+Tổng đài chăm sóc khách hàng phục vụ 24/7
+(Khởi tạo từ phần mềm hoá đơn điện tử của đơn vị cung cấp dịch vụ)
+Quý khách vui lòng thanh toán trước ngày ghi trên hoá đơn
+Thanh toán qua ngân hàng, ví điện tử hoặc tại điểm thu gần nhất
+(Hoá đơn đã được ký số, không cần chữ ký và dấu của người bán)

@@ -15,6 +15,7 @@
 options:
   - id: thermal_dark
     weight: 3
+    excludes: [doc_invoice]
     tags: [thermal]
     params:
       font_dir: mono
@@ -32,6 +33,7 @@ options:
 
   - id: thermal_faint
     weight: 3
+    excludes: [doc_invoice]
     tags: [thermal, faint_ink]
     params:
       font_dir: mono
@@ -52,6 +54,7 @@ options:
 
   - id: thermal_narrow
     weight: 2
+    excludes: [doc_invoice]
     tags: [thermal, narrow_paper]
     params:
       font_dir: mono
@@ -69,6 +72,7 @@ options:
 
   - id: dot_matrix
     weight: 2
+    excludes: [doc_invoice]
     tags: [impact]
     params:
       font_dir: mono
@@ -87,6 +91,7 @@ options:
 
   - id: laser_sharp
     weight: 2
+    excludes: [doc_invoice]
     tags: [laser, sharp]
     params:
       font_dir: sans
@@ -101,3 +106,45 @@ options:
       paper: [office_a5, stone_top]
       paper_alpha: [0.02, 0.10]
       curl: 0.25
+
+  # Tờ A4. Máy in nhiệt không in được khổ này, và font tỷ lệ (`sans`) làm lệch
+  # khung kẻ: grid đo bằng KÝ TỰ, nên `|` ở cột 42 chỉ thẳng hàng với dấu `+`
+  # của đường kẻ khi mọi ký tự rộng bằng nhau. Vì thế cả hai giá trị dưới đây
+  # đều dùng font `mono`.
+  - id: laser_invoice
+    weight: 3
+    requires: [doc_invoice]
+    tags: [laser, sharp, a4]
+    params:
+      font_dir: mono
+      font_family: "Liberation Mono, Cousine, Noto Mono, monospace"
+      font_size: [20, 26]
+      line_spacing: [1.10, 1.35]
+      margin: [0.02, 0.05]
+      padding_top: [1.6, 2.6]
+      padding_bottom: [1.6, 2.6]
+      ink_gray: [0, 22]
+      bold: 0.30
+      paper: [office_a5, stone_top]
+      paper_alpha: [0.02, 0.10]
+      curl: 0.15
+
+  # Hoá đơn GTGT in kim trên giấy carbon nhiều liên — vẫn còn dùng tới giữa
+  # những năm 2010, và là lý do `invoice_ascii` tồn tại trong rules/content.
+  - id: impact_invoice
+    weight: 2
+    requires: [doc_invoice]
+    tags: [impact, a4]
+    params:
+      font_dir: mono
+      font_family: "Cousine, Liberation Mono, Noto Mono, monospace"
+      font_size: [19, 25]
+      line_spacing: [1.15, 1.45]
+      margin: [0.02, 0.06]
+      padding_top: [1.8, 2.8]
+      padding_bottom: [1.6, 2.8]
+      ink_gray: [25, 80]
+      bold: 0.18
+      paper: [recycled, office_a5]
+      paper_alpha: [0.10, 0.26]
+      curl: 0.30

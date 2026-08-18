@@ -34,3 +34,26 @@ options:
     weight: 2
     requires: [has_vat_lines]
     tags: [vat_rows]
+
+  # Bố cục tờ A4. `requires` khoá chúng vào đúng loại document: bảng chỉ số
+  # công tơ chỉ có nghĩa với hoá đơn có đo đếm, và tờ hoá đơn tiếng Anh chỉ
+  # dùng được với document đọc corpus tiếng Anh.
+  - id: invoice_vat_form
+    weight: 2
+    requires: [invoice_form]
+    tags: [ruled_table, dotted_fields, wide_paper]
+
+  - id: invoice_water
+    weight: 2
+    requires: [metered_water]
+    tags: [ruled_table, meter_rows, wide_paper]
+
+  - id: invoice_power
+    weight: 2
+    requires: [metered_power]
+    tags: [ruled_table, tier_rows, wide_paper]
+
+  - id: invoice_tax_en
+    weight: 2
+    requires: [lang_en]
+    tags: [wide_paper, no_frame]
