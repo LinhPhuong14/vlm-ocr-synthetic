@@ -86,8 +86,59 @@ def padding(recipe, grid, rng: random.Random | None = None) -> dict:
     return {"top": top, "bottom": bottom, "columns": columns, "tallest": tallest}
 
 
+# Cut sheets, as width / height. A layout that names one is printed on paper of
+# a fixed size; a layout that names none is on a continuous roll, where the page
+# is as long as the sale was and nothing else.
+#
+# The ratio is all the rule-base can honestly say. Turning it into pixels needs
+# a character advance and a line height, and those are the renderer's own --
+# measured from the font by the glyph backend, `ch` in the browser, an estimate
+# in WeasyPrint. Same division of labour as `Mark`: the rule-base gives the
+# geometry in its own units and each backend does the one multiplication.
+SHEETS = {
+    "a4": 210 / 297,
+    "a4_landscape": 297 / 210,
+    "a5": 148 / 210,
+    "a5_landscape": 210 / 148,
+    "letter": 8.5 / 11,
+}
+
+
+def sheet_ratio(grid) -> float | None:
+    """Width over height of the paper `grid` is printed on, or None for a roll.
+
+    None is not "unknown", it is a fact about the printer: a till roll has no
+    bottom edge until the cutter makes one, so a thermal page really is as tall
+    as its content. A cut sheet is the opposite -- its height is decided before
+    anything is printed, and the whitespace under a three-item invoice is part
+    of what the document looks like.
+    """
+    name = str(getattr(grid, "sheet", "") or "")
+    if not name:
+        return None
+    if name not in SHEETS:
+        raise ValueError(
+            f"unknown sheet {name!r}; have {', '.join(sorted(SHEETS))}")
+    return SHEETS[name]
+
+
+def sheet_height(grid, width_px: float, content_px: float) -> float:
+    """How tall to make the sheet, given how wide it came out.
+
+    Never shorter than the content: a page that overflowed its paper is a
+    layout that needs fixing, and cropping it would hide exactly that. So the
+    aspect is a floor, and `pipeline.preflight` is where the overflow is
+    reported rather than here.
+    """
+    ratio = sheet_ratio(grid)
+    if ratio is None:
+        return content_px
+    return max(content_px, width_px / ratio)
+
+
 def hex_colour(rgb) -> str:
     return "#%02x%02x%02x" % tuple(int(v) for v in rgb)
 
 
-__all__ = ["fade", "hex_colour", "inks", "padding"]
+__all__ = ["SHEETS", "fade", "hex_colour", "inks", "padding",
+           "sheet_height", "sheet_ratio"]

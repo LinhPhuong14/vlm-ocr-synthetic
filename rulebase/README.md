@@ -347,6 +347,32 @@ vat_summary:             # its own columns, resolved on their own
     - {key: rate,  title: "Thuế suất (VAT rate)", width: 14, align: center}
 ```
 
+### The paper, or no paper at all
+
+```yaml
+sheet: a4              # a4 | a4_landscape | a5 | a5_landscape | letter
+```
+
+Absent means a **continuous roll**, which is what the five thermal layouts are
+on: a till roll has no bottom edge until the cutter makes one, so the page
+really is as tall as the sale and nothing else.
+
+A layout that names a sheet is on **cut paper**, whose height was decided
+before anything was printed. A three-item invoice therefore fills a whole A4
+page with blank paper under the signatures — that whitespace is part of what
+the document looks like, not something to crop away. The nine invoice layouts
+all declare `sheet: a4`.
+
+The rule-base states the width-over-height ratio and no more; turning it into
+pixels needs a character advance and a line height, and those belong to each
+renderer — measured from the font by the glyph backend, `ch` in the browser, an
+estimate in WeasyPrint. Same division of labour as `Mark`.
+
+The sheet is a **floor, never a crop**: a page whose content outgrows its paper
+keeps its full height, so the overflow stays visible instead of being trimmed
+into looking correct. `make preflight` samples twelve seeds of every layout
+that declares a sheet and reports any that do not fit.
+
 ### Drawn rules, or typed ones
 
 ```yaml

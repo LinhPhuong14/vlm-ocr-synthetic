@@ -37,6 +37,7 @@ from typing import Any
 import yaml
 
 from .content import Receipt
+from .style import SHEETS
 from .text import apply_case, fit, quantity, wrap
 
 LAYOUTS_ROOT = Path(__file__).resolve().parent / "layouts"
@@ -111,6 +112,10 @@ class Grid:
     # Non-text primitives, empty for every layout that does not ask for them --
     # which is every thermal receipt, so their pixels are unchanged.
     marks: list[Mark] = field(default_factory=list)
+    # The cut sheet this page is printed on, "" for a continuous roll. Names a
+    # key of `style.SHEETS`; the renderers turn it into pixels with their own
+    # character metrics.
+    sheet: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         out = {
@@ -121,6 +126,8 @@ class Grid:
         }
         if self.marks:
             out["marks"] = [mark.to_dict() for mark in self.marks]
+        if self.sheet:
+            out["sheet"] = self.sheet
         return out
 
 
@@ -1235,6 +1242,14 @@ def build_grid(receipt: Receipt, layout_id: str, rng: random.Random | None = Non
     # `rules: marks` asks for drawn lines instead of rows of `+---+`. Absent --
     # which is every layout that existed before this -- keeps the characters,
     # so no committed image moves.
+    # `sheet:` names the paper. Checked here rather than at render time so a
+    # typo stops the run before an image exists, and checked against the same
+    # table all three renderers read.
+    sheet = str(spec.get("sheet", "") or "")
+    if sheet and sheet not in SHEETS:
+        raise KeyError(
+            f"{layout_id}: unknown sheet {sheet!r}; have {', '.join(sorted(SHEETS))}")
+
     builder = _Builder(ncols, ruled=str(spec.get("rules", "ascii")) == "marks")
     sections = spec.get("sections") or DEFAULT_SECTIONS
     unknown = [name for name in sections if name not in SECTIONS]
@@ -1259,6 +1274,7 @@ def build_grid(receipt: Receipt, layout_id: str, rng: random.Random | None = Non
         # The list is back to front, which is what a DOM is; the glyph backend
         # composites the other way round and reverses it on the way in.
         marks=sorted(builder.marks, key=lambda mark: mark.kind != "fill"),
+        sheet=sheet,
     )
 
 

@@ -37,7 +37,9 @@ for extra in (REPO_ROOT, REPO_ROOT / "tools"):
 
 import yaml  # noqa: E402
 
+import rulebase  # noqa: E402
 from rulebase import corpus  # noqa: E402
+from rulebase.layout import load_layout  # noqa: E402
 from rulebase.spec import RuleError, load_rules  # noqa: E402
 from rulebase.text import ascii_fold  # noqa: E402
 
@@ -166,6 +168,59 @@ def font_coverage(characters: set[str]) -> list[str]:
     return problems
 
 
+# A monospace advance as a fraction of the font size. The same estimate
+# `generators/genalog/render.py` has always used to size its page; good to a few
+# per cent for every font in `fonts/`, which is all this check needs -- it is
+# looking for a page half again too tall, not for a rounding error.
+ADVANCE = 0.62
+SHEET_SEEDS = 12
+
+
+def sheet_overflow(seeds: int = SHEET_SEEDS) -> list[str]:
+    """Layouts whose content does not fit the paper they declare.
+
+    A cut sheet's height is fixed before printing, so `style.sheet_height` only
+    ever grows the page: an invoice that needs more rows than A4 has gets a
+    taller-than-A4 sheet rather than a cropped one. That is the right failure --
+    nothing is hidden -- but it is still a failure, and it belongs here rather
+    than in a renderer, where it would be found one image at a time.
+
+    Drawn rather than reasoned about: how many rows a page needs depends on how
+    many items were sampled and how the name wrapped, so the only honest way to
+    ask is to build some.
+    """
+    problems: list[str] = []
+    for layout_id in rulebase.available_layouts():
+        # Read the declaration before building anything: five of the fourteen
+        # layouts are on a roll and have nothing to overflow, and building two
+        # dozen pages to discover that is most of this check's cost.
+        if not load_layout(layout_id).get("sheet"):
+            continue
+        worst = 0.0
+        worst_seed = 0
+        for seed in range(seeds):
+            recipe, _receipt, grid = rulebase.make(
+                seed=seed, force={"layout": layout_id})
+            ratio = rulebase.sheet_ratio(grid)
+            visual = recipe.visual.params
+            size_lo, size_hi = visual.get("font_size", [22, 30])
+            font_px = (size_lo + size_hi) / 2.0
+            spacing_lo, spacing_hi = visual.get("line_spacing", [1.05, 1.35])
+            line_px = font_px * (spacing_lo + spacing_hi) / 2.0
+            pad = rulebase.padding(recipe, grid)
+            width_px = (grid.ncols + pad["columns"] * 2) * font_px * ADVANCE
+            content = grid.nrows * line_px + (pad["top"] + pad["bottom"]) * line_px
+            over = content / (width_px / ratio)
+            if over > worst:
+                worst, worst_seed = over, seed
+        if worst > 1.0:
+            problems.append(
+                f"{layout_id}: content is {worst:.0%} of the {grid.sheet} sheet it "
+                f"declares (seed {worst_seed}), so the page grows past its paper"
+            )
+    return problems
+
+
 # ------------------------------------------------------------------- checks
 
 
@@ -190,6 +245,7 @@ def check() -> list[str]:
 
     problems += [f"corpus: {problem}" for problem in corpus.check()]
     problems += font_coverage(printable_text())
+    problems += sheet_overflow()
     return problems
 
 

@@ -94,7 +94,12 @@ class Receipt:
         pad_x = grid.ncols * char_w * margin
         pad_y = line_h * rng.uniform(0.6, 1.8)
         width = int(grid.ncols * char_w + pad_x * 2)
-        height = int(grid.nrows * line_h + pad_y * 2)
+        # Tờ rời thì chiều cao do KHỔ GIẤY quyết, không do nội dung: một hoá
+        # đơn ba dòng hàng vẫn chiếm trọn tờ A4 và phần dưới là giấy trắng.
+        # Giấy cuộn thì ngược lại — cắt đến đâu dài đến đó. `sheet_height` chỉ
+        # nới ra chứ không cắt bớt, nên nội dung tràn khổ vẫn hiện nguyên.
+        height = int(rulebase.sheet_height(
+            grid, width, grid.nrows * line_h + pad_y * 2))
 
         # Dòng tên cửa hàng và dòng tiêu đề được in bằng màu nhấn nếu có.
         accent_roles = {"store.name", "title"}
