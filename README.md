@@ -599,7 +599,8 @@ pipeline/               ONE RUN — declared, sharded, resumable, checked
 degradation/            DocCreator's models, ported — all backends call this
 textures/ fonts/ augmentations/   the assets a page is drawn with and onto
 data/                   generated datasets
-samples/                curated examples
+samples/                curated examples: degradation showcase, reference
+                        sheets, the ornament contact sheet
 tools/                  drivers: dataset, proof, boxes, monitor, baseline
 docs/                   notes that outlive any one generator, plus figures
 tasks.py                every task, and the only definition of them
@@ -846,6 +847,8 @@ the two must stay in step.
 | [`degradation/README.md`](degradation/README.md) | each model and the DocCreator file it came from |
 | [`data/README.md`](data/README.md) | the datasets and the label schema |
 | [`samples/README.md`](samples/README.md) | reading the degradation showcase |
+| [`samples/invoice-templates/README.md`](samples/invoice-templates/README.md) | the five reference sheets, and why they are not layouts |
+| [`docs/hoa-tiet-de-xuat.md`](docs/hoa-tiet-de-xuat.md) | ornaments surveyed and not built, with the reason each was left |
 | [`docs/python-versions.md`](docs/python-versions.md) | why the glyph renderer stops below Python 3.12, measured |
 | [`docs/windows.md`](docs/windows.md) | Windows setup: Python 3.11, GTK, Tesseract, proxies (Vietnamese) |
 | [`docs/huong-dan-va-giai-thich.md`](docs/huong-dan-va-giai-thich.md) | line-by-line walkthrough of all three renderers, with a Q&A (Vietnamese) |
