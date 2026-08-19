@@ -19,15 +19,25 @@ Three details decide whether the resume story is true rather than approximate:
   place, after the metadata is flushed and fsynced. If `DONE` could appear
   before the last line was on disk, resume would skip a shard that is short, and
   the run would quietly produce fewer images than it claims.
-* **Metadata is streamed.** Lines are appended as each render finishes rather
+* **Metadata is streamed.** Lines are appended as each record arrives rather
   than collected and written at the end, so a shard's memory does not grow with
-  its size and a kill leaves a prefix rather than nothing.
+  its size. The renderer streams its own file the same way, which matters now
+  that one invocation draws a whole shard rather than one layout.
 * **One log per worker.** Eight workers interleaved on one stdout is unreadable
   exactly when it matters.
 
 Since W2 a shard also checks what it drew -- `pipeline/invariants.py`, called
 once, here -- and leaves the numbers in `invariants.json` beside its metadata.
 An image whose label describes text no box printed does not reach `DONE`.
+
+Since W3b a shard is **one renderer process**, not one per layout. It used to
+be one per layout because that is the shape a command line has, and with five
+layouts nobody noticed; at fourteen it meant fourteen processes drawing one and
+a half images each, and start-up was 23% to 44% of a run -- the largest single
+cost in the generator, measured in `data/profile/README.md` and in none of the
+renderers. The runs go over as a job list (`worklist.py`) and come back in the
+same order, which is checked here against the layout each record says it drew
+rather than assumed.
 """
 
 from __future__ import annotations
@@ -48,6 +58,7 @@ for extra in (REPO_ROOT, REPO_ROOT / "tools"):
 
 from paths import VENVS, venv_python  # noqa: E402
 
+import worklist  # noqa: E402
 from pipeline import drift, invariants, record  # noqa: E402
 from pipeline.config import RULES_ENV  # noqa: E402
 from pipeline.plan import image_name  # noqa: E402
@@ -97,8 +108,21 @@ def mark_done(directory: Path, payload: dict) -> None:
     os.replace(temporary, directory / DONE)
 
 
-def renderer_command(backend: str, staging: Path, run: dict,
+def renderer_command(backend: str, staging: Path, jobs: Path,
                      clean: bool, force: list[str]) -> list[str]:
+    """One invocation for the whole shard, not one per layout.
+
+    A shard used to be rendered by one process per run, and a run is one
+    layout: twenty images over fourteen layouts meant fourteen processes of
+    about one and a half images each, each paying interpreter and backend
+    start-up in full. Measured in `data/profile/README.md`, that was 23% of a
+    synthdog run, 29% of an html one and 44% of a genalog one -- the largest
+    single cost in the generator, and in none of the renderers.
+
+    `--jobs` takes the whole list instead, so the cost is paid once. Nothing
+    about a page changes: see `worklist.py`, and the byte comparison in
+    `tests/test_worklist.py`.
+    """
     interpreter = venv_python(VENVS[backend])
     if not interpreter.exists():
         raise ShardError(
@@ -109,9 +133,7 @@ def renderer_command(backend: str, staging: Path, run: dict,
     command = [
         str(interpreter), str(script),
         "-o", str(staging),               # absolute: see `render_shard`
-        "-c", str(run["count"]),
-        "--seed", str(run["seed"]),
-        "--layout", run["layout"],
+        "--jobs", str(jobs),
     ]
     forced = list(force)
     if clean and not any(item.startswith("augmentation=") for item in forced):
@@ -155,43 +177,68 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
 
     written = 0
     metadata_path = directory / "metadata.jsonl"
+    staging = Path(tempfile.mkdtemp(prefix="shard-", dir=str(directory)))
     with open(metadata_path, "w", encoding="utf-8") as metadata:
-        for run in shard["runs"]:
-            staging = Path(tempfile.mkdtemp(prefix="shard-", dir=str(directory)))
-            try:
-                command = renderer_command(backend, staging, run,
-                                           bool(plan.get("clean")),
-                                           list(plan.get("force") or []))
-                if log:
-                    log.write(f"$ {' '.join(command)}\n")
-                    log.flush()
-                result = subprocess.run(command, cwd=cwd, env=environment,
-                                        capture_output=True, text=True)
-                if result.returncode != 0:
-                    # The exit code, always. A renderer that dies *after* writing
-                    # its image prints `[ok] ...` as its last line, so a message
-                    # made only of the tail reads as a success followed by the
-                    # word "failed" and says nothing about what went wrong.
-                    # Negative means a signal: -11 is a segfault in a native
-                    # library, which is a very different thing to debug from a
-                    # traceback.
-                    how = (f"killed by signal {-result.returncode}"
-                           if result.returncode < 0 else f"exit {result.returncode}")
-                    tail = "\n".join(
-                        (result.stderr.strip() + "\n" + result.stdout.strip())
-                        .strip().splitlines()[-15:])
-                    raise ShardError(
-                        f"shard {shard['index']} {backend}/{run['layout']} failed "
-                        f"({how}):\n" + tail)
+        try:
+            # One renderer process for the whole shard. The runs are handed
+            # over as a job list in the order the plan put them, and the
+            # renderer draws them in that order, so the records come back in
+            # it too -- checked below rather than trusted.
+            jobs = [worklist.Job(layout=run["layout"], seed=run["seed"],
+                                 count=run["count"]) for run in shard["runs"]]
+            jobs_path = worklist.write(staging / "jobs.json", jobs)
+            command = renderer_command(backend, staging, jobs_path,
+                                       bool(plan.get("clean")),
+                                       list(plan.get("force") or []))
+            if log:
+                log.write(f"$ {' '.join(command)}\n")
+                log.write(f"  {len(jobs)} job(s), {worklist.total(jobs)} image(s), "
+                          f"{worklist.total(jobs) / len(jobs):.2f} per process\n")
+                log.flush()
+            result = subprocess.run(command, cwd=cwd, env=environment,
+                                    capture_output=True, text=True)
+            if result.returncode != 0:
+                # The exit code, always. A renderer that dies *after* writing
+                # its image prints `[ok] ...` as its last line, so a message
+                # made only of the tail reads as a success followed by the
+                # word "failed" and says nothing about what went wrong.
+                # Negative means a signal: -11 is a segfault in a native
+                # library, which is a very different thing to debug from a
+                # traceback.
+                how = (f"killed by signal {-result.returncode}"
+                       if result.returncode < 0 else f"exit {result.returncode}")
+                tail = "\n".join(
+                    (result.stderr.strip() + "\n" + result.stdout.strip())
+                    .strip().splitlines()[-15:])
+                raise ShardError(
+                    f"shard {shard['index']} {backend} failed ({how}):\n" + tail)
 
-                produced = record.read(staging / "metadata.jsonl")
-                if len(produced) != run["count"]:
-                    raise ShardError(
-                        f"shard {shard['index']} {backend}/{run['layout']}: asked for "
-                        f"{run['count']} images, got {len(produced)}")
+            produced = record.read(staging / "metadata.jsonl")
+            expected_total = sum(run["count"] for run in shard["runs"])
+            if len(produced) != expected_total:
+                raise ShardError(
+                    f"shard {shard['index']} {backend}: asked for "
+                    f"{expected_total} images, got {len(produced)}")
 
-                for offset, item in enumerate(produced):
+            cursor = 0
+            for run in shard["runs"]:
+                for offset in range(run["count"]):
+                    item = produced[cursor]
+                    cursor += 1
                     target = image_name(backend, run["first_index"] + offset)
+                    # The renderer's own record says which layout it drew.
+                    # Checked against the job it was meant to be, because
+                    # walking one list against another by position is exactly
+                    # the arrangement where an off-by-one mislabels every image
+                    # after it and nothing downstream notices.
+                    drawn = ((item.get("recipe") or {}).get("attributes", {})
+                             .get("layout", {}).get("id"))
+                    if drawn and drawn != run["layout"]:
+                        raise ShardError(
+                            f"shard {shard['index']} {backend}: record {cursor - 1} "
+                            f"is {drawn!r} where the plan asked for "
+                            f"{run['layout']!r}; the renderer returned its pages "
+                            f"in a different order from the job list")
                     shutil.move(str(staging / item["file_name"]), str(directory / target))
                     item["file_name"] = target
                     item["framework"] = backend
@@ -206,8 +253,8 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
                     json.dump(item, metadata, ensure_ascii=False)
                     metadata.write("\n")
                     written += 1
-            finally:
-                shutil.rmtree(staging, ignore_errors=True)
+        finally:
+            shutil.rmtree(staging, ignore_errors=True)
         # Flushed and fsynced before DONE can exist: a DONE in front of an
         # unwritten last line is a shard that resume would skip while short.
         metadata.flush()
@@ -240,10 +287,17 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
         "shard": shard["index"],
         "backend": backend,
         "images": written,
+        # How many renderer processes this shard cost, and how much work each
+        # got. One, since W3b -- recorded rather than left to be inferred from
+        # the code, because that ratio is the whole point of the change and a
+        # reader a year from now should be able to see it went from 1.43 to a
+        # shard without re-deriving it.
+        "processes": 1,
+        "images_per_process": written,
         "seeds": [[run["seed"], run["seed"] + run["count"] - 1] for run in shard["runs"]],
     })
     return {"shard": shard["index"], "backend": backend, "images": written,
-            "skipped": False}
+            "processes": 1, "images_per_process": written, "skipped": False}
 
 
 def main() -> int:

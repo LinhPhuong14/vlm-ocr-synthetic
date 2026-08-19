@@ -386,13 +386,14 @@ quality:  {drift_tolerance: 0.15, sample_for_ocr: 500}
 | --- | --- | --- |
 | **Unknown keys raise** | a config with `ouput:` in it does not silently run on the default | [`pipeline/config.py`](pipeline/config.py) |
 | **Shards are ranges, not layouts** | a worker can hold one browser for a whole shard | [`pipeline/plan.py`](pipeline/plan.py) |
+| **One renderer process per shard** | the renderer takes a job list, not one layout, so interpreter and backend start-up are paid once instead of once per layout — 1.43 images per process became 20, and the same plan went from 140s to 98s | [`worklist.py`](worklist.py), [`pipeline/worker.py`](pipeline/worker.py) |
 | **Resume is all-or-nothing** | `DONE` is written last and atomically; a shard without one is deleted and redone, never appended to — appending duplicates records, and duplicates in a training set are invisible | [`pipeline/worker.py`](pipeline/worker.py) |
 | **Processes, never threads** | Playwright's sync API is not thread-safe and synthtiger seeds numpy's global RNG | [`pipeline/run.py`](pipeline/run.py) |
 | **The layout list is explicit** | `run.layouts` empty means every file in `rulebase/layouts/` — what a dataset wants. A *fixed comparison* names them, because the quota walks the list in order and a run that took the directory draws a different set the day someone adds a layout | `pipeline.yaml` |
 | **`pairing` is declared** | `paired` (default) gives every backend the same documents, so a difference between renderers is a difference in drawing; `independent` gives three times the distinct pages and no basis for comparison | `run.pairing` |
 | **Per-image invariants** | money arithmetic, quads inside the frame, no missing-glyph box, every label value actually printed | [`pipeline/invariants.py`](pipeline/invariants.py) |
 | **Drift** | whether the *mix* still matches the rules, measured per shard above the scatter a sample that size has anyway | [`pipeline/drift.py`](pipeline/drift.py) |
-| **A golden fingerprint** | sha256 of every image and every metadata line, so the parallel path is held to what the sequential one produced | [`tools/baseline.py`](tools/baseline.py), `make baseline-verify` |
+| **A golden fingerprint** | sha256 of every image and every metadata line, so the parallel path is held to what the sequential one produced. Replacing it needs `make baseline-write REASON="..."`, and the reason is kept in the file — a comparison point that changed without saying why is one nobody can argue with later | [`tools/baseline.py`](tools/baseline.py), `make baseline-verify` |
 | **No durations in the manifest** | one worker and eight must produce byte-identical output; timings go to `timings.json` | `manifest.json` |
 
 Watch a run while it is still going — `manifest.json` is written once, at the
@@ -429,9 +430,10 @@ Three things it found that reading the code would not have:
 * **`gradient_domain` is not the bottleneck** it had been assumed to be: 4% of
   all the ageing time, which is about 1% of a run.
 * **The largest single lever is the shape of the plan, not any renderer.** A
-  shard starts one renderer process per *layout*, so twenty images over
-  fourteen layouts start fourteen processes and pay start-up fourteen times —
-  between 23% and 44% of the run depending on the backend.
+  shard used to start one renderer process per *layout*, so twenty images over
+  fourteen layouts started fourteen processes and paid start-up fourteen times
+  — between 23% and 44% of the run depending on the backend. Fixed in W3b; the
+  cost model predicted the saving to within 7.3% before the change was made.
 
 The instrument is off unless asked for: `profiling.stage()` returns a shared
 no-op object, `make baseline-verify` is green with it in place, and one worker
@@ -687,6 +689,7 @@ generators/genalog/.venv/bin/python generators/genalog/render.py \
 | `--template NAME` | html backend: lay the page out with CSS instead of the grid ([`a4.py`](generators/html/a4.py)). One theme so far, `brand` |
 | `--scale` · `--dpi` | html device scale factor · genalog rasterisation dpi |
 | `--profile JSON` | time every stage and write the breakdown there. Off by default, and off costs nothing ([`profiling.py`](profiling.py)) |
+| `--jobs JSON` | draw several layouts in one process — a list of `{layout, seed, count, force}`. Overrides the three flags above it; see [`worklist.py`](worklist.py) |
 
 A pinned value must still satisfy its own `requires`/`excludes`; if it cannot,
 the sampler names the tags at fault rather than drawing something else.
@@ -795,6 +798,8 @@ use the document sets for anything about text.
 | `unchecked: fontTools is not installed` from preflight | glyph coverage could not be verified. `pip install fonttools` — "I could not look" is not "it is fine". |
 | a font prints empty boxes | missing Vietnamese glyphs. `generators/synthdog/.venv/bin/python generators/synthdog/tools/check_fonts.py fonts/mono`. |
 | a shard is redone instead of resumed | it has no `DONE` file, so it was incomplete. That is the design: appending to a half-written `metadata.jsonl` duplicates records. |
+| `make baseline-write` refuses to run | it needs `REASON="..."`. A recapture is a claim that the old pixels were wrong and the new ones are right; the reason is kept in the golden file. |
+| `CÙNG KẾ HOẠCH, KHÁC PIXEL` from `baseline-verify` | the plan's inputs did not move but the images did — a regression until shown otherwise. Diff before reaching for `baseline-write`. |
 
 ## Limitations
 

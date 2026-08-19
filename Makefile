@@ -51,8 +51,8 @@ tables:          ## Table-structure images, from the html backend (TABLES=60)
 	$(TASKS) tables -o data/tables60 -n $(TABLES)
 run:             ## Run pipeline.yaml: preflight, shards in parallel, assemble
 	$(TASKS) run
-baseline-write:  ## Capture the golden fingerprint of the generator
-	$(TASKS) baseline-write
+baseline-write:  ## Capture the golden fingerprint (needs REASON="...")
+	$(TASKS) baseline-write --reason "$(REASON)"
 baseline-verify: ## Regenerate the fixed plans and compare to the golden file
 	$(TASKS) baseline-verify
 proof:           ## Run Tesseract over $(DATASET) and score it against the labels

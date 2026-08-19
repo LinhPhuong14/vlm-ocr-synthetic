@@ -48,160 +48,161 @@
     "serial": "one renderer process at a time; no contention for the CPU"
   },
   "fixed_per_process": {
-    "genalog": 0.899628,
-    "html": 0.743395,
-    "synthdog": 1.263503
+    "genalog": 0.93263,
+    "html": 0.85843,
+    "synthdog": 1.192082
   },
   "held_out": {
     "backend": "html",
-    "error": -0.0695,
+    "error": -0.122,
     "images": 5,
-    "measured": 6.76519,
-    "predicted": 7.23528,
+    "measured": 6.441707,
+    "predicted": 7.22756,
     "seed": 140000
   },
   "per_augmentation": {
     "crumpled": {
-      "genalog": 0.917628,
-      "html": 1.176578,
-      "synthdog": 0.601052
+      "genalog": 1.12836,
+      "html": 1.185298,
+      "synthdog": 0.770346
     },
     "ghost_text": {
-      "genalog": 0.287343,
-      "html": 0.34111,
-      "synthdog": 0.268809
+      "genalog": 0.309121,
+      "html": 0.333644,
+      "synthdog": 0.275558
     },
     "heavy": {
-      "genalog": 0.43242,
-      "html": 0.461288,
-      "synthdog": 0.548986
+      "genalog": 0.614942,
+      "html": 0.574826,
+      "synthdog": 0.712507
     },
     "light": {
-      "genalog": 0.281176,
-      "html": 0.315531,
-      "synthdog": 0.275059
+      "genalog": 0.35345,
+      "html": 0.480087,
+      "synthdog": 0.273931
     },
     "medium": {
-      "genalog": 0.548019,
-      "html": 0.73985,
-      "synthdog": 0.467414
+      "genalog": 0.724916,
+      "html": 0.805458,
+      "synthdog": 0.589124
     },
     "photocopy": {
-      "genalog": 0.653929,
-      "html": 0.616016,
-      "synthdog": 0.361407
+      "genalog": 0.59763,
+      "html": 0.810922,
+      "synthdog": 0.495107
     },
     "pristine": {
-      "genalog": 3.6e-05,
-      "html": 5.8e-05,
-      "synthdog": 5.6e-05
+      "genalog": 3.5e-05,
+      "html": 3.9e-05,
+      "synthdog": 6.6e-05
     },
     "punched": {
-      "genalog": 0.228074,
-      "html": 0.348569,
-      "synthdog": 0.187787
+      "genalog": 0.272218,
+      "html": 0.234875,
+      "synthdog": 0.189795
     },
     "real_paper": {
-      "genalog": 0.428385,
-      "html": 0.629065,
-      "synthdog": 0.37884
+      "genalog": 0.495222,
+      "html": 0.638226,
+      "synthdog": 0.205929
     },
     "stains": {
-      "genalog": 0.348272,
-      "html": 0.359187,
-      "synthdog": 0.258588
+      "genalog": 0.36336,
+      "html": 0.403533,
+      "synthdog": 0.287729
     },
     "torn_edges": {
-      "genalog": 0.322605,
-      "html": 0.3357,
-      "synthdog": 0.343093
+      "genalog": 0.411751,
+      "html": 0.358605,
+      "synthdog": 0.291983
     }
   },
   "per_degradation_model": {
     "bleed_through": {
       "calls": 6,
-      "per_call": 0.13964,
-      "seconds": 0.837842
+      "per_call": 0.255304,
+      "seconds": 1.531824
     },
     "blur": {
       "calls": 6,
-      "per_call": 0.00146,
-      "seconds": 0.008762
+      "per_call": 0.001796,
+      "seconds": 0.010774
     },
     "blur_zones": {
       "calls": 54,
-      "per_call": 0.122323,
-      "seconds": 6.605416
+      "per_call": 0.124032,
+      "seconds": 6.697724
     },
     "gradient_domain": {
       "calls": 15,
-      "per_call": 0.11024,
-      "seconds": 1.653598
+      "per_call": 0.110138,
+      "seconds": 1.652071
     },
     "holes": {
       "calls": 30,
-      "per_call": 0.003742,
-      "seconds": 0.112274
+      "per_call": 0.00404,
+      "seconds": 0.121187
     },
     "ink_degradation": {
       "calls": 75,
-      "per_call": 0.116784,
-      "seconds": 8.758798
+      "per_call": 0.123615,
+      "seconds": 9.271106
     },
     "paper_overlay": {
       "calls": 33,
-      "per_call": 0.33553,
-      "seconds": 11.072499
+      "per_call": 0.368793,
+      "seconds": 12.170163
     },
     "paper_texture": {
       "calls": 84,
-      "per_call": 0.112772,
-      "seconds": 9.472825
+      "per_call": 0.119367,
+      "seconds": 10.026859
     },
     "phantom_character": {
       "calls": 18,
-      "per_call": 0.013706,
-      "seconds": 0.246703
+      "per_call": 0.014236,
+      "seconds": 0.256242
     },
     "shadow_binding": {
       "calls": 30,
-      "per_call": 0.021293,
-      "seconds": 0.638792
+      "per_call": 0.024038,
+      "seconds": 0.721144
     }
   },
   "per_image": {
     "genalog": {
-      "annotation": 0.00025,
-      "content": 0.000444,
-      "degradation": 0.491024,
-      "export": 0.008344,
-      "geometry": 0.000614,
-      "layout": 0.004845,
-      "render": 0.209633,
-      "sampling": 0.077451,
-      "validation": 0.000288
+      "annotation": 0.000363,
+      "content": 0.000483,
+      "degradation": 0.495089,
+      "export": 0.008504,
+      "geometry": 0.000606,
+      "layout": 0.004922,
+      "render": 0.217384,
+      "sampling": 0.078424,
+      "validation": 0.000322
     },
     "html": {
-      "annotation": 0.000249,
-      "content": 0.000453,
-      "degradation": 0.571946,
-      "export": 0.008466,
-      "geometry": 0.028648,
-      "layout": 0.004774,
-      "render": 0.611804,
-      "sampling": 0.071745,
-      "validation": 0.000292
+      "annotation": 0.000217,
+      "content": 0.000458,
+      "degradation": 0.527694,
+      "export": 0.008433,
+      "geometry": 0.021608,
+      "layout": 0.004893,
+      "render": 0.639463,
+      "sampling": 0.070769,
+      "validation": 0.000291
     },
     "synthdog": {
-      "annotation": 0.000386,
-      "content": 0.000472,
-      "degradation": 0.499397,
-      "export": 0.010346,
-      "geometry": 1.694968,
-      "layout": 0.005003,
-      "render": 0.629684,
-      "sampling": 0.075278,
-      "validation": 0.000297
+      "annotation": 0.000444,
+      "content": 0.000477,
+      "degradation": 0.489583,
+      "export": 0.013469,
+      "geometry": 0.000379,
+      "layout": 0.004906,
+      "render": 0.611819,
+      "sampling": 0.070149,
+      "scene": 1.271559,
+      "validation": 0.000299
     }
   },
   "version": 1
