@@ -208,6 +208,12 @@ def proof(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "ocr_proof.py", args.dataset])
 
 
+@task("profile", "time every stage of every renderer and write a cost model")
+def profile(args) -> None:
+    run([first_available_python(), REPO_ROOT / "tools" / "profile_pipeline.py",
+         "-c", str(args.count), "-o", args.out])
+
+
 @task("check-boxes", "verify every renderer's boxes still land on its text")
 def check_boxes(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "check_boxes.py", args.dataset])

@@ -17,6 +17,8 @@ from typing import Any
 
 import numpy as np
 
+import profiling
+
 from . import apply_one
 
 
@@ -71,7 +73,10 @@ def apply_recipe(image: np.ndarray, recipe, seed: int | None = None) -> np.ndarr
                 neutral = 0.2
                 low, high = alpha_range
                 options["alpha"] = float(options["alpha"]) * rng.uniform(low, high) / neutral
-        out = apply_one(out, name, options, rng)
+        # Timed one model at a time: the chain's cost is not evenly spread, and
+        # which model dominates is exactly the thing a suspect list gets wrong.
+        with profiling.stage(name):
+            out = apply_one(out, name, options, rng)
     return out
 
 

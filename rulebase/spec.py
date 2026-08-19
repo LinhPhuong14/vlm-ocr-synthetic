@@ -34,6 +34,8 @@ from typing import Any, Iterable, Sequence
 
 import yaml
 
+import profiling
+
 # A run may need rules of its own -- `pipeline.yaml` can re-weight a value for
 # one job without editing the shipped files. The renderers are separate
 # processes, so the only way to hand them a variation is a directory on disk and
@@ -317,7 +319,11 @@ def load_rules(root: Path | str = RULES_ROOT) -> dict[str, list[Option]]:
     Files are read and checked before the manifest is consulted, so a broken
     YAML is reported as a broken YAML rather than as a manifest mismatch.
     """
-    root = Path(root)
+    with profiling.stage("rules"):
+        return _load_rules(Path(root))
+
+
+def _load_rules(root: Path) -> dict[str, list[Option]]:
     files = sorted(path for path in root.glob("*.yaml") if not path.name.startswith("_"))
     if not files:
         raise RuleError(f"missing rules files in {root}")

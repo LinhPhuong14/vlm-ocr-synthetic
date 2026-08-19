@@ -32,9 +32,20 @@ backends: [synthdog, html, genalog]
 
 shard:
   # Images per shard. Too small and subprocess and browser startup dominate;
-  # too large and a kill loses more work and the load spreads unevenly. At the
-  # measured cost of a page -- synthdog 1.6s, html 1.2s, genalog 0.7s -- 100 to
-  # 250 puts a shard in the one-to-five-minute band that resume is designed for.
+  # too large and a kill loses more work and the load spreads unevenly.
+  #
+  # At the cost of a page measured by `tools/profile_pipeline.py` -- synthdog
+  # 3.1s, html 1.4s, genalog 0.9s, under the conditions that file records --
+  # 100 to 250 puts a shard in the two-to-ten-minute band resume is designed
+  # for. The numbers here were re-measured from scratch rather than carried
+  # forward: the previous ones predated the `sample_recipe` fix, and comparing
+  # a new measurement with an old one taken over a different layout and ageing
+  # mix credits whatever changed in between with the difference.
+  #
+  # The fixed cost a shard pays once -- interpreter plus backend start-up -- is
+  # 1.3s for synthdog, 0.7s for html (most of it launching Chromium) and 1.0s
+  # for genalog, so it is under 2% of a 100-image shard and over 30% of a
+  # 5-image one.
   size: 100
 
 # Re-weight a value for this run only, without editing rules/. Every entry must

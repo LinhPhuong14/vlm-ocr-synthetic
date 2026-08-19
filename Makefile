@@ -12,6 +12,8 @@ TASKS    = $(PYTHON) tasks.py
 DATASET ?= data/dataset60
 N       ?= 20
 TABLES  ?= 60
+PROFILE ?= data/profile
+PROFILE_N ?= 8
 LAYOUT  ?=
 
 .DEFAULT_GOAL := help
@@ -55,6 +57,8 @@ baseline-verify: ## Regenerate the fixed plans and compare to the golden file
 	$(TASKS) baseline-verify
 proof:           ## Run Tesseract over $(DATASET) and score it against the labels
 	$(TASKS) proof --dataset $(DATASET)
+profile:         ## Time every stage of every renderer into $(PROFILE)
+	$(TASKS) profile --count $(PROFILE_N) --out $(PROFILE)
 check-boxes:     ## Verify every renderer's boxes still land on its text
 	$(TASKS) check-boxes --dataset $(DATASET)
 showcase:        ## One before/after image per degradation into samples/degradation/

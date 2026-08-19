@@ -20,6 +20,8 @@ from __future__ import annotations
 
 import random
 
+import profiling
+
 from .content import Item, Receipt, Store
 from .content import build as build_receipt
 from .corpus import CORPUS_ROOT
@@ -102,8 +104,11 @@ def make(seed: int | None = None, force: dict[str, str] | None = None, attempts:
     `make` many-to-one: whole runs of consecutive seeds returned one recipe, and
     half of a "twenty image" dataset was duplicates. See `sample_recipe`.
     """
-    recipe = sample_recipe(seed=seed, force=force, attempts=attempts)
+    with profiling.stage("sampling"):
+        recipe = sample_recipe(seed=seed, force=force, attempts=attempts)
     rng = random.Random(recipe.seed)
-    receipt = build_receipt(recipe, rng)
-    grid = build_grid(receipt, recipe.layout.id, rng)
+    with profiling.stage("content"):
+        receipt = build_receipt(recipe, rng)
+    with profiling.stage("layout"):
+        grid = build_grid(receipt, recipe.layout.id, rng)
     return recipe, receipt, grid

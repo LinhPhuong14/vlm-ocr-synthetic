@@ -403,6 +403,40 @@ make monitor                       # the whole rule space, no run needed
 make monitor RUN=data/run01        # a run in progress, read from its shards
 ```
 
+### Where the time goes
+
+```bash
+make profile                       # every stage, every renderer -> data/profile/
+```
+
+Times each of the nine stages — sampling, content, layout, render, geometry,
+degradation, annotation, validation, export — separately per renderer and per
+ageing model, and writes a machine-readable cost model beside the table so a
+later run can be *predicted* and the prediction compared with the clock. The
+current numbers and the conditions they were taken under are in
+[`data/profile/README.md`](data/profile/README.md); the short version:
+
+| | synthdog | html | genalog |
+| --- | ---: | ---: | ---: |
+| seconds an image | 3.1 | 1.4 | 0.9 |
+| dearest stage | `geometry` 55% | `render` 44% | `degradation` 54% |
+
+Three things it found that reading the code would not have:
+
+* **The dearest stage of the glyph renderer is not drawing.** Curl, canvas,
+  background and camera effects are 55% of a synthdog image — more than the
+  render and the ageing together.
+* **`gradient_domain` is not the bottleneck** it had been assumed to be: 4% of
+  all the ageing time, which is about 1% of a run.
+* **The largest single lever is the shape of the plan, not any renderer.** A
+  shard starts one renderer process per *layout*, so twenty images over
+  fourteen layouts start fourteen processes and pay start-up fourteen times —
+  between 23% and 44% of the run depending on the backend.
+
+The instrument is off unless asked for: `profiling.stage()` returns a shared
+no-op object, `make baseline-verify` is green with it in place, and one worker
+and eight still produce byte-identical output.
+
 ---
 
 ## What comes out
@@ -623,7 +657,7 @@ are equivalent — `make dataset N=5 DATASET=/tmp/x` is
 | **setup** | `setup`, `setup-synthdog`, `setup-html`, `setup-genalog`, `textures` |
 | **generate** | `dataset`, `dataset-clean`, `run`, `tables`, `receipts`, `preview`, `preview-grid` |
 | **check** | `preflight`, `check-rules`, `check-corpus`, `check-boxes`, `proof`, `baseline-write`, `baseline-verify` |
-| **inspect** | `distribution`, `monitor`, `list-degradations`, `showcase` |
+| **inspect** | `distribution`, `monitor`, `list-degradations`, `showcase`, `profile` |
 | **quality** | `check`, `lint`, `format`, `clean` |
 
 ## Usage
@@ -652,6 +686,7 @@ generators/genalog/.venv/bin/python generators/genalog/render.py \
 | `--clean` | glyph backend: no curl, no perspective, no camera |
 | `--template NAME` | html backend: lay the page out with CSS instead of the grid ([`a4.py`](generators/html/a4.py)). One theme so far, `brand` |
 | `--scale` · `--dpi` | html device scale factor · genalog rasterisation dpi |
+| `--profile JSON` | time every stage and write the breakdown there. Off by default, and off costs nothing ([`profiling.py`](profiling.py)) |
 
 A pinned value must still satisfy its own `requires`/`excludes`; if it cannot,
 the sampler names the tags at fault rather than drawing something else.

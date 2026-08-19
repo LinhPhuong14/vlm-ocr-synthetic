@@ -35,6 +35,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+import profiling  # noqa: E402
 from degradation.pipeline import apply_recipe  # noqa: E402
 
 
@@ -99,87 +100,95 @@ class SynthVNReceipt(templates.Template):
         width, height = out["size"]
 
         # ----- 1. chữ trên tờ giấy trắng -----
-        sheet = layers.RectLayer((width, height), (255, 255, 255, 255))
-        # Marks go between the text and the paper: a table rule is drawn by the
-        # printer and the text sits in the cell it makes, so a line that crossed
-        # a word would be wrong. The distortion is applied to all of them
-        # together, or the rules would not follow the text when the sheet warps.
-        self.doc_effect.apply([*text_layers, *mark_layers, sheet])
+        with profiling.stage("render"):
+            sheet = layers.RectLayer((width, height), (255, 255, 255, 255))
+            # Marks go between the text and the paper: a table rule is drawn by
+            # the printer and the text sits in the cell it makes, so a line that
+            # crossed a word would be wrong. The distortion is applied to all of
+            # them together, or the rules would not follow the text when the
+            # sheet warps.
+            self.doc_effect.apply([*text_layers, *mark_layers, sheet])
 
-        doc_group = layers.Group([*text_layers, *mark_layers, sheet])
-        origin = doc_group.topleft
-        quads = np.array([layer.quad for layer in text_layers], dtype=np.float32) - origin
-        doc_image = doc_group.output()
+            doc_group = layers.Group([*text_layers, *mark_layers, sheet])
+            origin = doc_group.topleft
+            quads = (np.array([layer.quad for layer in text_layers], dtype=np.float32)
+                     - origin)
+            doc_image = doc_group.output()
+
+            rgb = doc_image[..., :3].astype(np.uint8)
+            alpha = doc_image[..., 3:] if doc_image.shape[2] == 4 else None
 
         # ----- 2. chuỗi làm cũ của recipe (giấy thật nằm trong đây) -----
-        rgb = doc_image[..., :3].astype(np.uint8)
-        alpha = doc_image[..., 3:] if doc_image.shape[2] == 4 else None
         # degradation làm việc trên BGR của OpenCV
-        aged = apply_recipe(rgb[..., ::-1], recipe, seed=seed)[..., ::-1]
-        doc_image = (
-            np.concatenate([aged.astype(np.float32), alpha], axis=2)
-            if alpha is not None
-            else aged.astype(np.float32)
-        )
+        with profiling.stage("degradation"):
+            aged = apply_recipe(rgb[..., ::-1], recipe, seed=seed)[..., ::-1]
+        with profiling.stage("render"):
+            doc_image = (
+                np.concatenate([aged.astype(np.float32), alpha], axis=2)
+                if alpha is not None
+                else aged.astype(np.float32)
+            )
 
         # ----- 3. cong giấy (ảnh được pad, quad đã cộng offset pad) -----
         # Biên độ lấy theo `visual.curl` của recipe: giấy nhiệt mỏng cong
         # nhiều, hoá đơn in laser trên giấy A5 gần như phẳng. Không nhân hệ số
         # này thì tờ nào cũng cong như nhau, mà cong quá thì cột tiền lệch hẳn
         # một dòng so với cột tên hàng.
-        curl_meta = self.curl.sample()
-        strength = float(recipe.get("visual", "curl", 1.0))
-        for key in ("shift", "squeeze", "wave"):
-            curl_meta[key] *= strength
-        doc_image, quads = self.curl.apply(doc_image, quads, meta=curl_meta)
-        doc_layer = layers.Layer(doc_image)
-        dw, dh = doc_layer.size
+        with profiling.stage("geometry"):
+            curl_meta = self.curl.sample()
+            strength = float(recipe.get("visual", "curl", 1.0))
+            for key in ("shift", "squeeze", "wave"):
+                curl_meta[key] *= strength
+            doc_image, quads = self.curl.apply(doc_image, quads, meta=curl_meta)
+            doc_layer = layers.Layer(doc_image)
+            dw, dh = doc_layer.size
 
-        # ----- 4. khung ảnh, nền, hiệu ứng chụp -----
-        fill = np.random.uniform(*self.canvas_fill)
-        aspect = np.random.uniform(*self.canvas_aspect)
-        canvas_h = int(dh / fill)
-        canvas_w = int(max(dw / fill, canvas_h / aspect))
-        canvas = (canvas_w, canvas_h)
+            # ----- 4. khung ảnh, nền, hiệu ứng chụp -----
+            fill = np.random.uniform(*self.canvas_fill)
+            aspect = np.random.uniform(*self.canvas_aspect)
+            canvas_h = int(dh / fill)
+            canvas_w = int(max(dw / fill, canvas_h / aspect))
+            canvas = (canvas_w, canvas_h)
 
-        bg_layer = self.background.generate(canvas)
+            bg_layer = self.background.generate(canvas)
 
-        left = np.random.randint(max(canvas_w - int(dw), 0) + 1)
-        top = np.random.randint(max(canvas_h - int(dh), 0) + 1)
-        doc_layer.left, doc_layer.top = left, top
-        quads = quads + (left, top)
+            left = np.random.randint(max(canvas_w - int(dw), 0) + 1)
+            top = np.random.randint(max(canvas_h - int(dh), 0) + 1)
+            doc_layer.left, doc_layer.top = left, top
+            quads = quads + (left, top)
 
-        merged = layers.Group([doc_layer, bg_layer]).merge()
-        self.effect.apply([merged])
-        image = merged.output(bbox=[0, 0, *canvas])
+            merged = layers.Group([doc_layer, bg_layer]).merge()
+            self.effect.apply([merged])
+            image = merged.output(bbox=[0, 0, *canvas])
 
-        # thu nhỏ về kích thước mục tiêu (luôn là downscale -> chữ vẫn nét)
-        short = np.random.randint(self.short_size[0], self.short_size[1] + 1)
-        scale = short / min(canvas)
-        if scale < 1.0:
-            new_size = (max(int(canvas_w * scale), 1), max(int(canvas_h * scale), 1))
-            image = np.array(
-                Image.fromarray(image[..., :3].astype(np.uint8)).resize(new_size, Image.LANCZOS),
-                dtype=np.float32,
-            )
-            quads = quads * scale
-        else:
-            image = image[..., :3]
+            # thu nhỏ về kích thước mục tiêu (luôn là downscale -> chữ vẫn nét)
+            short = np.random.randint(self.short_size[0], self.short_size[1] + 1)
+            scale = short / min(canvas)
+            if scale < 1.0:
+                new_size = (max(int(canvas_w * scale), 1), max(int(canvas_h * scale), 1))
+                image = np.array(
+                    Image.fromarray(image[..., :3].astype(np.uint8)).resize(new_size, Image.LANCZOS),
+                    dtype=np.float32,
+                )
+                quads = quads * scale
+            else:
+                image = image[..., :3]
 
-        boxes = [
-            {"kind": f["kind"], "text": f["text"], "quad": np.round(q, 1).tolist()}
-            for f, q in zip(fields, quads)
-            if f["kind"] != "sep"
-        ]
+            boxes = [
+                {"kind": f["kind"], "text": f["text"], "quad": np.round(q, 1).tolist()}
+                for f, q in zip(fields, quads)
+                if f["kind"] != "sep"
+            ]
 
-        return {
-            "image": image,
-            "gt_parse": receipt.ground_truth(),
-            "text_sequence": re.sub(r"\s+", " ", receipt.text_sequence()).strip(),
-            "boxes": boxes,
-            "recipe": recipe.to_dict(),
-            "quality": int(np.random.randint(self.quality[0], self.quality[1] + 1)),
-        }
+        with profiling.stage("annotation"):
+            return {
+                "image": image,
+                "gt_parse": receipt.ground_truth(),
+                "text_sequence": re.sub(r"\s+", " ", receipt.text_sequence()).strip(),
+                "boxes": boxes,
+                "recipe": recipe.to_dict(),
+                "quality": int(np.random.randint(self.quality[0], self.quality[1] + 1)),
+            }
 
     # ------------------------------------------------------------------
 

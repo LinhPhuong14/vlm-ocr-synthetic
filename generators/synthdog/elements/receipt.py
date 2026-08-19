@@ -24,6 +24,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+import profiling  # noqa: E402
 import rulebase  # noqa: E402
 
 SHARED_FONTS = REPO_ROOT / "fonts"
@@ -65,7 +66,14 @@ class Receipt:
     # ---------- sinh ----------
 
     def generate(self, seed=None, force=None):
+        # The draw is split off so the two halves land in different stages of a
+        # profile: `rulebase.make` times itself as sampling/content/layout, and
+        # what is left -- turning the grid into glyph layers -- is the render.
         recipe, receipt, grid = rulebase.make(seed=seed, force=force)
+        with profiling.stage("render"):
+            return self._draw(recipe, receipt, grid)
+
+    def _draw(self, recipe, receipt, grid):
         rng = random.Random(recipe.seed)
         visual = recipe.visual.params
 
