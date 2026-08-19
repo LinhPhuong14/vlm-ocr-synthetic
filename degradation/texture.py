@@ -205,6 +205,92 @@ def paper_texture(
     return _restore(np.clip(out.astype(np.float32) * field, 0, 255).astype(np.uint8), was_gray)
 
 
+def pattern_overlay(
+    image: np.ndarray,
+    pattern: str | None = None,
+    patterns_dir: str | Path | None = None,
+    scale: float = 0.28,
+    opacity: float = 0.6,
+    anchor: str = "random",
+    rotate: float = 0.0,
+    rng: random.Random | None = None,
+) -> np.ndarray:
+    """Đóng một hoạ tiết có kênh alpha lên trang đã dựng xong.
+
+    Đây là cầu nối giữa thư viện `textures/ornament/` và chuỗi làm cũ. Thuộc
+    tính `ornament` mô tả hoạ tiết CỐ Ý có mặt trên tờ giấy và bốc trước
+    `augmentation`; hàm này là đường vào cho trường hợp ngược lại — con dấu
+    đóng lên bản sao chứ không đóng lên bản gốc, chữ chìm của máy photocopy in
+    đè lên tất cả.
+
+    Alpha của file quyết định chỗ nào ăn mực; `opacity` nhân thêm vào đó. Trộn
+    theo lối NHÂN chứ không phủ đè: mực dấu là mực trong, chữ nằm dưới vẫn phải
+    đọc được. Phủ đè sẽ xoá mất phần chữ dưới dấu, mà nhãn dữ liệu thì vẫn khai
+    là có chữ ở đó.
+
+    Thiếu file thì không làm gì, giống `paper_overlay`: bịa ra một hoạ tiết
+    thay thế sẽ giấu mất chuyện thư mục bị thiếu.
+    """
+    import cv2
+
+    rng = rng or random.Random(0)
+    directory = Path(patterns_dir) if patterns_dir else (
+        Path(__file__).resolve().parent.parent / "textures" / "ornament")
+    if not directory.is_dir():
+        return image
+    if pattern:
+        path = directory / f"{pattern}.png"
+        if not path.exists():
+            return image
+    else:
+        choices = sorted(directory.glob("*.png"))
+        if not choices:
+            return image
+        path = choices[rng.randrange(len(choices))]
+
+    art = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
+    if art is None or art.ndim != 3 or art.shape[2] != 4:
+        return image                       # không có alpha thì không phải hoạ tiết
+
+    bgr, was_gray = _as_bgr(image)
+    height, width = bgr.shape[:2]
+    target_w = max(int(width * float(scale)), 8)
+    target_h = max(int(art.shape[0] * target_w / art.shape[1]), 8)
+    if target_w >= width or target_h >= height:
+        target_w = min(target_w, width - 2)
+        target_h = min(target_h, height - 2)
+    art = cv2.resize(art, (max(target_w, 4), max(target_h, 4)), interpolation=cv2.INTER_AREA)
+
+    if rotate:
+        angle = rng.uniform(-abs(rotate), abs(rotate))
+        matrix = cv2.getRotationMatrix2D((art.shape[1] / 2, art.shape[0] / 2), angle, 1.0)
+        art = cv2.warpAffine(art, matrix, (art.shape[1], art.shape[0]),
+                             flags=cv2.INTER_LINEAR, borderValue=(0, 0, 0, 0))
+
+    art_h, art_w = art.shape[:2]
+    spots = {
+        "top_left": (int(width * 0.06), int(height * 0.06)),
+        "top_right": (width - art_w - int(width * 0.06), int(height * 0.06)),
+        "bottom_left": (int(width * 0.06), height - art_h - int(height * 0.08)),
+        "bottom_right": (width - art_w - int(width * 0.08), height - art_h - int(height * 0.10)),
+        "centre": ((width - art_w) // 2, (height - art_h) // 2),
+    }
+    if anchor == "random":
+        x, y = spots[sorted(spots)[rng.randrange(len(spots))]]
+    else:
+        x, y = spots.get(anchor, spots["centre"])
+    x = int(np.clip(x, 0, max(width - art_w, 0)))
+    y = int(np.clip(y, 0, max(height - art_h, 0)))
+
+    patch = bgr[y:y + art_h, x:x + art_w].astype(np.float32)
+    alpha = (art[..., 3:4].astype(np.float32) / 255.0) * float(np.clip(opacity, 0, 1))
+    ink = art[..., :3].astype(np.float32)
+    # Nhân: chỗ mực đậm thì tối đi theo màu mực, chỗ alpha bằng 0 thì y nguyên.
+    blended = patch * (1.0 - alpha) + (patch * (ink / 255.0)) * alpha
+    bgr[y:y + art_h, x:x + art_w] = np.clip(blended, 0, 255).astype(np.uint8)
+    return _restore(bgr, was_gray)
+
+
 def paper_overlay(
     image: np.ndarray,
     overlay: str | None = None,
