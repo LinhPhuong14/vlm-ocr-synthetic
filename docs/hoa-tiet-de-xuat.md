@@ -1,7 +1,8 @@
 # Hoạ tiết đề xuất — danh mục chưa làm
 
-Thuộc tính `ornament` hiện có **35 mẫu**, sinh bằng `make ornaments`. Danh mục
-dưới đây là **19 mẫu đã khảo sát nhưng chưa dựng** — giữ lại ở đây để lần sau
+Thuộc tính `ornament` hiện có **27 mẫu**, sinh bằng `make ornaments`. Danh mục
+dưới đây là **23 mẫu đã khảo sát nhưng chưa dựng** — trong đó bốn mẫu ở họ B đã
+dựng một lần rồi gỡ đi — giữ lại ở đây để lần sau
 khỏi phải nghĩ lại từ đầu, và để người đọc thấy chỗ nào của tờ giấy Việt Nam
 vẫn còn trống trong bộ dữ liệu.
 
@@ -37,13 +38,57 @@ Dấu chữ nhật có ba dải số xoay tay: “NGÀY 12 THÁNG 03 NĂM 2025�
 
 ## B · Nét tay
 
+> **Cả họ này đã dựng một lần rồi bỏ.** Chữ ký, chữ điền tay, gạch chân bút và
+> vệt bút dạ quang đều đã có mã vẽ, đã sinh ra file, và đã bị gỡ khỏi
+> `textures/ornament/` vì không đạt.
+>
+> Chỗ hỏng không phải ở tham số mà ở cách tiếp cận. **Chữ điền tay** dựng bằng
+> cách lấy một mặt chữ in rồi làm lệch từng ký tự — nghiêng, xê dịch, đậm nhạt.
+> Đặt cạnh một tờ scan thật thì nó vẫn là chữ in bị rung, vì hình dạng nét vẫn
+> là hình dạng nét in: không có chỗ bút nhấc lên, không có nét nối, không có
+> chỗ mực đọng ở cuối nét. **Chữ ký** dựng bằng chuỗi đường Bézier có bề rộng
+> thay đổi — ra một hình ngoằn ngoèo, nhưng chữ ký người là một động tác đã
+> luyện thành nếp, không phải một đường cong ngẫu nhiên; nhìn là biết máy vẽ.
+>
+> Làm cho đúng cần **dữ liệu nét thật** (toạ độ bút theo thời gian) hoặc **một
+> mặt chữ viết tay có giấy phép cho phép phát hành lại** — chứ không phải thêm
+> nhiễu vào cách cũ. Thêm nhiễu là chỗ đợt vừa rồi đã đi và đã sai.
+>
+> Mã vẽ cũ nằm trong lịch sử git, commit "Twenty more ornaments".
+
+### `handwriting_fill` — Số và chữ điền tay
+Ngày tháng, tên người mua, số tiền viết tay vào chỗ trống của tờ mẫu in sẵn.
+Vẫn là **khoảng trống lớn nhất** của bộ dữ liệu: tờ mẫu sinh ra để được điền
+tay, mà mọi tờ sinh ra đến giờ đều trống trơn hoặc in máy toàn bộ.
+*Hợp:* tờ mẫu in sẵn (GTGT, xuất khẩu).
+*Chưa làm vì:* xem khối trên. Cần mặt chữ viết tay có giấy phép, và nội dung
+phải đi đường `from_receipt` để ảnh và nhãn không nói hai chuyện khác nhau.
+
+### `signature_scrawl` — Chữ ký tay
+Nét ký nhanh bằng bút bi hoặc bút mực. Mọi hoá đơn đều có hai ô chữ ký và đến
+giờ cả hai đều để trắng.
+*Hợp:* mọi hoá đơn.
+*Chưa làm vì:* xem khối trên. Hướng khả dĩ là lấy một tập chữ ký viết tay có
+giấy phép rồi tách nền, chứ không dựng bằng đường cong.
+
+### `pen_underline` — Gạch chân bằng bút
+Đường tay run gạch dưới dòng tổng tiền. *Hợp:* mọi hoá đơn.
+*Chưa làm vì:* bỏ cùng cả họ. Đây là mục dễ cứu nhất trong sáu mục — một nét
+thẳng run thì không đòi hình dạng chữ — nhưng một mình nó không đáng giữ lại
+cả một node trong luật.
+
+### `highlighter_swipe` — Vệt bút dạ quang
+Mảng vàng trong suốt quét ngang dòng tổng. *Hợp:* mọi hoá đơn.
+*Chưa làm vì:* bỏ cùng cả họ, và nó còn cần bên ghép ảnh biết trộn kiểu
+multiply — phủ đè thì chữ dưới mất.
+
 ### `tick_accounting` — Dấu tích kế toán
 Nét “✓” viết tay cạnh dòng đã kiểm, thường bút đỏ hoặc bút chì, rơi vào cột
 trống hoặc đè lên số.
 *Hợp:* hoá đơn GTGT, lưu trú.
-*Chưa làm vì:* rẻ và dễ — `_pen_stroke` với hai đoạn thẳng là xong. Để lại chỉ
-vì đợt này đã có `pen_underline` và `highlighter_swipe` lo phần “ai đó đã kiểm
-tờ này”.
+*Chưa làm vì:* rẻ và dễ về mặt vẽ, nhưng cùng cái bẫy của cả họ: nét tay vẽ
+bằng máy nhìn ra nét máy. Một dấu tích thì đơn giản hơn một chữ ký nhiều, nên
+đây có lẽ là chỗ nên thử lại trước.
 
 ### `strikethrough_line` — Gạch xoá dòng
 Nét gạch ngang một dòng hàng bị huỷ, đôi khi kèm chữ “huỷ” viết tay bên lề.

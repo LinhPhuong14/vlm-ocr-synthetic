@@ -477,15 +477,21 @@ Position is named, not measured: `anchor: signature_seller` rather than a pair
 of coordinates. A seal belongs over the seller's signature on a 148mm folio and
 on a 210mm form alike, and the two have that place in different millimetres.
 
-Three marks carry `from_receipt: true`: the handwritten fields, the shelf
-barcode and the verification QR. Their content comes from the values the
-rule-base already drew for that page, so the file in `textures/ornament/` is a
-sample to look at and not the thing to composite — a fixed barcode pasted onto
-a receipt whose label says a different number is the exact defect
-`pipeline/invariants.py` exists to catch.
+Two marks carry `from_receipt: true`: the shelf barcode and the verification
+QR. Their content comes from the values the rule-base already drew for that
+page, so the file in `textures/ornament/` is a sample to look at and not the
+thing to composite — a fixed barcode pasted onto a receipt whose label says a
+different number is the exact defect `pipeline/invariants.py` exists to catch.
 
-Nineteen more were surveyed and not built; they are written down with the reason
-each was left, in [docs/hoa-tiet-de-xuat.md](../docs/hoa-tiet-de-xuat.md).
+**There are no hand marks.** Signatures, handwritten field values, pen
+underlines and highlighter swipes were drawn and then removed: a typeface
+jittered per glyph is not handwriting, and a procedural squiggle is not a
+signature. Doing it properly wants stroke data or a hand-drawn face licensed
+for redistribution.
+
+Twenty-three ornaments were surveyed and not built — those four among them.
+Each is written down with the reason it was left, in
+[docs/hoa-tiet-de-xuat.md](../docs/hoa-tiet-de-xuat.md).
 
 > **Not yet drawn.** The attribute is sampled and recorded in `metadata.jsonl`,
 > and every asset it names exists. No renderer composites it onto the page yet —
