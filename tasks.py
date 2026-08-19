@@ -164,6 +164,11 @@ def textures(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "make_textures.py"])
 
 
+@task("ornaments", "regenerate the seals and flourishes in textures/ornament")
+def ornaments(args) -> None:
+    run([first_available_python(), REPO_ROOT / "tools" / "make_ornaments.py"])
+
+
 @task("dataset", "labelled dataset with all three renderers (-n per renderer)")
 def dataset(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "generate_dataset.py",
