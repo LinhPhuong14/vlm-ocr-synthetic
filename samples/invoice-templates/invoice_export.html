@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Hoá đơn xuất khẩu — tờ mẫu song ngữ</title>
+<style>
+  @page { size: A4 portrait; margin: 9mm; }
+  * { box-sizing: border-box; }
+  :root { --violet: #6f5aa8; --ink: #16181d; }
+  body {
+    margin: 0; font-family: "Liberation Serif", "DejaVu Serif", serif;
+    font-size: 8pt; color: var(--ink); line-height: 1.32;
+  }
+  .sheet { border: 0.6mm solid var(--violet); padding: 1.1mm; }
+  .inner { border: 0.25mm solid var(--violet); padding: 3mm 3.5mm; position: relative;
+           overflow: hidden; }
+
+  /* dấu chìm của tờ mẫu in sẵn */
+  .wm {
+    position: absolute; left: 0; right: 0; top: 96mm; text-align: center;
+    font-family: "DejaVu Sans", sans-serif; font-weight: bold; font-size: 44pt;
+    color: #eaf1f7; letter-spacing: 3pt;
+  }
+  .content { position: relative; }
+
+  .sample { position: absolute; right: 0; top: -1mm; color: #d21f1f;
+            font-family: "DejaVu Sans", sans-serif; font-weight: bold; font-size: 11pt;
+            letter-spacing: 1pt; }
+
+  /* ---------- đầu trang ---------- */
+  .head { display: table; width: 100%; padding-top: 4mm; }
+  .head > div { display: table-cell; vertical-align: top; }
+  .head .logo { width: 24%; }
+  .head .mid { width: 44%; text-align: center; }
+  .head .ser { width: 32%; }
+
+  .logo .mk { font-family: "DejaVu Sans", sans-serif; font-weight: bold; font-size: 15pt;
+              color: #0f8a4d; letter-spacing: -0.3pt; }
+  .logo .mk .x { color: #1c4f9c; }
+  .logo .sl { font-family: "DejaVu Sans", sans-serif; font-size: 5pt; letter-spacing: 1.4pt;
+              color: #555; }
+
+  .t1 { font-weight: bold; font-size: 12.5pt; }
+  .t2 { font-weight: bold; font-style: italic; font-size: 11pt; }
+
+  .ser table { width: 100%; border-collapse: collapse; font-size: 7.6pt; }
+  .ser td { padding: 0.3mm 0; vertical-align: top; }
+  .ser .k { white-space: nowrap; padding-right: 1.5mm; }
+  .ser .v { font-weight: bold; }
+  .ser .red { color: #d21f1f; font-weight: bold; }
+
+  .copy { font-weight: bold; font-size: 7.6pt; padding-top: 0.8mm; }
+  .dateline { text-align: center; font-size: 8pt; padding: 1.5mm 0 2mm; }
+
+  /* ---------- trường có dòng chấm ---------- */
+  .f { display: table; width: 100%; margin-bottom: 0.9mm; }
+  .f > span { display: table-cell; }
+  .f .lab { width: 1%; white-space: nowrap; padding-right: 1.5mm; }
+  .f .lab b { font-weight: bold; }
+  .f .val { width: 99%; border-bottom: 0.18mm dotted #444; font-weight: bold;
+            padding-bottom: 0.3mm; }
+  .f.plain .val { font-weight: normal; }
+  .block { padding: 1mm 0 1.5mm; }
+
+  /* ---------- bảng hàng hoá ---------- */
+  table.grid { width: 100%; border-collapse: collapse; margin-top: 1mm; }
+  table.grid th, table.grid td { border: 0.25mm solid #333; padding: 1mm; }
+  table.grid th { text-align: center; font-weight: bold; font-size: 7.6pt; line-height: 1.15; }
+  table.grid th .en { font-style: italic; font-weight: normal; }
+  td.numrow { text-align: center; font-size: 7pt; padding: 0.5mm; }
+  tr.tall td { height: 40mm; }
+  .rate td { height: 5.6mm; font-weight: bold; }
+  .words { border: 0.25mm solid #333; border-top: 0; padding: 1.4mm 1mm; font-weight: bold; }
+
+  /* ---------- chữ ký một bên ---------- */
+  .sign { text-align: center; width: 52%; margin-left: auto; padding-top: 3mm; }
+  .sign .t { font-weight: bold; }
+  .sign .n { font-size: 7.4pt; }
+  .sign .en { font-size: 7.4pt; font-style: italic; }
+  .sign .space { height: 20mm; }
+
+  .foot { text-align: center; font-size: 6.8pt; font-style: italic; padding-top: 2mm; }
+</style>
+</head>
+<body>
+<div class="sheet"><div class="inner">
+  <div class="wm">TÂN PHÁT</div>
+  <div class="content">
+
+    <div class="sample">MẪU</div>
+
+    <div class="head">
+      <div class="logo">
+        <div class="mk">TÂN<span class="x">PHÁT</span></div>
+        <div class="sl">VINA GARMENT</div>
+      </div>
+      <div class="mid">
+        <div class="t1">HÓA ĐƠN XUẤT KHẨU</div>
+        <div class="t2">(EXPORT INVOICE)</div>
+      </div>
+      <div class="ser">
+        <table>
+          <tr><td class="k">Mẫu số <i>(Form)</i>:</td><td class="v">06HDXK3/001</td></tr>
+          <tr><td class="k">Ký hiệu <i>(Serial)</i>:</td><td class="v">AA/13P</td></tr>
+          <tr><td class="k">Số <i>(Invoice No.)</i>:</td><td class="red">0000000</td></tr>
+        </table>
+        <div class="copy">Liên 1: Lưu <i>(Copy 1 / Save)</i></div>
+      </div>
+    </div>
+
+    <div class="dateline">Ngày <i>(Date)</i> ......... Tháng <i>(Month)</i> ......... Năm <i>(year)</i> 20 .........</div>
+
+    <div class="block">
+      <div class="f"><span class="lab"><b>Tên đơn vị xuất khẩu</b> <i>(Exporter's name)</i>:</span><span class="val">CÔNG TY TNHH DỆT MAY TÂN PHÁT VINA</span></div>
+      <div class="f"><span class="lab"><b>Mã số thuế</b> <i>(Tax code)</i>:</span><span class="val">3602936190</span></div>
+      <div class="f"><span class="lab"><b>Địa chỉ</b> <i>(Address)</i>:</span><span class="val">KCN Dệt May Nhơn Trạch, Huyện Nhơn Trạch, Tỉnh Đồng Nai</span></div>
+      <div class="f"><span class="lab"><b>Điện thoại</b> <i>(Tel)</i>:</span><span class="val">0251 3566 018 - 019</span></div>
+      <div class="f"><span class="lab"><b>Số tài khoản</b> <i>(Account No)</i> (VND):</span><span class="val">0764 002 468 20 002</span></div>
+      <div class="f"><span class="lab"><b>Số tài khoản</b> <i>(Account No)</i> (USD):</span><span class="val">0764 002 468 20 001</span></div>
+      <div class="f"><span class="lab"><b>Tại Ngân Hàng</b> <i>(Bank name)</i>:</span><span class="val">Ngân hàng IBK (Industrial Bank of Korea) Chi Nhánh TPHCM</span></div>
+    </div>
+
+    <div class="block">
+      <div class="f plain"><span class="lab"><b>Tên đơn vị nhập khẩu</b> <i>(Importer's name)</i>:</span><span class="val">&nbsp;</span></div>
+      <div class="f plain"><span class="lab"><b>Địa chỉ</b> <i>(Address)</i>:</span><span class="val">&nbsp;</span></div>
+      <div class="f plain"><span class="lab"><b>Điện thoại</b> <i>(Tel)</i>:</span><span class="val">&nbsp;</span></div>
+      <div class="f plain"><span class="lab"><b>Hình thức thanh toán</b> <i>(Payment method)</i>:</span><span class="val">&nbsp;</span></div>
+      <div class="f plain"><span class="lab"><b>Số tài khoản</b> <i>(Bank Account)</i>:</span><span class="val">&nbsp;</span></div>
+      <div class="f plain"><span class="lab"><b>Số hợp đồng</b> <i>(Contract No)</i>:</span><span class="val">&nbsp;</span></div>
+      <div class="f plain"><span class="lab"><b>Ngày hợp đồng</b> <i>(Contract date)</i>:</span><span class="val">&nbsp;</span></div>
+      <div class="f plain"><span class="lab"><b>Số vận đơn</b> <i>(Bill of lading No.)</i>:</span><span class="val">&nbsp;</span></div>
+      <div class="f plain"><span class="lab"><b>Số Container</b> <i>(Container No.)</i>:</span><span class="val">&nbsp;</span></div>
+      <div class="f plain"><span class="lab"><b>Địa điểm giao hàng</b> <i>(Place of delivery)</i>:</span><span class="val">&nbsp;</span></div>
+      <div class="f plain"><span class="lab"><b>Địa điểm nhận hàng</b> <i>(Place of destination)</i>:</span><span class="val">&nbsp;</span></div>
+      <div class="f plain"><span class="lab"><b>Đơn vị vận chuyển</b> <i>(Transporter)</i>:</span><span class="val">&nbsp;</span></div>
+    </div>
+
+    <table class="grid">
+      <thead>
+        <tr>
+          <th style="width:8%">STT<br><span class="en">(No.)</span></th>
+          <th>Tên hàng hóa, dịch vụ<br><span class="en">(Description)</span></th>
+          <th style="width:12%">Đơn vị tính<br><span class="en">(Unit)</span></th>
+          <th style="width:13%">Số lượng<br><span class="en">(Quantity)</span></th>
+          <th style="width:14%">Đơn giá<br><span class="en">(Unit Price)</span></th>
+          <th style="width:18%">Thành tiền<br><span class="en">(Amount)</span></th>
+        </tr>
+        <tr>
+          <td class="numrow">(1)</td><td class="numrow">(2)</td><td class="numrow">(3)</td>
+          <td class="numrow">(4)</td><td class="numrow">(5)</td><td class="numrow">(6 = 4 x 5)</td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="tall"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr class="rate">
+          <td colspan="3">Tỉ giá <i>(Rate)</i> :</td>
+          <td colspan="2">Cộng tiền hàng <i>(Total amount)</i> :</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="words">Số tiền viết bằng chữ <i>(Amount in words)</i> :</div>
+
+    <div class="sign">
+      <div class="t">Người bán hàng <i>(Seller)</i></div>
+      <div class="n">(Ký, đóng dấu, ghi rõ họ, tên)</div>
+      <div class="en">Sign, Stamp &amp; Full name</div>
+      <div class="space"></div>
+    </div>
+
+    <div class="foot">
+      (Cần kiểm tra, đối chiếu khi lập, giao, nhận hóa đơn)<br>
+      In tại Công ty CP In và Thương mại — MST 0101234567
+    </div>
+
+  </div>
+</div></div>
+</body>
+</html>

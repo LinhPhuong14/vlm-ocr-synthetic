@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Hoá đơn khách sạn — có màu thương hiệu, hoạ tiết và con dấu</title>
+<style>
+  @page { size: A5 portrait; margin: 0; }
+  * { box-sizing: border-box; }
+  :root {
+    --brand:#0f4c5c;        /* xanh cổ vịt: màu nhận diện của khách sạn */
+    --brand-2:#1c7a8c;
+    --sand:#b0872b;         /* vàng đồng, dùng đúng một chỗ: dòng tổng tiền */
+    --ink:#1a1d21;
+    --muted:#63707a;
+    --line:#d3dde1;
+    --line-soft:#e7eef0;
+    --tint:#f2f7f8;         /* nền sọc của bảng */
+  }
+  body {
+    margin: 0; font-family: "Liberation Sans", "DejaVu Sans", sans-serif;
+    font-size: 6.4pt; color: var(--ink); line-height: 1.45;
+  }
+  .page { position: relative; width: 148mm; min-height: 210mm; overflow: hidden;
+          padding: 0 0 8mm; }
+
+  /* ---------- hoạ tiết nền ---------- */
+  .corner {                                   /* nẹp góc dưới trái, dưới băng màu */
+    position: absolute; left: 0; bottom: 0; width: 20mm; height: 20mm;
+    transform: scaleY(-1); opacity: .38;
+  }
+  .rosette {                                  /* hoa văn guilloche in chìm */
+    /* Nhỏ và mờ, nằm sau khối chữ ký: đây là nét in bảo an của tờ giấy, không
+       phải hình minh hoạ -- thấy được khi soi, không tranh chữ khi đọc. */
+    position: absolute; right: 30mm; bottom: 40mm; width: 44mm; height: 44mm;
+    opacity: .34;
+  }
+  .grid-pattern {                             /* lưới chữ nhật mờ ở chân trang */
+    position: absolute; left: 0; bottom: 0; width: 148mm; height: 22mm;
+    opacity: .16;
+  }
+  .page > .body { position: relative; }
+
+  /* ---------- băng đầu trang ---------- */
+  .band { background: var(--brand); color: #fff; padding: 8mm 10mm 6.5mm;
+          display: table; width: 100%; }
+  .band > div { display: table-cell; vertical-align: middle; }
+  .band .left { width: 56%; }
+  .band .right { width: 44%; text-align: right; }
+
+  .logo { display: table; }
+  .logo > span { display: table-cell; vertical-align: middle; }
+  .logo .glyph { padding-right: 3mm; }
+  .logo .glyph i {
+    display: block; width: 8.5mm; height: 8.5mm; border: 0.45mm solid #fff;
+    border-bottom-width: 1.3mm; position: relative;
+  }
+  .logo .glyph i::before, .logo .glyph i::after {
+    content: ""; position: absolute; top: 1.7mm; width: 1.2mm; height: 3.2mm; background: #fff;
+  }
+  .logo .glyph i::before { left: 1.7mm; } .logo .glyph i::after { right: 1.7mm; }
+  .logo .n { font-weight: bold; font-size: 9.6pt; letter-spacing: .5pt; }
+  .logo .s { font-size: 5.4pt; letter-spacing: 2pt; color: #a9ccd4; }
+
+  .band h1 { margin: 0 0 1.6mm; font-size: 15pt; letter-spacing: 1pt; font-weight: bold; }
+  .band .k { color: #a9ccd4; }
+  .band .doc div { margin-bottom: .5mm; }
+
+  .wave { display: block; width: 100%; height: 4.5mm; }
+
+  .inner { padding: 6mm 10mm 0; }
+
+  /* ---------- khối đặt phòng ---------- */
+  .for { font-weight: bold; letter-spacing: .8pt; font-size: 6.6pt;
+         color: var(--brand); margin: 0 0 2.5mm; }
+  table { width: 100%; border-collapse: collapse; }
+  table.booking td { padding: 1.6mm 1.6mm; border-bottom: 0.2mm solid var(--line-soft); }
+  table.booking tr:first-child td { border-top: 0.3mm solid var(--line); }
+  table.booking td.k { width: 22%; color: var(--muted); }
+  table.booking td.v { width: 28%; font-weight: bold; }
+
+  /* ---------- bảng đêm nghỉ ---------- */
+  table.lines { margin-top: 5mm; }
+  table.lines th {
+    text-align: left; font-weight: bold; font-size: 6.2pt; padding: 1.9mm 1.6mm;
+    background: var(--brand); color: #fff;
+  }
+  table.lines th:first-child { border-top-left-radius: 0.8mm; }
+  table.lines th:last-child  { border-top-right-radius: 0.8mm; }
+  table.lines td { padding: 1.9mm 1.6mm; border-bottom: 0.2mm solid var(--line-soft);
+                   vertical-align: top; }
+  table.lines tbody tr:nth-child(odd) td { background: var(--tint); }
+  .num { text-align: right; } .mid { text-align: center; }
+  .note { font-style: italic; color: var(--muted); }
+
+  /* ---------- tổng tiền ---------- */
+  .totals { margin-top: 5mm; margin-left: 42%; }
+  .totals .row { display: table; width: 100%; padding: 1.3mm 0; }
+  .totals .row > span { display: table-cell; }
+  .totals .row .lab { color: var(--muted); }
+  .totals .row .amt { text-align: right; font-weight: bold; }
+  .totals .grand {
+    background: var(--brand); color: #fff; padding: 2.4mm 2.6mm; border-radius: 0.8mm;
+    margin-bottom: 1.5mm;
+  }
+  .totals .grand .lab { color: #a9ccd4; font-weight: bold; letter-spacing: .4pt; }
+  .totals .grand .amt { font-size: 9pt; color: #fff; }
+  .totals .paid { border-left: 0.9mm solid var(--sand); padding-left: 2.2mm; }
+
+  /* ---------- chữ ký, có con dấu đóng đè ---------- */
+  .sign { display: table; width: 100%; margin-top: 12mm; position: relative; }
+  .sign > div { display: table-cell; width: 50%; text-align: center; }
+  .sign .role { font-weight: bold; color: var(--brand); }
+  .sign .who { margin-top: 13mm; }
+  .seal {
+    /* Dấu của khách sạn, nên đóng bên LỄ TÂN chứ không bên khách: người ký
+       đóng dấu vào phần chữ ký của chính mình. */
+    position: absolute; left: 6mm; top: 3mm; width: 29mm; height: 29mm;
+    opacity: .82;
+  }
+
+  /* ---------- chân trang ---------- */
+  .foot { margin: 9mm 10mm 0; padding-top: 2.6mm; border-top: 0.3mm solid var(--line);
+          display: table; width: calc(100% - 20mm); font-size: 5.8pt; color: var(--muted); }
+  .foot > div { display: table-cell; width: 50%; vertical-align: top; }
+  .foot .h { font-weight: bold; letter-spacing: .6pt; color: var(--brand);
+             margin-bottom: 1.2mm; }
+  .foot .r { text-align: right; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <img class="corner" src="../../textures/ornament/corner_bracket_teal.png" alt="">
+  <img class="rosette" src="../../textures/ornament/guilloche_teal.png" alt="">
+  <img class="grid-pattern" src="../../textures/ornament/rect_grid_teal.png" alt="">
+
+  <div class="body">
+    <div class="band">
+      <div class="left">
+        <div class="logo">
+          <span class="glyph"><i></i></span>
+          <span>
+            <div class="n">KHÁCH SẠN THÁI AN</div>
+            <div class="s">THAI AN HOTEL</div>
+          </span>
+        </div>
+      </div>
+      <div class="right doc">
+        <h1>HÓA ĐƠN</h1>
+        <div><span class="k">Số hóa đơn:</span> <b>HD012518</b></div>
+        <div><span class="k">Ngày:</span> <b>26/09/2024</b></div>
+      </div>
+    </div>
+    <img class="wave" src="../../textures/ornament/wave_band_teal.png" alt="">
+
+    <div class="inner">
+      <p class="for">LẬP THANH TOÁN VÀ ĐỐI TÁC</p>
+
+      <table class="booking">
+        <tr>
+          <td class="k">Khách hàng</td><td class="v">Trần Minh Khôi</td>
+          <td class="k">Phòng</td><td class="v">305</td>
+        </tr>
+        <tr>
+          <td class="k">Ngày nhận phòng</td><td class="v">24/09/2024</td>
+          <td class="k">Loại phòng</td><td class="v">Phòng đôi tiêu chuẩn</td>
+        </tr>
+        <tr>
+          <td class="k">Ngày trả phòng</td><td class="v">26/09/2024</td>
+          <td class="k">Số đêm lưu trú</td><td class="v">2</td>
+        </tr>
+        <tr>
+          <td class="k">Nguồn khách</td><td class="v">Trực tiếp tại quầy</td>
+          <td class="k">Số khách</td><td class="v">2</td>
+        </tr>
+      </table>
+
+      <table class="lines">
+        <thead>
+          <tr>
+            <th style="width:16%">Ngày</th>
+            <th style="width:11%">Phòng</th>
+            <th>Nội dung</th>
+            <th class="mid" style="width:9%">SL</th>
+            <th class="num" style="width:19%">Đơn giá</th>
+            <th class="num" style="width:20%">Thành tiền</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>24/09/2024</td><td>305</td>
+            <td>Tiền phòng<br><span class="note">Bao gồm bữa sáng</span></td>
+            <td class="mid">1</td><td class="num">1.100.000</td><td class="num">1.100.000</td>
+          </tr>
+          <tr>
+            <td>25/09/2024</td><td>305</td>
+            <td>Tiền phòng<br><span class="note">Bao gồm bữa sáng</span></td>
+            <td class="mid">1</td><td class="num">1.100.000</td><td class="num">1.100.000</td>
+          </tr>
+          <tr>
+            <td>25/09/2024</td><td>305</td>
+            <td>Dịch vụ giặt là</td>
+            <td class="mid">2</td><td class="num">80.000</td><td class="num">160.000</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="totals">
+        <div class="row grand"><span class="lab">TỔNG TIỀN THANH TOÁN</span><span class="amt">2.360.000</span></div>
+        <div class="row paid"><span class="lab">Tiền mặt</span><span class="amt">2.400.000</span></div>
+        <div class="row paid"><span class="lab">Tiền thừa trả khách</span><span class="amt">40.000</span></div>
+      </div>
+
+      <div class="sign">
+        <img class="seal" src="../../textures/ornament/seal_round_hotel.png" alt="">
+        <div><div class="role">Lễ tân</div><div class="who">Phạm Thu Hà</div></div>
+        <div><div class="role">Khách hàng</div><div class="who">Trần Minh Khôi</div></div>
+      </div>
+    </div>
+
+    <div class="foot">
+      <div>
+        <div class="h">THÔNG TIN LIÊN HỆ</div>
+        <div>Số 48 Trần Phú, Phường Lộc Thọ</div>
+        <div>Điện thoại: 0258 3521 470</div>
+      </div>
+      <div class="r">
+        <div class="h">GIỜ TRẢ PHÒNG</div>
+        <div>12:00 trưa</div>
+        <div>lienhe@khachsanthaian.example</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

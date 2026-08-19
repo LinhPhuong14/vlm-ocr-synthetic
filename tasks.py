@@ -169,6 +169,12 @@ def ornaments(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "make_ornaments.py"])
 
 
+@task("templates", "print the reference sheets in samples/invoice-templates")
+def templates(args) -> None:
+    run([first_available_python(),
+         REPO_ROOT / "samples" / "invoice-templates" / "render.py"])
+
+
 @task("dataset", "labelled dataset with all three renderers (-n per renderer)")
 def dataset(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "generate_dataset.py",
