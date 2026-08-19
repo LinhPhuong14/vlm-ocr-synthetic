@@ -1,0 +1,24 @@
+# 8. REPORT / INFORMATION DOCUMENT
+#
+# Prose with charts and tables in it. Overlaps family 1 by design: a financial
+# report is filed under Financial by the department that writes it and under
+# Report by the pipeline that consumes it, and both readings are in the tree
+# that was asked for. One `same_as` keeps it one artefact.
+
+id: report
+number: 8
+name: Report / Information Document
+name_vi: Báo cáo
+engine: flow
+status: planned
+
+children:
+  - {id: business_report,   name: Business Report,   name_vi: Báo cáo kinh doanh}
+  - id: financial_report
+    name: Financial Report
+    same_as: business.financial.financial_report
+  - {id: management_report, name: Management Report, name_vi: Báo cáo quản trị}
+  - {id: audit_report,      name: Audit Report,      name_vi: Báo cáo kiểm toán}
+  - {id: project_report,    name: Project Report,    name_vi: Báo cáo dự án}
+  - {id: incident_report,   name: Incident Report,   name_vi: Báo cáo sự cố}
+  - {id: analytical_report, name: Analytical Report, name_vi: Báo cáo phân tích}
