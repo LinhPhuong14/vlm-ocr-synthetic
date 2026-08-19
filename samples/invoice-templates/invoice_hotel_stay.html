@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Hoá đơn lưu trú — khu nghỉ dưỡng, một dòng một đêm</title>
+<style>
+  @page { size: A4 portrait; margin: 14mm 15mm; }
+  * { box-sizing: border-box; }
+  :root { --line: #d9d9d9; --dark: #111; }
+  body {
+    margin: 0; font-family: "Liberation Sans", "DejaVu Sans", sans-serif;
+    font-size: 7.6pt; color: #111; line-height: 1.4;
+  }
+
+  /* ---------- đầu trang: logo trái, khối liên hệ đặt giữa ---------- */
+  .head { position: relative; text-align: center; padding-bottom: 7mm; }
+  .logo { position: absolute; left: 0; top: 0; width: 32mm; text-align: left; }
+  .logo .l1 { font-family: "DejaVu Serif", serif; font-weight: bold; font-size: 8pt;
+              letter-spacing: 0.4pt; }
+  .logo .l2 { font-family: "DejaVu Serif", serif; font-style: italic; font-weight: bold;
+              font-size: 17pt; line-height: 0.95; margin-top: -0.6mm; }
+  .head .name { font-weight: bold; font-size: 10.5pt; }
+  .head .meta { font-size: 7pt; margin-top: 1.2mm; }
+  .head .meta .k { font-weight: bold; }
+
+  h1.doc { text-align: center; font-size: 13pt; letter-spacing: 0.8pt;
+           margin: 2mm 0 5mm; font-weight: bold; }
+
+  /* ---------- dãy khoá chạy ngang ---------- */
+  .strip { font-size: 6.9pt; margin-bottom: 4mm; }
+  .strip .k { font-weight: bold; }
+  .strip .sep { color: #999; padding: 0 1.2mm; }
+
+  /* ---------- khối đặt phòng, hai cột nhãn/giá trị ---------- */
+  table { width: 100%; border-collapse: collapse; }
+  table.booking td { padding: 2.1mm 2mm; border-bottom: 0.2mm solid var(--line); }
+  table.booking tr:first-child td { border-top: 0.2mm solid var(--line); }
+  table.booking td.k { width: 20%; }
+  table.booking td.v { width: 30%; font-weight: bold; }
+
+  /* ---------- bảng đêm nghỉ ---------- */
+  table.lines { margin-top: 6mm; }
+  table.lines th {
+    font-weight: bold; font-size: 7.2pt; text-align: left; padding: 2.2mm 2mm;
+    border-top: 0.2mm solid var(--line); border-bottom: 0.2mm solid var(--line);
+  }
+  table.lines td { padding: 2.4mm 2mm; border-bottom: 0.2mm solid var(--line);
+                   vertical-align: top; }
+  .num { text-align: right; } .mid { text-align: center; }
+  .note { font-style: italic; color: #333; }
+
+  tr.total td { font-weight: bold; text-align: right; padding: 2.4mm 2mm; }
+  tr.total td.amt { text-align: right; }
+  tr.paid td { text-align: right; }
+  tr.paid .lab b { font-weight: bold; }
+
+  /* ---------- chữ ký ---------- */
+  .sign { display: table; width: 100%; margin-top: 18mm; }
+  .sign > div { display: table-cell; width: 50%; text-align: center; }
+  .sign .role { font-weight: bold; }
+  .sign .who { margin-top: 20mm; }
+</style>
+</head>
+<body>
+
+  <div class="head">
+    <div class="logo">
+      <div class="l1">HAPPY</div>
+      <div class="l2">Holidays</div>
+    </div>
+    <div class="name">Happy Holiday Resort - Demo1</div>
+    <div class="meta">112 Nguyễn Văn Trỗi, Quận 2</div>
+    <div class="meta"><span class="k">T</span> +84 90 000 00 00 &nbsp;
+                      <span class="k">E</span> lienhe@demowebsite.site</div>
+    <div class="meta">www.demowebsite.site</div>
+  </div>
+
+  <h1 class="doc">HÓA ĐƠN</h1>
+
+  <div class="strip">
+    <span class="k">Số hóa đơn:</span> INV001421 <span class="sep">|</span>
+    <span class="k">Ngày:</span> 30/09/2024 17:11 <span class="sep">|</span>
+    <span class="k">Mã đặt phòng:</span> 001421 <span class="sep">|</span>
+    <span class="k">Channel Code:</span> 3554995029 <span class="sep">|</span>
+    <span class="k">Nguồn:</span> Booking.com
+  </div>
+
+  <table class="booking">
+    <tr>
+      <td class="k">Khách hàng</td><td class="v">Nguyễn Mai Anh</td>
+      <td class="k">Phòng</td><td class="v">Căn - 3004</td>
+    </tr>
+    <tr>
+      <td class="k">Ngày nhận phòng</td><td class="v">01/10/2024</td>
+      <td class="k">Thời gian nhận</td><td class="v">14:00:00</td>
+    </tr>
+    <tr>
+      <td class="k">Ngày trả phòng</td><td class="v">03/10/2024</td>
+      <td class="k">Thời gian trả</td><td class="v">12:00:00</td>
+    </tr>
+    <tr>
+      <td class="k">Loại phòng</td><td class="v">Holo Bến Thành - Phòng Deluxe</td>
+      <td class="k">Số đêm lưu trú</td><td class="v">2</td>
+    </tr>
+  </table>
+
+  <table class="lines">
+    <thead>
+      <tr>
+        <th style="width:6%">#</th>
+        <th style="width:14%">Ngày</th>
+        <th style="width:11%">Phòng</th>
+        <th>Nội dung</th>
+        <th class="mid" style="width:11%">Số lượng</th>
+        <th class="num" style="width:16%">Đơn giá</th>
+        <th class="num" style="width:17%">Thành tiền</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td><td>01/10/2024</td><td></td>
+        <td>Tiền phòng<br><span class="note">Bao gồm bữa sáng</span></td>
+        <td class="mid">1</td><td class="num">800.000 VND</td><td class="num">800.000 VND</td>
+      </tr>
+      <tr>
+        <td>2</td><td>02/10/2024</td><td></td>
+        <td>Tiền phòng<br><span class="note">Bao gồm bữa sáng</span></td>
+        <td class="mid">1</td><td class="num">800.000 VND</td><td class="num">800.000 VND</td>
+      </tr>
+      <tr class="total">
+        <td colspan="6">Tổng tiền</td><td class="amt">1.600.000 VND</td>
+      </tr>
+      <tr class="paid">
+        <td colspan="6" class="lab"><b>Thanh toán #1</b> <i>(Bank Transfer)</i></td>
+        <td class="num">1.600.000 VND</td>
+      </tr>
+      <tr class="total">
+        <td colspan="6">Số tiền còn lại</td><td class="amt">0 VND</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="sign">
+    <div>
+      <div class="role">Lễ tân</div>
+      <div class="who">Nguyễn Hoàng Anh</div>
+    </div>
+    <div>
+      <div class="role">Khách hàng</div>
+      <div class="who">Nguyễn Mai Anh</div>
+    </div>
+  </div>
+
+</body>
+</html>

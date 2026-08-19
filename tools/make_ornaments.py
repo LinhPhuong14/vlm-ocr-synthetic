@@ -34,6 +34,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 ASSETS = REPO_ROOT / "textures" / "ornament"
+CONTACT = REPO_ROOT / "samples" / "ornaments" / "contact.jpg"
 FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 FONT_REG = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 SS = 4                                  # vẽ ở 4x rồi thu nhỏ, cho mép mượt
@@ -770,6 +771,33 @@ def qr_code(data: str, *, size: int = 420, colour=(0, 0, 0),
 
 # ------------------------------------------------------------------------ main
 
+def contact_sheet(made: list[tuple[str, Image.Image]], *, cell: int = 300,
+                  columns: int = 6) -> Image.Image:
+    """Every ornament on one white page, named.
+
+    Composited onto WHITE and not onto the checkerboard an image viewer shows
+    for transparency: each of these is meant to sit on paper, and a guilloche
+    that reads as a delicate lace on white reads as a solid disc on black.
+    """
+    pad, caption = 18, 26
+    rows = (len(made) + columns - 1) // columns
+    sheet = Image.new("RGB",
+                      (columns * (cell + pad) + pad, rows * (cell + pad + caption) + pad),
+                      "#ffffff")
+    draw = ImageDraw.Draw(sheet)
+    label_font = ImageFont.truetype(FONT_REG, 13)
+    for index, (name, art) in enumerate(made):
+        column, row = index % columns, index // columns
+        x, y = pad + column * (cell + pad), pad + row * (cell + pad + caption)
+        draw.rectangle([x, y, x + cell, y + cell], outline="#e0e0e6")
+        thumb = art.convert("RGBA")
+        thumb.thumbnail((cell - 16, cell - 16), Image.LANCZOS)
+        sheet.paste(thumb, (x + (cell - thumb.width) // 2, y + (cell - thumb.height) // 2),
+                    thumb)
+        draw.text((x + 1, y + cell + 6), name, font=label_font, fill="#55555f")
+    return sheet
+
+
 def main() -> None:
     ASSETS.mkdir(parents=True, exist_ok=True)
     GREEN, TEAL, VIOLET, BLUE = (47, 82, 51), (15, 76, 92), (111, 90, 168), (30, 74, 148)
@@ -845,6 +873,12 @@ def main() -> None:
         print(f"{name + '.png':30} {image.width}x{image.height}  "
               f"{path.stat().st_size / 1024:.0f} KB")
     print(f"\n{len(made)} ornaments -> {ASSETS.relative_to(REPO_ROOT)}")
+
+    sheet = contact_sheet(made)
+    CONTACT.parent.mkdir(parents=True, exist_ok=True)
+    sheet.save(CONTACT, quality=88, optimize=True)
+    print(f"contact sheet   -> {CONTACT.relative_to(REPO_ROOT)}  "
+          f"{CONTACT.stat().st_size / 1024:.0f} KB")
 
 
 if __name__ == "__main__":

@@ -19,7 +19,7 @@ LAYOUT  ?=
 .DEFAULT_GOAL := help
 .PHONY: help setup setup-synthdog setup-html setup-genalog textures \
         receipts preview preview-grid dataset dataset-clean proof showcase \
-        ornaments \
+        ornaments templates \
         preflight check-rules check-corpus check-boxes distribution monitor \
         list-degradations \
         lint format check clean
@@ -41,6 +41,8 @@ textures:        ## Regenerate the shared paper and background textures
 	$(TASKS) textures
 ornaments:       ## Regenerate the seals and flourishes in textures/ornament
 	$(TASKS) ornaments
+templates:       ## Print the reference sheets in samples/invoice-templates
+	$(TASKS) templates
 
 # ------------------------------------------------------------ generation
 
