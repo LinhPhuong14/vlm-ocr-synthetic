@@ -9,35 +9,44 @@ one string would measure reading order rather than recognition. See
 
 | framework | images | token recall | recall (folded) | field hit | field hit (folded) | money read exactly |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| synthdog | 20 | 0.815 | 0.850 | 0.752 | 0.790 | 99/128 (77%) |
-| html | 20 | 0.851 | 0.858 | 0.771 | 0.777 | 92/128 (72%) |
-| genalog | 20 | 0.841 | 0.850 | 0.770 | 0.780 | 90/128 (70%) |
+| synthdog | 20 | 0.851 | 0.875 | 0.774 | 0.798 | 62/101 (61%) |
+| html | 20 | 0.881 | 0.891 | 0.813 | 0.813 | 60/101 (59%) |
+| genalog | 20 | 0.882 | 0.895 | 0.804 | 0.821 | 60/101 (59%) |
 
 ## By layout
 
 | value | images | token recall |
 | --- | ---: | ---: |
-| eatery_indexed | 12 | 0.926 |
-| market_barcode | 12 | 0.867 |
-| market_vat | 12 | 0.834 |
-| eatery_ascii | 12 | 0.787 |
-| market_compact | 12 | 0.762 |
+| eatery_indexed | 6 | 0.966 |
+| invoice_hotel_compact | 6 | 0.957 |
+| invoice_brand | 6 | 0.950 |
+| invoice_hotel_stay | 6 | 0.945 |
+| invoice_vat_summary | 3 | 0.885 |
+| invoice_vat_form | 3 | 0.883 |
+| market_vat | 3 | 0.875 |
+| invoice_tax_en | 3 | 0.865 |
+| invoice_power | 3 | 0.844 |
+| invoice_water | 3 | 0.829 |
+| invoice_export | 6 | 0.812 |
+| market_barcode | 3 | 0.785 |
+| eatery_ascii | 6 | 0.774 |
+| market_compact | 3 | 0.649 |
 
 ## By level of ageing
 
 | value | images | token recall |
 | --- | ---: | ---: |
-| pristine | 60 | 0.836 |
+| pristine | 60 | 0.871 |
 
 ## By kind of printer
 
 | value | images | token recall |
 | --- | ---: | ---: |
-| laser_sharp | 9 | 0.931 |
-| thermal_faint | 21 | 0.848 |
-| thermal_dark | 15 | 0.821 |
-| thermal_narrow | 9 | 0.797 |
-| dot_matrix | 6 | 0.740 |
+| laser_sharp | 3 | 0.963 |
+| laser_invoice | 33 | 0.899 |
+| impact_invoice | 6 | 0.872 |
+| thermal_narrow | 6 | 0.815 |
+| thermal_dark | 12 | 0.799 |
 
 ## The illustrations
 
@@ -59,7 +68,7 @@ precisely why all three are kept: a model that has only seen flat scans
 has never met the hard case.
 
 **The ageing table is where difficulty is supposed to be controlled.**
-Easiest here is `pristine` at 0.836 over 60 images, hardest is `pristine` at 0.836 over 60 images --
+Easiest here is `pristine` at 0.871 over 60 images, hardest is `pristine` at 0.871 over 60 images --
 only 0.000 between them, which is too little to say the rule-base is controlling difficulty in this sample. Editing `weight` in `rulebase/rules/augmentation.yaml` shifts
 the whole dataset. Values missing from the table were never drawn in this
 sample rather than scoring zero.
