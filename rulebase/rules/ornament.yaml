@@ -42,9 +42,9 @@ groups:
 
   # ------------------------------------------------------------------------
   - id: seal
-    label: "Con dấu — mực đỏ hoặc xanh, đóng đè lên chữ"
+    label: "Con dấu — mực ép lên tờ giấy đã in xong"
     # Giấy tính tiền in tại quầy không bao giờ có dấu: nó không phải chứng từ,
-    # không ai ký, không ai đóng dấu. Ràng buộc này viết một lần cho cả họ.
+    # không ai ký, không ai đóng dấu.
     requires: [doc_invoice]
     tags: [has_seal]
     options:
@@ -87,11 +87,94 @@ groups:
             - [seal_square_copy, {anchor: page_center, scale: 0.42,
                                   opacity: [0.35, 0.55], rotate: [-8, 8]}]
 
+      # Cùng con dấu ấy, đóng hỏng theo hai kiểu. Không phải mẫu khác — là
+      # cùng mặt dấu, tay đóng khác.
+      - id: seal_struck_twice
+        weight: 2
+        params:
+          marks:
+            - [seal_round_company_double, {anchor: signature_seller, scale: 0.30,
+                                           opacity: [0.68, 0.86], rotate: [-14, 14]}]
+
+      - id: seal_short_of_ink
+        weight: 2
+        params:
+          marks:
+            - [seal_round_company_faint, {anchor: signature_seller, scale: 0.26,
+                                          opacity: [0.60, 0.80], rotate: [-16, 16]}]
+
+      # Dấu giáp lai: đóng vắt qua mép hai tờ nên tờ này chỉ giữ được một nửa.
+      # `anchor: page_edge_left` là mép giấy, không phải một khối nội dung —
+      # chỗ duy nhất trong bộ này neo vào giấy chứ không neo vào chữ.
+      - id: overlap_seal
+        weight: 2
+        requires: [printed_form]
+        params:
+          marks:
+            - [seal_edge_half, {anchor: page_edge_left, scale: 0.10,
+                                opacity: [0.62, 0.84], rotate: [-3, 3]}]
+            - [seal_accounting_posted, {anchor: footer_band, scale: 0.26,
+                                        opacity: [0.55, 0.78], rotate: [-7, 7]}]
+
+  # ------------------------------------------------------------------------
+  - id: hand
+    label: "Nét tay — mực do người thêm vào sau khi in"
+    requires: [doc_invoice]
+    tags: [has_handmark]
+    options:
+      # Tổ hợp hay gặp nhất trên chứng từ Việt Nam: chữ ký, dấu tròn đè lên
+      # chữ ký, và dấu chức danh đóng cạnh. Ba thứ đi cùng nhau nên chúng nằm
+      # trong CÙNG một giá trị — thuộc tính chỉ bốc một giá trị mỗi tờ.
+      - id: signed_and_sealed
+        weight: 4
+        params:
+          marks:
+            - [signature_01, {anchor: signature_seller, scale: 0.22,
+                              opacity: [0.80, 1.0], rotate: [-5, 5]}]
+            - [seal_round_company, {anchor: signature_seller, scale: 0.26,
+                                    opacity: [0.68, 0.86], rotate: [-16, 16]}]
+            - [seal_name_block, {anchor: signature_seller, scale: 0.24,
+                                 opacity: [0.72, 0.92], rotate: [-6, 6]}]
+
+      - id: signed_both_sides
+        weight: 3
+        params:
+          marks:
+            - [signature_02, {anchor: signature_seller, scale: 0.22,
+                              opacity: [0.80, 1.0], rotate: [-5, 5]}]
+            - [signature_03, {anchor: signature_buyer, scale: 0.20,
+                              opacity: [0.78, 1.0], rotate: [-6, 6]}]
+
+      # Tờ mẫu in sẵn sinh ra để được ĐIỀN TAY. Ba trường dưới đây là ba chỗ
+      # trống mà tờ nào cũng có. `from_receipt` nói cho bên ghép ảnh biết nội
+      # dung phải dựng lại từ chính giá trị đã bốc cho tờ giấy, chứ không dùng
+      # nguyên file mẫu — nếu không ảnh sẽ nói một đằng, nhãn nói một nẻo.
+      - id: filled_by_hand
+        weight: 4
+        requires: [invoice_form]
+        tags: [handwritten]
+        params:
+          marks:
+            - [handwriting_date, {anchor: doctitle, scale: 0.16,
+                                  opacity: [0.80, 1.0], from_receipt: true}]
+            - [handwriting_name, {anchor: buyer_field, scale: 0.22,
+                                  opacity: [0.80, 1.0], from_receipt: true}]
+            - [handwriting_amount, {anchor: totals, scale: 0.14,
+                                    opacity: [0.80, 1.0], from_receipt: true}]
+            - [signature_01, {anchor: signature_seller, scale: 0.22,
+                              opacity: [0.80, 1.0], rotate: [-5, 5]}]
+
+      - id: checked_by_hand
+        weight: 2
+        params:
+          marks:
+            - [pen_underline, {anchor: totals, scale: 0.34, opacity: [0.75, 0.95]}]
+            - [highlighter_swipe, {anchor: totals, scale: 0.38,
+                                   opacity: [0.45, 0.70], blend: multiply}]
+
   # ------------------------------------------------------------------------
   - id: flourish
     label: "Hoạ tiết thiết kế — in cùng lúc với chữ, không phải đóng thêm"
-    # Chỉ có trên tờ TỰ THIẾT KẾ và tờ mẫu in sẵn. Một tờ hoá đơn GTGT do phần
-    # mềm xuất ra thì không có nẹp sóng, và giấy nhiệt lại càng không.
     excludes: [till_receipt]
     tags: [has_flourish]
     options:
@@ -102,6 +185,20 @@ groups:
         params:
           marks:
             - [guilloche_violet, {anchor: table_back, scale: 0.34, opacity: [0.16, 0.30]}]
+
+      - id: watermark_copy
+        weight: 2
+        params:
+          marks:
+            - [watermark_ban_sao, {anchor: page_full, scale: 1.0, opacity: [0.55, 0.85]}]
+
+      - id: watermark_sample
+        weight: 2
+        requires: [printed_form]
+        params:
+          marks:
+            - [watermark_hoa_don_mau, {anchor: page_full, scale: 1.0,
+                                       opacity: [0.60, 0.90]}]
 
       - id: branded_teal
         weight: 3
@@ -129,3 +226,61 @@ groups:
         params:
           marks:
             - [wave_band_red, {anchor: header_band, scale: 1.0, opacity: [0.70, 0.90]}]
+
+      # Hoa văn trống đồng: nhà hàng, khách sạn, tiệm bánh Việt Nam rất hay lấy
+      # hoa văn truyền thống làm nhận diện, và không hoạ tiết phương Tây nào
+      # thay được chỗ này.
+      - id: dong_son_brand
+        weight: 3
+        requires: [doc_service]
+        tags: [vietnamese_motif]
+        params:
+          marks:
+            - [motif_dong_son, {anchor: table_back, scale: 0.32, opacity: [0.10, 0.20]}]
+            - [corner_bracket_green, {anchor: corner_tr, scale: 0.12, opacity: [0.20, 0.40]}]
+
+      - id: dong_son_teal
+        weight: 2
+        requires: [doc_lodging]
+        tags: [vietnamese_motif]
+        params:
+          marks:
+            - [motif_dong_son_teal, {anchor: header_band, scale: 0.18,
+                                     opacity: [0.30, 0.55]}]
+
+  # ------------------------------------------------------------------------
+  - id: machine
+    label: "Mã máy đọc — vạch và ô vuông, nội dung lấy từ chính tờ giấy"
+    # KHÔNG ràng buộc cả họ: mã vạch nằm trên giấy tính tiền siêu thị, mã QR
+    # nằm trên hoá đơn điện tử, hai thứ loại trừ nhau nên ràng buộc đặt ở từng
+    # giá trị.
+    tags: [has_machine_code]
+    options:
+      # Bố cục siêu thị vẫn IN dãy số mã vạch mà chưa bao giờ in vạch, nên nhãn
+      # dữ liệu đang ghi một mã vạch mà ảnh không có hình. `from_receipt` là
+      # chỗ sửa: vạch phải dựng từ đúng dãy số đã bốc.
+      - id: shelf_barcode
+        weight: 4
+        requires: [has_barcode]
+        params:
+          marks:
+            - [barcode_ean13_sample, {anchor: footer_band, scale: 0.46,
+                                      opacity: [0.90, 1.0], from_receipt: true}]
+
+      - id: verify_qr
+        weight: 4
+        requires: [doc_invoice]
+        params:
+          marks:
+            - [qr_verify_sample, {anchor: letterhead, scale: 0.14,
+                                  opacity: [0.92, 1.0], from_receipt: true}]
+
+      - id: qr_and_seal
+        weight: 2
+        requires: [doc_invoice]
+        params:
+          marks:
+            - [qr_verify_sample, {anchor: letterhead, scale: 0.14,
+                                  opacity: [0.92, 1.0], from_receipt: true}]
+            - [seal_name_block_chief, {anchor: signature_seller, scale: 0.24,
+                                       opacity: [0.72, 0.92], rotate: [-6, 6]}]

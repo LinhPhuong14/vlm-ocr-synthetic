@@ -477,6 +477,16 @@ Position is named, not measured: `anchor: signature_seller` rather than a pair
 of coordinates. A seal belongs over the seller's signature on a 148mm folio and
 on a 210mm form alike, and the two have that place in different millimetres.
 
+Three marks carry `from_receipt: true`: the handwritten fields, the shelf
+barcode and the verification QR. Their content comes from the values the
+rule-base already drew for that page, so the file in `textures/ornament/` is a
+sample to look at and not the thing to composite — a fixed barcode pasted onto
+a receipt whose label says a different number is the exact defect
+`pipeline/invariants.py` exists to catch.
+
+Nineteen more were surveyed and not built; they are written down with the reason
+each was left, in [docs/hoa-tiet-de-xuat.md](../docs/hoa-tiet-de-xuat.md).
+
 > **Not yet drawn.** The attribute is sampled and recorded in `metadata.jsonl`,
 > and every asset it names exists. No renderer composites it onto the page yet —
 > that is the next piece of work, and it is why `make baseline-verify` needs a
