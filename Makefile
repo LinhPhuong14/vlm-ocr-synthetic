@@ -19,6 +19,7 @@ LAYOUT  ?=
 .DEFAULT_GOAL := help
 .PHONY: help setup setup-synthdog setup-html setup-genalog textures \
         receipts preview preview-grid dataset dataset-clean proof showcase \
+        ornaments \
         preflight check-rules check-corpus check-boxes distribution monitor \
         list-degradations \
         lint format check clean
@@ -38,6 +39,8 @@ setup-genalog:   ## genalog renderer: WeasyPrint + PyMuPDF
 	$(TASKS) setup-genalog
 textures:        ## Regenerate the shared paper and background textures
 	$(TASKS) textures
+ornaments:       ## Regenerate the seals and flourishes in textures/ornament
+	$(TASKS) ornaments
 
 # ------------------------------------------------------------ generation
 

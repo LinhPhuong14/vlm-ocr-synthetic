@@ -275,22 +275,24 @@ The same shape applies to the other axes:
 | a **sampling attribute** | a new `rules/<name>.yaml` + a line in [`_order.yaml`](rulebase/rules/_order.yaml) | the attribute list is read, not hard-coded |
 | an **ageing effect** | a module in [`degradation/`](degradation) + its name in the registry | all three backends get it |
 | a **paper stock** | a file in [`textures/paper/`](textures/paper) named by `visual.paper` | the chain resolves it |
+| a **seal or flourish** | a draw function in [`tools/make_ornaments.py`](tools/make_ornaments.py) + a `marks:` entry in `rules/ornament.yaml` | preflight checks both directions |
 | a **sheet size** | one entry in `SHEETS` in [`rulebase/style.py`](rulebase/style.py) | every backend, which only reads the ratio |
 | a **renderer** | a `render.py` that consumes a `Grid` and writes a metadata line | the rule-base |
 
 Full guide, with the grammar of a layout file and the section list:
 **[`rulebase/README.md`](rulebase/README.md)**.
 
-### Why the order of the six attributes matters
+### Why the order of the seven attributes matters
 
 ```mermaid
 flowchart LR
-    d["document"] --> l["layout"] --> c["content"] --> v["visual"] --> col["color"] --> a["augmentation"]
+    d["document"] --> l["layout"] --> c["content"] --> v["visual"] --> col["color"] --> o["ornament"] --> a["augmentation"]
     d -. tags .-> l
     l -. tags .-> c
     c -. tags .-> v
     v -. tags .-> col
-    col -. tags .-> a
+    col -. tags .-> o
+    o -. tags .-> a
 ```
 
 Each attribute sees the tags the earlier ones set, and a value may only
@@ -568,7 +570,7 @@ TIỀN HÀNG                                794.000
 
 ```
 rulebase/               THE RULE-BASE — one source of truth for content
-├── rules/              6 attributes, one file each; layout.yaml has families
+├── rules/              7 attributes, one file each; layout.yaml has families
 ├── layouts/            one file per layout, measured off real paper
 ├── corpus/vi/ en/      the strings a document prints
 ├── spec.py             weighted draw, tags, parent nodes
