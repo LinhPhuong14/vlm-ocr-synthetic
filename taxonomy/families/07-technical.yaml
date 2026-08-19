@@ -1,0 +1,28 @@
+# 7. TECHNICAL DOCUMENT
+#
+# Long-form, heavily structured prose: numbered sections, code blocks, tables of
+# parameters, figures with captions. A datasheet is the exception -- it is a
+# dense table and reachable by the grid engine.
+
+id: technical
+number: 7
+name: Technical Document
+name_vi: Tài liệu kỹ thuật
+engine: flow
+status: planned
+
+children:
+  - {id: manual,             name: Technical Manual,    name_vi: Sổ tay kỹ thuật}
+  - {id: user_manual,        name: User Manual,         name_vi: Hướng dẫn sử dụng}
+  - {id: specification,      name: Specification,       name_vi: Đặc tả kỹ thuật}
+  - id: datasheet
+    name: Datasheet
+    name_vi: Bảng thông số kỹ thuật
+    engine: grid
+  - {id: api_documentation,  name: API Documentation,   name_vi: Tài liệu API}
+  - {id: installation_guide, name: Installation Guide,  name_vi: Hướng dẫn cài đặt}
+  - {id: engineering_report, name: Engineering Report,  name_vi: Báo cáo kỹ thuật}
+  - id: diagram_document
+    name: Technical Diagram Document
+    name_vi: Tài liệu bản vẽ kỹ thuật
+    engine: canvas

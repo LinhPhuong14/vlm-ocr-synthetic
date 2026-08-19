@@ -1,0 +1,46 @@
+# 6. ACADEMIC / RESEARCH DOCUMENT
+#
+# Mostly two-column prose with figures, equations and references -- the hardest
+# text flow in the tree. Three leaves escape that: a transcript is a table, and
+# question and answer sheets are forms.
+
+id: academic
+number: 6
+name: Academic / Research Document
+name_vi: Tài liệu học thuật và nghiên cứu
+engine: flow
+status: planned
+
+children:
+  - {id: paper,          name: Academic Paper,  name_vi: Bài báo khoa học}
+  - {id: research_paper, name: Research Paper,  name_vi: Báo cáo nghiên cứu}
+  - {id: thesis,         name: Thesis,          name_vi: Luận văn}
+  - id: exam
+    name: Exam
+    name_vi: Đề thi
+    engine: grid
+  - id: question_sheet
+    name: Question Sheet
+    name_vi: Phiếu câu hỏi
+    engine: grid
+  - id: answer_sheet
+    name: Answer Sheet
+    name_vi: Phiếu trả lời
+    engine: grid
+    notes: >
+      A bubble sheet is a grid of marks with no text in most cells. Its label is
+      the marked positions, which is the first type in this tree whose ground
+      truth is not text at all.
+  - id: transcript
+    name: Transcript
+    name_vi: Bảng điểm
+    engine: grid
+  - id: certificate
+    name: Certificate
+    same_as: identity.certificate
+    notes: >
+      A school-awarded certificate is the same artefact as the authority-issued
+      one in family 3, so it is generated there and only filed here. An alias
+      carries no status and no engine of its own -- there is one answer to
+      "can we make a Certificate", and it lives on the canonical node.
+  - {id: study_material, name: Study Material, name_vi: Tài liệu học tập}
