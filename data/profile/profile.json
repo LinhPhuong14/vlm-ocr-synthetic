@@ -1,0 +1,3489 @@
+{
+  "ageing": {
+    "genalog": {
+      "crumpled": {
+        "backend": "genalog",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/genalog/crumpled/images",
+        "overhead": {
+          "calls": 32,
+          "per_call": 4.868447500712136e-07,
+          "share": 6.41e-06,
+          "total": 1.5579032e-05
+        },
+        "process_wall": 3.298697,
+        "stages": {
+          "annotation": {
+            "calls": 2,
+            "exclusive": 0.000618,
+            "inclusive": 0.000618
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001011,
+            "inclusive": 0.001011
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000401,
+            "inclusive": 1.835256
+          },
+          "degradation/blur_zones": {
+            "calls": 2,
+            "exclusive": 0.20276,
+            "inclusive": 0.20276
+          },
+          "degradation/gradient_domain": {
+            "calls": 2,
+            "exclusive": 0.206556,
+            "inclusive": 0.206556
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.351241,
+            "inclusive": 0.351241
+          },
+          "degradation/paper_overlay": {
+            "calls": 2,
+            "exclusive": 0.704075,
+            "inclusive": 0.704075
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.370223,
+            "inclusive": 0.370223
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.019195,
+            "inclusive": 0.019195
+          },
+          "geometry": {
+            "calls": 3,
+            "exclusive": 0.000846,
+            "inclusive": 0.000846
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 0.869946,
+            "inclusive": 0.869946
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.006616,
+            "inclusive": 0.006616
+          },
+          "render": {
+            "calls": 3,
+            "exclusive": 0.420222,
+            "inclusive": 0.420222
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000338,
+            "inclusive": 0.140351
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.140012,
+            "inclusive": 0.140012
+          },
+          "startup": {
+            "calls": 1,
+            "exclusive": 8.8e-05,
+            "inclusive": 8.8e-05
+          }
+        },
+        "unattributed": 0.004549,
+        "unattributed_share": 0.001379,
+        "wall": 3.298697
+      },
+      "ghost_text": {
+        "backend": "genalog",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/genalog/ghost_text/images",
+        "overhead": {
+          "calls": 32,
+          "per_call": 4.944944998896972e-07,
+          "share": 1.358e-05,
+          "total": 1.5823824e-05
+        },
+        "process_wall": 2.048354,
+        "stages": {
+          "annotation": {
+            "calls": 2,
+            "exclusive": 0.000515,
+            "inclusive": 0.000515
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001145,
+            "inclusive": 0.001145
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000308,
+            "inclusive": 0.574686
+          },
+          "degradation/blur_zones": {
+            "calls": 2,
+            "exclusive": 0.180779,
+            "inclusive": 0.180779
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.184053,
+            "inclusive": 0.184053
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.184917,
+            "inclusive": 0.184917
+          },
+          "degradation/phantom_character": {
+            "calls": 2,
+            "exclusive": 0.024628,
+            "inclusive": 0.024628
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.01542,
+            "inclusive": 0.01542
+          },
+          "geometry": {
+            "calls": 4,
+            "exclusive": 0.001171,
+            "inclusive": 0.001171
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 0.883413,
+            "inclusive": 0.883413
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.007893,
+            "inclusive": 0.007893
+          },
+          "render": {
+            "calls": 4,
+            "exclusive": 0.378456,
+            "inclusive": 0.378456
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000359,
+            "inclusive": 0.180683
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.180325,
+            "inclusive": 0.180325
+          },
+          "startup": {
+            "calls": 1,
+            "exclusive": 0.000107,
+            "inclusive": 0.000107
+          }
+        },
+        "unattributed": 0.004865,
+        "unattributed_share": 0.002375,
+        "wall": 2.048354
+      },
+      "heavy": {
+        "backend": "genalog",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/genalog/heavy/images",
+        "overhead": {
+          "calls": 36,
+          "per_call": 5.015535000438831e-07,
+          "share": 1.185e-05,
+          "total": 1.8055926e-05
+        },
+        "process_wall": 2.439863,
+        "stages": {
+          "annotation": {
+            "calls": 2,
+            "exclusive": 0.000496,
+            "inclusive": 0.000496
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001427,
+            "inclusive": 0.001427
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000414,
+            "inclusive": 0.864839
+          },
+          "degradation/bleed_through": {
+            "calls": 2,
+            "exclusive": 0.248053,
+            "inclusive": 0.248053
+          },
+          "degradation/blur_zones": {
+            "calls": 2,
+            "exclusive": 0.162932,
+            "inclusive": 0.162932
+          },
+          "degradation/holes": {
+            "calls": 2,
+            "exclusive": 0.005711,
+            "inclusive": 0.005711
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.213681,
+            "inclusive": 0.213681
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.193847,
+            "inclusive": 0.193847
+          },
+          "degradation/shadow_binding": {
+            "calls": 2,
+            "exclusive": 0.040201,
+            "inclusive": 0.040201
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.016181,
+            "inclusive": 0.016181
+          },
+          "geometry": {
+            "calls": 4,
+            "exclusive": 0.001279,
+            "inclusive": 0.001279
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 0.916302,
+            "inclusive": 0.916302
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.010514,
+            "inclusive": 0.010514
+          },
+          "render": {
+            "calls": 4,
+            "exclusive": 0.484034,
+            "inclusive": 0.484034
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000335,
+            "inclusive": 0.140451
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.140116,
+            "inclusive": 0.140116
+          },
+          "startup": {
+            "calls": 1,
+            "exclusive": 9.2e-05,
+            "inclusive": 9.2e-05
+          }
+        },
+        "unattributed": 0.004248,
+        "unattributed_share": 0.001741,
+        "wall": 2.439863
+      },
+      "light": {
+        "backend": "genalog",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/genalog/light/images",
+        "overhead": {
+          "calls": 30,
+          "per_call": 5.324725000264152e-07,
+          "share": 1.384e-05,
+          "total": 1.5974175e-05
+        },
+        "process_wall": 2.042901,
+        "stages": {
+          "annotation": {
+            "calls": 2,
+            "exclusive": 0.00053,
+            "inclusive": 0.00053
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.00122,
+            "inclusive": 0.00122
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000268,
+            "inclusive": 0.562351
+          },
+          "degradation/blur_zones": {
+            "calls": 2,
+            "exclusive": 0.236578,
+            "inclusive": 0.236578
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.148672,
+            "inclusive": 0.148672
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.176833,
+            "inclusive": 0.176833
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.015032,
+            "inclusive": 0.015032
+          },
+          "geometry": {
+            "calls": 4,
+            "exclusive": 0.001237,
+            "inclusive": 0.001237
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 0.888463,
+            "inclusive": 0.888463
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.007692,
+            "inclusive": 0.007692
+          },
+          "render": {
+            "calls": 4,
+            "exclusive": 0.421503,
+            "inclusive": 0.421503
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000391,
+            "inclusive": 0.140345
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.139953,
+            "inclusive": 0.139953
+          },
+          "startup": {
+            "calls": 1,
+            "exclusive": 8.7e-05,
+            "inclusive": 8.7e-05
+          }
+        },
+        "unattributed": 0.004442,
+        "unattributed_share": 0.002174,
+        "wall": 2.042901
+      },
+      "medium": {
+        "backend": "genalog",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/genalog/medium/images",
+        "overhead": {
+          "calls": 34,
+          "per_call": 5.080697499124653e-07,
+          "share": 1.033e-05,
+          "total": 1.7274371e-05
+        },
+        "process_wall": 2.566987,
+        "stages": {
+          "annotation": {
+            "calls": 2,
+            "exclusive": 0.000515,
+            "inclusive": 0.000515
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001302,
+            "inclusive": 0.001302
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000356,
+            "inclusive": 1.096038
+          },
+          "degradation/blur_zones": {
+            "calls": 2,
+            "exclusive": 0.173754,
+            "inclusive": 0.173754
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.18407,
+            "inclusive": 0.18407
+          },
+          "degradation/paper_overlay": {
+            "calls": 2,
+            "exclusive": 0.515834,
+            "inclusive": 0.515834
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.175151,
+            "inclusive": 0.175151
+          },
+          "degradation/shadow_binding": {
+            "calls": 2,
+            "exclusive": 0.046873,
+            "inclusive": 0.046873
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.01594,
+            "inclusive": 0.01594
+          },
+          "geometry": {
+            "calls": 4,
+            "exclusive": 0.001146,
+            "inclusive": 0.001146
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 0.895051,
+            "inclusive": 0.895051
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.007682,
+            "inclusive": 0.007682
+          },
+          "render": {
+            "calls": 4,
+            "exclusive": 0.405886,
+            "inclusive": 0.405886
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000326,
+            "inclusive": 0.138666
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.138339,
+            "inclusive": 0.138339
+          },
+          "startup": {
+            "calls": 1,
+            "exclusive": 0.000124,
+            "inclusive": 0.000124
+          }
+        },
+        "unattributed": 0.004638,
+        "unattributed_share": 0.001807,
+        "wall": 2.566987
+      },
+      "photocopy": {
+        "backend": "genalog",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/genalog/photocopy/images",
+        "overhead": {
+          "calls": 36,
+          "per_call": 4.807500000651998e-07,
+          "share": 9.16e-06,
+          "total": 1.7307e-05
+        },
+        "process_wall": 2.78255,
+        "stages": {
+          "annotation": {
+            "calls": 2,
+            "exclusive": 0.000557,
+            "inclusive": 0.000557
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001301,
+            "inclusive": 0.001301
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.00038,
+            "inclusive": 1.307858
+          },
+          "degradation/blur": {
+            "calls": 2,
+            "exclusive": 0.003193,
+            "inclusive": 0.003193
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.188849,
+            "inclusive": 0.188849
+          },
+          "degradation/paper_overlay": {
+            "calls": 2,
+            "exclusive": 0.809404,
+            "inclusive": 0.809404
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.235615,
+            "inclusive": 0.235615
+          },
+          "degradation/phantom_character": {
+            "calls": 2,
+            "exclusive": 0.025571,
+            "inclusive": 0.025571
+          },
+          "degradation/shadow_binding": {
+            "calls": 2,
+            "exclusive": 0.044846,
+            "inclusive": 0.044846
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.015112,
+            "inclusive": 0.015112
+          },
+          "geometry": {
+            "calls": 4,
+            "exclusive": 0.001105,
+            "inclusive": 0.001105
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 0.892541,
+            "inclusive": 0.892541
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.00806,
+            "inclusive": 0.00806
+          },
+          "render": {
+            "calls": 4,
+            "exclusive": 0.370437,
+            "inclusive": 0.370437
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.00035,
+            "inclusive": 0.180698
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.180348,
+            "inclusive": 0.180348
+          },
+          "startup": {
+            "calls": 1,
+            "exclusive": 9e-05,
+            "inclusive": 9e-05
+          }
+        },
+        "unattributed": 0.004791,
+        "unattributed_share": 0.001722,
+        "wall": 2.78255
+      },
+      "pristine": {
+        "backend": "genalog",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/genalog/pristine/images",
+        "overhead": {
+          "calls": 24,
+          "per_call": 4.772490000277685e-07,
+          "share": 1.931e-05,
+          "total": 1.1453976e-05
+        },
+        "process_wall": 1.485935,
+        "stages": {
+          "annotation": {
+            "calls": 2,
+            "exclusive": 0.000409,
+            "inclusive": 0.000409
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001309,
+            "inclusive": 0.001309
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 7.1e-05,
+            "inclusive": 7.1e-05
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.012146,
+            "inclusive": 0.012146
+          },
+          "geometry": {
+            "calls": 4,
+            "exclusive": 0.0012,
+            "inclusive": 0.0012
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 0.892869,
+            "inclusive": 0.892869
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.007843,
+            "inclusive": 0.007843
+          },
+          "render": {
+            "calls": 4,
+            "exclusive": 0.427307,
+            "inclusive": 0.427307
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000367,
+            "inclusive": 0.138354
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.137986,
+            "inclusive": 0.137986
+          },
+          "startup": {
+            "calls": 1,
+            "exclusive": 9.5e-05,
+            "inclusive": 9.5e-05
+          }
+        },
+        "unattributed": 0.004333,
+        "unattributed_share": 0.002916,
+        "wall": 1.485935
+      },
+      "punched": {
+        "backend": "genalog",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/genalog/punched/images",
+        "overhead": {
+          "calls": 32,
+          "per_call": 5.132657499871129e-07,
+          "share": 1.567e-05,
+          "total": 1.6424504e-05
+        },
+        "process_wall": 1.951754,
+        "stages": {
+          "annotation": {
+            "calls": 2,
+            "exclusive": 0.000561,
+            "inclusive": 0.000561
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001305,
+            "inclusive": 0.001305
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000327,
+            "inclusive": 0.456148
+          },
+          "degradation/holes": {
+            "calls": 2,
+            "exclusive": 0.005254,
+            "inclusive": 0.005254
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.20976,
+            "inclusive": 0.20976
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.200239,
+            "inclusive": 0.200239
+          },
+          "degradation/shadow_binding": {
+            "calls": 2,
+            "exclusive": 0.040568,
+            "inclusive": 0.040568
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.016164,
+            "inclusive": 0.016164
+          },
+          "geometry": {
+            "calls": 4,
+            "exclusive": 0.001203,
+            "inclusive": 0.001203
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 0.903406,
+            "inclusive": 0.903406
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.007937,
+            "inclusive": 0.007937
+          },
+          "render": {
+            "calls": 4,
+            "exclusive": 0.413728,
+            "inclusive": 0.413728
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.00034,
+            "inclusive": 0.146934
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.146595,
+            "inclusive": 0.146595
+          },
+          "startup": {
+            "calls": 1,
+            "exclusive": 9e-05,
+            "inclusive": 9e-05
+          }
+        },
+        "unattributed": 0.004277,
+        "unattributed_share": 0.002192,
+        "wall": 1.951754
+      },
+      "real_paper": {
+        "backend": "genalog",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/genalog/real_paper/images",
+        "overhead": {
+          "calls": 28,
+          "per_call": 4.860165000764027e-07,
+          "share": 9.45e-06,
+          "total": 1.3608462e-05
+        },
+        "process_wall": 2.346104,
+        "stages": {
+          "annotation": {
+            "calls": 2,
+            "exclusive": 0.000539,
+            "inclusive": 0.000539
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001278,
+            "inclusive": 0.001278
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000237,
+            "inclusive": 0.856769
+          },
+          "degradation/paper_overlay": {
+            "calls": 2,
+            "exclusive": 0.657659,
+            "inclusive": 0.657659
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.198873,
+            "inclusive": 0.198873
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.015863,
+            "inclusive": 0.015863
+          },
+          "geometry": {
+            "calls": 4,
+            "exclusive": 0.001099,
+            "inclusive": 0.001099
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 0.906712,
+            "inclusive": 0.906712
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.007896,
+            "inclusive": 0.007896
+          },
+          "render": {
+            "calls": 4,
+            "exclusive": 0.410834,
+            "inclusive": 0.410834
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000361,
+            "inclusive": 0.140646
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.140286,
+            "inclusive": 0.140286
+          },
+          "startup": {
+            "calls": 1,
+            "exclusive": 9.7e-05,
+            "inclusive": 9.7e-05
+          }
+        },
+        "unattributed": 0.00437,
+        "unattributed_share": 0.001863,
+        "wall": 2.346104
+      },
+      "stains": {
+        "backend": "genalog",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/genalog/stains/images",
+        "overhead": {
+          "calls": 30,
+          "per_call": 5.430072499166271e-07,
+          "share": 1.272e-05,
+          "total": 1.6290217e-05
+        },
+        "process_wall": 2.163877,
+        "stages": {
+          "annotation": {
+            "calls": 2,
+            "exclusive": 0.000531,
+            "inclusive": 0.000531
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001283,
+            "inclusive": 0.001283
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000245,
+            "inclusive": 0.696545
+          },
+          "degradation/gradient_domain": {
+            "calls": 2,
+            "exclusive": 0.275606,
+            "inclusive": 0.275606
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.220757,
+            "inclusive": 0.220757
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.199937,
+            "inclusive": 0.199937
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.015366,
+            "inclusive": 0.015366
+          },
+          "geometry": {
+            "calls": 4,
+            "exclusive": 0.001157,
+            "inclusive": 0.001157
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 0.883341,
+            "inclusive": 0.883341
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.007717,
+            "inclusive": 0.007717
+          },
+          "render": {
+            "calls": 4,
+            "exclusive": 0.408828,
+            "inclusive": 0.408828
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000382,
+            "inclusive": 0.144541
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.144159,
+            "inclusive": 0.144159
+          },
+          "startup": {
+            "calls": 1,
+            "exclusive": 9.3e-05,
+            "inclusive": 9.3e-05
+          }
+        },
+        "unattributed": 0.004475,
+        "unattributed_share": 0.002068,
+        "wall": 2.163877
+      },
+      "torn_edges": {
+        "backend": "genalog",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/genalog/torn_edges/images",
+        "overhead": {
+          "calls": 34,
+          "per_call": 5.223299998533548e-07,
+          "share": 1.406e-05,
+          "total": 1.775922e-05
+        },
+        "process_wall": 2.136825,
+        "stages": {
+          "annotation": {
+            "calls": 2,
+            "exclusive": 0.000569,
+            "inclusive": 0.000569
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001229,
+            "inclusive": 0.001229
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000309,
+            "inclusive": 0.645209
+          },
+          "degradation/blur_zones": {
+            "calls": 2,
+            "exclusive": 0.180765,
+            "inclusive": 0.180765
+          },
+          "degradation/holes": {
+            "calls": 4,
+            "exclusive": 0.020355,
+            "inclusive": 0.020355
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.194434,
+            "inclusive": 0.194434
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.249347,
+            "inclusive": 0.249347
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.015787,
+            "inclusive": 0.015787
+          },
+          "geometry": {
+            "calls": 4,
+            "exclusive": 0.001086,
+            "inclusive": 0.001086
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 0.873847,
+            "inclusive": 0.873847
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.007746,
+            "inclusive": 0.007746
+          },
+          "render": {
+            "calls": 4,
+            "exclusive": 0.448,
+            "inclusive": 0.448
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000343,
+            "inclusive": 0.13892
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.138577,
+            "inclusive": 0.138577
+          },
+          "startup": {
+            "calls": 1,
+            "exclusive": 8.8e-05,
+            "inclusive": 8.8e-05
+          }
+        },
+        "unattributed": 0.004343,
+        "unattributed_share": 0.002033,
+        "wall": 2.136825
+      }
+    },
+    "html": {
+      "crumpled": {
+        "backend": "html",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/html/crumpled/images",
+        "overhead": {
+          "calls": 41,
+          "per_call": 4.973065000513089e-07,
+          "share": 4.76e-06,
+          "total": 2.0389567e-05
+        },
+        "process_wall": 4.554622,
+        "stages": {
+          "annotation": {
+            "calls": 2,
+            "exclusive": 0.000477,
+            "inclusive": 0.000477
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.000904,
+            "inclusive": 0.000904
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000387,
+            "inclusive": 2.353157
+          },
+          "degradation/blur_zones": {
+            "calls": 2,
+            "exclusive": 0.232857,
+            "inclusive": 0.232857
+          },
+          "degradation/gradient_domain": {
+            "calls": 2,
+            "exclusive": 0.200727,
+            "inclusive": 0.200727
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.494789,
+            "inclusive": 0.494789
+          },
+          "degradation/paper_overlay": {
+            "calls": 2,
+            "exclusive": 0.918002,
+            "inclusive": 0.918002
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.506395,
+            "inclusive": 0.506395
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.018777,
+            "inclusive": 0.018777
+          },
+          "geometry": {
+            "calls": 4,
+            "exclusive": 0.059134,
+            "inclusive": 0.059134
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 0.27301,
+            "inclusive": 0.27301
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.006637,
+            "inclusive": 0.006637
+          },
+          "render": {
+            "calls": 10,
+            "exclusive": 1.120475,
+            "inclusive": 1.120475
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000309,
+            "inclusive": 0.167907
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.167599,
+            "inclusive": 0.167599
+          },
+          "startup": {
+            "calls": 2,
+            "exclusive": 0.549534,
+            "inclusive": 0.549534
+          }
+        },
+        "unattributed": 0.004609,
+        "unattributed_share": 0.001012,
+        "wall": 4.554622
+      },
+      "ghost_text": {
+        "backend": "html",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/html/ghost_text/images",
+        "overhead": {
+          "calls": 39,
+          "per_call": 4.8748025005807e-07,
+          "share": 7.47e-06,
+          "total": 1.901173e-05
+        },
+        "process_wall": 2.790918,
+        "stages": {
+          "annotation": {
+            "calls": 2,
+            "exclusive": 0.000457,
+            "inclusive": 0.000457
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001233,
+            "inclusive": 0.001233
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000299,
+            "inclusive": 0.68222
+          },
+          "degradation/blur_zones": {
+            "calls": 2,
+            "exclusive": 0.171408,
+            "inclusive": 0.171408
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.18577,
+            "inclusive": 0.18577
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.299864,
+            "inclusive": 0.299864
+          },
+          "degradation/phantom_character": {
+            "calls": 2,
+            "exclusive": 0.024878,
+            "inclusive": 0.024878
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.016417,
+            "inclusive": 0.016417
+          },
+          "geometry": {
+            "calls": 4,
+            "exclusive": 0.037813,
+            "inclusive": 0.037813
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 0.246647,
+            "inclusive": 0.246647
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.007716,
+            "inclusive": 0.007716
+          },
+          "render": {
+            "calls": 10,
+            "exclusive": 1.129078,
+            "inclusive": 1.129078
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000316,
+            "inclusive": 0.159006
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.15869,
+            "inclusive": 0.15869
+          },
+          "startup": {
+            "calls": 2,
+            "exclusive": 0.506151,
+            "inclusive": 0.506151
+          }
+        },
+        "unattributed": 0.004181,
+        "unattributed_share": 0.001498,
+        "wall": 2.790918
+      },
+      "heavy": {
+        "backend": "html",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/html/heavy/images",
+        "overhead": {
+          "calls": 43,
+          "per_call": 4.826110000522021e-07,
+          "share": 7.06e-06,
+          "total": 2.0752273e-05
+        },
+        "process_wall": 3.167892,
+        "stages": {
+          "annotation": {
+            "calls": 2,
+            "exclusive": 0.000403,
+            "inclusive": 0.000403
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001484,
+            "inclusive": 0.001484
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000571,
+            "inclusive": 0.922577
+          },
+          "degradation/bleed_through": {
+            "calls": 2,
+            "exclusive": 0.296521,
+            "inclusive": 0.296521
+          },
+          "degradation/blur_zones": {
+            "calls": 2,
+            "exclusive": 0.16915,
+            "inclusive": 0.16915
+          },
+          "degradation/holes": {
+            "calls": 2,
+            "exclusive": 0.005615,
+            "inclusive": 0.005615
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.227421,
+            "inclusive": 0.227421
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.182357,
+            "inclusive": 0.182357
+          },
+          "degradation/shadow_binding": {
+            "calls": 2,
+            "exclusive": 0.040942,
+            "inclusive": 0.040942
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.016395,
+            "inclusive": 0.016395
+          },
+          "geometry": {
+            "calls": 4,
+            "exclusive": 0.042588,
+            "inclusive": 0.042588
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 0.228741,
+            "inclusive": 0.228741
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.010616,
+            "inclusive": 0.010616
+          },
+          "render": {
+            "calls": 10,
+            "exclusive": 1.233056,
+            "inclusive": 1.233056
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000276,
+            "inclusive": 0.166346
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.16607,
+            "inclusive": 0.16607
+          },
+          "startup": {
+            "calls": 2,
+            "exclusive": 0.541531,
+            "inclusive": 0.541531
+          }
+        },
+        "unattributed": 0.004155,
+        "unattributed_share": 0.001311,
+        "wall": 3.167892
+      },
+      "light": {
+        "backend": "html",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/html/light/images",
+        "overhead": {
+          "calls": 37,
+          "per_call": 5.026420000149301e-07,
+          "share": 7.77e-06,
+          "total": 1.8597754e-05
+        },
+        "process_wall": 2.623309,
+        "stages": {
+          "annotation": {
+            "calls": 2,
+            "exclusive": 0.000456,
+            "inclusive": 0.000456
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001328,
+            "inclusive": 0.001328
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000267,
+            "inclusive": 0.631062
+          },
+          "degradation/blur_zones": {
+            "calls": 2,
+            "exclusive": 0.220265,
+            "inclusive": 0.220265
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.175403,
+            "inclusive": 0.175403
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.235127,
+            "inclusive": 0.235127
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.015386,
+            "inclusive": 0.015386
+          },
+          "geometry": {
+            "calls": 4,
+            "exclusive": 0.053335,
+            "inclusive": 0.053335
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 0.231275,
+            "inclusive": 0.231275
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.007806,
+            "inclusive": 0.007806
+          },
+          "render": {
+            "calls": 10,
+            "exclusive": 1.036613,
+            "inclusive": 1.036613
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000353,
+            "inclusive": 0.142353
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.142,
+            "inclusive": 0.142
+          },
+          "startup": {
+            "calls": 2,
+            "exclusive": 0.499374,
+            "inclusive": 0.499374
+          }
+        },
+        "unattributed": 0.004321,
+        "unattributed_share": 0.001647,
+        "wall": 2.623309
+      },
+      "medium": {
+        "backend": "html",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/html/medium/images",
+        "overhead": {
+          "calls": 41,
+          "per_call": 5.078944999468149e-07,
+          "share": 6.36e-06,
+          "total": 2.0823674e-05
+        },
+        "process_wall": 3.503219,
+        "stages": {
+          "annotation": {
+            "calls": 2,
+            "exclusive": 0.000485,
+            "inclusive": 0.000485
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001303,
+            "inclusive": 0.001303
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000439,
+            "inclusive": 1.479701
+          },
+          "degradation/blur_zones": {
+            "calls": 2,
+            "exclusive": 0.194661,
+            "inclusive": 0.194661
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.212568,
+            "inclusive": 0.212568
+          },
+          "degradation/paper_overlay": {
+            "calls": 2,
+            "exclusive": 0.740923,
+            "inclusive": 0.740923
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.292014,
+            "inclusive": 0.292014
+          },
+          "degradation/shadow_binding": {
+            "calls": 2,
+            "exclusive": 0.039096,
+            "inclusive": 0.039096
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.016256,
+            "inclusive": 0.016256
+          },
+          "geometry": {
+            "calls": 4,
+            "exclusive": 0.05584,
+            "inclusive": 0.05584
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 0.23153,
+            "inclusive": 0.23153
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.007918,
+            "inclusive": 0.007918
+          },
+          "render": {
+            "calls": 10,
+            "exclusive": 1.020945,
+            "inclusive": 1.020945
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000337,
+            "inclusive": 0.154961
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.154624,
+            "inclusive": 0.154624
+          },
+          "startup": {
+            "calls": 2,
+            "exclusive": 0.530083,
+            "inclusive": 0.530083
+          }
+        },
+        "unattributed": 0.004197,
+        "unattributed_share": 0.001198,
+        "wall": 3.503219
+      },
+      "photocopy": {
+        "backend": "html",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/html/photocopy/images",
+        "overhead": {
+          "calls": 43,
+          "per_call": 4.7197050002978356e-07,
+          "share": 6.52e-06,
+          "total": 2.0294732e-05
+        },
+        "process_wall": 3.378059,
+        "stages": {
+          "annotation": {
+            "calls": 2,
+            "exclusive": 0.00052,
+            "inclusive": 0.00052
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001243,
+            "inclusive": 0.001243
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.00036,
+            "inclusive": 1.232032
+          },
+          "degradation/blur": {
+            "calls": 2,
+            "exclusive": 0.003014,
+            "inclusive": 0.003014
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.201027,
+            "inclusive": 0.201027
+          },
+          "degradation/paper_overlay": {
+            "calls": 2,
+            "exclusive": 0.780493,
+            "inclusive": 0.780493
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.182098,
+            "inclusive": 0.182098
+          },
+          "degradation/phantom_character": {
+            "calls": 2,
+            "exclusive": 0.024137,
+            "inclusive": 0.024137
+          },
+          "degradation/shadow_binding": {
+            "calls": 2,
+            "exclusive": 0.040902,
+            "inclusive": 0.040902
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.015231,
+            "inclusive": 0.015231
+          },
+          "geometry": {
+            "calls": 4,
+            "exclusive": 0.038064,
+            "inclusive": 0.038064
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 0.265291,
+            "inclusive": 0.265291
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.007749,
+            "inclusive": 0.007749
+          },
+          "render": {
+            "calls": 10,
+            "exclusive": 1.092713,
+            "inclusive": 1.092713
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000343,
+            "inclusive": 0.1616
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.161257,
+            "inclusive": 0.161257
+          },
+          "startup": {
+            "calls": 2,
+            "exclusive": 0.559402,
+            "inclusive": 0.559402
+          }
+        },
+        "unattributed": 0.004215,
+        "unattributed_share": 0.001248,
+        "wall": 3.378059
+      },
+      "pristine": {
+        "backend": "html",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/html/pristine/images",
+        "overhead": {
+          "calls": 31,
+          "per_call": 5.098985000131507e-07,
+          "share": 8.36e-06,
+          "total": 1.5806854e-05
+        },
+        "process_wall": 2.142666,
+        "stages": {
+          "annotation": {
+            "calls": 2,
+            "exclusive": 0.000494,
+            "inclusive": 0.000494
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001326,
+            "inclusive": 0.001326
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000115,
+            "inclusive": 0.000115
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.013065,
+            "inclusive": 0.013065
+          },
+          "geometry": {
+            "calls": 4,
+            "exclusive": 0.037579,
+            "inclusive": 0.037579
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 0.251635,
+            "inclusive": 0.251635
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.007621,
+            "inclusive": 0.007621
+          },
+          "render": {
+            "calls": 10,
+            "exclusive": 1.170665,
+            "inclusive": 1.170665
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.00032,
+            "inclusive": 0.142202
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.141882,
+            "inclusive": 0.141882
+          },
+          "startup": {
+            "calls": 2,
+            "exclusive": 0.512261,
+            "inclusive": 0.512261
+          }
+        },
+        "unattributed": 0.005703,
+        "unattributed_share": 0.002662,
+        "wall": 2.142666
+      },
+      "punched": {
+        "backend": "html",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/html/punched/images",
+        "overhead": {
+          "calls": 39,
+          "per_call": 4.887154999551058e-07,
+          "share": 7.3e-06,
+          "total": 1.9059904e-05
+        },
+        "process_wall": 2.845957,
+        "stages": {
+          "annotation": {
+            "calls": 2,
+            "exclusive": 0.000483,
+            "inclusive": 0.000483
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001368,
+            "inclusive": 0.001368
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000319,
+            "inclusive": 0.697138
+          },
+          "degradation/holes": {
+            "calls": 2,
+            "exclusive": 0.005565,
+            "inclusive": 0.005565
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.215495,
+            "inclusive": 0.215495
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.433289,
+            "inclusive": 0.433289
+          },
+          "degradation/shadow_binding": {
+            "calls": 2,
+            "exclusive": 0.042469,
+            "inclusive": 0.042469
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.016702,
+            "inclusive": 0.016702
+          },
+          "geometry": {
+            "calls": 4,
+            "exclusive": 0.051401,
+            "inclusive": 0.051401
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 0.233461,
+            "inclusive": 0.233461
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.008435,
+            "inclusive": 0.008435
+          },
+          "render": {
+            "calls": 10,
+            "exclusive": 1.170052,
+            "inclusive": 1.170052
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000345,
+            "inclusive": 0.143202
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.142857,
+            "inclusive": 0.142857
+          },
+          "startup": {
+            "calls": 2,
+            "exclusive": 0.51964,
+            "inclusive": 0.51964
+          }
+        },
+        "unattributed": 0.004076,
+        "unattributed_share": 0.001432,
+        "wall": 2.845957
+      },
+      "real_paper": {
+        "backend": "html",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/html/real_paper/images",
+        "overhead": {
+          "calls": 35,
+          "per_call": 4.976359999773195e-07,
+          "share": 5.68e-06,
+          "total": 1.741726e-05
+        },
+        "process_wall": 3.298397,
+        "stages": {
+          "annotation": {
+            "calls": 2,
+            "exclusive": 0.000502,
+            "inclusive": 0.000502
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001287,
+            "inclusive": 0.001287
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000198,
+            "inclusive": 1.25813
+          },
+          "degradation/paper_overlay": {
+            "calls": 2,
+            "exclusive": 0.919794,
+            "inclusive": 0.919794
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.338138,
+            "inclusive": 0.338138
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.016194,
+            "inclusive": 0.016194
+          },
+          "geometry": {
+            "calls": 4,
+            "exclusive": 0.050624,
+            "inclusive": 0.050624
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 0.230123,
+            "inclusive": 0.230123
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.007918,
+            "inclusive": 0.007918
+          },
+          "render": {
+            "calls": 10,
+            "exclusive": 1.029038,
+            "inclusive": 1.029038
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000328,
+            "inclusive": 0.162675
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.162347,
+            "inclusive": 0.162347
+          },
+          "startup": {
+            "calls": 2,
+            "exclusive": 0.537526,
+            "inclusive": 0.537526
+          }
+        },
+        "unattributed": 0.00438,
+        "unattributed_share": 0.001328,
+        "wall": 3.298397
+      },
+      "stains": {
+        "backend": "html",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/html/stains/images",
+        "overhead": {
+          "calls": 37,
+          "per_call": 4.87516250018416e-07,
+          "share": 7.02e-06,
+          "total": 1.8038101e-05
+        },
+        "process_wall": 2.800135,
+        "stages": {
+          "annotation": {
+            "calls": 2,
+            "exclusive": 0.000495,
+            "inclusive": 0.000495
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001216,
+            "inclusive": 0.001216
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000261,
+            "inclusive": 0.718374
+          },
+          "degradation/gradient_domain": {
+            "calls": 2,
+            "exclusive": 0.271472,
+            "inclusive": 0.271472
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.248654,
+            "inclusive": 0.248654
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.197987,
+            "inclusive": 0.197987
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.015564,
+            "inclusive": 0.015564
+          },
+          "geometry": {
+            "calls": 4,
+            "exclusive": 0.05093,
+            "inclusive": 0.05093
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 0.232249,
+            "inclusive": 0.232249
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.007769,
+            "inclusive": 0.007769
+          },
+          "render": {
+            "calls": 10,
+            "exclusive": 1.107307,
+            "inclusive": 1.107307
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000368,
+            "inclusive": 0.145566
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.145198,
+            "inclusive": 0.145198
+          },
+          "startup": {
+            "calls": 2,
+            "exclusive": 0.516524,
+            "inclusive": 0.516524
+          }
+        },
+        "unattributed": 0.004141,
+        "unattributed_share": 0.001479,
+        "wall": 2.800135
+      },
+      "torn_edges": {
+        "backend": "html",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/html/torn_edges/images",
+        "overhead": {
+          "calls": 41,
+          "per_call": 4.833267500998772e-07,
+          "share": 7.47e-06,
+          "total": 1.9816397e-05
+        },
+        "process_wall": 2.885973,
+        "stages": {
+          "annotation": {
+            "calls": 2,
+            "exclusive": 0.000497,
+            "inclusive": 0.000497
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001226,
+            "inclusive": 0.001226
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000385,
+            "inclusive": 0.6714
+          },
+          "degradation/blur_zones": {
+            "calls": 2,
+            "exclusive": 0.184292,
+            "inclusive": 0.184292
+          },
+          "degradation/holes": {
+            "calls": 4,
+            "exclusive": 0.020696,
+            "inclusive": 0.020696
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.193852,
+            "inclusive": 0.193852
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.272176,
+            "inclusive": 0.272176
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.017278,
+            "inclusive": 0.017278
+          },
+          "geometry": {
+            "calls": 4,
+            "exclusive": 0.052197,
+            "inclusive": 0.052197
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 0.231463,
+            "inclusive": 0.231463
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.007631,
+            "inclusive": 0.007631
+          },
+          "render": {
+            "calls": 10,
+            "exclusive": 1.201472,
+            "inclusive": 1.201472
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000323,
+            "inclusive": 0.169038
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.168715,
+            "inclusive": 0.168715
+          },
+          "startup": {
+            "calls": 2,
+            "exclusive": 0.529517,
+            "inclusive": 0.529517
+          }
+        },
+        "unattributed": 0.004253,
+        "unattributed_share": 0.001474,
+        "wall": 2.885973
+      }
+    },
+    "synthdog": {
+      "crumpled": {
+        "backend": "synthdog",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/synthdog/crumpled/images",
+        "overhead": {
+          "calls": 36,
+          "per_call": 5.388352499835491e-07,
+          "share": 3.22e-06,
+          "total": 1.9398069e-05
+        },
+        "process_wall": 7.376713,
+        "stages": {
+          "annotation": {
+            "calls": 4,
+            "exclusive": 0.000959,
+            "inclusive": 0.000959
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.00092,
+            "inclusive": 0.00092
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000605,
+            "inclusive": 1.202105
+          },
+          "degradation/blur_zones": {
+            "calls": 2,
+            "exclusive": 0.23024,
+            "inclusive": 0.23024
+          },
+          "degradation/gradient_domain": {
+            "calls": 2,
+            "exclusive": 0.170433,
+            "inclusive": 0.170433
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.253316,
+            "inclusive": 0.253316
+          },
+          "degradation/paper_overlay": {
+            "calls": 2,
+            "exclusive": 0.311179,
+            "inclusive": 0.311179
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.236331,
+            "inclusive": 0.236331
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.02013,
+            "inclusive": 0.02013
+          },
+          "geometry": {
+            "calls": 2,
+            "exclusive": 3.68627,
+            "inclusive": 3.68627
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 1.346183,
+            "inclusive": 1.346183
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.006423,
+            "inclusive": 0.006423
+          },
+          "render": {
+            "calls": 6,
+            "exclusive": 0.957032,
+            "inclusive": 0.957032
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000387,
+            "inclusive": 0.144382
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.143995,
+            "inclusive": 0.143995
+          },
+          "startup": {
+            "calls": 1,
+            "exclusive": 0.006252,
+            "inclusive": 0.006252
+          }
+        },
+        "unattributed": 0.006058,
+        "unattributed_share": 0.000821,
+        "wall": 7.376713
+      },
+      "ghost_text": {
+        "backend": "synthdog",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/synthdog/ghost_text/images",
+        "overhead": {
+          "calls": 34,
+          "per_call": 4.928429999608852e-07,
+          "share": 4.69e-06,
+          "total": 1.6756662e-05
+        },
+        "process_wall": 4.82653,
+        "stages": {
+          "annotation": {
+            "calls": 4,
+            "exclusive": 0.000898,
+            "inclusive": 0.000898
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001284,
+            "inclusive": 0.001284
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000365,
+            "inclusive": 0.537619
+          },
+          "degradation/blur_zones": {
+            "calls": 2,
+            "exclusive": 0.218049,
+            "inclusive": 0.218049
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.150879,
+            "inclusive": 0.150879
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.146157,
+            "inclusive": 0.146157
+          },
+          "degradation/phantom_character": {
+            "calls": 2,
+            "exclusive": 0.02217,
+            "inclusive": 0.02217
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.019944,
+            "inclusive": 0.019944
+          },
+          "geometry": {
+            "calls": 2,
+            "exclusive": 1.93783,
+            "inclusive": 1.93783
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 1.256074,
+            "inclusive": 1.256074
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.008105,
+            "inclusive": 0.008105
+          },
+          "render": {
+            "calls": 6,
+            "exclusive": 0.908914,
+            "inclusive": 0.908914
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.00036,
+            "inclusive": 0.140593
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.140234,
+            "inclusive": 0.140234
+          },
+          "startup": {
+            "calls": 1,
+            "exclusive": 0.006468,
+            "inclusive": 0.006468
+          }
+        },
+        "unattributed": 0.008799,
+        "unattributed_share": 0.001823,
+        "wall": 4.82653
+      },
+      "heavy": {
+        "backend": "synthdog",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/synthdog/heavy/images",
+        "overhead": {
+          "calls": 38,
+          "per_call": 4.927222500441531e-07,
+          "share": 3.85e-06,
+          "total": 1.8723446e-05
+        },
+        "process_wall": 6.131722,
+        "stages": {
+          "annotation": {
+            "calls": 4,
+            "exclusive": 0.000853,
+            "inclusive": 0.000853
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001397,
+            "inclusive": 0.001397
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000478,
+            "inclusive": 1.097971
+          },
+          "degradation/bleed_through": {
+            "calls": 2,
+            "exclusive": 0.293268,
+            "inclusive": 0.293268
+          },
+          "degradation/blur_zones": {
+            "calls": 2,
+            "exclusive": 0.287118,
+            "inclusive": 0.287118
+          },
+          "degradation/holes": {
+            "calls": 2,
+            "exclusive": 0.005142,
+            "inclusive": 0.005142
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.257624,
+            "inclusive": 0.257624
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.207752,
+            "inclusive": 0.207752
+          },
+          "degradation/shadow_binding": {
+            "calls": 2,
+            "exclusive": 0.046589,
+            "inclusive": 0.046589
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.021325,
+            "inclusive": 0.021325
+          },
+          "geometry": {
+            "calls": 2,
+            "exclusive": 2.332625,
+            "inclusive": 2.332625
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 1.274312,
+            "inclusive": 1.274312
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.010485,
+            "inclusive": 0.010485
+          },
+          "render": {
+            "calls": 6,
+            "exclusive": 1.234194,
+            "inclusive": 1.234194
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000296,
+            "inclusive": 0.144687
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.144391,
+            "inclusive": 0.144391
+          },
+          "startup": {
+            "calls": 1,
+            "exclusive": 0.006177,
+            "inclusive": 0.006177
+          }
+        },
+        "unattributed": 0.007696,
+        "unattributed_share": 0.001255,
+        "wall": 6.131722
+      },
+      "light": {
+        "backend": "synthdog",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/synthdog/light/images",
+        "overhead": {
+          "calls": 32,
+          "per_call": 5.088982500183192e-07,
+          "share": 4.22e-06,
+          "total": 1.6284744e-05
+        },
+        "process_wall": 5.152556,
+        "stages": {
+          "annotation": {
+            "calls": 4,
+            "exclusive": 0.000749,
+            "inclusive": 0.000749
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.00124,
+            "inclusive": 0.00124
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000308,
+            "inclusive": 0.550118
+          },
+          "degradation/blur_zones": {
+            "calls": 2,
+            "exclusive": 0.277763,
+            "inclusive": 0.277763
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.131958,
+            "inclusive": 0.131958
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.14009,
+            "inclusive": 0.14009
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.018347,
+            "inclusive": 0.018347
+          },
+          "geometry": {
+            "calls": 2,
+            "exclusive": 2.057628,
+            "inclusive": 2.057628
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 1.296157,
+            "inclusive": 1.296157
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.007765,
+            "inclusive": 0.007765
+          },
+          "render": {
+            "calls": 6,
+            "exclusive": 1.065962,
+            "inclusive": 1.065962
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000383,
+            "inclusive": 0.137954
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.137571,
+            "inclusive": 0.137571
+          },
+          "startup": {
+            "calls": 1,
+            "exclusive": 0.00621,
+            "inclusive": 0.00621
+          }
+        },
+        "unattributed": 0.010425,
+        "unattributed_share": 0.002023,
+        "wall": 5.152556
+      },
+      "medium": {
+        "backend": "synthdog",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/synthdog/medium/images",
+        "overhead": {
+          "calls": 36,
+          "per_call": 5.338037500450809e-07,
+          "share": 4.9e-06,
+          "total": 1.9216935e-05
+        },
+        "process_wall": 5.222296,
+        "stages": {
+          "annotation": {
+            "calls": 4,
+            "exclusive": 0.000837,
+            "inclusive": 0.000837
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001275,
+            "inclusive": 0.001275
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000526,
+            "inclusive": 0.934828
+          },
+          "degradation/blur_zones": {
+            "calls": 2,
+            "exclusive": 0.21096,
+            "inclusive": 0.21096
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.169105,
+            "inclusive": 0.169105
+          },
+          "degradation/paper_overlay": {
+            "calls": 2,
+            "exclusive": 0.383164,
+            "inclusive": 0.383164
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.139114,
+            "inclusive": 0.139114
+          },
+          "degradation/shadow_binding": {
+            "calls": 2,
+            "exclusive": 0.03196,
+            "inclusive": 0.03196
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.020453,
+            "inclusive": 0.020453
+          },
+          "geometry": {
+            "calls": 2,
+            "exclusive": 1.945446,
+            "inclusive": 1.945446
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 1.298569,
+            "inclusive": 1.298569
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.007645,
+            "inclusive": 0.007645
+          },
+          "render": {
+            "calls": 6,
+            "exclusive": 0.867076,
+            "inclusive": 0.867076
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000323,
+            "inclusive": 0.134934
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.134611,
+            "inclusive": 0.134611
+          },
+          "startup": {
+            "calls": 1,
+            "exclusive": 0.006158,
+            "inclusive": 0.006158
+          }
+        },
+        "unattributed": 0.005074,
+        "unattributed_share": 0.000972,
+        "wall": 5.222296
+      },
+      "photocopy": {
+        "backend": "synthdog",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/synthdog/photocopy/images",
+        "overhead": {
+          "calls": 38,
+          "per_call": 6.425082499958989e-07,
+          "share": 6.65e-06,
+          "total": 2.4415313e-05
+        },
+        "process_wall": 5.015294,
+        "stages": {
+          "annotation": {
+            "calls": 4,
+            "exclusive": 0.0009,
+            "inclusive": 0.0009
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.00121,
+            "inclusive": 0.00121
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000528,
+            "inclusive": 0.722813
+          },
+          "degradation/blur": {
+            "calls": 2,
+            "exclusive": 0.002555,
+            "inclusive": 0.002555
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.223154,
+            "inclusive": 0.223154
+          },
+          "degradation/paper_overlay": {
+            "calls": 2,
+            "exclusive": 0.289826,
+            "inclusive": 0.289826
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.144808,
+            "inclusive": 0.144808
+          },
+          "degradation/phantom_character": {
+            "calls": 2,
+            "exclusive": 0.020703,
+            "inclusive": 0.020703
+          },
+          "degradation/shadow_binding": {
+            "calls": 2,
+            "exclusive": 0.041239,
+            "inclusive": 0.041239
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.019502,
+            "inclusive": 0.019502
+          },
+          "geometry": {
+            "calls": 2,
+            "exclusive": 1.871483,
+            "inclusive": 1.871483
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 1.344473,
+            "inclusive": 1.344473
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.007815,
+            "inclusive": 0.007815
+          },
+          "render": {
+            "calls": 6,
+            "exclusive": 0.891162,
+            "inclusive": 0.891162
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000414,
+            "inclusive": 0.139744
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.13933,
+            "inclusive": 0.13933
+          },
+          "startup": {
+            "calls": 1,
+            "exclusive": 0.006319,
+            "inclusive": 0.006319
+          }
+        },
+        "unattributed": 0.009873,
+        "unattributed_share": 0.001969,
+        "wall": 5.015294
+      },
+      "pristine": {
+        "backend": "synthdog",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/synthdog/pristine/images",
+        "overhead": {
+          "calls": 26,
+          "per_call": 4.992277499695774e-07,
+          "share": 4.12e-06,
+          "total": 1.2979921e-05
+        },
+        "process_wall": 4.445745,
+        "stages": {
+          "annotation": {
+            "calls": 4,
+            "exclusive": 0.000812,
+            "inclusive": 0.000812
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001266,
+            "inclusive": 0.001266
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000113,
+            "inclusive": 0.000113
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.019651,
+            "inclusive": 0.019651
+          },
+          "geometry": {
+            "calls": 2,
+            "exclusive": 2.011011,
+            "inclusive": 2.011011
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 1.29558,
+            "inclusive": 1.29558
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.007731,
+            "inclusive": 0.007731
+          },
+          "render": {
+            "calls": 6,
+            "exclusive": 0.961245,
+            "inclusive": 0.961245
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000356,
+            "inclusive": 0.137087
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.136731,
+            "inclusive": 0.136731
+          },
+          "startup": {
+            "calls": 1,
+            "exclusive": 0.006218,
+            "inclusive": 0.006218
+          }
+        },
+        "unattributed": 0.005031,
+        "unattributed_share": 0.001132,
+        "wall": 4.445745
+      },
+      "punched": {
+        "backend": "synthdog",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/synthdog/punched/images",
+        "overhead": {
+          "calls": 34,
+          "per_call": 5.028459999039114e-07,
+          "share": 4.52e-06,
+          "total": 1.7096764e-05
+        },
+        "process_wall": 5.061848,
+        "stages": {
+          "annotation": {
+            "calls": 4,
+            "exclusive": 0.000725,
+            "inclusive": 0.000725
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001189,
+            "inclusive": 0.001189
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000371,
+            "inclusive": 0.375574
+          },
+          "degradation/holes": {
+            "calls": 2,
+            "exclusive": 0.004758,
+            "inclusive": 0.004758
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.193009,
+            "inclusive": 0.193009
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.143654,
+            "inclusive": 0.143654
+          },
+          "degradation/shadow_binding": {
+            "calls": 2,
+            "exclusive": 0.033781,
+            "inclusive": 0.033781
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.01985,
+            "inclusive": 0.01985
+          },
+          "geometry": {
+            "calls": 2,
+            "exclusive": 2.330712,
+            "inclusive": 2.330712
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 1.27839,
+            "inclusive": 1.27839
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.007736,
+            "inclusive": 0.007736
+          },
+          "render": {
+            "calls": 6,
+            "exclusive": 0.894251,
+            "inclusive": 0.894251
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000359,
+            "inclusive": 0.138072
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.137713,
+            "inclusive": 0.137713
+          },
+          "startup": {
+            "calls": 1,
+            "exclusive": 0.006385,
+            "inclusive": 0.006385
+          }
+        },
+        "unattributed": 0.008965,
+        "unattributed_share": 0.001771,
+        "wall": 5.061848
+      },
+      "real_paper": {
+        "backend": "synthdog",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/synthdog/real_paper/images",
+        "overhead": {
+          "calls": 30,
+          "per_call": 4.815379999740799e-07,
+          "share": 3.46e-06,
+          "total": 1.444614e-05
+        },
+        "process_wall": 5.419563,
+        "stages": {
+          "annotation": {
+            "calls": 4,
+            "exclusive": 0.00099,
+            "inclusive": 0.00099
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001223,
+            "inclusive": 0.001223
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000256,
+            "inclusive": 0.75768
+          },
+          "degradation/paper_overlay": {
+            "calls": 2,
+            "exclusive": 0.617721,
+            "inclusive": 0.617721
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.139703,
+            "inclusive": 0.139703
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.019951,
+            "inclusive": 0.019951
+          },
+          "geometry": {
+            "calls": 2,
+            "exclusive": 2.073579,
+            "inclusive": 2.073579
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 1.241245,
+            "inclusive": 1.241245
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.007618,
+            "inclusive": 0.007618
+          },
+          "render": {
+            "calls": 6,
+            "exclusive": 1.164648,
+            "inclusive": 1.164648
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000319,
+            "inclusive": 0.136806
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.136487,
+            "inclusive": 0.136487
+          },
+          "startup": {
+            "calls": 1,
+            "exclusive": 0.006205,
+            "inclusive": 0.006205
+          }
+        },
+        "unattributed": 0.009618,
+        "unattributed_share": 0.001775,
+        "wall": 5.419563
+      },
+      "stains": {
+        "backend": "synthdog",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/synthdog/stains/images",
+        "overhead": {
+          "calls": 32,
+          "per_call": 5.393282499994712e-07,
+          "share": 4.84e-06,
+          "total": 1.7258504e-05
+        },
+        "process_wall": 4.870643,
+        "stages": {
+          "annotation": {
+            "calls": 4,
+            "exclusive": 0.000732,
+            "inclusive": 0.000732
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001354,
+            "inclusive": 0.001354
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000307,
+            "inclusive": 0.517176
+          },
+          "degradation/gradient_domain": {
+            "calls": 2,
+            "exclusive": 0.189759,
+            "inclusive": 0.189759
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.185972,
+            "inclusive": 0.185972
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.14114,
+            "inclusive": 0.14114
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.020147,
+            "inclusive": 0.020147
+          },
+          "geometry": {
+            "calls": 2,
+            "exclusive": 1.969783,
+            "inclusive": 1.969783
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 1.307341,
+            "inclusive": 1.307341
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.008024,
+            "inclusive": 0.008024
+          },
+          "render": {
+            "calls": 6,
+            "exclusive": 0.889465,
+            "inclusive": 0.889465
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000356,
+            "inclusive": 0.144694
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.144337,
+            "inclusive": 0.144337
+          },
+          "startup": {
+            "calls": 1,
+            "exclusive": 0.006807,
+            "inclusive": 0.006807
+          }
+        },
+        "unattributed": 0.005119,
+        "unattributed_share": 0.001051,
+        "wall": 4.870643
+      },
+      "torn_edges": {
+        "backend": "synthdog",
+        "images": 2,
+        "images_dir": "data/profile/profile-xl4tf492/ageing/synthdog/torn_edges/images",
+        "overhead": {
+          "calls": 36,
+          "per_call": 5.261190001419891e-07,
+          "share": 4.63e-06,
+          "total": 1.8940284e-05
+        },
+        "process_wall": 5.372316,
+        "stages": {
+          "annotation": {
+            "calls": 4,
+            "exclusive": 0.000858,
+            "inclusive": 0.000858
+          },
+          "content": {
+            "calls": 2,
+            "exclusive": 0.001248,
+            "inclusive": 0.001248
+          },
+          "degradation": {
+            "calls": 2,
+            "exclusive": 0.000404,
+            "inclusive": 0.686186
+          },
+          "degradation/blur_zones": {
+            "calls": 2,
+            "exclusive": 0.33477,
+            "inclusive": 0.33477
+          },
+          "degradation/holes": {
+            "calls": 4,
+            "exclusive": 0.013174,
+            "inclusive": 0.013174
+          },
+          "degradation/ink_degradation": {
+            "calls": 2,
+            "exclusive": 0.150709,
+            "inclusive": 0.150709
+          },
+          "degradation/paper_texture": {
+            "calls": 2,
+            "exclusive": 0.187128,
+            "inclusive": 0.187128
+          },
+          "export": {
+            "calls": 3,
+            "exclusive": 0.020241,
+            "inclusive": 0.020241
+          },
+          "geometry": {
+            "calls": 2,
+            "exclusive": 2.263881,
+            "inclusive": 2.263881
+          },
+          "interpreter": {
+            "calls": 1,
+            "exclusive": 1.285758,
+            "inclusive": 1.285758
+          },
+          "layout": {
+            "calls": 2,
+            "exclusive": 0.007751,
+            "inclusive": 0.007751
+          },
+          "render": {
+            "calls": 6,
+            "exclusive": 0.952496,
+            "inclusive": 0.952496
+          },
+          "sampling": {
+            "calls": 2,
+            "exclusive": 0.000367,
+            "inclusive": 0.138028
+          },
+          "sampling/rules": {
+            "calls": 2,
+            "exclusive": 0.137661,
+            "inclusive": 0.137661
+          },
+          "startup": {
+            "calls": 1,
+            "exclusive": 0.006431,
+            "inclusive": 0.006431
+          }
+        },
+        "unattributed": 0.009439,
+        "unattributed_share": 0.001757,
+        "wall": 5.372316
+      }
+    }
+  },
+  "breakdown": {
+    "genalog": {
+      "backend": "genalog",
+      "images": 8,
+      "images_dir": "data/profile/profile-xl4tf492/genalog/images",
+      "overhead": {
+        "calls": 119,
+        "per_call": 5.003807499974755e-07,
+        "share": 9.38e-06,
+        "total": 5.9545309e-05
+      },
+      "process_wall": 7.245433,
+      "stages": {
+        "annotation": {
+          "calls": 8,
+          "exclusive": 0.002002,
+          "inclusive": 0.002002
+        },
+        "content": {
+          "calls": 8,
+          "exclusive": 0.003551,
+          "inclusive": 0.003551
+        },
+        "degradation": {
+          "calls": 8,
+          "exclusive": 0.001153,
+          "inclusive": 3.928188
+        },
+        "degradation/blur_zones": {
+          "calls": 6,
+          "exclusive": 0.665203,
+          "inclusive": 0.665203
+        },
+        "degradation/gradient_domain": {
+          "calls": 1,
+          "exclusive": 0.127869,
+          "inclusive": 0.127869
+        },
+        "degradation/holes": {
+          "calls": 2,
+          "exclusive": 0.008932,
+          "inclusive": 0.008932
+        },
+        "degradation/ink_degradation": {
+          "calls": 7,
+          "exclusive": 0.91666,
+          "inclusive": 0.91666
+        },
+        "degradation/paper_overlay": {
+          "calls": 3,
+          "exclusive": 1.285173,
+          "inclusive": 1.285173
+        },
+        "degradation/paper_texture": {
+          "calls": 8,
+          "exclusive": 0.843037,
+          "inclusive": 0.843037
+        },
+        "degradation/phantom_character": {
+          "calls": 2,
+          "exclusive": 0.031305,
+          "inclusive": 0.031305
+        },
+        "degradation/shadow_binding": {
+          "calls": 2,
+          "exclusive": 0.048855,
+          "inclusive": 0.048855
+        },
+        "export": {
+          "calls": 9,
+          "exclusive": 0.066755,
+          "inclusive": 0.066755
+        },
+        "geometry": {
+          "calls": 15,
+          "exclusive": 0.004909,
+          "inclusive": 0.004909
+        },
+        "interpreter": {
+          "calls": 1,
+          "exclusive": 0.899492,
+          "inclusive": 0.899492
+        },
+        "layout": {
+          "calls": 8,
+          "exclusive": 0.038764,
+          "inclusive": 0.038764
+        },
+        "render": {
+          "calls": 15,
+          "exclusive": 1.677064,
+          "inclusive": 1.677064
+        },
+        "sampling": {
+          "calls": 8,
+          "exclusive": 0.001453,
+          "inclusive": 0.619608
+        },
+        "sampling/rules": {
+          "calls": 8,
+          "exclusive": 0.618155,
+          "inclusive": 0.618155
+        },
+        "startup": {
+          "calls": 1,
+          "exclusive": 0.000136,
+          "inclusive": 0.000136
+        }
+      },
+      "unattributed": 0.004965,
+      "unattributed_share": 0.000685,
+      "wall": 7.245433
+    },
+    "html": {
+      "backend": "html",
+      "images": 8,
+      "images_dir": "data/profile/profile-xl4tf492/html/images",
+      "overhead": {
+        "calls": 146,
+        "per_call": 4.4820349995688956e-07,
+        "share": 6.01e-06,
+        "total": 6.5437711e-05
+      },
+      "process_wall": 11.130486,
+      "stages": {
+        "annotation": {
+          "calls": 8,
+          "exclusive": 0.001996,
+          "inclusive": 0.001996
+        },
+        "content": {
+          "calls": 8,
+          "exclusive": 0.003622,
+          "inclusive": 0.003622
+        },
+        "degradation": {
+          "calls": 8,
+          "exclusive": 0.001441,
+          "inclusive": 4.575569
+        },
+        "degradation/blur_zones": {
+          "calls": 6,
+          "exclusive": 0.790435,
+          "inclusive": 0.790435
+        },
+        "degradation/gradient_domain": {
+          "calls": 1,
+          "exclusive": 0.117792,
+          "inclusive": 0.117792
+        },
+        "degradation/holes": {
+          "calls": 2,
+          "exclusive": 0.009074,
+          "inclusive": 0.009074
+        },
+        "degradation/ink_degradation": {
+          "calls": 7,
+          "exclusive": 1.133611,
+          "inclusive": 1.133611
+        },
+        "degradation/paper_overlay": {
+          "calls": 3,
+          "exclusive": 1.3492,
+          "inclusive": 1.3492
+        },
+        "degradation/paper_texture": {
+          "calls": 8,
+          "exclusive": 1.08365,
+          "inclusive": 1.08365
+        },
+        "degradation/phantom_character": {
+          "calls": 2,
+          "exclusive": 0.032867,
+          "inclusive": 0.032867
+        },
+        "degradation/shadow_binding": {
+          "calls": 2,
+          "exclusive": 0.057499,
+          "inclusive": 0.057499
+        },
+        "export": {
+          "calls": 9,
+          "exclusive": 0.06773,
+          "inclusive": 0.06773
+        },
+        "geometry": {
+          "calls": 16,
+          "exclusive": 0.229181,
+          "inclusive": 0.229181
+        },
+        "interpreter": {
+          "calls": 1,
+          "exclusive": 0.238241,
+          "inclusive": 0.238241
+        },
+        "layout": {
+          "calls": 8,
+          "exclusive": 0.038195,
+          "inclusive": 0.038195
+        },
+        "render": {
+          "calls": 40,
+          "exclusive": 4.894433,
+          "inclusive": 4.894433
+        },
+        "sampling": {
+          "calls": 8,
+          "exclusive": 0.001492,
+          "inclusive": 0.573962
+        },
+        "sampling/rules": {
+          "calls": 8,
+          "exclusive": 0.57247,
+          "inclusive": 0.57247
+        },
+        "startup": {
+          "calls": 2,
+          "exclusive": 0.505154,
+          "inclusive": 0.505154
+        }
+      },
+      "unattributed": 0.002403,
+      "unattributed_share": 0.000216,
+      "wall": 11.130486
+    },
+    "synthdog": {
+      "backend": "synthdog",
+      "images": 8,
+      "images_dir": "data/profile/profile-xl4tf492/synthdog/images",
+      "overhead": {
+        "calls": 129,
+        "per_call": 5.355052500135571e-07,
+        "share": 2.96e-06,
+        "total": 6.9080177e-05
+      },
+      "process_wall": 24.607304,
+      "stages": {
+        "annotation": {
+          "calls": 16,
+          "exclusive": 0.003085,
+          "inclusive": 0.003085
+        },
+        "content": {
+          "calls": 8,
+          "exclusive": 0.003773,
+          "inclusive": 0.003773
+        },
+        "degradation": {
+          "calls": 8,
+          "exclusive": 0.001515,
+          "inclusive": 3.99518
+        },
+        "degradation/blur_zones": {
+          "calls": 6,
+          "exclusive": 1.280677,
+          "inclusive": 1.280677
+        },
+        "degradation/gradient_domain": {
+          "calls": 1,
+          "exclusive": 0.093384,
+          "inclusive": 0.093384
+        },
+        "degradation/holes": {
+          "calls": 2,
+          "exclusive": 0.007998,
+          "inclusive": 0.007998
+        },
+        "degradation/ink_degradation": {
+          "calls": 7,
+          "exclusive": 0.942305,
+          "inclusive": 0.942305
+        },
+        "degradation/paper_overlay": {
+          "calls": 3,
+          "exclusive": 0.790052,
+          "inclusive": 0.790052
+        },
+        "degradation/paper_texture": {
+          "calls": 8,
+          "exclusive": 0.795834,
+          "inclusive": 0.795834
+        },
+        "degradation/phantom_character": {
+          "calls": 2,
+          "exclusive": 0.040444,
+          "inclusive": 0.040444
+        },
+        "degradation/shadow_binding": {
+          "calls": 2,
+          "exclusive": 0.042972,
+          "inclusive": 0.042972
+        },
+        "export": {
+          "calls": 9,
+          "exclusive": 0.082765,
+          "inclusive": 0.082765
+        },
+        "geometry": {
+          "calls": 8,
+          "exclusive": 13.559742,
+          "inclusive": 13.559742
+        },
+        "interpreter": {
+          "calls": 1,
+          "exclusive": 1.257153,
+          "inclusive": 1.257153
+        },
+        "layout": {
+          "calls": 8,
+          "exclusive": 0.040022,
+          "inclusive": 0.040022
+        },
+        "render": {
+          "calls": 24,
+          "exclusive": 5.037471,
+          "inclusive": 5.037471
+        },
+        "sampling": {
+          "calls": 8,
+          "exclusive": 0.001502,
+          "inclusive": 0.602225
+        },
+        "sampling/rules": {
+          "calls": 8,
+          "exclusive": 0.600723,
+          "inclusive": 0.600723
+        },
+        "startup": {
+          "calls": 1,
+          "exclusive": 0.00635,
+          "inclusive": 0.00635
+        }
+      },
+      "unattributed": 0.019537,
+      "unattributed_share": 0.000794,
+      "wall": 24.607304
+    }
+  },
+  "merged": {
+    "overhead": {
+      "calls": 1541,
+      "per_call": 5.03010339553229e-07,
+      "share": 4.81e-06,
+      "total": 0.000775138933
+    },
+    "stages": {
+      "annotation": {
+        "calls": 120,
+        "exclusive": 0.027505,
+        "inclusive": 0.027505
+      },
+      "content": {
+        "calls": 90,
+        "exclusive": 0.05228,
+        "inclusive": 0.05228
+      },
+      "degradation": {
+        "calls": 90,
+        "exclusive": 0.015287,
+        "inclusive": 39.422796
+      },
+      "degradation/bleed_through": {
+        "calls": 6,
+        "exclusive": 0.837842,
+        "inclusive": 0.837842
+      },
+      "degradation/blur": {
+        "calls": 6,
+        "exclusive": 0.008762,
+        "inclusive": 0.008762
+      },
+      "degradation/blur_zones": {
+        "calls": 54,
+        "exclusive": 6.605416,
+        "inclusive": 6.605416
+      },
+      "degradation/gradient_domain": {
+        "calls": 15,
+        "exclusive": 1.653598,
+        "inclusive": 1.653598
+      },
+      "degradation/holes": {
+        "calls": 30,
+        "exclusive": 0.112274,
+        "inclusive": 0.112274
+      },
+      "degradation/ink_degradation": {
+        "calls": 75,
+        "exclusive": 8.758798,
+        "inclusive": 8.758798
+      },
+      "degradation/paper_overlay": {
+        "calls": 33,
+        "exclusive": 11.072499,
+        "inclusive": 11.072499
+      },
+      "degradation/paper_texture": {
+        "calls": 84,
+        "exclusive": 9.472825,
+        "inclusive": 9.472825
+      },
+      "degradation/phantom_character": {
+        "calls": 18,
+        "exclusive": 0.246703,
+        "inclusive": 0.246703
+      },
+      "degradation/shadow_binding": {
+        "calls": 30,
+        "exclusive": 0.638792,
+        "inclusive": 0.638792
+      },
+      "export": {
+        "calls": 126,
+        "exclusive": 0.786262,
+        "inclusive": 0.786262
+      },
+      "geometry": {
+        "calls": 148,
+        "exclusive": 38.816114,
+        "inclusive": 38.816114
+      },
+      "interpreter": {
+        "calls": 36,
+        "exclusive": 29.080284,
+        "inclusive": 29.080284
+      },
+      "layout": {
+        "calls": 90,
+        "exclusive": 0.379491,
+        "inclusive": 0.379491
+      },
+      "render": {
+        "calls": 298,
+        "exclusive": 39.296062,
+        "inclusive": 39.296062
+      },
+      "sampling": {
+        "calls": 90,
+        "exclusive": 0.015877,
+        "inclusive": 6.678221
+      },
+      "sampling/rules": {
+        "calls": 90,
+        "exclusive": 6.662344,
+        "inclusive": 6.662344
+      },
+      "startup": {
+        "calls": 48,
+        "exclusive": 6.383864,
+        "inclusive": 6.383864
+      }
+    },
+    "unattributed": 0.210564,
+    "unattributed_share": 0.001307,
+    "wall": 161.133443
+  },
+  "validation": {
+    "genalog": {
+      "calls": 8,
+      "exclusive": 0.002307,
+      "inclusive": 0.002307
+    },
+    "html": {
+      "calls": 8,
+      "exclusive": 0.002334,
+      "inclusive": 0.002334
+    },
+    "synthdog": {
+      "calls": 8,
+      "exclusive": 0.002376,
+      "inclusive": 0.002376
+    }
+  }
+}

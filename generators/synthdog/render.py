@@ -32,6 +32,7 @@ sys.path.insert(0, str(REPO_ROOT))
 
 from template_receipt import SynthVNReceipt  # noqa: E402
 
+import profiling  # noqa: E402
 import rulebase  # noqa: E402
 
 
@@ -80,12 +81,22 @@ def main() -> int:
         "--clean", action="store_true",
         help="no curl, no perspective, no camera effects -- the structure render only",
     )
+    parser.add_argument(
+        "--profile", metavar="JSON",
+        help="time every stage and write the breakdown here. Off by default, "
+             "and off costs nothing: see profiling.py",
+    )
     args = parser.parse_args()
 
-    config = yaml.safe_load(args.config.read_text(encoding="utf-8"))
-    if args.clean:
-        config = make_clean(config)
-    template = SynthVNReceipt(config)
+    profile = Path(args.profile) if args.profile else profiling.enable_from_env()
+    if args.profile:
+        profiling.enable()
+
+    with profiling.stage("startup"):
+        config = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+        if args.clean:
+            config = make_clean(config)
+        template = SynthVNReceipt(config)
     args.out.mkdir(parents=True, exist_ok=True)
     force = rulebase.parse_force(args.force, args.layout)
 
@@ -100,23 +111,30 @@ def main() -> int:
 
         data = template.generate(force=force)
         name = f"synthdog_{index:03d}.jpg"
-        Image.fromarray(data["image"].astype(np.uint8)).save(
-            args.out / name, quality=data["quality"]
-        )
-        records.append({
-            "file_name": name,
-            "ground_truth": json.dumps({"gt_parse": data["gt_parse"]}, ensure_ascii=False),
-            "text_sequence": data["text_sequence"],
-            "recipe": data["recipe"],
-            "boxes": data["boxes"],
-        })
+        with profiling.stage("export"):
+            Image.fromarray(data["image"].astype(np.uint8)).save(
+                args.out / name, quality=data["quality"]
+            )
+        with profiling.stage("annotation"):
+            records.append({
+                "file_name": name,
+                "ground_truth": json.dumps({"gt_parse": data["gt_parse"]},
+                                           ensure_ascii=False),
+                "text_sequence": data["text_sequence"],
+                "recipe": data["recipe"],
+                "boxes": data["boxes"],
+            })
         print(f"[ok] {name}  {data['image'].shape[1]}x{data['image'].shape[0]}  "
               f"{data['recipe']['attributes']['layout']['id']}")
 
-    with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as fp:
-        for record in records:
-            json.dump(record, fp, ensure_ascii=False)
-            fp.write("\n")
+    with profiling.stage("export"):
+        with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as fp:
+            for record in records:
+                json.dump(record, fp, ensure_ascii=False)
+                fp.write("\n")
+
+    if profile:
+        profiling.dump(profile, {"backend": "synthdog", "images": args.count})
     return 0
 
 
