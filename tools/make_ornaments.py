@@ -18,6 +18,13 @@ rotated to the tangent of a circle. So the drawing happens once, here, into PNGs
 with an alpha channel; the ageing and compositing that synthtiger and
 `degradation/` are good at then treat the result like any other overlay.
 
+**No hand marks here.** Signatures, handwritten field values, pen underlines
+and highlighter swipes were drawn and then dropped: a typeface jittered per
+glyph is not handwriting, and a procedural squiggle is not a signature. Both
+read as what they are the moment you put them beside a scan. Doing it properly
+needs stroke data or a hand-drawn face with a licence to redistribute, not more
+jitter -- see docs/hoa-tiet-de-xuat.md.
+
 Company names, tax codes and addresses below are invented for synthetic data.
 They are not real businesses.
 """
@@ -408,163 +415,6 @@ def name_block_seal(name: str, title: str, *, seed: int, width: int = 620,
     return canvas.rotate(rng.uniform(-6, 6), resample=Image.BICUBIC, expand=True)
 
 
-# ------------------------------------------------------------------ nét tay
-
-def _pen_stroke(draw: ImageDraw.ImageDraw, points: list[tuple[float, float]],
-                colour: tuple[int, int, int], width: float, rng: random.Random) -> None:
-    """Vẽ một nét bút: bề rộng thay đổi dọc nét, đậm nhạt theo tốc độ tay.
-
-    Vẽ bằng chuỗi hình tròn chồng nhau chứ không bằng `line`, vì `line` cho nét
-    đều tăm tắp -- thứ mà bút bi không bao giờ cho.
-    """
-    for index in range(len(points) - 1):
-        (x0, y0), (x1, y1) = points[index], points[index + 1]
-        steps = max(int(math.hypot(x1 - x0, y1 - y0) / 2) + 1, 1)
-        for step in range(steps):
-            t = step / steps
-            x, y = x0 + (x1 - x0) * t, y0 + (y1 - y0) * t
-            # nét mảnh dần ở hai đầu, và rung nhẹ suốt dọc
-            along = (index + t) / max(len(points) - 1, 1)
-            taper = 0.45 + 0.55 * math.sin(math.pi * min(max(along, 0), 1)) ** 0.4
-            r = width * taper * rng.uniform(0.85, 1.15) / 2
-            alpha = int(255 * min(taper * rng.uniform(0.80, 1.0) + 0.12, 1.0))
-            draw.ellipse([x - r, y - r, x + r, y + r], fill=colour + (alpha,))
-
-
-def _bezier(control: list[tuple[float, float]], samples: int = 60) -> list[tuple[float, float]]:
-    points = []
-    for step in range(samples + 1):
-        t = step / samples
-        current = list(control)
-        while len(current) > 1:
-            current = [(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t)
-                       for a, b in zip(current, current[1:])]
-        points.append(current[0])
-    return points
-
-
-def signature(*, seed: int, width: int = 520, height: int = 200,
-              colour=(22, 42, 120)) -> Image.Image:
-    """Chữ ký tay: mấy vòng bút liền nhau, kết bằng một nét vẩy dài.
-
-    Không cố viết ra một cái tên. Chữ ký người Việt phần lớn là nét bút liên
-    tục không đọc được thành chữ, nên cái cần dựng là ĐỘNG TÁC -- vòng, gấp
-    khúc, vẩy đuôi -- chứ không phải mặt chữ.
-    """
-    rng = random.Random(seed)
-    w, h = width * SS, height * SS
-    canvas = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(canvas)
-    pen = int(h * 0.045)
-
-    x = w * 0.10
-    baseline = h * 0.62
-    for loop in range(rng.randint(3, 5)):
-        span = w * rng.uniform(0.13, 0.22)
-        control = [
-            (x, baseline + rng.uniform(-h * 0.05, h * 0.05)),
-            (x + span * 0.2, baseline - h * rng.uniform(0.28, 0.46)),
-            (x + span * 0.7, baseline + h * rng.uniform(0.10, 0.30)),
-            (x + span, baseline - h * rng.uniform(0.02, 0.18)),
-        ]
-        _pen_stroke(draw, _bezier(control), colour, pen, rng)
-        x += span * rng.uniform(0.72, 0.92)
-
-    # nét vẩy cuối, dài và mảnh, quét ngược lại dưới chữ ký
-    tail = [(x, baseline - h * 0.10), (x - w * 0.30, baseline + h * 0.26),
-            (w * 0.18, baseline + h * 0.30), (w * 0.06, baseline + h * 0.14)]
-    _pen_stroke(draw, _bezier(tail), colour, pen * 0.7, rng)
-
-    canvas = canvas.resize((width, height), Image.LANCZOS)
-    return canvas.filter(ImageFilter.GaussianBlur(0.3)).rotate(
-        rng.uniform(-4, 4), resample=Image.BICUBIC, expand=True)
-
-
-def handwriting(text: str, *, seed: int, height: int = 90,
-                colour=(22, 42, 120)) -> Image.Image:
-    """Chữ điền tay vào chỗ trống của tờ mẫu in sẵn.
-
-    Dựng bằng cách lấy một mặt chữ có sẵn rồi làm lệch từng ký tự -- nghiêng,
-    xê dịch, phóng to thu nhỏ, đậm nhạt không đều -- chứ không dựng nét viết
-    tay thật. Đủ để không còn ra dáng chữ in máy, và đủ khác nhau giữa hai lần
-    gọi, nhưng KHÔNG phải chữ viết tay thật: muốn thật thì phải nhúng một mặt
-    chữ viết tay có giấy phép cho phép phát hành lại, việc đó chưa làm.
-    """
-    rng = random.Random(seed)
-    size = int(height * SS * 0.72)
-    font = ImageFont.truetype(FONT_REG, size)
-    # Một người viết nghiêng MỘT góc suốt dòng; chỉ chệch quanh góc ấy vài độ.
-    # Cho mỗi ký tự một góc độc lập thì ra chữ cắt dán chứ không ra chữ viết.
-    slant = rng.uniform(-9, -2)
-    pad = size
-    guess = int(sum(font.getlength(ch) for ch in text) * 1.15) + pad * 2
-    canvas = Image.new("RGBA", (guess, height * SS), (0, 0, 0, 0))
-
-    x = float(pad)
-    baseline = height * SS * 0.18
-    for ch in text:
-        advance = font.getlength(ch)
-        if ch == " ":
-            x += advance * rng.uniform(0.9, 1.3)
-            continue
-        glyph = Image.new("RGBA", (int(advance) + size, size * 2), (0, 0, 0, 0))
-        alpha = int(255 * rng.uniform(0.72, 1.0))
-        ImageDraw.Draw(glyph).text((size // 4, 0), ch, font=font, fill=colour + (alpha,))
-        glyph = glyph.rotate(slant + rng.uniform(-2.2, 2.2), resample=Image.BICUBIC,
-                             center=(size // 4, size), expand=False)
-        scale = rng.uniform(0.975, 1.035)
-        glyph = glyph.resize((max(int(glyph.width * scale), 1),
-                              max(int(glyph.height * scale), 1)), Image.LANCZOS)
-        canvas.alpha_composite(glyph, (int(x), int(baseline + rng.uniform(-size * 0.035,
-                                                                         size * 0.035))))
-        x += advance * rng.uniform(0.94, 1.02)
-
-    canvas = canvas.crop((0, 0, min(int(x) + pad, canvas.width), canvas.height))
-    canvas = canvas.resize((canvas.width // SS, height), Image.LANCZOS)
-    return canvas.rotate(rng.uniform(-1.6, 1.6), resample=Image.BICUBIC, expand=True)
-
-
-def pen_underline(*, seed: int, width: int = 460, height: int = 40,
-                  colour=(22, 42, 120)) -> Image.Image:
-    """Gạch chân bằng bút: đường tay run, quá tay ở hai đầu."""
-    rng = random.Random(seed)
-    w, h = width * SS, height * SS
-    canvas = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(canvas)
-    mid = h * 0.55
-    control = [(w * 0.02, mid + rng.uniform(-h * 0.12, h * 0.12)),
-               (w * 0.35, mid + rng.uniform(-h * 0.20, h * 0.05)),
-               (w * 0.70, mid + rng.uniform(-h * 0.05, h * 0.20)),
-               (w * 0.99, mid + rng.uniform(-h * 0.14, h * 0.14))]
-    _pen_stroke(draw, _bezier(control, 90), colour, h * 0.30, rng)
-    return canvas.resize((width, height), Image.LANCZOS)
-
-
-def highlighter_swipe(*, seed: int, width: int = 520, height: int = 90,
-                      colour=(246, 214, 46)) -> Image.Image:
-    """Vệt bút dạ quang: mép vệt đậm hơn giữa vệt, hai đầu tù.
-
-    Mực dạ quang trong suốt nên chữ dưới vẫn đọc được -- alpha ở đây cố tình
-    thấp, và bên ghép ảnh phải nhân chứ không phủ, nếu không chữ sẽ mất.
-    """
-    rng = random.Random(seed)
-    w, h = width * SS, height * SS
-    canvas = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(canvas)
-    top = h * rng.uniform(0.16, 0.26)
-    bottom = h * rng.uniform(0.74, 0.86)
-    left, right = w * rng.uniform(0.01, 0.05), w * rng.uniform(0.95, 0.99)
-    draw.rounded_rectangle([left, top, right, bottom], radius=h * 0.12,
-                           fill=colour + (150,))
-    # mép trên và mép dưới đậm hơn: đầu bút tì mạnh ở hai biên
-    draw.line([(left, top + h * 0.05), (right, top + h * 0.05)],
-              fill=colour + (90,), width=int(h * 0.10))
-    draw.line([(left, bottom - h * 0.05), (right, bottom - h * 0.05)],
-              fill=colour + (90,), width=int(h * 0.10))
-    canvas = canvas.resize((width, height), Image.LANCZOS)
-    return canvas.filter(ImageFilter.GaussianBlur(1.2))
-
-
 # ----------------------------------------------------- chữ chìm và hoa văn
 
 def diagonal_watermark(text: str, *, seed: int, width: int = 1240, height: int = 1754,
@@ -827,15 +677,6 @@ def main() -> None:
         ("seal_round_company_faint", _ring_only(company)),
         ("seal_edge_half", edge_seal(export)),
 
-        # --- nét tay
-        ("signature_01", signature(seed=101)),
-        ("signature_02", signature(seed=102, colour=(18, 18, 24))),
-        ("signature_03", signature(seed=103)),
-        ("handwriting_date", handwriting("12 / 03 / 2025", seed=111)),
-        ("handwriting_name", handwriting("Nguyễn Thị Mai Lan", seed=112)),
-        ("handwriting_amount", handwriting("2.360.000", seed=113)),
-        ("pen_underline", pen_underline(seed=121)),
-        ("highlighter_swipe", highlighter_swipe(seed=131)),
 
         # --- nét in bảo an
         ("watermark_ban_sao", diagonal_watermark("BẢN SAO", seed=141)),
