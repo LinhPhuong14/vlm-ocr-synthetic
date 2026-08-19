@@ -116,14 +116,24 @@ def styles_for(recipe, grid, line_px: float, pad_ch: float) -> dict:
     font_px = (size_lo + size_hi) / 2.0
     pad_top = line_px * pad["top"]
     pad_bottom = line_px * pad["bottom"]
+
+    # WeasyPrint prints onto a @page of a stated size, so unlike the browser
+    # this backend has to work the sheet out in pixels itself. `0.62 * font_px`
+    # is this file's standing estimate of a monospace advance -- the same one
+    # `page_width` has always used -- and the sheet's height follows from it.
+    # A page that overflows its paper keeps its full height rather than being
+    # cropped: `sheet_height` only ever grows the box.
+    page_width = (grid.ncols + pad_ch * 2) * font_px * 0.62
+    content_px = grid.nrows * line_px + pad_top + pad_bottom
+    page_height = rulebase.sheet_height(grid, page_width, content_px)
     return {
         "font_family": visual.get("font_family", "monospace"),
         "font_size": f"{font_px:.2f}px",
         "line_height": f"{line_px:.2f}px",
         "sheet_width": f"{grid.ncols + pad_ch * 2:.3f}ch",
-        "sheet_height": f"{grid.nrows * line_px:.2f}px",
-        "page_width": f"{(grid.ncols + pad_ch * 2) * font_px * 0.62:.0f}px",
-        "page_height": f"{grid.nrows * line_px + pad_top + pad_bottom:.0f}px",
+        "sheet_height": f"{page_height - pad_top - pad_bottom:.2f}px",
+        "page_width": f"{page_width:.0f}px",
+        "page_height": f"{page_height:.0f}px",
         "page_margin": f"{pad_top:.2f}px 0 {pad_bottom:.2f}px",
         "ink": _hex(palette["ink"]),
         "accent": _hex(palette["accent"]),
