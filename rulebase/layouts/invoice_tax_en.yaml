@@ -19,6 +19,12 @@ rule_char: "-"
 
 # Kẻ bằng NÉT chứ không bằng ký tự — xem `invoice_vat_form.yaml`. Máy in kẻ tờ
 # này, và một đường kẻ vẽ thật không tốn một dòng văn bản.
+
+# Tờ rời A4 dọc. Khác giấy cuộn ở chỗ CHIỀU CAO ĐÃ ĐỊNH TRƯỚC khi in: một hoá
+# đơn ba dòng hàng vẫn chiếm trọn tờ giấy, phần dưới là giấy trắng — đó là một
+# phần diện mạo của tờ hoá đơn, không phải chỗ thừa để cắt đi.
+sheet: a4
+
 rules: marks
 
 sections: [letterhead, doctitle, parties, table, totals, notes, footer]

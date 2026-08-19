@@ -47,6 +47,23 @@ import rulebase  # noqa: E402
 from degradation.pipeline import apply_recipe  # noqa: E402
 
 
+def _sheet_css(grid, line_px: float, padding_px: float) -> str:
+    """How tall the sheet is: its content, or the paper it is printed on.
+
+    A cut sheet's height is decided before anything is printed, so a three-item
+    invoice still fills an A4 page and the rest is paper. `aspect-ratio` does
+    the arithmetic in the browser rather than here, because the width is in
+    `ch` -- the font's own advance -- and only the browser knows what that is
+    in pixels. `min-height` keeps it a floor: content that overflows its paper
+    stays visible instead of being cropped into looking fine.
+    """
+    content = grid.nrows * line_px + padding_px
+    ratio = rulebase.sheet_ratio(grid)
+    if ratio is None:
+        return f"height:{content:.2f}px;"
+    return f"min-height:{content:.2f}px;aspect-ratio:{ratio:.6f};"
+
+
 def build_html(grid, recipe, receipt) -> str:
     """One span per cell, positioned on the character grid."""
     visual = recipe.visual.params
@@ -155,7 +172,7 @@ html,body{{margin:0;padding:0;background:#fff;}}
      a `padding` property: an absolutely positioned child is laid out against
      its ancestor's *padding box*, so CSS padding does not move it, and the
      shop name ends up hard against the top edge however large the padding is. */
-  height:{grid.nrows * line_px + pad_top + pad_bottom:.2f}px;
+  {_sheet_css(grid, line_px, pad_top + pad_bottom)}
   background:#fff;
   -webkit-font-smoothing:antialiased;
 }}

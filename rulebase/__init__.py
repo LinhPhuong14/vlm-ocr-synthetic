@@ -40,10 +40,19 @@ from .spec import (
     sample_recipe,
     validate,
 )
-from .style import fade, hex_colour, inks, padding
+from .style import (
+    SHEETS,
+    fade,
+    hex_colour,
+    inks,
+    padding,
+    sheet_height,
+    sheet_ratio,
+)
 
 __all__ = [
     "ATTRIBUTES",
+    "SHEETS",
     "attribute_order",
     "CORPUS_ROOT",
     "Cell",
@@ -70,6 +79,8 @@ __all__ = [
     "padding",
     "parse_force",
     "sample_recipe",
+    "sheet_height",
+    "sheet_ratio",
     "validate",
 ]
 
