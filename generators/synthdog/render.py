@@ -110,6 +110,10 @@ def main() -> int:
             "recipe": data["recipe"],
             "boxes": data["boxes"],
         })
+        # Additive, and only when the layout has a table to describe -- the
+        # same key the other two backends write, from the same grid.
+        if data.get("table"):
+            records[-1]["table"] = data["table"]
         print(f"[ok] {name}  {data['image'].shape[1]}x{data['image'].shape[0]}  "
               f"{data['recipe']['attributes']['layout']['id']}")
 

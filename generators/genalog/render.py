@@ -64,7 +64,8 @@ def cells_for_template(grid, recipe, line_px: float, pad_ch: float) -> list[dict
         cells.append({
             "text": cell.text,
             "left": f"{cell.col0 + pad_ch:.3f}",
-            "top": f"{cell.row * line_px:.2f}px",
+            # Merged down: set in the middle of the band, as in the other two.
+            "top": f"{(cell.row + (cell.rowspan - 1) / 2.0) * line_px:.2f}px",
             "width": width,
             "align": cell.align,
             # Clamped exactly as in the other two backends, so an enlarged
@@ -90,8 +91,10 @@ def marks_for(grid, recipe, line_px: float, pad_ch: float) -> list[dict]:
         span = max(mark.col1 - mark.col0, 0.0)
         height = max((mark.row1 - mark.row0) * line_px, 0.0)
         thick = hairline * mark.weight
-        shade = _hex(tuple(int(round(255 - (255 - channel) * mark.tone))
-                           for channel in ink))
+        # The mark's own colour when it has one, else the page's ink faded by
+        # `tone` -- the same rule the other two backends follow.
+        shade = mark.colour or _hex(tuple(int(round(255 - (255 - channel) * mark.tone))
+                                          for channel in ink))
         out.append({
             "left": f"{mark.col0 + pad_ch:.3f}",
             "top": f"{mark.row0 * line_px:.2f}px",
@@ -342,7 +345,7 @@ def main() -> int:
     records = []
 
     for index in range(args.count):
-        recipe, receipt, _grid, image, boxes = renderer.render(args.seed + index, force)
+        recipe, receipt, grid, image, boxes = renderer.render(args.seed + index, force)
         name = f"genalog_{index:03d}.jpg"
         cv2.imwrite(str(args.out / name), image, [cv2.IMWRITE_JPEG_QUALITY, 90])
         records.append({
@@ -352,6 +355,11 @@ def main() -> int:
             "recipe": recipe.to_dict(),
             "boxes": boxes,
         })
+        # Additive, and only when the layout has a table to describe -- the
+        # same key the other two backends write, from the same grid.
+        table = grid.table_label()
+        if table:
+            records[-1]["table"] = table
         print(f"[ok] {name}  {image.shape[1]}x{image.shape[0]}  "
               f"{recipe.layout.id}  {len(boxes)} boxes")
 

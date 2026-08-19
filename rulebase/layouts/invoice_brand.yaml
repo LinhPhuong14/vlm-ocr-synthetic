@@ -60,6 +60,8 @@ table:
   shade: 0.12
   # Tiêu đề cột nằm giữa hai đường kẻ ngang, phần còn lại của bảng để trống.
   header_rules: true
+  # Mỗi trang bốc lại — xem `rulebase/rules/_table_variation.yaml`.
+  variation: open_table
 
 item:
   wrap_name: true

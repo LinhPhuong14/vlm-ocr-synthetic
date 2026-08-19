@@ -23,7 +23,7 @@ import random
 from .content import Item, Receipt, Store
 from .content import build as build_receipt
 from .corpus import CORPUS_ROOT
-from .layout import LAYOUTS_ROOT, Cell, Grid, build_grid
+from .layout import LAYOUTS_ROOT, Cell, Grid, Mark, Merge, build_grid
 from .layout import available as available_layouts
 from .spec import (
     ATTRIBUTES,
@@ -51,6 +51,8 @@ __all__ = [
     "Group",
     "Item",
     "LAYOUTS_ROOT",
+    "Mark",
+    "Merge",
     "Option",
     "RULES_ROOT",
     "Receipt",

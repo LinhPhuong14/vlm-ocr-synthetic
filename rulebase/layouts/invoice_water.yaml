@@ -48,6 +48,23 @@ parties:
 
 column_header: true
 column_header_bold: true
+
+# ĐẦU BẢNG HAI TẦNG. Tờ thật gộp hai cột chỉ số dưới một chữ "Số đọc" và hai
+# cột khối lượng dưới "Tiêu thụ (m3)"; sáu tiêu đề phẳng là cách viết lại cùng
+# một cái đầu bảng đó khi chưa vẽ được ô gộp. Có `titles:` nên khi tiêu đề cha
+# hiện ra thì cột con thôi nhắc lại chữ của cha — "Số đọc / Tháng này", chứ
+# không phải "Số đọc / Số đọc tháng này".
+#
+# Bật hay tắt do `variation.column_groups` bốc; tắt thì đầu bảng phẳng trở lại
+# và tiêu đề đầy đủ bên dưới được dùng nguyên văn.
+column_groups:
+  - title: "Số đọc"
+    over: [meter_now, meter_prev]
+    titles: {meter_now: "Tháng này", meter_prev: "Tháng trước"}
+  - title: "Tiêu thụ (m3)"
+    over: [qty, quota]
+    titles: {qty: "Số lượng", quota: "Định mức"}
+
 columns:
   - {key: meter_now,  title: "Số Đọc Tháng Này",       width: 14, align: center, title_align: center}
   - {key: meter_prev, title: "Số Đọc Tháng Trước",     width: 14, align: center, title_align: center}
@@ -63,6 +80,10 @@ table:
   # Tờ hoá đơn in sẵn bốn dòng trống dưới dòng cuối cùng, dùng hay không dùng
   # thì khung vẫn cao bằng đó — bốn dòng trống có kẻ ô là đặc trưng của tờ này.
   blank_rows: 4
+  # Mỗi trang bốc lại: dải nền tiêu đề, sọc thân bảng, số dòng trống, nét viền,
+  # có kẻ từng dòng hay không, có đầu bảng hai tầng hay không. Xem
+  # `rulebase/rules/_table_variation.yaml`.
+  variation: ruled_form
 
 item:
   wrap_name: false

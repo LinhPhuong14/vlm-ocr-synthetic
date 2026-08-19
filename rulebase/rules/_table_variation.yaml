@@ -1,0 +1,79 @@
+# BIẾN THIÊN CỦA BẢNG — không phải thuộc tính thứ bảy
+#
+# Sáu thuộc tính trong `rules/*.yaml` quyết định TỜ GIẤY NÀY LÀ GIẤY GÌ. File
+# này quyết định một việc hẹp hơn: cùng một mẫu giấy đó, hôm nay máy in kẻ
+# bảng ra sao. Vì vậy nó KHÔNG nằm trong `_order.yaml` và không sinh ra một ô
+# mới trong `recipe.ids()`; tên file bắt đầu bằng `_` nên `load_rules` bỏ qua,
+# đúng như với `_order.yaml`.
+#
+# Vì sao cần: một file bố cục được đo từ MỘT tấm ảnh, nên hai trăm trang sinh
+# ra từ nó chỉ khác nhau ở chữ. Mô hình học thuộc cái khung chứ không học đọc.
+# `variation:` nói phần nào của đường kẻ là bố cục, phần nào là máy in hôm đó.
+#
+# Xúc xắc lấy từ `rng` của chính trang giấy, nên MỘT SEED VẪN CHO ĐÚNG MỘT
+# TRANG — biến thiên là thứ seed quyết định, không phải nhiễu chồng lên nó.
+#
+# Hai dạng núm vặn, xem `_draw_knob` trong rulebase/layout.py:
+#
+#   {range: [lo, hi]}                  một con số. Cận nguyên -> kết quả nguyên.
+#   [{value: ..., weight: n}, ...]     bốc có trọng số. `value: ~` là "không có".
+#
+# Một bố cục dùng preset bằng cách viết `variation: <tên>` trong khối `table:`,
+# hoặc viết thẳng một khối núm vặn của riêng nó.
+
+presets:
+
+  # ------------------------------------------------------------------------
+  # Tờ mẫu in sẵn có kẻ khung: hoá đơn GTGT, hoá đơn tiền điện/nước.
+  #
+  # Màu lấy nhạt và lấy ngả xám. Đây là màu MỰC IN CỦA TỜ GIẤY, không phải màu
+  # màn hình: một dải nền bão hoà cao sẽ nuốt mất chữ đen đè lên nó, và không
+  # máy in hoá đơn nào in như thế.
+  ruled_form:
+    # Đầu bảng hai tầng. Bật một nửa số trang: mô hình phải gặp cả bảng có
+    # tiêu đề cha lẫn bảng không có, nếu không nó học rằng cột nào cũng có
+    # đúng một dòng tiêu đề.
+    column_groups:
+      - {value: true,  weight: 1}
+      - {value: false, weight: 1}
+
+    # Dải nền dưới hàng tiêu đề. `~` là để nguyên `shade:` của bố cục (tô bằng
+    # chính mực của trang, pha loãng) — vẫn là đa số.
+    fill:
+      - {value: ~,         weight: 6}
+      - {value: "#e6edf6", weight: 2}   # xanh nhạt — hoá đơn điện tử ngành nước
+      - {value: "#eef1e9", weight: 1}   # xanh lá ngả xám
+      - {value: "#f6ece6", weight: 1}   # hồng đất — bản in carbon
+
+    # Kẻ sọc ngựa vằn thân bảng, một hàng một mục hàng chứ không một hàng một
+    # dòng: một mục hai dòng mà kẻ theo dòng thì bị cắt đôi.
+    zebra:
+      - {value: ~,         weight: 8}
+      - {value: "#f4f4f2", weight: 2}
+      - {value: "#f2f5f8", weight: 1}
+
+    # Số dòng trống kẻ sẵn dưới mục cuối. Tờ thật in bao nhiêu thì cao bấy
+    # nhiêu, và số đó khác nhau giữa các nhà in.
+    blank_rows: {range: [2, 5]}
+
+    # Nét bút của viền ngoài, tính bằng hairline. Dưới 1.0 thì `_outline` bỏ
+    # qua và bảng chỉ còn nét mảnh — cũng là một kiểu in có thật.
+    border: {range: [1.3, 2.6]}
+
+    # Kẻ ngang từng dòng, hay chỉ kẻ quanh khối.
+    row_rules:
+      - {value: true,  weight: 5}
+      - {value: false, weight: 1}
+
+  # ------------------------------------------------------------------------
+  # Bảng không khung: hoá đơn tự thiết kế, hoá đơn khách sạn. Không có viền
+  # ngoài để mà đổi nét, không có dòng trống kẻ sẵn — chỉ còn dải nền tiêu đề
+  # và sọc thân bảng.
+  open_table:
+    fill:
+      - {value: ~,         weight: 5}
+      - {value: "#eef0f3", weight: 2}
+      - {value: "#f3eee8", weight: 1}
+    zebra:
+      - {value: ~,         weight: 6}
+      - {value: "#f5f5f3", weight: 2}

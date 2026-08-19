@@ -55,6 +55,13 @@ parties:
 
 column_header: true
 column_header_bold: true
+# ĐẦU BẢNG HAI TẦNG — xem `invoice_vat_form.yaml`. Trên tờ hoá đơn điện tử
+# "Thuế suất" và "Tiền thuế" nằm dưới một chữ "Thuế GTGT" chung.
+column_groups:
+  - title: "Thuế GTGT"
+    over: [vat_rate, vat_amount]
+    titles: {vat_amount: "Tiền thuế"}
+
 columns:
   - {key: stt,        title: "STT",                          width: 6,  align: center, title_align: center}
   - {key: name,       title: "Tên hàng hoá, dịch vụ",        width: 0,  align: left,   title_align: center}
@@ -72,6 +79,8 @@ table:
   # Dải tiêu đề cột có nền xám nhạt — tờ này do phần mềm in ra chứ không
   # phải tờ mẫu in sẵn, và đây là chỗ dễ nhận ra nhất.
   shade: 0.10
+  # Mỗi trang bốc lại — xem `rulebase/rules/_table_variation.yaml`.
+  variation: ruled_form
 
 item:
   wrap_name: true

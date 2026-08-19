@@ -337,7 +337,10 @@ table:
   blank_rows: 4          # a form has the rows it was printed with
   header_rules: true     # unframed: rule above and below the column titles
   shade: 0.10            # a tint under the column titles, as a fraction of ink
+  fill: "#e6edf6"        # …or a colour of its own; see "Merged, nested, coloured"
+  zebra: "#f4f4f2"       # every other item in a tint
   border: 1.8            # the outer boundary, in hairlines (1.0 = no emphasis)
+  variation: ruled_form  # re-roll some of the above per page; see below
 
 vat_summary:             # its own columns, resolved on their own
   frame: true
@@ -367,11 +370,19 @@ kinds:
 | kind | what it is | who emits it |
 | --- | --- | --- |
 | `rule` | a line, degenerate on one axis; `weight` in hairlines | every `_rule_row` and every vertical of a framed table |
-| `fill` | a tint, `tone` a fraction of the page's ink | `shade:` under column titles or under the amount owed |
+| `fill` | a tint — `tone` a fraction of the page's ink, or `colour` an ink of its own | `shade:`, `fill:` and `zebra:` |
 | `frame` | a hollow border, `weight` in hairlines | `border:` around a framed table |
 
 Marks are listed back to front — shading, then the lines on it, then the text
 over both.
+
+`tone` and `colour` are different statements and only one of them applies.
+`tone` is how heavily the press inked the band, so the band is always the
+page's own ink diluted; `colour` is *which* ink, an absolute `#rrggbb` that
+`tone` no longer touches. A bill with a blue header over black type is the
+second, and no amount of diluting black gets there. Left unset — which is every
+mark on every layout that does not ask — nothing changes, and `colour` is not
+written to the label at all.
 
 The nine layouts a page printer produces set `rules: marks`; the five thermal
 ones deliberately do not, and `shade:` is ignored without it, because a till
@@ -381,6 +392,112 @@ An ASCII-ruled table is drawn with `+ - |` and never with U+2500 box-drawing:
 two of the fonts in `fonts/` have no box-drawing block at all, so a frame drawn
 with `─` would render as a row of empty rectangles in a fifth of the dataset —
 with the label still claiming a table.
+
+### Merged, nested, coloured
+
+Three things a printed table does that a grid of one-cell-per-column cannot,
+all of them reachable from the layout file.
+
+**Merged.** A cell that covers more than one column, or more than one row, has
+no rules inside it — that is the whole of what merged means on paper. It is
+*declared*, by whichever emitter decided to span, and never inferred from a
+cell that happens to be wide: an item name that runs long is not a merged cell,
+and a merged cell holding no text is still one. `span:` in an item template is
+the usual way in, and the frame breaks around it automatically:
+
+```yaml
+item:
+  rows:
+    - - {from: name, span: [meter_now, amount]}   # one cell, six columns wide
+```
+
+Before this the water bill's tariff band was drawn across all six meter columns
+and the frame ruled five verticals straight through the words — `Tiền nước
+sin|h hoạt bậc 1 |(0-10m3)` on every page of that layout.
+
+The merges are carried into the label as `table.merges`, because once the lines
+inside a merge are not drawn no reader of the pixels can tell whether six
+columns were merged or the words simply ran long. They are recorded on a
+thermal layout too, where nothing is drawn: the merge is a fact about the
+table, and a structure label that appeared only when the ruling happened to be
+turned on would describe two different tables under one layout id.
+
+**Nested.** `column_groups:` puts one title over several columns, with the
+columns' own titles under it and a rule between the two — the two-level head a
+VAT invoice prints. It is a pair of merges: the parent is merged *across* its
+columns, and every column outside it is merged *down* both bands and set in the
+middle of them.
+
+```yaml
+column_groups:
+  - title: "Thuế GTGT"
+    over: [vat_rate, vat_amount]
+    titles: {vat_amount: "Tiền thuế"}     # only while the parent is drawn
+```
+
+`titles:` is what a printed form does once the parent is there: the column stops
+repeating the parent's words. "Thuế GTGT" over "Thuế suất" and "Tiền thuế" is a
+real invoice head; the same head with "Tiền thuế GTGT" underneath is that head
+with the point of it missed. With the group turned off, the full titles the
+layout was measured with come back.
+
+**Coloured.** `fill:` tints the header band and `zebra:` stripes every other
+*item* — by item, not by row, or a two-line item is cut in half and nothing is
+striped. Both take a `#rrggbb` and both are the same `fill` mark as `shade:`
+over a different rectangle. Keep them pale and grey-ish: this is printer ink
+under black type, not a screen, and a saturated band swallows the text on it.
+
+### Varying a table per page
+
+A layout file is measured off one photograph, so it describes one printed form,
+and two hundred pages of it differ only in the words — a model trained on them
+learns the form rather than the reading of it. `variation:` says which parts of
+the ruling are the layout and which are that day's printer:
+
+```yaml
+table:
+  variation: ruled_form        # a preset from rules/_table_variation.yaml
+```
+
+The presets live in [`rules/_table_variation.yaml`](rules/_table_variation.yaml)
+so nine ruled forms share one answer to "how much does a printed table vary"
+instead of nine copies of it. The leading underscore keeps `load_rules` off it:
+this varies how a table is *ruled*, not what the page *is*, and it is not a
+seventh attribute however much it looks like one. A layout may also spell out
+its own block of knobs instead of naming a preset. Two shapes:
+
+| shape | gives |
+| --- | --- |
+| `{range: [lo, hi]}` | a number; integer bounds give an integer |
+| `[{value: ..., weight: n}, ...]` | a weighted draw, `value: ~` for "not on this page" |
+
+| knob | varies |
+| --- | --- |
+| `column_groups` | whether the two-level head is drawn at all |
+| `fill` | the colour under the column titles, or none |
+| `zebra` | the stripe under every other item, or none |
+| `blank_rows` | how many ruled empty rows the form was printed with |
+| `border` | the pen the outer boundary is drawn with, in hairlines |
+| `row_rules` | a rule under every item, or only around the block |
+
+The dice are the page's own `rng`, so **a seed still reproduces its page
+exactly** — the variation is part of what the seed decides, not noise on top of
+it — and the three renderers still receive the same grid. They are only rolled
+for a layout that declares the block, which is why the five thermal receipts
+draw the page they always did: a single extra draw would shift the whole stream
+and move every later decision on the page.
+
+What a page drew is recorded in `table.style` in the label, so a run can be
+sliced by "the pages with a two-level head" without re-deriving it from the
+picture:
+
+```json
+"table": {
+  "style": {"blank_rows": 3, "border": 2.53, "column_groups": true,
+            "fill": "#eef1e9", "row_rules": true, "zebra": null},
+  "merges": [{"row0": 19, "col0": 2, "row1": 20, "col1": 84}]
+}
+```
 
 ---
 

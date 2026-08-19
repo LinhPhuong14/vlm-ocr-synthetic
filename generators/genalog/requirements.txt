@@ -10,6 +10,12 @@
 
 weasyprint>=60            # the print engine; write_png() is long gone, so
                           # render.py rasterises the PDF instead
+cairocffi                 # NOT dead weight, and not WeasyPrint's: WeasyPrint 60
+                          # dropped it, but the vendored `genalog/generation/
+                          # document.py` imports FORMAT_ARGB32 from it at module
+                          # scope. Without it `import genalog...` raises before
+                          # render.py has run a line, on a fresh environment
+                          # only -- which is why it survived this long.
 pymupdf>=1.23             # PDF -> raster
 jinja2>=3                 # genalog's template layer
 numpy>=1.24

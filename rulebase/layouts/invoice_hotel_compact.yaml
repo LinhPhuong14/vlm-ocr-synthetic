@@ -51,6 +51,8 @@ columns:
 
 table:
   frame: false
+  # Mỗi trang bốc lại — xem `rulebase/rules/_table_variation.yaml`.
+  variation: open_table
 
 item:
   wrap_name: true

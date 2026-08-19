@@ -130,9 +130,14 @@ class Receipt:
             else:
                 rects = [(x0, y0, w, h)]
             # `tone` fades the ink towards the paper: 1.0 is a full rule, 0.08
-            # the shading behind a column header.
-            shade = tuple(int(round(255 - (255 - channel) * mark.tone))
-                          for channel in ink[:3])
+            # the shading behind a column header. `colour` overrides it: a band
+            # printed in its own ink is not a dilution of the page's.
+            if mark.colour:
+                shade = tuple(int(mark.colour.lstrip("#")[i:i + 2], 16)
+                              for i in (0, 2, 4))
+            else:
+                shade = tuple(int(round(255 - (255 - channel) * mark.tone))
+                              for channel in ink[:3])
             for left, top, width_px, height_px in rects:
                 layer = layers.RectLayer((width_px, height_px), (*shade, 255))
                 layer.left, layer.top = left, top
@@ -146,7 +151,8 @@ class Receipt:
             if cell.scale != 1.0:
                 layer.size = layer.size * cell.scale
 
-            y = pad_y + cell.row * line_h
+            # A cell merged down several rows sits in the middle of its band.
+            y = pad_y + (cell.row + (cell.rowspan - 1) / 2.0) * line_h
             x0 = pad_x + cell.col0 * char_w
             x1 = pad_x + cell.col1 * char_w
             span = max(x1 - x0, 1.0)

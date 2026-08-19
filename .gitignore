@@ -82,6 +82,22 @@ wandb/
 .DS_Store
 Thumbs.db
 
+# ------------------------------------------------------ Reference sources
+# Upstream code we PORT FROM rather than run. Same rule `degradation/README.md`
+# states for DocCreator: the port carries a citation to the file it came from,
+# and you fetch the original when you want to check one. Vendored code -- what
+# we actually run -- is a different thing and lives in `generators/`, declared
+# in `tools/paths.py:VENDORED`.
+#
+# The sources themselves are 29 MB of third-party code under three different
+# licences, so they stay out. Their README does not: it carries the fetch
+# commands and the map from each of our modules to the file it came from, and
+# is useless to a fresh clone if it arrives empty. Ignore the contents, keep
+# the map -- the same "ignore, then let one thing back in" shape as the image
+# rules above.
+references/*
+!references/README.md
+
 # Local overrides
 .env
 .env.*

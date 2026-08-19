@@ -63,6 +63,13 @@ class Mark:
     `tone` is a fraction of the page's ink: 1.0 is a full-strength rule, 0.08 a
     shaded table header. `weight` is the line thickness in hairlines, so a
     renderer scales it with its own resolution rather than being handed pixels.
+
+    `colour` is the exception to `tone`. A tint mixed from the page's ink can
+    only ever be grey-of-the-ink, and a form printed in two colours -- a blue
+    header band over black type, the pink of a carbon copy -- is not that. When
+    it is set it is an absolute `#rrggbb` and `tone` no longer applies; left
+    unset, every mark fades with the ink exactly as it did before, so no page
+    that does not ask for colour moves.
     """
 
     kind: str                 # 'rule' | 'fill' | 'frame'
@@ -72,18 +79,34 @@ class Mark:
     col1: float
     weight: float = 1.0
     tone: float = 1.0
+    colour: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        out = {
             "kind": self.kind,
             "row0": round(self.row0, 3), "col0": round(self.col0, 3),
             "row1": round(self.row1, 3), "col1": round(self.col1, 3),
             "weight": round(self.weight, 3), "tone": round(self.tone, 3),
         }
+        # Only when asked. A key that appears on every mark of every layout
+        # would rewrite every committed label to say "no colour" out loud.
+        if self.colour:
+            out["colour"] = self.colour
+        return out
 
 
 @dataclass
 class Cell:
+    """One run of text, on the character grid.
+
+    `col0`/`col1` have always been the cell's horizontal span; `rowspan` is the
+    other half of the same idea, and it is what a table means by a merged cell.
+    A cell with `rowspan > 1` is drawn CENTRED in the band it covers rather than
+    sitting on the top row of it, because that is where a reader looks for the
+    label of a group of rows -- and it is one addition in each renderer, since
+    all three already multiply `row` by a line height.
+    """
+
     text: str
     role: str                 # where it belongs in the label: 'menu.nm', 'total.grand', ...
     row: int
@@ -92,13 +115,57 @@ class Cell:
     align: str = "left"       # left | right | center
     scale: float = 1.0        # relative to the body font size
     bold: bool = False
+    rowspan: int = 1          # rows covered; > 1 is a vertically merged cell
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        out = {
             "text": self.text, "role": self.role, "row": self.row,
             "col0": self.col0, "col1": self.col1,
             "align": self.align, "scale": round(self.scale, 3), "bold": self.bold,
         }
+        if self.rowspan > 1:
+            out["rowspan"] = self.rowspan
+        return out
+
+
+@dataclass
+class Merge:
+    """A rectangle of the table that is ONE cell, however many it covers.
+
+    Declared rather than inferred. A ruled table draws a vertical at every
+    column boundary and a rule between every pair of rows; a merged cell is the
+    statement that some of those lines are not there, and the only thing that
+    can make that statement is the emitter that decided to span the columns in
+    the first place. Inferring it from a wide cell instead would guess -- an
+    item name that happens to run long is not a merged cell, and a merged cell
+    holding no text is still one.
+
+    Rows and columns are the grid's own, half-open: rows `[row0, row1)` and
+    columns `[col0, col1)`. `_paint_bars` drops the verticals strictly inside
+    it and `_rule_row` drops the horizontals, which between them is the whole
+    of what a merge looks like on paper.
+    """
+
+    row0: int
+    col0: int
+    row1: int
+    col1: int
+
+    def holds_column(self, position: float) -> bool:
+        """Is a vertical at `position` swallowed by this merge?
+
+        Strictly inside: the boundaries a merge stands between are still drawn,
+        or the cell would have no left and right edge of its own.
+        """
+        return self.col0 < position < self.col1
+
+    def holds_row(self, row: float) -> bool:
+        """Is a horizontal along `row` swallowed by this merge?"""
+        return self.row0 < row < self.row1
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"row0": self.row0, "col0": self.col0,
+                "row1": self.row1, "col1": self.col1}
 
 
 @dataclass
@@ -111,6 +178,15 @@ class Grid:
     # Non-text primitives, empty for every layout that does not ask for them --
     # which is every thermal receipt, so their pixels are unchanged.
     marks: list[Mark] = field(default_factory=list)
+    # Which rectangles of the ruled table are single cells. Empty for a layout
+    # that merges nothing; carried into the label because "these six columns
+    # are one cell" is a fact about the table's structure that no reader can
+    # recover from the pixels once the lines that would have divided them were
+    # never drawn.
+    merges: list[Merge] = field(default_factory=list)
+    # What this page's dice gave the table -- see `_sample_variation`. Recorded
+    # so a run can be read back by the variant it drew rather than by eye.
+    table_style: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         out = {
@@ -121,7 +197,32 @@ class Grid:
         }
         if self.marks:
             out["marks"] = [mark.to_dict() for mark in self.marks]
+        if self.merges:
+            out["merges"] = [merge.to_dict() for merge in self.merges]
+        if self.table_style:
+            out["table_style"] = dict(self.table_style)
         return out
+
+    def table_label(self) -> dict[str, Any] | None:
+        """What the table is, for the label -- `None` when there is nothing to say.
+
+        Two things a reader of the image cannot recover and a training target
+        needs. Which rectangles are one cell: once the lines inside a merge are
+        not drawn, no amount of looking at the pixels says whether six columns
+        were merged or the words simply ran long. And what the page's dice gave
+        the table, so a run can be sliced by "the pages with a two-level head"
+        without re-deriving it from the picture.
+
+        Returned as its own key rather than folded into `ground_truth`: that is
+        a CORD-style parse of the *document*, and the structure of the table is
+        not part of what the document says.
+        """
+        label: dict[str, Any] = {}
+        if self.table_style:
+            label["style"] = dict(self.table_style)
+        if self.merges:
+            label["merges"] = [merge.to_dict() for merge in self.merges]
+        return label or None
 
 
 def load_layout(layout_id: str, root: Path | str = LAYOUTS_ROOT) -> dict[str, Any]:
@@ -144,25 +245,46 @@ class _Builder:
         self.row = 0
         self.cells: list[Cell] = []
         self.marks: list[Mark] = []
+        self.merges: list[Merge] = []
         # `rules: marks` in the layout. Off by default, so every layout that
         # does not ask draws exactly the characters it drew before.
         self.ruled = ruled
 
-    def mark(self, kind, row0, col0, row1, col1, weight=1.0, tone=1.0) -> None:
+    def mark(self, kind, row0, col0, row1, col1, weight=1.0, tone=1.0,
+             colour=None) -> None:
         # Degenerate on *both* axes is a point: it draws nothing, and a table
         # with no body rows produces one per column boundary. Dropped rather
         # than emitted, so the label never carries a primitive with no extent.
         if row0 == row1 and col0 == col1:
             return
-        self.marks.append(Mark(kind, row0, col0, row1, col1, weight, tone))
+        self.marks.append(Mark(kind, row0, col0, row1, col1, weight, tone, colour))
 
-    def put(self, text, role, col0=0, col1=None, align="left", scale=1.0, bold=False):
+    def merge(self, row0: int, col0: int, row1: int, col1: int) -> None:
+        """Declare `[row0, row1) x [col0, col1)` to be one cell of the table.
+
+        Recorded even on an ASCII layout, where it draws nothing: the merge is
+        a fact about the table, and a label that described the structure only
+        when the lines happened to be drawn would describe two different tables
+        under one layout id.
+        """
+        if row1 <= row0 or col1 <= col0:
+            return
+        self.merges.append(Merge(int(row0), int(col0), int(row1), int(col1)))
+
+    def swallowed_column(self, position: float, row0: float, row1: float) -> bool:
+        """Does a merge cover the whole of a vertical's run at `position`?"""
+        return any(m.holds_column(position) and m.row0 <= row0 and row1 <= m.row1
+                   for m in self.merges)
+
+    def put(self, text, role, col0=0, col1=None, align="left", scale=1.0,
+            bold=False, rowspan=1):
         text = "" if text is None else str(text)
         if not text.strip():
             return
         col1 = self.ncols if col1 is None else col1
         self.cells.append(
-            Cell(text, role, self.row, int(col0), int(col1), align, float(scale), bool(bold))
+            Cell(text, role, self.row, int(col0), int(col1), align, float(scale),
+                 bool(bold), max(int(rowspan), 1))
         )
 
     def newline(self, count: int = 1) -> None:
@@ -357,6 +479,46 @@ def _emit_meta(builder, spec, receipt, columns, rng) -> None:
         builder.rule(rng, spec.get("rule_char"))
 
 
+def _resolve_column_groups(spec, columns) -> list[dict[str, Any]]:
+    """`column_groups:` turned into concrete spans over the resolved columns.
+
+    A group names the columns it covers and gets one title over the lot:
+
+        column_groups:
+          - title: "Thuế GTGT"
+            over: [vat_rate, vat_amount]
+            titles: {vat_amount: "Tiền thuế"}
+
+    `titles:` is what a printed form does once a parent is there: the column
+    stops repeating the parent's words. "Thuế GTGT" over "Thuế suất" and "Tiền
+    thuế" is a real invoice head; "Thuế GTGT" over "Thuế suất GTGT" and "Tiền
+    thuế GTGT" is the same head with the point of it missed. It applies only
+    while the group is drawn, so the flat head keeps the full titles it was
+    measured with.
+
+    Groups that name a column the layout does not have, or that cover only one
+    column, are dropped -- a "group" of one is an ordinary title written twice.
+    """
+    keys = [column.get("key") for column in columns]
+    groups: list[dict[str, Any]] = []
+    for raw in spec.get("column_groups") or []:
+        over = [key for key in (raw.get("over") or []) if key in keys]
+        if len(over) < 2:
+            continue
+        first, last = _column(columns, over[0]), _column(columns, over[-1])
+        if not first or not last or last["col1"] <= first["col0"]:
+            continue
+        groups.append({
+            "title": str(raw.get("title", "")),
+            "align": raw.get("align", "center"),
+            "keys": set(over),
+            "titles": dict(raw.get("titles") or {}),
+            "col0": first["col0"],
+            "col1": last["col1"],
+        })
+    return groups
+
+
 def _emit_column_header(builder, spec, receipt, columns, rng=None) -> None:
     """The titles above the columns, wrapped inside the column they name.
 
@@ -365,22 +527,92 @@ def _emit_column_header(builder, spec, receipt, columns, rng=None) -> None:
     them over two or three lines rather than letting them run into the next
     column. Wrapping keeps the header the same shape as the printed original
     and keeps every cell inside the columns it claims.
+
+    `column_groups:` adds the other thing a printed head does: a title over
+    several columns at once, with the columns' own titles under it and a rule
+    between the two. The parent is a cell merged ACROSS its columns and every
+    column outside it is a cell merged DOWN both bands, which is the pair of
+    merges a two-level header is made of -- and is why this had to wait for
+    `_Builder.merge`.
     """
     if not columns or not spec.get("column_header", True):
         return
+    groups = _resolve_column_groups(spec, columns)
+    bold = spec.get("column_header_bold", False)
     top = builder.row
+    # Rows the parent titles take. Wrapped, because "Thuế giá trị gia tăng"
+    # over two 12-character columns is not a one-line title.
+    band = 0
+    for group in groups:
+        band = max(band, len(wrap(_case(receipt, group["title"]),
+                                  group["col1"] - group["col0"])))
+
+    for group in groups:
+        for offset, line in enumerate(wrap(_case(receipt, group["title"]),
+                                           group["col1"] - group["col0"])):
+            builder.row = top + offset
+            builder.put(line, "colgroup", group["col0"], group["col1"],
+                        group["align"], bold=bold)
+        # No verticals inside the parent: that is what makes it one title over
+        # several columns rather than the same words repeated in each of them.
+        builder.merge(top, group["col0"], top + band, group["col1"])
+
+    grouped = set().union(*(group["keys"] for group in groups)) if groups else set()
+    under: dict[str, str] = {}
+    for group in groups:
+        under.update(group["titles"])
+
+    # Wrapped first, placed second. The height of the head is the tallest
+    # column in it, and a column with no parent is centred against that height
+    # -- which cannot be known until every column has been broken into lines.
+    laid: list[tuple[dict[str, Any], list[str], int]] = []
     tallest = 1
     for column in columns:
-        title = column.get("title")
+        key = column.get("key")
+        title = under.get(key, column.get("title")) if key in grouped else column.get("title")
         if not title:
             continue
-        align = column.get("title_align", column.get("align", "left"))
         lines = wrap(_case(receipt, str(title)), column["col1"] - column["col0"])
+        start = band if key in grouped else 0
+        laid.append((column, lines, start))
+        tallest = max(tallest, start + len(lines))
+
+    for column, lines, start in laid:
+        align = column.get("title_align", column.get("align", "left"))
+        # A column with no parent runs the full height of the head and its
+        # title is set in the middle of that -- which is where a reader looks
+        # for it, and which `Cell.rowspan` is for.
+        #
+        # The span is `tallest - len(lines) + 1`, not `tallest`: every line of a
+        # wrapped title carries the same span, so the block moves down by half
+        # the slack and keeps its own line spacing. Giving each line the full
+        # height instead centres each line separately, and "Thành tiền chưa có
+        # thuế GTGT" comes out as its two lines printed on top of each other.
+        rowspan = tallest - len(lines) + 1 if (groups and not start) else 1
         for offset, line in enumerate(lines):
-            builder.row = top + offset
+            builder.row = top + start + offset
             builder.put(line, "colhdr", column["col0"], column["col1"], align,
-                        bold=spec.get("column_header_bold", False))
-        tallest = max(tallest, len(lines))
+                        bold=bold, rowspan=rowspan)
+
+    if groups:
+        for column in columns:
+            if column.get("key") not in grouped:
+                builder.merge(top, column["col0"], top + tallest, column["col1"])
+        # The rule that separates a parent from its children, over the group
+        # and nowhere else -- a form does not rule under a column that has no
+        # parent, because there is nothing there to separate. It runs bar to
+        # bar, taken from the same function the frame's verticals come from so
+        # the three meet exactly.
+        if builder.ruled:
+            bars = _bar_positions(columns, builder.ncols)
+            for group in groups:
+                left = max([bar for bar in bars if bar <= group["col0"]],
+                           default=group["col0"])
+                right = min([bar for bar in bars if bar >= group["col1"]],
+                            default=group["col1"])
+                builder.row = top + band
+                builder.mark("rule", top + band, left, top + band, right)
+
     builder.row = top + tallest
 
 
@@ -448,6 +680,19 @@ def _span(entry, columns, builder):
     return 0, builder.ncols, entry.get("align", "left")
 
 
+def _spans_columns(entry, columns) -> bool:
+    """Does this entry's `span:` really cross a column boundary?
+
+    `span: [amount, amount]` is a one-column cell written the long way and must
+    not claim to be a merge -- the boundaries beside it are still its own edges.
+    """
+    if "span" not in entry:
+        return False
+    first, last = entry["span"]
+    keys = [column.get("key") for column in columns]
+    return first in keys and last in keys and keys.index(last) > keys.index(first)
+
+
 def _emit_items(builder, spec, receipt, columns, rng) -> None:
     """The item block of a till receipt: the rows, then a rule under them."""
     _emit_item_rows(builder, spec, receipt, columns)
@@ -496,9 +741,15 @@ def _emit_item_rows(builder, spec, receipt, columns, after_item=None) -> None:
                         builder.row = base + offset
                         builder.put(line, role, col0, col1, align)
                     extra = max(extra, len(lines) - 1)
+                    tall = len(lines)
                 else:
                     builder.row = base
                     builder.put(fit(text, width), role, col0, col1, align)
+                    tall = 1
+                # An entry that runs across the columns IS a merged cell, and a
+                # framed table has to be told so or it rules the words through.
+                if _spans_columns(entry, columns):
+                    builder.merge(base, col0, base + tall, col1)
                 painted = True
             builder.row = base + extra
             if painted:
@@ -813,6 +1064,32 @@ def _bar_positions(columns, ncols: int) -> list[int]:
     return sorted(set(position for position in positions if 0 <= position < ncols))
 
 
+def _segments(lo: float, hi: float,
+              blocked: list[tuple[float, float]]) -> list[tuple[float, float]]:
+    """`[lo, hi]` with `blocked` taken out of it -- the line a merge leaves.
+
+    Merging cells is subtraction, not addition: the table already has a line at
+    every boundary and a merge is the statement that some of them are missing.
+    Doing the subtraction on intervals here means both axes get it from one
+    place, and a rule that survives intact comes back as the one interval it
+    started as -- so a table that merges nothing emits exactly the marks it
+    always did.
+    """
+    out = [(lo, hi)]
+    for cut0, cut1 in sorted(blocked):
+        kept: list[tuple[float, float]] = []
+        for start, end in out:
+            if cut1 <= start or cut0 >= end:
+                kept.append((start, end))
+                continue
+            if cut0 > start:
+                kept.append((start, cut0))
+            if cut1 < end:
+                kept.append((cut1, end))
+        out = kept
+    return [(start, end) for start, end in out if end > start]
+
+
 def _rule_row(builder, positions, char: str = "-", junction: str = "+",
               col0: int = 0, col1: int | None = None) -> None:
     """One horizontal rule of a ruled table, as a single cell.
@@ -830,7 +1107,14 @@ def _rule_row(builder, positions, char: str = "-", junction: str = "+",
         # `col1 - 1`, not `col1`: the last character column is where the closing
         # vertical stands (`_bar_positions` ends at `ncols - 1`), and a rule
         # drawn to `col1` would stick a character's width out past the corner.
-        builder.mark("rule", builder.row, col0, builder.row, col1 - 1)
+        #
+        # A cell merged DOWN the table swallows the row rules that would
+        # otherwise cross it -- that is what makes it one cell rather than
+        # several holding the same word.
+        blocked = [(m.col0, min(m.col1, col1 - 1))
+                   for m in builder.merges if m.holds_row(builder.row)]
+        for start, end in _segments(col0, col1 - 1, blocked):
+            builder.mark("rule", builder.row, start, builder.row, end)
         return
     line = [char] * (col1 - col0)
     for position in positions:
@@ -838,6 +1122,29 @@ def _rule_row(builder, positions, char: str = "-", junction: str = "+",
             line[position - col0] = junction
     builder.put("".join(line), "sep", col0, col1, "left")
     builder.newline()
+
+
+def _close_block_top(builder, top: float, col0: float, col1: float) -> None:
+    """The rule a framed block hangs from, unless the block above already drew it.
+
+    A framed block used to assume it: the totals box on the water bill starts
+    on the very row the item table's closing rule sits on, so its top was that
+    rule and nothing had to be drawn. The assumption is false wherever a blank
+    row separates the two -- the totals box of `invoice_export` and the "Số
+    tiền bằng chữ" box of `invoice_vat_summary` were both drawn open at the
+    top, two verticals and a bottom rule with no lid, on every page of those
+    layouts.
+
+    Checked rather than always drawn, because where the assumption does hold a
+    second rule on the same row is a second mark for one line -- twice the ink
+    at that boundary in every renderer, and a duplicate in the label.
+    """
+    if not builder.ruled:
+        return
+    if any(mark.kind == "rule" and mark.row0 == mark.row1 == top
+           and mark.col0 <= col0 and col1 <= mark.col1 for mark in builder.marks):
+        return
+    builder.mark("rule", top, col0, top, col1)
 
 
 def _paint_bars(builder, positions, first: int, last: int,
@@ -858,13 +1165,23 @@ def _paint_bars(builder, positions, first: int, last: int,
     caller knows it, none of them can be guessed from `first`/`last`.
     """
     if builder.ruled:
-        # One mark per boundary for the whole height, instead of one `|` cell
-        # per row per boundary. It also removes the reason `_paint_bars` had to
-        # dodge cells that span their columns: a drawn line passes behind text
-        # instead of overwriting it.
+        # One mark per boundary per unbroken run, instead of one `|` cell per
+        # row per boundary.
+        #
+        # The run is broken by a merge. A drawn line passes BEHIND text rather
+        # than overwriting it, which is why this used to paint each vertical
+        # over the table's whole height and call the job done -- and it is
+        # exactly wrong for a cell that spans its columns. The water bill names
+        # its tariff band across all six meter columns, and the frame drew five
+        # verticals straight through the words: "Tiền nước sin|h hoạt bậc 1
+        # |(0-10m3)". A merged cell has no lines inside it; that is what merged
+        # means.
         row0, row1 = span if span else (first, last)
         for position in positions:
-            builder.mark("rule", row0, position, row1, position)
+            blocked = [(max(m.row0, row0), min(m.row1, row1))
+                       for m in builder.merges if m.holds_column(position)]
+            for start, end in _segments(row0, row1, blocked):
+                builder.mark("rule", start, position, end, position)
         return
     occupied: dict[int, list[tuple[int, int]]] = {}
     for cell in builder.cells:
@@ -880,7 +1197,8 @@ def _paint_bars(builder, positions, first: int, last: int,
     builder.row = keep
 
 
-def _shade_band(builder, settings, top: int, col0: int, col1: int) -> None:
+def _shade_band(builder, settings, top: int, col0: int, col1: int,
+                bottom: int | None = None) -> None:
     """The tint a printed form lays under a band of rows.
 
     Under the column titles, and under the line the reader is meant to find
@@ -891,11 +1209,36 @@ def _shade_band(builder, settings, top: int, col0: int, col1: int) -> None:
     unavailable to an ASCII layout at all: a till roll can print a line of `-`
     and cannot print a grey box, so a thermal receipt that asked for one would
     be drawn something its real printer could not produce.
+
+    `fill:` is the same band in a colour of its own rather than in a dilution of
+    the page's ink. It is a separate key because it means something different:
+    `shade:` is how heavily the press inked the band, `fill:` is which ink it
+    used, and a bill printed with a blue header over black type is the second.
+    Given both, the colour wins -- there is no sense in which a band is 8% blue.
     """
-    tone = float(settings.get("shade", 0) or 0)
-    if not builder.ruled or tone <= 0 or builder.row <= top:
+    bottom = builder.row if bottom is None else bottom
+    if not builder.ruled or bottom <= top:
         return
-    builder.mark("fill", top, col0, builder.row, col1, tone=tone)
+    colour = settings.get("fill") or None
+    tone = float(settings.get("shade", 0) or 0)
+    if colour:
+        builder.mark("fill", top, col0, bottom, col1, tone=1.0, colour=str(colour))
+    elif tone > 0:
+        builder.mark("fill", top, col0, bottom, col1, tone=tone)
+
+
+def _zebra_band(builder, settings, top: int, col0: int, bottom: int,
+                col1: int) -> None:
+    """Every other body row in a tint -- what a long printed table does.
+
+    Not decoration: a table of twenty ruled rows is read across, and the band
+    is what stops the eye dropping a line. It is the third caller of the same
+    `fill`, over a different rectangle again.
+    """
+    stripe = settings.get("zebra") or None
+    if not builder.ruled or not stripe or bottom <= top:
+        return
+    builder.mark("fill", top, col0, bottom, col1, tone=1.0, colour=str(stripe))
 
 
 def _outline(builder, settings, top: int, col0: int, bottom: int, col1: int) -> None:
@@ -954,16 +1297,46 @@ def _emit_table(builder, spec, receipt, columns, rng) -> None:
     _shade_band(builder, table, top, positions[0], positions[-1])
     _rule_row(builder, positions)
 
-    after = (lambda: _rule_row(builder, positions)) if table.get("row_rules") else None
+    row_rules = table.get("row_rules")
+    # One item is one band of the zebra, however many rows its template spends:
+    # striping by row would cut a two-line item in half and stripe nothing.
+    band = {"top": builder.row, "index": 0}
+
+    def after_item() -> None:
+        if band["index"] % 2:
+            _zebra_band(builder, table, band["top"], positions[0],
+                        builder.row, positions[-1])
+        band["top"] = builder.row
+        band["index"] += 1
+        if row_rules:
+            _rule_row(builder, positions)
+
+    after = after_item if (row_rules or table.get("zebra")) else None
     _emit_item_rows(builder, spec, receipt, columns, after_item=after)
     for _ in range(int(table.get("blank_rows", 0))):
         builder.newline()
-        if table.get("row_rules"):
+        if row_rules:
             _rule_row(builder, positions)
-    if not table.get("row_rules"):
+    if not row_rules:
         _rule_row(builder, positions)
     _paint_bars(builder, positions, top + 1, builder.row - 1, span=(top, builder.row))
     _outline(builder, table, top, positions[0], builder.row, positions[-1])
+
+
+def _totals_divider(builder, columns) -> int:
+    """The one vertical the totals block keeps, in the item table's own units.
+
+    It has to be the *same* character column the table above rules, and the
+    only way to guarantee that is to ask the same function. Computing it here
+    as `money_col["col0"] - 1` -- which is what this did -- lands one character
+    to the right of `_bar_positions` for any layout with a gutter wider than 1,
+    and every ruled invoice here has `gutter: 3`. The result was a table whose
+    right-hand rule visibly stepped sideways where the items ended and the
+    totals began, on six of the nine framed layouts.
+    """
+    if len(columns) >= 2:
+        return _bar_positions(columns, builder.ncols)[-2]
+    return builder.ncols * 2 // 3
 
 
 def _emit_framed_totals(builder, spec, receipt, columns, rng) -> None:
@@ -971,20 +1344,28 @@ def _emit_framed_totals(builder, spec, receipt, columns, rng) -> None:
 
     One vertical only, before the money: the label runs the width of the sheet
     ("Phí BVMT đối với nước thải SH 10%") and a full set of columns under it
-    would cut it in three.
+    would cut it in three. That label is a cell merged across every column the
+    table above it rules, and it is declared as one.
     """
     settings = spec.get("totals", {})
     money_col = columns[-1] if columns else None
-    split = money_col["col0"] if money_col else builder.ncols * 2 // 3
-    positions = [0, split - 1, builder.ncols - 1]
+    divider = _totals_divider(builder, columns)
+    positions = [0, divider, builder.ncols - 1]
+    # The amount sits in the item table's money column, not in "whatever is
+    # left of the sheet", so a total lines up with the amounts above it.
+    money0 = money_col["col0"] if money_col else divider + 1
+    money1 = money_col["col1"] if money_col else builder.ncols - 2
     top = builder.row
+    _close_block_top(builder, top, positions[0], positions[-1])
     for index, (label, value) in enumerate(receipt.totals):
         is_grand = settings.get("emphasise_grand", True) and index == receipt.grand_index
         role = "total.grand" if is_grand else "total.line"
         band = builder.row
-        builder.put(fit(label, split - 3), f"{role}.label", 2, split - 1, "left", bold=is_grand)
-        builder.put(fit(value, builder.ncols - split - 3), role,
-                    split, builder.ncols - 2, "right", bold=is_grand)
+        builder.put(fit(label, divider - 3), f"{role}.label", 2, divider, "left",
+                    bold=is_grand)
+        builder.put(fit(value, money1 - money0), role, money0, money1, "right",
+                    bold=is_grand)
+        builder.merge(band, 0, band + 1, divider)
         builder.newline()
         # The amount owed carries the tint, not the whole block: shading every
         # total would make the emphasis mean nothing.
@@ -1081,6 +1462,8 @@ def _emit_words(builder, spec, receipt, columns, rng) -> None:
     label = invoice.words_label
     text = f"{label} {invoice.words}".strip()
     top = builder.row
+    if framed:
+        _close_block_top(builder, top, 0, builder.ncols - 1)
     for line in wrap(text, builder.ncols - 2 * inset - 1):
         builder.put(line, "invoice.words", inset, builder.ncols - inset, "left")
         builder.newline()
@@ -1222,11 +1605,122 @@ SECTIONS = {
 DEFAULT_SECTIONS = ("header", "meta", "columns", "items", "totals", "footer")
 
 
+def _draw_knob(knob: Any, rng: random.Random) -> Any:
+    """One value out of one knob of a `variation:` block.
+
+    Two shapes, because there are two kinds of thing to vary:
+
+    * `{range: [lo, hi]}` -- a number. Integer bounds give an integer, so
+      `blank_rows` stays a row count and `border` stays a pen width.
+    * a weighted list, `[{value: ..., weight: n}, ...]` -- anything else,
+      including `value: ~` for "this page does not have one". Weights are the
+      same currency as the rest of the rule-base, so the mix is tuned by
+      editing numbers and nothing else.
+    """
+    if isinstance(knob, dict) and "range" in knob:
+        lo, hi = knob["range"]
+        if isinstance(lo, int) and isinstance(hi, int):
+            return rng.randint(lo, hi)
+        return round(rng.uniform(float(lo), float(hi)), 3)
+    if isinstance(knob, list) and knob and isinstance(knob[0], dict):
+        values = [entry.get("value") for entry in knob]
+        weights = [float(entry.get("weight", 1)) for entry in knob]
+        if sum(weights) <= 0:
+            return values[0]
+        return rng.choices(values, weights=weights)[0]
+    return knob
+
+
+VARIATION_PRESETS = Path(__file__).resolve().parent / "rules" / "_table_variation.yaml"
+
+_PRESETS: dict[str, dict[str, Any]] | None = None
+
+
+def _preset(name: str) -> dict[str, Any]:
+    """A named block of knobs from `rules/_table_variation.yaml`.
+
+    Shared rather than copied into each layout file. Nine ruled forms want the
+    same answer to "how much does a printed table vary", and nine copies of it
+    is nine places to edit and eight places to forget -- the same reason the
+    weights live in one rules file and not in the sampler.
+
+    Named with a leading underscore so `load_rules` steps over it: this varies
+    how a table is ruled, not what the page is, and it is not a seventh
+    attribute however much it looks like one.
+    """
+    global _PRESETS
+    if _PRESETS is None:
+        raw = yaml.safe_load(VARIATION_PRESETS.read_text(encoding="utf-8")) or {}
+        _PRESETS = raw.get("presets") or {}
+    if name not in _PRESETS:
+        raise KeyError(
+            f"no table variation preset {name!r} in {VARIATION_PRESETS.name}; "
+            f"have {', '.join(sorted(_PRESETS))}"
+        )
+    return _PRESETS[name]
+
+
+def _sample_variation(spec: dict[str, Any], rng: random.Random) -> dict[str, Any]:
+    """Roll this page's table style, and fold it into the spec it overrides.
+
+    A layout file measured off one photograph describes one printed form. Two
+    hundred pages of that form differ only in the words, and a model trained on
+    them learns the form rather than the reading of it -- so `variation:` says
+    which parts of the ruling are the layout and which are that day's printer:
+    the weight of the frame, how many blank rows were left, whether the head
+    was tinted and in what colour, whether the body was striped, whether the
+    two-level head was used at all.
+
+    The dice are the page's own `rng`, so a seed still reproduces its page
+    exactly -- the variation is part of what the seed decides, not noise on top
+    of it. And they are only rolled for a layout that declares the block, which
+    is why the five thermal receipts draw identically to before: they consume
+    no numbers from the stream.
+
+    `column_groups` is the one knob that is not a table setting; it turns the
+    two-level head off by emptying the list the header emitter reads.
+    """
+    knobs = (spec.get("table") or {}).get("variation")
+    if not knobs:
+        return {}
+    if isinstance(knobs, str):
+        knobs = _preset(knobs)
+    drawn = {key: _draw_knob(knob, rng) for key, knob in sorted(knobs.items())}
+    # The knob is rolled for every layout that shares the preset, but most of
+    # them declare no groups for it to turn off. Recording the roll anyway puts
+    # `column_groups: true` in the label of a page that has a one-level head,
+    # which is a label saying something the picture does not. Dropped after the
+    # draw, never before it: skipping the draw would move the rng stream for
+    # those layouts and change pages that have nothing to do with groups.
+    if not spec.get("column_groups"):
+        drawn.pop("column_groups", None)
+
+    table = dict(spec.get("table") or {})
+    for key, value in drawn.items():
+        if key == "column_groups":
+            if not value:
+                spec["column_groups"] = []
+            continue
+        table[key] = value
+    table.pop("variation", None)
+    spec["table"] = table
+
+    # `border` is the pen the outer boundary is drawn with, and the totals block
+    # is the same boundary continued. Left out, a page would draw a 2.4-hairline
+    # table and hang a 1.8-hairline totals box off the bottom of it.
+    if "border" in drawn:
+        for section in ("totals", "vat_summary"):
+            if isinstance(spec.get(section), dict):
+                spec[section] = {**spec[section], "border": drawn["border"]}
+    return drawn
+
+
 def build_grid(receipt: Receipt, layout_id: str, rng: random.Random | None = None,
                root: Path | str = LAYOUTS_ROOT) -> Grid:
     """Lay `receipt` out per `layout_id`."""
     rng = rng or random.Random(0)
     spec = load_layout(layout_id, root)
+    table_style = _sample_variation(spec, rng)
 
     width_range = spec.get("width", [38, 46])
     ncols = rng.randint(int(width_range[0]), int(width_range[1]))
@@ -1259,10 +1753,12 @@ def build_grid(receipt: Receipt, layout_id: str, rng: random.Random | None = Non
         # The list is back to front, which is what a DOM is; the glyph backend
         # composites the other way round and reverses it on the way in.
         marks=sorted(builder.marks, key=lambda mark: mark.kind != "fill"),
+        merges=builder.merges,
+        table_style=table_style,
     )
 
 
 __all__ = [
-    "Cell", "DEFAULT_SECTIONS", "Grid", "LAYOUTS_ROOT", "SECTIONS",
-    "available", "build_grid", "load_layout",
+    "Cell", "DEFAULT_SECTIONS", "Grid", "LAYOUTS_ROOT", "Mark", "Merge",
+    "SECTIONS", "available", "build_grid", "load_layout",
 ]

@@ -95,7 +95,7 @@ class SynthVNReceipt(templates.Template):
         # backends need. Without the flip the shading under a column header is
         # laid on top of the rules that bound it and rubs them out.
         mark_layers = list(reversed(out.get("mark_layers") or []))
-        recipe, receipt = out["recipe"], out["receipt"]
+        recipe, receipt, grid = out["recipe"], out["receipt"], out["grid"]
         width, height = out["size"]
 
         # ----- 1. chữ trên tờ giấy trắng -----
@@ -172,7 +172,7 @@ class SynthVNReceipt(templates.Template):
             if f["kind"] != "sep"
         ]
 
-        return {
+        record = {
             "image": image,
             "gt_parse": receipt.ground_truth(),
             "text_sequence": re.sub(r"\s+", " ", receipt.text_sequence()).strip(),
@@ -180,6 +180,12 @@ class SynthVNReceipt(templates.Template):
             "recipe": recipe.to_dict(),
             "quality": int(np.random.randint(self.quality[0], self.quality[1] + 1)),
         }
+        # Additive, and only when the layout has a table to describe -- the
+        # same key the other two backends write, from the same grid.
+        table = grid.table_label()
+        if table:
+            record["table"] = table
+        return record
 
     # ------------------------------------------------------------------
 
@@ -209,6 +215,8 @@ class SynthVNReceipt(templates.Template):
             "boxes": data["boxes"],
             "recipe": data["recipe"],
         }
+        if data.get("table"):
+            metadata["table"] = data["table"]
         with open(os.path.join(output_dirpath, "metadata.jsonl"), "a", encoding="utf-8") as fp:
             json.dump(metadata, fp, ensure_ascii=False)
             fp.write("\n")

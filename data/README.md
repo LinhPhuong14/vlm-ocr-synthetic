@@ -4,6 +4,7 @@
 | --- | ---: | --- |
 | [`dataset60/`](dataset60) | 60 | **aged** — a degradation chain drawn from the rules; the glyph renderer also curls the sheet and re-photographs it |
 | [`dataset60_clean/`](dataset60_clean) | 60 | **not augmented** — same receipts, every kind of ageing and distortion off |
+| [`layout_canvas/`](layout_canvas) | 6 | **contact sheets** — every bố cục of every renderer, clean over augmented, plus the boxes drawn on the augmented page |
 
 20 images per renderer (synthdog / html / genalog) in each set, spread evenly
 over the layouts.

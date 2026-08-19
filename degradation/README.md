@@ -7,8 +7,12 @@ part; the Qt application is not something a Python generation pipeline can
 call. So they are ported here and applied to whatever a renderer produced.
 
 DocCreator itself is not vendored: the modules carry citations to the file each
-came from, which is what you need to check one. Read the original with
-`git clone https://github.com/DocCreator/DocCreator.git`.
+came from, which is what you need to check one. Fetch the original — along with
+Augraphy and STRAug, which cover the office-machine and in-camera halves this
+module does not — with the commands in
+[`references/README.md`](../references/README.md). That file also maps every
+module here, and every one still to be written, to the upstream file to read
+first. The sources themselves are not committed; the map is.
 
 ## What is ported
 

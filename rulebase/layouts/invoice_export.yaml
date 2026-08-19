@@ -54,6 +54,8 @@ table:
   column_numbers: true
   row_rules: false
   blank_rows: 4
+  # Mỗi trang bốc lại — xem `rulebase/rules/_table_variation.yaml`.
+  variation: ruled_form
 
 item:
   wrap_name: true

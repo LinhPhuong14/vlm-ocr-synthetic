@@ -84,8 +84,12 @@ def build_html(grid, recipe, receipt) -> str:
         # 1.5em total would be right-aligned against a box 1.5 columns too wide,
         # pushing the amount off the sheet. The outer span keeps the sheet's
         # font-size and stays on the grid; only the inner one grows.
+        # A cell merged down several rows is set in the MIDDLE of the band it
+        # covers, not on its first row -- one term, because the top was already
+        # a multiplication of the row by the line height.
+        top_px = pad_top + (cell.row + (cell.rowspan - 1) / 2.0) * line_px
         style = (
-            f"left:{left:.3f}ch;top:{pad_top + cell.row * line_px:.2f}px;"
+            f"left:{left:.3f}ch;top:{top_px:.2f}px;"
             f"width:{width}ch;text-align:{cell.align};color:{colour_hex};"
         )
         # Same clamp the glyph renderer applies: an enlarged cell may not grow
@@ -111,7 +115,9 @@ def build_html(grid, recipe, receipt) -> str:
         top = pad_top + mark.row0 * line_px
         height = max((mark.row1 - mark.row0) * line_px, 0.0)
         thick = hairline * mark.weight
-        shade = "#%02x%02x%02x" % tuple(
+        # A mark's own colour when it has one; otherwise the page's ink, faded
+        # by `tone`. See `Mark`: the two are different statements about a band.
+        shade = mark.colour or "#%02x%02x%02x" % tuple(
             int(round(255 - (255 - channel) * mark.tone)) for channel in ink)
         if mark.kind == "rule":
             # Degenerate on one axis: give it the pen's thickness there.
@@ -357,7 +363,7 @@ def main() -> int:
 
     with HtmlReceiptRenderer(scale=args.scale, template=args.template) as renderer:
         for index in range(args.count):
-            recipe, receipt, _grid, image, boxes, cells = renderer.render(
+            recipe, receipt, grid, image, boxes, cells = renderer.render(
                 args.seed + index, force)
             name = f"html_{index:03d}.jpg"
             cv2.imwrite(str(args.out / name), image, [cv2.IMWRITE_JPEG_QUALITY, 90])
@@ -369,6 +375,11 @@ def main() -> int:
                 "recipe": recipe.to_dict(),
                 "boxes": boxes,
             })
+            # Additive, and only when the layout has a table to describe: which
+            # cells were merged, and which variant of the ruling this page drew.
+            table = grid.table_label()
+            if table:
+                records[-1]["table"] = table
             if cells:
                 # Additive, and only for a template render: the structure half
                 # of the label, so a merged cell is recoverable. `boxes` is

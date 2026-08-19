@@ -60,6 +60,8 @@ table:
   frame: false
   # Tờ do phần mềm kế toán in ra: dải tiêu đề cột có nền nhạt.
   shade: 0.10
+  # Mỗi trang bốc lại — xem `rulebase/rules/_table_variation.yaml`.
+  variation: open_table
 
 item:
   wrap_name: true

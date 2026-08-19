@@ -125,7 +125,10 @@ Rendering aside, the three differ in what kind of training signal they produce:
 
 All three write the same `metadata.jsonl` — `file_name`, `ground_truth`
 (CORD-style nested), `text_sequence`, `recipe`, `boxes` — so a training script
-does not need to know which produced a file.
+does not need to know which produced a file. A page whose layout has a table
+adds one more key, `table`, holding which rectangles of it are a single merged
+cell and which variant of the ruling that page drew; see
+[Tables](#tables-merged-nested-coloured).
 
 ### Boxes
 
@@ -145,6 +148,31 @@ corner is inside the frame, and that there is ink under each box.
 A fourth kind of page — generic tables, labelled by structure rather than
 parsed into a record — is built by `generators/html/tables.py`, on the same
 browser the html receipts use. See [Table images](#table-images) below.
+
+### Tables: merged, nested, coloured
+
+The item table of an invoice is drawn from the same grid all three renderers
+read, so a table defect is one defect and not three. Three things a printed
+table does, all decided in the layout file and detailed in
+[`rulebase/README.md`](rulebase/README.md#merged-nested-coloured):
+
+| | what it is |
+| --- | --- |
+| **merged** | a cell covering several columns or rows has no rules inside it — the frame breaks around it, and the rectangle is written to the label as `table.merges` |
+| **nested** | `column_groups:` sets one title over several columns with theirs beneath it, which is a merge across and a merge down |
+| **coloured** | `fill:` tints the header band and `zebra:` stripes every other item, in an ink of their own rather than a dilution of the page's |
+
+And `variation:` re-rolls part of the ruling per page — the tint, the stripe,
+the blank rows, the pen weight, whether the head has two levels — from the
+page's own seed, so the same seed still gives the same page and the three
+renderers still agree. What a page drew is recorded in `table.style`.
+
+Two defects this fixed, both visible on any water bill generated before it: the
+verticals of a framed table were drawn straight through a cell that spanned its
+columns (`Tiền nước sin|h hoạt bậc 1 |(0-10m3)`), and the totals block placed
+its one vertical a character to the right of the table's, so the right-hand
+rule of the frame stepped sideways where the items ended. Six of the nine
+framed layouts did the second.
 
 ---
 

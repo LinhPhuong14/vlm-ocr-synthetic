@@ -49,6 +49,15 @@ parties:
 
 column_header: true
 column_header_bold: true
+# ĐẦU BẢNG HAI TẦNG. Hai cột cuối đều nói về thuế và cả hai đang phải nhắc lại
+# chữ "GTGT" trong tiêu đề của mình; phần mềm in hoá đơn gộp chúng dưới một
+# chữ "Thuế GTGT" và cắt phần lặp đi. `variation.column_groups` bốc từng trang,
+# nên bộ dữ liệu có cả hai kiểu đầu bảng.
+column_groups:
+  - title: "Thuế GTGT"
+    over: [vat_rate, amount_with_vat]
+    titles: {vat_rate: "Thuế suất", amount_with_vat: "Thành tiền có thuế"}
+
 columns:
   - {key: stt,             title: "STT",                          width: 6,  align: center, title_align: center, number: 1}
   - {key: name,            title: "Tên hàng hoá, dịch vụ",        width: 0,  align: left,   title_align: center, number: 2}
@@ -64,6 +73,8 @@ table:
   column_numbers: true
   row_rules: true
   blank_rows: 5
+  # Mỗi trang bốc lại — xem `rulebase/rules/_table_variation.yaml`.
+  variation: ruled_form
 
 item:
   wrap_name: true
