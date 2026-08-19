@@ -67,6 +67,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterator
 
+import profiling
+
 # Same convention as `pipeline/preflight.py`: a check that could not run is not
 # a check that passed, and it says which of the two it was.
 UNCHECKED = "unchecked:"
@@ -518,7 +520,8 @@ class Tally:
     def inspect(self, item: dict[str, Any], *, image: Path | None = None,
                 where: str = "") -> Observation:
         """Check one image and keep the numbers. Raises on anything absolute."""
-        out = inspect(item, order=self.order, image=image, where=where)
+        with profiling.stage("validation"):
+            out = inspect(item, order=self.order, image=image, where=where)
         if out.errors:
             raise InvariantError("\n".join(out.errors))
         self.images += 1
