@@ -30,10 +30,12 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(REPO_ROOT))
 
+import synthtiger  # noqa: E402
 from template_receipt import SynthVNReceipt  # noqa: E402
 
 import profiling  # noqa: E402
 import rulebase  # noqa: E402
+import worklist  # noqa: E402
 
 
 def make_clean(config: dict) -> dict:
@@ -86,6 +88,7 @@ def main() -> int:
         help="time every stage and write the breakdown here. Off by default, "
              "and off costs nothing: see profiling.py",
     )
+    worklist.add_argument(parser)
     args = parser.parse_args()
 
     profile = Path(args.profile) if args.profile else profiling.enable_from_env()
@@ -98,43 +101,69 @@ def main() -> int:
             config = make_clean(config)
         template = SynthVNReceipt(config)
     args.out.mkdir(parents=True, exist_ok=True)
-    force = rulebase.parse_force(args.force, args.layout)
+    jobs = worklist.load(args)
+    # One parse per job rather than one per page: `parse_force` reads the rules
+    # to validate the pin, and a job list is many pages over few distinct pins.
+    forces = {job: rulebase.parse_force(job.pins(args.force), job.layout)
+              for job in jobs}
 
-    records = []
-    for index in range(args.count):
-        # synthtiger seeds its own components from numpy's global state; seeding
-        # it per image keeps the paper curl and the camera effects reproducible
-        # as well as the contents.
-        np.random.seed(args.seed + index)
-        template.seed_base = args.seed + index
-        template._counter = 0
+    # Streamed, not collected: a job list may be a whole shard, and a record
+    # carries every box on the page. Written in page order, which is the order
+    # the caller listed the jobs in -- `pipeline/worker.py` walks the runs in
+    # that order to name the files.
+    with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as metadata:
+        for index, job, seed in worklist.pages(jobs):
+            # ALL THREE global generators, not just numpy's.
+            #
+            # This line used to be `np.random.seed(seed)`, and that was a bug
+            # with no symptom: the image effects in `config_vi_receipt.yaml`
+            # -- elastic distortion, gaussian noise, motion blur, gaussian
+            # blur -- are imgaug augmenters, and imgaug keeps a global RNG of
+            # its own that numpy's seed does not touch. So a page depended on
+            # how many pages the process had already drawn. The same seed drew
+            # one image as the first page of a process and a visibly different
+            # one as the second: same label, same boxes' worth of text,
+            # different pixels and different quads.
+            #
+            # Nothing caught it because the worker started a fresh process per
+            # layout, so the positions were always the same and the golden
+            # baseline was stable -- deterministic, but not a function of the
+            # seed. Drawing a whole shard in one process is what made it
+            # visible, and `tests/test_worklist.py` now renders the same seeds
+            # split and joined and compares the bytes.
+            #
+            # `synthtiger.set_global_random_seed` is synthtiger's own call,
+            # used rather than reimplemented: it seeds `random`, `np.random`
+            # and `imgaug` together, which is also what the synthtiger CLI
+            # (`make receipts`) does, so the two paths finally agree.
+            synthtiger.set_global_random_seed(seed)
+            template.seed_base = seed
+            template._counter = 0
 
-        data = template.generate(force=force)
-        name = f"synthdog_{index:03d}.jpg"
-        with profiling.stage("export"):
-            Image.fromarray(data["image"].astype(np.uint8)).save(
-                args.out / name, quality=data["quality"]
-            )
-        with profiling.stage("annotation"):
-            records.append({
-                "file_name": name,
-                "ground_truth": json.dumps({"gt_parse": data["gt_parse"]},
-                                           ensure_ascii=False),
-                "text_sequence": data["text_sequence"],
-                "recipe": data["recipe"],
-                "boxes": data["boxes"],
-            })
-        print(f"[ok] {name}  {data['image'].shape[1]}x{data['image'].shape[0]}  "
-              f"{data['recipe']['attributes']['layout']['id']}")
-
-    with profiling.stage("export"):
-        with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as fp:
-            for record in records:
-                json.dump(record, fp, ensure_ascii=False)
-                fp.write("\n")
+            data = template.generate(force=forces[job])
+            name = f"synthdog_{index:03d}.jpg"
+            with profiling.stage("export"):
+                Image.fromarray(data["image"].astype(np.uint8)).save(
+                    args.out / name, quality=data["quality"]
+                )
+            with profiling.stage("annotation"):
+                record = {
+                    "file_name": name,
+                    "ground_truth": json.dumps({"gt_parse": data["gt_parse"]},
+                                               ensure_ascii=False),
+                    "text_sequence": data["text_sequence"],
+                    "recipe": data["recipe"],
+                    "boxes": data["boxes"],
+                }
+            with profiling.stage("export"):
+                json.dump(record, metadata, ensure_ascii=False)
+                metadata.write("\n")
+            print(f"[ok] {name}  {data['image'].shape[1]}x{data['image'].shape[0]}  "
+                  f"{data['recipe']['attributes']['layout']['id']}")
 
     if profile:
-        profiling.dump(profile, {"backend": "synthdog", "images": args.count})
+        profiling.dump(profile, {"backend": "synthdog", "images": worklist.total(jobs),
+                                 "jobs": len(jobs)})
     return 0
 
 

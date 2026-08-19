@@ -69,11 +69,19 @@ BACKENDS = {
     "genalog": (REPO_ROOT / "generators" / "genalog" / "render.py", REPO_ROOT),
 }
 
-# The nine stages the pipeline is made of, in the order they run. Printed in
-# this order rather than sorted by cost, so two runs' tables line up and the
-# eye can compare them.
+# The stages the pipeline is made of, in the order they run. Printed in this
+# order rather than sorted by cost, so two runs' tables line up and the eye can
+# compare them.
+#
+# `scene` and `geometry` are separate on purpose. Both used to be `geometry`,
+# and the row then read 1.695 s for the glyph renderer against 0.0006 s for
+# genalog -- a factor of 2800, because it was measuring two different things.
+# `scene` is curling the paper, dropping it on a background and photographing
+# it, which only the glyph renderer does; `geometry` is working out where the
+# boxes are, which all three do and which costs milliseconds. A label has to
+# carry its meaning, or a reader draws the right conclusion from the wrong row.
 STAGES = ("interpreter", "startup", "sampling", "content", "layout", "render",
-          "geometry", "degradation", "annotation", "validation", "export")
+          "scene", "geometry", "degradation", "annotation", "validation", "export")
 
 
 class ProfileError(RuntimeError):
@@ -313,14 +321,14 @@ def verify(model: dict, backend: str, count: int, seed: int, out: Path) -> dict:
             "error": round(error, 4)}
 
 
-def shipped_plan() -> dict[str, tuple[int, int]]:
-    """`{backend: (subprocesses, images)}` for the run `pipeline.yaml` declares.
+def shipped_plan() -> dict[str, tuple[int, int, int]]:
+    """`{backend: (processes, was, images)}` for the run `pipeline.yaml` declares.
 
-    Read from the plan rather than assumed, because the answer is surprising:
-    the worker starts a renderer per *run*, and a run is one layout, so a
-    twenty-image shard over fourteen layouts starts fourteen processes and each
-    draws about one and a half images. Whether the fixed cost of a process is a
-    rounding error or a quarter of the run is decided here and nowhere else.
+    Read from the plan rather than assumed. `processes` is one per shard, which
+    is what the worker starts since W3b; `was` is one per run, which is what it
+    started before, and a run is one layout. Both are here because the gap
+    between them is the change: a twenty-image shard over fourteen layouts used
+    to start fourteen processes drawing one and a half images each.
     """
     import rulebase
     from pipeline import plan as planning
@@ -330,27 +338,35 @@ def shipped_plan() -> dict[str, tuple[int, int]]:
     built = planning.build_plan(config, sorted(rulebase.available_layouts()))
     out: dict[str, list[int]] = {}
     for shard in built["shards"]:
-        entry = out.setdefault(shard["backend"], [0, 0])
-        entry[0] += len(shard["runs"])
-        entry[1] += sum(run["count"] for run in shard["runs"])
-    return {backend: (runs, images) for backend, (runs, images) in out.items()}
+        entry = out.setdefault(shard["backend"], [0, 0, 0])
+        entry[0] += 1                                  # one process per shard
+        entry[1] += len(shard["runs"])                 # what it used to be
+        entry[2] += sum(run["count"] for run in shard["runs"])
+    return {backend: tuple(counts) for backend, counts in out.items()}
 
 
-def plan_cost(model: dict, shape: dict[str, tuple[int, int]]) -> list[str]:
-    """What the declared run should cost, and how much of it is process churn."""
-    lines = ["| backend | processes | images | images/process | predicted s | "
-             "of which start-up | share |",
-             "| --- | ---: | ---: | ---: | ---: | ---: | ---: |"]
-    for backend, (processes, images) in sorted(shape.items()):
+def plan_cost(model: dict, shape: dict[str, tuple[int, int, int]]) -> list[str]:
+    """What the declared run costs, and what it cost before W3b.
+
+    Both columns, because a saving is only a number beside the thing it was
+    saved from -- and because the prediction in the "before" column is what the
+    change was decided on, so it should stay visible next to what happened.
+    """
+    lines = ["| backend | images | processes | s | was (1 per layout) | saved |",
+             "| --- | ---: | ---: | ---: | ---: | ---: |"]
+    for backend, (processes, was, images) in sorted(shape.items()):
         costs = model["per_image"].get(backend)
         if costs is None:
             continue
-        fixed = model["fixed_per_process"].get(backend, 0.0) * processes
-        total = sum(costs.values()) * images + fixed
+        fixed = model["fixed_per_process"].get(backend, 0.0)
+        now = sum(costs.values()) * images + fixed * processes
+        before = sum(costs.values()) * images + fixed * was
+        if not before:
+            continue
         lines.append(
-            f"| {backend} | {processes} | {images} | {images / processes:.2f} | "
-            f"{total:.1f} | {fixed:.1f} | {fixed / total:.0%} |" if total else "")
-    return [line for line in lines if line]
+            f"| {backend} | {images} | {processes} (was {was}) | {now:.1f} | "
+            f"{before:.1f} | {1 - now / before:.0%} |")
+    return lines
 
 
 def table(pass_a: dict[str, dict], validation: dict[str, dict]) -> list[str]:
@@ -462,19 +478,20 @@ def write_markdown(model: dict, pass_a: dict, validation: dict, path: Path,
         "## What the declared run costs",
         "",
         "`pipeline.yaml` as it stands, priced with the model above. The worker "
-        "starts one renderer process per *run*, and a run is one layout, so a "
-        "twenty-image shard over fourteen layouts starts fourteen processes "
-        "that draw about one and a half images each -- and the fixed cost is "
-        "paid fourteen times.",
+        "starts **one renderer process per shard**. It used to start one per "
+        "*run*, and a run is one layout, so a twenty-image shard over fourteen "
+        "layouts started fourteen processes drawing one and a half images each "
+        "and paid start-up fourteen times.",
         "",
         *plan,
         "",
-        "That column is the largest lever this profile found, and it is not in "
-        "a renderer or in a degradation model: it is the shape of the plan. "
-        "Handing a renderer all of a shard's layouts in one invocation would "
-        "pay the start-up once instead of once per layout. Doing it is a change "
-        "to the worker and to all three renderers' arguments, so it is measured "
-        "here and left named rather than done as part of a measurement.",
+        "That was the largest lever this profile found, and it was not in a "
+        "renderer or in a degradation model: it was the shape of the "
+        "invocation. The renderers take a job list now (`worklist.py`), and "
+        "the same plan went from 140 s to 98 s measured end to end. The "
+        "saving predicted from this model before the change was made came "
+        "within 7.3% of the saving measured after it -- which is the first "
+        "time the cost model was used rather than merely built.",
         "",
         "## What this names, and what it clears",
         "",
@@ -493,10 +510,13 @@ def write_markdown(model: dict, pass_a: dict, validation: dict, path: Path,
         *(["The model was checked against a run it was not fitted on: "
            f"`{held_out['backend']}` x{held_out['images']} at seed "
            f"{held_out['seed']} was predicted at {held_out['predicted']:.2f} s "
-           f"and took {held_out['measured']:.2f} s, an error of "
-           f"{held_out['error']:+.1%}. A different seed draws a different mix of "
-           "layouts and ageing, which is the situation the model is for and the "
-           "one where it can be wrong.", ""] if held_out else []),
+           f"and took {held_out['measured']:.2f} s -- the model predicted "
+           f"**{'high' if held_out['predicted'] > held_out['measured'] else 'low'}** "
+           f"by {abs(held_out['error']):.1%}. The direction matters when the "
+           "model is used to size a run: high is the safe side, and saying "
+           "which side it errs on is part of the number. A different seed draws "
+           "a different mix of layouts and ageing, which is the situation the "
+           "model is for and the one where it can be wrong.", ""] if held_out else []),
         "`cost_model.json` beside this file holds the same numbers as seconds "
         "per image per stage, seconds per call per degradation model, and the "
         "fixed cost of starting each backend. `predict()` in "

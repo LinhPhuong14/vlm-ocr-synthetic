@@ -45,6 +45,7 @@ sys.path.insert(0, str(REPO_ROOT))
 
 import profiling  # noqa: E402
 import rulebase  # noqa: E402
+import worklist  # noqa: E402
 from degradation.pipeline import apply_recipe  # noqa: E402
 
 TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
@@ -356,6 +357,7 @@ def main() -> int:
         help="time every stage and write the breakdown here. Off by default, "
              "and off costs nothing: see profiling.py",
     )
+    worklist.add_argument(parser)
     args = parser.parse_args()
 
     profile = Path(args.profile) if args.profile else profiling.enable_from_env()
@@ -363,36 +365,42 @@ def main() -> int:
         profiling.enable()
 
     args.out.mkdir(parents=True, exist_ok=True)
-    force = rulebase.parse_force(args.force, args.layout)
+    jobs = worklist.load(args)
+    # One parse per job rather than one per page: `parse_force` reads the rules
+    # to validate the pin, and a job list is many pages over few distinct pins.
+    forces = {job: rulebase.parse_force(job.pins(args.force), job.layout)
+              for job in jobs}
     with profiling.stage("startup"):
         renderer = GenalogReceiptRenderer(dpi=args.dpi)
-    records = []
 
-    for index in range(args.count):
-        recipe, receipt, _grid, image, boxes = renderer.render(args.seed + index, force)
-        name = f"genalog_{index:03d}.jpg"
-        with profiling.stage("export"):
-            cv2.imwrite(str(args.out / name), image, [cv2.IMWRITE_JPEG_QUALITY, 90])
-        with profiling.stage("annotation"):
-            records.append({
-                "file_name": name,
-                "ground_truth": json.dumps({"gt_parse": receipt.ground_truth()},
-                                           ensure_ascii=False),
-                "text_sequence": receipt.text_sequence(),
-                "recipe": recipe.to_dict(),
-                "boxes": boxes,
-            })
-        print(f"[ok] {name}  {image.shape[1]}x{image.shape[0]}  "
-              f"{recipe.layout.id}  {len(boxes)} boxes")
-
-    with profiling.stage("export"):
-        with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as fp:
-            for record in records:
-                json.dump(record, fp, ensure_ascii=False)
-                fp.write("\n")
+    # Streamed, not collected: a job list may be a whole shard, and a record
+    # carries every box on the page. Written in page order, which is the order
+    # the caller listed the jobs in -- `pipeline/worker.py` walks the runs in
+    # that order to name the files.
+    with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as metadata:
+        for index, job, seed in worklist.pages(jobs):
+            recipe, receipt, _grid, image, boxes = renderer.render(seed, forces[job])
+            name = f"genalog_{index:03d}.jpg"
+            with profiling.stage("export"):
+                cv2.imwrite(str(args.out / name), image, [cv2.IMWRITE_JPEG_QUALITY, 90])
+            with profiling.stage("annotation"):
+                record = {
+                    "file_name": name,
+                    "ground_truth": json.dumps({"gt_parse": receipt.ground_truth()},
+                                               ensure_ascii=False),
+                    "text_sequence": receipt.text_sequence(),
+                    "recipe": recipe.to_dict(),
+                    "boxes": boxes,
+                }
+            with profiling.stage("export"):
+                json.dump(record, metadata, ensure_ascii=False)
+                metadata.write("\n")
+            print(f"[ok] {name}  {image.shape[1]}x{image.shape[0]}  "
+                  f"{recipe.layout.id}  {len(boxes)} boxes")
 
     if profile:
-        profiling.dump(profile, {"backend": "genalog", "images": args.count})
+        profiling.dump(profile, {"backend": "genalog", "images": worklist.total(jobs),
+                                 "jobs": len(jobs)})
     return 0
 
 

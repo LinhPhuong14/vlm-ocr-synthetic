@@ -45,6 +45,7 @@ from page import (  # noqa: E402
 
 import profiling  # noqa: E402
 import rulebase  # noqa: E402
+import worklist  # noqa: E402
 from degradation.pipeline import apply_recipe  # noqa: E402
 
 
@@ -382,6 +383,7 @@ def main() -> int:
         help="time every stage and write the breakdown here. Off by default, "
              "and off costs nothing: see profiling.py",
     )
+    worklist.add_argument(parser)
     args = parser.parse_args()
 
     profile = Path(args.profile) if args.profile else profiling.enable_from_env()
@@ -389,49 +391,56 @@ def main() -> int:
         profiling.enable()
 
     args.out.mkdir(parents=True, exist_ok=True)
-    force = rulebase.parse_force(args.force, args.layout)
-    records = []
+    jobs = worklist.load(args)
+    # One parse per job rather than one per page: `parse_force` reads the rules
+    # to validate the pin, and a job list is many pages over few distinct pins.
+    forces = {job: rulebase.parse_force(job.pins(args.force), job.layout)
+              for job in jobs}
 
     with profiling.stage("startup"):
         renderer = HtmlReceiptRenderer(scale=args.scale, template=args.template)
         renderer.__enter__()
     try:
-        for index in range(args.count):
-            recipe, receipt, _grid, image, boxes, cells = renderer.render(
-                args.seed + index, force)
-            name = f"html_{index:03d}.jpg"
-            with profiling.stage("export"):
-                cv2.imwrite(str(args.out / name), image, [cv2.IMWRITE_JPEG_QUALITY, 90])
-            with profiling.stage("annotation"):
-                records.append({
-                    "file_name": name,
-                    "ground_truth": json.dumps({"gt_parse": receipt.ground_truth()},
-                                               ensure_ascii=False),
-                    "text_sequence": receipt.text_sequence(),
-                    "recipe": recipe.to_dict(),
-                    "boxes": boxes,
-                })
-                if cells:
-                    # Additive, and only for a template render: the structure
-                    # half of the label, so a merged cell is recoverable.
-                    # `boxes` is untouched, so every existing loader keeps
-                    # working.
-                    records[-1]["cells"] = cells
-                    records[-1]["structure"] = structure_from_cells(cells)
-            print(f"[ok] {name}  {image.shape[1]}x{image.shape[0]}  "
-                  f"{recipe.layout.id}  {len(boxes)} boxes")
+        # Streamed, not collected: a job list may be a whole shard, and a record
+        # carries every box on the page. Written in page order, which is the
+        # order the caller listed the jobs in -- `pipeline/worker.py` walks the
+        # runs in that order to name the files.
+        with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as metadata:
+            for index, job, seed in worklist.pages(jobs):
+                recipe, receipt, _grid, image, boxes, cells = renderer.render(
+                    seed, forces[job])
+                name = f"html_{index:03d}.jpg"
+                with profiling.stage("export"):
+                    cv2.imwrite(str(args.out / name), image,
+                                [cv2.IMWRITE_JPEG_QUALITY, 90])
+                with profiling.stage("annotation"):
+                    record = {
+                        "file_name": name,
+                        "ground_truth": json.dumps({"gt_parse": receipt.ground_truth()},
+                                                   ensure_ascii=False),
+                        "text_sequence": receipt.text_sequence(),
+                        "recipe": recipe.to_dict(),
+                        "boxes": boxes,
+                    }
+                    if cells:
+                        # Additive, and only for a template render: the
+                        # structure half of the label, so a merged cell is
+                        # recoverable. `boxes` is untouched, so every existing
+                        # loader keeps working.
+                        record["cells"] = cells
+                        record["structure"] = structure_from_cells(cells)
+                with profiling.stage("export"):
+                    json.dump(record, metadata, ensure_ascii=False)
+                    metadata.write("\n")
+                print(f"[ok] {name}  {image.shape[1]}x{image.shape[0]}  "
+                      f"{recipe.layout.id}  {len(boxes)} boxes")
     finally:
         with profiling.stage("startup"):
             renderer.__exit__(None, None, None)
 
-    with profiling.stage("export"):
-        with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as fp:
-            for record in records:
-                json.dump(record, fp, ensure_ascii=False)
-                fp.write("\n")
-
     if profile:
-        profiling.dump(profile, {"backend": "html", "images": args.count})
+        profiling.dump(profile, {"backend": "html", "images": worklist.total(jobs),
+                                 "jobs": len(jobs)})
     return 0
 
 

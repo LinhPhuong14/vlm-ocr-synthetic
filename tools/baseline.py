@@ -358,6 +358,11 @@ def main() -> int:
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--write", action="store_true",
                         help="capture and overwrite the golden file")
+    parser.add_argument("--reason", default="",
+                        help="why the golden file is being replaced. Required "
+                             "with --write, and kept in the file: a comparison "
+                             "point that changed without saying why is one "
+                             "nobody can argue with later")
     parser.add_argument("--driver", default="tools/generate_dataset.py",
                         help="the generator to fingerprint")
     args = parser.parse_args()
@@ -367,6 +372,24 @@ def main() -> int:
     actual = capture(driver)
 
     if args.write:
+        # The eighth standing law, applied to the golden file itself: it is the
+        # comparison point everything else is held to, so it has to carry the
+        # conditions it was taken under -- including the reason the previous
+        # one stopped being true. Without this, recapturing is the cheap way
+        # out of a red baseline and leaves no trace that it was taken.
+        if not args.reason.strip():
+            raise SystemExit(
+                "refusing to overwrite the golden file without --reason.\n"
+                "  A recapture is a claim that the old pixels were wrong and "
+                "the new ones are right.\n"
+                "  Say why, in one sentence; it is kept in the file.\n"
+                '  e.g. make baseline-write REASON="glyph pages now reseed '
+                'imgaug, so a page is a function of its seed"')
+        actual["reason"] = args.reason.strip()
+        previous = (json.loads(GOLDEN.read_text(encoding="utf-8"))
+                    if GOLDEN.exists() else {})
+        if previous.get("reason"):
+            actual["replaced"] = previous["reason"]
         GOLDEN.parent.mkdir(parents=True, exist_ok=True)
         GOLDEN.write_text(json.dumps(actual, indent=2, ensure_ascii=False) + "\n",
                           encoding="utf-8")
