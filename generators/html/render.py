@@ -43,8 +43,27 @@ from page import (  # noqa: E402
     served,
 )
 
+import profiling  # noqa: E402
 import rulebase  # noqa: E402
+import worklist  # noqa: E402
 from degradation.pipeline import apply_recipe  # noqa: E402
+
+
+def _sheet_css(grid, line_px: float, padding_px: float) -> str:
+    """How tall the sheet is: its content, or the paper it is printed on.
+
+    A cut sheet's height is decided before anything is printed, so a three-item
+    invoice still fills an A4 page and the rest is paper. `aspect-ratio` does
+    the arithmetic in the browser rather than here, because the width is in
+    `ch` -- the font's own advance -- and only the browser knows what that is
+    in pixels. `min-height` keeps it a floor: content that overflows its paper
+    stays visible instead of being cropped into looking fine.
+    """
+    content = grid.nrows * line_px + padding_px
+    ratio = rulebase.sheet_ratio(grid)
+    if ratio is None:
+        return f"height:{content:.2f}px;"
+    return f"min-height:{content:.2f}px;aspect-ratio:{ratio:.6f};"
 
 
 def build_html(grid, recipe, receipt) -> str:
@@ -161,7 +180,7 @@ html,body{{margin:0;padding:0;background:#fff;}}
      a `padding` property: an absolutely positioned child is laid out against
      its ancestor's *padding box*, so CSS padding does not move it, and the
      shop name ends up hard against the top edge however large the padding is. */
-  height:{grid.nrows * line_px + pad_top + pad_bottom:.2f}px;
+  {_sheet_css(grid, line_px, pad_top + pad_bottom)}
   background:#fff;
   -webkit-font-smoothing:antialiased;
 }}
@@ -266,55 +285,65 @@ class HtmlReceiptRenderer:
 
     def render(self, seed: int, force: dict[str, str] | None = None):
         recipe, receipt, grid = rulebase.make(seed=seed, force=force)
-        if self.template:
-            from a4 import build as build_template
+        with profiling.stage("render"):
+            if self.template:
+                from a4 import build as build_template
 
-            markup = build_template(recipe, receipt, self.template)
-            markup = markup.replace("{FONT_FACES}", font_faces())
-        else:
-            markup = build_html(grid, recipe, receipt)
+                markup = build_template(recipe, receipt, self.template)
+                markup = markup.replace("{FONT_FACES}", font_faces())
+            else:
+                markup = build_html(grid, recipe, receipt)
 
-        page = self._browser.new_page(device_scale_factor=self.scale)
+            page = self._browser.new_page(device_scale_factor=self.scale)
         try:
-            # Served from a file, not `set_content`: see `page.served`.
-            with served(markup) as uri:
-                page.goto(uri, wait_until="load")
-            page.wait_for_timeout(60)  # let the embedded faces settle
-            sheet = page.query_selector("#sheet")
+            with profiling.stage("render"):
+                # Served from a file, not `set_content`: see `page.served`.
+                with served(markup) as uri:
+                    page.goto(uri, wait_until="load")
+                page.wait_for_timeout(60)  # let the embedded faces settle
+                sheet = page.query_selector("#sheet")
             # Measured before the screenshot and from the same laid-out page, so
             # the boxes describe the pixels that were captured rather than a
             # second, re-measured layout.
-            rects = page.evaluate(CELL_RECTS_JS)
-            regions = page.evaluate(CELL_REGIONS_JS) if self.template else []
-            shot = sheet.screenshot(type="png")
+            with profiling.stage("geometry"):
+                rects = page.evaluate(CELL_RECTS_JS)
+                regions = page.evaluate(CELL_REGIONS_JS) if self.template else []
+            with profiling.stage("render"):
+                shot = sheet.screenshot(type="png")
         finally:
-            page.close()
+            with profiling.stage("render"):
+                page.close()
 
-        image = cv2.imdecode(np.frombuffer(shot, np.uint8), cv2.IMREAD_COLOR)
+        with profiling.stage("render"):
+            image = cv2.imdecode(np.frombuffer(shot, np.uint8), cv2.IMREAD_COLOR)
 
-        # Render large and shrink, never the reverse: the text stays crisp, and
-        # the result lands in the same size band as the glyph renderer, so the
-        # two are comparable at the pixel level and not only in content.
-        target = random.Random(seed).randint(*self.short_size)
-        factor = target / min(image.shape[:2])
-        if factor < 1.0:
-            image = cv2.resize(
-                image,
-                (max(int(image.shape[1] * factor), 1), max(int(image.shape[0] * factor), 1)),
-                interpolation=cv2.INTER_AREA,
-            )
-        else:
-            factor = 1.0
+            # Render large and shrink, never the reverse: the text stays crisp,
+            # and the result lands in the same size band as the glyph renderer,
+            # so the two are comparable at the pixel level and not only in
+            # content.
+            target = random.Random(seed).randint(*self.short_size)
+            factor = target / min(image.shape[:2])
+            if factor < 1.0:
+                image = cv2.resize(
+                    image,
+                    (max(int(image.shape[1] * factor), 1),
+                     max(int(image.shape[0] * factor), 1)),
+                    interpolation=cv2.INTER_AREA,
+                )
+            else:
+                factor = 1.0
 
-        boxes = quads_from_rects(rects, self.scale, factor)
-        cells = regions_from_rects(regions, self.scale, factor)
+        with profiling.stage("geometry"):
+            boxes = quads_from_rects(rects, self.scale, factor)
+            cells = regions_from_rects(regions, self.scale, factor)
 
         # Ageing runs after the boxes are computed and must not move a pixel --
         # every model in `degradation/` filters or composites in place. Asserted
         # rather than assumed: a resize slipped into the chain would shift every
         # box without changing anything visible about the image.
         before = image.shape[:2]
-        aged = apply_recipe(image, recipe, seed=seed)
+        with profiling.stage("degradation"):
+            aged = apply_recipe(image, recipe, seed=seed)
         if aged.shape[:2] != before:
             raise RuntimeError(
                 f"a degradation resized the page ({before} -> {aged.shape[:2]}); "
@@ -355,44 +384,75 @@ def main() -> int:
         help="lay the page out with CSS instead of the character grid; see a4.py. "
              "Only the browser backends can draw one",
     )
+    parser.add_argument(
+        "--profile", metavar="JSON",
+        help="time every stage and write the breakdown here. Off by default, "
+             "and off costs nothing: see profiling.py",
+    )
+    worklist.add_argument(parser)
     args = parser.parse_args()
 
+    profile = Path(args.profile) if args.profile else profiling.enable_from_env()
+    if args.profile:
+        profiling.enable()
+
     args.out.mkdir(parents=True, exist_ok=True)
-    force = rulebase.parse_force(args.force, args.layout)
-    records = []
+    jobs = worklist.load(args)
+    # One parse per job rather than one per page: `parse_force` reads the rules
+    # to validate the pin, and a job list is many pages over few distinct pins.
+    forces = {job: rulebase.parse_force(job.pins(args.force), job.layout)
+              for job in jobs}
 
-    with HtmlReceiptRenderer(scale=args.scale, template=args.template) as renderer:
-        for index in range(args.count):
-            recipe, receipt, grid, image, boxes, cells = renderer.render(
-                args.seed + index, force)
-            name = f"html_{index:03d}.jpg"
-            cv2.imwrite(str(args.out / name), image, [cv2.IMWRITE_JPEG_QUALITY, 90])
-            records.append({
-                "file_name": name,
-                "ground_truth": json.dumps({"gt_parse": receipt.ground_truth()},
-                                           ensure_ascii=False),
-                "text_sequence": receipt.text_sequence(),
-                "recipe": recipe.to_dict(),
-                "boxes": boxes,
-            })
-            # Additive, and only when the layout has a table to describe: which
-            # cells were merged, and which variant of the ruling this page drew.
-            table = grid.table_label()
-            if table:
-                records[-1]["table"] = table
-            if cells:
-                # Additive, and only for a template render: the structure half
-                # of the label, so a merged cell is recoverable. `boxes` is
-                # untouched, so every existing loader keeps working.
-                records[-1]["cells"] = cells
-                records[-1]["structure"] = structure_from_cells(cells)
-            print(f"[ok] {name}  {image.shape[1]}x{image.shape[0]}  "
-                  f"{recipe.layout.id}  {len(boxes)} boxes")
+    with profiling.stage("startup"):
+        renderer = HtmlReceiptRenderer(scale=args.scale, template=args.template)
+        renderer.__enter__()
+    try:
+        # Streamed, not collected: a job list may be a whole shard, and a record
+        # carries every box on the page. Written in page order, which is the
+        # order the caller listed the jobs in -- `pipeline/worker.py` walks the
+        # runs in that order to name the files.
+        with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as metadata:
+            for index, job, seed in worklist.pages(jobs):
+                recipe, receipt, grid, image, boxes, cells = renderer.render(
+                    seed, forces[job])
+                name = f"html_{index:03d}.jpg"
+                with profiling.stage("export"):
+                    cv2.imwrite(str(args.out / name), image,
+                                [cv2.IMWRITE_JPEG_QUALITY, 90])
+                with profiling.stage("annotation"):
+                    record = {
+                        "file_name": name,
+                        "ground_truth": json.dumps({"gt_parse": receipt.ground_truth()},
+                                                   ensure_ascii=False),
+                        "text_sequence": receipt.text_sequence(),
+                        "recipe": recipe.to_dict(),
+                        "boxes": boxes,
+                    }
+                    # Additive, and only when the layout has a table to
+                    # describe: which cells were merged, and which variant of
+                    # the ruling this page drew.
+                    table = grid.table_label()
+                    if table:
+                        record["table"] = table
+                    if cells:
+                        # Additive, and only for a template render: the
+                        # structure half of the label, so a merged cell is
+                        # recoverable. `boxes` is untouched, so every existing
+                        # loader keeps working.
+                        record["cells"] = cells
+                        record["structure"] = structure_from_cells(cells)
+                with profiling.stage("export"):
+                    json.dump(record, metadata, ensure_ascii=False)
+                    metadata.write("\n")
+                print(f"[ok] {name}  {image.shape[1]}x{image.shape[0]}  "
+                      f"{recipe.layout.id}  {len(boxes)} boxes")
+    finally:
+        with profiling.stage("startup"):
+            renderer.__exit__(None, None, None)
 
-    with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as fp:
-        for record in records:
-            json.dump(record, fp, ensure_ascii=False)
-            fp.write("\n")
+    if profile:
+        profiling.dump(profile, {"backend": "html", "images": worklist.total(jobs),
+                                 "jobs": len(jobs)})
     return 0
 
 

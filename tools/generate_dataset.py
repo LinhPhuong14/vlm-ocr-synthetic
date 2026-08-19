@@ -53,6 +53,13 @@ def main() -> int:
         "--force", action="append", default=[], metavar="ATTR=ID",
         help="pin any attribute for the whole run, repeatable",
     )
+    parser.add_argument(
+        "--layouts", nargs="+", metavar="NAME",
+        help="draw from these layouts, by name, instead of every layout in "
+             "rulebase/layouts/. A fixed comparison should name them: the "
+             "quota walks the list in order, so an unnamed set changes the "
+             "day someone adds a layout",
+    )
     parser.add_argument("--workers", type=int, default=1,
                         help="processes to render with; 1 keeps the old behaviour")
     parser.add_argument(
@@ -78,6 +85,7 @@ def main() -> int:
             "seed": args.seed,
             "workers": args.workers,
             "clean": bool(args.clean),
+            "layouts": list(args.layouts or []),
             "force": list(args.force),
             "pairing": args.pairing,
         },

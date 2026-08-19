@@ -20,13 +20,35 @@ run:
   # written into manifest.json for the same reason.
   pairing: paired
 
+  # Which layouts to draw from, by name. Empty (the default) means every file in
+  # `rulebase/layouts/`, which is what a dataset wants. A *fixed comparison*
+  # should name them: the quota walks the list in order, so a run that took the
+  # directory draws a different set the day someone adds a layout. That is how
+  # the golden baseline went red without being able to say why -- see
+  # `tools/baseline.py`, whose plans all name theirs.
+  layouts: []
+
 backends: [synthdog, html, genalog]
 
 shard:
   # Images per shard. Too small and subprocess and browser startup dominate;
-  # too large and a kill loses more work and the load spreads unevenly. At the
-  # measured cost of a page -- synthdog 1.6s, html 1.2s, genalog 0.7s -- 100 to
-  # 250 puts a shard in the one-to-five-minute band that resume is designed for.
+  # too large and a kill loses more work and the load spreads unevenly.
+  #
+  # At the cost of a page measured by `tools/profile_pipeline.py` -- synthdog
+  # 3.1s, html 1.4s, genalog 0.9s, under the conditions that file records --
+  # 100 to 250 puts a shard in the two-to-ten-minute band resume is designed
+  # for. The numbers here were re-measured from scratch rather than carried
+  # forward: the previous ones predated the `sample_recipe` fix, and comparing
+  # a new measurement with an old one taken over a different layout and ageing
+  # mix credits whatever changed in between with the difference.
+  #
+  # The fixed cost a shard pays ONCE -- interpreter plus backend start-up -- is
+  # 1.3s for synthdog, 0.7s for html (most of it launching Chromium) and 1.0s
+  # for genalog. Once, since W3b: a shard is one renderer process whatever its
+  # layout count. It used to be one process per layout, so a 20-image shard
+  # over 14 layouts paid that cost 14 times and drew 1.43 images per process.
+  # Fixing it cut the same plan from 140s to 98s, a third of the run, without
+  # changing an html or genalog pixel.
   size: 100
 
 # Re-weight a value for this run only, without editing rules/. Every entry must

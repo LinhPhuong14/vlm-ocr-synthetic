@@ -99,16 +99,28 @@ Số hiện tại — `token_recall`, đo lại sau W1b:
 
 | bộ | synthdog | html | genalog |
 | --- | ---: | ---: | ---: |
-| có làm cũ | 0.506 | **0.729** | 0.659 |
-| sạch | 0.815 | **0.851** | 0.841 |
+| có làm cũ | 0.454 | **0.611** | 0.578 |
+| sạch | 0.851 | 0.881 | **0.882** |
 
 Bảng cũ ở đây ghi 0.41 / 0.68 / 0.76 và kết luận genalog dễ đọc nhất. Sai hai
 lần. Một: con số 0.76 chưa bao giờ có trong `ocr_report.json` — số thật lúc đó
 là 0.638, và html 0.671 đã cao hơn rồi. Hai: ba renderer khi ấy vẽ **ba bộ hoá
 đơn khác nhau** (xem `pipeline/plan.py`, `pairing`), nên ba cột đó không so
 được với nhau dù số có đúng. Bảng trên là bộ đã sinh lại với `pairing: paired`,
-cùng 20 hoá đơn cho cả ba renderer, `money_total` bằng nhau (128) ở cả ba cột —
+cùng 20 hoá đơn cho cả ba renderer, `money_total` bằng nhau (101) ở cả ba cột —
 đó mới là điều kiện để đọc bảng theo hàng ngang.
+
+**Đọc bảng theo hàng dọc thì phải kèm điều kiện.** Từ W2e, mỗi
+`ocr_report.json` ghi luôn *tập bố cục* nó chấm, vì làm cũ tốn của mỗi bố cục
+một khoản rất khác nhau: `invoice_brand` mất 0.026 recall, `market_barcode`
+mất 0.552 — gấp hai mươi mốt lần. Đổi tập bố cục là đổi số gộp, không cần đổi
+gì khác. Hai bảng chỉ so được khi cùng tập; `tools/ocr_proof.py --against
+<report>` tự kiểm tra điều đó, từ chối phần gộp khi khác nhau, và vẫn đưa phần
+**theo từng bố cục** — phần giữ bố cục cố định, nên cái còn lại đúng là thứ đã
+thay đổi.
+
+Cột ngang trên vẫn đọc được vì cả hai bộ dùng đúng một tập 14 bố cục và đúng
+20 hoá đơn.
 
 ### 1.5 Kiểm tra trước khi commit
 
@@ -606,7 +618,7 @@ Ba model đáng nói nhất: `ink_degradation` (mô hình nhiễu cục bộ c�
 Từ W0, repo có bộ test `pytest` (`pytest -q`, chạy trong CI, chỉ cần pytest và
 pyyaml) phủ **tầng dữ liệu**: luật, bố cục, nội dung, kế hoạch, bất biến từng
 ảnh. Phần *ảnh* thì không: assert trên pixel vừa giòn vừa không phát hiện được
-thứ sai thật sự (chữ đè lên nhau, nhãn không khớp ảnh). Chỗ đó dùng bốn công cụ.
+thứ sai thật sự (chữ đè lên nhau, nhãn không khớp ảnh). Chỗ đó dùng năm công cụ.
 
 | công cụ | bắt được gì |
 | --- | --- |
@@ -615,17 +627,24 @@ thứ sai thật sự (chữ đè lên nhau, nhãn không khớp ảnh). Chỗ �
 | `make check-corpus` | corpus thiếu file, sai số cột |
 | `make preview-grid` | bố cục sai — nhìn bằng chữ, nhanh hơn nhìn JPEG rất nhiều |
 | `make proof` | nhãn có khớp ảnh không, ảnh có đọc được không |
+| `make baseline-verify` | pixel có đổi không, và **vì lý do gì** — "kế hoạch đã đổi" khác hẳn "cùng kế hoạch, khác pixel" |
 
 **`make proof` trên bộ sạch là bài test nhãn rẻ nhất.** Nhãn sai thì bộ sạch
 cũng không thể đạt 0.8. Bộ sạch gần như đồng đều giữa ba renderer
-(0.815 / 0.851 / 0.841) — chênh lệch ở bộ làm cũ (0.506 / 0.729 / 0.659)
+(0.851 / 0.881 / 0.882) — chênh lệch ở bộ làm cũ (0.454 / 0.611 / 0.578)
 **là do làm cũ**.
 
 Suy luận đó chỉ đứng được từ W1b trở đi. Trước W1b ba renderer vẽ ba bộ hoá đơn
 khác nhau, nên "bộ sạch đồng đều ⇒ chênh lệch là do làm cũ" là so ba corpus
 khác nhau rồi quy kết cho một biến. Giờ cả ba vẽ **cùng 20 hoá đơn**
-(`pairing: paired`), `money_total` bằng nhau 128/128/128, và câu trên là một
+(`pairing: paired`), `money_total` bằng nhau 101/101/101, và câu trên là một
 phép so sánh có cặp thật.
+
+Nhưng nó chỉ đọc được **theo hàng ngang**. So một con số gộp với một con số
+gộp cũ thì phải cùng tập bố cục: làm cũ tốn `invoice_brand` 0.026 recall và
+`market_barcode` 0.552, gấp hai mươi mốt lần, nên đổi tập bố cục là đổi số gộp.
+Đó là lý do `ocr_report.json` ghi luôn điều kiện của chính nó từ W2e, và
+`--against` từ chối phần gộp khi hai bộ khác tập.
 
 Chấm điểm trong `tools/ocr_proof.py` **không phụ thuộc thứ tự đọc**: Tesseract
 đọc hoá đơn hai cột theo thứ tự do layout analysis của nó quyết, nên so chuỗi
@@ -637,6 +656,80 @@ với nhãn sẽ đo *thứ tự đọc* chứ không phải *khả năng nhận
 lên nền tối, mà Tesseract nhị phân hoá toàn cục: có nền tối trong khung thì
 ngưỡng rơi vào giữa nền và giấy, chữ xám trên giấy trắng bị đẩy về phía giấy và
 biến mất. Cắt trước là việc **mọi pipeline OCR thật đều làm**.
+
+### 8.1 Đo xem thời gian đi đâu — `make profile`
+
+`profiling.py` là một cái đồng hồ bấm giây **tắt mặc định**: tắt thì
+`profiling.stage()` trả về một object dùng chung không làm gì, nên code sinh
+ảnh không chậm đi và không đổi một pixel nào vì có profiler. Bật thì
+`tools/profile_pipeline.py` đo từng giai đoạn — sampling · nội dung · layout ·
+render · geometry · degradation · annotation · validation · export — riêng
+từng renderer, riêng từng model làm cũ.
+
+Ba nguyên tắc, và cả ba đều là lý do bảng số đọc được:
+
+* **Không dựng sẵn danh sách nghi phạm.** Đo hết, kể cả tầng đọc YAML mà không
+  ai nghĩ là đắt (`sampling` là 2,4–8,5% một ảnh, gần như toàn bộ nằm ở
+  `load_rules`).
+* **Phần chưa đo được ghi thành số.** Thời gian khởi động interpreter mà tiến
+  trình con không tự thấy được đo từ ngoài và đặt tên `interpreter`, nên cột số
+  cộng lại bằng đồng hồ thật chứ không bằng "gần hết".
+* **Đo cả chính cái đồng hồ.** `enable()` hiệu chuẩn vài nghìn stage rỗng; báo
+  cáo ghi giá mỗi lần gọi và tổng chi phí đó chiếm bao nhiêu phần trăm.
+
+Kết quả nằm ở [`data/profile/README.md`](../data/profile/README.md), cùng một
+**mô hình chi phí máy đọc được** (`cost_model.json`) để lần chạy sau *dự đoán*
+trước rồi đối chiếu với đồng hồ — lệch bao nhiêu chính là phát hiện.
+
+Ba thứ đọc code không ra:
+
+* Giai đoạn đắt nhất của renderer glyph **không phải vẽ chữ**: cong giấy, khung
+  ảnh, nền và hiệu ứng chụp chiếm 55% một ảnh synthdog.
+* `gradient_domain` — thứ bị đồn là nút thắt suốt bốn wave — chỉ là **4% tổng
+  thời gian làm cũ**, khoảng 1% một lần chạy. Tối ưu nó là công vô ích.
+* Đòn bẩy lớn nhất không nằm trong renderer nào cả mà ở **hình dạng kế hoạch**:
+  worker khởi động một tiến trình renderer cho mỗi *run*, mà một run là một bố
+  cục, nên 20 ảnh trên 14 bố cục khởi động 14 tiến trình và trả chi phí khởi
+  động 14 lần — 23% đến 44% một lần chạy tuỳ backend. Đã sửa ở W3b (§8.2).
+
+Mọi số throughput trước đây đã lạc hậu và **được đo lại từ đầu**, không so với
+số cũ: số cũ lấy trước bản sửa `sample_recipe` và trên một tập bố cục khác, nên
+so hai cái đó là gán cho một tối ưu cái mà thật ra là đổi phép bốc.
+
+### 8.2 W3b — một tiến trình một shard, và một lỗi im lặng bốn wave
+
+Renderer chỉ nhận **một** bố cục mỗi lần gọi, nên worker khởi động lại nó cho
+mỗi bố cục. `worklist.py` cho nó nhận cả **danh sách công việc**
+(`--jobs jobs.json`), thành một tiến trình cho cả shard: 1,43 ảnh/tiến trình
+lên 20, cùng một kế hoạch từ 140 s xuống 98 s — **một phần ba** thời gian chạy.
+`--layout/--seed/--count` cũ giữ nguyên.
+
+Đáng lẽ đây là đổi ranh giới tiến trình, không đổi một pixel nào. Với html và
+genalog đúng như vậy: 40/40 ảnh giống hệt từng byte. Với renderer glyph thì
+**không**, và lý do là một lỗi có sẵn:
+
+`render.py` chỉ gọi `np.random.seed(seed)` mỗi ảnh. Nhưng
+`config_vi_receipt.yaml` dùng các augmenter của **imgaug** (elastic, gaussian
+noise, motion blur, gaussian blur), mà imgaug làm một lượt khởi tạo một lần duy
+nhất ở lần augment **đầu tiên** trong một tiến trình. Hệ quả: cùng một seed cho
+ra ảnh khác nhau tuỳ nó là trang thứ mấy của tiến trình — **nhãn giống hệt,
+pixel và quad khác**.
+
+Bốn wave không ai thấy, vì worker luôn khởi động tiến trình mới cho mỗi bố cục
+nên mọi ảnh đều là trang đầu. Đây đúng là **luật 7**: tất định chưa đủ, phải hỏi
+ảnh có phải là hàm của seed không. Nó tất định theo (seed, vị trí), không phải
+theo seed.
+
+Sửa: `synthtiger.set_global_random_seed(seed)` (seed cả ba bộ sinh: `random`,
+`np.random`, `imgaug`) cộng với một lượt augment bỏ đi lúc dựng template
+(`_warm_imgaug`). Sau đó một trang là hàm của seed, và bản vẽ tách/gộp giống
+nhau từng byte — `tests/test_worklist.py` dựng cả hai cách rồi so byte.
+
+Cái giá: pixel của renderer glyph **đổi**, nên `make baseline-verify` báo
+`CÙNG KẾ HOẠCH, KHÁC PIXEL` — đúng như thiết kế. Baseline đã chụp lại, và từ
+nay `make baseline-write` **bắt buộc** có `REASON="..."`, ghi thẳng vào file
+vàng: một mốc so sánh đổi mà không nói vì sao là mốc không ai cãi lại được
+(luật 8, áp cho chính file vàng).
 
 ---
 

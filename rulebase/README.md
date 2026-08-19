@@ -19,7 +19,7 @@ own content, what you compared would be two datasets, not two ways of drawing.
 
 ```
 rulebase/
-├── rules/          6 ATTRIBUTES, one file each         ← tune the distribution here
+├── rules/          7 ATTRIBUTES, one file each         ← tune the distribution here
 ├── layouts/        14 LAYOUTS measured off real paper  ← add a layout here
 ├── corpus/vi/      Vietnamese corpus, WITH diacritics  ← add products here
 ├── corpus/en/      one document kind prints English
@@ -58,7 +58,7 @@ The label follows the same rule: `gt_parse.doc_type` is `receipt_eatery` /
 
 ---
 
-## 1. The six attributes
+## 1. The seven attributes
 
 Drawn in this order. Each attribute sees the `tags` the earlier ones set, so a
 later one can rule itself out when it does not fit.
@@ -70,7 +70,8 @@ later one can rule itself out when it does not fit.
 | 3 | `content` | diacritics or not, UPPER CASE, money format, VAT | [rules/content.yaml](rules/content.yaml) |
 | 4 | `visual` | font, size, ink weight, **white margin**, sheet, curl | [rules/visual.yaml](rules/visual.yaml) |
 | 5 | `color` | ink, paper tint, accent colour for the shop name | [rules/color.yaml](rules/color.yaml) |
-| 6 | `augmentation` | ageing: the degradation chain that runs after rendering | [rules/augmentation.yaml](rules/augmentation.yaml) |
+| 6 | `ornament` | seals and flourishes: the ink that is not text | [rules/ornament.yaml](rules/ornament.yaml) |
+| 7 | `augmentation` | ageing: the degradation chain that runs after rendering | [rules/augmentation.yaml](rules/augmentation.yaml) |
 
 **The list is not in the Python.** Attributes are discovered from `rules/*.yaml`
 and ordered by [rules/_order.yaml](rules/_order.yaml), so a seventh criterion is
@@ -350,6 +351,32 @@ vat_summary:             # its own columns, resolved on their own
     - {key: rate,  title: "Thuế suất (VAT rate)", width: 14, align: center}
 ```
 
+### The paper, or no paper at all
+
+```yaml
+sheet: a4              # a4 | a4_landscape | a5 | a5_landscape | letter
+```
+
+Absent means a **continuous roll**, which is what the five thermal layouts are
+on: a till roll has no bottom edge until the cutter makes one, so the page
+really is as tall as the sale and nothing else.
+
+A layout that names a sheet is on **cut paper**, whose height was decided
+before anything was printed. A three-item invoice therefore fills a whole A4
+page with blank paper under the signatures — that whitespace is part of what
+the document looks like, not something to crop away. The nine invoice layouts
+all declare `sheet: a4`.
+
+The rule-base states the width-over-height ratio and no more; turning it into
+pixels needs a character advance and a line height, and those belong to each
+renderer — measured from the font by the glyph backend, `ch` in the browser, an
+estimate in WeasyPrint. Same division of labour as `Mark`.
+
+The sheet is a **floor, never a crop**: a page whose content outgrows its paper
+keeps its full height, so the overflow stays visible instead of being trimmed
+into looking correct. `make preflight` samples twelve seeds of every layout
+that declares a sheet and reports any that do not fit.
+
 ### Drawn rules, or typed ones
 
 ```yaml
@@ -536,6 +563,57 @@ document, not a translated one — see the naming rule at the top of this file.
 A row with the wrong number of columns is skipped rather than failing the whole
 run — a corpus is edited by hand, and one bad line should cost that line.
 Check with `make check-corpus`.
+
+---
+
+## 4b. Seals and flourishes
+
+The `ornament` attribute is the ink on a page that is **not text**: the round
+company seal seated over a signature, the wave band under a coloured masthead,
+the guilloche rosette printed faintly behind a table, a corner bracket, a grid
+of pale rectangles in the footer.
+
+```bash
+make ornaments           # regenerate textures/ornament/*.png
+```
+
+`tools/make_ornaments.py` draws them; `rules/ornament.yaml` says which page gets
+which, where it sits, how big and how opaque. A rule names a file by stem, and
+`make preflight` checks both directions — a rule naming a file that does not
+exist, and a file no rule names.
+
+**Why they are drawn here rather than by synthtiger.** synthtiger builds text
+images out of flat layers: a `TextLayer` is one horizontal run with effects
+stacked on it — perspective, elastic distortion, shadow, colour. There is no
+text-on-a-path primitive, and a round seal is exactly that — every glyph rotated
+to the tangent of a circle. So the drawing happens once, into PNGs with an alpha
+channel, and the ageing and compositing that synthtiger and `degradation/` are
+good at treat the result like any other overlay.
+
+Position is named, not measured: `anchor: signature_seller` rather than a pair
+of coordinates. A seal belongs over the seller's signature on a 148mm folio and
+on a 210mm form alike, and the two have that place in different millimetres.
+
+Two marks carry `from_receipt: true`: the shelf barcode and the verification
+QR. Their content comes from the values the rule-base already drew for that
+page, so the file in `textures/ornament/` is a sample to look at and not the
+thing to composite — a fixed barcode pasted onto a receipt whose label says a
+different number is the exact defect `pipeline/invariants.py` exists to catch.
+
+**There are no hand marks.** Signatures, handwritten field values, pen
+underlines and highlighter swipes were drawn and then removed: a typeface
+jittered per glyph is not handwriting, and a procedural squiggle is not a
+signature. Doing it properly wants stroke data or a hand-drawn face licensed
+for redistribution.
+
+Twenty-three ornaments were surveyed and not built — those four among them.
+Each is written down with the reason it was left, in
+[docs/hoa-tiet-de-xuat.md](../docs/hoa-tiet-de-xuat.md).
+
+> **Not yet drawn.** The attribute is sampled and recorded in `metadata.jsonl`,
+> and every asset it names exists. No renderer composites it onto the page yet —
+> that is the next piece of work, and it is why `make baseline-verify` needs a
+> recapture after this change.
 
 ---
 

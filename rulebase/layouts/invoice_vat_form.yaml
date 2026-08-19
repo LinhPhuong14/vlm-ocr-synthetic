@@ -20,6 +20,12 @@ rule_char: "-"
 # vẽ bằng `+---+`; và một dòng kẻ vẽ thật không tốn một dòng văn bản, nên trang
 # ngắn lại đúng như tờ giấy thật. Năm bố cục giấy nhiệt không khai khoá này —
 # ở đó `+---+` mới là thứ máy in nhiệt thật sự in ra.
+
+# Tờ rời A4 dọc. Khác giấy cuộn ở chỗ CHIỀU CAO ĐÃ ĐỊNH TRƯỚC khi in: một hoá
+# đơn ba dòng hàng vẫn chiếm trọn tờ giấy, phần dưới là giấy trắng — đó là một
+# phần diện mạo của tờ hoá đơn, không phải chỗ thừa để cắt đi.
+sheet: a4
+
 rules: marks
 
 sections: [letterhead, doctitle, parties, table, totals, words, signatures, footer]

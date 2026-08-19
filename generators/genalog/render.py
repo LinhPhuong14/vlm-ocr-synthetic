@@ -43,7 +43,9 @@ from genalog.generation.document import Document, DocumentGenerator
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
+import profiling  # noqa: E402
 import rulebase  # noqa: E402
+import worklist  # noqa: E402
 from degradation.pipeline import apply_recipe  # noqa: E402
 
 TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
@@ -119,14 +121,24 @@ def styles_for(recipe, grid, line_px: float, pad_ch: float) -> dict:
     font_px = (size_lo + size_hi) / 2.0
     pad_top = line_px * pad["top"]
     pad_bottom = line_px * pad["bottom"]
+
+    # WeasyPrint prints onto a @page of a stated size, so unlike the browser
+    # this backend has to work the sheet out in pixels itself. `0.62 * font_px`
+    # is this file's standing estimate of a monospace advance -- the same one
+    # `page_width` has always used -- and the sheet's height follows from it.
+    # A page that overflows its paper keeps its full height rather than being
+    # cropped: `sheet_height` only ever grows the box.
+    page_width = (grid.ncols + pad_ch * 2) * font_px * 0.62
+    content_px = grid.nrows * line_px + pad_top + pad_bottom
+    page_height = rulebase.sheet_height(grid, page_width, content_px)
     return {
         "font_family": visual.get("font_family", "monospace"),
         "font_size": f"{font_px:.2f}px",
         "line_height": f"{line_px:.2f}px",
         "sheet_width": f"{grid.ncols + pad_ch * 2:.3f}ch",
-        "sheet_height": f"{grid.nrows * line_px:.2f}px",
-        "page_width": f"{(grid.ncols + pad_ch * 2) * font_px * 0.62:.0f}px",
-        "page_height": f"{grid.nrows * line_px + pad_top + pad_bottom:.0f}px",
+        "sheet_height": f"{page_height - pad_top - pad_bottom:.2f}px",
+        "page_width": f"{page_width:.0f}px",
+        "page_height": f"{page_height:.0f}px",
         "page_margin": f"{pad_top:.2f}px 0 {pad_bottom:.2f}px",
         "ink": _hex(palette["ink"]),
         "accent": _hex(palette["accent"]),
@@ -222,47 +234,53 @@ class GenalogReceiptRenderer:
 
     def render(self, seed: int, force: dict[str, str] | None = None):
         recipe, receipt, grid = rulebase.make(seed=seed, force=force)
-        visual = recipe.visual.params
+        with profiling.stage("render"):
+            visual = recipe.visual.params
 
-        size_lo, size_hi = visual.get("font_size", [22, 30])
-        font_px = (size_lo + size_hi) / 2.0
-        spacing_lo, spacing_hi = visual.get("line_spacing", [1.05, 1.35])
-        line_px = font_px * (spacing_lo + spacing_hi) / 2.0
-        pad_ch = rulebase.padding(recipe, grid)["columns"]
+            size_lo, size_hi = visual.get("font_size", [22, 30])
+            font_px = (size_lo + size_hi) / 2.0
+            spacing_lo, spacing_hi = visual.get("line_spacing", [1.05, 1.35])
+            line_px = font_px * (spacing_lo + spacing_hi) / 2.0
+            pad_ch = rulebase.padding(recipe, grid)["columns"]
 
-        cells = cells_for_template(grid, recipe, line_px, pad_ch)
-        marks = marks_for(grid, recipe, line_px, pad_ch)
-        # Build the Document straight from genalog's template environment
-        # rather than via create_generator(): that yields a Document already
-        # compiled against genalog's *default* prose styles, and this template
-        # has no meaning for them -- it fails on the first render, before
-        # update_style() gets a chance to supply the real ones.
-        template = self.generator.template_env.get_template(TEMPLATE)
-        document = Document(cells, template, marks=marks,
-                            **styles_for(recipe, grid, line_px, pad_ch))
+            cells = cells_for_template(grid, recipe, line_px, pad_ch)
+            marks = marks_for(grid, recipe, line_px, pad_ch)
+            # Build the Document straight from genalog's template environment
+            # rather than via create_generator(): that yields a Document already
+            # compiled against genalog's *default* prose styles, and this
+            # template has no meaning for them -- it fails on the first render,
+            # before update_style() gets a chance to supply the real ones.
+            template = self.generator.template_env.get_template(TEMPLATE)
+            document = Document(cells, template, marks=marks,
+                                **styles_for(recipe, grid, line_px, pad_ch))
 
-        # render_png() is gone from modern WeasyPrint; go through PDF.
-        pdf = document.render_pdf()
-        image, spans = self._rasterise(pdf)
-        boxes = match_boxes(grid, spans)
+            # render_png() is gone from modern WeasyPrint; go through PDF.
+            pdf = document.render_pdf()
+            image, spans = self._rasterise(pdf)
+        with profiling.stage("geometry"):
+            boxes = match_boxes(grid, spans)
 
         target = random.Random(seed).randint(*self.short_size)
         factor = target / min(image.shape[:2])
         if factor < 1.0:
-            image = cv2.resize(
-                image,
-                (max(int(image.shape[1] * factor), 1), max(int(image.shape[0] * factor), 1)),
-                interpolation=cv2.INTER_AREA,
-            )
-            for box in boxes:
-                box["quad"] = [[round(x * factor, 1), round(y * factor, 1)]
-                               for x, y in box["quad"]]
+            with profiling.stage("render"):
+                image = cv2.resize(
+                    image,
+                    (max(int(image.shape[1] * factor), 1),
+                     max(int(image.shape[0] * factor), 1)),
+                    interpolation=cv2.INTER_AREA,
+                )
+            with profiling.stage("geometry"):
+                for box in boxes:
+                    box["quad"] = [[round(x * factor, 1), round(y * factor, 1)]
+                                   for x, y in box["quad"]]
 
         # Ageing composites and filters in place; nothing in `degradation/`
         # resizes. Checked rather than trusted -- a resize slipped into the
         # chain would shift every box while the image still looked right.
         before = image.shape[:2]
-        aged = apply_recipe(image, recipe, seed=seed)
+        with profiling.stage("degradation"):
+            aged = apply_recipe(image, recipe, seed=seed)
         if aged.shape[:2] != before:
             raise RuntimeError(
                 f"a degradation resized the page ({before} -> {aged.shape[:2]}); "
@@ -337,36 +355,60 @@ def main() -> int:
         help="pin any attribute, repeatable: --force augmentation=pristine",
     )
     parser.add_argument("--dpi", type=int, default=150)
+    parser.add_argument(
+        "--profile", metavar="JSON",
+        help="time every stage and write the breakdown here. Off by default, "
+             "and off costs nothing: see profiling.py",
+    )
+    worklist.add_argument(parser)
     args = parser.parse_args()
 
+    profile = Path(args.profile) if args.profile else profiling.enable_from_env()
+    if args.profile:
+        profiling.enable()
+
     args.out.mkdir(parents=True, exist_ok=True)
-    force = rulebase.parse_force(args.force, args.layout)
-    renderer = GenalogReceiptRenderer(dpi=args.dpi)
-    records = []
+    jobs = worklist.load(args)
+    # One parse per job rather than one per page: `parse_force` reads the rules
+    # to validate the pin, and a job list is many pages over few distinct pins.
+    forces = {job: rulebase.parse_force(job.pins(args.force), job.layout)
+              for job in jobs}
+    with profiling.stage("startup"):
+        renderer = GenalogReceiptRenderer(dpi=args.dpi)
 
-    for index in range(args.count):
-        recipe, receipt, grid, image, boxes = renderer.render(args.seed + index, force)
-        name = f"genalog_{index:03d}.jpg"
-        cv2.imwrite(str(args.out / name), image, [cv2.IMWRITE_JPEG_QUALITY, 90])
-        records.append({
-            "file_name": name,
-            "ground_truth": json.dumps({"gt_parse": receipt.ground_truth()}, ensure_ascii=False),
-            "text_sequence": receipt.text_sequence(),
-            "recipe": recipe.to_dict(),
-            "boxes": boxes,
-        })
-        # Additive, and only when the layout has a table to describe -- the
-        # same key the other two backends write, from the same grid.
-        table = grid.table_label()
-        if table:
-            records[-1]["table"] = table
-        print(f"[ok] {name}  {image.shape[1]}x{image.shape[0]}  "
-              f"{recipe.layout.id}  {len(boxes)} boxes")
+    # Streamed, not collected: a job list may be a whole shard, and a record
+    # carries every box on the page. Written in page order, which is the order
+    # the caller listed the jobs in -- `pipeline/worker.py` walks the runs in
+    # that order to name the files.
+    with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as metadata:
+        for index, job, seed in worklist.pages(jobs):
+            recipe, receipt, grid, image, boxes = renderer.render(seed, forces[job])
+            name = f"genalog_{index:03d}.jpg"
+            with profiling.stage("export"):
+                cv2.imwrite(str(args.out / name), image, [cv2.IMWRITE_JPEG_QUALITY, 90])
+            with profiling.stage("annotation"):
+                record = {
+                    "file_name": name,
+                    "ground_truth": json.dumps({"gt_parse": receipt.ground_truth()},
+                                               ensure_ascii=False),
+                    "text_sequence": receipt.text_sequence(),
+                    "recipe": recipe.to_dict(),
+                    "boxes": boxes,
+                }
+                # Additive, and only when the layout has a table to describe --
+                # the same key the other two backends write, from the same grid.
+                table = grid.table_label()
+                if table:
+                    record["table"] = table
+            with profiling.stage("export"):
+                json.dump(record, metadata, ensure_ascii=False)
+                metadata.write("\n")
+            print(f"[ok] {name}  {image.shape[1]}x{image.shape[0]}  "
+                  f"{recipe.layout.id}  {len(boxes)} boxes")
 
-    with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as fp:
-        for record in records:
-            json.dump(record, fp, ensure_ascii=False)
-            fp.write("\n")
+    if profile:
+        profiling.dump(profile, {"backend": "genalog", "images": worklist.total(jobs),
+                                 "jobs": len(jobs)})
     return 0
 
 

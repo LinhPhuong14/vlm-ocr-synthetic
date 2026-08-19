@@ -246,7 +246,17 @@ def execute(config: Config, *, workers: int | None = None,
     from rulebase import available_layouts
     from rulebase.spec import load_rules
 
-    layouts = available_layouts()
+    # The run says which layouts, or takes the directory. Naming them is how a
+    # fixed comparison stays fixed: `split_by_layout` walks the list in order,
+    # so a plan that took the directory draws a different set the day someone
+    # adds a layout -- which is how the golden baseline went red without being
+    # able to say why.
+    available = available_layouts()
+    layouts = list(config.layouts) if config.layouts else available
+    unknown = [name for name in layouts if name not in available]
+    if unknown:
+        raise SystemExit(
+            f"run.layouts: no such layout(s) {unknown}; have {', '.join(available)}")
     out = config.out
     out.mkdir(parents=True, exist_ok=True)
     shards_root = out / SHARDS_DIR
@@ -326,6 +336,12 @@ def execute(config: Config, *, workers: int | None = None,
         "shards": [
             {"index": s["index"], "backend": s["backend"],
              "images": s["count"],
+             # One renderer process per shard since W3b, whatever the layout
+             # count. Recorded because it is a property of the run worth being
+             # able to check without reading the worker, and because it was 14
+             # here before the change. It is a count, not a duration, so it
+             # compares byte for byte between one worker and eight.
+             "renderer_processes": 1,
              "seeds": [[r["seed"], r["seed"] + r["count"] - 1] for r in s["runs"]],
              "layouts": sorted({r["layout"] for r in s["runs"]}),
              "done": is_done(shard_dir(shards_root, s["index"]))}

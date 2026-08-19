@@ -164,6 +164,17 @@ def textures(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "make_textures.py"])
 
 
+@task("ornaments", "regenerate the seals and flourishes in textures/ornament")
+def ornaments(args) -> None:
+    run([first_available_python(), REPO_ROOT / "tools" / "make_ornaments.py"])
+
+
+@task("templates", "print the reference sheets in samples/invoice-templates")
+def templates(args) -> None:
+    run([first_available_python(),
+         REPO_ROOT / "samples" / "invoice-templates" / "render.py"])
+
+
 @task("dataset", "labelled dataset with all three renderers (-n per renderer)")
 def dataset(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "generate_dataset.py",
@@ -195,7 +206,8 @@ def run_pipeline(args) -> None:
 
 @task("baseline-write", "capture the golden fingerprint of the generator")
 def baseline_write(args) -> None:
-    run([first_available_python(), REPO_ROOT / "tools" / "baseline.py", "--write"])
+    run([first_available_python(), REPO_ROOT / "tools" / "baseline.py", "--write",
+         "--reason", args.reason])
 
 
 @task("baseline-verify", "regenerate the fixed plans and compare to the golden file")
@@ -206,6 +218,12 @@ def baseline_verify(args) -> None:
 @task("proof", "read a dataset back with Tesseract and score it")
 def proof(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "ocr_proof.py", args.dataset])
+
+
+@task("profile", "time every stage of every renderer and write a cost model")
+def profile(args) -> None:
+    run([first_available_python(), REPO_ROOT / "tools" / "profile_pipeline.py",
+         "-c", str(args.count), "-o", args.out])
 
 
 @task("check-boxes", "verify every renderer's boxes still land on its text")
@@ -368,6 +386,9 @@ def main() -> int:
     parser.add_argument("--dataset", default=str(Path("data") / "dataset60"),
                         help="dataset to score (proof)")
     parser.add_argument("--layout", help="pin one bố cục (preview-grid)")
+    parser.add_argument("--reason", default="",
+                        help="why the golden baseline is being replaced "
+                             "(baseline-write); kept in the file")
     # No default on purpose: `monitor` with nothing to point at reports the rule
     # space, and a default would silently turn that into "monitor whichever
     # dataset happens to be the usual one".

@@ -24,6 +24,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+import profiling  # noqa: E402
 import rulebase  # noqa: E402
 
 SHARED_FONTS = REPO_ROOT / "fonts"
@@ -65,7 +66,14 @@ class Receipt:
     # ---------- sinh ----------
 
     def generate(self, seed=None, force=None):
+        # The draw is split off so the two halves land in different stages of a
+        # profile: `rulebase.make` times itself as sampling/content/layout, and
+        # what is left -- turning the grid into glyph layers -- is the render.
         recipe, receipt, grid = rulebase.make(seed=seed, force=force)
+        with profiling.stage("render"):
+            return self._draw(recipe, receipt, grid)
+
+    def _draw(self, recipe, receipt, grid):
         rng = random.Random(recipe.seed)
         visual = recipe.visual.params
 
@@ -94,7 +102,12 @@ class Receipt:
         pad_x = grid.ncols * char_w * margin
         pad_y = line_h * rng.uniform(0.6, 1.8)
         width = int(grid.ncols * char_w + pad_x * 2)
-        height = int(grid.nrows * line_h + pad_y * 2)
+        # Tờ rời thì chiều cao do KHỔ GIẤY quyết, không do nội dung: một hoá
+        # đơn ba dòng hàng vẫn chiếm trọn tờ A4 và phần dưới là giấy trắng.
+        # Giấy cuộn thì ngược lại — cắt đến đâu dài đến đó. `sheet_height` chỉ
+        # nới ra chứ không cắt bớt, nên nội dung tràn khổ vẫn hiện nguyên.
+        height = int(rulebase.sheet_height(
+            grid, width, grid.nrows * line_h + pad_y * 2))
 
         # Dòng tên cửa hàng và dòng tiêu đề được in bằng màu nhấn nếu có.
         accent_roles = {"store.name", "title"}

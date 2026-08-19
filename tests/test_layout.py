@@ -323,6 +323,72 @@ def test_a_separator_between_blocks_still_spends_its_row():
             assert not [c for c in ruled.cells if c.row == int(mark.row0)], mark
 
 
+# ---------------------------------------------------- the sheet it prints on
+
+
+def test_a_thermal_layout_is_on_a_roll_and_an_invoice_is_on_a_sheet():
+    """The distinction is a fact about the printer, not a preference.
+
+    A till roll has no bottom edge until the cutter makes one, so its page
+    really is as tall as the sale. A cut sheet's height is decided before
+    anything is printed, which is why the whitespace under a three-item invoice
+    is part of what the document looks like rather than something to crop.
+    """
+    for layout_id in LAYOUTS:
+        grid = rulebase.make(seed=11, force={"layout": layout_id})[2]
+        ratio = rulebase.sheet_ratio(grid)
+        if layout_id.startswith("invoice_"):
+            assert grid.sheet == "a4", layout_id
+            assert ratio == pytest.approx(210 / 297), layout_id
+        else:
+            assert grid.sheet == "", layout_id
+            assert ratio is None, layout_id
+
+
+def test_the_sheet_reaches_the_serialised_grid():
+    grid = rulebase.make(seed=11, force={"layout": "invoice_vat_form"})[2]
+    assert grid.to_dict()["sheet"] == "a4"
+    roll = rulebase.make(seed=11, force={"layout": "eatery_ascii"})[2]
+    assert "sheet" not in roll.to_dict()
+
+
+def test_an_unknown_sheet_is_refused_when_the_layout_is_built():
+    """A typo has to stop the run, not silently print on a roll."""
+    import random
+
+    import rulebase.layout as L
+
+    receipt = rulebase.make(seed=11, force={"layout": "invoice_vat_form"})[1]
+    original = L.load_layout
+    spec = dict(original("invoice_vat_form"))
+    spec["sheet"] = "a4paper"
+    L.load_layout = lambda lid, root=L.LAYOUTS_ROOT: (
+        spec if lid == "invoice_vat_form" else original(lid, root))
+    try:
+        with pytest.raises(KeyError, match="unknown sheet"):
+            L.build_grid(receipt, "invoice_vat_form", random.Random(11))
+    finally:
+        L.load_layout = original
+
+
+def test_the_sheet_only_ever_grows_the_page():
+    """Never a crop: a page that overflowed its paper has to stay visible.
+
+    Cropping it to A4 would turn a layout bug into a page that looks right and
+    is missing its last three lines -- which nothing downstream would catch,
+    because the boxes would still be inside the frame.
+    """
+    grid = rulebase.make(seed=11, force={"layout": "invoice_vat_form"})[2]
+    a4 = 210 / 297
+    # Content shorter than the paper: the paper wins.
+    assert rulebase.sheet_height(grid, 1000, 100) == pytest.approx(1000 / a4)
+    # Content taller than the paper: the content wins.
+    assert rulebase.sheet_height(grid, 1000, 9000) == 9000
+
+    roll = rulebase.make(seed=11, force={"layout": "eatery_ascii"})[2]
+    assert rulebase.sheet_height(roll, 1000, 100) == 100
+
+
 # ------------------------------------------------------------------ merges
 
 
@@ -517,4 +583,3 @@ def test_no_vertical_steps_sideways_where_two_blocks_meet(layout):
                     f"ends at row {above.row1} and the next starts at column "
                     f"{below.col0} -- the frame steps sideways by {step}"
                 )
-

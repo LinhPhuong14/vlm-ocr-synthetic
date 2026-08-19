@@ -12,11 +12,14 @@ TASKS    = $(PYTHON) tasks.py
 DATASET ?= data/dataset60
 N       ?= 20
 TABLES  ?= 60
+PROFILE ?= data/profile
+PROFILE_N ?= 8
 LAYOUT  ?=
 
 .DEFAULT_GOAL := help
 .PHONY: help setup setup-synthdog setup-html setup-genalog textures \
         receipts preview preview-grid dataset dataset-clean proof showcase \
+        ornaments templates \
         preflight check-rules check-corpus check-boxes distribution monitor \
         list-degradations \
         lint format check clean
@@ -36,6 +39,10 @@ setup-genalog:   ## genalog renderer: WeasyPrint + PyMuPDF
 	$(TASKS) setup-genalog
 textures:        ## Regenerate the shared paper and background textures
 	$(TASKS) textures
+ornaments:       ## Regenerate the seals and flourishes in textures/ornament
+	$(TASKS) ornaments
+templates:       ## Print the reference sheets in samples/invoice-templates
+	$(TASKS) templates
 
 # ------------------------------------------------------------ generation
 
@@ -49,12 +56,14 @@ tables:          ## Table-structure images, from the html backend (TABLES=60)
 	$(TASKS) tables -o data/tables60 -n $(TABLES)
 run:             ## Run pipeline.yaml: preflight, shards in parallel, assemble
 	$(TASKS) run
-baseline-write:  ## Capture the golden fingerprint of the generator
-	$(TASKS) baseline-write
+baseline-write:  ## Capture the golden fingerprint (needs REASON="...")
+	$(TASKS) baseline-write --reason "$(REASON)"
 baseline-verify: ## Regenerate the fixed plans and compare to the golden file
 	$(TASKS) baseline-verify
 proof:           ## Run Tesseract over $(DATASET) and score it against the labels
 	$(TASKS) proof --dataset $(DATASET)
+profile:         ## Time every stage of every renderer into $(PROFILE)
+	$(TASKS) profile --count $(PROFILE_N) --out $(PROFILE)
 check-boxes:     ## Verify every renderer's boxes still land on its text
 	$(TASKS) check-boxes --dataset $(DATASET)
 showcase:        ## One before/after image per degradation into samples/degradation/
