@@ -195,7 +195,8 @@ def run_pipeline(args) -> None:
 
 @task("baseline-write", "capture the golden fingerprint of the generator")
 def baseline_write(args) -> None:
-    run([first_available_python(), REPO_ROOT / "tools" / "baseline.py", "--write"])
+    run([first_available_python(), REPO_ROOT / "tools" / "baseline.py", "--write",
+         "--reason", args.reason])
 
 
 @task("baseline-verify", "regenerate the fixed plans and compare to the golden file")
@@ -374,6 +375,9 @@ def main() -> int:
     parser.add_argument("--dataset", default=str(Path("data") / "dataset60"),
                         help="dataset to score (proof)")
     parser.add_argument("--layout", help="pin one bố cục (preview-grid)")
+    parser.add_argument("--reason", default="",
+                        help="why the golden baseline is being replaced "
+                             "(baseline-write); kept in the file")
     # No default on purpose: `monitor` with nothing to point at reports the rule
     # space, and a default would silently turn that into "monitor whichever
     # dataset happens to be the usual one".
