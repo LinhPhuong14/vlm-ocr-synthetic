@@ -345,12 +345,7 @@ def _check_arithmetic(gt: dict, style: str, labels: dict, out: Observation) -> N
     change = index_of(labels.get("change"))
     if grand is not None and change is not None and change >= 1:
         if change - 1 == grand:
-            # The payment line is drawn with a label from the corpus, and when
-            # that label happens to equal the grand-total label the two collapse
-            # into one key -- `total` is a dict. The page still shows both rows.
-            # Counted rather than errored: it is a label defect that predates W2
-            # and belongs to W4, which rewrites these labels anyway.
-            out.notes["total_label_collapsed"] = out.notes.get("total_label_collapsed", 0) + 1
+            pass                      # already reported above, by the page
         else:
             paid = values[change - 1]
             if None not in (paid, values[grand], values[change]):
@@ -359,6 +354,43 @@ def _check_arithmetic(gt: dict, style: str, labels: dict, out: Observation) -> N
                         f"{keys[change - 1]!r} {totals[keys[change - 1]]} minus "
                         f"{keys[grand]!r} {totals[keys[grand]]} is not "
                         f"{keys[change]!r} {totals[keys[change]]}")
+
+
+def _check_totals_survived(item, gt, out) -> None:
+    """Every total row the page printed has to be in the label.
+
+    `total` in `ground_truth` is a dict keyed by the *drawn label*, so two rows
+    printed under one label collapse into one entry: the reader sees both
+    amounts and the ground truth carries one. On `market_vat` the payment row
+    and the grand total can both be drawn "Tiền khách trả", and the amount
+    actually owed is the one that disappears.
+
+    This was counted as a note until now -- `total_label_collapsed` -- on the
+    grounds that W4 rewrites these labels anyway. It then sat in the shipped
+    data through three waves, because a count nobody trips over is a defect
+    with a hiding place. It stops the shard now, and whatever route still
+    reaches it has to say so rather than be reasoned about in advance.
+
+    Read off the boxes, not off the receipt: the boxes are the page's own
+    account of what was drawn, so this cannot be satisfied by a renderer that
+    agrees with a label they both got wrong.
+    """
+    totals = gt.get("total")
+    if not isinstance(totals, dict) or not totals:
+        return
+    drawn = [str(box.get("text", "")) for box in (item.get("boxes") or [])
+             if str(box.get("kind", "")).startswith("total.")
+             and str(box.get("kind", "")).endswith(".label")]
+    if not drawn:
+        return                        # no boxes: `Tally` records that separately
+    doubled = sorted({text for text in drawn if drawn.count(text) > 1})
+    if doubled:
+        out.errors.append(
+            f"the page prints {len(drawn)} total rows under {len(set(drawn))} "
+            f"labels -- {', '.join(repr(t) for t in doubled)} twice -- so the "
+            f"`total` dict carries {len(totals)} and one printed amount is in "
+            f"no label"
+        )
 
 
 def inspect(item: dict[str, Any], *, order: tuple[str, ...] | list[str],
@@ -454,6 +486,7 @@ def inspect(item: dict[str, Any], *, order: tuple[str, ...] | list[str],
                 f"field any layout is known to suppress")
 
     _check_arithmetic(gt, style, labels, out)
+    _check_totals_survived(item, gt, out)
 
     if prefix:
         out.errors = [prefix + problem for problem in out.errors]
