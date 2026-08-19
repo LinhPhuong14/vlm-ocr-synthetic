@@ -246,7 +246,17 @@ def execute(config: Config, *, workers: int | None = None,
     from rulebase import available_layouts
     from rulebase.spec import load_rules
 
-    layouts = available_layouts()
+    # The run says which layouts, or takes the directory. Naming them is how a
+    # fixed comparison stays fixed: `split_by_layout` walks the list in order,
+    # so a plan that took the directory draws a different set the day someone
+    # adds a layout -- which is how the golden baseline went red without being
+    # able to say why.
+    available = available_layouts()
+    layouts = list(config.layouts) if config.layouts else available
+    unknown = [name for name in layouts if name not in available]
+    if unknown:
+        raise SystemExit(
+            f"run.layouts: no such layout(s) {unknown}; have {', '.join(available)}")
     out = config.out
     out.mkdir(parents=True, exist_ok=True)
     shards_root = out / SHARDS_DIR
