@@ -8,12 +8,10 @@
 20 images per renderer (synthdog / html / genalog) in each set, spread evenly
 over the layouts.
 
-Both committed sets hold the **five thermal layouts** the rule-base had when
-they were captured. Nine invoice layouts have been added since, so `make
-dataset` today spreads the same twenty images per renderer over fourteen
-layouts and will not reproduce these files. `dataset.json` in each set records
-the layouts it was actually built from — read that rather than this table if
-the two ever disagree again.
+Both sets span all **fourteen layouts**: five thermal receipts on a continuous
+roll and nine commercial invoices on A4. `dataset.json` in each set records the
+layouts it was built from — read that rather than this table if the two ever
+disagree.
 
 **60 images, 20 receipts.** Both sets are built `paired`: all three renderers
 draw the *same* twenty receipts, so `synthdog_000.jpg`, `html_000.jpg` and
