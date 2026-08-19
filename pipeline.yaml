@@ -20,6 +20,14 @@ run:
   # written into manifest.json for the same reason.
   pairing: paired
 
+  # Which layouts to draw from, by name. Empty (the default) means every file in
+  # `rulebase/layouts/`, which is what a dataset wants. A *fixed comparison*
+  # should name them: the quota walks the list in order, so a run that took the
+  # directory draws a different set the day someone adds a layout. That is how
+  # the golden baseline went red without being able to say why -- see
+  # `tools/baseline.py`, whose plans all name theirs.
+  layouts: []
+
 backends: [synthdog, html, genalog]
 
 shard:
