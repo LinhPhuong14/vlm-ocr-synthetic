@@ -155,7 +155,8 @@ rulebase/               THE RULE-BASE — one source of truth for content
 ├── rules/              6 attributes: document, layout, content, visual,
 │                       color, augmentation. Weighted, with constraints.
 ├── layouts/            14 layouts measured off real Vietnamese paper,
-│                       sorted into 5 families by what the document IS
+│                       sorted into 5 families by what the document IS.
+│                       Five are on a continuous roll, nine on A4
 ├── corpus/vi/          Vietnamese corpus, with diacritics
 └── corpus/en/          the one document kind that prints English
 
