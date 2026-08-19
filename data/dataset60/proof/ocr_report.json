@@ -146,11 +146,228 @@
         "token_recall": 0.6384
       }
     },
+    "by_layout_augmentation": {
+      "eatery_ascii/medium": {
+        "images": 3,
+        "token_recall": 0.5747
+      },
+      "eatery_ascii/real_paper": {
+        "images": 3,
+        "token_recall": 0.6101
+      },
+      "eatery_indexed/medium": {
+        "images": 3,
+        "token_recall": 0.418
+      },
+      "eatery_indexed/real_paper": {
+        "images": 3,
+        "token_recall": 0.8981
+      },
+      "invoice_brand/pristine": {
+        "images": 3,
+        "token_recall": 0.9275
+      },
+      "invoice_brand/real_paper": {
+        "images": 3,
+        "token_recall": 0.9199
+      },
+      "invoice_export/punched": {
+        "images": 3,
+        "token_recall": 0.3437
+      },
+      "invoice_export/torn_edges": {
+        "images": 3,
+        "token_recall": 0.2483
+      },
+      "invoice_hotel_compact/punched": {
+        "images": 3,
+        "token_recall": 0.4233
+      },
+      "invoice_hotel_compact/real_paper": {
+        "images": 3,
+        "token_recall": 0.9718
+      },
+      "invoice_hotel_stay/light": {
+        "images": 3,
+        "token_recall": 0.6823
+      },
+      "invoice_hotel_stay/medium": {
+        "images": 3,
+        "token_recall": 0.1656
+      },
+      "invoice_power/medium": {
+        "images": 3,
+        "token_recall": 0.4613
+      },
+      "invoice_tax_en/light": {
+        "images": 3,
+        "token_recall": 0.5825
+      },
+      "invoice_vat_form/medium": {
+        "images": 3,
+        "token_recall": 0.3958
+      },
+      "invoice_vat_summary/punched": {
+        "images": 3,
+        "token_recall": 0.3941
+      },
+      "invoice_water/stains": {
+        "images": 3,
+        "token_recall": 0.6332
+      },
+      "market_barcode/medium": {
+        "images": 3,
+        "token_recall": 0.2337
+      },
+      "market_compact/photocopy": {
+        "images": 3,
+        "token_recall": 0.3947
+      },
+      "market_vat/light": {
+        "images": 3,
+        "token_recall": 0.6667
+      }
+    },
     "pairing": "paired",
     "distinct_labels": {
       "synthdog": 20,
       "html": 20,
       "genalog": 20
+    },
+    "conditions": {
+      "layouts": [
+        "eatery_ascii",
+        "eatery_indexed",
+        "invoice_brand",
+        "invoice_export",
+        "invoice_hotel_compact",
+        "invoice_hotel_stay",
+        "invoice_power",
+        "invoice_tax_en",
+        "invoice_vat_form",
+        "invoice_vat_summary",
+        "invoice_water",
+        "market_barcode",
+        "market_compact",
+        "market_vat"
+      ],
+      "images_per_layout": {
+        "eatery_ascii": 6,
+        "eatery_indexed": 6,
+        "invoice_brand": 6,
+        "invoice_export": 6,
+        "invoice_hotel_compact": 6,
+        "invoice_hotel_stay": 6,
+        "invoice_power": 3,
+        "invoice_tax_en": 3,
+        "invoice_vat_form": 3,
+        "invoice_vat_summary": 3,
+        "invoice_water": 3,
+        "market_barcode": 3,
+        "market_compact": 3,
+        "market_vat": 3
+      },
+      "engine": "tesseract 5.3.4",
+      "lang": "vie",
+      "psm": 4,
+      "pairing": "paired"
+    },
+    "against": {
+      "source": "data/dataset60_clean/proof/ocr_report.json",
+      "by_layout": [
+        {
+          "layout": "invoice_brand",
+          "before": 0.9497,
+          "after": 0.9237,
+          "drop": 0.026
+        },
+        {
+          "layout": "eatery_ascii",
+          "before": 0.7739,
+          "after": 0.5924,
+          "drop": 0.1815
+        },
+        {
+          "layout": "invoice_water",
+          "before": 0.8289,
+          "after": 0.6332,
+          "drop": 0.1957
+        },
+        {
+          "layout": "market_vat",
+          "before": 0.875,
+          "after": 0.6667,
+          "drop": 0.2083
+        },
+        {
+          "layout": "market_compact",
+          "before": 0.6491,
+          "after": 0.3947,
+          "drop": 0.2544
+        },
+        {
+          "layout": "invoice_hotel_compact",
+          "before": 0.9568,
+          "after": 0.6975,
+          "drop": 0.2593
+        },
+        {
+          "layout": "invoice_tax_en",
+          "before": 0.8653,
+          "after": 0.5825,
+          "drop": 0.2828
+        },
+        {
+          "layout": "eatery_indexed",
+          "before": 0.9656,
+          "after": 0.6581,
+          "drop": 0.3075
+        },
+        {
+          "layout": "invoice_power",
+          "before": 0.8438,
+          "after": 0.4613,
+          "drop": 0.3825
+        },
+        {
+          "layout": "invoice_vat_form",
+          "before": 0.883,
+          "after": 0.3958,
+          "drop": 0.4872
+        },
+        {
+          "layout": "invoice_vat_summary",
+          "before": 0.8848,
+          "after": 0.3941,
+          "drop": 0.4907
+        },
+        {
+          "layout": "invoice_export",
+          "before": 0.8125,
+          "after": 0.296,
+          "drop": 0.5165
+        },
+        {
+          "layout": "invoice_hotel_stay",
+          "before": 0.9446,
+          "after": 0.424,
+          "drop": 0.5206
+        },
+        {
+          "layout": "market_barcode",
+          "before": 0.7854,
+          "after": 0.2337,
+          "drop": 0.5517
+        }
+      ],
+      "refused": [],
+      "layouts_only_here": [],
+      "layouts_only_there": [],
+      "pooled": {
+        "synthdog": -0.3972,
+        "html": -0.2702,
+        "genalog": -0.304
+      }
     }
   },
   "images": [

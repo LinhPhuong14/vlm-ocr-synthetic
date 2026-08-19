@@ -67,11 +67,22 @@ a *flat scan* and a *print*. A photograph is markedly harder, and that is
 precisely why all three are kept: a model that has only seen flat scans
 has never met the hard case.
 
-**The ageing table is where difficulty is supposed to be controlled.**
-Easiest here is `pristine` at 0.871 over 60 images, hardest is `pristine` at 0.871 over 60 images --
-only 0.000 between them, which is too little to say the rule-base is controlling difficulty in this sample. Editing `weight` in `rulebase/rules/augmentation.yaml` shifts
-the whole dataset. Values missing from the table were never drawn in this
-sample rather than scoring zero.
+**The ageing ladder cannot be read from this dataset.** No layout in
+it was drawn at two different levels of ageing, so every rung of the
+pooled table is a different set of layouts and the ordering between
+rungs says nothing about ageing. Compare against the matching clean
+set instead: `--against <its ocr_report.json>`.
+
+**The pooled numbers above are a score of this layout set, not of the
+generator.** Ageing costs different layouts between 0.03 and 0.55 of
+their recall, so changing which layouts are in a dataset moves the
+pooled score on its own. This one holds 14 layouts: `eatery_ascii`, `eatery_indexed`, `invoice_brand`, `invoice_export`, `invoice_hotel_compact`, `invoice_hotel_stay`, `invoice_power`, `invoice_tax_en`, `invoice_vat_form`, `invoice_vat_summary`, `invoice_water`, `market_barcode`, `market_compact`, `market_vat`.
+
+Comparing this table with an older one is only meaningful when both
+were taken over the same set; `tools/ocr_proof.py --against <report>`
+checks that and refuses the pooled comparison when they differ, while
+still giving the per-layout one, which holds the layout fixed and is
+therefore the quantity that measures a change.
 
 **However much higher the "folded" column is than the plain one is how
 much of the error is tone marks alone.** The gap here is small, which means

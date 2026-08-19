@@ -34,8 +34,10 @@ import unicodedata
 from collections import Counter
 from pathlib import Path
 
-import cv2
-import numpy as np
+# Imported where they are used, not here. Everything above the engine -- the
+# scoring, the buckets, the conditions a number carries -- is arithmetic on
+# dicts, and it has to stay importable without a browser stack or an imaging
+# library or the tests for it would need one to check a token count.
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
@@ -58,7 +60,7 @@ def tokens(text: str, folded: bool = False) -> list[str]:
     return [t for t in re.split(r"[^\w.,\-]+", text.lower()) if t.strip(".,-")]
 
 
-def locate_page(grey: np.ndarray) -> tuple[int, int, int, int] | None:
+def locate_page(grey) -> tuple[int, int, int, int] | None:
     """Bounding box of the sheet within a photograph of it.
 
     The glyph renderer composites its receipt onto a dark background, and
@@ -71,6 +73,9 @@ def locate_page(grey: np.ndarray) -> tuple[int, int, int, int] | None:
     Returns None when the page fills the frame already (the two HTML backends
     produce flat scans with no surround), or when nothing page-like is found.
     """
+    import cv2
+    import numpy as np
+
     blurred = cv2.GaussianBlur(grey, (0, 0), 2.0)
     _, mask = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, np.ones((15, 15), np.uint8))
@@ -90,6 +95,8 @@ def locate_page(grey: np.ndarray) -> tuple[int, int, int, int] | None:
 
 def run_tesseract(path: Path, lang: str, psm: int, upscale_to: int) -> tuple[str, list[dict]]:
     """Read one image; return its text and the word boxes for the proof sheet."""
+    import cv2
+
     image = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
     if image is None:
         raise FileNotFoundError(path)
@@ -204,6 +211,8 @@ def score_image(record: dict, text: str) -> dict:
 
 def proof_sheet(path: Path, words: list[dict], out: Path) -> None:
     """The image with every word Tesseract found boxed, green above 70% confidence."""
+    import cv2
+
     image = cv2.imread(str(path), cv2.IMREAD_COLOR)
     if image is None:
         return
@@ -216,8 +225,100 @@ def proof_sheet(path: Path, words: list[dict], out: Path) -> None:
     cv2.imwrite(str(out), blended, [cv2.IMWRITE_JPEG_QUALITY, 88])
 
 
+def bucket(per_image: list[dict], key) -> dict:
+    """Mean token recall per group, and how many images each group holds."""
+    groups: dict[str, list[float]] = {}
+    for result in per_image:
+        groups.setdefault(key(result), []).append(result["token_recall"])
+    return {name: {"images": len(values), "token_recall": round(mean(values), 4)}
+            for name, values in sorted(groups.items())}
+
+
+def conditions(per_image: list[dict], report: dict) -> dict:
+    """What an aggregate score is a score *of*.
+
+    Law 8, applied to a number rather than to a baseline: a pooled recall is a
+    comparison point, and it has to carry the conditions it was taken under or
+    it will be compared with itself in another world. The condition that turned
+    out to matter most is the **layout mix** -- ageing costs `invoice_brand`
+    0.026 of its recall and `market_barcode` 0.552, twenty-one times as much,
+    so a pooled score moves when the mix moves and says nothing about anything
+    else having changed.
+    """
+    counts: dict[str, int] = {}
+    for result in per_image:
+        counts[result.get("layout", "")] = counts.get(result.get("layout", ""), 0) + 1
+    return {
+        "layouts": sorted(counts),
+        "images_per_layout": dict(sorted(counts.items())),
+        "engine": report.get("engine", ""),
+        "lang": report.get("lang", ""),
+        "psm": report.get("psm"),
+        "pairing": report.get("pairing", "unknown"),
+    }
+
+
+def comparable(left: dict, right: dict) -> list[str]:
+    """Why two reports' pooled numbers may not be put beside each other.
+
+    Empty means they may. Anything else is a refusal with a reason, printed
+    instead of the comparison -- a reader who has to remember that two datasets
+    had different layout sets will eventually not remember.
+    """
+    a, b = left.get("conditions"), right.get("conditions")
+    if not a or not b:
+        return ["one of the reports predates condition recording, so the two "
+                "pooled scores cannot be told apart from a change of subject"]
+    problems = []
+    if a["layouts"] != b["layouts"]:
+        added = [x for x in b["layouts"] if x not in a["layouts"]]
+        gone = [x for x in a["layouts"] if x not in b["layouts"]]
+        problems.append(
+            "the layout sets differ ("
+            + ", ".join(filter(None, [f"+{', +'.join(added)}" if added else "",
+                                      f"-{', -'.join(gone)}" if gone else ""]))
+            + ") -- ageing costs different layouts between 0.03 and 0.55 of "
+              "recall, so a pooled difference here is a difference of subject")
+    for field in ("engine", "lang", "psm"):
+        if a.get(field) != b.get(field):
+            problems.append(f"{field} differs: {a.get(field)!r} vs {b.get(field)!r}")
+    return problems
+
+
+def compare_reports(before: dict, after: dict, source) -> dict:
+    """Two reports, side by side -- per layout always, pooled only if allowed.
+
+    The per-layout drop is the quantity that actually measures a change: it
+    holds the layout fixed, so what is left is the thing that changed. The
+    pooled difference is reported only when the conditions match, and otherwise
+    replaced by the reason it would have been meaningless.
+    """
+    blocked = comparable(before, after)
+    shared = sorted(set(before.get("by_layout", {})) & set(after.get("by_layout", {})))
+    rows = []
+    for layout in shared:
+        was = before["by_layout"][layout]["token_recall"]
+        now = after["by_layout"][layout]["token_recall"]
+        rows.append({"layout": layout, "before": was, "after": now,
+                     "drop": round(was - now, 4)})
+    rows.sort(key=lambda row: row["drop"])
+    out = {"source": str(source), "by_layout": rows,
+           "refused": blocked, "layouts_only_here": sorted(
+               set(after.get("by_layout", {})) - set(before.get("by_layout", {}))),
+           "layouts_only_there": sorted(
+               set(before.get("by_layout", {})) - set(after.get("by_layout", {})))}
+    if not blocked:
+        out["pooled"] = {
+            name: round(after["frameworks"][name]["token_recall"]
+                        - before["frameworks"][name]["token_recall"], 4)
+            for name in after.get("frameworks", {})
+            if name in before.get("frameworks", {})
+        }
+    return out
+
+
 def mean(values: list[float]) -> float:
-    return float(np.mean(values)) if values else 0.0
+    return (sum(values) / len(values)) if values else 0.0
 
 
 def main() -> int:
@@ -228,6 +329,10 @@ def main() -> int:
     parser.add_argument("--psm", type=int, default=4, help="4 = one column of variable-size text")
     parser.add_argument("--upscale-to", type=int, default=2200)
     parser.add_argument("--sheets", type=int, default=2, help="proof sheets per framework")
+    parser.add_argument("--against", type=Path, default=None,
+                        help="an earlier ocr_report.json to compare with. The "
+                             "pooled numbers are only put side by side when the "
+                             "conditions match; the per-layout ones always are")
     args = parser.parse_args()
 
     out = args.out or args.dataset / "proof"
@@ -283,13 +388,15 @@ def main() -> int:
     # attribute does not order the scores, the rule-base is not actually
     # controlling how hard an image is, whatever the YAML says.
     for key in ("layout", "augmentation", "visual"):
-        buckets: dict[str, list[float]] = {}
-        for result in per_image:
-            buckets.setdefault(result.get(key, ""), []).append(result["token_recall"])
-        report[f"by_{key}"] = {
-            name: {"images": len(values), "token_recall": round(mean(values), 4)}
-            for name, values in sorted(buckets.items())
-        }
+        report[f"by_{key}"] = bucket(per_image, lambda r, k=key: r.get(k, ""))
+
+    # The ageing ladder, scored **inside a layout**. Pooled across layouts it is
+    # not a measurement of ageing: each rung holds whichever layouts happened to
+    # fall in it, and the layouts differ by twenty-one times in how much ageing
+    # costs them. Same reasoning as T-09's per-(layout, field) budgets, and for
+    # the same reason -- a ratio pooled over unlike things measures the pooling.
+    report["by_layout_augmentation"] = bucket(
+        per_image, lambda r: f"{r.get('layout', '')}/{r.get('augmentation', '')}")
 
     # What the numbers may be compared to. Under `paired` every renderer drew
     # the same receipts, so a difference between two of them is a difference in
@@ -307,6 +414,13 @@ def main() -> int:
     else:
         report["pairing"] = "unknown"
         report["distinct_labels"] = {}
+
+    # Written last: `pairing` is read above and belongs in the conditions.
+    report["conditions"] = conditions(per_image, report)
+
+    if args.against:
+        other = json.loads(Path(args.against).read_text(encoding="utf-8"))["summary"]
+        report["against"] = compare_reports(other, report, args.against)
 
     (out / "ocr_report.json").write_text(
         json.dumps({"summary": report, "images": per_image}, indent=2, ensure_ascii=False),
@@ -351,33 +465,126 @@ def _pairing_note(report: dict) -> list[str]:
 
 
 def _ageing_note(report: dict) -> list[str]:
-    """Whether the ageing attribute actually ordered the scores, measured.
+    """Whether ageing ordered the scores -- asked inside a layout, not across.
 
-    The claim this replaces named `pristine` at the top and `crumpled` at the
-    bottom and was printed whatever the table said -- including for datasets in
-    which `crumpled` was never drawn at all.
+    Pooled across layouts the question cannot be answered. Ageing costs
+    `invoice_brand` 0.026 of its recall and `market_barcode` 0.552, twenty-one
+    times as much, so a rung of the ladder scores whatever layouts happened to
+    land on it. The pooled table is still printed, because it is what a reader
+    of the dataset meets; it is just not evidence about ageing.
     """
-    rows = sorted(report.get("by_augmentation", {}).items(),
-                  key=lambda item: -item[1]["token_recall"])
-    if not rows:
+    pairs = report.get("by_layout_augmentation", {})
+    if not pairs:
         return ["(no ageing breakdown in this report)"]
-    best, worst = rows[0], rows[-1]
-    spread = best[1]["token_recall"] - worst[1]["token_recall"]
-    verdict = (
-        f"a spread of {spread:.3f} between them, so the rule-base is controlling "
-        f"difficulty" if spread >= 0.05 else
-        f"only {spread:.3f} between them, which is too little to say the rule-base "
-        f"is controlling difficulty in this sample"
-    )
+
+    by_layout: dict[str, list[tuple[str, float, int]]] = {}
+    for name, entry in pairs.items():
+        layout, _, ageing = name.partition("/")
+        by_layout.setdefault(layout, []).append(
+            (ageing, entry["token_recall"], entry["images"]))
+
+    spreads = []
+    for layout, rungs in by_layout.items():
+        if len(rungs) < 2:
+            continue
+        rungs.sort(key=lambda row: -row[1])
+        spreads.append((rungs[0][1] - rungs[-1][1], layout, rungs[0], rungs[-1]))
+    if not spreads:
+        return [
+            "**The ageing ladder cannot be read from this dataset.** No layout in",
+            "it was drawn at two different levels of ageing, so every rung of the",
+            "pooled table is a different set of layouts and the ordering between",
+            "rungs says nothing about ageing. Compare against the matching clean",
+            "set instead: `--against <its ocr_report.json>`.",
+        ]
+
+    spreads.sort(reverse=True)
+    widest, narrowest = spreads[0], spreads[-1]
     return [
-        "**The ageing table is where difficulty is supposed to be controlled.**",
-        f"Easiest here is `{best[0]}` at {best[1]['token_recall']:.3f} over "
-        f"{best[1]['images']} images, hardest is `{worst[0]}` at "
-        f"{worst[1]['token_recall']:.3f} over {worst[1]['images']} images --",
-        f"{verdict}. Editing `weight` in `rulebase/rules/augmentation.yaml` shifts",
-        "the whole dataset. Values missing from the table were never drawn in this",
-        "sample rather than scoring zero.",
+        "**The ageing table is scored inside a layout, and only inside one.**",
+        "Pooled across layouts it measures the mix rather than the ageing: the",
+        "same chain costs different layouts very different amounts, so a rung",
+        "holds whichever layouts fell in it. `by_layout_augmentation` in",
+        "`ocr_report.json` is the honest form.",
+        "",
+        f"Widest here is `{widest[1]}`: `{widest[2][0]}` at {widest[2][1]:.3f} down "
+        f"to `{widest[3][0]}` at {widest[3][1]:.3f}, a spread of {widest[0]:.3f}.",
+        f"Narrowest is `{narrowest[1]}` at {narrowest[0]:.3f}. Editing `weight` in",
+        "`rulebase/rules/augmentation.yaml` shifts the whole dataset. Values",
+        "missing from a table were never drawn in this sample rather than scoring",
+        "zero.",
     ]
+
+
+def _conditions_note(report: dict) -> list[str]:
+    """The layout set, printed beside the number that depends on it."""
+    conds = report.get("conditions") or {}
+    layouts = conds.get("layouts") or []
+    if not layouts:
+        return []
+    return [
+        "**The pooled numbers above are a score of this layout set, not of the",
+        "generator.** Ageing costs different layouts between 0.03 and 0.55 of",
+        "their recall, so changing which layouts are in a dataset moves the",
+        "pooled score on its own. This one holds "
+        f"{len(layouts)} layouts: {', '.join(f'`{name}`' for name in layouts)}.",
+        "",
+        "Comparing this table with an older one is only meaningful when both",
+        "were taken over the same set; `tools/ocr_proof.py --against <report>`",
+        "checks that and refuses the pooled comparison when they differ, while",
+        "still giving the per-layout one, which holds the layout fixed and is",
+        "therefore the quantity that measures a change.",
+    ]
+
+
+def _against_note(report: dict) -> list[str]:
+    """The comparison with another report, printed rather than left in JSON.
+
+    Only the per-layout half is a measurement: it holds the layout fixed, so
+    what remains is the thing that changed. The pooled half is printed when the
+    conditions matched and replaced by the refusal when they did not.
+    """
+    against = report.get("against")
+    if not against:
+        return []
+    rows = against.get("by_layout") or []
+    lines = [
+        "**What the ageing cost, layout by layout.** Against "
+        f"`{against['source']}`. Each row holds one layout fixed, so the drop is",
+        "the ageing and nothing else.",
+    ]
+    if rows:
+        lines += [
+            "",
+            "| layout | before | after | drop |",
+            "| --- | ---: | ---: | ---: |",
+        ]
+        lines += [f"| {row['layout']} | {row['before']:.3f} | {row['after']:.3f} | "
+                  f"{row['drop']:.3f} |" for row in rows]
+        least, most = rows[0], rows[-1]
+        times = most["drop"] / least["drop"] if least["drop"] > 0 else 0
+        lines += [
+            "",
+            f"The same ageing chain costs `{least['layout']}` {least['drop']:.3f} of its",
+            f"recall and `{most['layout']}` {most['drop']:.3f}"
+            + (f" -- {times:.0f} times as much." if times >= 2 else "."),
+            "That is why the pooled number cannot be read as a score of the",
+            "generator: it moves when the layout mix moves, on its own.",
+        ]
+    for name in against.get("layouts_only_here") or []:
+        lines.append(f"`{name}` is in this dataset only, so it has no row.")
+    for name in against.get("layouts_only_there") or []:
+        lines.append(f"`{name}` is in the other dataset only, so it has no row.")
+
+    refused = against.get("refused") or []
+    if refused:
+        lines += ["", "The pooled columns are **not** compared, because "
+                  + "; ".join(refused) + "."]
+    elif against.get("pooled"):
+        lines += ["", "Pooled, over the same conditions: "
+                  + ", ".join(f"`{name}` {value:+.3f}"
+                              for name, value in against["pooled"].items()) + "."]
+    return lines
 
 
 def write_markdown(report: dict, per_image: list[dict], path: Path) -> None:
@@ -437,6 +644,10 @@ def write_markdown(report: dict, per_image: list[dict], path: Path) -> None:
         "",
         *_ageing_note(report),
         "",
+        *_conditions_note(report),
+        "",
+        *_against_note(report),
+        *([""] if report.get("against") else []),
         "**However much higher the \"folded\" column is than the plain one is how",
         "much of the error is tone marks alone.** The gap here is small, which means",
         "the errors are mostly mis-recognised characters rather than lost diacritics.",
