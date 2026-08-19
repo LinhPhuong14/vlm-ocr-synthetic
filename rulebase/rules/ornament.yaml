@@ -19,7 +19,8 @@
 #
 #   anchor    chỗ đặt trên trang. header_band | letterhead | table_back |
 #             totals | signature_seller | signature_buyer | footer_band |
-#             corner_tl | corner_tr | corner_bl | corner_br | page_center
+#             corner_tl | corner_tr | corner_bl | corner_br | page_center |
+#             page_edge_left | page_full
 #   scale     bề rộng, tính theo PHẦN của bề rộng trang (0.30 = 30%)
 #   opacity   [thấp, cao] — bốc trong khoảng
 #   rotate    [thấp, cao] độ — con dấu đóng tay không bao giờ thẳng
@@ -71,6 +72,18 @@ groups:
             - [seal_round_export, {anchor: signature_seller, scale: 0.26,
                                    opacity: [0.70, 0.88], rotate: [-12, 12]}]
 
+      # Dấu tròn và dấu chức danh đóng cạnh nhau: trên chứng từ Việt Nam hai
+      # thứ này gần như luôn đi cùng, và thuộc tính chỉ bốc MỘT giá trị mỗi tờ
+      # nên chúng phải nằm chung một giá trị.
+      - id: seal_with_name_block
+        weight: 3
+        params:
+          marks:
+            - [seal_round_company, {anchor: signature_seller, scale: 0.26,
+                                    opacity: [0.72, 0.90], rotate: [-16, 16]}]
+            - [seal_name_block, {anchor: signature_seller, scale: 0.24,
+                                 opacity: [0.72, 0.92], rotate: [-6, 6]}]
+
       - id: seal_and_paid
         weight: 2
         params:
@@ -115,62 +128,6 @@ groups:
                                 opacity: [0.62, 0.84], rotate: [-3, 3]}]
             - [seal_accounting_posted, {anchor: footer_band, scale: 0.26,
                                         opacity: [0.55, 0.78], rotate: [-7, 7]}]
-
-  # ------------------------------------------------------------------------
-  - id: hand
-    label: "Nét tay — mực do người thêm vào sau khi in"
-    requires: [doc_invoice]
-    tags: [has_handmark]
-    options:
-      # Tổ hợp hay gặp nhất trên chứng từ Việt Nam: chữ ký, dấu tròn đè lên
-      # chữ ký, và dấu chức danh đóng cạnh. Ba thứ đi cùng nhau nên chúng nằm
-      # trong CÙNG một giá trị — thuộc tính chỉ bốc một giá trị mỗi tờ.
-      - id: signed_and_sealed
-        weight: 4
-        params:
-          marks:
-            - [signature_01, {anchor: signature_seller, scale: 0.22,
-                              opacity: [0.80, 1.0], rotate: [-5, 5]}]
-            - [seal_round_company, {anchor: signature_seller, scale: 0.26,
-                                    opacity: [0.68, 0.86], rotate: [-16, 16]}]
-            - [seal_name_block, {anchor: signature_seller, scale: 0.24,
-                                 opacity: [0.72, 0.92], rotate: [-6, 6]}]
-
-      - id: signed_both_sides
-        weight: 3
-        params:
-          marks:
-            - [signature_02, {anchor: signature_seller, scale: 0.22,
-                              opacity: [0.80, 1.0], rotate: [-5, 5]}]
-            - [signature_03, {anchor: signature_buyer, scale: 0.20,
-                              opacity: [0.78, 1.0], rotate: [-6, 6]}]
-
-      # Tờ mẫu in sẵn sinh ra để được ĐIỀN TAY. Ba trường dưới đây là ba chỗ
-      # trống mà tờ nào cũng có. `from_receipt` nói cho bên ghép ảnh biết nội
-      # dung phải dựng lại từ chính giá trị đã bốc cho tờ giấy, chứ không dùng
-      # nguyên file mẫu — nếu không ảnh sẽ nói một đằng, nhãn nói một nẻo.
-      - id: filled_by_hand
-        weight: 4
-        requires: [invoice_form]
-        tags: [handwritten]
-        params:
-          marks:
-            - [handwriting_date, {anchor: doctitle, scale: 0.16,
-                                  opacity: [0.80, 1.0], from_receipt: true}]
-            - [handwriting_name, {anchor: buyer_field, scale: 0.22,
-                                  opacity: [0.80, 1.0], from_receipt: true}]
-            - [handwriting_amount, {anchor: totals, scale: 0.14,
-                                    opacity: [0.80, 1.0], from_receipt: true}]
-            - [signature_01, {anchor: signature_seller, scale: 0.22,
-                              opacity: [0.80, 1.0], rotate: [-5, 5]}]
-
-      - id: checked_by_hand
-        weight: 2
-        params:
-          marks:
-            - [pen_underline, {anchor: totals, scale: 0.34, opacity: [0.75, 0.95]}]
-            - [highlighter_swipe, {anchor: totals, scale: 0.38,
-                                   opacity: [0.45, 0.70], blend: multiply}]
 
   # ------------------------------------------------------------------------
   - id: flourish
