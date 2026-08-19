@@ -24,6 +24,7 @@ They are not real businesses.
 
 from __future__ import annotations
 
+import io
 import math
 import random
 from pathlib import Path
@@ -72,6 +73,17 @@ def _arc_text(draw_on: Image.Image, text: str, centre: tuple[float, float],
         cy = centre[1] - radius * math.cos(at)
         draw_on.alpha_composite(glyph, (int(cx - glyph.width / 2), int(cy - glyph.height / 2)))
         angle += step if outward else -step
+
+
+def _fit_width(text: str, limit: float, path: str, start_px: float) -> ImageFont.FreeTypeFont:
+    """Cỡ chữ lớn nhất mà dòng vẫn nằm gọn trong `limit` pixel."""
+    size = start_px
+    while size > start_px * 0.45:
+        font = ImageFont.truetype(path, int(size))
+        if font.getlength(text) <= limit:
+            return font
+        size *= 0.95
+    return ImageFont.truetype(path, int(size))
 
 
 def _fit_arc(text: str, radius: float, max_deg: float, path: str,
@@ -217,10 +229,11 @@ def rectangular_seal(lines: list[str], *, seed: int, width: int = 560, height: i
     pad2 = int(w * 0.038)
     draw.rectangle([pad2, pad2, w - pad2, h - pad2], outline=ink, width=int(h * 0.016))
 
-    sizes = [int(h * 0.34), int(h * 0.19)]
+    sizes = [h * 0.34, h * 0.19]
+    inside = w - pad2 * 2 - w * 0.05
     y = h * 0.26
     for index, line in enumerate(lines):
-        font = ImageFont.truetype(FONT_BOLD, sizes[min(index, len(sizes) - 1)])
+        font = _fit_width(line, inside, FONT_BOLD, sizes[min(index, len(sizes) - 1)])
         tw = draw.textlength(line, font=font)
         draw.text((w / 2 - tw / 2, y), line, font=font, fill=ink)
         y += font.size * 1.25
@@ -320,26 +333,488 @@ def rect_grid(width: int, height: int, *, seed: int,
     return canvas.resize((width, height), Image.LANCZOS)
 
 
+# ------------------------------------------------------- dấu: các kiểu đóng
+
+def _ring_only(image: Image.Image, keep: float = 0.78) -> Image.Image:
+    """Bỏ mực phần ruột, giữ vành ngoài -- mặt dấu vồng nên chỉ vành chạm giấy."""
+    array = np.array(image).astype(np.float32)
+    height, width = array.shape[:2]
+    yy, xx = np.mgrid[0:height, 0:width]
+    radius = np.hypot(xx - width / 2, yy - height / 2) / (min(height, width) / 2)
+    # 1.0 ở vành, tắt dần vào trong; `keep` là chỗ bắt đầu tắt
+    fade = np.clip((radius - keep * 0.55) / max(keep * 0.45, 1e-6), 0, 1)
+    array[..., 3] *= 0.18 + 0.82 * fade
+    return Image.fromarray(np.clip(array, 0, 255).astype(np.uint8), "RGBA")
+
+
+def double_strike(image: Image.Image, *, seed: int) -> Image.Image:
+    """Đóng hai lần: tay trượt nên bản thứ hai lệch vài milimét và mờ hơn.
+
+    Không phải một con dấu khác -- là cùng con dấu ấy in hai lần, nên nó nhận
+    ảnh vào chứ không vẽ lại từ đầu.
+    """
+    rng = random.Random(seed)
+    pad = int(max(image.size) * 0.10)
+    canvas = Image.new("RGBA", (image.width + pad, image.height + pad), (0, 0, 0, 0))
+    faint = image.copy()
+    faint.putalpha(faint.getchannel("A").point(lambda v: int(v * 0.45)))
+    canvas.alpha_composite(faint, (rng.randint(pad // 2, pad), rng.randint(0, pad // 2)))
+    canvas.alpha_composite(image, (0, rng.randint(pad // 2, pad)))
+    return canvas
+
+
+def edge_seal(image: Image.Image, *, keep: float = 0.42) -> Image.Image:
+    """Dấu giáp lai: đóng vắt qua mép hai tờ nên mỗi tờ chỉ giữ được một phần.
+
+    Cắt thẳng chứ không làm mờ dần: mép giấy cắt mực dứt khoát, và chính cái
+    cạnh sắc ấy là dấu hiệu người đọc nhận ra đây là dấu giáp lai chứ không
+    phải một con dấu đóng hụt.
+    """
+    width = max(int(image.width * keep), 8)
+    return image.crop((image.width - width, 0, image.width, image.height))
+
+
+def name_block_seal(name: str, title: str, *, seed: int, width: int = 620,
+                    height: int = 200, colour=(30, 74, 148)) -> Image.Image:
+    """Dấu chức danh: khung chữ nhật in tên và chức vụ người ký.
+
+    Đóng ngay cạnh chữ ký tay, gần như mọi chứng từ doanh nghiệp Việt Nam đều
+    có. Chữ ở đây là chữ IN LÊN dấu nên viết tiếng Việt.
+    """
+    rng = random.Random(seed)
+    w, h = width * SS, height * SS
+    canvas = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(canvas)
+    ink = colour + (255,)
+
+    pad = int(w * 0.018)
+    draw.rectangle([pad, pad, w - pad, h - pad], outline=ink, width=int(h * 0.028))
+
+    # Tên người dài ngắn khác nhau; khung dấu thì khắc sẵn. Co chữ cho vừa,
+    # đúng như `_fit_arc` co chữ cho vừa vành dấu tròn.
+    inside = w - pad * 2 - w * 0.06
+    name_font = _fit_width(name.upper(), inside, FONT_BOLD, h * 0.27)
+    title_font = _fit_width(title, inside, FONT_REG, h * 0.185)
+    name_width = draw.textlength(name.upper(), font=name_font)
+    draw.text((w / 2 - name_width / 2, h * 0.20), name.upper(), font=name_font, fill=ink)
+    # nét kẻ ngăn tên với chức vụ, đúng lối khắc dấu tên
+    draw.line([(w * 0.18, h * 0.55), (w * 0.82, h * 0.55)], fill=ink, width=int(h * 0.012))
+    title_width = draw.textlength(title, font=title_font)
+    draw.text((w / 2 - title_width / 2, h * 0.62), title, font=title_font, fill=ink)
+
+    canvas = canvas.resize((width, height), Image.LANCZOS)
+    canvas = _ink(canvas, rng, coverage=rng.uniform(0.82, 0.95))
+    return canvas.rotate(rng.uniform(-6, 6), resample=Image.BICUBIC, expand=True)
+
+
+# ------------------------------------------------------------------ nét tay
+
+def _pen_stroke(draw: ImageDraw.ImageDraw, points: list[tuple[float, float]],
+                colour: tuple[int, int, int], width: float, rng: random.Random) -> None:
+    """Vẽ một nét bút: bề rộng thay đổi dọc nét, đậm nhạt theo tốc độ tay.
+
+    Vẽ bằng chuỗi hình tròn chồng nhau chứ không bằng `line`, vì `line` cho nét
+    đều tăm tắp -- thứ mà bút bi không bao giờ cho.
+    """
+    for index in range(len(points) - 1):
+        (x0, y0), (x1, y1) = points[index], points[index + 1]
+        steps = max(int(math.hypot(x1 - x0, y1 - y0) / 2) + 1, 1)
+        for step in range(steps):
+            t = step / steps
+            x, y = x0 + (x1 - x0) * t, y0 + (y1 - y0) * t
+            # nét mảnh dần ở hai đầu, và rung nhẹ suốt dọc
+            along = (index + t) / max(len(points) - 1, 1)
+            taper = 0.45 + 0.55 * math.sin(math.pi * min(max(along, 0), 1)) ** 0.4
+            r = width * taper * rng.uniform(0.85, 1.15) / 2
+            alpha = int(255 * min(taper * rng.uniform(0.80, 1.0) + 0.12, 1.0))
+            draw.ellipse([x - r, y - r, x + r, y + r], fill=colour + (alpha,))
+
+
+def _bezier(control: list[tuple[float, float]], samples: int = 60) -> list[tuple[float, float]]:
+    points = []
+    for step in range(samples + 1):
+        t = step / samples
+        current = list(control)
+        while len(current) > 1:
+            current = [(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t)
+                       for a, b in zip(current, current[1:])]
+        points.append(current[0])
+    return points
+
+
+def signature(*, seed: int, width: int = 520, height: int = 200,
+              colour=(22, 42, 120)) -> Image.Image:
+    """Chữ ký tay: mấy vòng bút liền nhau, kết bằng một nét vẩy dài.
+
+    Không cố viết ra một cái tên. Chữ ký người Việt phần lớn là nét bút liên
+    tục không đọc được thành chữ, nên cái cần dựng là ĐỘNG TÁC -- vòng, gấp
+    khúc, vẩy đuôi -- chứ không phải mặt chữ.
+    """
+    rng = random.Random(seed)
+    w, h = width * SS, height * SS
+    canvas = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(canvas)
+    pen = int(h * 0.045)
+
+    x = w * 0.10
+    baseline = h * 0.62
+    for loop in range(rng.randint(3, 5)):
+        span = w * rng.uniform(0.13, 0.22)
+        control = [
+            (x, baseline + rng.uniform(-h * 0.05, h * 0.05)),
+            (x + span * 0.2, baseline - h * rng.uniform(0.28, 0.46)),
+            (x + span * 0.7, baseline + h * rng.uniform(0.10, 0.30)),
+            (x + span, baseline - h * rng.uniform(0.02, 0.18)),
+        ]
+        _pen_stroke(draw, _bezier(control), colour, pen, rng)
+        x += span * rng.uniform(0.72, 0.92)
+
+    # nét vẩy cuối, dài và mảnh, quét ngược lại dưới chữ ký
+    tail = [(x, baseline - h * 0.10), (x - w * 0.30, baseline + h * 0.26),
+            (w * 0.18, baseline + h * 0.30), (w * 0.06, baseline + h * 0.14)]
+    _pen_stroke(draw, _bezier(tail), colour, pen * 0.7, rng)
+
+    canvas = canvas.resize((width, height), Image.LANCZOS)
+    return canvas.filter(ImageFilter.GaussianBlur(0.3)).rotate(
+        rng.uniform(-4, 4), resample=Image.BICUBIC, expand=True)
+
+
+def handwriting(text: str, *, seed: int, height: int = 90,
+                colour=(22, 42, 120)) -> Image.Image:
+    """Chữ điền tay vào chỗ trống của tờ mẫu in sẵn.
+
+    Dựng bằng cách lấy một mặt chữ có sẵn rồi làm lệch từng ký tự -- nghiêng,
+    xê dịch, phóng to thu nhỏ, đậm nhạt không đều -- chứ không dựng nét viết
+    tay thật. Đủ để không còn ra dáng chữ in máy, và đủ khác nhau giữa hai lần
+    gọi, nhưng KHÔNG phải chữ viết tay thật: muốn thật thì phải nhúng một mặt
+    chữ viết tay có giấy phép cho phép phát hành lại, việc đó chưa làm.
+    """
+    rng = random.Random(seed)
+    size = int(height * SS * 0.72)
+    font = ImageFont.truetype(FONT_REG, size)
+    # Một người viết nghiêng MỘT góc suốt dòng; chỉ chệch quanh góc ấy vài độ.
+    # Cho mỗi ký tự một góc độc lập thì ra chữ cắt dán chứ không ra chữ viết.
+    slant = rng.uniform(-9, -2)
+    pad = size
+    guess = int(sum(font.getlength(ch) for ch in text) * 1.15) + pad * 2
+    canvas = Image.new("RGBA", (guess, height * SS), (0, 0, 0, 0))
+
+    x = float(pad)
+    baseline = height * SS * 0.18
+    for ch in text:
+        advance = font.getlength(ch)
+        if ch == " ":
+            x += advance * rng.uniform(0.9, 1.3)
+            continue
+        glyph = Image.new("RGBA", (int(advance) + size, size * 2), (0, 0, 0, 0))
+        alpha = int(255 * rng.uniform(0.72, 1.0))
+        ImageDraw.Draw(glyph).text((size // 4, 0), ch, font=font, fill=colour + (alpha,))
+        glyph = glyph.rotate(slant + rng.uniform(-2.2, 2.2), resample=Image.BICUBIC,
+                             center=(size // 4, size), expand=False)
+        scale = rng.uniform(0.975, 1.035)
+        glyph = glyph.resize((max(int(glyph.width * scale), 1),
+                              max(int(glyph.height * scale), 1)), Image.LANCZOS)
+        canvas.alpha_composite(glyph, (int(x), int(baseline + rng.uniform(-size * 0.035,
+                                                                         size * 0.035))))
+        x += advance * rng.uniform(0.94, 1.02)
+
+    canvas = canvas.crop((0, 0, min(int(x) + pad, canvas.width), canvas.height))
+    canvas = canvas.resize((canvas.width // SS, height), Image.LANCZOS)
+    return canvas.rotate(rng.uniform(-1.6, 1.6), resample=Image.BICUBIC, expand=True)
+
+
+def pen_underline(*, seed: int, width: int = 460, height: int = 40,
+                  colour=(22, 42, 120)) -> Image.Image:
+    """Gạch chân bằng bút: đường tay run, quá tay ở hai đầu."""
+    rng = random.Random(seed)
+    w, h = width * SS, height * SS
+    canvas = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(canvas)
+    mid = h * 0.55
+    control = [(w * 0.02, mid + rng.uniform(-h * 0.12, h * 0.12)),
+               (w * 0.35, mid + rng.uniform(-h * 0.20, h * 0.05)),
+               (w * 0.70, mid + rng.uniform(-h * 0.05, h * 0.20)),
+               (w * 0.99, mid + rng.uniform(-h * 0.14, h * 0.14))]
+    _pen_stroke(draw, _bezier(control, 90), colour, h * 0.30, rng)
+    return canvas.resize((width, height), Image.LANCZOS)
+
+
+def highlighter_swipe(*, seed: int, width: int = 520, height: int = 90,
+                      colour=(246, 214, 46)) -> Image.Image:
+    """Vệt bút dạ quang: mép vệt đậm hơn giữa vệt, hai đầu tù.
+
+    Mực dạ quang trong suốt nên chữ dưới vẫn đọc được -- alpha ở đây cố tình
+    thấp, và bên ghép ảnh phải nhân chứ không phủ, nếu không chữ sẽ mất.
+    """
+    rng = random.Random(seed)
+    w, h = width * SS, height * SS
+    canvas = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(canvas)
+    top = h * rng.uniform(0.16, 0.26)
+    bottom = h * rng.uniform(0.74, 0.86)
+    left, right = w * rng.uniform(0.01, 0.05), w * rng.uniform(0.95, 0.99)
+    draw.rounded_rectangle([left, top, right, bottom], radius=h * 0.12,
+                           fill=colour + (150,))
+    # mép trên và mép dưới đậm hơn: đầu bút tì mạnh ở hai biên
+    draw.line([(left, top + h * 0.05), (right, top + h * 0.05)],
+              fill=colour + (90,), width=int(h * 0.10))
+    draw.line([(left, bottom - h * 0.05), (right, bottom - h * 0.05)],
+              fill=colour + (90,), width=int(h * 0.10))
+    canvas = canvas.resize((width, height), Image.LANCZOS)
+    return canvas.filter(ImageFilter.GaussianBlur(1.2))
+
+
+# ----------------------------------------------------- chữ chìm và hoa văn
+
+def diagonal_watermark(text: str, *, seed: int, width: int = 1240, height: int = 1754,
+                       colour=(120, 120, 132), alpha: int = 34) -> Image.Image:
+    """Chữ chìm lặp chéo khắp trang, rất nhạt, nằm dưới chữ in.
+
+    Kích thước mặc định là một trang A4 ở 150 dpi: chữ chìm phủ CẢ TRANG chứ
+    không phải một hình dán vào một chỗ, nên nó là hoạ tiết duy nhất trong bộ
+    này sinh ra đúng bằng khổ trang.
+    """
+    rng = random.Random(seed)
+    w, h = width, height
+    diagonal = int(math.hypot(w, h))
+    tile = Image.new("RGBA", (diagonal, diagonal), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(tile)
+    font = ImageFont.truetype(FONT_BOLD, int(h * 0.055))
+    step_x = int(draw.textlength(text, font=font) * 1.55)
+    step_y = int(font.size * 3.1)
+
+    for row, y in enumerate(range(0, diagonal, step_y)):
+        offset = (row % 2) * step_x // 2          # so le, không xếp thành cột
+        for x in range(-step_x, diagonal, step_x):
+            draw.text((x + offset, y), text, font=font, fill=colour + (alpha,))
+
+    tile = tile.rotate(-rng.uniform(28, 36), resample=Image.BICUBIC)
+    left, top = (diagonal - w) // 2, (diagonal - h) // 2
+    return tile.crop((left, top, left + w, top + h))
+
+
+def dong_son_motif(size: int, *, seed: int, colour=(47, 82, 51)) -> Image.Image:
+    """Hoa văn trống đồng: mặt trời giữa, chim Lạc bay vòng, vành răng cưa.
+
+    Dựng bằng toạ độ cực, cùng cách con dấu tròn được dựng. Chim Lạc vẽ thành
+    bóng chứ không thành nét: trên mặt trống thật chúng là hình khắc đặc, và ở
+    cỡ in trên tờ hoá đơn thì nét mảnh sẽ mất hết.
+    """
+    rng = random.Random(seed)
+    side = size * SS
+    canvas = Image.new("RGBA", (side, side), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(canvas)
+    centre = side / 2
+    ink = colour + (255,)
+
+    def ring(radius: float, weight: float, opacity: int = 255) -> None:
+        draw.ellipse([centre - radius, centre - radius, centre + radius, centre + radius],
+                     outline=colour + (opacity,), width=max(int(side * weight), SS))
+
+    # mặt trời giữa: nhân tròn và một vành tia nhọn
+    core = side * 0.075
+    draw.ellipse([centre - core, centre - core, centre + core, centre + core], fill=ink)
+    rays = 14
+    for index in range(rays):
+        angle = index * math.tau / rays
+        tip = side * 0.155
+        spread = math.tau / rays * 0.30
+        draw.polygon([
+            (centre + tip * math.cos(angle), centre + tip * math.sin(angle)),
+            (centre + core * math.cos(angle - spread), centre + core * math.sin(angle - spread)),
+            (centre + core * math.cos(angle + spread), centre + core * math.sin(angle + spread)),
+        ], fill=ink)
+
+    ring(side * 0.20, 0.004)
+    ring(side * 0.215, 0.004)
+
+    # vành chim Lạc: mỏ dài, cổ vươn, đuôi xoè, bay ngược chiều kim đồng hồ
+    # Bảy con, không mười: ở cỡ in trên tờ hoá đơn, mười con chạm cánh nhau và
+    # cả vành biến thành một đường răng cưa -- mất hẳn con chim.
+    birds, orbit = 7, side * 0.288
+    for index in range(birds):
+        angle = index * math.tau / birds + rng.uniform(-0.02, 0.02)
+        bird = Image.new("RGBA", (int(side * 0.26), int(side * 0.15)), (0, 0, 0, 0))
+        bd = ImageDraw.Draw(bird)
+        bw, bh = bird.size
+        # mỏ dài thẳng, đầu có mào, thân dày, đuôi xoè thành ba nhánh
+        bd.polygon([(bw * 0.02, bh * 0.40), (bw * 0.26, bh * 0.34), (bw * 0.30, bh * 0.10),
+                    (bw * 0.38, bh * 0.32), (bw * 0.56, bh * 0.30), (bw * 0.72, bh * 0.44),
+                    (bw * 0.98, bh * 0.46), (bw * 0.80, bh * 0.60), (bw * 0.98, bh * 0.74),
+                    (bw * 0.70, bh * 0.68), (bw * 0.44, bh * 0.86), (bw * 0.30, bh * 0.60)],
+                   fill=ink)
+        bird = bird.rotate(-angle * 180 / math.pi - 90, resample=Image.BICUBIC, expand=True)
+        canvas.alpha_composite(bird, (int(centre + orbit * math.cos(angle) - bird.width / 2),
+                                      int(centre + orbit * math.sin(angle) - bird.height / 2)))
+
+    draw = ImageDraw.Draw(canvas)
+    ring(side * 0.355, 0.004)
+    ring(side * 0.375, 0.006)
+
+    # vành răng cưa ngoài cùng
+    teeth = 48
+    inner, outer = side * 0.395, side * 0.445
+    for index in range(teeth):
+        a0 = index * math.tau / teeth
+        a1 = (index + 0.5) * math.tau / teeth
+        a2 = (index + 1) * math.tau / teeth
+        draw.polygon([(centre + inner * math.cos(a0), centre + inner * math.sin(a0)),
+                      (centre + outer * math.cos(a1), centre + outer * math.sin(a1)),
+                      (centre + inner * math.cos(a2), centre + inner * math.sin(a2))], fill=ink)
+    ring(side * 0.465, 0.006)
+
+    return canvas.resize((size, size), Image.LANCZOS)
+
+
+# ------------------------------------------------------------ mã máy đọc
+
+# EAN-13. Ba bảng mã bảy vạch, và bảng chẵn lẻ mà CHỮ SỐ ĐẦU quyết định -- số
+# đầu không có vạch riêng, nó được mã hoá bằng cách sáu số bên trái dùng bảng
+# nào. Đó là chỗ dễ làm sai nhất khi tự dựng EAN-13.
+_EAN_L = ("0001101", "0011001", "0010011", "0111101", "0100011",
+          "0110001", "0101111", "0111011", "0110111", "0001011")
+_EAN_G = ("0100111", "0110011", "0011011", "0100001", "0011101",
+          "0111001", "0000101", "0010001", "0001001", "0010111")
+_EAN_R = tuple("".join("1" if bit == "0" else "0" for bit in code) for code in _EAN_L)
+_EAN_PARITY = ("LLLLLL", "LLGLGG", "LLGGLG", "LLGGGL", "LGLLGG",
+               "LGGLLG", "LGGGLL", "LGLGLG", "LGLGGL", "LGGLGL")
+
+
+def ean13_check_digit(twelve: str) -> str:
+    """Chữ số kiểm tra: cộng có trọng số 1 và 3, xen kẽ, rồi bù cho tròn chục."""
+    if len(twelve) != 12 or not twelve.isdigit():
+        raise ValueError(f"EAN-13 cần đúng 12 chữ số, nhận {twelve!r}")
+    total = sum(int(digit) * (3 if index % 2 else 1) for index, digit in enumerate(twelve))
+    return str((10 - total % 10) % 10)
+
+
+def ean13(digits: str, *, width: int = 480, height: int = 200,
+          colour=(0, 0, 0)) -> Image.Image:
+    """Mã vạch EAN-13 thật: đúng bảng mã, đúng chẵn lẻ, đúng số kiểm tra.
+
+    Nhận 12 hoặc 13 chữ số. Nhận 13 thì chữ số cuối được KIỂM TRA lại chứ không
+    tin: một mã vạch sai số kiểm tra là mã vạch mà máy quét từ chối, và ảnh
+    huấn luyện mang nó thì đang dạy sai.
+    """
+    digits = digits.strip()
+    if len(digits) == 12:
+        digits += ean13_check_digit(digits)
+    elif len(digits) == 13:
+        if digits[12] != ean13_check_digit(digits[:12]):
+            raise ValueError(f"{digits}: sai chữ số kiểm tra, phải là "
+                             f"{ean13_check_digit(digits[:12])}")
+    else:
+        raise ValueError(f"EAN-13 cần 12 hoặc 13 chữ số, nhận {len(digits)}")
+
+    parity = _EAN_PARITY[int(digits[0])]
+    modules = "101"
+    for index, digit in enumerate(digits[1:7]):
+        modules += (_EAN_L if parity[index] == "L" else _EAN_G)[int(digit)]
+    modules += "01010"
+    for digit in digits[7:]:
+        modules += _EAN_R[int(digit)]
+    modules += "101"
+
+    quiet = 9                                   # vùng trắng bắt buộc hai bên
+    total = len(modules) + quiet * 2
+    scale = max(width // total, 1)
+    w, h = total * scale, height
+    canvas = Image.new("RGBA", (w, h), (255, 255, 255, 255))
+    draw = ImageDraw.Draw(canvas)
+
+    # vạch bảo vệ dài hơn vạch dữ liệu, thò xuống dưới hàng số
+    guards = set(range(0, 3)) | set(range(45, 50)) | set(range(92, 95))
+    bar_bottom = h * 0.78
+    for index, module in enumerate(modules):
+        if module == "1":
+            x = (quiet + index) * scale
+            bottom = h * 0.92 if index in guards else bar_bottom
+            draw.rectangle([x, h * 0.06, x + scale - 1, bottom], fill=colour + (255,))
+
+    font = ImageFont.truetype(FONT_REG, int(h * 0.17))
+    baseline = h * 0.79
+    draw.text((scale * 0.5, baseline), digits[0], font=font, fill=colour + (255,))
+    for group, start_module, first in ((digits[1:7], 3, True), (digits[7:], 50, False)):
+        span = 42 * scale
+        left = (quiet + start_module) * scale
+        step = span / 6
+        for offset, digit in enumerate(group):
+            cx = left + step * (offset + 0.5)
+            dw = draw.textlength(digit, font=font)
+            draw.text((cx - dw / 2, baseline), digit, font=font, fill=colour + (255,))
+    return canvas
+
+
+def qr_code(data: str, *, size: int = 420, colour=(0, 0, 0),
+            error: str = "m") -> Image.Image:
+    """Mã QR thật, mã hoá `data`. Cần `segno`.
+
+    Con dấu QR giả ở bản trước chỉ đúng chỗ và đúng sắc độ mực; cái này quét
+    được. Với ảnh huấn luyện thì khác biệt ấy có nghĩa: một mã quét ra đúng mã
+    hoá đơn là một nhãn nữa mà ảnh tự mang theo.
+    """
+    try:
+        import segno
+    except ImportError as error_:
+        raise SystemExit(
+            "qr_code cần segno: pip install -r tools/requirements.txt") from error_
+
+    code = segno.make(data, error=error)
+    scale = max(size // (code.symbol_size()[0]), 1)
+    buffer = io.BytesIO()
+    code.save(buffer, kind="png", scale=scale, border=2,
+              dark="#%02x%02x%02x" % colour, light="#ffffff")
+    buffer.seek(0)
+    return Image.open(buffer).convert("RGBA")
+
+
 # ------------------------------------------------------------------------ main
 
 def main() -> None:
     ASSETS.mkdir(parents=True, exist_ok=True)
     GREEN, TEAL, VIOLET, BLUE = (47, 82, 51), (15, 76, 92), (111, 90, 168), (30, 74, 148)
+    RED = (196, 30, 38)
+
+    company = round_seal("CÔNG TY TNHH BÁN LẺ AN PHÚ VIỆT NAM", "MST 0108432911",
+                         ["HÀ NỘI"], seed=23, star=True)
+    hotel = round_seal("CÔNG TY TNHH KHÁCH SẠN THÁI AN", "MST 4201234567",
+                       ["THÁI AN", "HOTEL"], seed=44, star=False, colour=(178, 34, 40))
+    export = round_seal("CÔNG TY TNHH DỆT MAY TÂN PHÁT VINA", "ĐỒNG NAI",
+                        ["TÂN PHÁT", "VINA"], seed=37, star=False, colour=BLUE)
+
     made: list[tuple[str, Image.Image]] = [
-        # --- seals: the ink a document is closed with
-        ("seal_round_company", round_seal(
-            "CÔNG TY TNHH BÁN LẺ AN PHÚ VIỆT NAM", "MST 0108432911", ["HÀ NỘI"],
-            seed=23, star=True)),
-        ("seal_round_hotel", round_seal(
-            "CÔNG TY TNHH KHÁCH SẠN THÁI AN", "MST 4201234567", ["THÁI AN", "HOTEL"],
-            seed=44, star=False, colour=(178, 34, 40))),
-        ("seal_round_export", round_seal(
-            "CÔNG TY TNHH DỆT MAY TÂN PHÁT VINA", "ĐỒNG NAI", ["TÂN PHÁT", "VINA"],
-            seed=37, star=False, colour=BLUE)),
+        # --- dấu: mực ép lên tờ giấy đã in xong
+        ("seal_round_company", company),
+        ("seal_round_hotel", hotel),
+        ("seal_round_export", export),
         ("seal_square_paid", rectangular_seal(["ĐÃ THU TIỀN", "PAID"], seed=5)),
         ("seal_square_copy", rectangular_seal(["BẢN SAO", "COPY"], seed=9, colour=BLUE)),
+        ("seal_accounting_posted", rectangular_seal(
+            ["ĐÃ HẠCH TOÁN", "Ngày ...... / ...... / 20......"], seed=61, colour=BLUE)),
+        ("seal_name_block", name_block_seal("Nguyễn Văn Thành", "GIÁM ĐỐC", seed=71)),
+        ("seal_name_block_chief", name_block_seal(
+            "Trần Thị Bích Hạnh", "KẾ TOÁN TRƯỞNG", seed=73, colour=RED)),
+        # cùng con dấu ấy, đóng hỏng theo hai kiểu khác nhau
+        ("seal_round_company_double", double_strike(company, seed=81)),
+        ("seal_round_company_faint", _ring_only(company)),
+        ("seal_edge_half", edge_seal(export)),
 
-        # --- flourishes: the ink a document is designed with
+        # --- nét tay
+        ("signature_01", signature(seed=101)),
+        ("signature_02", signature(seed=102, colour=(18, 18, 24))),
+        ("signature_03", signature(seed=103)),
+        ("handwriting_date", handwriting("12 / 03 / 2025", seed=111)),
+        ("handwriting_name", handwriting("Nguyễn Thị Mai Lan", seed=112)),
+        ("handwriting_amount", handwriting("2.360.000", seed=113)),
+        ("pen_underline", pen_underline(seed=121)),
+        ("highlighter_swipe", highlighter_swipe(seed=131)),
+
+        # --- nét in bảo an
+        ("watermark_ban_sao", diagonal_watermark("BẢN SAO", seed=141)),
+        ("watermark_hoa_don_mau", diagonal_watermark(
+            "HOÁ ĐƠN MẪU", seed=142, colour=(190, 120, 120), alpha=40)),
+
+        # --- hoạ tiết thiết kế
         ("wave_band_green", wave_band(1400, 150, seed=3, colour=GREEN)),
         ("wave_band_red", wave_band(1400, 150, seed=8, colour=(179, 38, 30))),
         ("wave_band_teal", wave_band(1400, 150, seed=15, colour=TEAL)),
@@ -350,12 +825,24 @@ def main() -> None:
         ("corner_bracket_teal", corner_bracket(360, colour=TEAL)),
         ("rect_grid_green", rect_grid(1200, 320, seed=6, colour=GREEN)),
         ("rect_grid_teal", rect_grid(1200, 320, seed=19, colour=TEAL)),
+
+        # --- hoa văn Việt
+        ("motif_dong_son", dong_son_motif(700, seed=151, colour=(122, 92, 48))),
+        ("motif_dong_son_teal", dong_son_motif(700, seed=152, colour=TEAL)),
+
+        # --- mã máy đọc. Hai file này là ẢNH MẪU: nội dung thật phải dựng lại
+        # từ chính con số mà `rulebase` đã bốc cho tờ giấy, nếu không ảnh và
+        # nhãn sẽ nói hai chuyện khác nhau. Xem `from_receipt` trong
+        # rules/ornament.yaml.
+        ("barcode_ean13_sample", ean13("2607609009502")),
+        ("qr_verify_sample", qr_code(
+            "https://hoadondientu.gdt.gov.vn/tra-cuu?mhd=1K25TAE00006830")),
     ]
 
     for name, image in made:
         path = ASSETS / f"{name}.png"
         image.save(path)
-        print(f"{name + '.png':26} {image.width}x{image.height}  "
+        print(f"{name + '.png':30} {image.width}x{image.height}  "
               f"{path.stat().st_size / 1024:.0f} KB")
     print(f"\n{len(made)} ornaments -> {ASSETS.relative_to(REPO_ROOT)}")
 
