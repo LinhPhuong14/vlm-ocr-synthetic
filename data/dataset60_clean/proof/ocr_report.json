@@ -118,11 +118,107 @@
         "token_recall": 0.8149
       }
     },
+    "by_layout_augmentation": {
+      "eatery_ascii/pristine": {
+        "images": 6,
+        "token_recall": 0.7739
+      },
+      "eatery_indexed/pristine": {
+        "images": 6,
+        "token_recall": 0.9656
+      },
+      "invoice_brand/pristine": {
+        "images": 6,
+        "token_recall": 0.9497
+      },
+      "invoice_export/pristine": {
+        "images": 6,
+        "token_recall": 0.8125
+      },
+      "invoice_hotel_compact/pristine": {
+        "images": 6,
+        "token_recall": 0.9568
+      },
+      "invoice_hotel_stay/pristine": {
+        "images": 6,
+        "token_recall": 0.9446
+      },
+      "invoice_power/pristine": {
+        "images": 3,
+        "token_recall": 0.8438
+      },
+      "invoice_tax_en/pristine": {
+        "images": 3,
+        "token_recall": 0.8653
+      },
+      "invoice_vat_form/pristine": {
+        "images": 3,
+        "token_recall": 0.883
+      },
+      "invoice_vat_summary/pristine": {
+        "images": 3,
+        "token_recall": 0.8848
+      },
+      "invoice_water/pristine": {
+        "images": 3,
+        "token_recall": 0.8289
+      },
+      "market_barcode/pristine": {
+        "images": 3,
+        "token_recall": 0.7854
+      },
+      "market_compact/pristine": {
+        "images": 3,
+        "token_recall": 0.6491
+      },
+      "market_vat/pristine": {
+        "images": 3,
+        "token_recall": 0.875
+      }
+    },
     "pairing": "paired",
     "distinct_labels": {
       "synthdog": 20,
       "html": 20,
       "genalog": 20
+    },
+    "conditions": {
+      "layouts": [
+        "eatery_ascii",
+        "eatery_indexed",
+        "invoice_brand",
+        "invoice_export",
+        "invoice_hotel_compact",
+        "invoice_hotel_stay",
+        "invoice_power",
+        "invoice_tax_en",
+        "invoice_vat_form",
+        "invoice_vat_summary",
+        "invoice_water",
+        "market_barcode",
+        "market_compact",
+        "market_vat"
+      ],
+      "images_per_layout": {
+        "eatery_ascii": 6,
+        "eatery_indexed": 6,
+        "invoice_brand": 6,
+        "invoice_export": 6,
+        "invoice_hotel_compact": 6,
+        "invoice_hotel_stay": 6,
+        "invoice_power": 3,
+        "invoice_tax_en": 3,
+        "invoice_vat_form": 3,
+        "invoice_vat_summary": 3,
+        "invoice_water": 3,
+        "market_barcode": 3,
+        "market_compact": 3,
+        "market_vat": 3
+      },
+      "engine": "tesseract 5.3.4",
+      "lang": "vie",
+      "psm": 4,
+      "pairing": "paired"
     }
   },
   "images": [
