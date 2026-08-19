@@ -168,6 +168,48 @@ def font_coverage(characters: set[str]) -> list[str]:
     return problems
 
 
+ORNAMENT_ROOT = REPO_ROOT / "textures" / "ornament"
+
+
+def ornament_assets() -> list[str]:
+    """Every ornament a rule names has to exist, and every file has to be named.
+
+    `rules/ornament.yaml` refers to `textures/ornament/*.png` by stem, so a
+    rules file and a directory listing have to agree -- and nothing else makes
+    them. Both directions are a mistake worth catching before a run rather than
+    during one:
+
+    * a `file` no PNG backs is an image that fails on the seed that draws it,
+      hours in, having produced a thousand good ones first;
+    * a PNG no rule names is dead weight that looks like an asset. Almost
+      always it is a rename half-done, and the rule still points at the old
+      stem -- which is the first failure wearing a disguise.
+    """
+    problems: list[str] = []
+    try:
+        options = load_rules().get("ornament") or []
+    except RuleError as error:
+        return [f"ornament rules unreadable: {error}"]
+    if not ORNAMENT_ROOT.is_dir():
+        return [f"missing {ORNAMENT_ROOT.relative_to(REPO_ROOT)}; run `make ornaments`"]
+
+    on_disk = {path.stem for path in ORNAMENT_ROOT.glob("*.png")}
+    named: set[str] = set()
+    for option in options:
+        for mark in option.params.get("marks") or []:
+            stem = str((list(mark) + [""])[0])
+            named.add(stem)
+            if stem not in on_disk:
+                problems.append(
+                    f"ornament/{option.id}: names {stem!r}, but "
+                    f"textures/ornament/{stem}.png does not exist; run `make ornaments`")
+    for stray in sorted(on_disk - named):
+        problems.append(
+            f"textures/ornament/{stray}.png: no rule in rules/ornament.yaml names it, "
+            f"so it is never drawn")
+    return problems
+
+
 # A monospace advance as a fraction of the font size. The same estimate
 # `generators/genalog/render.py` has always used to size its page; good to a few
 # per cent for every font in `fonts/`, which is all this check needs -- it is
@@ -245,6 +287,7 @@ def check() -> list[str]:
 
     problems += [f"corpus: {problem}" for problem in corpus.check()]
     problems += font_coverage(printable_text())
+    problems += ornament_assets()
     problems += sheet_overflow()
     return problems
 

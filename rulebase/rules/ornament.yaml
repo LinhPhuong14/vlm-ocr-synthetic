@@ -1,0 +1,131 @@
+# THUỘC TÍNH 7/7 — CON DẤU VÀ HOẠ TIẾT
+#
+# Mực KHÔNG PHẢI chữ trên tờ giấy: con dấu đóng đè lên chữ ký, dải sóng nẹp
+# dưới băng đầu trang, hoa văn guilloche in chìm sau bảng, nẹp góc, lưới chữ
+# nhật mờ ở chân trang.
+#
+# Mỗi `file` ở đây phải có một PNG cùng tên trong `textures/ornament/`, sinh
+# bằng `tools/make_ornaments.py` (`make ornaments`). Thiếu file thì
+# `pipeline/preflight.py` báo trước khi sinh ảnh, chứ không để tới lúc render
+# mới vỡ.
+#
+# Bốc SAU `color` và TRƯỚC `augmentation`: tờ giấy chọn màu mực xong mới biết
+# nó mang dấu má gì, và mọi thứ đó phải có mặt trên trang trước khi trang bị
+# làm cũ. Đóng dấu lên một tờ đã ố vàng thì con dấu trông như dán vào.
+#
+# --------------------------------------------------------------------------
+# `marks` là danh sách [tên_file, {tham số}], đọc theo thứ tự vẽ — cùng lối
+# viết với `chain` trong rules/augmentation.yaml.
+#
+#   anchor    chỗ đặt trên trang. header_band | letterhead | table_back |
+#             totals | signature_seller | signature_buyer | footer_band |
+#             corner_tl | corner_tr | corner_bl | corner_br | page_center
+#   scale     bề rộng, tính theo PHẦN của bề rộng trang (0.30 = 30%)
+#   opacity   [thấp, cao] — bốc trong khoảng
+#   rotate    [thấp, cao] độ — con dấu đóng tay không bao giờ thẳng
+#
+# `id` và `tags` viết tiếng Anh vì là định danh trong code; chữ IN LÊN con dấu
+# nằm trong `tools/make_ornaments.py` và giữ tiếng Việt.
+
+groups:
+
+  # ------------------------------------------------------------------------
+  - id: bare
+    label: "Không hoạ tiết — tờ giấy chỉ có chữ"
+    # Giá trị mặc định, và là giá trị DUY NHẤT không có ràng buộc nào: mọi tổ
+    # hợp thẻ khác đều phải bốc được ít nhất một giá trị của thuộc tính này,
+    # nếu không sampler sẽ bí ở đây.
+    options:
+      - id: no_ornament
+        weight: 8
+        tags: [plain_sheet]
+
+  # ------------------------------------------------------------------------
+  - id: seal
+    label: "Con dấu — mực đỏ hoặc xanh, đóng đè lên chữ"
+    # Giấy tính tiền in tại quầy không bao giờ có dấu: nó không phải chứng từ,
+    # không ai ký, không ai đóng dấu. Ràng buộc này viết một lần cho cả họ.
+    requires: [doc_invoice]
+    tags: [has_seal]
+    options:
+      - id: seller_seal
+        weight: 4
+        params:
+          marks:
+            - [seal_round_company, {anchor: signature_seller, scale: 0.26,
+                                    opacity: [0.72, 0.90], rotate: [-16, 16]}]
+
+      - id: hotel_seal
+        weight: 3
+        requires: [doc_lodging]
+        params:
+          marks:
+            - [seal_round_hotel, {anchor: signature_seller, scale: 0.24,
+                                  opacity: [0.70, 0.88], rotate: [-14, 14]}]
+
+      - id: export_seal
+        weight: 2
+        requires: [doc_export]
+        params:
+          marks:
+            - [seal_round_export, {anchor: signature_seller, scale: 0.26,
+                                   opacity: [0.70, 0.88], rotate: [-12, 12]}]
+
+      - id: seal_and_paid
+        weight: 2
+        params:
+          marks:
+            - [seal_round_company, {anchor: signature_seller, scale: 0.26,
+                                    opacity: [0.72, 0.90], rotate: [-16, 16]}]
+            - [seal_square_paid, {anchor: totals, scale: 0.30,
+                                  opacity: [0.65, 0.85], rotate: [-9, 9]}]
+
+      - id: copy_stamp
+        weight: 1
+        params:
+          marks:
+            - [seal_square_copy, {anchor: page_center, scale: 0.42,
+                                  opacity: [0.35, 0.55], rotate: [-8, 8]}]
+
+  # ------------------------------------------------------------------------
+  - id: flourish
+    label: "Hoạ tiết thiết kế — in cùng lúc với chữ, không phải đóng thêm"
+    # Chỉ có trên tờ TỰ THIẾT KẾ và tờ mẫu in sẵn. Một tờ hoá đơn GTGT do phần
+    # mềm xuất ra thì không có nẹp sóng, và giấy nhiệt lại càng không.
+    excludes: [till_receipt]
+    tags: [has_flourish]
+    options:
+      - id: security_print
+        weight: 3
+        requires: [printed_form]
+        tags: [guilloche_back]
+        params:
+          marks:
+            - [guilloche_violet, {anchor: table_back, scale: 0.34, opacity: [0.16, 0.30]}]
+
+      - id: branded_teal
+        weight: 3
+        requires: [doc_service]
+        params:
+          marks:
+            - [wave_band_teal, {anchor: header_band, scale: 1.0, opacity: [0.75, 0.95]}]
+            - [guilloche_teal, {anchor: table_back, scale: 0.30, opacity: [0.14, 0.26]}]
+            - [corner_bracket_teal, {anchor: corner_bl, scale: 0.14, opacity: [0.25, 0.45]}]
+            - [rect_grid_teal, {anchor: footer_band, scale: 1.0, opacity: [0.10, 0.22]}]
+
+      - id: branded_green
+        weight: 3
+        requires: [doc_service]
+        params:
+          marks:
+            - [wave_band_green, {anchor: header_band, scale: 1.0, opacity: [0.75, 0.95]}]
+            - [guilloche_green, {anchor: table_back, scale: 0.30, opacity: [0.14, 0.26]}]
+            - [corner_bracket_green, {anchor: corner_br, scale: 0.14, opacity: [0.25, 0.45]}]
+            - [rect_grid_green, {anchor: footer_band, scale: 1.0, opacity: [0.10, 0.22]}]
+
+      - id: wave_only
+        weight: 2
+        requires: [doc_service]
+        params:
+          marks:
+            - [wave_band_red, {anchor: header_band, scale: 1.0, opacity: [0.70, 0.90]}]
