@@ -1,32 +1,48 @@
 {
   "plans": {
     "n3": {
+      "inputs": {
+        "layouts": [
+          "eatery_ascii",
+          "eatery_indexed",
+          "market_barcode"
+        ],
+        "seed": 2026,
+        "per_backend": 3,
+        "pairing": "paired",
+        "clean": false,
+        "rules": {
+          "rulebase/rules": "47ac1070b58f5ecc8b7e038132340870a9099c4ab59f3f15aa9b32ce96c6f716",
+          "rulebase/layouts": "46a8103433dcca0508de72d588abc366c73a28399e0bcd99fc2822c0f7e75ed7",
+          "rulebase/corpus": "7fa651b532eceb6d39020ad29ce7af0d4fc616b396b0d521daa6d44aa7985ccf"
+        }
+      },
       "images": {
         "genalog/genalog_000.jpg": "9054e9e956ad9f48ca6e56a4d96c52149c39a71193c5d6596edf9cb2f7fcf636",
         "genalog/genalog_001.jpg": "b90c37796aa56f54c5455e75f8ea6a4afd5b00cd642a4d7eb39a85e2f256861d",
-        "genalog/genalog_002.jpg": "5df163cd6d018adf7641795022830d87f0ac0d74a8e0f5b0e694b53966a1ad76",
+        "genalog/genalog_002.jpg": "8562d304f2cb8ee815d330a53a925f0aaf724a69803c14101cb76091354272ee",
         "html/html_000.jpg": "249635255572af479eabb28d51617b206c113c25d107a9488ffa4eb8d9486202",
         "html/html_001.jpg": "1c32cf7195608fedd0d24111455e9f98b2f74bf1a1b5c8eed398ad5d789d24e4",
-        "html/html_002.jpg": "c2dc590334a9de5cbfc77a16b1387dc9aef28c012e74f3ab3cf3816c2fe4150a",
+        "html/html_002.jpg": "be5cc8e4c931fd6c5e931606a2a6861ebe775e3c3a375d089229d844a62b9307",
         "synthdog/synthdog_000.jpg": "5e33d07871fc07c45725c2b6dc3f0ebc842186f8e2ab031aced1e3e9ecca3ecf",
         "synthdog/synthdog_001.jpg": "34df8f8597f7e8a619304de3429488b3185e75eba02280bb371154f5f8ece49f",
-        "synthdog/synthdog_002.jpg": "649820c7a146870ce2c34eb1b26d31028750a3409f6efd8e5a089eed06e449e9"
+        "synthdog/synthdog_002.jpg": "ba6283b2ce6ac939f4ff58aed12eea94fa12dda87d9556ad503576150989d0a5"
       },
       "metadata": {
         "genalog": [
           "386d360b639357196814ebc381c2d27e898794ba3ad175fccf5982173cc475c4",
           "ae005ef57d6863700beec490883b11f248079e768ce0aa3ffc278b9e1385b43c",
-          "6a40646edecac57fd235433cea98aab44d745a152b0efa6ec764d11dd3198389"
+          "552af2d76314bf853f474267a7ce32311c081decc1453eb9836890dbc9c007a1"
         ],
         "html": [
           "b03bba0ffdf7b2f8777d2f615653ed13c71029194988339182057c5cbab05902",
           "8e65333f80c7d6004f674fafcc5d1b6d069639c822952148d8fa91f550c05681",
-          "b22609cbac38a48c180b4cc07569e7420cf247de1d619bf5d4e1fd86dc8b8d7f"
+          "f3115f659c4eab66e8b29d4d2824d223d06272707dedc23304006b22ee90eae5"
         ],
         "synthdog": [
           "d94732f21c7eccc45cbd4242cd047ed93a43f44df6a19ead0bb2e65fb2b91dea",
           "e660038d8b479aa9a4c7107c6920e75ed9b12c38fd45d162438343dede09c6c5",
-          "e0af7f842c5516f9a5e5641b25132c288a9b71fb1a1851a9a911c779eea9d38f"
+          "916e402a6ac8bba7a9f1779bbc6a195130cff6b3324b6db7867cab2c5ee2dedd"
         ]
       },
       "counts": {
@@ -38,50 +54,68 @@
         "by_layout": {
           "eatery_ascii": 3,
           "eatery_indexed": 3,
-          "invoice_brand": 3
+          "market_barcode": 3
         }
       },
-      "dataset_json": "b4ae736dffa530e489c97aa3ddc598adf83d74b0c47969c1c6d496d17f70d0ca"
+      "dataset_json": "54ff57aac4303474af05033b58d053c25bd327944e0870f2db2ee1b9924eae6d"
     },
     "n5": {
+      "inputs": {
+        "layouts": [
+          "eatery_ascii",
+          "eatery_indexed",
+          "market_barcode",
+          "market_compact",
+          "market_vat"
+        ],
+        "seed": 2026,
+        "per_backend": 5,
+        "pairing": "paired",
+        "clean": false,
+        "rules": {
+          "rulebase/rules": "e44997d5ebb3e6ab61bedaf35ecae33d041408ae6cbc95b3f0245ef883e3f1f5",
+          "rulebase/layouts": "b3d3ae57d0ff0ca317d186d8ed9a4647c9c868bf55d192ca5995832348f7719e",
+          "rulebase/corpus": "7fa651b532eceb6d39020ad29ce7af0d4fc616b396b0d521daa6d44aa7985ccf"
+        }
+      },
       "images": {
         "genalog/genalog_000.jpg": "9054e9e956ad9f48ca6e56a4d96c52149c39a71193c5d6596edf9cb2f7fcf636",
         "genalog/genalog_001.jpg": "b90c37796aa56f54c5455e75f8ea6a4afd5b00cd642a4d7eb39a85e2f256861d",
-        "genalog/genalog_002.jpg": "5df163cd6d018adf7641795022830d87f0ac0d74a8e0f5b0e694b53966a1ad76",
-        "genalog/genalog_003.jpg": "264a690a088316c349a78edca683e26c15f9c033e92fea53daab08c1495da646",
-        "genalog/genalog_004.jpg": "13e25983c5a230a0fd17c0e51467d41ccd4219416bdc8c89e84c6349cc4e1698",
+        "genalog/genalog_002.jpg": "8562d304f2cb8ee815d330a53a925f0aaf724a69803c14101cb76091354272ee",
+        "genalog/genalog_003.jpg": "67ef7f37001b613bbba85b5c287cc719cbaedafde48e670be57aa3cba3efa083",
+        "genalog/genalog_004.jpg": "6fcd969c01939b240fbcb61d8db9bd7682b5933a62e0dbc2a2044b639e35826f",
         "html/html_000.jpg": "249635255572af479eabb28d51617b206c113c25d107a9488ffa4eb8d9486202",
         "html/html_001.jpg": "1c32cf7195608fedd0d24111455e9f98b2f74bf1a1b5c8eed398ad5d789d24e4",
-        "html/html_002.jpg": "c2dc590334a9de5cbfc77a16b1387dc9aef28c012e74f3ab3cf3816c2fe4150a",
-        "html/html_003.jpg": "58f2b733e16a1c42f977fa40d3fc357996e4a339c98c7c0e699512c543f1a90f",
-        "html/html_004.jpg": "fe99919972586b9e9e97ad63545efe522ef524c74d2ee0f15340cebf48b50fe2",
+        "html/html_002.jpg": "be5cc8e4c931fd6c5e931606a2a6861ebe775e3c3a375d089229d844a62b9307",
+        "html/html_003.jpg": "82f8f490dc558f8c9aaed43ef57abc79c93c497c447de2e10169fbb97901a25f",
+        "html/html_004.jpg": "f516cd2eb74653b3cc5990d8d95583dcd627ccea99426f0e6578e80223705e10",
         "synthdog/synthdog_000.jpg": "5e33d07871fc07c45725c2b6dc3f0ebc842186f8e2ab031aced1e3e9ecca3ecf",
         "synthdog/synthdog_001.jpg": "34df8f8597f7e8a619304de3429488b3185e75eba02280bb371154f5f8ece49f",
-        "synthdog/synthdog_002.jpg": "649820c7a146870ce2c34eb1b26d31028750a3409f6efd8e5a089eed06e449e9",
-        "synthdog/synthdog_003.jpg": "41e7add99745160520a1ea02f49794686e38d0408e003adbe2b8a29f3a9567e3",
-        "synthdog/synthdog_004.jpg": "a9949c479af39bacc5a870924cfe9eda5aea5f4daf70bf3bb3bb1cdfbaf0c3f5"
+        "synthdog/synthdog_002.jpg": "ba6283b2ce6ac939f4ff58aed12eea94fa12dda87d9556ad503576150989d0a5",
+        "synthdog/synthdog_003.jpg": "0783af0e257b5345cd7c212f449a694b0537ff102c04b00463aaeaa92972d593",
+        "synthdog/synthdog_004.jpg": "2811db4f2d9095284dc3aebf7431293b860a2f97462456517ce1e02fb75aaed3"
       },
       "metadata": {
         "genalog": [
           "386d360b639357196814ebc381c2d27e898794ba3ad175fccf5982173cc475c4",
           "ae005ef57d6863700beec490883b11f248079e768ce0aa3ffc278b9e1385b43c",
-          "6a40646edecac57fd235433cea98aab44d745a152b0efa6ec764d11dd3198389",
-          "50cd30b84acc4857b9124d61c67535c3f7f22c99c9692f5de75572fc9d03b63a",
-          "76cbb49dcb40f48505bcf1c6620f7533ad3e3a148d044409f5d6c67706342aac"
+          "552af2d76314bf853f474267a7ce32311c081decc1453eb9836890dbc9c007a1",
+          "930d262cfeee0937e470ab88244d3506418b065b3ab991d2292e05d1c40d6c40",
+          "95d284b360a7b10e852fdcee80c23211175acc815264297b9b23560361e9395e"
         ],
         "html": [
           "b03bba0ffdf7b2f8777d2f615653ed13c71029194988339182057c5cbab05902",
           "8e65333f80c7d6004f674fafcc5d1b6d069639c822952148d8fa91f550c05681",
-          "b22609cbac38a48c180b4cc07569e7420cf247de1d619bf5d4e1fd86dc8b8d7f",
-          "3f0109fa977f0e99f7c1bf3405019804252db4d5f83fa204b0d08db605365b4a",
-          "731679a9bd9a3f1c44ba683f395537d3d00e9279403e56013f7e6ffae2085075"
+          "f3115f659c4eab66e8b29d4d2824d223d06272707dedc23304006b22ee90eae5",
+          "c16de12ca5aea775d64e8c0537d54159d81fcc65145952f3354cc2e2d6290ed2",
+          "9d536c5c6f5b6ad458191bff4f8dbb1358246867f292c69b85b7632cd450447a"
         ],
         "synthdog": [
           "d94732f21c7eccc45cbd4242cd047ed93a43f44df6a19ead0bb2e65fb2b91dea",
           "e660038d8b479aa9a4c7107c6920e75ed9b12c38fd45d162438343dede09c6c5",
-          "e0af7f842c5516f9a5e5641b25132c288a9b71fb1a1851a9a911c779eea9d38f",
-          "fbb5035190a4974f19f1edd85968d6a8132b5113a8d1863f3b570b0b4bfc8b75",
-          "8d5c879f5b4d0a96bb50e2371ec3f814f2507ac398715666db331300732f6c69"
+          "916e402a6ac8bba7a9f1779bbc6a195130cff6b3324b6db7867cab2c5ee2dedd",
+          "49b7bb7e9ba1c34bf78b5868ecc35f3f8341950c9b3cd180987c9fab23af9e9a",
+          "547f12a0901fedee7af72428952d768ec08634e5d94b2875676d045294dad3dd"
         ]
       },
       "counts": {
@@ -93,14 +127,41 @@
         "by_layout": {
           "eatery_ascii": 3,
           "eatery_indexed": 3,
-          "invoice_brand": 3,
-          "invoice_export": 3,
-          "invoice_hotel_compact": 3
+          "market_barcode": 3,
+          "market_compact": 3,
+          "market_vat": 3
         }
       },
-      "dataset_json": "9a9fc2dffded25a5131d0787218dd324af38783a60b5115c4af46ada3c8628cf"
+      "dataset_json": "5df3ee345c0854c8f75c7a7e7825759fd57e8b4625daad1d51cdcbb44f138ab5"
     },
     "n14": {
+      "inputs": {
+        "layouts": [
+          "eatery_ascii",
+          "eatery_indexed",
+          "invoice_brand",
+          "invoice_export",
+          "invoice_hotel_compact",
+          "invoice_hotel_stay",
+          "invoice_power",
+          "invoice_tax_en",
+          "invoice_vat_form",
+          "invoice_vat_summary",
+          "invoice_water",
+          "market_barcode",
+          "market_compact",
+          "market_vat"
+        ],
+        "seed": 2026,
+        "per_backend": 14,
+        "pairing": "paired",
+        "clean": false,
+        "rules": {
+          "rulebase/rules": "2dfd8ed1e6f263ea8893b06a5df8b6d6c559e2b5afb6df5de769580460f98b5f",
+          "rulebase/layouts": "f866a71133c9271a70429d718090cf9bb07d1b72ed340f606efb245aa266c150",
+          "rulebase/corpus": "7fa651b532eceb6d39020ad29ce7af0d4fc616b396b0d521daa6d44aa7985ccf"
+        }
+      },
       "images": {
         "genalog/genalog_000.jpg": "9054e9e956ad9f48ca6e56a4d96c52149c39a71193c5d6596edf9cb2f7fcf636",
         "genalog/genalog_001.jpg": "b90c37796aa56f54c5455e75f8ea6a4afd5b00cd642a4d7eb39a85e2f256861d",
