@@ -74,11 +74,55 @@ a *flat scan* and a *print*. A photograph is markedly harder, and that is
 precisely why all three are kept: a model that has only seen flat scans
 has never met the hard case.
 
-**The ageing table is where difficulty is supposed to be controlled.**
-Easiest here is `pristine` at 0.927 over 3 images, hardest is `torn_edges` at 0.248 over 3 images --
-a spread of 0.679 between them, so the rule-base is controlling difficulty. Editing `weight` in `rulebase/rules/augmentation.yaml` shifts
-the whole dataset. Values missing from the table were never drawn in this
-sample rather than scoring zero.
+**The ageing table is scored inside a layout, and only inside one.**
+Pooled across layouts it measures the mix rather than the ageing: the
+same chain costs different layouts very different amounts, so a rung
+holds whichever layouts fell in it. `by_layout_augmentation` in
+`ocr_report.json` is the honest form.
+
+Widest here is `invoice_hotel_compact`: `real_paper` at 0.972 down to `punched` at 0.423, a spread of 0.548.
+Narrowest is `invoice_brand` at 0.008. Editing `weight` in
+`rulebase/rules/augmentation.yaml` shifts the whole dataset. Values
+missing from a table were never drawn in this sample rather than scoring
+zero.
+
+**The pooled numbers above are a score of this layout set, not of the
+generator.** Ageing costs different layouts between 0.03 and 0.55 of
+their recall, so changing which layouts are in a dataset moves the
+pooled score on its own. This one holds 14 layouts: `eatery_ascii`, `eatery_indexed`, `invoice_brand`, `invoice_export`, `invoice_hotel_compact`, `invoice_hotel_stay`, `invoice_power`, `invoice_tax_en`, `invoice_vat_form`, `invoice_vat_summary`, `invoice_water`, `market_barcode`, `market_compact`, `market_vat`.
+
+Comparing this table with an older one is only meaningful when both
+were taken over the same set; `tools/ocr_proof.py --against <report>`
+checks that and refuses the pooled comparison when they differ, while
+still giving the per-layout one, which holds the layout fixed and is
+therefore the quantity that measures a change.
+
+**What the ageing cost, layout by layout.** Against `data/dataset60_clean/proof/ocr_report.json`. Each row holds one layout fixed, so the drop is
+the ageing and nothing else.
+
+| layout | before | after | drop |
+| --- | ---: | ---: | ---: |
+| invoice_brand | 0.950 | 0.924 | 0.026 |
+| eatery_ascii | 0.774 | 0.592 | 0.181 |
+| invoice_water | 0.829 | 0.633 | 0.196 |
+| market_vat | 0.875 | 0.667 | 0.208 |
+| market_compact | 0.649 | 0.395 | 0.254 |
+| invoice_hotel_compact | 0.957 | 0.698 | 0.259 |
+| invoice_tax_en | 0.865 | 0.583 | 0.283 |
+| eatery_indexed | 0.966 | 0.658 | 0.307 |
+| invoice_power | 0.844 | 0.461 | 0.383 |
+| invoice_vat_form | 0.883 | 0.396 | 0.487 |
+| invoice_vat_summary | 0.885 | 0.394 | 0.491 |
+| invoice_export | 0.812 | 0.296 | 0.516 |
+| invoice_hotel_stay | 0.945 | 0.424 | 0.521 |
+| market_barcode | 0.785 | 0.234 | 0.552 |
+
+The same ageing chain costs `invoice_brand` 0.026 of its
+recall and `market_barcode` 0.552 -- 21 times as much.
+That is why the pooled number cannot be read as a score of the
+generator: it moves when the layout mix moves, on its own.
+
+Pooled, over the same conditions: `synthdog` -0.397, `html` -0.270, `genalog` -0.304.
 
 **However much higher the "folded" column is than the plain one is how
 much of the error is tone marks alone.** The gap here is small, which means
