@@ -9,42 +9,51 @@ one string would measure reading order rather than recognition. See
 
 | framework | images | token recall | recall (folded) | field hit | field hit (folded) | money read exactly |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| synthdog | 20 | 0.506 | 0.561 | 0.333 | 0.403 | 36/128 (28%) |
-| html | 20 | 0.729 | 0.747 | 0.605 | 0.627 | 62/128 (48%) |
-| genalog | 20 | 0.659 | 0.681 | 0.532 | 0.552 | 53/128 (41%) |
+| synthdog | 20 | 0.454 | 0.495 | 0.339 | 0.382 | 17/101 (17%) |
+| html | 20 | 0.611 | 0.645 | 0.459 | 0.513 | 26/101 (26%) |
+| genalog | 20 | 0.578 | 0.612 | 0.441 | 0.476 | 28/101 (28%) |
 
 ## By layout
 
 | value | images | token recall |
 | --- | ---: | ---: |
-| eatery_indexed | 12 | 0.758 |
-| market_barcode | 12 | 0.681 |
-| market_vat | 12 | 0.622 |
-| eatery_ascii | 12 | 0.576 |
-| market_compact | 12 | 0.519 |
+| invoice_brand | 6 | 0.924 |
+| invoice_hotel_compact | 6 | 0.698 |
+| market_vat | 3 | 0.667 |
+| eatery_indexed | 6 | 0.658 |
+| invoice_water | 3 | 0.633 |
+| eatery_ascii | 6 | 0.592 |
+| invoice_tax_en | 3 | 0.583 |
+| invoice_power | 3 | 0.461 |
+| invoice_hotel_stay | 6 | 0.424 |
+| invoice_vat_form | 3 | 0.396 |
+| market_compact | 3 | 0.395 |
+| invoice_vat_summary | 3 | 0.394 |
+| invoice_export | 6 | 0.296 |
+| market_barcode | 3 | 0.234 |
 
 ## By level of ageing
 
 | value | images | token recall |
 | --- | ---: | ---: |
-| ghost_text | 3 | 0.804 |
-| light | 3 | 0.766 |
-| real_paper | 18 | 0.757 |
-| pristine | 3 | 0.672 |
-| torn_edges | 9 | 0.622 |
-| medium | 6 | 0.580 |
-| photocopy | 12 | 0.496 |
-| stains | 6 | 0.412 |
+| pristine | 3 | 0.927 |
+| real_paper | 12 | 0.850 |
+| light | 9 | 0.644 |
+| stains | 3 | 0.633 |
+| photocopy | 3 | 0.395 |
+| punched | 9 | 0.387 |
+| medium | 18 | 0.375 |
+| torn_edges | 3 | 0.248 |
 
 ## By kind of printer
 
 | value | images | token recall |
 | --- | ---: | ---: |
-| laser_sharp | 9 | 0.820 |
-| thermal_dark | 15 | 0.623 |
-| thermal_faint | 21 | 0.620 |
-| dot_matrix | 6 | 0.592 |
-| thermal_narrow | 9 | 0.507 |
+| laser_sharp | 3 | 0.898 |
+| thermal_narrow | 6 | 0.638 |
+| laser_invoice | 33 | 0.565 |
+| impact_invoice | 6 | 0.465 |
+| thermal_dark | 12 | 0.405 |
 
 ## The illustrations
 
@@ -66,8 +75,8 @@ precisely why all three are kept: a model that has only seen flat scans
 has never met the hard case.
 
 **The ageing table is where difficulty is supposed to be controlled.**
-Easiest here is `ghost_text` at 0.804 over 3 images, hardest is `stains` at 0.412 over 6 images --
-a spread of 0.392 between them, so the rule-base is controlling difficulty. Editing `weight` in `rulebase/rules/augmentation.yaml` shifts
+Easiest here is `pristine` at 0.927 over 3 images, hardest is `torn_edges` at 0.248 over 3 images --
+a spread of 0.679 between them, so the rule-base is controlling difficulty. Editing `weight` in `rulebase/rules/augmentation.yaml` shifts
 the whole dataset. Values missing from the table were never drawn in this
 sample rather than scoring zero.
 
