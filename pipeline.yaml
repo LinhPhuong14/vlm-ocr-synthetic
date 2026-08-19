@@ -42,10 +42,13 @@ shard:
   # a new measurement with an old one taken over a different layout and ageing
   # mix credits whatever changed in between with the difference.
   #
-  # The fixed cost a shard pays once -- interpreter plus backend start-up -- is
+  # The fixed cost a shard pays ONCE -- interpreter plus backend start-up -- is
   # 1.3s for synthdog, 0.7s for html (most of it launching Chromium) and 1.0s
-  # for genalog, so it is under 2% of a 100-image shard and over 30% of a
-  # 5-image one.
+  # for genalog. Once, since W3b: a shard is one renderer process whatever its
+  # layout count. It used to be one process per layout, so a 20-image shard
+  # over 14 layouts paid that cost 14 times and drew 1.43 images per process.
+  # Fixing it cut the same plan from 140s to 98s, a third of the run, without
+  # changing an html or genalog pixel.
   size: 100
 
 # Re-weight a value for this run only, without editing rules/. Every entry must

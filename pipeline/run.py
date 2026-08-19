@@ -336,6 +336,12 @@ def execute(config: Config, *, workers: int | None = None,
         "shards": [
             {"index": s["index"], "backend": s["backend"],
              "images": s["count"],
+             # One renderer process per shard since W3b, whatever the layout
+             # count. Recorded because it is a property of the run worth being
+             # able to check without reading the worker, and because it was 14
+             # here before the change. It is a count, not a duration, so it
+             # compares byte for byte between one worker and eight.
+             "renderer_processes": 1,
              "seeds": [[r["seed"], r["seed"] + r["count"] - 1] for r in s["runs"]],
              "layouts": sorted({r["layout"] for r in s["runs"]}),
              "done": is_done(shard_dir(shards_root, s["index"]))}

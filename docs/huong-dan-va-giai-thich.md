@@ -690,11 +690,46 @@ Ba thứ đọc code không ra:
 * Đòn bẩy lớn nhất không nằm trong renderer nào cả mà ở **hình dạng kế hoạch**:
   worker khởi động một tiến trình renderer cho mỗi *run*, mà một run là một bố
   cục, nên 20 ảnh trên 14 bố cục khởi động 14 tiến trình và trả chi phí khởi
-  động 14 lần — 23% đến 44% một lần chạy tuỳ backend.
+  động 14 lần — 23% đến 44% một lần chạy tuỳ backend. Đã sửa ở W3b (§8.2).
 
 Mọi số throughput trước đây đã lạc hậu và **được đo lại từ đầu**, không so với
 số cũ: số cũ lấy trước bản sửa `sample_recipe` và trên một tập bố cục khác, nên
 so hai cái đó là gán cho một tối ưu cái mà thật ra là đổi phép bốc.
+
+### 8.2 W3b — một tiến trình một shard, và một lỗi im lặng bốn wave
+
+Renderer chỉ nhận **một** bố cục mỗi lần gọi, nên worker khởi động lại nó cho
+mỗi bố cục. `worklist.py` cho nó nhận cả **danh sách công việc**
+(`--jobs jobs.json`), thành một tiến trình cho cả shard: 1,43 ảnh/tiến trình
+lên 20, cùng một kế hoạch từ 140 s xuống 98 s — **một phần ba** thời gian chạy.
+`--layout/--seed/--count` cũ giữ nguyên.
+
+Đáng lẽ đây là đổi ranh giới tiến trình, không đổi một pixel nào. Với html và
+genalog đúng như vậy: 40/40 ảnh giống hệt từng byte. Với renderer glyph thì
+**không**, và lý do là một lỗi có sẵn:
+
+`render.py` chỉ gọi `np.random.seed(seed)` mỗi ảnh. Nhưng
+`config_vi_receipt.yaml` dùng các augmenter của **imgaug** (elastic, gaussian
+noise, motion blur, gaussian blur), mà imgaug làm một lượt khởi tạo một lần duy
+nhất ở lần augment **đầu tiên** trong một tiến trình. Hệ quả: cùng một seed cho
+ra ảnh khác nhau tuỳ nó là trang thứ mấy của tiến trình — **nhãn giống hệt,
+pixel và quad khác**.
+
+Bốn wave không ai thấy, vì worker luôn khởi động tiến trình mới cho mỗi bố cục
+nên mọi ảnh đều là trang đầu. Đây đúng là **luật 7**: tất định chưa đủ, phải hỏi
+ảnh có phải là hàm của seed không. Nó tất định theo (seed, vị trí), không phải
+theo seed.
+
+Sửa: `synthtiger.set_global_random_seed(seed)` (seed cả ba bộ sinh: `random`,
+`np.random`, `imgaug`) cộng với một lượt augment bỏ đi lúc dựng template
+(`_warm_imgaug`). Sau đó một trang là hàm của seed, và bản vẽ tách/gộp giống
+nhau từng byte — `tests/test_worklist.py` dựng cả hai cách rồi so byte.
+
+Cái giá: pixel của renderer glyph **đổi**, nên `make baseline-verify` báo
+`CÙNG KẾ HOẠCH, KHÁC PIXEL` — đúng như thiết kế. Baseline đã chụp lại, và từ
+nay `make baseline-write` **bắt buộc** có `REASON="..."`, ghi thẳng vào file
+vàng: một mốc so sánh đổi mà không nói vì sao là mốc không ai cãi lại được
+(luật 8, áp cho chính file vàng).
 
 ---
 

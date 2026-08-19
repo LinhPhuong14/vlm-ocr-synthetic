@@ -283,18 +283,17 @@ def test_the_cost_model_records_the_conditions_it_was_taken_under():
     assert "not pinned" in conds["augmentation"]
 
 
-def test_pricing_the_plan_shows_what_the_process_churn_costs():
-    """The finding this profile exists to make findable.
+def test_pricing_the_plan_shows_what_the_process_churn_cost():
+    """The finding this profile exists to make findable, and its fix.
 
-    A renderer process is started per run, and a run is one layout, so a
-    twenty-image shard over fourteen layouts starts fourteen of them. Whether
-    that is a rounding error or a quarter of the run is arithmetic the table
-    has to do, because nobody does it by eye.
+    One process per shard now; one per layout before, and a run is one layout.
+    Whether that gap is a rounding error or a third of the run is arithmetic
+    the table has to do, because nobody does it by eye.
     """
     model = {"per_image": {"html": {"render": 1.0}},
              "fixed_per_process": {"html": 0.75}}
-    churned = P.plan_cost(model, {"html": (14, 20)})
-    once = P.plan_cost(model, {"html": (1, 20)})
-    assert "| 14 | 20 | 1.43 |" in churned[2]
-    assert "34%" in churned[2], churned          # 10.5 fixed of 30.5 total
-    assert "4%" in once[2], once                 # 0.75 of 20.75
+    row = P.plan_cost(model, {"html": (1, 14, 20)})[2]
+    # now: 20 * 1.0 + 0.75 = 20.75   before: 20 * 1.0 + 14 * 0.75 = 30.5
+    assert "1 (was 14)" in row, row
+    assert "20.8" in row and "30.5" in row, row
+    assert "32%" in row, row

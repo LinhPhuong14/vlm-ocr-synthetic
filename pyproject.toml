@@ -44,3 +44,10 @@ pythonpath = [".", "tests"]
 # No `-x`: stopping at the first failure hides every later one, and the whole
 # point of a suite this small is seeing the full picture in one run.
 addopts = "-q --strict-markers"
+# `slow` is for the tests that build real images through a renderer venv. They
+# are the only ones that can prove a claim about pixels, so they are part of
+# the suite rather than something to remember to run; `-m "not slow"` skips
+# them when the renderers are not built.
+markers = [
+    "slow: renders through a real backend; needs that renderer's virtualenv",
+]

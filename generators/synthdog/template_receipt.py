@@ -39,6 +39,32 @@ import profiling  # noqa: E402
 from degradation.pipeline import apply_recipe  # noqa: E402
 
 
+def _warm_imgaug() -> None:
+    """Get imgaug's first-augmentation-in-a-process out of the way.
+
+    imgaug does one-time initialisation the first time anything is augmented in
+    a process, and it happens *after* a seed is set, so the first page a
+    process draws comes out different from the same seed drawn later. Measured,
+    not guessed: with the same seed and the same `set_global_random_seed`, page
+    one hashed differently from pages two and three, and pages two and three
+    hashed the same as each other. One throwaway augmentation on a 16x16 image
+    at construction time moves that initialisation in front of every page, and
+    then a page is a function of its seed alone.
+
+    This mattered nowhere until a process drew more than one layout, because
+    the worker started a fresh process per layout and every page was page one.
+    It is the difference between "deterministic" and "a function of the seed" --
+    the seventh standing law, and it went unnoticed for four waves.
+
+    Guarded by `tests/test_worklist.py`, which draws the same seeds as one
+    process and as several and compares the bytes. If some future augmenter
+    brings its own lazy setup, that test is what goes red.
+    """
+    import imgaug.augmenters as iaa
+
+    iaa.GaussianBlur(sigma=1)(image=np.zeros((16, 16, 3), dtype=np.uint8))
+
+
 class SynthVNReceipt(templates.Template):
     def __init__(self, config=None, split_ratio: List[float] = [0.8, 0.1, 0.1]):
         super().__init__(config)
@@ -78,6 +104,7 @@ class SynthVNReceipt(templates.Template):
         self.splits = ["train", "validation", "test"]
         self.split_indexes = np.random.choice(3, size=10000, p=split_ratio)
         self._counter = 0
+        _warm_imgaug()
 
     # ------------------------------------------------------------------
 
@@ -134,7 +161,13 @@ class SynthVNReceipt(templates.Template):
         # nhiều, hoá đơn in laser trên giấy A5 gần như phẳng. Không nhân hệ số
         # này thì tờ nào cũng cong như nhau, mà cong quá thì cột tiền lệch hẳn
         # một dòng so với cột tên hàng.
-        with profiling.stage("geometry"):
+        # `scene`, not `geometry`. What follows curls the paper, drops it on a
+        # background and photographs it -- it builds the scene the page is in.
+        # The other two renderers' `geometry` extracts coordinates and costs
+        # milliseconds; calling both by one name put 1.7 seconds on a row that
+        # a reader would take to mean "working out where the boxes are". A row
+        # of a table has to carry its meaning too.
+        with profiling.stage("scene"):
             curl_meta = self.curl.sample()
             strength = float(recipe.get("visual", "curl", 1.0))
             for key in ("shift", "squeeze", "wave"):
@@ -174,6 +207,7 @@ class SynthVNReceipt(templates.Template):
             else:
                 image = image[..., :3]
 
+        with profiling.stage("geometry"):
             boxes = [
                 {"kind": f["kind"], "text": f["text"], "quad": np.round(q, 1).tolist()}
                 for f, q in zip(fields, quads)
