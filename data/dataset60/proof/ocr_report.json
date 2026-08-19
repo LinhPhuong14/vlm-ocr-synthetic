@@ -6,108 +6,144 @@
     "frameworks": {
       "synthdog": {
         "images": 20,
-        "token_recall": 0.5058,
-        "token_recall_folded": 0.5613,
-        "field_hit_rate": 0.3328,
-        "field_hit_rate_folded": 0.4027,
-        "money_exact": 36,
-        "money_total": 128
+        "token_recall": 0.4537,
+        "token_recall_folded": 0.495,
+        "field_hit_rate": 0.3386,
+        "field_hit_rate_folded": 0.3816,
+        "money_exact": 17,
+        "money_total": 101
       },
       "html": {
         "images": 20,
-        "token_recall": 0.7286,
-        "token_recall_folded": 0.747,
-        "field_hit_rate": 0.605,
-        "field_hit_rate_folded": 0.627,
-        "money_exact": 62,
-        "money_total": 128
+        "token_recall": 0.6105,
+        "token_recall_folded": 0.6453,
+        "field_hit_rate": 0.4589,
+        "field_hit_rate_folded": 0.5134,
+        "money_exact": 26,
+        "money_total": 101
       },
       "genalog": {
         "images": 20,
-        "token_recall": 0.6591,
-        "token_recall_folded": 0.6809,
-        "field_hit_rate": 0.532,
-        "field_hit_rate_folded": 0.5523,
-        "money_exact": 53,
-        "money_total": 128
+        "token_recall": 0.5776,
+        "token_recall_folded": 0.6121,
+        "field_hit_rate": 0.441,
+        "field_hit_rate_folded": 0.4759,
+        "money_exact": 28,
+        "money_total": 101
       }
     },
     "by_layout": {
       "eatery_ascii": {
-        "images": 12,
-        "token_recall": 0.5757
+        "images": 6,
+        "token_recall": 0.5924
       },
       "eatery_indexed": {
-        "images": 12,
-        "token_recall": 0.7577
+        "images": 6,
+        "token_recall": 0.6581
+      },
+      "invoice_brand": {
+        "images": 6,
+        "token_recall": 0.9237
+      },
+      "invoice_export": {
+        "images": 6,
+        "token_recall": 0.296
+      },
+      "invoice_hotel_compact": {
+        "images": 6,
+        "token_recall": 0.6975
+      },
+      "invoice_hotel_stay": {
+        "images": 6,
+        "token_recall": 0.424
+      },
+      "invoice_power": {
+        "images": 3,
+        "token_recall": 0.4613
+      },
+      "invoice_tax_en": {
+        "images": 3,
+        "token_recall": 0.5825
+      },
+      "invoice_vat_form": {
+        "images": 3,
+        "token_recall": 0.3958
+      },
+      "invoice_vat_summary": {
+        "images": 3,
+        "token_recall": 0.3941
+      },
+      "invoice_water": {
+        "images": 3,
+        "token_recall": 0.6332
       },
       "market_barcode": {
-        "images": 12,
-        "token_recall": 0.6811
+        "images": 3,
+        "token_recall": 0.2337
       },
       "market_compact": {
-        "images": 12,
-        "token_recall": 0.5191
+        "images": 3,
+        "token_recall": 0.3947
       },
       "market_vat": {
-        "images": 12,
-        "token_recall": 0.6221
+        "images": 3,
+        "token_recall": 0.6667
       }
     },
     "by_augmentation": {
-      "ghost_text": {
-        "images": 3,
-        "token_recall": 0.8041
-      },
       "light": {
-        "images": 3,
-        "token_recall": 0.7662
+        "images": 9,
+        "token_recall": 0.6438
       },
       "medium": {
-        "images": 6,
-        "token_recall": 0.5797
+        "images": 18,
+        "token_recall": 0.3749
       },
       "photocopy": {
-        "images": 12,
-        "token_recall": 0.4965
+        "images": 3,
+        "token_recall": 0.3947
       },
       "pristine": {
         "images": 3,
-        "token_recall": 0.6721
+        "token_recall": 0.9275
+      },
+      "punched": {
+        "images": 9,
+        "token_recall": 0.387
       },
       "real_paper": {
-        "images": 18,
-        "token_recall": 0.7573
+        "images": 12,
+        "token_recall": 0.85
       },
       "stains": {
-        "images": 6,
-        "token_recall": 0.4121
+        "images": 3,
+        "token_recall": 0.6332
       },
       "torn_edges": {
-        "images": 9,
-        "token_recall": 0.6223
+        "images": 3,
+        "token_recall": 0.2483
       }
     },
     "by_visual": {
-      "dot_matrix": {
+      "impact_invoice": {
         "images": 6,
-        "token_recall": 0.5918
+        "token_recall": 0.4653
+      },
+      "laser_invoice": {
+        "images": 33,
+        "token_recall": 0.5653
       },
       "laser_sharp": {
-        "images": 9,
-        "token_recall": 0.8199
+        "images": 3,
+        "token_recall": 0.8981
       },
       "thermal_dark": {
-        "images": 15,
-        "token_recall": 0.6234
-      },
-      "thermal_faint": {
-        "images": 21,
-        "token_recall": 0.6202
+        "images": 12,
+        "token_recall": 0.4053
       },
       "thermal_narrow": {
-        "images": 9,
-        "token_recall": 0.507
+        "images": 6,
+        "token_recall": 0.6384
       }
     },
     "pairing": "paired",
@@ -120,13 +156,13 @@
   "images": [
     {
       "file_name": "synthdog_000.jpg",
-      "fields": 11,
-      "token_recall": 0.75,
-      "field_hit_rate": 0.36363636363636365,
-      "token_recall_folded": 0.8,
-      "field_hit_rate_folded": 0.45454545454545453,
-      "money_total": 4,
-      "money_exact": 0,
+      "fields": 9,
+      "token_recall": 0.3584905660377358,
+      "field_hit_rate": 0.3333333333333333,
+      "token_recall_folded": 0.4528301886792453,
+      "field_hit_rate_folded": 0.4444444444444444,
+      "money_total": 3,
+      "money_exact": 1,
       "worst_fields": [
         {
           "role": "store.phone",
@@ -134,13 +170,13 @@
           "score": 0.0
         },
         {
-          "role": "menu[0].price",
-          "expected": "58,000",
+          "role": "title",
+          "expected": "PHIEU THANH TOAN",
           "score": 0.0
         },
         {
-          "role": "menu[1].price",
-          "expected": "174,000",
+          "role": "menu[1].nm",
+          "expected": "OC LEN XAO DUA",
           "score": 0.0
         }
       ],
@@ -148,31 +184,31 @@
       "layout": "eatery_ascii",
       "augmentation": "real_paper",
       "visual": "thermal_narrow",
-      "words_found": 76
+      "words_found": 55
     },
     {
       "file_name": "synthdog_001.jpg",
-      "fields": 19,
-      "token_recall": 0.39705882352941174,
-      "field_hit_rate": 0.21052631578947367,
-      "token_recall_folded": 0.4264705882352941,
-      "field_hit_rate_folded": 0.21052631578947367,
-      "money_total": 7,
-      "money_exact": 0,
+      "fields": 17,
+      "token_recall": 0.3275862068965517,
+      "field_hit_rate": 0.17647058823529413,
+      "token_recall_folded": 0.3793103448275862,
+      "field_hit_rate_folded": 0.17647058823529413,
+      "money_total": 6,
+      "money_exact": 1,
       "worst_fields": [
         {
-          "role": "title",
-          "expected": "PHIEU THANH TOAN",
+          "role": "store.name",
+          "expected": "QUAN AN VUON CAU",
           "score": 0.0
         },
         {
-          "role": "menu[0].price",
-          "expected": "96,000",
+          "role": "store.address",
+          "expected": "179 PHAN XICH LONG - HAI CHAU - D",
           "score": 0.0
         },
         {
-          "role": "menu[1].price",
-          "expected": "75,000",
+          "role": "store.phone",
+          "expected": "DT: 0395850638",
           "score": 0.0
         }
       ],
@@ -180,128 +216,64 @@
       "layout": "eatery_ascii",
       "augmentation": "medium",
       "visual": "thermal_dark",
-      "words_found": 80
+      "words_found": 63
     },
     {
       "file_name": "synthdog_002.jpg",
-      "fields": 9,
-      "token_recall": 0.44680851063829785,
-      "field_hit_rate": 0.1111111111111111,
-      "token_recall_folded": 0.48936170212765956,
-      "field_hit_rate_folded": 0.1111111111111111,
-      "money_total": 2,
-      "money_exact": 0,
+      "fields": 16,
+      "token_recall": 0.4444444444444444,
+      "field_hit_rate": 0.3125,
+      "token_recall_folded": 0.5079365079365079,
+      "field_hit_rate_folded": 0.375,
+      "money_total": 5,
+      "money_exact": 1,
       "worst_fields": [
         {
-          "role": "title",
-          "expected": "PHIEU TINH TIEN",
+          "role": "store.phone",
+          "expected": "0855445716",
           "score": 0.0
         },
         {
           "role": "menu[0].price",
-          "expected": "141,000",
+          "expected": "30.000",
           "score": 0.0
         },
         {
           "role": "menu[1].price",
-          "expected": "63,000",
+          "expected": "46.000",
           "score": 0.0
-        }
-      ],
-      "framework": "synthdog",
-      "layout": "eatery_ascii",
-      "augmentation": "torn_edges",
-      "visual": "thermal_dark",
-      "words_found": 55
-    },
-    {
-      "file_name": "synthdog_003.jpg",
-      "fields": 22,
-      "token_recall": 0.23943661971830985,
-      "field_hit_rate": 0.045454545454545456,
-      "token_recall_folded": 0.29577464788732394,
-      "field_hit_rate_folded": 0.045454545454545456,
-      "money_total": 9,
-      "money_exact": 0,
-      "worst_fields": [
-        {
-          "role": "store.phone",
-          "expected": "0872771972",
-          "score": 0.0
-        },
-        {
-          "role": "menu[0].price",
-          "expected": "36,000",
-          "score": 0.0
-        },
-        {
-          "role": "menu[1].nm",
-          "expected": "COM TRANG",
-          "score": 0.0
-        }
-      ],
-      "framework": "synthdog",
-      "layout": "eatery_ascii",
-      "augmentation": "photocopy",
-      "visual": "thermal_narrow",
-      "words_found": 88
-    },
-    {
-      "file_name": "synthdog_004.jpg",
-      "fields": 16,
-      "token_recall": 0.9152542372881356,
-      "field_hit_rate": 1.0,
-      "token_recall_folded": 0.9322033898305084,
-      "field_hit_rate_folded": 1.0,
-      "money_total": 5,
-      "money_exact": 5,
-      "worst_fields": [
-        {
-          "role": "total[Thanh toán thẻ]",
-          "expected": "Thanh toán thẻ 738.000đ",
-          "score": 0.75
-        },
-        {
-          "role": "total[Tiền thối lại]",
-          "expected": "Tiền thối lại 0đ",
-          "score": 0.75
-        },
-        {
-          "role": "store.name",
-          "expected": "Cửa Hàng Nhà Gỗ",
-          "score": 1.0
         }
       ],
       "framework": "synthdog",
       "layout": "eatery_indexed",
-      "augmentation": "real_paper",
-      "visual": "laser_sharp",
-      "words_found": 74
+      "augmentation": "medium",
+      "visual": "thermal_dark",
+      "words_found": 80
     },
     {
-      "file_name": "synthdog_005.jpg",
-      "fields": 27,
-      "token_recall": 0.8607594936708861,
-      "field_hit_rate": 0.9259259259259259,
-      "token_recall_folded": 0.8734177215189873,
-      "field_hit_rate_folded": 0.9259259259259259,
-      "money_total": 11,
-      "money_exact": 10,
+      "file_name": "synthdog_003.jpg",
+      "fields": 25,
+      "token_recall": 0.8888888888888888,
+      "field_hit_rate": 0.76,
+      "token_recall_folded": 0.8888888888888888,
+      "field_hit_rate_folded": 0.76,
+      "money_total": 10,
+      "money_exact": 5,
       "worst_fields": [
+        {
+          "role": "menu[3].price",
+          "expected": "89,000",
+          "score": 0.0
+        },
         {
           "role": "menu[5].price",
           "expected": "250,000",
           "score": 0.0
         },
         {
-          "role": "total[THANH TOAN]",
-          "expected": "THANH TOAN 1,046,000",
-          "score": 0.667
-        },
-        {
-          "role": "store.name",
-          "expected": "BEP NGOC SUONG 246",
-          "score": 1.0
+          "role": "menu[6].price",
+          "expected": "105,000",
+          "score": 0.0
         }
       ],
       "framework": "synthdog",
@@ -311,142 +283,430 @@
       "words_found": 110
     },
     {
-      "file_name": "synthdog_006.jpg",
-      "fields": 15,
-      "token_recall": 0.5671641791044776,
-      "field_hit_rate": 0.2,
-      "token_recall_folded": 0.746268656716418,
-      "field_hit_rate_folded": 0.5333333333333333,
-      "money_total": 3,
+      "file_name": "synthdog_004.jpg",
+      "fields": 14,
+      "token_recall": 0.8461538461538461,
+      "field_hit_rate": 0.6428571428571429,
+      "token_recall_folded": 0.8653846153846154,
+      "field_hit_rate_folded": 0.6428571428571429,
+      "money_total": 4,
       "money_exact": 0,
       "worst_fields": [
         {
-          "role": "menu[0].price",
-          "expected": "168.000",
-          "score": 0.0
-        },
-        {
-          "role": "menu[1].price",
-          "expected": "72.000",
-          "score": 0.0
-        },
-        {
-          "role": "menu[2].price",
-          "expected": "30.000",
-          "score": 0.0
-        }
-      ],
-      "framework": "synthdog",
-      "layout": "eatery_indexed",
-      "augmentation": "light",
-      "visual": "thermal_faint",
-      "words_found": 84
-    },
-    {
-      "file_name": "synthdog_007.jpg",
-      "fields": 15,
-      "token_recall": 0.05172413793103448,
-      "field_hit_rate": 0.0,
-      "token_recall_folded": 0.05172413793103448,
-      "field_hit_rate_folded": 0.0,
-      "money_total": 5,
-      "money_exact": 0,
-      "worst_fields": [
-        {
-          "role": "store.address",
-          "expected": "181 TRAN DUY HUNG - THU DAU MOT - BINH DUONG",
+          "role": "store.branch",
+          "expected": "HANDMADE MỖI SÁNG",
           "score": 0.0
         },
         {
           "role": "store.phone",
-          "expected": "DT: 0516860761",
+          "expected": "0422762216",
           "score": 0.0
         },
         {
-          "role": "title",
-          "expected": "PHIEU THANH TOAN",
-          "score": 0.0
+          "role": "menu[0].price",
+          "expected": "68.000 VND",
+          "score": 0.5
         }
       ],
       "framework": "synthdog",
-      "layout": "eatery_indexed",
-      "augmentation": "stains",
-      "visual": "thermal_faint",
-      "words_found": 51
+      "layout": "invoice_brand",
+      "augmentation": "real_paper",
+      "visual": "laser_invoice",
+      "words_found": 134
     },
     {
-      "file_name": "synthdog_008.jpg",
-      "fields": 24,
-      "token_recall": 0.7966101694915254,
-      "field_hit_rate": 0.75,
-      "token_recall_folded": 0.8559322033898306,
+      "file_name": "synthdog_005.jpg",
+      "fields": 18,
+      "token_recall": 0.8869565217391304,
+      "field_hit_rate": 0.8333333333333334,
+      "token_recall_folded": 0.9304347826086956,
       "field_hit_rate_folded": 0.8333333333333334,
       "money_total": 6,
       "money_exact": 3,
       "worst_fields": [
         {
           "role": "menu[0].price",
-          "expected": "84,000",
+          "expected": "286.000",
           "score": 0.0
         },
         {
-          "role": "menu[3].price",
-          "expected": "83,000",
+          "role": "menu[2].price",
+          "expected": "1.757.000",
           "score": 0.0
         },
         {
-          "role": "menu[5].price",
-          "expected": "280,500",
+          "role": "menu[4].price",
+          "expected": "70.000",
           "score": 0.0
         }
       ],
       "framework": "synthdog",
-      "layout": "market_barcode",
-      "augmentation": "real_paper",
-      "visual": "thermal_faint",
-      "words_found": 161
+      "layout": "invoice_brand",
+      "augmentation": "pristine",
+      "visual": "laser_invoice",
+      "words_found": 157
     },
     {
-      "file_name": "synthdog_009.jpg",
-      "fields": 25,
-      "token_recall": 0.7478260869565218,
-      "field_hit_rate": 0.4,
-      "token_recall_folded": 0.7478260869565218,
-      "field_hit_rate_folded": 0.4,
-      "money_total": 9,
+      "file_name": "synthdog_006.jpg",
+      "fields": 12,
+      "token_recall": 0.29721362229102166,
+      "field_hit_rate": 0.0,
+      "token_recall_folded": 0.3653250773993808,
+      "field_hit_rate_folded": 0.0,
+      "money_total": 4,
       "money_exact": 0,
       "worst_fields": [
         {
-          "role": "store.name",
-          "expected": "GS25",
+          "role": "store.phone",
+          "expected": "0724770249",
           "score": 0.0
         },
         {
           "role": "menu[0].price",
-          "expected": "64,000",
+          "expected": "2.757.000",
           "score": 0.0
         },
         {
           "role": "menu[1].price",
-          "expected": "67,000",
+          "expected": "174.628.800",
           "score": 0.0
         }
       ],
       "framework": "synthdog",
-      "layout": "market_barcode",
+      "layout": "invoice_export",
+      "augmentation": "punched",
+      "visual": "laser_invoice",
+      "words_found": 425
+    },
+    {
+      "file_name": "synthdog_007.jpg",
+      "fields": 10,
+      "token_recall": 0.2550335570469799,
+      "field_hit_rate": 0.0,
+      "token_recall_folded": 0.2986577181208054,
+      "field_hit_rate_folded": 0.0,
+      "money_total": 3,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.phone",
+          "expected": "0450970496",
+          "score": 0.0
+        },
+        {
+          "role": "menu[0].price",
+          "expected": "15.221.800",
+          "score": 0.0
+        },
+        {
+          "role": "menu[1].price",
+          "expected": "5.321.700",
+          "score": 0.0
+        }
+      ],
+      "framework": "synthdog",
+      "layout": "invoice_export",
+      "augmentation": "torn_edges",
+      "visual": "impact_invoice",
+      "words_found": 310
+    },
+    {
+      "file_name": "synthdog_008.jpg",
+      "fields": 16,
+      "token_recall": 0.47619047619047616,
+      "field_hit_rate": 0.375,
+      "token_recall_folded": 0.5079365079365079,
+      "field_hit_rate_folded": 0.375,
+      "money_total": 5,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.name",
+          "expected": "HAPPY HOLIDAY RESORT",
+          "score": 0.0
+        },
+        {
+          "role": "store.phone",
+          "expected": "0716277531",
+          "score": 0.0
+        },
+        {
+          "role": "menu[0].price",
+          "expected": "1.436.000",
+          "score": 0.0
+        }
+      ],
+      "framework": "synthdog",
+      "layout": "invoice_hotel_compact",
+      "augmentation": "punched",
+      "visual": "laser_invoice",
+      "words_found": 155
+    },
+    {
+      "file_name": "synthdog_009.jpg",
+      "fields": 10,
+      "token_recall": 0.9692307692307692,
+      "field_hit_rate": 1.0,
+      "token_recall_folded": 0.9769230769230769,
+      "field_hit_rate_folded": 1.0,
+      "money_total": 2,
+      "money_exact": 1,
+      "worst_fields": [
+        {
+          "role": "total[TỔNG TIỀN THANH TOÁN]",
+          "expected": "TỔNG TIỀN THANH TOÁN 1.725.000 VND",
+          "score": 0.833
+        },
+        {
+          "role": "store.name",
+          "expected": "KHÁCH SẠN THÁI AN",
+          "score": 1.0
+        },
+        {
+          "role": "store.branch",
+          "expected": "Cơ sở 2 - Trần Phú",
+          "score": 1.0
+        }
+      ],
+      "framework": "synthdog",
+      "layout": "invoice_hotel_compact",
       "augmentation": "real_paper",
-      "visual": "thermal_dark",
+      "visual": "laser_invoice",
       "words_found": 150
     },
     {
       "file_name": "synthdog_010.jpg",
-      "fields": 35,
-      "token_recall": 0.6259541984732825,
-      "field_hit_rate": 0.37142857142857144,
-      "token_recall_folded": 0.6870229007633588,
-      "field_hit_rate_folded": 0.4857142857142857,
-      "money_total": 12,
-      "money_exact": 5,
+      "fields": 14,
+      "token_recall": 0.125,
+      "field_hit_rate": 0.0,
+      "token_recall_folded": 0.1484375,
+      "field_hit_rate_folded": 0.14285714285714285,
+      "money_total": 4,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.branch",
+          "expected": "CƠ SỞ CẦU MÂY",
+          "score": 0.0
+        },
+        {
+          "role": "store.phone",
+          "expected": "0660045329",
+          "score": 0.0
+        },
+        {
+          "role": "menu[0].price",
+          "expected": "933.000",
+          "score": 0.0
+        }
+      ],
+      "framework": "synthdog",
+      "layout": "invoice_hotel_stay",
+      "augmentation": "light",
+      "visual": "impact_invoice",
+      "words_found": 30
+    },
+    {
+      "file_name": "synthdog_011.jpg",
+      "fields": 20,
+      "token_recall": 0.1320754716981132,
+      "field_hit_rate": 0.0,
+      "token_recall_folded": 0.16352201257861634,
+      "field_hit_rate_folded": 0.15,
+      "money_total": 4,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.phone",
+          "expected": "0419086328",
+          "score": 0.0
+        },
+        {
+          "role": "title",
+          "expected": "HOÁ ĐƠN",
+          "score": 0.0
+        },
+        {
+          "role": "menu[0].price",
+          "expected": "912.000",
+          "score": 0.0
+        }
+      ],
+      "framework": "synthdog",
+      "layout": "invoice_hotel_stay",
+      "augmentation": "medium",
+      "visual": "laser_invoice",
+      "words_found": 172
+    },
+    {
+      "file_name": "synthdog_012.jpg",
+      "fields": 18,
+      "token_recall": 0.5133928571428571,
+      "field_hit_rate": 0.5555555555555556,
+      "token_recall_folded": 0.5580357142857143,
+      "field_hit_rate_folded": 0.6111111111111112,
+      "money_total": 6,
+      "money_exact": 1,
+      "worst_fields": [
+        {
+          "role": "store.phone",
+          "expected": "0836393969",
+          "score": 0.0
+        },
+        {
+          "role": "menu[0].price",
+          "expected": "42.456",
+          "score": 0.0
+        },
+        {
+          "role": "menu[1].price",
+          "expected": "135.100",
+          "score": 0.0
+        }
+      ],
+      "framework": "synthdog",
+      "layout": "invoice_power",
+      "augmentation": "medium",
+      "visual": "laser_invoice",
+      "words_found": 206
+    },
+    {
+      "file_name": "synthdog_013.jpg",
+      "fields": 19,
+      "token_recall": 0.5757575757575758,
+      "field_hit_rate": 0.3684210526315789,
+      "token_recall_folded": 0.5858585858585859,
+      "field_hit_rate_folded": 0.3684210526315789,
+      "money_total": 6,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.phone",
+          "expected": "0752162249",
+          "score": 0.0
+        },
+        {
+          "role": "menu[1].price",
+          "expected": "$65.43",
+          "score": 0.0
+        },
+        {
+          "role": "menu[3].price",
+          "expected": "$139.74",
+          "score": 0.0
+        }
+      ],
+      "framework": "synthdog",
+      "layout": "invoice_tax_en",
+      "augmentation": "light",
+      "visual": "laser_invoice",
+      "words_found": 151
+    },
+    {
+      "file_name": "synthdog_014.jpg",
+      "fields": 18,
+      "token_recall": 0.3173076923076923,
+      "field_hit_rate": 0.1111111111111111,
+      "token_recall_folded": 0.34615384615384615,
+      "field_hit_rate_folded": 0.16666666666666666,
+      "money_total": 6,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.phone",
+          "expected": "0824658310",
+          "score": 0.0
+        },
+        {
+          "role": "menu[0].nm",
+          "expected": "Phí lưu kho và bốc xếp",
+          "score": 0.0
+        },
+        {
+          "role": "menu[0].price",
+          "expected": "1.660.000",
+          "score": 0.0
+        }
+      ],
+      "framework": "synthdog",
+      "layout": "invoice_vat_form",
+      "augmentation": "medium",
+      "visual": "laser_invoice",
+      "words_found": 153
+    },
+    {
+      "file_name": "synthdog_015.jpg",
+      "fields": 20,
+      "token_recall": 0.44609665427509293,
+      "field_hit_rate": 0.35,
+      "token_recall_folded": 0.5278810408921933,
+      "field_hit_rate_folded": 0.45,
+      "money_total": 8,
+      "money_exact": 2,
+      "worst_fields": [
+        {
+          "role": "store.phone",
+          "expected": "0511792385",
+          "score": 0.0
+        },
+        {
+          "role": "menu[0].price",
+          "expected": "59.256.000",
+          "score": 0.0
+        },
+        {
+          "role": "menu[1].price",
+          "expected": "7.721.000",
+          "score": 0.0
+        }
+      ],
+      "framework": "synthdog",
+      "layout": "invoice_vat_summary",
+      "augmentation": "punched",
+      "visual": "laser_invoice",
+      "words_found": 296
+    },
+    {
+      "file_name": "synthdog_016.jpg",
+      "fields": 11,
+      "token_recall": 0.5767195767195767,
+      "field_hit_rate": 0.6363636363636364,
+      "token_recall_folded": 0.7142857142857143,
+      "field_hit_rate_folded": 0.8181818181818182,
+      "money_total": 2,
+      "money_exact": 2,
+      "worst_fields": [
+        {
+          "role": "total[TỔNG TIỀN THANH TOÁN]",
+          "expected": "TỔNG TIỀN THANH TOÁN 175.605",
+          "score": 0.2
+        },
+        {
+          "role": "total[PHÍ BVMT ĐỐI VỚI NƯỚC THẢI SH 10%]",
+          "expected": "PHÍ BVMT ĐỐI VỚI NƯỚC THẢI SH 10% 15.270",
+          "score": 0.444
+        },
+        {
+          "role": "store.branch",
+          "expected": "CHI NHÁNH CẤP NƯỚC BẾN THÀNH",
+          "score": 0.5
+        }
+      ],
+      "framework": "synthdog",
+      "layout": "invoice_water",
+      "augmentation": "stains",
+      "visual": "laser_invoice",
+      "words_found": 202
+    },
+    {
+      "file_name": "synthdog_017.jpg",
+      "fields": 21,
+      "token_recall": 0.022988505747126436,
+      "field_hit_rate": 0.0,
+      "token_recall_folded": 0.034482758620689655,
+      "field_hit_rate_folded": 0.0,
+      "money_total": 7,
+      "money_exact": 0,
       "worst_fields": [
         {
           "role": "store.name",
@@ -454,351 +714,127 @@
           "score": 0.0
         },
         {
+          "role": "store.branch",
+          "expected": "SATRAFOODS TAN BINH",
+          "score": 0.0
+        },
+        {
+          "role": "store.address",
+          "expected": "SO 208A DUONG NGUYEN HUE",
+          "score": 0.0
+        }
+      ],
+      "framework": "synthdog",
+      "layout": "market_barcode",
+      "augmentation": "medium",
+      "visual": "thermal_dark",
+      "words_found": 93
+    },
+    {
+      "file_name": "synthdog_018.jpg",
+      "fields": 15,
+      "token_recall": 0.21052631578947367,
+      "field_hit_rate": 0.06666666666666667,
+      "token_recall_folded": 0.2236842105263158,
+      "field_hit_rate_folded": 0.06666666666666667,
+      "money_total": 4,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.name",
+          "expected": "AEON CITIMART",
+          "score": 0.0
+        },
+        {
+          "role": "store.branch",
+          "expected": "CITIMART BINH THANH",
+          "score": 0.0
+        },
+        {
+          "role": "store.address",
+          "expected": "SO 304A DUONG NGUYEN THI MINH KHAI",
+          "score": 0.0
+        }
+      ],
+      "framework": "synthdog",
+      "layout": "market_compact",
+      "augmentation": "photocopy",
+      "visual": "thermal_dark",
+      "words_found": 76
+    },
+    {
+      "file_name": "synthdog_019.jpg",
+      "fields": 24,
+      "token_recall": 0.40384615384615385,
+      "field_hit_rate": 0.25,
+      "token_recall_folded": 0.4230769230769231,
+      "field_hit_rate_folded": 0.25,
+      "money_total": 6,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.branch",
+          "expected": "VM Times City",
+          "score": 0.0
+        },
+        {
           "role": "menu[0].price",
-          "expected": "660.000",
+          "expected": "351,000.00",
           "score": 0.0
         },
         {
           "role": "menu[1].price",
-          "expected": "109.500",
+          "expected": "177,500.00",
           "score": 0.0
         }
       ],
       "framework": "synthdog",
-      "layout": "market_barcode",
-      "augmentation": "ghost_text",
-      "visual": "thermal_faint",
-      "words_found": 192
-    },
-    {
-      "file_name": "synthdog_011.jpg",
-      "fields": 16,
-      "token_recall": 0.5434782608695652,
-      "field_hit_rate": 0.3125,
-      "token_recall_folded": 0.6304347826086957,
-      "field_hit_rate_folded": 0.5,
-      "money_total": 3,
-      "money_exact": 0,
-      "worst_fields": [
-        {
-          "role": "store.name",
-          "expected": "Nova Market",
-          "score": 0.0
-        },
-        {
-          "role": "store.phone",
-          "expected": "ĐT: 026.71458643",
-          "score": 0.0
-        },
-        {
-          "role": "menu[0].price",
-          "expected": "156.000",
-          "score": 0.0
-        }
-      ],
-      "framework": "synthdog",
-      "layout": "market_barcode",
-      "augmentation": "torn_edges",
-      "visual": "thermal_faint",
-      "words_found": 104
-    },
-    {
-      "file_name": "synthdog_012.jpg",
-      "fields": 29,
-      "token_recall": 0.03676470588235294,
-      "field_hit_rate": 0.0,
-      "token_recall_folded": 0.0661764705882353,
-      "field_hit_rate_folded": 0.0,
-      "money_total": 9,
-      "money_exact": 0,
-      "worst_fields": [
-        {
-          "role": "store.name",
-          "expected": "Emart",
-          "score": 0.0
-        },
-        {
-          "role": "store.branch",
-          "expected": "Emart Phan Văn Trị",
-          "score": 0.0
-        },
-        {
-          "role": "store.address",
-          "expected": "Số 221A đường Kim Mã",
-          "score": 0.0
-        }
-      ],
-      "framework": "synthdog",
-      "layout": "market_compact",
-      "augmentation": "photocopy",
+      "layout": "market_vat",
+      "augmentation": "light",
       "visual": "thermal_narrow",
-      "words_found": 128
-    },
-    {
-      "file_name": "synthdog_013.jpg",
-      "fields": 27,
-      "token_recall": 0.47540983606557374,
-      "field_hit_rate": 0.2962962962962963,
-      "token_recall_folded": 0.6065573770491803,
-      "field_hit_rate_folded": 0.48148148148148145,
-      "money_total": 8,
-      "money_exact": 4,
-      "worst_fields": [
-        {
-          "role": "store.address",
-          "expected": "SỐ 397A ĐƯỜNG XUÂN THỦY",
-          "score": 0.0
-        },
-        {
-          "role": "store.address2",
-          "expected": "P.BẾN NGHÉ, Q.1",
-          "score": 0.0
-        },
-        {
-          "role": "store.phone",
-          "expected": "ĐT: 027.71993769",
-          "score": 0.0
-        }
-      ],
-      "framework": "synthdog",
-      "layout": "market_compact",
-      "augmentation": "pristine",
-      "visual": "thermal_faint",
-      "words_found": 143
-    },
-    {
-      "file_name": "synthdog_014.jpg",
-      "fields": 13,
-      "token_recall": 0.19696969696969696,
-      "field_hit_rate": 0.0,
-      "token_recall_folded": 0.21212121212121213,
-      "field_hit_rate_folded": 0.0,
-      "money_total": 3,
-      "money_exact": 0,
-      "worst_fields": [
-        {
-          "role": "store.name",
-          "expected": "VINCOMMERCE",
-          "score": 0.0
-        },
-        {
-          "role": "store.branch",
-          "expected": "VM THANG LONG",
-          "score": 0.0
-        },
-        {
-          "role": "store.address",
-          "expected": "SO 282A DUONG PHAN XICH LONG",
-          "score": 0.0
-        }
-      ],
-      "framework": "synthdog",
-      "layout": "market_compact",
-      "augmentation": "stains",
-      "visual": "dot_matrix",
-      "words_found": 67
-    },
-    {
-      "file_name": "synthdog_015.jpg",
-      "fields": 22,
-      "token_recall": 0.5833333333333334,
-      "field_hit_rate": 0.36363636363636365,
-      "token_recall_folded": 0.7314814814814815,
-      "field_hit_rate_folded": 0.5909090909090909,
-      "money_total": 5,
-      "money_exact": 3,
-      "worst_fields": [
-        {
-          "role": "store.branch",
-          "expected": "MM BÌNH PHÚ",
-          "score": 0.0
-        },
-        {
-          "role": "store.address2",
-          "expected": "P.TÂN PHONG, Q.7",
-          "score": 0.0
-        },
-        {
-          "role": "store.phone",
-          "expected": "ĐT: 026.79725598",
-          "score": 0.0
-        }
-      ],
-      "framework": "synthdog",
-      "layout": "market_compact",
-      "augmentation": "photocopy",
-      "visual": "laser_sharp",
-      "words_found": 97
-    },
-    {
-      "file_name": "synthdog_016.jpg",
-      "fields": 25,
-      "token_recall": 0.2647058823529412,
-      "field_hit_rate": 0.04,
-      "token_recall_folded": 0.30392156862745096,
-      "field_hit_rate_folded": 0.08,
-      "money_total": 9,
-      "money_exact": 0,
-      "worst_fields": [
-        {
-          "role": "store.branch",
-          "expected": "VM THANG LONG",
-          "score": 0.0
-        },
-        {
-          "role": "store.phone",
-          "expected": "DT: 026.71784691",
-          "score": 0.0
-        },
-        {
-          "role": "menu[0].price",
-          "expected": "61,000",
-          "score": 0.0
-        }
-      ],
-      "framework": "synthdog",
-      "layout": "market_vat",
-      "augmentation": "torn_edges",
-      "visual": "thermal_faint",
-      "words_found": 177
-    },
-    {
-      "file_name": "synthdog_017.jpg",
-      "fields": 19,
-      "token_recall": 0.8170731707317073,
-      "field_hit_rate": 0.9473684210526315,
-      "token_recall_folded": 0.8658536585365854,
-      "field_hit_rate_folded": 0.9473684210526315,
-      "money_total": 6,
-      "money_exact": 6,
-      "worst_fields": [
-        {
-          "role": "store.branch",
-          "expected": "VM ROYAL CITY",
-          "score": 0.0
-        },
-        {
-          "role": "menu[0].nm",
-          "expected": "TAO ENVY NEW ZEALAND",
-          "score": 0.75
-        },
-        {
-          "role": "menu[4].nm",
-          "expected": "TH TRUE MILK SUA TUOI NGUYEN CHAT 1L",
-          "score": 0.75
-        }
-      ],
-      "framework": "synthdog",
-      "layout": "market_vat",
-      "augmentation": "real_paper",
-      "visual": "dot_matrix",
-      "words_found": 141
-    },
-    {
-      "file_name": "synthdog_018.jpg",
-      "fields": 22,
-      "token_recall": 0.39361702127659576,
-      "field_hit_rate": 0.18181818181818182,
-      "token_recall_folded": 0.40425531914893614,
-      "field_hit_rate_folded": 0.18181818181818182,
-      "money_total": 6,
-      "money_exact": 0,
-      "worst_fields": [
-        {
-          "role": "store.branch",
-          "expected": "CoopMart Cống Quỳnh",
-          "score": 0.0
-        },
-        {
-          "role": "store.phone",
-          "expected": "ĐT: 027.74563698",
-          "score": 0.0
-        },
-        {
-          "role": "menu[0].price",
-          "expected": "119.000",
-          "score": 0.0
-        }
-      ],
-      "framework": "synthdog",
-      "layout": "market_vat",
-      "augmentation": "medium",
-      "visual": "thermal_dark",
-      "words_found": 135
-    },
-    {
-      "file_name": "synthdog_019.jpg",
-      "fields": 22,
-      "token_recall": 0.4056603773584906,
-      "field_hit_rate": 0.13636363636363635,
-      "token_recall_folded": 0.5,
-      "field_hit_rate_folded": 0.2727272727272727,
-      "money_total": 6,
-      "money_exact": 0,
-      "worst_fields": [
-        {
-          "role": "store.name",
-          "expected": "VINCOMMERCE",
-          "score": 0.0
-        },
-        {
-          "role": "store.branch",
-          "expected": "VM THĂNG LONG",
-          "score": 0.0
-        },
-        {
-          "role": "menu[0].price",
-          "expected": "371.000",
-          "score": 0.0
-        }
-      ],
-      "framework": "synthdog",
-      "layout": "market_vat",
-      "augmentation": "photocopy",
-      "visual": "thermal_dark",
-      "words_found": 171
+      "words_found": 127
     },
     {
       "file_name": "html_000.jpg",
-      "fields": 11,
-      "token_recall": 0.8666666666666667,
-      "field_hit_rate": 0.9090909090909091,
-      "token_recall_folded": 0.8833333333333333,
-      "field_hit_rate_folded": 0.9090909090909091,
-      "money_total": 4,
-      "money_exact": 4,
+      "fields": 9,
+      "token_recall": 0.7924528301886793,
+      "field_hit_rate": 0.7777777777777778,
+      "token_recall_folded": 0.8113207547169812,
+      "field_hit_rate_folded": 0.7777777777777778,
+      "money_total": 3,
+      "money_exact": 3,
       "worst_fields": [
         {
           "role": "title",
-          "expected": "HOA DON THANH TOAN",
-          "score": 0.5
+          "expected": "PHIEU THANH TOAN",
+          "score": 0.0
+        },
+        {
+          "role": "total[TIEN MAT]",
+          "expected": "TIEN MAT 232,000",
+          "score": 0.667
         },
         {
           "role": "menu[1].nm",
           "expected": "OC LEN XAO DUA",
           "score": 0.75
-        },
-        {
-          "role": "store.name",
-          "expected": "NHA HANG - KARAOKE VUON CAU",
-          "score": 1.0
         }
       ],
       "framework": "html",
       "layout": "eatery_ascii",
       "augmentation": "real_paper",
       "visual": "thermal_narrow",
-      "words_found": 63
+      "words_found": 59
     },
     {
       "file_name": "html_001.jpg",
-      "fields": 19,
-      "token_recall": 0.6470588235294118,
-      "field_hit_rate": 0.3157894736842105,
-      "token_recall_folded": 0.6911764705882353,
-      "field_hit_rate_folded": 0.42105263157894735,
-      "money_total": 7,
-      "money_exact": 0,
+      "fields": 17,
+      "token_recall": 0.7758620689655172,
+      "field_hit_rate": 0.47058823529411764,
+      "token_recall_folded": 0.7758620689655172,
+      "field_hit_rate_folded": 0.47058823529411764,
+      "money_total": 6,
+      "money_exact": 1,
       "worst_fields": [
         {
           "role": "menu[0].price",
@@ -806,13 +842,13 @@
           "score": 0.0
         },
         {
-          "role": "menu[1].price",
-          "expected": "75,000",
+          "role": "menu[2].price",
+          "expected": "156,000",
           "score": 0.0
         },
         {
-          "role": "menu[2].price",
-          "expected": "156,000",
+          "role": "menu[3].price",
+          "expected": "89,000",
           "score": 0.0
         }
       ],
@@ -820,81 +856,17 @@
       "layout": "eatery_ascii",
       "augmentation": "medium",
       "visual": "thermal_dark",
-      "words_found": 87
+      "words_found": 78
     },
     {
       "file_name": "html_002.jpg",
-      "fields": 9,
-      "token_recall": 0.7021276595744681,
-      "field_hit_rate": 0.4444444444444444,
-      "token_recall_folded": 0.7659574468085106,
-      "field_hit_rate_folded": 0.5555555555555556,
-      "money_total": 2,
-      "money_exact": 2,
-      "worst_fields": [
-        {
-          "role": "menu[1].nm",
-          "expected": "KHOAI TAY CHIEN",
-          "score": 0.333
-        },
-        {
-          "role": "store.phone",
-          "expected": "DT: 0292507621",
-          "score": 0.5
-        },
-        {
-          "role": "store.address",
-          "expected": "183 TON DAN - 1 - TPHCM",
-          "score": 0.6
-        }
-      ],
-      "framework": "html",
-      "layout": "eatery_ascii",
-      "augmentation": "torn_edges",
-      "visual": "thermal_dark",
-      "words_found": 69
-    },
-    {
-      "file_name": "html_003.jpg",
-      "fields": 22,
-      "token_recall": 0.5352112676056338,
-      "field_hit_rate": 0.22727272727272727,
-      "token_recall_folded": 0.5915492957746479,
-      "field_hit_rate_folded": 0.2727272727272727,
-      "money_total": 9,
-      "money_exact": 2,
-      "worst_fields": [
-        {
-          "role": "store.phone",
-          "expected": "0872771972",
-          "score": 0.0
-        },
-        {
-          "role": "menu[0].price",
-          "expected": "36,000",
-          "score": 0.0
-        },
-        {
-          "role": "menu[1].price",
-          "expected": "15,000",
-          "score": 0.0
-        }
-      ],
-      "framework": "html",
-      "layout": "eatery_ascii",
-      "augmentation": "photocopy",
-      "visual": "thermal_narrow",
-      "words_found": 85
-    },
-    {
-      "file_name": "html_004.jpg",
       "fields": 16,
-      "token_recall": 0.9830508474576272,
-      "field_hit_rate": 0.9375,
-      "token_recall_folded": 0.9830508474576272,
-      "field_hit_rate_folded": 0.9375,
+      "token_recall": 0.49206349206349204,
+      "field_hit_rate": 0.3125,
+      "token_recall_folded": 0.5079365079365079,
+      "field_hit_rate_folded": 0.3125,
       "money_total": 5,
-      "money_exact": 4,
+      "money_exact": 1,
       "worst_fields": [
         {
           "role": "store.phone",
@@ -902,549 +874,608 @@
           "score": 0.0
         },
         {
-          "role": "store.name",
-          "expected": "Cửa Hàng Nhà Gỗ",
-          "score": 1.0
+          "role": "menu[0].nm",
+          "expected": "Trà tắc",
+          "score": 0.0
         },
         {
-          "role": "store.address",
-          "expected": "23 Đội Cấn - 3 - TPHCM",
-          "score": 1.0
+          "role": "menu[0].price",
+          "expected": "30.000",
+          "score": 0.0
         }
       ],
       "framework": "html",
       "layout": "eatery_indexed",
-      "augmentation": "real_paper",
-      "visual": "laser_sharp",
-      "words_found": 75
+      "augmentation": "medium",
+      "visual": "thermal_dark",
+      "words_found": 56
     },
     {
-      "file_name": "html_005.jpg",
-      "fields": 27,
-      "token_recall": 0.9240506329113924,
-      "field_hit_rate": 0.9259259259259259,
-      "token_recall_folded": 0.9620253164556962,
-      "field_hit_rate_folded": 0.9259259259259259,
-      "money_total": 11,
+      "file_name": "html_003.jpg",
+      "fields": 25,
+      "token_recall": 0.9583333333333334,
+      "field_hit_rate": 1.0,
+      "token_recall_folded": 0.9861111111111112,
+      "field_hit_rate_folded": 1.0,
+      "money_total": 10,
       "money_exact": 10,
       "worst_fields": [
         {
-          "role": "menu[3].price",
-          "expected": "89,000",
-          "score": 0.0
-        },
-        {
-          "role": "menu[5].nm",
-          "expected": "CA KHO TO",
-          "score": 0.333
-        },
-        {
           "role": "store.address",
           "expected": "26-193 XUAN THUY - HUE - THUA THIEN HUE",
-          "score": 0.857
+          "score": 0.714
+        },
+        {
+          "role": "store.name",
+          "expected": "BEP NGOC SUONG 246",
+          "score": 1.0
+        },
+        {
+          "role": "store.phone",
+          "expected": "DT: 0898365936",
+          "score": 1.0
         }
       ],
       "framework": "html",
       "layout": "eatery_indexed",
       "augmentation": "real_paper",
       "visual": "laser_sharp",
-      "words_found": 116
+      "words_found": 106
     },
     {
-      "file_name": "html_006.jpg",
-      "fields": 15,
-      "token_recall": 0.8955223880597015,
-      "field_hit_rate": 0.8666666666666667,
-      "token_recall_folded": 0.8955223880597015,
-      "field_hit_rate_folded": 0.8666666666666667,
-      "money_total": 3,
-      "money_exact": 1,
-      "worst_fields": [
-        {
-          "role": "menu[0].price",
-          "expected": "168.000",
-          "score": 0.0
-        },
-        {
-          "role": "menu[2].price",
-          "expected": "30.000",
-          "score": 0.0
-        },
-        {
-          "role": "total[TIỀN THỐI LẠI]",
-          "expected": "TIỀN THỐI LẠI 0",
-          "score": 0.75
-        }
-      ],
-      "framework": "html",
-      "layout": "eatery_indexed",
-      "augmentation": "light",
-      "visual": "thermal_faint",
-      "words_found": 85
-    },
-    {
-      "file_name": "html_007.jpg",
-      "fields": 15,
-      "token_recall": 0.7241379310344828,
-      "field_hit_rate": 0.6,
-      "token_recall_folded": 0.7241379310344828,
-      "field_hit_rate_folded": 0.6,
-      "money_total": 5,
+      "file_name": "html_004.jpg",
+      "fields": 14,
+      "token_recall": 0.9615384615384616,
+      "field_hit_rate": 0.8571428571428571,
+      "token_recall_folded": 0.9615384615384616,
+      "field_hit_rate_folded": 0.8571428571428571,
+      "money_total": 4,
       "money_exact": 0,
       "worst_fields": [
         {
-          "role": "menu[0].price",
-          "expected": "30,000",
-          "score": 0.0
-        },
-        {
-          "role": "menu[1].price",
-          "expected": "18,000",
+          "role": "store.phone",
+          "expected": "0422762216",
           "score": 0.0
         },
         {
           "role": "menu[2].price",
-          "expected": "126,000",
-          "score": 0.0
-        }
-      ],
-      "framework": "html",
-      "layout": "eatery_indexed",
-      "augmentation": "stains",
-      "visual": "thermal_faint",
-      "words_found": 86
-    },
-    {
-      "file_name": "html_008.jpg",
-      "fields": 24,
-      "token_recall": 0.2796610169491525,
-      "field_hit_rate": 0.25,
-      "token_recall_folded": 0.2796610169491525,
-      "field_hit_rate_folded": 0.25,
-      "money_total": 6,
-      "money_exact": 1,
-      "worst_fields": [
-        {
-          "role": "store.phone",
-          "expected": "ĐT: 025.72595277",
-          "score": 0.0
-        },
-        {
-          "role": "menu[0].nm",
-          "expected": "OMACHI Mì khoai tây sườn hầm 5 gói",
-          "score": 0.0
-        },
-        {
-          "role": "menu[0].price",
-          "expected": "84,000",
-          "score": 0.0
-        }
-      ],
-      "framework": "html",
-      "layout": "market_barcode",
-      "augmentation": "real_paper",
-      "visual": "thermal_faint",
-      "words_found": 45
-    },
-    {
-      "file_name": "html_009.jpg",
-      "fields": 25,
-      "token_recall": 0.782608695652174,
-      "field_hit_rate": 0.72,
-      "token_recall_folded": 0.782608695652174,
-      "field_hit_rate_folded": 0.72,
-      "money_total": 9,
-      "money_exact": 8,
-      "worst_fields": [
-        {
-          "role": "menu[8].price",
-          "expected": "1,661,000",
-          "score": 0.0
-        },
-        {
-          "role": "total[TIEN KHACH TRA]",
-          "expected": "TIEN KHACH TRA 3,163,000",
+          "expected": "105.000 VND",
           "score": 0.5
         },
         {
-          "role": "menu[3].nm",
-          "expected": "WINECO CA CHUA BEEF 500G",
-          "score": 0.6
+          "role": "store.name",
+          "expected": "TIỆM BÁNH NHÀ BÊ",
+          "score": 1.0
         }
       ],
       "framework": "html",
-      "layout": "market_barcode",
+      "layout": "invoice_brand",
       "augmentation": "real_paper",
-      "visual": "thermal_dark",
+      "visual": "laser_invoice",
       "words_found": 141
     },
     {
-      "file_name": "html_010.jpg",
-      "fields": 35,
-      "token_recall": 0.9007633587786259,
-      "field_hit_rate": 0.8285714285714286,
-      "token_recall_folded": 0.9007633587786259,
-      "field_hit_rate_folded": 0.8285714285714286,
-      "money_total": 12,
-      "money_exact": 11,
+      "file_name": "html_005.jpg",
+      "fields": 18,
+      "token_recall": 0.9652173913043478,
+      "field_hit_rate": 0.8888888888888888,
+      "token_recall_folded": 0.9652173913043478,
+      "field_hit_rate_folded": 0.8888888888888888,
+      "money_total": 6,
+      "money_exact": 5,
       "worst_fields": [
+        {
+          "role": "menu[4].price",
+          "expected": "70.000",
+          "score": 0.0
+        },
+        {
+          "role": "total[Thuế 8%]",
+          "expected": "Thuế 8% 200.080",
+          "score": 0.667
+        },
         {
           "role": "store.name",
-          "expected": "SATRAFOODS",
-          "score": 0.0
-        },
-        {
-          "role": "menu[0].price",
-          "expected": "660.000",
-          "score": 0.0
-        },
-        {
-          "role": "store.phone",
-          "expected": "ĐT: 026.73450094",
-          "score": 0.5
+          "expected": "TIỆM BÁNH BỐN MÙA",
+          "score": 1.0
         }
       ],
       "framework": "html",
-      "layout": "market_barcode",
-      "augmentation": "ghost_text",
-      "visual": "thermal_faint",
-      "words_found": 177
-    },
-    {
-      "file_name": "html_011.jpg",
-      "fields": 16,
-      "token_recall": 0.8586956521739131,
-      "field_hit_rate": 0.75,
-      "token_recall_folded": 0.8804347826086957,
-      "field_hit_rate_folded": 0.8125,
-      "money_total": 3,
-      "money_exact": 1,
-      "worst_fields": [
-        {
-          "role": "menu[0].price",
-          "expected": "156.000",
-          "score": 0.0
-        },
-        {
-          "role": "menu[1].price",
-          "expected": "1.001.000",
-          "score": 0.0
-        },
-        {
-          "role": "store.phone",
-          "expected": "ĐT: 026.71458643",
-          "score": 0.5
-        }
-      ],
-      "framework": "html",
-      "layout": "market_barcode",
-      "augmentation": "torn_edges",
-      "visual": "thermal_faint",
-      "words_found": 102
-    },
-    {
-      "file_name": "html_012.jpg",
-      "fields": 29,
-      "token_recall": 0.6470588235294118,
-      "field_hit_rate": 0.41379310344827586,
-      "token_recall_folded": 0.6911764705882353,
-      "field_hit_rate_folded": 0.4827586206896552,
-      "money_total": 9,
-      "money_exact": 1,
-      "worst_fields": [
-        {
-          "role": "store.name",
-          "expected": "Emart",
-          "score": 0.0
-        },
-        {
-          "role": "store.branch",
-          "expected": "Emart Phan Văn Trị",
-          "score": 0.0
-        },
-        {
-          "role": "store.address",
-          "expected": "Số 221A đường Kim Mã",
-          "score": 0.0
-        }
-      ],
-      "framework": "html",
-      "layout": "market_compact",
-      "augmentation": "photocopy",
-      "visual": "thermal_narrow",
-      "words_found": 152
-    },
-    {
-      "file_name": "html_013.jpg",
-      "fields": 27,
-      "token_recall": 0.7786885245901639,
-      "field_hit_rate": 0.6296296296296297,
-      "token_recall_folded": 0.7786885245901639,
-      "field_hit_rate_folded": 0.6296296296296297,
-      "money_total": 8,
-      "money_exact": 3,
-      "worst_fields": [
-        {
-          "role": "store.address",
-          "expected": "SỐ 397A ĐƯỜNG XUÂN THỦY",
-          "score": 0.0
-        },
-        {
-          "role": "store.address2",
-          "expected": "P.BẾN NGHÉ, Q.1",
-          "score": 0.0
-        },
-        {
-          "role": "store.phone",
-          "expected": "ĐT: 027.71993769",
-          "score": 0.0
-        }
-      ],
-      "framework": "html",
-      "layout": "market_compact",
+      "layout": "invoice_brand",
       "augmentation": "pristine",
-      "visual": "thermal_faint",
-      "words_found": 143
+      "visual": "laser_invoice",
+      "words_found": 156
     },
     {
-      "file_name": "html_014.jpg",
-      "fields": 13,
-      "token_recall": 0.5151515151515151,
-      "field_hit_rate": 0.46153846153846156,
-      "token_recall_folded": 0.5303030303030303,
-      "field_hit_rate_folded": 0.46153846153846156,
-      "money_total": 3,
-      "money_exact": 2,
-      "worst_fields": [
-        {
-          "role": "store.name",
-          "expected": "VINCOMMERCE",
-          "score": 0.0
-        },
-        {
-          "role": "store.address2",
-          "expected": "P.BEN THANH, Q.1",
-          "score": 0.0
-        },
-        {
-          "role": "store.phone",
-          "expected": "DT: 028.77760413",
-          "score": 0.0
-        }
-      ],
-      "framework": "html",
-      "layout": "market_compact",
-      "augmentation": "stains",
-      "visual": "dot_matrix",
-      "words_found": 87
-    },
-    {
-      "file_name": "html_015.jpg",
-      "fields": 22,
-      "token_recall": 0.6481481481481481,
-      "field_hit_rate": 0.5909090909090909,
-      "token_recall_folded": 0.6759259259259259,
-      "field_hit_rate_folded": 0.6363636363636364,
-      "money_total": 5,
-      "money_exact": 4,
-      "worst_fields": [
-        {
-          "role": "store.branch",
-          "expected": "MM BÌNH PHÚ",
-          "score": 0.0
-        },
-        {
-          "role": "store.address2",
-          "expected": "P.TÂN PHONG, Q.7",
-          "score": 0.0
-        },
-        {
-          "role": "store.phone",
-          "expected": "ĐT: 026.79725598",
-          "score": 0.0
-        }
-      ],
-      "framework": "html",
-      "layout": "market_compact",
-      "augmentation": "photocopy",
-      "visual": "laser_sharp",
-      "words_found": 95
-    },
-    {
-      "file_name": "html_016.jpg",
-      "fields": 25,
-      "token_recall": 0.7058823529411765,
-      "field_hit_rate": 0.56,
-      "token_recall_folded": 0.7156862745098039,
-      "field_hit_rate_folded": 0.56,
-      "money_total": 9,
-      "money_exact": 3,
-      "worst_fields": [
-        {
-          "role": "store.name",
-          "expected": "VINCOMMERCE",
-          "score": 0.0
-        },
-        {
-          "role": "store.branch",
-          "expected": "VM THANG LONG",
-          "score": 0.0
-        },
-        {
-          "role": "menu[1].price",
-          "expected": "100,000",
-          "score": 0.0
-        }
-      ],
-      "framework": "html",
-      "layout": "market_vat",
-      "augmentation": "torn_edges",
-      "visual": "thermal_faint",
-      "words_found": 174
-    },
-    {
-      "file_name": "html_017.jpg",
-      "fields": 19,
-      "token_recall": 0.7560975609756098,
-      "field_hit_rate": 0.5789473684210527,
-      "token_recall_folded": 0.7560975609756098,
-      "field_hit_rate_folded": 0.5789473684210527,
-      "money_total": 6,
-      "money_exact": 1,
-      "worst_fields": [
-        {
-          "role": "store.name",
-          "expected": "VINCOMMERCE",
-          "score": 0.0
-        },
-        {
-          "role": "store.branch",
-          "expected": "VM ROYAL CITY",
-          "score": 0.0
-        },
-        {
-          "role": "menu[0].price",
-          "expected": "409,500",
-          "score": 0.0
-        }
-      ],
-      "framework": "html",
-      "layout": "market_vat",
-      "augmentation": "real_paper",
-      "visual": "dot_matrix",
-      "words_found": 130
-    },
-    {
-      "file_name": "html_018.jpg",
-      "fields": 22,
-      "token_recall": 0.723404255319149,
-      "field_hit_rate": 0.5454545454545454,
-      "token_recall_folded": 0.7446808510638298,
-      "field_hit_rate_folded": 0.5454545454545454,
-      "money_total": 6,
-      "money_exact": 2,
-      "worst_fields": [
-        {
-          "role": "store.branch",
-          "expected": "CoopMart Cống Quỳnh",
-          "score": 0.0
-        },
-        {
-          "role": "menu[0].price",
-          "expected": "119.000",
-          "score": 0.0
-        },
-        {
-          "role": "menu[1].price",
-          "expected": "85.500",
-          "score": 0.0
-        }
-      ],
-      "framework": "html",
-      "layout": "market_vat",
-      "augmentation": "medium",
-      "visual": "thermal_dark",
-      "words_found": 152
-    },
-    {
-      "file_name": "html_019.jpg",
-      "fields": 22,
-      "token_recall": 0.6981132075471698,
-      "field_hit_rate": 0.5454545454545454,
-      "token_recall_folded": 0.7075471698113207,
-      "field_hit_rate_folded": 0.5454545454545454,
-      "money_total": 6,
-      "money_exact": 2,
-      "worst_fields": [
-        {
-          "role": "store.name",
-          "expected": "VINCOMMERCE",
-          "score": 0.0
-        },
-        {
-          "role": "store.branch",
-          "expected": "VM THĂNG LONG",
-          "score": 0.0
-        },
-        {
-          "role": "store.phone",
-          "expected": "ĐT: 027.77896531",
-          "score": 0.0
-        }
-      ],
-      "framework": "html",
-      "layout": "market_vat",
-      "augmentation": "photocopy",
-      "visual": "thermal_dark",
-      "words_found": 164
-    },
-    {
-      "file_name": "genalog_000.jpg",
-      "fields": 11,
-      "token_recall": 0.5666666666666667,
-      "field_hit_rate": 0.5454545454545454,
-      "token_recall_folded": 0.6,
-      "field_hit_rate_folded": 0.5454545454545454,
+      "file_name": "html_006.jpg",
+      "fields": 12,
+      "token_recall": 0.3746130030959752,
+      "field_hit_rate": 0.08333333333333333,
+      "token_recall_folded": 0.43962848297213625,
+      "field_hit_rate_folded": 0.16666666666666666,
       "money_total": 4,
       "money_exact": 1,
       "worst_fields": [
         {
+          "role": "store.phone",
+          "expected": "0724770249",
+          "score": 0.0
+        },
+        {
           "role": "menu[0].price",
-          "expected": "58,000",
+          "expected": "2.757.000",
           "score": 0.0
         },
         {
           "role": "menu[1].price",
-          "expected": "174,000",
+          "expected": "174.628.800",
+          "score": 0.0
+        }
+      ],
+      "framework": "html",
+      "layout": "invoice_export",
+      "augmentation": "punched",
+      "visual": "laser_invoice",
+      "words_found": 446
+    },
+    {
+      "file_name": "html_007.jpg",
+      "fields": 10,
+      "token_recall": 0.22818791946308725,
+      "field_hit_rate": 0.0,
+      "token_recall_folded": 0.2751677852348993,
+      "field_hit_rate_folded": 0.0,
+      "money_total": 3,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.phone",
+          "expected": "0450970496",
           "score": 0.0
         },
         {
-          "role": "menu[2].price",
-          "expected": "54,000",
+          "role": "menu[0].price",
+          "expected": "15.221.800",
           "score": 0.0
+        },
+        {
+          "role": "menu[1].price",
+          "expected": "5.321.700",
+          "score": 0.0
+        }
+      ],
+      "framework": "html",
+      "layout": "invoice_export",
+      "augmentation": "torn_edges",
+      "visual": "impact_invoice",
+      "words_found": 344
+    },
+    {
+      "file_name": "html_008.jpg",
+      "fields": 16,
+      "token_recall": 0.42857142857142855,
+      "field_hit_rate": 0.25,
+      "token_recall_folded": 0.46825396825396826,
+      "field_hit_rate_folded": 0.25,
+      "money_total": 5,
+      "money_exact": 1,
+      "worst_fields": [
+        {
+          "role": "store.name",
+          "expected": "HAPPY HOLIDAY RESORT",
+          "score": 0.0
+        },
+        {
+          "role": "store.phone",
+          "expected": "0716277531",
+          "score": 0.0
+        },
+        {
+          "role": "menu[0].price",
+          "expected": "1.436.000",
+          "score": 0.0
+        }
+      ],
+      "framework": "html",
+      "layout": "invoice_hotel_compact",
+      "augmentation": "punched",
+      "visual": "laser_invoice",
+      "words_found": 157
+    },
+    {
+      "file_name": "html_009.jpg",
+      "fields": 10,
+      "token_recall": 0.9692307692307692,
+      "field_hit_rate": 0.9,
+      "token_recall_folded": 0.9692307692307692,
+      "field_hit_rate_folded": 0.9,
+      "money_total": 2,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.phone",
+          "expected": "0380998299",
+          "score": 0.0
+        },
+        {
+          "role": "store.name",
+          "expected": "KHÁCH SẠN THÁI AN",
+          "score": 0.75
+        },
+        {
+          "role": "store.branch",
+          "expected": "Cơ sở 2 - Trần Phú",
+          "score": 1.0
+        }
+      ],
+      "framework": "html",
+      "layout": "invoice_hotel_compact",
+      "augmentation": "real_paper",
+      "visual": "laser_invoice",
+      "words_found": 142
+    },
+    {
+      "file_name": "html_010.jpg",
+      "fields": 14,
+      "token_recall": 0.9609375,
+      "field_hit_rate": 0.9285714285714286,
+      "token_recall_folded": 0.96875,
+      "field_hit_rate_folded": 0.9285714285714286,
+      "money_total": 4,
+      "money_exact": 3,
+      "worst_fields": [
+        {
+          "role": "store.phone",
+          "expected": "0660045329",
+          "score": 0.0
+        },
+        {
+          "role": "total[TIỀN THỪA TRẢ KHÁCH]",
+          "expected": "TIỀN THỪA TRẢ KHÁCH 0",
+          "score": 0.8
+        },
+        {
+          "role": "store.name",
+          "expected": "SAPA VIEW HOTEL",
+          "score": 1.0
+        }
+      ],
+      "framework": "html",
+      "layout": "invoice_hotel_stay",
+      "augmentation": "light",
+      "visual": "impact_invoice",
+      "words_found": 151
+    },
+    {
+      "file_name": "html_011.jpg",
+      "fields": 20,
+      "token_recall": 0.20754716981132076,
+      "field_hit_rate": 0.2,
+      "token_recall_folded": 0.24528301886792453,
+      "field_hit_rate_folded": 0.25,
+      "money_total": 4,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.name",
+          "expected": "KHÁCH SẠN THÁI AN",
+          "score": 0.0
+        },
+        {
+          "role": "store.phone",
+          "expected": "0419086328",
+          "score": 0.0
+        },
+        {
+          "role": "title",
+          "expected": "HOÁ ĐƠN",
+          "score": 0.0
+        }
+      ],
+      "framework": "html",
+      "layout": "invoice_hotel_stay",
+      "augmentation": "medium",
+      "visual": "laser_invoice",
+      "words_found": 134
+    },
+    {
+      "file_name": "html_012.jpg",
+      "fields": 18,
+      "token_recall": 0.45982142857142855,
+      "field_hit_rate": 0.2777777777777778,
+      "token_recall_folded": 0.5044642857142857,
+      "field_hit_rate_folded": 0.4444444444444444,
+      "money_total": 6,
+      "money_exact": 1,
+      "worst_fields": [
+        {
+          "role": "store.phone",
+          "expected": "0836393969",
+          "score": 0.0
+        },
+        {
+          "role": "menu[0].price",
+          "expected": "42.456",
+          "score": 0.0
+        },
+        {
+          "role": "menu[1].price",
+          "expected": "135.100",
+          "score": 0.0
+        }
+      ],
+      "framework": "html",
+      "layout": "invoice_power",
+      "augmentation": "medium",
+      "visual": "laser_invoice",
+      "words_found": 288
+    },
+    {
+      "file_name": "html_013.jpg",
+      "fields": 19,
+      "token_recall": 0.6161616161616161,
+      "field_hit_rate": 0.42105263157894735,
+      "token_recall_folded": 0.6363636363636364,
+      "field_hit_rate_folded": 0.5263157894736842,
+      "money_total": 6,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.branch",
+          "expected": "Service Department",
+          "score": 0.0
+        },
+        {
+          "role": "store.phone",
+          "expected": "0752162249",
+          "score": 0.0
+        },
+        {
+          "role": "total[Grand Total]",
+          "expected": "Grand Total $839.04",
+          "score": 0.0
+        }
+      ],
+      "framework": "html",
+      "layout": "invoice_tax_en",
+      "augmentation": "light",
+      "visual": "laser_invoice",
+      "words_found": 160
+    },
+    {
+      "file_name": "html_014.jpg",
+      "fields": 18,
+      "token_recall": 0.46634615384615385,
+      "field_hit_rate": 0.16666666666666666,
+      "token_recall_folded": 0.5480769230769231,
+      "field_hit_rate_folded": 0.3888888888888889,
+      "money_total": 6,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.phone",
+          "expected": "0824658310",
+          "score": 0.0
+        },
+        {
+          "role": "menu[0].price",
+          "expected": "1.660.000",
+          "score": 0.0
+        },
+        {
+          "role": "menu[1].price",
+          "expected": "36.497.000",
+          "score": 0.0
+        }
+      ],
+      "framework": "html",
+      "layout": "invoice_vat_form",
+      "augmentation": "medium",
+      "visual": "laser_invoice",
+      "words_found": 330
+    },
+    {
+      "file_name": "html_015.jpg",
+      "fields": 20,
+      "token_recall": 0.35687732342007433,
+      "field_hit_rate": 0.1,
+      "token_recall_folded": 0.42379182156133827,
+      "field_hit_rate_folded": 0.2,
+      "money_total": 8,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.phone",
+          "expected": "0511792385",
+          "score": 0.0
+        },
+        {
+          "role": "menu[0].price",
+          "expected": "59.256.000",
+          "score": 0.0
+        },
+        {
+          "role": "menu[1].price",
+          "expected": "7.721.000",
+          "score": 0.0
+        }
+      ],
+      "framework": "html",
+      "layout": "invoice_vat_summary",
+      "augmentation": "punched",
+      "visual": "laser_invoice",
+      "words_found": 398
+    },
+    {
+      "file_name": "html_016.jpg",
+      "fields": 11,
+      "token_recall": 0.6613756613756614,
+      "field_hit_rate": 0.5454545454545454,
+      "token_recall_folded": 0.7619047619047619,
+      "field_hit_rate_folded": 0.7272727272727273,
+      "money_total": 2,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.phone",
+          "expected": "0919202577",
+          "score": 0.0
+        },
+        {
+          "role": "menu[0].price",
+          "expected": "152.700",
+          "score": 0.0
+        },
+        {
+          "role": "menu[0].nm",
+          "expected": "TIỀN NƯỚC CƠ QUAN HÀNH CHÍNH",
+          "score": 0.333
+        }
+      ],
+      "framework": "html",
+      "layout": "invoice_water",
+      "augmentation": "stains",
+      "visual": "laser_invoice",
+      "words_found": 246
+    },
+    {
+      "file_name": "html_017.jpg",
+      "fields": 21,
+      "token_recall": 0.2988505747126437,
+      "field_hit_rate": 0.19047619047619047,
+      "token_recall_folded": 0.3563218390804598,
+      "field_hit_rate_folded": 0.23809523809523808,
+      "money_total": 7,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "menu[0].price",
+          "expected": "149,000",
+          "score": 0.0
+        },
+        {
+          "role": "menu[1].nm",
+          "expected": "TAO ENVY NEW ZEALAND",
+          "score": 0.0
+        },
+        {
+          "role": "menu[1].price",
+          "expected": "354,000",
+          "score": 0.0
+        }
+      ],
+      "framework": "html",
+      "layout": "market_barcode",
+      "augmentation": "medium",
+      "visual": "thermal_dark",
+      "words_found": 69
+    },
+    {
+      "file_name": "html_018.jpg",
+      "fields": 15,
+      "token_recall": 0.4473684210526316,
+      "field_hit_rate": 0.26666666666666666,
+      "token_recall_folded": 0.5131578947368421,
+      "field_hit_rate_folded": 0.4,
+      "money_total": 4,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.branch",
+          "expected": "CITIMART BINH THANH",
+          "score": 0.0
+        },
+        {
+          "role": "store.address",
+          "expected": "SO 304A DUONG NGUYEN THI MINH KHAI",
+          "score": 0.0
+        },
+        {
+          "role": "store.address2",
+          "expected": "P.PHUONG 12, Q.BINH THANH",
+          "score": 0.0
+        }
+      ],
+      "framework": "html",
+      "layout": "market_compact",
+      "augmentation": "photocopy",
+      "visual": "thermal_dark",
+      "words_found": 74
+    },
+    {
+      "file_name": "html_019.jpg",
+      "fields": 24,
+      "token_recall": 0.7884615384615384,
+      "field_hit_rate": 0.5416666666666666,
+      "token_recall_folded": 0.7884615384615384,
+      "field_hit_rate_folded": 0.5416666666666666,
+      "money_total": 6,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.name",
+          "expected": "VinCommerce",
+          "score": 0.0
+        },
+        {
+          "role": "store.branch",
+          "expected": "VM Times City",
+          "score": 0.0
+        },
+        {
+          "role": "menu[0].price",
+          "expected": "351,000.00",
+          "score": 0.0
+        }
+      ],
+      "framework": "html",
+      "layout": "market_vat",
+      "augmentation": "light",
+      "visual": "thermal_narrow",
+      "words_found": 155
+    },
+    {
+      "file_name": "genalog_000.jpg",
+      "fields": 9,
+      "token_recall": 0.6792452830188679,
+      "field_hit_rate": 0.6666666666666666,
+      "token_recall_folded": 0.7735849056603774,
+      "field_hit_rate_folded": 0.7777777777777778,
+      "money_total": 3,
+      "money_exact": 3,
+      "worst_fields": [
+        {
+          "role": "title",
+          "expected": "PHIEU THANH TOAN",
+          "score": 0.0
+        },
+        {
+          "role": "menu[0].nm",
+          "expected": "CA LOC CHIEN MAM XOAI",
+          "score": 0.6
+        },
+        {
+          "role": "total[TIEN MAT]",
+          "expected": "TIEN MAT 232,000",
+          "score": 0.667
         }
       ],
       "framework": "genalog",
       "layout": "eatery_ascii",
       "augmentation": "real_paper",
       "visual": "thermal_narrow",
-      "words_found": 56
+      "words_found": 62
     },
     {
       "file_name": "genalog_001.jpg",
-      "fields": 19,
-      "token_recall": 0.6470588235294118,
-      "field_hit_rate": 0.42105263157894735,
-      "token_recall_folded": 0.6617647058823529,
-      "field_hit_rate_folded": 0.47368421052631576,
-      "money_total": 7,
-      "money_exact": 0,
+      "fields": 17,
+      "token_recall": 0.6206896551724138,
+      "field_hit_rate": 0.35294117647058826,
+      "token_recall_folded": 0.6551724137931034,
+      "field_hit_rate_folded": 0.47058823529411764,
+      "money_total": 6,
+      "money_exact": 1,
       "worst_fields": [
-        {
-          "role": "menu[0].price",
-          "expected": "96,000",
-          "score": 0.0
-        },
         {
           "role": "menu[1].price",
           "expected": "75,000",
@@ -1454,279 +1485,508 @@
           "role": "menu[2].price",
           "expected": "156,000",
           "score": 0.0
+        },
+        {
+          "role": "menu[3].price",
+          "expected": "89,000",
+          "score": 0.0
         }
       ],
       "framework": "genalog",
       "layout": "eatery_ascii",
       "augmentation": "medium",
       "visual": "thermal_dark",
-      "words_found": 88
+      "words_found": 74
     },
     {
       "file_name": "genalog_002.jpg",
-      "fields": 9,
-      "token_recall": 0.6595744680851063,
-      "field_hit_rate": 0.2222222222222222,
-      "token_recall_folded": 0.7021276595744681,
-      "field_hit_rate_folded": 0.3333333333333333,
-      "money_total": 2,
-      "money_exact": 1,
-      "worst_fields": [
-        {
-          "role": "menu[0].price",
-          "expected": "141,000",
-          "score": 0.0
-        },
-        {
-          "role": "store.address",
-          "expected": "183 TON DAN - 1 - TPHCM",
-          "score": 0.4
-        },
-        {
-          "role": "store.phone",
-          "expected": "DT: 0292507621",
-          "score": 0.5
-        }
-      ],
-      "framework": "genalog",
-      "layout": "eatery_ascii",
-      "augmentation": "torn_edges",
-      "visual": "thermal_dark",
-      "words_found": 60
-    },
-    {
-      "file_name": "genalog_003.jpg",
-      "fields": 22,
-      "token_recall": 0.4507042253521127,
-      "field_hit_rate": 0.3181818181818182,
-      "token_recall_folded": 0.4788732394366197,
-      "field_hit_rate_folded": 0.36363636363636365,
-      "money_total": 9,
-      "money_exact": 2,
-      "worst_fields": [
-        {
-          "role": "menu[0].price",
-          "expected": "36,000",
-          "score": 0.0
-        },
-        {
-          "role": "menu[1].price",
-          "expected": "15,000",
-          "score": 0.0
-        },
-        {
-          "role": "menu[2].price",
-          "expected": "168,000",
-          "score": 0.0
-        }
-      ],
-      "framework": "genalog",
-      "layout": "eatery_ascii",
-      "augmentation": "photocopy",
-      "visual": "thermal_narrow",
-      "words_found": 89
-    },
-    {
-      "file_name": "genalog_004.jpg",
       "fields": 16,
-      "token_recall": 0.8983050847457628,
-      "field_hit_rate": 0.9375,
-      "token_recall_folded": 0.8983050847457628,
-      "field_hit_rate_folded": 0.9375,
+      "token_recall": 0.31746031746031744,
+      "field_hit_rate": 0.1875,
+      "token_recall_folded": 0.3333333333333333,
+      "field_hit_rate_folded": 0.1875,
       "money_total": 5,
-      "money_exact": 5,
-      "worst_fields": [
-        {
-          "role": "total[Tiền thối lại]",
-          "expected": "Tiền thối lại 0đ",
-          "score": 0.25
-        },
-        {
-          "role": "store.name",
-          "expected": "Cửa Hàng Nhà Gỗ",
-          "score": 1.0
-        },
-        {
-          "role": "store.address",
-          "expected": "23 Đội Cấn - 3 - TPHCM",
-          "score": 1.0
-        }
-      ],
-      "framework": "genalog",
-      "layout": "eatery_indexed",
-      "augmentation": "real_paper",
-      "visual": "laser_sharp",
-      "words_found": 73
-    },
-    {
-      "file_name": "genalog_005.jpg",
-      "fields": 27,
-      "token_recall": 0.9367088607594937,
-      "field_hit_rate": 0.9259259259259259,
-      "token_recall_folded": 0.9620253164556962,
-      "field_hit_rate_folded": 0.9259259259259259,
-      "money_total": 11,
-      "money_exact": 10,
-      "worst_fields": [
-        {
-          "role": "menu[3].price",
-          "expected": "89,000",
-          "score": 0.0
-        },
-        {
-          "role": "menu[5].nm",
-          "expected": "CA KHO TO",
-          "score": 0.333
-        },
-        {
-          "role": "store.address",
-          "expected": "26-193 XUAN THUY - HUE - THUA THIEN HUE",
-          "score": 0.857
-        }
-      ],
-      "framework": "genalog",
-      "layout": "eatery_indexed",
-      "augmentation": "real_paper",
-      "visual": "laser_sharp",
-      "words_found": 118
-    },
-    {
-      "file_name": "genalog_006.jpg",
-      "fields": 15,
-      "token_recall": 0.835820895522388,
-      "field_hit_rate": 0.6666666666666666,
-      "token_recall_folded": 0.835820895522388,
-      "field_hit_rate_folded": 0.7333333333333333,
-      "money_total": 3,
       "money_exact": 0,
       "worst_fields": [
         {
+          "role": "store.phone",
+          "expected": "0855445716",
+          "score": 0.0
+        },
+        {
+          "role": "menu[0].nm",
+          "expected": "Trà tắc",
+          "score": 0.0
+        },
+        {
           "role": "menu[0].price",
-          "expected": "168.000",
-          "score": 0.0
-        },
-        {
-          "role": "menu[1].price",
-          "expected": "72.000",
-          "score": 0.0
-        },
-        {
-          "role": "menu[2].price",
           "expected": "30.000",
           "score": 0.0
         }
       ],
       "framework": "genalog",
       "layout": "eatery_indexed",
-      "augmentation": "light",
-      "visual": "thermal_faint",
-      "words_found": 84
+      "augmentation": "medium",
+      "visual": "thermal_dark",
+      "words_found": 37
     },
     {
-      "file_name": "genalog_007.jpg",
-      "fields": 15,
-      "token_recall": 0.5,
-      "field_hit_rate": 0.06666666666666667,
-      "token_recall_folded": 0.5344827586206896,
-      "field_hit_rate_folded": 0.06666666666666667,
-      "money_total": 5,
-      "money_exact": 0,
+      "file_name": "genalog_003.jpg",
+      "fields": 25,
+      "token_recall": 0.8472222222222222,
+      "field_hit_rate": 0.92,
+      "token_recall_folded": 0.875,
+      "field_hit_rate_folded": 0.92,
+      "money_total": 10,
+      "money_exact": 10,
       "worst_fields": [
         {
-          "role": "store.phone",
-          "expected": "DT: 0516860761",
+          "role": "menu[2].nm",
+          "expected": "MIEN GA",
           "score": 0.0
         },
         {
-          "role": "menu[0].price",
-          "expected": "30,000",
-          "score": 0.0
+          "role": "total[TIEN MAT]",
+          "expected": "TIEN MAT 993,000",
+          "score": 0.667
         },
         {
-          "role": "menu[1].price",
-          "expected": "18,000",
-          "score": 0.0
+          "role": "store.address",
+          "expected": "26-193 XUAN THUY - HUE - THUA THIEN HUE",
+          "score": 0.714
         }
       ],
       "framework": "genalog",
       "layout": "eatery_indexed",
-      "augmentation": "stains",
-      "visual": "thermal_faint",
-      "words_found": 86
+      "augmentation": "real_paper",
+      "visual": "laser_sharp",
+      "words_found": 100
     },
     {
-      "file_name": "genalog_008.jpg",
-      "fields": 24,
-      "token_recall": 0.15254237288135594,
-      "field_hit_rate": 0.16666666666666666,
-      "token_recall_folded": 0.15254237288135594,
-      "field_hit_rate_folded": 0.16666666666666666,
-      "money_total": 6,
-      "money_exact": 0,
+      "file_name": "genalog_004.jpg",
+      "fields": 14,
+      "token_recall": 0.9519230769230769,
+      "field_hit_rate": 0.8571428571428571,
+      "token_recall_folded": 0.9519230769230769,
+      "field_hit_rate_folded": 0.8571428571428571,
+      "money_total": 4,
+      "money_exact": 1,
       "worst_fields": [
         {
-          "role": "title",
-          "expected": "HOÁ ĐƠN GTGT",
+          "role": "menu[1].price",
+          "expected": "174.000 VND",
+          "score": 0.5
+        },
+        {
+          "role": "menu[2].price",
+          "expected": "105.000 VND",
+          "score": 0.5
+        },
+        {
+          "role": "total[Tổng tiền thanh toán]",
+          "expected": "Tổng tiền thanh toán 374.760 VND",
+          "score": 0.833
+        }
+      ],
+      "framework": "genalog",
+      "layout": "invoice_brand",
+      "augmentation": "real_paper",
+      "visual": "laser_invoice",
+      "words_found": 141
+    },
+    {
+      "file_name": "genalog_005.jpg",
+      "fields": 18,
+      "token_recall": 0.9304347826086956,
+      "field_hit_rate": 0.8888888888888888,
+      "token_recall_folded": 0.9391304347826087,
+      "field_hit_rate_folded": 0.8888888888888888,
+      "money_total": 6,
+      "money_exact": 4,
+      "worst_fields": [
+        {
+          "role": "store.phone",
+          "expected": "0838357215",
+          "score": 0.0
+        },
+        {
+          "role": "menu[4].price",
+          "expected": "70.000",
           "score": 0.0
         },
         {
           "role": "menu[0].nm",
-          "expected": "OMACHI Mì khoai tây sườn hầm 5 gói",
+          "expected": "Bánh flan caramen (set 6 hũ)",
+          "score": 0.833
+        }
+      ],
+      "framework": "genalog",
+      "layout": "invoice_brand",
+      "augmentation": "pristine",
+      "visual": "laser_invoice",
+      "words_found": 156
+    },
+    {
+      "file_name": "genalog_006.jpg",
+      "fields": 12,
+      "token_recall": 0.3591331269349845,
+      "field_hit_rate": 0.08333333333333333,
+      "token_recall_folded": 0.4024767801857585,
+      "field_hit_rate_folded": 0.08333333333333333,
+      "money_total": 4,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.phone",
+          "expected": "0724770249",
           "score": 0.0
         },
         {
           "role": "menu[0].price",
-          "expected": "84,000",
+          "expected": "2.757.000",
+          "score": 0.0
+        },
+        {
+          "role": "menu[1].price",
+          "expected": "174.628.800",
           "score": 0.0
         }
       ],
       "framework": "genalog",
-      "layout": "market_barcode",
-      "augmentation": "real_paper",
-      "visual": "thermal_faint",
-      "words_found": 19
+      "layout": "invoice_export",
+      "augmentation": "punched",
+      "visual": "laser_invoice",
+      "words_found": 367
     },
     {
-      "file_name": "genalog_009.jpg",
-      "fields": 25,
-      "token_recall": 0.8173913043478261,
-      "field_hit_rate": 0.8,
-      "token_recall_folded": 0.8173913043478261,
-      "field_hit_rate_folded": 0.8,
-      "money_total": 9,
-      "money_exact": 7,
+      "file_name": "genalog_007.jpg",
+      "fields": 10,
+      "token_recall": 0.26174496644295303,
+      "field_hit_rate": 0.1,
+      "token_recall_folded": 0.28187919463087246,
+      "field_hit_rate_folded": 0.1,
+      "money_total": 3,
+      "money_exact": 1,
       "worst_fields": [
         {
-          "role": "menu[4].price",
-          "expected": "61,500",
+          "role": "store.phone",
+          "expected": "0450970496",
           "score": 0.0
         },
         {
-          "role": "menu[6].price",
-          "expected": "600,000",
+          "role": "menu[0].price",
+          "expected": "15.221.800",
+          "score": 0.0
+        },
+        {
+          "role": "total[Cộng tiền hàng (Total amount)]",
+          "expected": "Cộng tiền hàng (Total amount) 20.543.500",
+          "score": 0.167
+        }
+      ],
+      "framework": "genalog",
+      "layout": "invoice_export",
+      "augmentation": "torn_edges",
+      "visual": "impact_invoice",
+      "words_found": 373
+    },
+    {
+      "file_name": "genalog_008.jpg",
+      "fields": 16,
+      "token_recall": 0.36507936507936506,
+      "field_hit_rate": 0.1875,
+      "token_recall_folded": 0.38095238095238093,
+      "field_hit_rate_folded": 0.1875,
+      "money_total": 5,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.name",
+          "expected": "HAPPY HOLIDAY RESORT",
           "score": 0.0
         },
         {
           "role": "store.phone",
-          "expected": "DT: 027.74544651",
-          "score": 0.5
+          "expected": "0716277531",
+          "score": 0.0
+        },
+        {
+          "role": "menu[0].price",
+          "expected": "1.436.000",
+          "score": 0.0
         }
       ],
       "framework": "genalog",
-      "layout": "market_barcode",
+      "layout": "invoice_hotel_compact",
+      "augmentation": "punched",
+      "visual": "laser_invoice",
+      "words_found": 173
+    },
+    {
+      "file_name": "genalog_009.jpg",
+      "fields": 10,
+      "token_recall": 0.9769230769230769,
+      "field_hit_rate": 1.0,
+      "token_recall_folded": 0.9769230769230769,
+      "field_hit_rate_folded": 1.0,
+      "money_total": 2,
+      "money_exact": 1,
+      "worst_fields": [
+        {
+          "role": "store.name",
+          "expected": "KHÁCH SẠN THÁI AN",
+          "score": 0.75
+        },
+        {
+          "role": "store.branch",
+          "expected": "Cơ sở 2 - Trần Phú",
+          "score": 1.0
+        },
+        {
+          "role": "store.address",
+          "expected": "Số 58 Tây Sơn, Phường 12, Bình Thạnh, TPHCM",
+          "score": 1.0
+        }
+      ],
+      "framework": "genalog",
+      "layout": "invoice_hotel_compact",
       "augmentation": "real_paper",
-      "visual": "thermal_dark",
-      "words_found": 141
+      "visual": "laser_invoice",
+      "words_found": 142
     },
     {
       "file_name": "genalog_010.jpg",
-      "fields": 35,
-      "token_recall": 0.8854961832061069,
+      "fields": 14,
+      "token_recall": 0.9609375,
       "field_hit_rate": 0.8571428571428571,
-      "token_recall_folded": 0.8854961832061069,
+      "token_recall_folded": 0.96875,
       "field_hit_rate_folded": 0.8571428571428571,
-      "money_total": 12,
-      "money_exact": 11,
+      "money_total": 4,
+      "money_exact": 2,
+      "worst_fields": [
+        {
+          "role": "store.phone",
+          "expected": "0660045329",
+          "score": 0.0
+        },
+        {
+          "role": "menu[1].price",
+          "expected": "414.000",
+          "score": 0.0
+        },
+        {
+          "role": "total[TIỀN THỪA TRẢ KHÁCH]",
+          "expected": "TIỀN THỪA TRẢ KHÁCH 0",
+          "score": 0.8
+        }
+      ],
+      "framework": "genalog",
+      "layout": "invoice_hotel_stay",
+      "augmentation": "light",
+      "visual": "impact_invoice",
+      "words_found": 151
+    },
+    {
+      "file_name": "genalog_011.jpg",
+      "fields": 20,
+      "token_recall": 0.15723270440251572,
+      "field_hit_rate": 0.0,
+      "token_recall_folded": 0.18238993710691823,
+      "field_hit_rate_folded": 0.1,
+      "money_total": 4,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.phone",
+          "expected": "0419086328",
+          "score": 0.0
+        },
+        {
+          "role": "title",
+          "expected": "HOÁ ĐƠN",
+          "score": 0.0
+        },
+        {
+          "role": "menu[0].price",
+          "expected": "912.000",
+          "score": 0.0
+        }
+      ],
+      "framework": "genalog",
+      "layout": "invoice_hotel_stay",
+      "augmentation": "medium",
+      "visual": "laser_invoice",
+      "words_found": 113
+    },
+    {
+      "file_name": "genalog_012.jpg",
+      "fields": 18,
+      "token_recall": 0.4107142857142857,
+      "field_hit_rate": 0.3333333333333333,
+      "token_recall_folded": 0.45535714285714285,
+      "field_hit_rate_folded": 0.4444444444444444,
+      "money_total": 6,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.phone",
+          "expected": "0836393969",
+          "score": 0.0
+        },
+        {
+          "role": "menu[0].price",
+          "expected": "42.456",
+          "score": 0.0
+        },
+        {
+          "role": "menu[1].price",
+          "expected": "135.100",
+          "score": 0.0
+        }
+      ],
+      "framework": "genalog",
+      "layout": "invoice_power",
+      "augmentation": "medium",
+      "visual": "laser_invoice",
+      "words_found": 300
+    },
+    {
+      "file_name": "genalog_013.jpg",
+      "fields": 19,
+      "token_recall": 0.5555555555555556,
+      "field_hit_rate": 0.3157894736842105,
+      "token_recall_folded": 0.5555555555555556,
+      "field_hit_rate_folded": 0.3157894736842105,
+      "money_total": 6,
+      "money_exact": 1,
+      "worst_fields": [
+        {
+          "role": "menu[2].price",
+          "expected": "$70.72",
+          "score": 0.0
+        },
+        {
+          "role": "menu[3].price",
+          "expected": "$139.74",
+          "score": 0.0
+        },
+        {
+          "role": "total[Grand Total]",
+          "expected": "Grand Total $839.04",
+          "score": 0.0
+        }
+      ],
+      "framework": "genalog",
+      "layout": "invoice_tax_en",
+      "augmentation": "light",
+      "visual": "laser_invoice",
+      "words_found": 164
+    },
+    {
+      "file_name": "genalog_014.jpg",
+      "fields": 18,
+      "token_recall": 0.40384615384615385,
+      "field_hit_rate": 0.1111111111111111,
+      "token_recall_folded": 0.4951923076923077,
+      "field_hit_rate_folded": 0.2777777777777778,
+      "money_total": 6,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.phone",
+          "expected": "0824658310",
+          "score": 0.0
+        },
+        {
+          "role": "menu[0].price",
+          "expected": "1.660.000",
+          "score": 0.0
+        },
+        {
+          "role": "menu[1].price",
+          "expected": "36.497.000",
+          "score": 0.0
+        }
+      ],
+      "framework": "genalog",
+      "layout": "invoice_vat_form",
+      "augmentation": "medium",
+      "visual": "laser_invoice",
+      "words_found": 282
+    },
+    {
+      "file_name": "genalog_015.jpg",
+      "fields": 20,
+      "token_recall": 0.379182156133829,
+      "field_hit_rate": 0.2,
+      "token_recall_folded": 0.4349442379182156,
+      "field_hit_rate_folded": 0.2,
+      "money_total": 8,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.phone",
+          "expected": "0511792385",
+          "score": 0.0
+        },
+        {
+          "role": "menu[0].price",
+          "expected": "59.256.000",
+          "score": 0.0
+        },
+        {
+          "role": "menu[1].price",
+          "expected": "7.721.000",
+          "score": 0.0
+        }
+      ],
+      "framework": "genalog",
+      "layout": "invoice_vat_summary",
+      "augmentation": "punched",
+      "visual": "laser_invoice",
+      "words_found": 400
+    },
+    {
+      "file_name": "genalog_016.jpg",
+      "fields": 11,
+      "token_recall": 0.6613756613756614,
+      "field_hit_rate": 0.45454545454545453,
+      "token_recall_folded": 0.7248677248677249,
+      "field_hit_rate_folded": 0.5454545454545454,
+      "money_total": 2,
+      "money_exact": 0,
+      "worst_fields": [
+        {
+          "role": "store.phone",
+          "expected": "0919202577",
+          "score": 0.0
+        },
+        {
+          "role": "menu[0].price",
+          "expected": "152.700",
+          "score": 0.0
+        },
+        {
+          "role": "total[THUẾ SUẤT 5%]",
+          "expected": "THUẾ SUẤT 5% 7.635",
+          "score": 0.25
+        }
+      ],
+      "framework": "genalog",
+      "layout": "invoice_water",
+      "augmentation": "stains",
+      "visual": "laser_invoice",
+      "words_found": 230
+    },
+    {
+      "file_name": "genalog_017.jpg",
+      "fields": 21,
+      "token_recall": 0.3793103448275862,
+      "field_hit_rate": 0.23809523809523808,
+      "token_recall_folded": 0.4482758620689655,
+      "field_hit_rate_folded": 0.23809523809523808,
+      "money_total": 7,
+      "money_exact": 0,
       "worst_fields": [
         {
           "role": "store.name",
@@ -1734,309 +1994,85 @@
           "score": 0.0
         },
         {
-          "role": "menu[4].price",
-          "expected": "24.000",
+          "role": "store.address2",
+          "expected": "P.VO THI SAU, Q.3",
           "score": 0.0
         },
         {
-          "role": "menu[4].nm",
-          "expected": "MUỐI I-ỐT BẠC LIÊU 500G",
-          "score": 0.4
-        }
-      ],
-      "framework": "genalog",
-      "layout": "market_barcode",
-      "augmentation": "ghost_text",
-      "visual": "thermal_faint",
-      "words_found": 174
-    },
-    {
-      "file_name": "genalog_011.jpg",
-      "fields": 16,
-      "token_recall": 0.782608695652174,
-      "field_hit_rate": 0.6875,
-      "token_recall_folded": 0.8043478260869565,
-      "field_hit_rate_folded": 0.6875,
-      "money_total": 3,
-      "money_exact": 0,
-      "worst_fields": [
-        {
-          "role": "menu[0].price",
-          "expected": "156.000",
-          "score": 0.0
-        },
-        {
-          "role": "menu[1].price",
-          "expected": "1.001.000",
-          "score": 0.0
-        },
-        {
-          "role": "menu[2].price",
-          "expected": "31.000",
+          "role": "store.phone",
+          "expected": "DT: 026.74376299",
           "score": 0.0
         }
       ],
       "framework": "genalog",
       "layout": "market_barcode",
-      "augmentation": "torn_edges",
-      "visual": "thermal_faint",
-      "words_found": 105
-    },
-    {
-      "file_name": "genalog_012.jpg",
-      "fields": 29,
-      "token_recall": 0.47058823529411764,
-      "field_hit_rate": 0.3103448275862069,
-      "token_recall_folded": 0.49264705882352944,
-      "field_hit_rate_folded": 0.3103448275862069,
-      "money_total": 9,
-      "money_exact": 0,
-      "worst_fields": [
-        {
-          "role": "store.address2",
-          "expected": "P.Hoà Phú, Q.Thủ Dầu Một",
-          "score": 0.0
-        },
-        {
-          "role": "store.phone",
-          "expected": "ĐT: 026.79539947",
-          "score": 0.0
-        },
-        {
-          "role": "menu[0].price",
-          "expected": "171.500",
-          "score": 0.0
-        }
-      ],
-      "framework": "genalog",
-      "layout": "market_compact",
-      "augmentation": "photocopy",
-      "visual": "thermal_narrow",
-      "words_found": 163
-    },
-    {
-      "file_name": "genalog_013.jpg",
-      "fields": 27,
-      "token_recall": 0.7622950819672131,
-      "field_hit_rate": 0.7037037037037037,
-      "token_recall_folded": 0.7622950819672131,
-      "field_hit_rate_folded": 0.7037037037037037,
-      "money_total": 8,
-      "money_exact": 6,
-      "worst_fields": [
-        {
-          "role": "store.address",
-          "expected": "SỐ 397A ĐƯỜNG XUÂN THỦY",
-          "score": 0.0
-        },
-        {
-          "role": "store.address2",
-          "expected": "P.BẾN NGHÉ, Q.1",
-          "score": 0.0
-        },
-        {
-          "role": "store.phone",
-          "expected": "ĐT: 027.71993769",
-          "score": 0.0
-        }
-      ],
-      "framework": "genalog",
-      "layout": "market_compact",
-      "augmentation": "pristine",
-      "visual": "thermal_faint",
-      "words_found": 142
-    },
-    {
-      "file_name": "genalog_014.jpg",
-      "fields": 13,
-      "token_recall": 0.48484848484848486,
-      "field_hit_rate": 0.23076923076923078,
-      "token_recall_folded": 0.5,
-      "field_hit_rate_folded": 0.23076923076923078,
-      "money_total": 3,
-      "money_exact": 0,
-      "worst_fields": [
-        {
-          "role": "store.address2",
-          "expected": "P.BEN THANH, Q.1",
-          "score": 0.0
-        },
-        {
-          "role": "store.phone",
-          "expected": "DT: 028.77760413",
-          "score": 0.0
-        },
-        {
-          "role": "menu[0].price",
-          "expected": "16,500",
-          "score": 0.0
-        }
-      ],
-      "framework": "genalog",
-      "layout": "market_compact",
-      "augmentation": "stains",
-      "visual": "dot_matrix",
-      "words_found": 63
-    },
-    {
-      "file_name": "genalog_015.jpg",
-      "fields": 22,
-      "token_recall": 0.6296296296296297,
-      "field_hit_rate": 0.6818181818181818,
-      "token_recall_folded": 0.6574074074074074,
-      "field_hit_rate_folded": 0.6818181818181818,
-      "money_total": 5,
-      "money_exact": 3,
-      "worst_fields": [
-        {
-          "role": "store.branch",
-          "expected": "MM BÌNH PHÚ",
-          "score": 0.0
-        },
-        {
-          "role": "store.address2",
-          "expected": "P.TÂN PHONG, Q.7",
-          "score": 0.0
-        },
-        {
-          "role": "store.phone",
-          "expected": "ĐT: 026.79725598",
-          "score": 0.0
-        }
-      ],
-      "framework": "genalog",
-      "layout": "market_compact",
-      "augmentation": "photocopy",
-      "visual": "laser_sharp",
-      "words_found": 101
-    },
-    {
-      "file_name": "genalog_016.jpg",
-      "fields": 25,
-      "token_recall": 0.6372549019607843,
-      "field_hit_rate": 0.4,
-      "token_recall_folded": 0.7156862745098039,
-      "field_hit_rate_folded": 0.44,
-      "money_total": 9,
-      "money_exact": 0,
-      "worst_fields": [
-        {
-          "role": "store.name",
-          "expected": "VINCOMMERCE",
-          "score": 0.0
-        },
-        {
-          "role": "store.branch",
-          "expected": "VM THANG LONG",
-          "score": 0.0
-        },
-        {
-          "role": "menu[0].price",
-          "expected": "61,000",
-          "score": 0.0
-        }
-      ],
-      "framework": "genalog",
-      "layout": "market_vat",
-      "augmentation": "torn_edges",
-      "visual": "thermal_faint",
-      "words_found": 179
-    },
-    {
-      "file_name": "genalog_017.jpg",
-      "fields": 19,
-      "token_recall": 0.7804878048780488,
-      "field_hit_rate": 0.7894736842105263,
-      "token_recall_folded": 0.7926829268292683,
-      "field_hit_rate_folded": 0.7894736842105263,
-      "money_total": 6,
-      "money_exact": 4,
-      "worst_fields": [
-        {
-          "role": "store.branch",
-          "expected": "VM ROYAL CITY",
-          "score": 0.0
-        },
-        {
-          "role": "menu[4].price",
-          "expected": "234,000",
-          "score": 0.0
-        },
-        {
-          "role": "menu[5].price",
-          "expected": "43,000",
-          "score": 0.0
-        }
-      ],
-      "framework": "genalog",
-      "layout": "market_vat",
-      "augmentation": "real_paper",
-      "visual": "dot_matrix",
-      "words_found": 125
+      "augmentation": "medium",
+      "visual": "thermal_dark",
+      "words_found": 87
     },
     {
       "file_name": "genalog_018.jpg",
-      "fields": 22,
-      "token_recall": 0.6702127659574468,
-      "field_hit_rate": 0.5,
-      "token_recall_folded": 0.7127659574468085,
-      "field_hit_rate_folded": 0.5454545454545454,
+      "fields": 15,
+      "token_recall": 0.5263157894736842,
+      "field_hit_rate": 0.4,
+      "token_recall_folded": 0.5789473684210527,
+      "field_hit_rate_folded": 0.4,
+      "money_total": 4,
+      "money_exact": 2,
+      "worst_fields": [
+        {
+          "role": "store.branch",
+          "expected": "CITIMART BINH THANH",
+          "score": 0.0
+        },
+        {
+          "role": "store.address",
+          "expected": "SO 304A DUONG NGUYEN THI MINH KHAI",
+          "score": 0.0
+        },
+        {
+          "role": "store.address2",
+          "expected": "P.PHUONG 12, Q.BINH THANH",
+          "score": 0.0
+        }
+      ],
+      "framework": "genalog",
+      "layout": "market_compact",
+      "augmentation": "photocopy",
+      "visual": "thermal_dark",
+      "words_found": 100
+    },
+    {
+      "file_name": "genalog_019.jpg",
+      "fields": 24,
+      "token_recall": 0.8076923076923077,
+      "field_hit_rate": 0.6666666666666666,
+      "token_recall_folded": 0.8269230769230769,
+      "field_hit_rate_folded": 0.6666666666666666,
       "money_total": 6,
       "money_exact": 2,
       "worst_fields": [
         {
           "role": "store.name",
-          "expected": "Co.opmart",
+          "expected": "VinCommerce",
           "score": 0.0
         },
         {
           "role": "store.branch",
-          "expected": "CoopMart Cống Quỳnh",
+          "expected": "VM Times City",
           "score": 0.0
         },
         {
-          "role": "store.phone",
-          "expected": "ĐT: 027.74563698",
+          "role": "menu[1].price",
+          "expected": "177,500.00",
           "score": 0.0
         }
       ],
       "framework": "genalog",
       "layout": "market_vat",
-      "augmentation": "medium",
-      "visual": "thermal_dark",
-      "words_found": 148
-    },
-    {
-      "file_name": "genalog_019.jpg",
-      "fields": 22,
-      "token_recall": 0.6132075471698113,
-      "field_hit_rate": 0.4090909090909091,
-      "token_recall_folded": 0.6509433962264151,
-      "field_hit_rate_folded": 0.45454545454545453,
-      "money_total": 6,
-      "money_exact": 1,
-      "worst_fields": [
-        {
-          "role": "store.name",
-          "expected": "VINCOMMERCE",
-          "score": 0.0
-        },
-        {
-          "role": "store.branch",
-          "expected": "VM THĂNG LONG",
-          "score": 0.0
-        },
-        {
-          "role": "menu[0].price",
-          "expected": "371.000",
-          "score": 0.0
-        }
-      ],
-      "framework": "genalog",
-      "layout": "market_vat",
-      "augmentation": "photocopy",
-      "visual": "thermal_dark",
-      "words_found": 152
+      "augmentation": "light",
+      "visual": "thermal_narrow",
+      "words_found": 159
     }
   ]
 }
