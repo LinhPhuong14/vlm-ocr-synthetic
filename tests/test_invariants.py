@@ -21,7 +21,7 @@ import pytest
 
 import rulebase
 from pipeline import invariants
-from pipeline.invariants import BUDGETS, Tally, inspect
+from pipeline.invariants import BUDGETS, InvariantError, Tally, inspect
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 ORDER = invariants.attribute_names()
@@ -217,26 +217,42 @@ def test_change_that_is_not_cash_minus_total_is_caught():
     pytest.skip(f"no seed in {SEEDS} printed both a total and change")
 
 
-def test_a_collapsed_total_label_is_counted_not_errored():
-    """A real defect that predates W2, and belongs to W4.
+def test_a_total_row_the_label_cannot_carry_stops_the_shard():
+    """Counted for three waves, and it stayed in the shipped data for three.
 
-    When the payment label drawn from the corpus equals the document's grand
-    label, `ground_truth`'s `total` dict loses one of the two rows -- both are
-    still on the page. Constructed here rather than waited for: it happens in
-    roughly 3% of receipts, so a five-seed sweep would usually miss it.
+    `total` in `ground_truth` is a dict keyed by the drawn label, so two rows
+    printed under one label collapse into one entry: the reader sees both
+    amounts and the ground truth carries one. It was a note --
+    `total_label_collapsed` -- on the grounds that W4 rewrites these labels
+    anyway, and a count nobody trips over is a defect with a hiding place. It
+    is an error now.
+
+    Constructed rather than waited for: the page has to *print* the doubled
+    label, so the boxes are what says so.
     """
     item = a_record()
-    gt = json.loads(item["ground_truth"])["gt_parse"]
-    labels = item["recipe"]["attributes"]["document"]["params"].setdefault(
-        "total_labels", {})
-    keys = list(gt["total"])
-    if len(keys) < 2:
+    boxes = [box for box in item["boxes"]
+             if str(box["kind"]).startswith("total.")
+             and str(box["kind"]).endswith(".label")]
+    if len(boxes) < 2:
         pytest.skip("this seed printed a single total line")
-    labels["grand"] = keys[-2]
-    labels["change"] = keys[-1]
+    boxes[1]["text"] = boxes[0]["text"]          # the page draws one label twice
+
     out = inspect(item, order=ORDER)
-    assert out.errors == []
-    assert out.notes == {"total_label_collapsed": 1}
+    assert out.notes == {}
+    assert any("in no label" in error or "one printed amount" in error
+               for error in out.errors), out.errors
+
+    with pytest.raises(InvariantError):
+        tally = Tally(ORDER)
+        tally.inspect(item)
+
+
+def test_total_rows_that_all_differ_are_silent():
+    """The opposite case, so the check is not simply always on."""
+    item = a_record()
+    out = inspect(item, order=ORDER)
+    assert not [e for e in out.errors if "in no label" in e], out.errors
 
 
 # ------------------------------------------------------------- the pixels
@@ -445,3 +461,36 @@ def test_the_report_is_a_function_of_the_shard_alone():
     assert run() == run()
     text = run()
     assert '"/' not in text and "\\\\" not in text
+
+
+
+# ------------------------------------------------- the data that was shipped
+
+
+SHIPPED = [path for path in (REPO_ROOT / "data").glob("*/*/metadata.jsonl")]
+
+
+@pytest.mark.skipif(not SHIPPED, reason="no dataset is committed")
+def test_no_shipped_image_prints_a_total_row_the_label_cannot_carry():
+    """Law 9: a defect is closed on the population that shipped, or not at all.
+
+    This one was reported closed on 1500 freshly drawn receipts while six of
+    the hundred and twenty committed images still carried it. Fresh draws are a
+    different population -- no pins, no `force`, another distribution -- so they
+    could not have answered the question. The committed files can, and this is
+    the check that asks them.
+    """
+    import collections
+    import json
+
+    bad = []
+    for index in SHIPPED:
+        for line in index.read_text(encoding="utf-8").splitlines():
+            record = json.loads(line)
+            drawn = [box["text"] for box in record.get("boxes", ())
+                     if str(box["kind"]).startswith("total.")
+                     and str(box["kind"]).endswith(".label")]
+            doubled = [t for t, c in collections.Counter(drawn).items() if c > 1]
+            if doubled:
+                bad.append(f"{index.parent.parent.name}/{record['file_name']}: {doubled}")
+    assert not bad, "\n".join(bad)
