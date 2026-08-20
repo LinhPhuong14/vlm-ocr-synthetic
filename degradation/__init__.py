@@ -25,6 +25,7 @@ import numpy as np
 
 from .bleed_through import bleed_through
 from .blur_zones import blur, blur_zones
+from .capture import halftone_screen, jpeg_blocks, scan_banding
 from .holes import holes
 from .ink_degradation import InkDegradationConfig, ink_degradation, seed_mix
 from .shadow_binding import shadow_binding
@@ -36,6 +37,7 @@ from .texture import (
     gradient_domain,
     paper_overlay,
     paper_texture,
+    pattern_overlay,
     phantom_character,
 )
 
@@ -50,8 +52,15 @@ DEGRADATIONS: dict[str, tuple[Callable[..., np.ndarray], bool]] = {
     # the texture models
     "paper_texture": (paper_texture, True),
     "paper_overlay": (paper_overlay, True),
+    "pattern_overlay": (pattern_overlay, True),
     "gradient_domain": (gradient_domain, True),
     "phantom_character": (phantom_character, True),
+    # the capture patterns: periodic marks a device leaves on the COPY, not
+    # damage to the sheet. See degradation/capture.py on why they live in
+    # `augmentation` and not in `ornament`.
+    "halftone_screen": (halftone_screen, True),
+    "scan_banding": (scan_banding, True),
+    "jpeg_blocks": (jpeg_blocks, True),
 }
 
 
@@ -115,6 +124,10 @@ __all__ = [
     "TEXTURE_ROOT",
     "InkDegradationConfig",
     "apply_chain",
+    "halftone_screen",
+    "jpeg_blocks",
+    "pattern_overlay",
+    "scan_banding",
     "apply_one",
     "bleed_through",
     "blur",

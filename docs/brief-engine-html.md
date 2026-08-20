@@ -1,5 +1,10 @@
 # Brief: sửa engine HTML để dựng bảng có ô gộp
 
+> **Việc này đã làm xong.** Bản mô tả bên dưới giữ nguyên như lúc viết, vì nó
+> là bản ghi những gì ĐO ĐƯỢC trước khi sửa. Kết quả và số liệu sau khi sửa nằm
+> ở [§8](#8-đã-làm-gì-và-đo-lại-ra-sao) cuối trang; `a4.py` không còn nữa, chỗ
+> của nó là [`generators/html/sheets/`](../generators/html/sheets).
+
 Tài liệu này viết cho một agent nhận việc sửa `generators/html/`. Nó ghi lại
 **những gì đã đo được**, không phải những gì phỏng đoán — kể cả chỗ triệu
 chứng báo lại mà tôi tái hiện không ra.
@@ -222,3 +227,78 @@ python3 overlap.py /tmp/sweep/metadata.jsonl
 5. `make preflight`, `pytest tests`, `make lint` xanh; `pipeline/invariants.py`
    không có lỗi mới.
 6. Cùng seed vẫn ra cùng pixel.
+
+---
+
+## 8. Đã làm gì, và đo lại ra sao
+
+### Đường template: một `a4.py` → một họ template cho mỗi họ bố cục
+
+`generators/html/a4.py` bị xoá. Thay vào là gói
+[`generators/html/sheets/`](../generators/html/sheets):
+
+| module | dựng | tờ mẫu tham chiếu |
+| --- | --- | --- |
+| `statutory.py` | tờ mẫu in sẵn: khối mẫu số, bảng kẻ ô, hai ô chữ ký | `invoice_vat_summary`, `invoice_export` |
+| `lodging.py` | tờ lưu trú: khối đặt phòng, một dòng một đêm | `invoice_hotel_stay`, `invoice_hotel_compact` |
+| `modern.py` | tờ tự thiết kế: không khung, tổng tiền nép lề phải | `invoice_brand` |
+| `till.py` | giấy cuộn in nhiệt — để `--template` phủ được cả 14 bố cục | — |
+
+`sheets.build(recipe, receipt)` chọn theo `recipe.layout.id`. Bố cục nào không
+có trong `sheets.FAMILIES` là **lỗi có kèm danh sách**, không phải im lặng rơi
+về tờ GTGT — vẽ tờ lưu trú thành tờ thuế đúng là khiếm khuyết mà gói này sinh
+ra để sửa. Cái gì khác nhau GIỮA các thành viên một họ thì đọc từ chính file
+bố cục: `sections:`, `columns:`, `item.rows:` — kể cả `span: [qty, amount]`,
+tức một ô `colspan` thật.
+
+### Đường genalog: WeasyPrint in đúng markup ấy
+
+`generators/genalog/render.py --template` nhận cùng một chuỗi markup, đưa qua
+`Document` của genalog (`templates/sheet.html.jinja` chỉ có `{{ content }}`).
+Box lấy từ **lớp ký tự** của PDF chứ không phải lớp span: đo được rằng một
+`<span>` của WeasyPrint có thể ôm hai `<td>` cạnh nhau — `"3 BÁNH CANH CUA"` là
+ô số lượng dính ô tên hàng — nên cách nối span cũ chỉ tìm lại được 58% số
+trường trên tờ giấy cuộn. Đi theo từng ký tự thì tìm lại được **100%**.
+
+Ba chỗ phải sửa ở CSS để giữ được thứ tự ấy, và cả ba đều cùng một nguyên nhân:
+**WeasyPrint vẽ hộp có `position` SAU hộp trong luồng**, nên một khối chữ được
+định vị là một khối chữ rơi xuống cuối luồng ký tự. Đầu trang tờ lưu trú đổi
+sang hai ô bảng; con dấu khách sạn thành `background`; dấu tick trong ô chữ ký
+số thành `float`. Dấu chìm giữ `position:absolute` nhưng đẩy xuống `z-index:-1`
+thay vì định vị mọi anh em của nó.
+
+### Hộp của một dòng chữ xuống dòng
+
+Cả hai backend cắt box **theo dòng**. Hình chữ nhật bao quanh một đoạn chữ đã
+xuống dòng không phải là box quanh chữ: nó bao cả hai dòng *và khoảng giấy
+trắng giữa hai đầu so le*, và trên một khối chạy hết bề ngang thì nó nuốt luôn
+chữ đứng đầu dòng thứ nhất. Đo được: nhãn "Số tiền bằng chữ:" nằm gọn 100%
+trong box của phần tiền viết bằng chữ. Chromium cắt bằng `Range`, WeasyPrint
+cắt theo toạ độ dòng của ký tự.
+
+### `make_content`: không phủ lưới ký tự lên nội dung trước
+
+`build_grid` cắt giá trị không vừa cột ký tự rồi **ghi ngược** vào `Receipt` để
+nhãn khớp trang đã vẽ. Tờ CSS không có cột ký tự, nên tờ dựng sau một lần
+`build_grid` in ra "Hàng hoá không chịu thuế GTG" trên một dòng còn thừa chỗ.
+`rulebase.make_content()` trả về `(recipe, receipt, rng)` và không dựng lưới;
+hai backend CSS đi lối này.
+
+### Số đo sau khi sửa
+
+| phép đo | kết quả |
+| --- | --- |
+| `--template` chọn theo bố cục | 3 bố cục → 3 trang khác nhau, khác cả khổ giấy (§7.1) |
+| script chồng lấn §6, 120 trang Chromium, đủ 14 bố cục | **0** cặp chồng >30% |
+| script chồng lấn §6, 100 trang WeasyPrint | **0** cặp chồng >30% |
+| `pipeline/invariants.py` trên 220 trang của cả hai backend | **0** lỗi, 15 718 box |
+| tìm lại box từ PDF, 14 bố cục × 3 seed | **100%** số đoạn có nhãn |
+| mọi dòng bảng cộng `colspan` bằng bề rộng bảng | `tests/test_sheets.py`, 14 bố cục × 3 seed |
+| cùng seed → cùng pixel | 4 trang, ảnh và metadata giống nhau từng byte |
+| `pytest tests`, `make lint`, `make preflight` | xanh |
+
+Về §3 — chỗ "chữ đè lên chữ" mà bản brief này không tái hiện được: quét lại
+trên đường template mới thì tìm ra **một** trường hợp thật, và nó không nằm ở
+engine dựng trang mà ở phép ĐO box (đoạn chữ xuống dòng, ở trên). Giả thuyết
+số 1 trong brief — lớp làm cũ chứ không phải engine — vẫn chưa bị bác bỏ, và
+`--force augmentation=pristine` vẫn là cách kiểm nhanh nhất.
