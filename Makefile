@@ -41,7 +41,7 @@ textures:        ## Regenerate the shared paper and background textures
 	$(TASKS) textures
 ornaments:       ## Regenerate the seals and flourishes in textures/ornament
 	$(TASKS) ornaments
-templates:       ## Print the reference sheets in samples/invoice-templates
+templates:       ## Print the reference sheets in samples/*-templates
 	$(TASKS) templates
 
 # ------------------------------------------------------------ generation
