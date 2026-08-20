@@ -392,7 +392,14 @@ def _emit_column_header(builder, spec, receipt, columns, rng=None) -> None:
 
 
 
-def _item_values(item, receipt) -> dict[str, str]:
+def item_values(item, receipt) -> dict[str, str]:
+    """Every string one item can put in a column, keyed by the column's `from:`.
+
+    Public because the CSS template path in `generators/html/sheets/` prints the
+    same columns from the same layout file and must print the same strings. Two
+    derivations of "tiền thuế của dòng này" that agree today are two that can
+    disagree tomorrow, and nothing downstream would catch it.
+    """
     shown_qty = item.display_qty()
     decimals = 3 if shown_qty % 1 else 0
     name = item.name
@@ -477,7 +484,7 @@ def _emit_item_rows(builder, spec, receipt, columns, after_item=None) -> None:
     wrap_name = spec.get("item", {}).get("wrap_name", True)
 
     for item in receipt.items:
-        values = _item_values(item, receipt)
+        values = item_values(item, receipt)
         for row in template:
             base = builder.row
             extra = 0

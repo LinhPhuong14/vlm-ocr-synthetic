@@ -203,6 +203,24 @@ def ornament_assets() -> list[str]:
                 problems.append(
                     f"ornament/{option.id}: names {stem!r}, but "
                     f"textures/ornament/{stem}.png does not exist; run `make ornaments`")
+
+    # `augmentation` reaches the same directory through `pattern_overlay`: a
+    # seal struck on the COPY rather than on the original. Both attributes have
+    # to be read, or a typo in one of them is invisible and a file used only by
+    # the other looks like dead weight.
+    for option in load_rules().get("augmentation") or []:
+        for entry in option.params.get("chain") or []:
+            parts = list(entry) if isinstance(entry, (list, tuple)) else []
+            if len(parts) < 2 or parts[0] != "pattern_overlay":
+                continue
+            stem = str((parts[1] or {}).get("pattern") or "")
+            if not stem:
+                continue          # no `pattern:` means "any of them", which is fine
+            named.add(stem)
+            if stem not in on_disk:
+                problems.append(
+                    f"augmentation/{option.id}: pattern_overlay names {stem!r}, but "
+                    f"textures/ornament/{stem}.png does not exist; run `make ornaments`")
     for stray in sorted(on_disk - named):
         problems.append(
             f"textures/ornament/{stray}.png: no rule in rules/ornament.yaml names it, "
