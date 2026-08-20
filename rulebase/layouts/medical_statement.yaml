@@ -1,0 +1,125 @@
+# Bảng kê chi phí điều trị nội trú — Mẫu số 01/KBCB.
+#
+# Dấu hiệu nhận biết: khối hành chính đánh số (1)…(20) ở đầu trang; bảng MƯỜI
+# HAI cột, trong đó bốn cột cuối là bốn NGUỒN thanh toán gộp dưới một tiêu đề
+# chung; dòng nhóm in đậm mang số cộng của nhóm; và tờ giấy kết bằng một khối
+# quyết toán chia tiền chứ không bằng một dòng tổng.
+#
+# Đây là bố cục rộng nhất kho này có. Trên lưới ký tự nó phải rộng 180+ cột mới
+# đủ chỗ cho mười hai cột tiền; đường CSS (`sheets/medical.py`) không bị ràng
+# buộc ấy và dựng đúng tiêu đề hai tầng như tờ mẫu.
+id: medical_statement
+name: Hospital cost statement — twelve columns, grouped, four payment sources
+source: "ảnh bảng kê 01/KBCB của một bệnh viện đa khoa, 3 trang, có dấu SAO Y BẢN CHÍNH"
+
+width: [182, 196]
+gutter: 1
+rule_char: "-"
+
+sheet: a4
+
+rules: marks
+
+sections: [letterhead, strip, doctitle, parties, table, totals, words, signatures, footer]
+
+letterhead:
+  frame: false
+  name_scale: [1.0, 1.10]
+  name_bold: true
+  serial_width: 40
+  labels:
+    address: "Địa chỉ:"
+    tax_code: ""
+    phone: "Điện thoại:"
+    branch: "Khoa:"
+    account: ""
+    form_no: "Mẫu số:"
+    serial: "Số khám bệnh:"
+    number: ""
+
+strip:
+  separator: "|"
+  rule_after: false
+
+doctitle:
+  scale: [1.20, 1.35]
+
+parties:
+  # Hai cột: trường hành chính bên trái, mã và chỉ số bên phải. Không dòng chấm
+  # — đây là bản in từ phần mềm quản lý bệnh viện, không phải tờ điền tay.
+  style: two_column
+  split: 0.66
+  gap: 2
+  leader: ""
+
+column_header: true
+column_header_bold: true
+columns:
+  - {key: name,         title: "Nội dung",                   width: 0,  align: left,   title_align: center, number: "(1)"}
+  - {key: unit,         title: "Đơn vị tính",                width: 8,  align: center, title_align: center, number: "(2)"}
+  - {key: qty,          title: "Số lượng",                   width: 6,  align: right,  title_align: center, number: "(3)"}
+  - {key: price_bv,     title: "Đơn giá BV",                 width: 13, align: right,  title_align: center, number: "(4)"}
+  - {key: price_bh,     title: "Đơn giá BH",                 width: 13, align: right,  title_align: center, number: "(5)"}
+  - {key: rate_service, title: "Tỷ lệ TT dịch vụ",           width: 7,  align: center, title_align: center, number: "(6)"}
+  - {key: amount_bv,    title: "Thành tiền BV",              width: 15, align: right,  title_align: center, number: "(7)"}
+  - {key: rate_bhyt,    title: "Tỷ lệ TT BHYT",              width: 7,  align: center, title_align: center, number: "(8)"}
+  - {key: amount_bh,    title: "Thành tiền BH",              width: 15, align: right,  title_align: center, number: "(9)"}
+  - {key: fund,         title: "Quỹ BHYT",                   width: 15, align: right,  title_align: center, number: "(10)"}
+  - {key: copay,        title: "Người bệnh cùng chi trả",    width: 13, align: right,  title_align: center, number: "(11)"}
+  - {key: other_pay,    title: "Khác",                       width: 10, align: right,  title_align: center, number: "(12)"}
+  - {key: self_pay,     title: "Người bệnh tự chi trả",      width: 14, align: right,  title_align: center, number: "(13)"}
+
+table:
+  frame: true
+  column_numbers: true
+  row_rules: true
+  blank_rows: 0
+  shade: 0.10
+  # Bốn cột cuối là bốn NGUỒN của cùng một số tiền, nên tờ mẫu gộp chúng dưới
+  # một tiêu đề chung và để chín cột còn lại với xuống qua cả hai tầng. Lưới ký
+  # tự không nói được điều đó — nó chỉ vẽ mười ba tiêu đề cạnh nhau; đường CSS
+  # đọc khai báo này và dựng `colspan` + `rowspan` thật.
+  header_groups:
+    - {title: "Nguồn thanh toán (đồng)", from: fund, to: self_pay}
+  # Dòng nhóm và dòng "Cộng" chạy ngang sáu cột mô tả đầu bảng.
+  group_span: 6
+  # Bảng chạy sang trang sau thì KHÔNG lặp lại tiêu đề — đúng như tờ mẫu, và
+  # cũng đỡ cho phép dò box: tiêu đề lặp là hơn trăm ký tự mà markup chỉ khai
+  # một lần. Xem `match_runs` trong generators/genalog/render.py.
+  repeat_header: false
+
+item:
+  wrap_name: true
+  rows:
+    - - {col: name, from: name}
+      - {col: unit, from: unit}
+      - {col: qty, from: qty}
+      - {col: price_bv, from: price_bv}
+      - {col: price_bh, from: price_bh}
+      - {col: rate_service, from: rate_service}
+      - {col: amount_bv, from: amount_bv}
+      - {col: rate_bhyt, from: rate_bhyt}
+      - {col: amount_bh, from: amount_bh}
+      - {col: fund, from: fund}
+      - {col: copay, from: copay}
+      - {col: other_pay, from: other_pay}
+      - {col: self_pay, from: self_pay}
+
+totals:
+  # Khối quyết toán chạy hết bề ngang: nó là một danh sách phân cấp, không phải
+  # một cột số nép về lề phải.
+  frame: false
+  indent: 0.0
+  emphasise_grand: true
+  grand_two_lines: false
+
+words:
+  frame: false
+
+signatures:
+  name_gap: 2
+  stamp_width: 40
+  stamp_gap: 1
+
+footer:
+  rule_before: false

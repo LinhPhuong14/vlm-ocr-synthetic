@@ -338,13 +338,7 @@ def items_table(spec: dict, receipt, parse: dict, rows: Rows, *,
         return ""
     keys = [column["key"] for column in columns]
 
-    head: list[str] = []
-    row = rows.take()
-    head.append("<tr>" + "".join(
-        cell("th", row, index, span("colhdr", column.get("title", "")),
-             kind="colhdr", cls=align_class(column.get("title_align", "center")),
-             style=f"width:{column['pct']:.2f}%")
-        for index, column in enumerate(columns)) + "</tr>")
+    head = _header_rows(columns, spec, rows)
     if column_numbers:
         row = rows.take()
         head.append('<tr class="colnum">' + "".join(
@@ -373,6 +367,13 @@ def items_table(spec: dict, receipt, parse: dict, rows: Rows, *,
             text = values.get(source, "")
             if text:
                 extra.setdefault(start, []).append((f"menu.{source}", text))
+        if getattr(item, "is_group", False):
+            # A block heading is a row of the table, not a caption above it: it
+            # carries the block's column sums. Its name runs across the columns
+            # that describe a line -- unit, quantity, the two unit prices --
+            # because a heading has none of those.
+            body.append(_group_row(rows.take(), columns, keys, values, spec, item))
+            continue
         body.append(_item_row(rows.take(), columns, first, values, extra))
         for row in stacked:
             if any(values.get(place[2]) for place in row):
@@ -412,7 +413,15 @@ def items_table(spec: dict, receipt, parse: dict, rows: Rows, *,
         body.append(f'<tr class="{"grand" if grand else "total"}">'
                     + "".join(cells) + "</tr>")
 
-    return (f'<table class="{cls}"><thead>{"".join(head)}</thead>'
+    # A print engine repeats `<thead>` on every page a table runs onto, and
+    # that is usually right. It is wrong for a form whose paper says otherwise:
+    # the hospital bill's second page continues its table with no header at
+    # all, and the repeat also puts a hundred glyphs of column titles into the
+    # PDF's character stream that the markup lists once -- which is exactly the
+    # noise `match_runs` has to step over to find the next field.
+    repeat = (spec.get("table") or {}).get("repeat_header", True)
+    thead = "<thead>" if repeat else '<thead class="once">'
+    return (f'<table class="{cls}">{thead}{"".join(head)}</thead>'
             f'<tbody>{"".join(body)}</tbody></table>')
 
 
@@ -455,6 +464,81 @@ def _item_extras(spec: dict, item, receipt, values: dict[str, str],
                           kind="menu.discountprice", cls="r")
                    + "</tr>")
     return out
+
+
+def _header_rows(columns: list[dict], spec: dict, rows: Rows) -> list[str]:
+    """The column titles, in one band or two.
+
+    `header_groups:` in a layout file names a run of columns that share a
+    heading -- "Nguồn thanh toán (đồng)" over the four columns a hospital bill
+    splits its money into. The columns outside every group then have to reach
+    down through both bands, which is `rowspan="2"`, and the browser works the
+    edges out. There is no arithmetic here and that is the point: the same
+    statement drawn on a character grid would be a wide cell that happens to
+    have no rule under half of it.
+    """
+    groups = (spec.get("table") or {}).get("header_groups") or []
+    keys = [column["key"] for column in columns]
+    spans: list[tuple[int, int, str]] = []
+    for entry in groups:
+        first, last = str(entry.get("from", "")), str(entry.get("to", ""))
+        if first not in keys or last not in keys:
+            continue
+        spans.append((keys.index(first), keys.index(last), str(entry.get("title", ""))))
+    spans.sort()
+
+    row = rows.take()
+    if not spans:
+        return ["<tr>" + "".join(
+            cell("th", row, index, span("colhdr", column.get("title", "")),
+                 kind="colhdr", cls=align_class(column.get("title_align", "center")),
+                 style=f"width:{column['pct']:.2f}%")
+            for index, column in enumerate(columns)) + "</tr>"]
+
+    grouped = {index for start, end, _ in spans for index in range(start, end + 1)}
+    top, index = [], 0
+    while index < len(columns):
+        here = next((s for s in spans if s[0] == index), None)
+        if here:
+            start, end, title = here
+            top.append(cell("th", row, start, span("colhdr", title), kind="colhdr",
+                            cls="c", colspan=end - start + 1))
+            index = end + 1
+            continue
+        column = columns[index]
+        top.append(cell("th", row, index, span("colhdr", column.get("title", "")),
+                        kind="colhdr", rowspan=2,
+                        cls=align_class(column.get("title_align", "center")),
+                        style=f"width:{column['pct']:.2f}%"))
+        index += 1
+    second = rows.take()
+    lower = [
+        cell("th", second, index, span("colhdr", columns[index].get("title", "")),
+             kind="colhdr", cls=align_class(columns[index].get("title_align", "center")),
+             style=f"width:{columns[index]['pct']:.2f}%")
+        for index in sorted(grouped)
+    ]
+    return ["<tr>" + "".join(top) + "</tr>", "<tr>" + "".join(lower) + "</tr>"]
+
+
+def _group_row(row: int, columns: list[dict], keys: list[str], values: dict[str, str],
+               spec: dict, item) -> str:
+    """A block heading: its name over the descriptive columns, then its sums."""
+    width = int((spec.get("table") or {}).get("group_span") or 0)
+    if width < 1:
+        # No declaration: run the name up to the first column that has a number
+        # on this row, which is where the sums begin.
+        width = next((index for index, key in enumerate(keys) if values.get(key)), 1)
+        width = max(width, 1)
+    width = min(width, len(columns))
+    cells = [cell("td", row, 0, span("menu.name", values.get("name", "")),
+                  kind="menu.name", cls="gname", colspan=width)]
+    for index in range(width, len(columns)):
+        key = keys[index]
+        cells.append(cell("td", row, index, span(f"menu.{key}", values.get(key, "")),
+                          kind=f"menu.{key}",
+                          cls=align_class(columns[index].get("align", "left"))))
+    return '<tr class="grouprow">' + "".join(cells) + "</tr>"
 
 
 def _placements(row: list[dict], keys: list[str]) -> list[tuple[int, int, str, str]]:
@@ -620,6 +704,7 @@ html,body{{margin:0;padding:0;background:#fff;}}
   line-height:{line_height};overflow:hidden;-webkit-font-smoothing:antialiased;
 }}
 table{{width:100%;border-collapse:collapse;}}
+thead.once{{display:table-row-group;}}
 td.r,th.r,.r{{text-align:right;}}
 td.c,th.c,.c{{text-align:center;}}
 .sub{{font-style:italic;color:#3a3a3a;}}
