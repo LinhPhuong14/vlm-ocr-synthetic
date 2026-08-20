@@ -661,7 +661,7 @@ def item_values(item, receipt) -> dict[str, str]:
     return {
         "stt": str(item.stt),
         "name": name,
-        "qty": quantity(shown_qty, receipt.money_style, decimals),
+        "qty": "" if item.is_group else quantity(shown_qty, receipt.money_style, decimals),
         "unit_price": receipt.cash(item.display_unit_price()),
         "amount": receipt.cash(item.amount),
         "barcode": barcode,
@@ -669,7 +669,7 @@ def item_values(item, receipt) -> dict[str, str]:
         "barcode_name": f"{barcode}  {name}".strip(),
         "vat": f"VAT {item.vat_rate}%" if item.vat_rate else "",
         "vat_rate": f"{item.vat_rate}%" if item.vat_rate else "",
-        "unit": item.unit,
+        "unit": "" if item.is_group else item.unit,
         "note": item.note,
         # A stay invoice rules a column for the night a line covers and another
         # for the room it was slept in.
@@ -685,6 +685,23 @@ def item_values(item, receipt) -> dict[str, str]:
         "tier_price": " ".join(
             part for part in (item.tier, receipt.cash(item.unit_price)) if part
         ),
+        # ---- bảng kê KCB: the twelve columns of Mẫu số 01/KBCB.
+        #
+        # A heading row carries its block's sums and nothing else, so the
+        # columns that describe a *line* -- unit, quantity, the two rates --
+        # come out blank on it. That is what the form prints, and it is also
+        # what stops the label claiming a quantity of zero for a heading.
+        "price_bv": receipt.cash(item.price_bv) if item.price_bv else "",
+        "price_bh": receipt.cash(item.price_bh) if item.price_bh else "",
+        "rate_service": "" if item.is_group else f"{item.rate_service}",
+        "rate_bhyt": "" if item.is_group else f"{item.rate_bhyt}",
+        "amount_bv": receipt.cash(item.amount_bv()) if item.amount_bv() else "",
+        "amount_bh": receipt.cash(item.amount_bh()) if item.amount_bh() else "",
+        "fund": receipt.cash(item.fund_bhyt(item.benefit)) if item.amount_bh() else "",
+        "copay": receipt.cash(item.copay(item.benefit)) if item.amount_bh() else "",
+        "other_pay": receipt.cash(item.other_pay()) if item.other_pay() else "",
+        "self_pay": receipt.cash(item.self_pay(item.benefit)) if item.self_pay(item.benefit) else "",
+        "group": item.group,
         # Net of tax, and the tax on the line: the two right-hand columns of a
         # VAT invoice, which are derived rather than stored.
         "vat_amount": (
@@ -952,6 +969,12 @@ def _emit_letterhead(builder, spec, receipt, columns, rng) -> None:
         ("branch", "store.branch"),
         ("phone", "store.phone"),
         ("account", "store.account"),
+        # A letterhead had no way to print a website, so any document whose
+        # issuer has one put a field in the label that no letterhead layout
+        # could draw. Only `resort_stay` and the authorisation form set one,
+        # and only the second uses a letterhead -- but the gap was in the
+        # section, not in either document.
+        ("website", "store.website"),
     ):
         value = getattr(receipt.store, attribute)
         if not value or not settings.get(attribute, True):
@@ -1004,8 +1027,12 @@ def _emit_doctitle(builder, spec, receipt, columns, rng) -> None:
         builder.newline()
     builder.newline(_headroom(scale))
     if invoice and invoice.subtitle:
-        builder.put(fit(invoice.subtitle, builder.ncols), "subtitle", align="center")
-        builder.newline()
+        # Wrapped, not cut. A subtitle is a sentence -- the authorisation form's
+        # runs to 140 characters on a 98-column sheet -- and `fit` would leave
+        # the label claiming the half of it nobody can read.
+        for line in wrap(invoice.subtitle, builder.ncols):
+            builder.put(line, "subtitle", align="center")
+            builder.newline()
     if invoice and invoice.period:
         builder.put(fit(invoice.period, builder.ncols), "period", align="center", bold=True)
         builder.newline()

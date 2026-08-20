@@ -1,0 +1,31 @@
+{
+  "per_framework": 8,
+  "layouts": [
+    "medical_statement",
+    "authorisation_letter"
+  ],
+  "pairing": "paired",
+  "clean": false,
+  "force": [],
+  "template": "auto",
+  "frameworks": {
+    "html": {
+      "images": 8,
+      "distinct_seeds": 8,
+      "distinct_labels": 8,
+      "by_layout": {
+        "medical_statement": 4,
+        "authorisation_letter": 4
+      }
+    },
+    "genalog": {
+      "images": 8,
+      "distinct_seeds": 8,
+      "distinct_labels": 8,
+      "by_layout": {
+        "medical_statement": 4,
+        "authorisation_letter": 4
+      }
+    }
+  }
+}

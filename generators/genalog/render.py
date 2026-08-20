@@ -218,7 +218,7 @@ def match_boxes(grid, spans: list[dict]) -> list[dict]:
 def match_runs(runs: list[tuple[str, str]], glyphs: list[dict]) -> list[dict]:
     """Give each labelled run of a CSS sheet the glyphs that drew it.
 
-    Glyphs, not spans, and that is the whole difference from `match_boxes`. A
+    Glyphs, not spans, and that is the first difference from `match_boxes`. A
     character-grid page puts every field in its own absolutely positioned
     element, so a PDF span is a field. A CSS sheet does not: two `<td>` on one
     line in one font come out of WeasyPrint as **one span** -- `"3 BÁNH CANH
@@ -227,35 +227,41 @@ def match_runs(runs: list[tuple[str, str]], glyphs: list[dict]) -> list[dict]:
     before this was written: a till-roll sheet recovered 58% of its runs that
     way, and the losses were every quantity and every dish on the page.
 
-    So the walk runs over the PDF's own character boxes, which PyMuPDF reports
-    exactly. A run is the next N non-space characters; its box is the union of
-    theirs. Nothing is interpolated and nothing is estimated.
+    **Anchors first, then the gaps**, and that is the second. Walking the two
+    sequences in step works until a document repeats itself, and a hospital
+    bill repeats itself constantly: a rate column of `0` and `100`, a money
+    column ending `VND` on every line, the same service billed twice under two
+    prices. One wrong match there takes the cursor into the middle of a number
+    and every run after it lands somewhere it does not belong -- seventeen runs
+    lost on one page, and two boxes drawn on top of each other.
 
-    `window` is how much unlabelled ink the walk may step over to find the next
-    run -- a watermark, a separator pipe, the tick in a signature box. Small on
-    purpose: a wide window lets a one-character run such as a quantity match a
-    digit further down the page and desynchronise everything after it.
-
-    The walk also looks *behind* the cursor, and that is not belt and braces.
-    PyMuPDF groups a page's text geometrically, so two blocks side by side come
-    back interleaved by line: a signature block prints "Lễ tân" and "Khách
-    hàng" together, then both names, while the markup lists each caption with
-    its own name. The reordering is local -- one line -- so a bounded look back
-    recovers it, and the cursor never moves backwards, which is what keeps the
-    walk from re-reading a page it has already passed.
+    So the long runs go first. A run of ten characters or more that occurs
+    exactly once in the page's glyph stream can only be itself; those are
+    pinned, in increasing order, and they cut the stream into segments. Every
+    other run is then matched **inside its own segment**, where a stray `0`
+    cannot reach a number four rows away. What a greedy walk could only repair
+    after the fact, this prevents.
     """
+    entries = [(kind, text, _squeeze(text)) for kind, text in runs]
+    entries = [entry for entry in entries if entry[2]]
+    stream = "".join(glyph["text"] for glyph in glyphs)
+    anchors = _anchors(entries, glyphs, stream)
+
     boxes: list[dict] = []
     cursor = 0
-    for kind, text in runs:
-        wanted = _squeeze(text)
-        if not wanted:
-            continue
-        found = _consume_glyphs(glyphs, cursor, wanted)
-        if found is None:
-            continue
-        end, matched = found
+    for position, (kind, text, wanted) in enumerate(entries):
+        if position in anchors:
+            start, end = anchors[position]
+            matched = [glyph for glyph in glyphs[start:end] if glyph["text"].strip()]
+        else:
+            limit = next((anchors[later][0] for later in range(position + 1, len(entries))
+                          if later in anchors), len(glyphs))
+            found = _consume_glyphs(glyphs, cursor, wanted, limit=limit)
+            if found is None:
+                continue
+            end, matched = found
         cursor = max(cursor, end)
-        if kind == "sep":
+        if kind == "sep" or not matched:
             continue
         # One box per LINE, not one per run. A run that wrapped has glyphs on
         # two lines, and their union is a rectangle round both *and the blank
@@ -275,6 +281,118 @@ def match_runs(runs: list[tuple[str, str]], glyphs: list[dict]) -> list[dict]:
                          [round(x1, 1), round(y1, 1)], [round(x0, 1), round(y1, 1)]],
             })
     return boxes
+
+
+# A run this long that occurs once in the whole page can only be itself. Ten
+# characters is where the false-positive rate goes to nothing on the documents
+# here: shorter than that and "100" or "0 VND" is every other cell.
+ANCHOR_LENGTH = 10
+
+
+def _anchors(entries: list[tuple[str, str, str]], glyphs: list[dict],
+             stream: str) -> dict[int, tuple[int, int]]:
+    """`{position: (first_glyph, past_last_glyph)}` for the runs that are unique.
+
+    Unique *and* increasing: an anchor that would send the cursor backwards is
+    dropped rather than trusted, because the order of the two sequences is the
+    one thing this whole walk is built on.
+    """
+    found: dict[int, tuple[int, int]] = {}
+    last = 0
+    for position, (_kind, _text, wanted) in enumerate(entries):
+        if len(wanted) < ANCHOR_LENGTH:
+            continue
+        starts = []
+        at = stream.find(wanted)
+        while at != -1 and len(starts) < 2:
+            if _starts_word(glyphs, at):
+                starts.append(at)
+            at = stream.find(wanted, at + 1)
+        if len(starts) != 1 or starts[0] < last:
+            continue
+        found[position] = (starts[0], starts[0] + len(wanted))
+        last = starts[0] + len(wanted)
+    return found
+
+
+def _squeeze(text: str) -> str:
+    """Text with every space removed, in NFC.
+
+    Whitespace goes because it is not ink: the markup says "Đơn vị tính (Unit)"
+    on one line and WeasyPrint breaks it over two, and the space that was
+    between the words becomes a line break that no glyph carries. NFC because
+    the corpus is composed and a PDF may not be, and "ệ" written two ways is one
+    letter on the page and two strings in Python.
+    """
+    return unicodedata.normalize("NFC", "".join(text.split()))
+
+
+def _consume_glyphs(glyphs: list[dict], cursor: int, wanted: str,
+                    back: int = 64, limit: int | None = None):
+    """`(end_index, matched_glyphs)` for the glyphs that spell `wanted`, or None.
+
+    Forwards from the cursor first, then backwards from it -- nearest first in
+    both directions, so the run is given the closest occurrence rather than the
+    first one anywhere on the page. `limit` is the next anchor: nothing between
+    two anchors may be matched past the second of them.
+
+    The walk looks *behind* the cursor because PyMuPDF groups a page's text
+    geometrically, so two blocks side by side come back interleaved by line: a
+    signature block prints "Lễ tân" and "Khách hàng" together, then both names,
+    while the markup lists each caption with its own name. The reordering is
+    local -- one line -- so a bounded look back recovers it, and the cursor
+    never moves backwards, which is what keeps the walk from re-reading a page
+    it has already passed.
+    """
+    ceiling = len(glyphs) if limit is None else min(limit, len(glyphs))
+    window = SHORT_RUN_WINDOW if len(wanted) < 4 else LONG_RUN_WINDOW
+    forwards = range(cursor, min(cursor + window, ceiling))
+    backwards = range(cursor - 1, max(cursor - back, 0) - 1, -1)
+    for start in list(forwards) + list(backwards):
+        if not _starts_word(glyphs, start):
+            continue
+        found = _spell(glyphs, start, wanted)
+        if found is not None:
+            return found
+    return None
+
+
+def _starts_word(glyphs: list[dict], index: int) -> bool:
+    """Is this glyph the first of a word?
+
+    A run may only be matched where a word begins, and that rules out a whole
+    class of wrong answers that the sequence alone cannot: without it a
+    one-character run `0` matches the `0` inside `264.400`.
+
+    Only a glyph sitting immediately to the right of the last one continues a
+    word. A gap wider than that is a space; a *negative* one is the reading
+    order jumping back to the left, which happens between two blocks printed
+    side by side -- and both are boundaries.
+    """
+    if index <= 0:
+        return True
+    before, here = glyphs[index - 1], glyphs[index]
+    _bx0, by0, bx1, by1 = before["bbox"]
+    hx0, hy0, _hx1, _hy1 = here["bbox"]
+    if abs(hy0 - by0) > 1.0:
+        return True                   # a different line
+    height = max(by1 - by0, 1.0)
+    return not (-0.3 * height <= hx0 - bx1 <= 0.2 * height)
+
+
+def _spell(glyphs: list[dict], start: int, wanted: str):
+    """`(end_index, matched_glyphs)` if the glyphs from `start` spell `wanted`."""
+    index, used = start, []
+    while index < len(glyphs) and len(used) < len(wanted):
+        glyph = glyphs[index]
+        if not glyph["text"].strip():
+            index += 1
+            continue              # a space carries no ink and no position
+        if glyph["text"] != wanted[len(used)]:
+            return None
+        used.append(glyph)
+        index += 1
+    return (index, used) if len(used) == len(wanted) else None
 
 
 def _split_like(text: str, counts: list[int]) -> list[str]:
@@ -319,62 +437,11 @@ def _lines(glyphs: list[dict]) -> list[list[dict]]:
 # watermark or a separator for a short one, past a repeated table header for a
 # long one. See `_consume_glyphs`.
 SHORT_RUN_WINDOW = 24
-LONG_RUN_WINDOW = 200
+LONG_RUN_WINDOW = 64
 
 
-def _squeeze(text: str) -> str:
-    """Text with every space removed, in NFC.
-
-    Whitespace goes because it is not ink: the markup says "Đơn vị tính (Unit)"
-    on one line and WeasyPrint breaks it over two, and the space that was
-    between the words becomes a line break that no glyph carries. NFC because
-    the corpus is composed and a PDF may not be, and "ệ" written two ways is one
-    letter on the page and two strings in Python.
-    """
-    return unicodedata.normalize("NFC", "".join(text.split()))
 
 
-def _consume_glyphs(glyphs: list[dict], cursor: int, wanted: str,
-                    back: int = 64):
-    """`(end_index, matched_glyphs)` for the glyphs that spell `wanted`, or None.
-
-    Forwards from the cursor first, then backwards from it -- nearest first in
-    both directions, so the run is given the closest occurrence rather than the
-    first one anywhere on the page.
-
-    How far forward depends on how long the run is, and that is not a fudge. A
-    long run can be searched for over a wide stretch because a false positive is
-    not credible: nothing else on the page spells "Tổng tiền giảm giá". A
-    one-character run cannot, because every quantity column is full of `1`s and
-    the first one found would be the wrong one. The wide case is what a page
-    break needs -- WeasyPrint repeats a table's `<thead>` on the next page, so
-    about thirty glyphs of column titles that the markup lists once appear in
-    the stream twice, and a window that cannot step over them loses the whole
-    tail of the page.
-    """
-    window = SHORT_RUN_WINDOW if len(wanted) < 4 else LONG_RUN_WINDOW
-    forwards = range(cursor, min(cursor + window, len(glyphs)))
-    backwards = range(cursor - 1, max(cursor - back, 0) - 1, -1)
-    for start in list(forwards) + list(backwards):
-        found = _spell(glyphs, start, wanted)
-        if found is not None:
-            return found
-    return None
-
-
-def _spell(glyphs: list[dict], start: int, wanted: str):
-    """`(end_index, matched_glyphs)` if the glyphs from `start` spell `wanted`."""
-    index, used = start, []
-    while index < len(glyphs) and len(used) < len(wanted):
-        glyph = glyphs[index]
-        if not glyph["text"].strip():
-            index += 1
-            continue              # a space carries no ink and no position
-        if glyph["text"] != wanted[len(used)]:
-            return None
-        used.append(glyph)
-        index += 1
-    return (index, used) if len(used) == len(wanted) else None
 
 
 def _consume(spans: list[dict], cursor: int, wanted: str, lookahead: int = 4):

@@ -334,15 +334,23 @@ def test_a_thermal_layout_is_on_a_roll_and_an_invoice_is_on_a_sheet():
     anything is printed, which is why the whitespace under a three-item invoice
     is part of what the document looks like rather than something to crop.
     """
+    # Which layouts are on a roll is read from the layout files rather than
+    # from their names. It used to be `id.startswith("invoice_")`, and that
+    # stopped being true the day a cut-sheet document arrived that is not an
+    # invoice -- a hospital bill and an authorisation form are both A4, and
+    # neither is called `invoice_anything`.
+    rolls = {layout for layout in LAYOUTS
+             if not rulebase.load_layout(layout).get("sheet")}
+    assert rolls, "every layout claims a cut sheet; the roll case is untested"
     for layout_id in LAYOUTS:
         grid = rulebase.make(seed=11, force={"layout": layout_id})[2]
         ratio = rulebase.sheet_ratio(grid)
-        if layout_id.startswith("invoice_"):
-            assert grid.sheet == "a4", layout_id
-            assert ratio == pytest.approx(210 / 297), layout_id
-        else:
+        if layout_id in rolls:
             assert grid.sheet == "", layout_id
             assert ratio is None, layout_id
+        else:
+            assert grid.sheet == "a4", layout_id
+            assert ratio == pytest.approx(210 / 297), layout_id
 
 
 def test_the_sheet_reaches_the_serialised_grid():
