@@ -45,7 +45,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 RULES_ENV = "VLM_RULES_ROOT"
 
 RUN_KEYS = {"out", "per_backend", "seed", "workers", "clean", "force", "pairing",
-            "layouts"}
+            "layouts", "template"}
 SHARD_KEYS = {"size"}
 QUALITY_KEYS = {"drift_tolerance", "sample_for_ocr"}
 TOP_KEYS = {"run", "backends", "shard", "overrides", "quality"}
@@ -95,6 +95,12 @@ class Config:
     # comparison: `split_by_layout` walks the list in order, so a run that took
     # the directory silently draws different layouts the day someone adds one.
     layouts: tuple[str, ...] = ()
+    # Which page model the HTML backends draw. Empty means the character grid
+    # every backend has drawn since the beginning; `auto` means the CSS sheet
+    # for the layout the recipe drew (`generators/html/sheets/`); a layout id
+    # forces one particular dress. The glyph backend has no CSS at all, so a run
+    # that asks for a sheet must not include it -- see `Config.from_dict`.
+    template: str = ""
     overrides: dict[str, Any] = field(default_factory=dict)
     quality: dict[str, Any] = field(default_factory=dict)
     source: Path | None = None
@@ -155,6 +161,17 @@ class Config:
         if isinstance(layouts, str) or not isinstance(layouts, (list, tuple)):
             raise ConfigError("run.layouts: must be a list of layout names")
 
+        template = str(run.get("template") or "")
+        if template and "synthdog" in [str(name) for name in backends]:
+            # Said plainly rather than dropped silently: the glyph backend
+            # composites individual glyphs onto a canvas and cannot draw a table
+            # rule, so a "CSS sheet" run including it would quietly produce a
+            # third of its images from a different page model.
+            raise ConfigError(
+                "run.template draws the CSS sheets, which only the two HTML "
+                "backends can print; drop 'synthdog' from backends or drop "
+                "run.template")
+
         return cls(
             # Absolute here, at the edge, once. A relative output path handed to
             # the glyph backend lands inside generators/synthdog/ instead --
@@ -170,6 +187,7 @@ class Config:
             force=tuple(str(item) for item in (run.get("force") or ())),
             pairing=pairing,
             layouts=tuple(str(name) for name in layouts),
+            template=template,
             overrides=dict(overrides),
             quality=dict(quality),
             source=source,
