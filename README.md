@@ -857,7 +857,7 @@ the two must stay in step.
 | [`data/README.md`](data/README.md) | the datasets and the label schema |
 | [`samples/README.md`](samples/README.md) | reading the degradation showcase |
 | [`samples/invoice-templates/README.md`](samples/invoice-templates/README.md) | the five reference sheets, and why they are not layouts |
-| [`docs/tu-dong-hoa-bang-llm.md`](docs/tu-dong-hoa-bang-llm.md) | putting an LLM in the loop that *writes the rules* rather than the one that draws the pixels: what is already automated, the measured gaps, and a staged plan (Vietnamese) |
+| [`docs/tu-dong-hoa-bang-llm.md`](docs/tu-dong-hoa-bang-llm.md) | the automation design: an LLM in the loop that *writes the rules* rather than the one that draws the pixels. Surveys where synthetic-document generation stands, diagnoses the one-page-one-ink model that blocks hand-filled forms, proposes an eighth attribute and an `ink/` layer, and stages it (Vietnamese) |
 | [`docs/hoa-tiet-de-xuat.md`](docs/hoa-tiet-de-xuat.md) | ornaments surveyed and not built, with the reason each was left |
 | [`docs/khao-sat-sinh-chu-viet-tay.md`](docs/khao-sat-sinh-chu-viet-tay.md) | eight handwriting-synthesis repositories ranked on breadth of data and on realism, for the `handwriting_fill` gap (Vietnamese) |
 | [`docs/writevit.md`](docs/writevit.md) | standing up WriteViT for Vietnamese handwriting, and what it measurably cannot write (Vietnamese) |
