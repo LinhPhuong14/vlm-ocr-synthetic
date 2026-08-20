@@ -16,6 +16,9 @@
 
 **Phần II · Khảo sát ngoài** — [§4 Sinh tài liệu tổng hợp](#4-sinh-tài-liệu-tổng-hợp-tình-hình-82026) · [§5 Chữ viết tay](#5-chữ-viết-tay-cập-nhật-khảo-sát-của-chính-repo) · [§6 Ba rủi ro đã có bằng chứng](#6-ba-rủi-ro-đã-có-bằng-chứng)
 
+> Bố cục nhân lên thành biến thể — gộp ô nhiều chỗ mà nội dung vẫn hợp lý — có tài liệu riêng:
+> **[`tang-cuong-bo-cuc.md`](tang-cuong-bo-cuc.md)**.
+
 **Phần III · Thiết kế** — [§7 Chẩn đoán](#7-chẩn-đoán-repo-mô-hình-hoá-một-trang-một-nguồn-mực) · [§8 Trục thứ tám: lớp mực](#8-trục-thứ-tám-lớp-mực-ink) · [§9 Kiến trúc sáu tầng](#9-kiến-trúc-sáu-tầng) · [§10 Sáu tác nhân](#10-sáu-tác-nhân-mỗi-tác-nhân-một-hợp-đồng) · [§11 Vòng lặp đóng](#11-vòng-lặp-đóng-đo--chọn--sinh--đo-lại)
 
 **Phần IV · Lộ trình** — [§12 Năm đợt](#12-năm-đợt) · [§13 Ưu tiên](#13-bảng-ưu-tiên) · [§14 Cái sẽ không xây](#14-cái-tôi-sẽ-không-xây)
@@ -710,7 +713,7 @@ thì thuộc `ink`/`ornament`, *hư hại* thì thuộc `augmentation`.
 | khoảng trống | vì sao trục mực không giải | phải làm gì |
 | --- | --- | --- |
 | **một ảnh = một trang** | trang là đơn vị của `Grid`, không phải của mực | thêm `doc_id` + `page` vào `record.py`; `plan.py` cấp seed theo *tài liệu* chứ không theo *ảnh* |
-| **ô gộp không vào nhãn** (đường lưới) | `_paint_bars` mô phỏng ô gộp chứ không mô hình hoá; xem [`brief-engine-html.md` §2](brief-engine-html.md) | `Cell` mang `colspan`/`rowspan`; nhãn nhận token cấu trúc như `tables.py` đã có |
+| **ô gộp không vào nhãn** (đường lưới) | `_paint_bars` mô phỏng ô gộp chứ không mô hình hoá; xem [`brief-engine-html.md` §2](brief-engine-html.md) | `Cell` mang `colspan`/`rowspan`; nhãn nhận token cấu trúc như `tables.py` đã có. **Và đây cũng là điều kiện tiên quyết để *tăng cường* bố cục** — toàn bộ thiết kế ở [`tang-cuong-bo-cuc.md`](tang-cuong-bo-cuc.md) |
 | **không có TEDS** | thước đo, không phải nội dung | port TEDS, chấm `data/tables60` |
 | **chỉ glyph backend cho quad xoay** | thuộc engine | hoặc thêm một engine cong, hoặc chấp nhận và ghi rõ |
 
@@ -1044,7 +1047,7 @@ Xếp theo giá trị, không theo độ khó:
 | việc | vì sao |
 | --- | --- |
 | **Nhiều trang** (`doc_id` + `page`) | mở ra KIE nhiều trang, DocVQA; hôm nay không diễn tả được |
-| **Ô gộp vào nhãn** cho đường lưới | [`brief-engine-html.md` §2](brief-engine-html.md) đã đo và ghi rõ; ảnh có ô gộp mà nhãn không biết |
+| **Ô gộp vào nhãn** cho đường lưới — **nên nâng lên ngay sau M0** | điều kiện tiên quyết của cả việc *tăng cường bố cục*, không chỉ là một khiếm khuyết nhãn. Lộ trình riêng T0–T3 ở [`tang-cuong-bo-cuc.md` §9](tang-cuong-bo-cuc.md#9-lộ-trình) |
 | **TEDS** cho `data/tables60` | thước đo đúng cho cấu trúc bảng; README đã tự nhận thiếu |
 | A2 soạn corpus, `source: llm` | móc **đã chừa sẵn**: `drift.SOURCES = ("corpus", "llm", "fallback")` |
 | Engine thứ tư (**Typst**) | 200–500 ms/tài liệu, ra PDF/SVG/PNG, tạo hình chữ khác cả ba engine hiện có — rẻ hơn WeasyPrint và thêm một cách vẽ |
@@ -1266,6 +1269,7 @@ từng thấy có chứa chữ số; `VN.pickle` có 2.579/92.048 nhãn chứa c
 | [`docs/hoa-tiet-de-xuat.md` §B](hoa-tiet-de-xuat.md) | sáu mục nét tay đã dựng rồi gỡ, và lý do — nguồn gốc §7 |
 | [`docs/khao-sat-sinh-chu-viet-tay.md`](khao-sat-sinh-chu-viet-tay.md) | tám kho sinh chữ tay, xếp theo hai trục — §5 cập nhật nó |
 | [`docs/writevit.md`](writevit.md) | WriteViT đã dựng, và **đo được nó không viết được gì** |
+| [`docs/tang-cuong-bo-cuc.md`](tang-cuong-bo-cuc.md) | **tài liệu đồng hành**: nhân một bố cục thành hàng trăm biến thể hợp lệ — cây cột, tám nước đi, `compose:`, và ba tầng bảo đảm nội dung hợp lý |
 | [`docs/brief-engine-html.md` §2](brief-engine-html.md) | ô gộp: ảnh có, nhãn không — nguồn gốc §8.8 |
 | [`docs/huong-dan-va-giai-thich.md` §9](huong-dan-va-giai-thich.md) | vì sao không dùng LLM sinh thẳng ảnh — câu trả lời vẫn đúng |
 | [`pipeline.yaml`](../pipeline.yaml) | đầu ra của A4 |
