@@ -583,3 +583,32 @@ def test_no_vertical_steps_sideways_where_two_blocks_meet(layout):
                     f"ends at row {above.row1} and the next starts at column "
                     f"{below.col0} -- the frame steps sideways by {step}"
                 )
+
+
+def test_an_enlarged_line_is_given_room_above_it_as_well_as_below():
+    """A line set larger than the body grows both ways from its baseline.
+
+    Reserved only below, the hook of "Tổng" in a 1.4-scale grand total reached
+    into the descender of "hàng" on the line above it -- three pages in a
+    120-page sweep, and only in Vietnamese, because "ổ" stacks a circumflex and
+    a hook over one vowel and spends the overflow going up.
+    """
+    from rulebase.layout import _headroom
+
+    assert _headroom(1.0) == 0
+    assert _headroom(1.25) == 0
+    assert _headroom(1.26) == 1
+
+    # And the emitters use it: every enlarged cell has an empty row on each
+    # side, whatever drew it.
+    for layout_id in LAYOUTS:
+        for seed in SEEDS:
+            grid = rulebase.make(seed=seed, force={"layout": layout_id})[2]
+            occupied = {cell.row for cell in grid.cells}
+            for cell in grid.cells:
+                if cell.scale <= 1.25 or cell.rowspan > 1:
+                    continue
+                assert cell.row - 1 not in occupied or cell.row == 0, (
+                    f"{layout_id} seed={seed}: {cell.text!r} at scale "
+                    f"{cell.scale:.2f} has a line directly above it"
+                )

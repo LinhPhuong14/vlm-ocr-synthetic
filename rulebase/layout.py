@@ -315,6 +315,28 @@ class _Builder:
         self.newline()
 
 
+def _headroom(scale: float) -> int:
+    """Extra rows a line set larger than the body needs, on EACH side of it.
+
+    A cell drawn at `scale` is that much taller than the one line the grid gave
+    it, and it grows both ways from the baseline -- so the room has to be
+    reserved above it as well as below. Three emitters enlarge a line and each
+    had its own answer; `_emit_header` reserved a row after, `_emit_doctitle`
+    reserved none, and the two-line grand total reserved two after and none
+    before.
+
+    That last one is what let the hook of "Tổng" reach into the descender of
+    "hàng" on the line above it. Vietnamese is why it shows here and would not
+    in a Latin-only set: "Tổng" stacks a circumflex and a hook over the same
+    vowel, so the glyph spends its overflow going *up*, and 1.4 line-heights of
+    it clears the line box by more than an ascender does.
+
+    Measured rather than guessed: at 1.25 and below no pair of lines in a
+    120-page sweep shares a scanline; above it, three did.
+    """
+    return 1 if scale > 1.25 else 0
+
+
 def _full_rule(builder, spec) -> None:
     """A rule from edge to edge, in the character the layout draws rules with.
 
@@ -410,7 +432,7 @@ def _emit_header(builder, spec, receipt, columns, rng) -> None:
     name_scale = rng.uniform(*scale_range)
     builder.put(receipt.store.name, "store.name", align="center",
                 scale=name_scale, bold=header.get("name_bold", True))
-    builder.newline(2 if name_scale > 1.25 else 1)
+    builder.newline(1 + _headroom(name_scale))
 
     for attribute, role in (
         ("branch", "store.branch"),
@@ -812,6 +834,12 @@ def _emit_totals(builder, spec, receipt, columns, rng) -> None:
         role = "total.grand" if is_grand else "total.line"
         scale = rng.uniform(*settings.get("grand_scale", [1.2, 1.6])) if is_grand else 1.0
 
+        # Above as well as below: the line before this one belongs to the
+        # previous total, at the body size, and it is that line's descenders
+        # the enlarged one reaches into.
+        if is_grand:
+            builder.newline(_headroom(scale))
+
         if is_grand and settings.get("grand_two_lines") and rng.random() < 0.5:
             builder.put(label, f"{role}.label", left, builder.ncols, "center",
                         scale=scale, bold=True)
@@ -827,7 +855,7 @@ def _emit_totals(builder, spec, receipt, columns, rng) -> None:
                     scale=scale, bold=is_grand)
         builder.put(value, role, split, builder.ncols, "right",
                     scale=scale, bold=is_grand)
-        builder.newline(2 if is_grand and scale > 1.3 else 1)
+        builder.newline(1 + (_headroom(scale) if is_grand else 0))
 
 
 def _emit_footer(builder, spec, receipt, columns, rng) -> None:
@@ -967,6 +995,7 @@ def _emit_doctitle(builder, spec, receipt, columns, rng) -> None:
     for line in wrap(receipt.title, builder.ncols):
         builder.put(line, "title", align="center", scale=scale, bold=True)
         builder.newline()
+    builder.newline(_headroom(scale))
     if invoice and invoice.subtitle:
         builder.put(fit(invoice.subtitle, builder.ncols), "subtitle", align="center")
         builder.newline()
