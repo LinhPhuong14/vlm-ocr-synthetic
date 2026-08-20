@@ -6,6 +6,7 @@ Viewable straight away, with no environment to build.
 | --- | --- | --- |
 | [`degradation/`](degradation) | every ageing model applied on its own to **the same page**, plus a contact sheet | `make showcase` |
 | [`invoice-templates/`](invoice-templates) | five reference sheets, hand-built from photographs, printed with WeasyPrint | `make templates` |
+| [`form-templates/`](form-templates) | two administrative forms — an authorisation letter and a three-page medical bill — hand-built from scans | `make templates` |
 | [`ornaments/`](ornaments) | every seal and flourish in `textures/ornament/`, on one white page | `make ornaments` |
 
 The full 60-image dataset — three renderers, five layouts, with labels and OCR
