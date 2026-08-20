@@ -10,7 +10,10 @@ said so.
 
 Three things are checked per image, and each catches a different failure:
 
-* **coverage** -- one box per drawn field. Catches a desynchronised match.
+* **coverage** -- one box per drawn field. Catches a desynchronised match. What
+  counts as a drawn field depends on the page model: the character grid's cells,
+  or, for a set drawn with `--template`, the labelled runs of the CSS sheet
+  (`dataset.json` says which).
 * **inside the frame** -- every corner within the image. Catches a missed
   scale factor: boxes measured before a resize are systematically too large,
   and the ones near the right edge fall off it.
@@ -43,7 +46,7 @@ import rulebase  # noqa: E402
 FRAMEWORKS = ("synthdog", "html", "genalog")
 
 
-def expected_fields(record: dict) -> list[tuple[str, str]] | None:
+def expected_fields(record: dict, template: str = "") -> list[tuple[str, str]] | None:
     """The (role, text) pairs this image should have a box for.
 
     Rebuilt from the recipe rather than trusted from the record, which is the
@@ -69,6 +72,19 @@ def expected_fields(record: dict) -> list[tuple[str, str]] | None:
 
     force = {name: value["id"] for name, value in attributes.items() if "id" in value}
     try:
+        if template:
+            # A CSS sheet has no character grid, and building one would not only
+            # be the wrong list of fields -- `build_grid` cuts a value that will
+            # not fit a character column and writes the cut back, so the
+            # rebuilt "expected" text would be shorter than what was printed.
+            sys.path.insert(0, str(REPO_ROOT / "generators" / "html"))
+            import sheets  # noqa: PLC0415 -- optional, and only on this path
+
+            rebuilt, receipt, _rng = rulebase.make_content(seed=seed, force=force)
+            if rebuilt.seed != seed:
+                return None
+            override = None if template == "auto" else template
+            return sheets.labelled_runs(sheets.build(rebuilt, receipt, override))
         rebuilt, _receipt, grid = rulebase.make(seed=seed, force=force)
     except Exception:  # noqa: BLE001 - a rule that no longer exists lands here
         return None
@@ -79,7 +95,7 @@ def expected_fields(record: dict) -> list[tuple[str, str]] | None:
 
 
 def _has_ink(image: np.ndarray, quad, margin: int = 25) -> bool:
-    """Is there something clearly darker than the paper inside this box?
+    """Is there anything clearly standing out from the paper inside this box?
 
     Contrast is measured against the median *inside the box*, not against the
     page. A global median works for a flat scan and fails for the glyph
@@ -87,6 +103,13 @@ def _has_ink(image: np.ndarray, quad, margin: int = 25) -> bool:
     the whole-image median down to roughly the ink's own level, and every box
     on the receipt then reads as empty. That false alarm is what this local
     comparison exists to avoid.
+
+    **In either direction**, and that is not symmetry for its own sake. A
+    branded invoice reverses its masthead out of a colour bar -- white type on
+    teal -- and type lighter than its background is still type. Looking only
+    downwards reported 15 of 61 boxes on `invoice_hotel_compact` as sitting on
+    blank paper, in both HTML renderers, on a page where every one of them was
+    squarely on a word.
     """
     xs = [point[0] for point in quad]
     ys = [point[1] for point in quad]
@@ -95,19 +118,34 @@ def _has_ink(image: np.ndarray, quad, margin: int = 25) -> bool:
     if x1 <= x0 or y1 <= y0:
         return False
     patch = image[y0:y1, x0:x1]
-    return float(np.median(patch)) - float(patch.min()) > margin
+    middle = float(np.median(patch))
+    return max(middle - float(patch.min()), float(patch.max()) - middle) > margin
 
 
-def check_image(directory: Path, record: dict) -> list[str]:
+def check_image(directory: Path, record: dict, template: str = "") -> list[str]:
     problems: list[str] = []
     name = record["file_name"]
     boxes = record.get("boxes")
     if not boxes:
         return [f"{name}: no boxes at all"]
 
-    fields = expected_fields(record)
+    fields = expected_fields(record, template)
     if fields is None:
         problems.append(f"{name}: recipe does not rebuild; coverage unchecked")
+    elif template:
+        # A sheet wraps, and a run that wrapped is several boxes -- one per
+        # line, so the quad is round the words and not round the blank paper
+        # between two ragged ends. So the run is looked for in the boxes of its
+        # own kind joined together, not as one box. Joining per kind rather than
+        # over the page is what stops an unrelated field matching by accident.
+        joined: dict[str, str] = {}
+        for box in boxes:
+            joined[box["kind"]] = " ".join(
+                (joined.get(box["kind"], "") + " " + box.get("text", "")).split())
+        for role, text in fields:
+            wanted = " ".join(text.split())
+            if wanted and wanted not in joined.get(role, ""):
+                problems.append(f"{name}: no box for {role} {text[:30]!r}")
     else:
         have = {(box["kind"], box["text"]) for box in boxes}
         for role, text in fields:
@@ -144,6 +182,15 @@ def main() -> int:
                         default=REPO_ROOT / "data" / "dataset60")
     args = parser.parse_args()
 
+    # Which page model drew this set. Written by `pipeline/run.py`; absent on
+    # every set built before `generators/html/sheets/` existed, which is the
+    # character grid and is what this tool has always assumed.
+    template = ""
+    manifest = args.dataset / "dataset.json"
+    if manifest.exists():
+        template = str(json.loads(manifest.read_text(encoding="utf-8"))
+                       .get("template", "") or "")
+
     total_problems = 0
     for framework in FRAMEWORKS:
         directory = args.dataset / framework
@@ -158,7 +205,7 @@ def main() -> int:
         boxes = 0
         for record in records:
             boxes += len(record.get("boxes") or [])
-            problems += check_image(directory, record)
+            problems += check_image(directory, record, template)
 
         total_problems += len(problems)
         state = "ok" if not problems else "PROBLEM"

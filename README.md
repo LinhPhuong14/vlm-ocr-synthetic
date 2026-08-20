@@ -398,6 +398,7 @@ quality:  {drift_tolerance: 0.15, sample_for_ocr: 500}
 | **Processes, never threads** | Playwright's sync API is not thread-safe and synthtiger seeds numpy's global RNG | [`pipeline/run.py`](pipeline/run.py) |
 | **The layout list is explicit** | `run.layouts` empty means every file in `rulebase/layouts/` — what a dataset wants. A *fixed comparison* names them, because the quota walks the list in order and a run that took the directory draws a different set the day someone adds a layout | `pipeline.yaml` |
 | **`pairing` is declared** | `paired` (default) gives every backend the same documents, so a difference between renderers is a difference in drawing; `independent` gives three times the distinct pages and no basis for comparison | `run.pairing` |
+| **The page model is declared** | `run.template` draws the CSS sheets in [`generators/html/sheets/`](generators/html/sheets) instead of the character grid, and lands in `dataset.json` so a reader need not guess from the pixels. Only the two HTML backends can print one, and a run that asks for a sheet while listing `synthdog` is refused rather than quietly mixed | `run.template` |
 | **Per-image invariants** | money arithmetic, quads inside the frame, no missing-glyph box, every label value actually printed | [`pipeline/invariants.py`](pipeline/invariants.py) |
 | **Drift** | whether the *mix* still matches the rules, measured per shard above the scatter a sample that size has anyway | [`pipeline/drift.py`](pipeline/drift.py) |
 | **A golden fingerprint** | sha256 of every image and every metadata line, so the parallel path is held to what the sequential one produced. Replacing it needs `make baseline-write REASON="..."`, and the reason is kept in the file — a comparison point that changed without saying why is one nobody can argue with later | [`tools/baseline.py`](tools/baseline.py), `make baseline-verify` |
@@ -777,6 +778,7 @@ to rebuild an image exactly are in **[`data/README.md`](data/README.md)**.
 | --- | --- |
 | [`data/dataset60/`](data/dataset60) | aged — a degradation chain drawn from the rules |
 | [`data/dataset60_clean/`](data/dataset60_clean) | the same seeds with `augmentation=pristine` |
+| [`data/invoices54/`](data/invoices54) | the nine commercial invoice layouts drawn as CSS sheets, by both HTML backends |
 | [`data/tables60/`](data/tables60) | table-structure images, a different task and a different label |
 
 `make proof` reads a set back with Tesseract 5 (`vie`) and scores it order-free
