@@ -103,7 +103,7 @@ flowchart TD
 
     subgraph backends["generators/ — pixels, one venv each"]
         R1["synthdog/<br/>glyph layers, curl, camera"]
-        R2["html/<br/>Chromium: render.py · a4.py · tables.py"]
+        R2["html/<br/>Chromium: render.py · sheets/ · tables.py"]
         R3["genalog/<br/>WeasyPrint → PDF → raster"]
     end
 
@@ -216,7 +216,7 @@ second path:
 ```mermaid
 flowchart LR
     G["Grid<br/>cells + marks"] --> P1["character-grid page<br/>generators/html/render.py"]
-    R["Receipt + Recipe"] --> P2["CSS page<br/>generators/html/a4.py"]
+    R["Receipt + Recipe"] --> P2["CSS sheet, per layout<br/>generators/html/sheets/"]
     P1 --> X["Chromium"]
     P2 --> X
     X --> Y["pixels + boxes<br/>generators/html/page.py"]
@@ -224,9 +224,14 @@ flowchart LR
 
 Both paths produce the same boxes through the same
 [`page.py`](generators/html/page.py) helper, so the label schema does not know
-which drew the page. The CSS path is opt-in per run
-(`render.py --template <theme>`); every layout that does not ask for it keeps
-the grid.
+which drew the page. The CSS path is opt-in per run (`render.py --template`),
+and the sheet it draws follows **`recipe.layout.id`** — a hotel folio comes out
+a hotel folio, not a tax form. `sheets/` groups the fourteen layouts into four
+families, each modelled on one of the hand-drawn references in
+[`samples/invoice-templates/`](samples/invoice-templates); which blocks and
+which columns a member gets is read from its own layout file. **Both HTML
+backends draw it**: Chromium reads the boxes off the DOM, WeasyPrint off the
+PDF's character stream, and the markup is the same string.
 
 Between the two sit cheaper seams, and they follow one rule: **the rule-base
 states geometry in its own units, and each backend does the one multiplication
@@ -581,7 +586,7 @@ generators/             THE RENDERERS — each with its own venv
 ├── synthdog/           glyph rendering, curl, background, camera
 ├── html/               Chromium
 │   ├── render.py       the character-grid page
-│   ├── a4.py           the A4 invoice as real CSS
+│   ├── sheets/         one CSS sheet per layout family
 │   ├── tables.py       generic tables, labelled by structure
 │   └── page.py         shared: the browser, the fonts, the boxes
 └── genalog/            genalog + WeasyPrint (source vendored)
@@ -689,7 +694,7 @@ generators/genalog/.venv/bin/python generators/genalog/render.py \
 | `--layout ID` | pin the layout — shorthand for `--force layout=ID` |
 | `--force ATTR=ID` | pin any attribute, repeatable |
 | `--clean` | glyph backend: no curl, no perspective, no camera |
-| `--template NAME` | html backend: lay the page out with CSS instead of the grid ([`a4.py`](generators/html/a4.py)). One theme so far, `brand` |
+| `--template [LAYOUT]` | both HTML backends: lay the page out with CSS instead of the grid ([`sheets/`](generators/html/sheets)). Bare, the sheet follows the layout the recipe drew; a layout id forces one particular dress |
 | `--scale` · `--dpi` | html device scale factor · genalog rasterisation dpi |
 | `--profile JSON` | time every stage and write the breakdown there. Off by default, and off costs nothing ([`profiling.py`](profiling.py)) |
 | `--jobs JSON` | draw several layouts in one process — a list of `{layout, seed, count, force}`. Overrides the three flags above it; see [`worklist.py`](worklist.py) |
@@ -754,7 +759,8 @@ Verified in this environment (Python 3.11.15, 4 cores, all three venvs built):
 | `python tasks.py tables -n 3` | 3 tables, no chromedriver and no fourth environment |
 | `python tools/degradation_showcase.py` | 10 degradation models |
 | `python tasks.py monitor` | the whole rule space, no run needed |
-| `generators/html/render.py --template brand` | the CSS page path, 63 boxes on an A4 invoice |
+| `generators/html/render.py --template` (120 pages) | the CSS sheets, all 14 layouts, 8512 boxes, 0 invariant failures, 0 overlapping pairs |
+| `generators/genalog/render.py --template` (100 pages) | the same sheets through WeasyPrint, 7206 boxes, 0 invariant failures, 0 overlapping pairs |
 
 One gate did **not** pass here; it is recorded under
 [Known issues](#known-issues).
