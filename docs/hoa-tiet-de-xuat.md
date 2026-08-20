@@ -63,6 +63,10 @@ tay, mà mọi tờ sinh ra đến giờ đều trống trơn hoặc in máy to�
 *Hợp:* tờ mẫu in sẵn (GTGT, xuất khẩu).
 *Chưa làm vì:* xem khối trên. Cần mặt chữ viết tay có giấy phép, và nội dung
 phải đi đường `from_receipt` để ảnh và nhãn không nói hai chuyện khác nhau.
+Tám kho mã sinh chữ viết tay đã được khảo sát và xếp hạng trong
+[`khao-sat-sinh-chu-viet-tay.md`](khao-sat-sinh-chu-viet-tay.md) — hai kho có
+đường đi được, phần còn thiếu là chỗ nối `from_receipt` và điều khoản của dữ
+liệu học.
 
 ### `signature_scrawl` — Chữ ký tay
 Nét ký nhanh bằng bút bi hoặc bút mực. Mọi hoá đơn đều có hai ô chữ ký và đến
