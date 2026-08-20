@@ -257,7 +257,10 @@ class HtmlReceiptRenderer:
         self.scale = scale
         self.short_size = short_size
         # None keeps the character-grid page every layout has used until now.
-        # A name switches to `a4.py`, which lays the same receipt out with CSS.
+        # "auto" switches to `sheets/`, which lays the same receipt out with CSS
+        # and picks the sheet from `recipe.layout.id`; a layout id in its place
+        # forces one particular dress, which is for looking at a sheet on demand
+        # rather than for a run.
         self.template = template
         self._playwright = None
         self._browser = None
@@ -284,12 +287,20 @@ class HtmlReceiptRenderer:
             self._playwright.stop()
 
     def render(self, seed: int, force: dict[str, str] | None = None):
-        recipe, receipt, grid = rulebase.make(seed=seed, force=force)
+        # A sheet is built from the contents alone: laying a character grid over
+        # them first would trim a value to a column this page does not have.
+        # See `rulebase.make_content`.
+        if self.template:
+            recipe, receipt, _rng = rulebase.make_content(seed=seed, force=force)
+            grid = None
+        else:
+            recipe, receipt, grid = rulebase.make(seed=seed, force=force)
         with profiling.stage("render"):
             if self.template:
-                from a4 import build as build_template
+                from sheets import build as build_sheet
 
-                markup = build_template(recipe, receipt, self.template)
+                override = None if self.template == "auto" else self.template
+                markup = build_sheet(recipe, receipt, override)
                 markup = markup.replace("{FONT_FACES}", font_faces())
             else:
                 markup = build_html(grid, recipe, receipt)
@@ -359,7 +370,7 @@ def structure_from_cells(cells: list[dict]) -> list[str]:
     reads this. Built from the measured cells rather than from the template, so
     it describes the table the browser actually laid out.
     """
-    from a4 import structure_tokens
+    from sheets import structure_tokens
 
     rows: dict[int, list[dict]] = {}
     for cell in cells:
@@ -380,9 +391,10 @@ def main() -> int:
     )
     parser.add_argument("--scale", type=float, default=2.0)
     parser.add_argument(
-        "--template", metavar="NAME",
-        help="lay the page out with CSS instead of the character grid; see a4.py. "
-             "Only the browser backends can draw one",
+        "--template", metavar="LAYOUT", nargs="?", const="auto", default=None,
+        help="lay the page out with CSS instead of the character grid; see "
+             "sheets/. Bare, the sheet follows the layout the recipe drew; give "
+             "a layout id to force one particular dress",
     )
     parser.add_argument(
         "--profile", metavar="JSON",

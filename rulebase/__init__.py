@@ -25,7 +25,7 @@ import profiling
 from .content import Item, Receipt, Store
 from .content import build as build_receipt
 from .corpus import CORPUS_ROOT
-from .layout import LAYOUTS_ROOT, Cell, Grid, Mark, Merge, build_grid
+from .layout import LAYOUTS_ROOT, Cell, Grid, Mark, Merge, build_grid, item_values, load_layout
 from .layout import available as available_layouts
 from .spec import (
     ATTRIBUTES,
@@ -77,9 +77,12 @@ __all__ = [
     "fade",
     "hex_colour",
     "inks",
+    "item_values",
     "load_groups",
+    "load_layout",
     "load_rules",
     "make",
+    "make_content",
     "padding",
     "parse_force",
     "sample_recipe",
@@ -106,11 +109,31 @@ def make(seed: int | None = None, force: dict[str, str] | None = None, attempts:
     `make` many-to-one: whole runs of consecutive seeds returned one recipe, and
     half of a "twenty image" dataset was duplicates. See `sample_recipe`.
     """
+    recipe, receipt, rng = make_content(seed=seed, force=force, attempts=attempts)
+    with profiling.stage("layout"):
+        grid = build_grid(receipt, recipe.layout.id, rng)
+    return recipe, receipt, grid
+
+
+def make_content(seed: int | None = None, force: dict[str, str] | None = None,
+                 attempts: int = 500):
+    """Recipe and contents, with no character grid laid over them.
+
+    `(recipe, receipt, rng)` -- the rng too, so a caller that does want a grid
+    can build one on the same stream and get the page `make` would have given.
+
+    This exists because `build_grid` does not only read the `Receipt`: a value
+    too wide for its character column is cut to fit and the cut is **written
+    back**, so `ground_truth()` describes what was drawn rather than what was
+    sampled (`_emit_vat_summary` in `layout.py` says why). That is right for a
+    page made of character cells and wrong for one made of CSS: the sheets in
+    `generators/html/sheets/` have no character columns, so a sheet built after
+    a grid would print "Hàng hoá không chịu thuế GTG" on a line with room for
+    the whole label. The CSS backends take this entry point instead.
+    """
     with profiling.stage("sampling"):
         recipe = sample_recipe(seed=seed, force=force, attempts=attempts)
     rng = random.Random(recipe.seed)
     with profiling.stage("content"):
         receipt = build_receipt(recipe, rng)
-    with profiling.stage("layout"):
-        grid = build_grid(receipt, recipe.layout.id, rng)
-    return recipe, receipt, grid
+    return recipe, receipt, rng

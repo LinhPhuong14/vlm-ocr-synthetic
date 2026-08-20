@@ -20,6 +20,19 @@ bảng tra: tờ nào là tham chiếu cho bố cục nào thì tên nói thẳn
 make templates       # in lại: out/*.pdf và *.jpg
 ```
 
+## Engine dựng theo năm tờ này
+
+Từ khi `generators/html/sheets/` ra đời, năm tờ ở đây không chỉ là tranh minh
+hoạ nữa: chúng là **hình mẫu** mà engine tham số hoá. `sheets/statutory.py` dựng
+theo hai tờ đầu, `sheets/lodging.py` theo hai tờ khách sạn, `sheets/modern.py`
+theo tờ tiệm bánh. Sửa một tờ ở đây không tự động đổi engine — nhưng nếu tờ mẫu
+và trang engine sinh ra đã khác nhau thì một trong hai đang sai, và tờ mẫu là
+bên nói đúng.
+
+```bash
+generators/html/render.py -o out -c 1 --template --layout invoice_vat_summary
+```
+
 ## Đây KHÔNG phải bố cục của rule-base
 
 Chỗ dễ nhầm nhất, nên nói trước. Bố cục thật của repo là

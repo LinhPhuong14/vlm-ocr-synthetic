@@ -24,6 +24,7 @@ first. The sources themselves are not committed; the map is.
 | `paper_overlay` | — (SynthDoG's `resources/paper/`) | a photograph of a real sheet laid over the finished page, ink included |
 | `gradient_domain` | `GradientDomainDegradation.cpp` | stains pasted with Poisson blending (`cv::seamlessClone`, `MIXED_CLONE`) — Seuret, Chen, Eichenberger, Liwicki & Ingold, ICDAR 2015 |
 | `phantom_character` | `PhantomCharacter.cpp` | leftover ink from a worn press, pasted against the flanks of characters |
+| `pattern_overlay` | — (this repository) | a seal or flourish from `textures/ornament/` struck onto the finished page, blended by multiply so text under it stays readable |
 
 ### Filtering models
 
@@ -34,6 +35,25 @@ first. The sources themselves are not committed; the map is.
 | `bleed_through` | `BleedThrough.cpp` | ink from the other side of the sheet |
 | `blur_zones` | `BlurFilter.cpp` | blur in patches, not over the whole page |
 | `holes` | `HoleDegradation.cpp` | tears, rips and punched holes — the missing paper filled with **black** by default |
+
+### Capture patterns — what the copy carries, not what the sheet suffers
+
+| here | from | what it models |
+| --- | --- | --- |
+| `halftone_screen` | — (this repository) | the dot screen a photocopier lays down: a periodic screen at 45°, thresholded against local brightness |
+| `scan_banding` | — (this repository) | the light and dark bands a flatbed roller or a fax leaves, one fine period over one slow one |
+| `jpeg_blocks` | — (this repository) | the 8×8 grid of repeated JPEG compression, error accumulating over several passes |
+
+These three are the odd family here, and the docstring in
+[`capture.py`](capture.py) says why: **nothing happens to the paper.** The sheet
+is intact; only its copy carries a periodic mark the device imposed. That is
+also why they sit in `augmentation` rather than in the `ornament` attribute —
+`ornament` is ink somebody meant to put on the page, and nobody wants these.
+
+For Vietnamese invoice data this is the common case rather than the exotic one.
+A sheet goes through the photocopier in the accounts office, is photographed
+with a phone, and is forwarded through a messaging app that recompresses it —
+the image that reaches a reader carries all three.
 
 `make list-degradations` prints the registry.
 

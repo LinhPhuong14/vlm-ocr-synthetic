@@ -5,9 +5,16 @@
 | [`dataset60/`](dataset60) | 60 | **aged** — a degradation chain drawn from the rules; the glyph renderer also curls the sheet and re-photographs it |
 | [`dataset60_clean/`](dataset60_clean) | 60 | **not augmented** — same receipts, every kind of ageing and distortion off |
 | [`layout_canvas/`](layout_canvas) | 6 | **contact sheets** — every bố cục of every renderer, clean over augmented, plus the boxes drawn on the augmented page |
+| [`invoices54/`](invoices54) | 54 | the nine **commercial invoice** layouts drawn as **CSS sheets** rather than as a character grid, by the two HTML backends — see its own [README](invoices54/README.md) |
 
-20 images per renderer (synthdog / html / genalog) in each set, spread evenly
-over the layouts.
+20 images per renderer (synthdog / html / genalog) in each `dataset60*` set,
+spread evenly over the layouts. `invoices54/` is a different shape and says so
+in its own README: two renderers, nine layouts, and a different page model.
+
+**Which page model drew a set is in its `dataset.json`**, under `template`.
+Absent or empty is the character grid — what every set built before
+`generators/html/sheets/` existed was drawn from. Do not infer it from the
+pixels; a ruled invoice looks much the same either way until you measure it.
 
 Both sets span all **fourteen layouts**: five thermal receipts on a continuous
 roll and nine commercial invoices on A4. `dataset.json` in each set records the

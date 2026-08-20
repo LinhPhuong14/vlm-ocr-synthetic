@@ -101,20 +101,63 @@ def served(markup: str):
 # element -- which is the whole speed difference between this and driving the
 # same browser through Selenium.
 #
-# One text box per drawn field, for the character-grid receipts.
+# One text box per drawn field -- and one per LINE when a field wraps.
+#
+# The union rectangle of a run that broke over two lines is not a box round the
+# text: it is a box round both lines *and the blank paper between their ragged
+# ends*, which on a full-width block swallows whatever sits at the start of the
+# first line. Measured: an invoice's "Số tiền bằng chữ:" label came out 100%
+# inside the amount's box, and the overlap detector was right to call it.
+#
+# So a run whose `getClientRects()` has more than one entry is split per line
+# with a Range, character by character, and each line becomes its own box with
+# its own slice of the text. The character grid never takes this path -- its
+# cells are `white-space:pre` and always one line -- so nothing about it changes.
 CELL_RECTS_JS = """() => {
   const sheet = document.querySelector('#sheet').getBoundingClientRect();
-  return [...document.querySelectorAll('#sheet span[data-kind]')].map(span => {
-    const box = (span.firstElementChild || span).getBoundingClientRect();
-    return {
-      kind: span.dataset.kind,
-      text: span.textContent,
-      x: box.left - sheet.left,
-      y: box.top - sheet.top,
-      w: box.width,
-      h: box.height,
+  const out = [];
+  const push = (kind, text, box) => {
+    if (!text.trim()) return;
+    out.push({kind, text, x: box.left - sheet.left, y: box.top - sheet.top,
+              w: box.width, h: box.height});
+  };
+  const range = document.createRange();
+  for (const span of document.querySelectorAll('#sheet span[data-kind]')) {
+    const kind = span.dataset.kind;
+    const node = span.firstChild;
+    const simple = node && node.nodeType === 3 && span.childNodes.length === 1;
+    if (!simple || span.getClientRects().length < 2) {
+      push(kind, span.textContent,
+           (span.firstElementChild || span).getBoundingClientRect());
+      continue;
+    }
+    const text = node.data;
+    let line = null;
+    const flush = () => {
+      if (!line) return;
+      push(kind, text.slice(line.from, line.to),
+           {left: line.left, top: line.top, width: line.right - line.left,
+            height: line.bottom - line.top});
     };
-  });
+    for (let i = 0; i < text.length; i++) {
+      range.setStart(node, i);
+      range.setEnd(node, i + 1);
+      const r = range.getBoundingClientRect();
+      if (r.width === 0 && r.height === 0) continue;   // a collapsed break
+      if (line === null || Math.abs(r.top - line.top) > 1) {
+        flush();
+        line = {top: r.top, left: r.left, right: r.right, bottom: r.bottom,
+                from: i, to: i + 1};
+      } else {
+        line.left = Math.min(line.left, r.left);
+        line.right = Math.max(line.right, r.right);
+        line.bottom = Math.max(line.bottom, r.bottom);
+        line.to = i + 1;
+      }
+    }
+    flush();
+  }
+  return out;
 }"""
 
 # One box per table cell, with its position and span. A merged cell -- a totals

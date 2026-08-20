@@ -109,7 +109,7 @@ def mark_done(directory: Path, payload: dict) -> None:
 
 
 def renderer_command(backend: str, staging: Path, jobs: Path,
-                     clean: bool, force: list[str]) -> list[str]:
+                     clean: bool, force: list[str], template: str = "") -> list[str]:
     """One invocation for the whole shard, not one per layout.
 
     A shard used to be rendered by one process per run, and a run is one
@@ -143,6 +143,11 @@ def renderer_command(backend: str, staging: Path, jobs: Path,
     # Only the glyph backend has geometry of its own to switch off.
     if clean and backend == "synthdog":
         command.append("--clean")
+    # ...and only the two HTML backends have a second page model. `Config`
+    # refuses a run that asks for one and includes the glyph backend, so
+    # reaching here with both is a bug rather than a fall-through.
+    if template and backend != "synthdog":
+        command += ["--template", template]
     return command
 
 
@@ -189,7 +194,8 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
             jobs_path = worklist.write(staging / "jobs.json", jobs)
             command = renderer_command(backend, staging, jobs_path,
                                        bool(plan.get("clean")),
-                                       list(plan.get("force") or []))
+                                       list(plan.get("force") or []),
+                                       str(plan.get("template") or ""))
             if log:
                 log.write(f"$ {' '.join(command)}\n")
                 log.write(f"  {len(jobs)} job(s), {worklist.total(jobs)} image(s), "
