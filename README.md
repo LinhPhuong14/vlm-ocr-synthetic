@@ -744,12 +744,12 @@ A preflight check that could not *run* — a missing library rather than a broke
 rule — is prefixed `unchecked:` and still fails, because a job that starts
 without knowing is what preflight exists to prevent.
 
-Verified in this environment (Python 3.11.15, 4 cores, all three venvs built):
+Verified in this environment (Python 3.11.15, 4 cores, all three venvs built). Rows marked † were re-measured later on the same interpreter with **no renderer venv built**, which is why four slow tests skip there; the rest are as first taken:
 
 | command | result |
 | --- | --- |
-| `python -m pytest` | 417 passed, 1 xfailed, 59 s |
-| `python tasks.py check` | all 64 python files compile |
+| `python -m pytest` † | 599 passed, 4 skipped, 1 xfailed, 78 s |
+| `python tasks.py check` † | all 84 python files compile |
 | `python tasks.py lint` | ruff: all checks passed |
 | `python tasks.py preflight` | clean, ~15 s (glyph coverage over 16 layouts' strings) |
 | `python tasks.py check-rules` / `check-corpus` | valid — vi 12 corpus files, en 5 |
@@ -857,6 +857,7 @@ the two must stay in step.
 | [`data/README.md`](data/README.md) | the datasets and the label schema |
 | [`samples/README.md`](samples/README.md) | reading the degradation showcase |
 | [`samples/invoice-templates/README.md`](samples/invoice-templates/README.md) | the five reference sheets, and why they are not layouts |
+| [`docs/tu-dong-hoa-bang-llm.md`](docs/tu-dong-hoa-bang-llm.md) | putting an LLM in the loop that *writes the rules* rather than the one that draws the pixels: what is already automated, the measured gaps, and a staged plan (Vietnamese) |
 | [`docs/hoa-tiet-de-xuat.md`](docs/hoa-tiet-de-xuat.md) | ornaments surveyed and not built, with the reason each was left |
 | [`docs/khao-sat-sinh-chu-viet-tay.md`](docs/khao-sat-sinh-chu-viet-tay.md) | eight handwriting-synthesis repositories ranked on breadth of data and on realism, for the `handwriting_fill` gap (Vietnamese) |
 | [`docs/writevit.md`](docs/writevit.md) | standing up WriteViT for Vietnamese handwriting, and what it measurably cannot write (Vietnamese) |
