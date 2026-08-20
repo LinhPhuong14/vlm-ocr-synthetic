@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Giấy uỷ quyền nhận tiền — bản dựng thử</title>
+<style>
+  @page { size: A4 portrait; margin: 0; }
+  * { box-sizing: border-box; }
+  :root { --ink:#111; --band:#8f8f8f; --rule:#222; }
+  body { margin:0; font-family:"LiberationSans","DejaVuSans","Arial",sans-serif;
+         font-size:8.6pt; color:var(--ink); line-height:1.42; }
+  .sheet { position:relative; width:210mm; min-height:297mm; padding:10mm 13mm 7mm;
+           background:#fff; overflow:hidden; }
+
+  /* ---------- dấu chìm: hoa văn logo, in rất nhạt sau khối chữ ---------- */
+  .wm { position:absolute; left:52mm; top:105mm; width:78mm; height:78mm; opacity:.13; z-index:-1; }
+
+  /* ---------- đầu trang ---------- */
+  .head { display:table; width:100%; padding-bottom:5mm; }
+  .head > div { display:table-cell; vertical-align:top; }
+  .brand { width:44%; }
+  .brand .mark { width:19mm; height:15mm; }
+  .brand .n { font-family:"LiberationSerif",serif; font-size:16pt; letter-spacing:.3pt; margin-top:-1mm; }
+  .brand .s { font-size:5.8pt; letter-spacing:2.2pt; color:#222; }
+  .corp { width:56%; text-align:left; padding-left:24mm; }
+  .corp .c1 { font-weight:bold; font-size:9pt; }
+  .corp .c2 { letter-spacing:.9pt; }
+  .corp b { font-weight:bold; }
+
+  h1 { text-align:center; font-size:15pt; font-weight:bold; letter-spacing:.4pt; margin:0 0 1.8mm; }
+  .sub { text-align:center; font-style:italic; font-size:7.8pt; margin-bottom:14mm; }
+  .to { font-weight:bold; margin:0 0 3mm; }
+  .to i { font-style:italic; }
+
+  /* ---------- khung thân đơn ---------- */
+  .box { border:.35mm solid var(--rule); }
+  .band { background:var(--band); color:#fff; font-weight:bold; font-size:8pt;
+          letter-spacing:.5pt; padding:1.1mm 2mm; }
+  .body { padding:2mm 2.6mm 2.4mm; }
+  .row { margin:1.2mm 0; }
+  .lab { }
+  .lab i { font-style:italic; }
+  /* giá trị điền: gạch chân mảnh + phông khác, thay cho nét bút */
+  .v { font-family:"Cousine","LiberationMono",monospace; font-size:8.4pt;
+       border-bottom:.2mm solid #555; padding:0 1.6mm .3mm; white-space:pre; }
+  .lead { border-bottom:.2mm dotted #444; }
+  .grow { display:inline-block; min-width:38mm; }
+
+  /* ---------- điều khoản ---------- */
+  .clause { padding:3mm 0 0; }
+  .clause p { margin:1.6mm 0; }
+  .clause .num { font-style:italic; padding-left:4mm; }
+  .term { font-style:italic; padding:2mm 0 1mm; }
+
+  /* ---------- khối chữ ký, 4 cột ---------- */
+  table.sign { width:100%; border-collapse:collapse; }
+  table.sign td { border-top:.35mm solid var(--rule); width:25%; text-align:center;
+                  vertical-align:top; padding:2mm 1mm 18mm; }
+  table.sign .r { font-weight:bold; }
+  table.sign .h { font-style:italic; font-size:7.6pt; }
+  .signed { border-top:.35mm solid var(--rule); padding:2.4mm 2.6mm; }
+  .note { border-top:.35mm solid var(--rule); padding:2.2mm 2.6mm; font-style:italic; }
+
+  /* ---------- chân trang: mã vạch + mã biểu mẫu ---------- */
+  .foot { display:table; width:100%; margin-top:3mm; }
+  .foot > div { display:table-cell; vertical-align:bottom; }
+  .foot .bc { width:60%; }
+  .foot .code { width:40%; text-align:right; font-size:8.4pt; }
+  .bars { height:9mm; }
+  .bcnum { letter-spacing:3pt; font-size:8pt; }
+
+  /* ---------- con dấu: ảnh PNG từ textures/ornament, đóng đè lên chữ ---------- */
+  .stampA { position:absolute; left:26mm; top:52mm; width:44mm; opacity:.86;
+            transform:rotate(-1.2deg); }
+  .stampB { position:absolute; right:20mm; top:48mm; width:46mm; opacity:.86;
+            transform:rotate(2.5deg); }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <!-- dấu chìm -->
+  <svg class="wm" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <g fill="#c9c9c9">
+      <circle cx="50" cy="22" r="15"/><circle cx="72" cy="34" r="15"/>
+      <circle cx="78" cy="58" r="15"/><circle cx="62" cy="76" r="15"/>
+      <circle cx="38" cy="76" r="15"/><circle cx="22" cy="58" r="15"/>
+      <circle cx="28" cy="34" r="15"/><circle cx="50" cy="50" r="13"/>
+    </g>
+  </svg>
+
+  <div class="head">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 120 92" xmlns="http://www.w3.org/2000/svg">
+        <g fill="none" stroke="#111" stroke-width="2.2">
+          <circle cx="60" cy="20" r="13"/><circle cx="82" cy="31" r="13"/>
+          <circle cx="86" cy="53" r="13"/><circle cx="71" cy="69" r="13"/>
+          <circle cx="49" cy="69" r="13"/><circle cx="34" cy="53" r="13"/>
+          <circle cx="38" cy="31" r="13"/><circle cx="60" cy="45" r="11"/>
+        </g>
+      </svg>
+      <div class="n">Phu Hung</div>
+      <div class="s">LIFE INSURANCE</div>
+    </div>
+    <div class="corp">
+      <div class="c1">CÔNG TY CP BẢO HIỂM NHÂN THỌ PHÚ HƯNG</div>
+      <div class="c2">Tầng 5, CR3 - 05A, 109 Tôn Dật Tiên</div>
+      <div>Phường Tân Phú, Quận 7, Thành phố Hồ Chí Minh</div>
+      <div><b>Tel:</b> (84.8) 5413 7199 - <b>Fax:</b> (84.8) 5413 6995</div>
+      <div>info@phuhunglife.com - www.phuhunglife.com</div>
+    </div>
+  </div>
+
+  <h1>GIẤY ỦY QUYỀN NHẬN TIỀN</h1>
+  <div class="sub">(Chỉ áp dụng cho trường hợp ủy quyền cho Chuyên viên tư vấn bảo hiểm nhận Phí bảo hiểm hoàn lại với số tiền nhỏ hơn 5.000.000 đồng)</div>
+
+  <img class="stampA" src="../../textures/ornament/seal_name_block.png" alt="">
+  <img class="stampB" src="../../textures/ornament/seal_round_company.png" alt="">
+
+  <div class="to"><i>Kính gửi:</i> Công ty Cổ phần Bảo hiểm Nhân thọ Phú Hưng (Công ty)</div>
+
+  <div class="box">
+    <div class="band">NGƯỜI ỦY QUYỀN</div>
+    <div class="body">
+      <div class="row">Họ và tên <i>(CHỮ IN HOA)</i> <span class="v grow">PHẠM NGỌC HÙNG</span></div>
+      <div class="row">Số CMND <span class="v">271357366</span>
+        <span style="padding-left:22mm">Ngày cấp <span class="v">16/10/2011</span></span>
+        <span style="padding-left:10mm">Nơi cấp <span class="v">Đồng Nai</span></span></div>
+      <div class="row">Là Bên mua bảo hiểm của Hợp đồng bảo hiểm/Hồ sơ yêu cầu bảo hiểm số: <span class="v">80015143</span></div>
+      <div class="row">Ủy quyền không hủy ngang cho người được nêu tên dưới đây:</div>
+    </div>
+    <div class="band">NGƯỜI ĐƯỢC ỦY QUYỀN</div>
+    <div class="body">
+      <div class="row">Họ và tên <i>(CHỮ IN HOA)</i> <span class="v grow">NGUYỄN THỊ VÂN ANH</span></div>
+      <div class="row">Số CMND <span class="v">271699441</span>
+        <span style="padding-left:22mm">Ngày cấp <span class="v">08/04/2014</span></span>
+        <span style="padding-left:10mm">Nơi cấp <span class="v">Đồng Nai</span></span></div>
+      <div class="row">Địa chỉ <span class="v grow">Phú Hội - Nhơn Trạch - Đồng Nai</span></div>
+      <div class="row">Mã số tư vấn <span class="v">60009878</span>
+        <span style="padding-left:30mm">Điện thoại <span class="v">0903403626</span></span></div>
+      <div class="row">Nhận Phí bảo hiểm hoàn lại của Hợp đồng/ Hồ sơ yêu cầu bảo hiểm nói trên với số tiền là:</div>
+      <div class="row">Bằng số: <span class="v lead" style="display:inline-block;width:150mm">3.888.000 đ</span></div>
+      <div class="row">Bằng chữ: <span class="v lead" style="display:inline-block;width:148mm">Ba triệu tám trăm tám mươi tám nghìn đồng</span></div>
+      <div class="row">theo thông báo của Công ty ngày <span class="v lead" style="display:inline-block;width:110mm">14/09/2017</span></div>
+
+      <div class="clause">
+        <p>Tôi xác nhận rằng trên cơ sở khi Công ty thanh toán số tiền nêu trên cho Người được ủy quyền, Công ty được:</p>
+        <p class="num">1) Miễn trừ khỏi mọi khiếu nại hay yêu cầu bồi thường của tôi đối với Công ty về khoản thanh toán nói trên.</p>
+        <p class="num">2) Tôi bồi hoàn và giữ cho Công ty không phải chi trả bất kỳ khoản tiền gì đối với tất cả các yêu cầu, khiếu nại, nghĩa vụ nợ, tổn thất, chi phí (bao gồm cả chi phí tư vấn và các chi phí khác mà Công ty phải chịu liên quan đến việc bồi hoàn này) phát sinh liên quan đến hay do việc Công ty thanh toán khoản tiền này cho Người được ủy quyền nêu trên.</p>
+        <p class="term">Giấy ủy quyền này chỉ có hiệu lực trong vòng ba (03) tháng kể từ ngày ký và có giá trị ràng buộc đối với những người đại diện của cá nhân tôi, những người thừa kế và/ hoặc quản lý di sản của tôi.</p>
+      </div>
+    </div>
+
+    <table class="sign">
+      <tr>
+        <td><div class="r">Bên mua bảo hiểm</div><div class="h">(Ký và ghi rõ họ tên)</div></td>
+        <td><div class="r">Chuyên viên tư vấn bảo hiểm<br>được ủy quyền</div><div class="h">(Ký và ghi rõ họ tên)</div></td>
+        <td><div class="r">Người làm chứng</div><div class="h">(Ký và ghi rõ họ tên)</div></td>
+        <td><div class="r">Xác nhận của ADM</div><div class="h">(Ký và ghi rõ họ tên)</div></td>
+      </tr>
+    </table>
+
+    <div class="signed">Ngày ký đơn: <span class="v lead" style="display:inline-block;width:60mm">19 / 09 / 2017</span></div>
+    <div class="note">Lưu ý: Đề nghị Bên mua bảo hiểm ký đúng với chữ ký đã được đăng ký giao dịch với Công ty, vui lòng tham khảo chữ ký mẫu tại Hồ sơ yêu cầu bảo hiểm hoặc chữ ký đã được chấp thuận thay đổi lần sau cùng.</div>
+  </div>
+
+  <div class="foot">
+    <div class="bc">
+      <svg class="bars" viewBox="0 0 300 30" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <g fill="#000">
+          <rect x="0" y="0" width="3" height="30"/><rect x="5" y="0" width="1" height="30"/>
+          <rect x="9" y="0" width="1" height="30"/><rect x="13" y="0" width="3" height="30"/>
+          <rect x="19" y="0" width="1" height="30"/><rect x="23" y="0" width="3" height="30"/>
+          <rect x="29" y="0" width="1" height="30"/><rect x="33" y="0" width="1" height="30"/>
+          <rect x="37" y="0" width="3" height="30"/><rect x="43" y="0" width="1" height="30"/>
+          <rect x="47" y="0" width="1" height="30"/><rect x="51" y="0" width="3" height="30"/>
+          <rect x="57" y="0" width="1" height="30"/><rect x="61" y="0" width="3" height="30"/>
+          <rect x="67" y="0" width="1" height="30"/><rect x="71" y="0" width="1" height="30"/>
+          <rect x="75" y="0" width="3" height="30"/><rect x="81" y="0" width="1" height="30"/>
+          <rect x="85" y="0" width="3" height="30"/><rect x="91" y="0" width="1" height="30"/>
+          <rect x="95" y="0" width="1" height="30"/><rect x="99" y="0" width="3" height="30"/>
+          <rect x="105" y="0" width="1" height="30"/><rect x="109" y="0" width="1" height="30"/>
+          <rect x="113" y="0" width="3" height="30"/><rect x="119" y="0" width="1" height="30"/>
+          <rect x="123" y="0" width="3" height="30"/><rect x="129" y="0" width="1" height="30"/>
+        </g>
+      </svg>
+      <div class="bcnum">* P O S 0 0 0 7 *</div>
+    </div>
+    <div class="code">POSF_ALA_2015V01</div>
+  </div>
+
+</div>
+</body>
+</html>
