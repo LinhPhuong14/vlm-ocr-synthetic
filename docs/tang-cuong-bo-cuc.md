@@ -30,6 +30,18 @@ Ba mệnh đề, mỗi mệnh đề chống lại một sai lầm dễ mắc:
    số, có `requires`, tự động vào `metadata.jsonl`, tự động được `drift.py` đo,
    và tái lập được từ seed — y hệt mọi trục khác.
 
+Và **hai chế độ an toàn, không phải một** — đây là chỗ bản đầu của tài liệu này
+quá hẹp. Tờ A gộp ở tiêu đề (đi theo cây → *hợp lệ theo cấu tạo*, khỏi kiểm);
+tờ B gộp hai cột trong **đúng một hàng**, không theo cây nào (→ *đề xuất rồi
+kiểm*, với một vị từ một dòng: **ô gộp không được phủ cột nào có giá trị ở hàng
+đó**). Cả hai tờ đều có thật, nên bộ tăng cường phải sinh được cả hai. Chi tiết
+ở §3.2.
+
+Và **hai trục, không phải một**: cột (§3–§4) và **component** (§4b). Trang đã
+là một dãy khối — `sections: [letterhead, doctitle, parties, table, …]` — nên
+biến thể ở mức khối nhân với biến thể ở mức cột. Một file bố cục khai đủ quan
+hệ cho ra **hàng nghìn** trang hợp lệ.
+
 Và một cảnh báo đi kèm, vì nó dễ bị bỏ qua: **biến thể phải là cái đuôi của
 phân phối, không phải cái thân.** `as_printed` — bố cục đúng như đo từ tờ giấy
 thật — phải nặng ký nhất. Một bộ dữ liệu mà đa số trang là biến thể máy nghĩ ra
@@ -192,11 +204,42 @@ Ba khai báo mới, và **cả ba đều tuỳ chọn**: một file không khai 
 y như hôm nay. Đây là điều kiện để 16 bố cục đã đo không bị động vào — cùng lý
 lẽ mà `rules: marks` đã dùng khi được thêm vào.
 
-### 3.2 Tám nước đi
+### 3.2 Hai chế độ an toàn, không phải một
 
-Bộ tăng cường **không có** phép biến đổi nào ngoài tám phép này. Danh sách đóng
-là điều làm cho "hợp lệ theo cấu tạo" trở thành một câu nói được kiểm chứng chứ
-không phải một lời hứa.
+> **Sửa lại so với bản đầu.** Bản đầu chỉ có *hợp lệ theo cấu tạo* và vì thế
+> **từ chối** một ca có thật: tờ A gộp ở tiêu đề (cây cột), tờ B gộp hai cột
+> trong **đúng một hàng**, không theo cây nào cả. Tờ B tồn tại — người thiết kế
+> mẫu gộp hai ô để chỗ cho một nhãn dài, hoặc một dòng ghi chú chạy ngang hai
+> cột trong khi hai cột kia vẫn có số. Một bộ tăng cường không sinh được tờ B
+> là một bộ tăng cường thiếu.
+
+Nên có **hai chế độ**, và chúng khác nhau ở chỗ *bao giờ thì biết là an toàn*:
+
+| chế độ | ai bảo đảm | kiểm lúc nào | ca |
+| --- | --- | --- | --- |
+| **Hợp lệ theo cấu tạo** | cây cột | không cần kiểm | **A** — tiêu đề nhóm, cột trụ, dải phân nhóm |
+| **Đề xuất rồi kiểm** | một vị từ rẻ | mỗi hàng, mỗi lần | **B** — gộp cục bộ trong một hàng |
+
+Vị từ cho chế độ thứ hai chỉ có một câu, và **nó đã nằm sẵn trong repo** (§1.2):
+
+> Một ô gộp trên một hàng là hợp lệ **khi và chỉ khi** nó không phủ lên cột nào
+> có giá trị không rỗng ở hàng đó.
+
+Rẻ (`values.get(key)` cho mỗi cột bị phủ), tất định, và **đủ**: nó chính là
+định nghĩa của "gộp mà không nuốt mất dữ liệu". Nên tờ B không cần một cây; nó
+cần một *phạm vi* được khai và một vị từ được chạy.
+
+Và một nhận xét làm mọi thứ nhẹ hơn: **ca B đã diễn tả được trong ngữ pháp hiện
+tại.** `{from: name, span: [qty, amount]}` trong `item.rows` **chính là** một
+colspan cục bộ theo hàng — nó đã chạy trên `eatery_indexed` từ đầu. Cái thiếu
+không phải là ngôn ngữ, mà là (a) nó chưa vào nhãn, và (b) nó chưa được coi là
+một *nước đi* có thể bốc.
+
+### 3.2b · Chín nước đi
+
+Bộ tăng cường **không có** phép biến đổi nào ngoài chín phép này. Danh sách
+đóng là điều làm cho "hợp lệ" trở thành một câu kiểm chứng được chứ không phải
+một lời hứa.
 
 | nước đi | làm gì | chỉ hợp lệ khi |
 | --- | --- | --- |
@@ -208,9 +251,68 @@ không phải một lời hứa.
 | `stack_rows` | đổi giữa các mẫu dòng mặt hàng đã khai | `item.rows` có nhiều hơn một mẫu |
 | `total_span` | dòng tổng phủ tới cột đầu tiên có số | luôn hợp lệ — chính là luật §1.2 |
 | `blank_rows` | số dòng trống có kẻ ô | bố cục khai `blank_rows` là một khoảng |
+| **`row_local_merge`** | gộp một dải cột trên **một hàng** — ca B | dải nằm trong `row_merges.scope` đã khai, **và** vị từ §3.2 đúng cho hàng đó |
 
-Không có `random_merge`. Không có `split_cell`. Không có nước đi nào tạo ra một
-quan hệ mà file bố cục chưa nói tới.
+Tám nước đầu là *hợp lệ theo cấu tạo*: không cần kiểm. Nước thứ chín là *đề
+xuất rồi kiểm*: được đề xuất tự do trong phạm vi đã khai, rồi vị từ nhận hoặc
+loại — **cho từng hàng một**, vì cùng một dải có thể hợp lệ ở hàng này và nuốt
+mất một số ở hàng kia.
+
+Vẫn không có `random_merge` trên toàn bảng, và không có `split_cell`. Khác biệt
+giữa `row_local_merge` và "gộp ngẫu nhiên" là **phạm vi được khai** cộng **vị từ
+được chạy** — không phải là chỗ gộp có đẹp hay không.
+
+### 3.2c · `row_merges:` — khai phạm vi cho ca B
+
+```yaml
+table:
+  row_merges:
+    # Trên hàng mặt hàng, tên có thể chạy sang cột ĐVT khi mặt hàng không có
+    # đơn vị (dịch vụ, phí) -- đúng như tờ mẫu in ra.
+    - {scope: [name, unit], on: item, prob: 0.35}
+    # Trên hàng ghi chú, ghi chú chạy ngang ba cột số.
+    - {scope: [qty, amount], on: note, prob: 1.0}
+    # Trên hàng tổng, nhãn chạy tới cột đầu tiên có số -- luật §1.2, khai
+    # tường minh cho người đọc thấy.
+    - {scope: [stt, amount], on: total, prob: 1.0}
+```
+
+Ba trường, và mỗi trường chặn một kiểu sai:
+
+* **`scope`** — dải cột **liền nhau** được phép gộp. Không khai thì không gộp.
+  Đây là chỗ "ngẫu nhiên" bị chặn: ngẫu nhiên *trong* một dải người viết bố cục
+  đã nhìn qua, chứ không ngẫu nhiên trên cả bảng.
+* **`on`** — loại hàng (`item` · `note` · `total` · `group` · `blank`). Cùng
+  một dải hợp lệ trên hàng ghi chú và vô nghĩa trên hàng mặt hàng.
+* **`prob`** — bao nhiêu phần hàng đủ điều kiện thì thật sự gộp. Đây là chỗ
+  "tuỳ chỗ" trong câu hỏi: **cùng một bảng, hàng này gộp, hàng kia không** —
+  vốn là hình dạng thật của một tờ mẫu, chứ không phải một quy luật đều.
+
+Vị từ vẫn chạy sau cùng và vẫn có quyền phủ quyết: `prob: 1.0` mà hàng đó có số
+ở cột bị phủ thì **không gộp**, và không báo lỗi — hàng ấy đơn giản là không đủ
+điều kiện. Đó là điểm khác then chốt so với "gộp rồi sửa": không có gì để sửa,
+vì nước đi không xảy ra.
+
+### 3.2d · Chế độ thứ ba: hồ sơ gộp đo từ giấy thật
+
+Hai chế độ trên đều dựa vào khai báo của người viết bố cục. Có một chế độ thứ
+ba **chính xác hơn cả hai** khi có dữ liệu: **đo phân phối gộp từ chính các tờ
+giấy thật** rồi lấy mẫu theo nó.
+
+Đây là cách [*Synthesizing Realistic Data for Table
+Recognition*](https://arxiv.org/abs/2404.11100) đi (§8), và số của họ nói nó
+đáng: TEDS 0,9758 → 0,9847, lợi ích tập trung đúng ở bảng nhiều ô gộp. Điều
+kiện: một tập tờ giấy thật **đã chú thích cấu trúc**. Repo chưa có, và đó là
+lý do nó là chế độ thứ ba chứ không phải thứ nhất — nhưng nếu có thì `prob`
+trong `row_merges:` không phải đoán nữa mà là **đo được**.
+
+Ba chế độ xếp theo độ tin và theo giá:
+
+| | bảo đảm bằng | cần gì | dùng khi |
+| --- | --- | --- | --- |
+| 1 · cấu tạo | cây cột | một khai báo | quan hệ có thật và ổn định |
+| 2 · đề xuất+kiểm | vị từ không-nuốt-giá-trị | một phạm vi | gộp cục bộ, "tuỳ chỗ" |
+| 3 · hồ sơ đo | phân phối thật | tờ giấy thật đã chú thích | khi có dữ liệu — thay `prob` đoán bằng `prob` đo |
 
 ### 3.3 `compose:` — chỗ bảo đảm "nội dung hợp lý"
 
@@ -368,6 +470,115 @@ lần chạy, và `drift.py` cảnh báo khi vượt — cùng cơ chế `FALLBA
 đã dùng cho nguồn nội dung.
 
 ---
+
+## 4b. Trục thứ hai: biến thể ở mức **component**
+
+Cột không phải trục duy nhất. Trang cũng là một dãy khối, và repo **đã** mô
+hình hoá nó như vậy — chỉ chưa khai thác.
+
+### 4b.1 Repo đã là kiến trúc component rồi
+
+```yaml
+sections: [letterhead, doctitle, parties, table, totals, words, signatures, footer]
+```
+
+Đó **chính là** "chọn component rồi sắp xếp". `rulebase/layout.py` giữ một sổ
+đăng ký 15 component:
+
+```python
+SECTIONS = {"header": _emit_header, "strip": _emit_strip, "vat_summary": …,
+            "meta": …, "columns": …, "items": …, "totals": …, "footer": …,
+            "letterhead": …, "doctitle": …, "parties": …, "table": …,
+            "words": …, "notes": …, "signatures": …}
+```
+
+và bố cục dùng 6–9 trong số đó. Nên ý tưởng "engine theo component" không phải
+một kiến trúc thay thế — **nó là kiến trúc đang chạy**. Câu hỏi thật là câu
+tiếp theo: *ai chọn, và bao lâu một lần* (trả lời bằng số ở
+[`tu-dong-hoa-bang-llm.md` Phụ lục C](tu-dong-hoa-bang-llm.md#phụ-lục-c--kinh-tế-đặt-llm-ở-đâu-thì-rẻ)).
+
+### 4b.2 Chỗ nó chưa đủ: component không có hợp đồng
+
+```python
+SECTIONS[name](builder, spec, receipt, columns, rng)
+```
+
+Mọi component nhận **toàn bộ** `spec`. Không có phạm vi, không khai mình cần
+gì, không khai mình vẽ ra `role` nào, không khai phải đứng sau ai. Bốn hệ quả,
+và cả bốn đều chặn đúng việc đang bàn:
+
+| hệ quả | vì sao đau |
+| --- | --- |
+| thêm component phải sửa `layout.py` | trái với "thêm một trục là một file YAML" mà repo đã đạt được ở các trục khác |
+| không kiểm được một `sections:` có mạch lạc không | `vat_summary` mà không có `table` là vô nghĩa; hôm nay không ai báo |
+| không **xáo trộn / bỏ bớt** component một cách an toàn | tức là không có nước đi nào ở mức component |
+| LLM không có thực đơn máy đọc được | nó phải suy ra 15 component từ văn xuôi trong README |
+
+### 4b.3 Hợp đồng component
+
+```python
+@dataclass(frozen=True)
+class Component:
+    id: str
+    emit: Callable                      # như hôm nay
+    requires: frozenset[str] = frozenset()   # trường trên Receipt nó cần
+    provides: frozenset[str] = frozenset()   # role nó vẽ ra
+    after: frozenset[str] = frozenset()      # ràng buộc thứ tự
+    optional: bool = False                   # có bỏ được không
+    accepts: dict = field(default_factory=dict)   # schema RIÊNG của khối này
+```
+
+`accepts` là chỗ trả công lớn nhất và nó nối thẳng vào **M0** của tài liệu
+chính: schema bố cục hôm nay là một khối phẳng bốn mươi khoá; chia theo
+component thì mỗi khối tự khai khoá của mình, và câu lỗi đổi từ *"khoá lạ
+`algin`"* thành *"`table.algin` không có — `table` nhận: frame, row_rules,
+blank_rows, shade, border, header_groups…"*. Với một LLM đang sửa YAML của
+chính nó, khác biệt đó là khác biệt giữa hội tụ ở vòng 1 và vòng 4.
+
+`after` là chỗ diệt cả một lớp vô nghĩa mà không cần ai nghĩ: `doctitle` sau
+`letterhead`, `vat_summary` sau `table`, `signatures` sau `totals`. Khai xong
+thì **mọi thứ tự còn lại đều hợp lệ**, và bộ tăng cường được xáo trộn tự do
+trong khoảng đó.
+
+### 4b.4 Bốn nước đi ở mức component
+
+| nước đi | ví dụ | hợp lệ khi |
+| --- | --- | --- |
+| `drop_component` | bỏ `notes`, bỏ `vat_summary` | `optional: true` **và** không component nào còn lại `requires` cái nó `provides` |
+| `swap_component` | `meta` ↔ `strip` (hai cách in cùng khối khoá) | hai component `provides` cùng tập role |
+| `reorder` | `words` trước hoặc sau `signatures` | không vi phạm `after` |
+| `repeat_component` | `notes` xuất hiện hai lần, trên và dưới bảng | component khai `repeatable: true` |
+
+Cùng vị từ của §3.2 áp ở mức khác: **một component chỉ bỏ được nếu không ai
+đang dựa vào nó**, y như một ô chỉ gộp được nếu nó không nuốt giá trị nào. Một
+luật, hai mức.
+
+### 4b.5 Hai trục nhân với nhau
+
+`invoice_vat_form` khai 8 section, trong đó (đề xuất) `notes` và `vat_summary`
+là tuỳ chọn, `words`/`signatures` đổi được thứ tự:
+
+```
+2 (notes)  ×  2 (vat_summary)  ×  2 (thứ tự words/signatures)  =  8 biến thể component
+                          ×
+                48 cấu trúc cột (§4.3)
+                          ×
+                15 giá trị width
+                          =
+              5.760 trang khác nhau  —  từ MỘT file bố cục
+```
+
+Rồi mới nhân với bảy trục hiện có. Đây là lý do vì sao câu trả lời cho "phải
+sinh nhiều layout data" **không phải** là sinh nhiều file: một file khai đủ
+quan hệ đã cho hàng nghìn trang **chứng minh được là hợp lệ**, còn một file thứ
+hai chỉ cho thêm một tờ giấy.
+
+> **Cùng cảnh báo của §4.4 áp ở đây, mạnh hơn.** 5.760 biến thể của một tờ giấy
+> **không** làm cho bộ dữ liệu đa dạng gấp 5.760 lần — chúng tương quan rất
+> cao. Đa dạng thật vẫn đến từ **tờ giấy thứ mười bảy được đo từ ảnh thật**.
+> Biến thể chống *overfit vào một cách trình bày*; nó không thay được việc đi
+> đo thêm giấy. Ai đọc bảng nhân ở trên mà kết luận "khỏi cần thêm bố cục" thì
+> đã đọc ngược.
 
 ## 5. Nhãn phải học được ô gộp
 
@@ -557,12 +768,22 @@ lập phải đồng ý về cùng một cấu trúc.
 không bao giờ sinh biến thể*: nó vá đúng khiếm khuyết `brief-engine-html.md` đã
 đo và ghi lại.
 
-### T2 · Bộ tăng cường + `rules/structure.yaml` *(sau T1)*
-Tám nước đi, giải xung đột, `make structures` và `make preview-structures`,
-trần biến thể trong `drift.py`.
-**Xong khi:** `make structures` in ra 48 cho `invoice_vat_form`, và cả 48 dựng
-được, qua bất biến, `preview-grid` đọc được.
-**Công:** 1 tuần.
+### T1b · Hợp đồng component *(song song với T1)*
+`Component` với `requires`/`provides`/`after`/`optional`/`accepts`; `SECTIONS`
+thành sổ đăng ký có kiểu; `sections:` được kiểm mạch lạc; schema bố cục chia
+theo khối (§4b.3) — **cùng lúc làm câu lỗi của M0 tốt hơn hẳn cho LLM**.
+**Xong khi:** một `sections: [vat_summary]` không có `table` bị từ chối kèm lý
+do, và thêm một component không phải sửa `build_grid`.
+**Công:** 3–4 ngày.
+
+### T2 · Bộ tăng cường + `rules/structure.yaml` *(sau T1, T1b)*
+Chín nước đi ở mức cột (§3.2b) cộng bốn ở mức component (§4b.4), giải xung đột,
+`make structures` và `make preview-structures`, trần biến thể trong `drift.py`.
+Vị từ không-nuốt-giá-trị chạy cho `row_local_merge` **theo từng hàng**.
+**Xong khi:** `make structures` in ra 48 cấu trúc cột × 8 biến thể component
+cho `invoice_vat_form`, và mẫu ngẫu nhiên 100 trang trong số đó dựng được, qua
+bất biến, `preview-grid` đọc được.
+**Công:** 1–1,5 tuần.
 
 ### T3 · LLM khai cây cho 15 bố cục còn lại *(cài vào M2)*
 Việc hẹp, có căn cứ, dễ phản biện: *"cột nào cùng nhóm? cột nào bỏ được? cặp
@@ -576,7 +797,7 @@ nào gộp được và viết chung thế nào?"* — hỏi trên file đã có
 
 | không làm | vì sao |
 | --- | --- |
-| Gộp ngẫu nhiên trên lưới m×n cho đường chứng từ | `tables.py` đã làm đúng cho bài của nó; ở đây nó tạo ra tờ giấy không tồn tại và làm đỏ bất biến đúng |
+| Gộp ngẫu nhiên trên **cả bảng**, không phạm vi, không vị từ | `tables.py` đã làm đúng cho bài của nó; ở đây nó tạo ra tờ giấy không tồn tại và làm đỏ bất biến đúng. Gộp cục bộ *có* phạm vi khai và *có* vị từ (§3.2c) thì khác — cái đó phải làm |
 | Để bộ tăng cường tự đoán cách nối hai giá trị | không có `compose:` thì không có nước đi. Đoán là chỗ "nội dung hợp lý" sẽ mất |
 | Lưu biến thể thành file trong `layouts/` | phá `provenance:`, phá thư mục, phá bộ test |
 | Nhập `tables.py` vào đường chứng từ | hai bài khác nhau, hai loại nhãn, hai loại nội dung |

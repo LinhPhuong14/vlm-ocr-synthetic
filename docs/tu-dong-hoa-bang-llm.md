@@ -25,7 +25,7 @@
 
 **Phần V · Ràng buộc** — [§15 Chín bất biến](#15-chín-bất-biến) · [§16 Rủi ro](#16-rủi-ro) · [§17 Quản trị](#17-quản-trị--phần-không-ai-thích-đọc)
 
-[Phụ lục A · Số đo](#phụ-lục-a--số-đo) · [Phụ lục B · Nguồn](#phụ-lục-b--nguồn)
+[Phụ lục A · Số đo](#phụ-lục-a--số-đo) · [Phụ lục B · Nguồn](#phụ-lục-b--nguồn) · **[Phụ lục C · Kinh tế: đặt LLM ở đâu thì rẻ](#phụ-lục-c--kinh-tế-đặt-llm-ở-đâu-thì-rẻ)**
 
 ---
 
@@ -41,6 +41,11 @@ Cả ba đều phải tự dựng phần *hạ tầng kiểm chứng* — bất 
 vân tay tất định, cổng tiền kiểm. Repo này **đã có sẵn phần đó** và đang thiếu
 đúng phần trên: người ra quyết định. Đó là một vị thế tốt, không phải một sự
 tụt hậu.
+
+Và nó cũng là kiến trúc **rẻ nhất**, không phải trùng hợp: chi phí của author-time
+không tăng theo số ảnh, trong khi mọi kiến trúc gọi LLM mỗi tài liệu thì tăng
+tuyến tính. Ba kiến trúc, giá thật, và bốn thứ hỏng khi LLM bước vào đường render:
+**[Phụ lục C](#phụ-lục-c--kinh-tế-đặt-llm-ở-đâu-thì-rẻ)**.
 
 **Kết luận 2 — nút thắt kỹ thuật không phải LLM, mà là mô hình dữ liệu.**
 Repo hiện mô hình hoá **một trang, một nguồn mực**: mọi ký tự trên tờ giấy đều
@@ -1163,6 +1168,122 @@ và điều khoản phát hành lại của *dữ liệu* mới là thứ quyế
 được công bố hay không. Việc này phải xong **trước** M1.5, không phải sau.
 
 Đây không phải phần phụ. Nó là điều kiện để tất cả những gì ở trên có chỗ dùng.
+
+---
+
+## Phụ lục C · Kinh tế: đặt LLM ở đâu thì rẻ
+
+Câu hỏi: *dựng engine theo component rồi cho LLM chọn component, sắp xếp bố
+cục, chỉnh thuộc tính, sinh nội dung — có rẻ hơn để LLM sinh thẳng cả tài liệu
+không?* Câu trả lời có hai vế, và vế thứ hai quan trọng hơn.
+
+### C.1 Ba kiến trúc
+
+| | LLM làm gì | gọi bao nhiêu lần cho **N** ảnh |
+| --- | --- | ---: |
+| **A** | viết cả trang (HTML/mã) cho **mỗi** tài liệu — kiểu CoSyn | N |
+| **B** | **chọn + cấu hình component** cho mỗi tài liệu | N |
+| **C** | viết **luật** một lần, sampler tất định sinh ảnh — *repo hiện tại* | ~số bố cục |
+
+### C.2 Số
+
+Giá Claude, bảng cache 2026-06-24 (Opus 5 $5 / $25 mỗi 1M token vào/ra;
+Haiku 4.5 $1 / $5; **Batch API giảm 50 %**; đọc từ cache ≈ 0,1× giá vào).
+
+Cỡ đầu ra — hai cái **đo được**, hai cái ước lượng và có ghi rõ là ước lượng:
+
+```
+đo:        data/tables60/html/*.html      trung bình 4.543 byte / trang
+đo:        rulebase/layouts/*.yaml        trung bình 2.930 byte  ≈ 1.100 token
+ước lượng: một hoá đơn đầy đủ qua sheets/  8–12 KB  ≈ 3.000–4.000 token ra
+ước lượng: một cấu hình component                   ≈ 200–400 token ra
+```
+
+Cho **N = 50.000 ảnh**, chỉ tính token (đã gộp phần vào, cache ở 0,1×):
+
+| | token ra | Opus 5 | Opus 5 + Batch | Haiku 4.5 | Haiku + Batch |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| **A** sinh cả trang | 175 M | ~$4.450 | ~$2.260 | ~$890 | ~$450 |
+| **B** chọn component | 15 M | ~$450 | ~$260 | ~$90 | ~$50 |
+| **C** viết luật một lần | 0,13 M | **~$3** | — | — | — |
+
+### C.3 Hai kết luận, và cái thứ hai mới là cái đáng nhớ
+
+**Một — có, ý tưởng component rẻ hơn hẳn.** B rẻ hơn A khoảng **10 lần**, vì
+đầu ra co từ một trang HTML xuống một cấu hình. Trực giác đúng.
+
+**Hai — nhưng C rẻ hơn B thêm hai bậc nữa, và khác biệt thật không nằm ở tỉ
+lệ.** Nó nằm ở **hình dạng của hàm chi phí**:
+
+```
+A, B:  chi phí  =  k × N          ← tuyến tính theo số ảnh
+C:     chi phí  =  k × số bố cục   ← KHÔNG phụ thuộc N
+```
+
+Ở 50.000 ảnh, B/C ≈ 150×. Ở 500.000 ảnh, ≈ 1.500×. Ở 5 triệu ảnh, C **vẫn là
+ba đô la** còn B là bốn mươi lăm nghìn. Một kiến trúc mà chi phí không tăng
+theo sản lượng thì không so được bằng tỉ lệ — nó khác loại.
+
+### C.4 Thời gian, và bốn thứ hỏng
+
+**Thời gian.** Đã đo trong repo: html 1,4 s/ảnh, genalog 0,9 s, synthdog 3,1 s.
+50.000 ảnh qua html = 70.000 s ≈ 19,4 giờ một worker, ≈ **2,4 giờ với 8
+worker**. Thêm một lời gọi LLM mỗi ảnh (B): 50.000 lượt, 10 lượt song song,
+~3 s mỗi lượt ≈ **4,2 giờ nữa** — pipeline chuyển từ *giới hạn bởi CPU* sang
+*giới hạn bởi mạng và rate limit*. Batch API rẻ hơn một nửa nhưng độ trễ thành
+hàng giờ tới 24 giờ, và thành một tầng nữa phải điều phối.
+
+**Bốn thứ hỏng, và chúng không mua lại được bằng tiền:**
+
+| hỏng | vì sao |
+| --- | --- |
+| **Tất định** | `seed → trang` không còn đúng. `make baseline-verify` mất nghĩa — không còn câu hỏi "cùng kế hoạch, có cùng pixel không" |
+| **Resume** | shard dở bị xoá làm lại (thiết kế đúng, vì nối thêm sẽ nhân bản bản ghi) — làm lại thì gọi LLM lần nữa và **ra khác** |
+| **Mô hình chi phí** | `tools/profile_pipeline.py` mô hình hoá các chặng CPU. Một chặng mạng có phương sai khác hẳn; dự đoán trước khi chạy hết dùng được |
+| **Không phụ thuộc mạng** | README: *"Nothing calls a network service."* Mất câu đó là mất chạy offline, chạy trong CI kín, và sinh lại một bộ dữ liệu cũ sau khi API đã đổi |
+
+### C.5 Vậy ý tưởng component đúng ở đâu
+
+**Đúng ở kiến trúc, lệch ở tần suất.** Và kiến trúc ấy repo **đã có**:
+`sections: [letterhead, doctitle, parties, table, …]` chính là "chọn component
+và sắp xếp"; `SECTIONS` là sổ đăng ký 15 component; các thuộc tính là tham số
+chỉnh chúng. Khác biệt duy nhất là **ai chọn và bao lâu một lần** — LLM mỗi ảnh
+(B), hay LLM một lần rồi sampler mỗi ảnh (C).
+
+Câu phải hỏi là: *chọn theo từng ảnh mua được gì mà chọn một lần không mua
+được?* Chủ yếu là **điều kiện chéo giữa các component** — "folio một đêm thì bỏ
+cột ngày và dùng khối tổng gọn". Nhưng đó chính là thứ `requires`/`excludes`
+trên thẻ đã diễn tả được, và diễn tả **một lần**. Nên đường đi đúng là dùng LLM
+để **viết ràng buộc**, không phải để **chạy ràng buộc**.
+
+Từ đó ra một quy tắc dùng được cho mọi trục, kể cả "LLM gen content":
+
+> **Bất cứ quyết định nào có thể *bốc* từ một kho đã sinh sẵn thì phải được
+> bốc.** LLM chạy một lần cho mỗi thứ *lặp lại*; sampler chạy một lần cho mỗi
+> ảnh.
+
+Áp cho nội dung: đừng gọi LLM 50.000 lần để đặt tên hàng. Gọi **một đợt** sinh
+50.000 tên hàng vào `corpus/vi/items_*.txt` rồi bốc — cùng lượng token, nhưng
+tất định, kiểm được bằng `check-corpus` và `preflight` (**phủ glyph!**), và xem
+được bằng mắt trước khi nó vào ảnh. Đó đúng là chỗ `drift.SOURCES` đã chừa sẵn
+`llm` (§12, M4).
+
+Ngoại lệ duy nhất đáng cân nhắc: nội dung phải **điều kiện trên chính tài liệu
+đó** theo cách sampler không diễn tả được — một ghi chú nhắc tới đúng mặt hàng
+vừa mua. Ngay cả thế, sinh sẵn **mẫu câu có chỗ trống** rồi điền bằng `Receipt`
+vẫn rẻ hơn và tất định hơn.
+
+### C.6 Cái phải làm để ý tưởng component trả công đầy đủ
+
+Component hôm nay **chưa có hợp đồng**: `SECTIONS[name](builder, spec, receipt,
+columns, rng)` — mọi khối nhận toàn bộ `spec`, không khai mình cần gì, vẽ ra
+`role` nào, phải đứng sau ai. Hệ quả: thêm component phải sửa `layout.py`, một
+`sections:` vô nghĩa không ai báo, và **không có nước đi nào ở mức component**.
+
+Khai hợp đồng ra thì được cả ba, cộng cái thứ tư là **một thực đơn máy đọc được
+cho LLM**. Thiết kế đầy đủ, bốn nước đi ở mức component, và phép nhân của chúng
+với biến thể cột:
+[`tang-cuong-bo-cuc.md` §4b](tang-cuong-bo-cuc.md#4b-trục-thứ-hai-biến-thể-ở-mức-component).
 
 ---
 
