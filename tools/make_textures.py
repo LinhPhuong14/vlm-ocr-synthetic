@@ -2,13 +2,13 @@
 
     python tools/make_textures.py
 
-Every renderer composites onto `textures/paper/`, so these eight sheets are what
+Every renderer composites onto `assets/textures/paper/`, so these eight sheets are what
 a receipt is printed on whether it was drawn with glyphs or with HTML. They are
 generated rather than photographed for two reasons: photographs of paper are
 rarely redistributable, so a fresh clone would have nothing to render onto; and
 a seed reproduces a sheet exactly, which a scan cannot.
 
-Swap in real scans whenever you have them -- drop them in `textures/paper/`
+Swap in real scans whenever you have them -- drop them in `assets/textures/paper/`
 under the same names and nothing else changes.
 """
 
@@ -118,7 +118,7 @@ PAPERS = {
 # These started life as what a receipt was photographed ON and are now four
 # more sheets it can be printed on. `paper_texture` is multiplicative and
 # takes an `alpha`, so at 0.3-0.5 a wood or weave grain reads as coarse recycled
-# stock rather than as a table -- while `textures/background/` holds real
+# stock rather than as a table -- while `assets/textures/background/` holds real
 # photographs, which no generator can match.
 
 SURFACE_SIZE = (1200, 800)
@@ -222,7 +222,7 @@ SURFACES = {
 }
 
 
-TEXTURES = Path(__file__).resolve().parent.parent / "textures"
+TEXTURES = Path(__file__).resolve().parent.parent / "assets" / "textures"
 
 
 def _write(catalogue: dict, out: Path, seed: int, quality: int) -> None:
@@ -253,7 +253,7 @@ def main() -> int:
         # Coarse sheets are big and flat; 88 is plenty and halves the cost.
         _write(SURFACES, args.out / "paper", args.seed + 7000, 88)
 
-    # textures/background/ is NOT generated: it holds SynthDoG's photographs of
+    # assets/textures/background/ is NOT generated: it holds SynthDoG's photographs of
     # real scenes, and a synthetic table top is exactly the thing that gives a
     # composited receipt away.
     return 0

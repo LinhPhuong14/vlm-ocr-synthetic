@@ -159,12 +159,12 @@ def setup(args) -> None:
 # ------------------------------------------------------------- generation
 
 
-@task("textures", "regenerate the generated paper sheets in textures/paper")
+@task("textures", "regenerate the generated paper sheets in assets/textures/paper")
 def textures(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "make_textures.py"])
 
 
-@task("ornaments", "regenerate the seals and flourishes in textures/ornament")
+@task("ornaments", "regenerate the seals and flourishes in assets/textures/ornament")
 def ornaments(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "make_ornaments.py"])
 
@@ -198,7 +198,7 @@ def tables(args) -> None:
 
 @task("run", "run pipeline.yaml: preflight, shards in parallel, assemble")
 def run_pipeline(args) -> None:
-    command = [first_available_python(), REPO_ROOT / "pipeline" / "run.py"]
+    command = [first_available_python(), REPO_ROOT / "src" / "pipeline" / "run.py"]
     if args.out != str(Path("data") / "dataset60"):
         command += ["-o", args.out]
     run(command)
@@ -263,7 +263,7 @@ def preview_grid(args) -> None:
 
 @task("preflight", "every check that must pass before generating an image")
 def preflight(args) -> None:
-    run([first_available_python(), REPO_ROOT / "pipeline" / "preflight.py"])
+    run([first_available_python(), REPO_ROOT / "src" / "pipeline" / "preflight.py"])
 
 
 @task("check-rules", "validate rules/: unreachable values, bad tags, missing files")
@@ -294,7 +294,8 @@ def monitor(args) -> None:
 @task("list-degradations", "names usable in an augmentation chain")
 def list_degradations(args) -> None:
     run([first_available_python(), "-c",
-         "import degradation; print(chr(10).join(degradation.names()))"])
+         "import sys; sys.path.insert(0, 'src');"
+         " import degradation; print(chr(10).join(degradation.names()))"])
 
 
 # ---------------------------------------------------------------- quality

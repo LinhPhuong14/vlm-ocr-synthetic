@@ -4,7 +4,7 @@
     markup = build(recipe, receipt, theme="brand")
 
 Everything else in this repository lays a document out on a **character grid**:
-`rulebase/layout.py` places each field at a row and a column range measured in
+`src/rulebase/layout.py` places each field at a row and a column range measured in
 character widths, and all three renderers draw that grid. It is the right model
 for a thermal till roll, which really is a monospace device, and it is why the
 three backends can be compared at all.
@@ -26,7 +26,7 @@ already reads.
 What is printed comes from `receipt.ground_truth()` rather than from the
 `Receipt` fields directly. That is deliberate: the label and the page are then
 the same strings by construction, and cannot drift apart the way a truncated
-address once did. `pipeline/invariants.py` still checks it, and still would
+address once did. `src/pipeline/invariants.py` still checks it, and still would
 catch a field the template forgets to draw.
 
 **Only the browser backends can render this.** The glyph backend composites

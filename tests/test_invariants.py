@@ -3,13 +3,13 @@
 W0 shipped a test suite that passed after the code under it was deleted -- the
 assertion was `printed in label`, and a truncated string is a *prefix*, so it
 stayed true. The lesson written down as Law 1 is that an invariant is worth what
-its mutation is worth, so every rule `pipeline/invariants.py` states has a test
+its mutation is worth, so every rule `src/pipeline/invariants.py` states has a test
 here that breaks exactly that rule and expects it to be seen.
 
-Records are built from `rulebase.make()` rather than read from `data/`, so this
+Records are built from `rulebase.make()` rather than read from a dataset, so this
 runs in the dependency-free `tests` CI job and does not go stale when a dataset
 is regenerated. The one exception is `jpeg_size`, which needs a real JPEG and
-uses a committed one.
+uses one of the renders in `tests/fixtures/images/`.
 """
 
 from __future__ import annotations
@@ -24,6 +24,7 @@ from pipeline import invariants
 from pipeline.invariants import BUDGETS, InvariantError, Tally, inspect
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+FIXTURE_IMAGES = REPO_ROOT / "tests" / "fixtures" / "images"
 ORDER = invariants.attribute_names()
 
 # Chosen for what they contain, not at random: 3 is an eatery with a subtotal
@@ -259,7 +260,7 @@ def test_total_rows_that_all_differ_are_silent():
 
 
 def test_a_quad_outside_the_frame_is_caught(tmp_path):
-    image = REPO_ROOT / "data" / "dataset60" / "html" / "html_000.jpg"
+    image = FIXTURE_IMAGES / "html" / "html_000.jpg"
     width, height = invariants.jpeg_size(image)
     item = a_record()
     for box in item["boxes"]:
@@ -287,7 +288,7 @@ def test_an_unreadable_image_is_unchecked_rather_than_fine(tmp_path):
 
 def test_jpeg_size_reads_what_the_renderers_wrote():
     for framework in ("synthdog", "html", "genalog"):
-        image = next((REPO_ROOT / "data" / "dataset60" / framework).glob("*.jpg"))
+        image = next((FIXTURE_IMAGES / framework).glob("*.jpg"))
         size = invariants.jpeg_size(image)
         assert size is not None, image
         assert size[0] > 100 and size[1] > 100, (image, size)
@@ -464,27 +465,32 @@ def test_the_report_is_a_function_of_the_shard_alone():
 
 
 
-# ------------------------------------------------- the data that was shipped
+# ------------------------------------------------ the data a run actually wrote
 
 
-SHIPPED = [path for path in (REPO_ROOT / "data").glob("*/*/metadata.jsonl")]
+GENERATED = [path for path in (REPO_ROOT / "data").glob("*/*/metadata.jsonl")]
 
 
-@pytest.mark.skipif(not SHIPPED, reason="no dataset is committed")
-def test_no_shipped_image_prints_a_total_row_the_label_cannot_carry():
+@pytest.mark.skipif(not GENERATED, reason="no dataset under data/; run `make dataset`")
+def test_no_generated_image_prints_a_total_row_the_label_cannot_carry():
     """Law 9: a defect is closed on the population that shipped, or not at all.
 
-    This one was reported closed on 1500 freshly drawn receipts while six of
-    the hundred and twenty committed images still carried it. Fresh draws are a
+    This one was reported closed on 1500 freshly drawn receipts while six of a
+    hundred and twenty rendered images still carried it. Fresh draws are a
     different population -- no pins, no `force`, another distribution -- so they
-    could not have answered the question. The committed files can, and this is
+    could not have answered the question. The files a run wrote can, and this is
     the check that asks them.
+
+    Datasets are no longer committed, so this skips on a bare clone and runs
+    against whatever `make dataset` last wrote under `data/`. That is the
+    population it is supposed to judge: pinned layouts, real `force`, the
+    distribution the pipeline actually produces.
     """
     import collections
     import json
 
     bad = []
-    for index in SHIPPED:
+    for index in GENERATED:
         for line in index.read_text(encoding="utf-8").splitlines():
             record = json.loads(line)
             drawn = [box["text"] for box in record.get("boxes", ())

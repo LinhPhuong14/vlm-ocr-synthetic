@@ -13,7 +13,7 @@ cạnh, chính là bản WeasyPrint in ra.
 | [`invoice_brand.html`](invoice_brand.html) | hoá đơn tiệm bánh | A5 | `invoice_brand` |
 
 Tên file là **id của bố cục** trong
-[`rulebase/rules/layout.yaml`](../../rulebase/rules/layout.yaml), nên không cần
+[`src/rulebase/rules/layout.yaml`](../../src/rulebase/rules/layout.yaml), nên không cần
 bảng tra: tờ nào là tham chiếu cho bố cục nào thì tên nói thẳng.
 
 ```bash
@@ -23,7 +23,7 @@ make templates       # in lại: out/*.pdf và *.jpg
 ## Đây KHÔNG phải bố cục của rule-base
 
 Chỗ dễ nhầm nhất, nên nói trước. Bố cục thật của repo là
-[`rulebase/layouts/*.yaml`](../../rulebase/layouts): lưới ký tự, ba renderer
+[`src/rulebase/layouts/*.yaml`](../../src/rulebase/layouts): lưới ký tự, ba renderer
 cùng đọc, sinh ra kèm nhãn dữ liệu. Năm file ở đây là **bản vẽ tham chiếu** —
 HTML thường, CSS thường, không đụng gì tới `rulebase`.
 
@@ -35,7 +35,7 @@ trông như thế nào?* Dòng `source:` trong mỗi file bố cục ghi tên t�
 ## Hoạ tiết
 
 `invoice_hotel_compact.html` là tờ duy nhất có màu nhận diện và hoạ tiết, và nó
-lấy hoạ tiết từ [`textures/ornament/`](../../textures/ornament) — cùng bộ file
+lấy hoạ tiết từ [`assets/textures/ornament/`](../../assets/textures/ornament) — cùng bộ file
 mà thuộc tính `ornament` dùng, chứ không phải một bản sao riêng. Sinh lại bằng
 `make ornaments`.
 

@@ -40,7 +40,7 @@ from pathlib import Path
 # library or the tests for it would need one to check a token count.
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(REPO_ROOT / "src"))
 
 FRAMEWORKS = ("synthdog", "html", "genalog")
 MONEY = re.compile(r"^-?\d[\d.,]*$")
@@ -510,7 +510,7 @@ def _ageing_note(report: dict) -> list[str]:
         f"Widest here is `{widest[1]}`: `{widest[2][0]}` at {widest[2][1]:.3f} down "
         f"to `{widest[3][0]}` at {widest[3][1]:.3f}, a spread of {widest[0]:.3f}.",
         f"Narrowest is `{narrowest[1]}` at {narrowest[0]:.3f}. Editing `weight` in",
-        "`rulebase/rules/augmentation.yaml` shifts the whole dataset. Values",
+        "`src/rulebase/rules/augmentation.yaml` shifts the whole dataset. Values",
         "missing from a table were never drawn in this sample rather than scoring",
         "zero.",
     ]

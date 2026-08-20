@@ -39,7 +39,7 @@ setup-genalog:   ## genalog renderer: WeasyPrint + PyMuPDF
 	$(TASKS) setup-genalog
 textures:        ## Regenerate the shared paper and background textures
 	$(TASKS) textures
-ornaments:       ## Regenerate the seals and flourishes in textures/ornament
+ornaments:       ## Regenerate the seals and flourishes in assets/textures/ornament
 	$(TASKS) ornaments
 templates:       ## Print the reference sheets in samples/invoice-templates
 	$(TASKS) templates

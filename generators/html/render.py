@@ -30,7 +30,7 @@ import numpy as np
 from playwright.sync_api import sync_playwright
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(REPO_ROOT / "src"))
 
 # The browser, the fonts and the two box-reading snippets live in `page.py`:
 # two producers sit on this backend now -- receipts here, tables in
@@ -332,7 +332,7 @@ class HtmlReceiptRenderer:
             cells = regions_from_rects(regions, self.scale, factor)
 
         # Ageing runs after the boxes are computed and must not move a pixel --
-        # every model in `degradation/` filters or composites in place. Asserted
+        # every model in `src/degradation/` filters or composites in place. Asserted
         # rather than assumed: a resize slipped into the chain would shift every
         # box without changing anything visible about the image.
         before = image.shape[:2]
@@ -403,7 +403,7 @@ def main() -> int:
     try:
         # Streamed, not collected: a job list may be a whole shard, and a record
         # carries every box on the page. Written in page order, which is the
-        # order the caller listed the jobs in -- `pipeline/worker.py` walks the
+        # order the caller listed the jobs in -- `src/pipeline/worker.py` walks the
         # runs in that order to name the files.
         with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as metadata:
             for index, job, seed in worklist.pages(jobs):

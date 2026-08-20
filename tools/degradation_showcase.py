@@ -2,7 +2,7 @@
 
     python tools/degradation_showcase.py -o samples/degradation
 
-Every model in `degradation/` applied on its own to one rendered receipt, so
+Every model in `src/degradation/` applied on its own to one rendered receipt, so
 each effect can be judged for what it does rather than for what a chain does.
 The three texture models are the point of the exercise -- a paper composite, a
 Poisson-blended stain and pasted ink residue look nothing alike, and a chain
@@ -21,7 +21,7 @@ import cv2
 import numpy as np
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(REPO_ROOT / "src"))
 
 from degradation import apply_one, names  # noqa: E402
 

@@ -122,7 +122,7 @@ def test_label_quotes_exactly_what_was_printed():
     text merely appears in the label does not catch that: a truncation is a
     prefix of the original, so substring containment stays true while the label
     promises characters nobody inked. Removing the write-back in
-    `rulebase/layout.py` must turn this red, and it does.
+    `src/rulebase/layout.py` must turn this red, and it does.
     """
     failures = []
     for seed, receipt, grid in receipts():

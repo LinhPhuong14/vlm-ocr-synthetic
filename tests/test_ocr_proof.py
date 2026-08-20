@@ -6,9 +6,10 @@ is the **layout mix**: ageing costs `invoice_brand` 0.026 of its recall and
 `market_barcode` 0.552, twenty-one times as much, so a pooled number moves when
 the mix moves and says nothing about anything else having changed.
 
-The report shipped in `data/` is the fixture. Re-aggregating its own per-image
-scores under a different mix is exactly the situation these functions exist to
-survive, and it needs no engine.
+The two reports in `tests/fixtures/ocr/` are the fixture: real output of a real
+run, kept here rather than in a committed dataset. Re-aggregating their own
+per-image scores under a different mix is exactly the situation these functions
+exist to survive, and it needs no engine.
 """
 
 from __future__ import annotations
@@ -24,8 +25,9 @@ sys.path.insert(0, str(REPO_ROOT / "tools"))
 
 import ocr_proof as P  # noqa: E402
 
-AGED = REPO_ROOT / "data" / "dataset60" / "proof" / "ocr_report.json"
-CLEAN = REPO_ROOT / "data" / "dataset60_clean" / "proof" / "ocr_report.json"
+FIXTURES = REPO_ROOT / "tests" / "fixtures" / "ocr"
+AGED = FIXTURES / "aged_report.json"
+CLEAN = FIXTURES / "clean_report.json"
 
 
 def load(path):

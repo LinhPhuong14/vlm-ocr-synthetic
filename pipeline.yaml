@@ -1,4 +1,4 @@
-# One run, declared. `python pipeline/run.py` reads this file.
+# One run, declared. `python src/pipeline/run.py` reads this file.
 #
 # Unknown keys are rejected rather than ignored: a config with `ouput:` in it
 # that runs anyway, on the default, is exactly the silent failure this
@@ -21,7 +21,7 @@ run:
   pairing: paired
 
   # Which layouts to draw from, by name. Empty (the default) means every file in
-  # `rulebase/layouts/`, which is what a dataset wants. A *fixed comparison*
+  # `src/rulebase/layouts/`, which is what a dataset wants. A *fixed comparison*
   # should name them: the quota walks the list in order, so a run that took the
   # directory draws a different set the day someone adds a layout. That is how
   # the golden baseline went red without being able to say why -- see

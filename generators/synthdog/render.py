@@ -28,7 +28,7 @@ from PIL import Image
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(REPO_ROOT / "src"))
 
 import synthtiger  # noqa: E402
 from template_receipt import SynthVNReceipt  # noqa: E402
@@ -109,7 +109,7 @@ def main() -> int:
 
     # Streamed, not collected: a job list may be a whole shard, and a record
     # carries every box on the page. Written in page order, which is the order
-    # the caller listed the jobs in -- `pipeline/worker.py` walks the runs in
+    # the caller listed the jobs in -- `src/pipeline/worker.py` walks the runs in
     # that order to name the files.
     with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as metadata:
         for index, job, seed in worklist.pages(jobs):

@@ -32,8 +32,8 @@ from PIL import Image
 from synthtiger import components, layers, templates
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+if str(REPO_ROOT / "src") not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT / "src"))
 
 import profiling  # noqa: E402
 from degradation.pipeline import apply_recipe  # noqa: E402

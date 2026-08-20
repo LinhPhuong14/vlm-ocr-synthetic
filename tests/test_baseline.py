@@ -25,8 +25,8 @@ INPUTS = {
     "per_backend": 2,
     "pairing": "paired",
     "clean": False,
-    "rules": {"rulebase/rules": "aaa", "rulebase/layouts": "bbb",
-              "rulebase/corpus": "ccc"},
+    "rules": {"src/rulebase/rules": "aaa", "src/rulebase/layouts": "bbb",
+              "src/rulebase/corpus": "ccc"},
 }
 
 
@@ -68,11 +68,11 @@ def test_a_changed_layout_list_is_the_plan_moving_not_a_regression():
 
 def test_a_changed_rule_base_is_the_plan_moving():
     """A weight edited in `rules/` changes the pixels, legitimately."""
-    changed = dict(INPUTS["rules"], **{"rulebase/rules": "zzz"})
+    changed = dict(INPUTS["rules"], **{"src/rulebase/rules": "zzz"})
     moved, regressed = compare(plan(), plan(rules=changed,
                                             images={"html/html_000.jpg": "X"}))
     assert regressed == []
-    assert moved and "rulebase/rules/ changed" in moved[0]
+    assert moved and "src/rulebase/rules/ changed" in moved[0]
 
 
 def test_each_fingerprinted_input_is_named_separately():
@@ -179,7 +179,7 @@ def test_a_layout_the_plan_draws_is_an_input():
 
 def test_the_corpus_is_an_input():
     before = B.rules_fingerprint(NAMED)
-    path = B.REPO_ROOT / "rulebase" / "corpus" / "vi" / "streets.txt"
+    path = B.REPO_ROOT / B.CORPUS_ROOT / "vi" / "streets.txt"
     original = path.read_text(encoding="utf-8")
     path.write_text(original + "Đường Thử Nghiệm\n", encoding="utf-8")
     try:

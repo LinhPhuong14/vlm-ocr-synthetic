@@ -44,7 +44,7 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[2]
 AGED = REPO_ROOT / "data" / "dataset60"
 CLEAN = REPO_ROOT / "data" / "dataset60_clean"
-LAYOUT_RULES = REPO_ROOT / "rulebase" / "rules" / "layout.yaml"
+LAYOUT_RULES = REPO_ROOT / "src" / "rulebase" / "rules" / "layout.yaml"
 FRAMEWORKS = ("synthdog", "html", "genalog")
 
 WHITE = (255, 255, 255)

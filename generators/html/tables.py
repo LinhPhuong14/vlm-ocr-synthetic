@@ -51,7 +51,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from page import CELL_REGIONS_JS, find_chromium, font_faces, served  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(REPO_ROOT / "src"))
 
 from rulebase import corpus  # noqa: E402
 from rulebase.text import ascii_fold, money  # noqa: E402

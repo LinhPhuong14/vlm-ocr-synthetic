@@ -7,7 +7,7 @@ be judged by looking rather than by reading parameters. For judging one model
 at a time, use `tools/degradation_showcase.py` instead.
 
 The chains here are hand-written, unlike the ones in
-`rulebase/rules/augmentation.yaml` that the renderers actually use: this tool
+`src/rulebase/rules/augmentation.yaml` that the renderers actually use: this tool
 exists to try a chain on pages you already have, including pages that did not
 come from this repository.
 """
@@ -22,7 +22,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from degradation import DEFAULT_CHAIN, apply_chain  # noqa: E402
 

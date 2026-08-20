@@ -17,7 +17,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from rulebase import (  # noqa: E402
     ATTRIBUTES,
@@ -61,7 +61,7 @@ def check() -> list[str]:
 
     # A paper named by a visual value must exist, or the sheet silently falls
     # back to a generated one and the recipe stops describing the image.
-    papers = {p.stem for p in (Path(__file__).resolve().parent.parent / "textures" / "paper")
+    papers = {p.stem for p in (Path(__file__).resolve().parent.parent / "assets" / "textures" / "paper")
               .glob("*.jpg")}
     for option in rules["visual"]:
         paper = option.params.get("paper")
@@ -72,7 +72,7 @@ def check() -> list[str]:
         for sheet in wanted:
             if sheet and sheet != "auto" and sheet not in papers:
                 problems.append(
-                    f"visual/{option.id}: paper {sheet!r} not in textures/paper "
+                    f"visual/{option.id}: paper {sheet!r} not in assets/textures/paper "
                     f"({', '.join(sorted(papers)) or 'empty -- run `make textures`'})"
                 )
 
@@ -85,10 +85,10 @@ def check() -> list[str]:
     if "auto" not in used:
         for orphan in sorted(papers - used):
             problems.append(
-                f"textures/paper/{orphan}.jpg: no visual value names it"
+                f"assets/textures/paper/{orphan}.jpg: no visual value names it"
             )
 
-    overlays = Path(__file__).resolve().parent.parent / "augmentations" / "data" / "image"
+    overlays = Path(__file__).resolve().parent.parent / "assets" / "overlays"
     chains = [
         name
         for option in rules["augmentation"]
@@ -120,7 +120,7 @@ def sample_distribution(draws: int, seed: int, rules=None,
 
     Returns (counts by value, counts by parent node, failures).
 
-    Split out from `distribution` so `pipeline/drift.py` can ask the same
+    Split out from `distribution` so `src/pipeline/drift.py` can ask the same
     question without going through a printed report. `force` is here because a
     plan that pins the layout does not have the rule-base's layout mix, and
     comparing a run against an expectation that ignores its own pins would
@@ -204,7 +204,7 @@ def main() -> int:
             for problem in problems:
                 print(f"  - {problem}")
         else:
-            # Profiles are discovered, not listed: `rulebase/README.md` promises
+            # Profiles are discovered, not listed: `src/rulebase/README.md` promises
             # that adding one is three text files and nothing else, and a
             # hard-coded pair here quietly left every profile added since off
             # the report while `corpus.check()` was validating them.

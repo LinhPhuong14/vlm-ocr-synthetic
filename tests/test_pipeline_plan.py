@@ -336,7 +336,7 @@ def test_the_paired_invariant_catches_a_plan_naming_a_layout_the_rules_lost():
     Comparing three identical (seed, layout) pairs through a deterministic
     sampler proves nothing on its own. What this half is for is a plan that is
     perfectly well-formed and still cannot be rendered -- a layout renamed in
-    `rulebase/rules/layout.yaml` since the plan was written, which otherwise
+    `src/rulebase/rules/layout.yaml` since the plan was written, which otherwise
     surfaces as a dead worker an hour in.
     """
     from pipeline.invariants import paired_content

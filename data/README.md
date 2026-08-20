@@ -1,65 +1,47 @@
-# data — the generated datasets
+# data — where a run writes, not what is committed
 
-| set | images | what it is |
-| --- | ---: | --- |
-| [`dataset60/`](dataset60) | 60 | **aged** — a degradation chain drawn from the rules; the glyph renderer also curls the sheet and re-photographs it |
-| [`dataset60_clean/`](dataset60_clean) | 60 | **not augmented** — same receipts, every kind of ageing and distortion off |
+This directory is **output**. Nothing in it is tracked by git except this file;
+every dataset is rebuilt from the rule-base, and the rule-base is what the
+repository actually keeps.
 
-20 images per renderer (synthdog / html / genalog) in each set, spread evenly
-over the layouts.
-
-Both sets span all **fourteen layouts**: five thermal receipts on a continuous
-roll and nine commercial invoices on A4. `dataset.json` in each set records the
-layouts it was built from — read that rather than this table if the two ever
-disagree.
-
-**60 images, 20 receipts.** Both sets are built `paired`: all three renderers
-draw the *same* twenty receipts, so `synthdog_000.jpg`, `html_000.jpg` and
-`genalog_000.jpg` are one receipt photographed, scanned and printed. That is
-what makes a comparison between the renderers mean anything, and it is also why
-the sample is twenty and not sixty — `dataset.json` reports
-`distinct_labels` per renderer so nobody has to work it out.
-
-Both sets also carry the *same* twenty receipts as each other, so the aged set
-and the clean set differ in exactly one thing: the ageing.
-
-Before W1b neither of those was true. The three renderers sat on disjoint seed
-blocks and drew three different sets of receipts, and a pinned draw walked to
-the next fitting seed, so twenty images held ten or thirteen distinct labels.
-Every side-by-side number published from those sets compared three different
-corpora over a sample half the size it claimed.
-
-Regenerate:
+| set | build it with | what it is |
+| --- | --- | --- |
+| `dataset60/` | `make dataset` | **aged** — a degradation chain drawn from the rules; the glyph renderer also curls the sheet and re-photographs it |
+| `dataset60_clean/` | `make dataset-clean` | **not augmented** — the same receipts with every kind of ageing and distortion off |
+| `tables60/` | `make tables` | table-structure images from the html backend |
+| `profile/` | `make profile` | per-stage timings for every renderer |
 
 ```bash
 make dataset                              # the aged set
 make dataset-clean                        # the clean set
 make proof DATASET=data/dataset60         # read it back with Tesseract and score it
+make check-boxes DATASET=data/dataset60   # the boxes still describe the pixels
 ```
 
-## What separates the two sets
+Both sets are built `paired`: all three renderers draw the *same* receipts, so
+`synthdog_000.jpg`, `html_000.jpg` and `genalog_000.jpg` are one receipt
+photographed, scanned and printed. That is what makes a comparison between the
+renderers mean anything, and it is why twenty receipts give sixty images —
+`dataset.json` reports `distinct_labels` per renderer so nobody has to work it
+out.
 
-Exactly **one attribute** of the rule-base: the clean set pins
-`augmentation=pristine`, an empty degradation chain. Content, layout, font and
-colour are still sampled as usual.
+The clean set differs from the aged set in exactly **one attribute** of the
+rule-base: it pins `augmentation=pristine`, an empty degradation chain. Content,
+layout, font and colour are still sampled as usual. `--clean` also turns off the
+glyph renderer's curl-and-rephotograph step, which the two HTML renderers have
+no equivalent of — otherwise "not augmented" would only be true for two
+renderers out of three. Use the clean set as the **ceiling**: the gap to
+`dataset60/` is the price of the ageing.
 
-The glyph renderer has one more source of distortion that the two HTML
-renderers do not: it curls the sheet, warps the perspective, drops it on a
-background and "re-photographs" it. `--clean` turns that off as well —
-otherwise "not augmented" would only be true for two renderers out of three.
-The result is an image exactly the size of the sheet, with no background
-visible.
+## Want to look at output without building anything?
 
-Use the clean set as the **ceiling**: does the label match the pixels, and how
-much can OCR read when nothing is in the way. The gap to `dataset60/` is the
-price of the ageing.
+Build the three environments and generate — or look at
+[`samples/`](../samples), which is committed for exactly that reason: every
+degradation model on the same page, the five reference invoice sheets, and every
+seal and flourish. [`docs/figures/`](../docs/figures) holds the figures the
+README embeds.
 
-Both sets are **committed to git**. The point of the repository is that you can
-open it and look without building three environments first, so the images, the
-labels and the OCR report are all in the repo. Anything a renderer writes to
-`outputs/` is not.
-
-## Structure
+## Structure of a set
 
 ```
 dataset60/
@@ -98,9 +80,9 @@ dataset60/
 
 `recipe.seed` reproduces the content — but **only together with the attributes
 recorded beside it**. `generate_dataset.py` pins the layout so each renderer
-draws all five equally often, and a pin does not merely filter: with `layout`
-restricted to one value the tags it sets differ, so every attribute drawn after
-it diverges. To rebuild an image exactly, pin all six ids back:
+draws all fourteen equally often, and a pin does not merely filter: with
+`layout` restricted to one value the tags it sets differ, so every attribute
+drawn after it diverges. To rebuild an image exactly, pin all six ids back:
 
 ```python
 force = {name: value["id"] for name, value in record["recipe"]["attributes"].items()}
@@ -110,9 +92,3 @@ recipe, receipt, grid = rulebase.make(seed=record["recipe"]["seed"], force=force
 `tools/check_boxes.py` does exactly this, and it is how the requirement was
 found — rebuilding from the bare seed reported every field of every image as
 missing a box.
-
-Verify a set after regenerating it:
-
-```bash
-make check-boxes DATASET=data/dataset60
-```

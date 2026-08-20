@@ -12,7 +12,7 @@ Nhầm ba đường này với nhau là cách nhanh nhất để sửa sai chỗ
 
 | đường | vào bằng | dựng gì | mô hình bố cục |
 | --- | --- | --- | --- |
-| **lưới ký tự** | `render.py` (mặc định) | mọi bố cục trong `rulebase/layouts/` | `Grid` — mỗi ô là một `<span>` định vị tuyệt đối, đơn vị `ch` |
+| **lưới ký tự** | `render.py` (mặc định) | mọi bố cục trong `src/rulebase/layouts/` | `Grid` — mỗi ô là một `<span>` định vị tuyệt đối, đơn vị `ch` |
 | **template CSS** | `render.py --template brand` | *một* tờ hoá đơn GTGT chung | `a4.py` — HTML thường, `<table>` thật, có `colspan`/`rowspan` |
 | **sinh bảng** | `tables.py` | bảng ngẫu nhiên kiểu PubTabNet | ma trận `colspan`/`rowspan`, nhãn token PP-Structure |
 
@@ -52,7 +52,7 @@ done
 
 ### Đường lưới ký tự không có mô hình ô gộp
 
-`rulebase/layout.py` **mô phỏng** ô gộp chứ không mô hình hoá nó:
+`src/rulebase/layout.py` **mô phỏng** ô gộp chứ không mô hình hoá nó:
 
 * `_paint_bars()` vẽ `|` xuống từng dòng và **bỏ qua** vị trí đã có ô chiếm chỗ.
   Một dòng tổng chạy ngang năm cột chỉ là "một ô rộng tình cờ không có gạch dọc
@@ -151,7 +151,7 @@ là "hơi khác đi".
 * **Nhãn phải bằng đúng chữ trên trang.** `a4.py` in từ
   `receipt.ground_truth()` chứ không từ các trường của `Receipt` — cố ý, để hai
   bên không trôi ra khỏi nhau.
-* **`pipeline/invariants.py` báo LỖI** với mọi giá trị trong nhãn mà không box
+* **`src/pipeline/invariants.py` báo LỖI** với mọi giá trị trong nhãn mà không box
   nào in ra, trừ các cặp (bố cục, trường) đã ghi trong `SUPPRESSED`.
 * **Bất biến hình học của đường lưới** — `tests/test_layout.py`: không ô nào
   chồng ô nào, không ô nào tràn giấy, chữ vừa số cột nó chiếm.
@@ -219,6 +219,6 @@ python3 overlap.py /tmp/sweep/metadata.jsonl
 4. Script §6 chạy trên ≥100 ảnh, mọi bố cục, báo **0** cặp chồng >30%. Nếu
    trước khi sửa nó đã báo 0 thì phải tìm ra và ghi lại tổ hợp làm nó khác 0,
    nếu không thì không có gì để sửa.
-5. `make preflight`, `pytest tests`, `make lint` xanh; `pipeline/invariants.py`
+5. `make preflight`, `pytest tests`, `make lint` xanh; `src/pipeline/invariants.py`
    không có lỗi mới.
 6. Cùng seed vẫn ra cùng pixel.

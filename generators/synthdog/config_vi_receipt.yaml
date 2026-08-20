@@ -1,7 +1,7 @@
 # SynthDoG-VN — hoá đơn bán lẻ Việt Nam, vẽ bằng glyph.
 # synthtiger -o ./outputs/VNReceipt -c 100 -w 4 -v template_receipt.py SynthVNReceipt config_vi_receipt.yaml
 #
-# NỘI DUNG, BỐ CỤC, FONT, MÀU, LÀM CŨ đều nằm ở `rulebase/rules/*.yaml` —
+# NỘI DUNG, BỐ CỤC, FONT, MÀU, LÀM CŨ đều nằm ở `src/rulebase/rules/*.yaml` —
 # muốn đổi tỉ lệ hoá đơn siêu thị / quán nhậu, thêm bố cục, đổi chuỗi làm cũ
 # thì sửa ở đó, không sửa file này. Ở đây chỉ còn phần riêng của renderer
 # glyph: khung ảnh, độ cong giấy, và hiệu ứng "chụp lại" sau khi ghép nền.
@@ -21,16 +21,16 @@ receipt:
   local_font_root: resources/font
   margin_scale: [0.9, 1.15]    # nhân thêm vào `visual.margin` của recipe
 
-# Khung cảnh tờ hoá đơn nằm trong. `textures/background/` là ảnh CHỤP THẬT,
+# Khung cảnh tờ hoá đơn nằm trong. `assets/textures/background/` là ảnh CHỤP THẬT,
 # lấy từ `resources/background/` của SynthDoG — KHÔNG sinh bằng
-# `make textures` như `textures/paper/`. Ảnh sinh ra bằng code chính là thứ
+# `make textures` như `assets/textures/paper/`. Ảnh sinh ra bằng code chính là thứ
 # làm lộ ngay một tấm ảnh ghép, nên chỗ này phải là ảnh thật.
 #
 # Chỉ renderer glyph đọc tới đây; hai renderer HTML cho ra bản quét phẳng,
 # không có nền.
 background:
   image:
-    paths: [../../textures/background]
+    paths: [../../assets/textures/background]
     weights: [1]
   effect:
     args:

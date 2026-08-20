@@ -1,7 +1,7 @@
 """Shared fixtures.
 
 The rule these tests follow: anything testing a *mechanism* builds its own
-options; only tests about the shipped rule-base read `rulebase/rules/`. Testing
+options; only tests about the shipped rule-base read `src/rulebase/rules/`. Testing
 `requires`/`excludes` against the real files would tie the suite to editorial
 decisions -- someone re-weights a YAML and a test about constraint logic goes
 red for no reason.
@@ -21,8 +21,8 @@ import pytest
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+if str(REPO_ROOT / "src") not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT / "src"))
 
 
 def build_rules(spec: dict[str, list[dict]]):

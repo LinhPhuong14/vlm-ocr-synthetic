@@ -4,12 +4,13 @@ Viewable straight away, with no environment to build.
 
 | directory | contents | regenerate |
 | --- | --- | --- |
-| [`degradation/`](degradation) | every ageing model applied on its own to **the same page**, plus a contact sheet | `make showcase` |
+| [`src/degradation/`](degradation) | every ageing model applied on its own to **the same page**, plus a contact sheet | `make showcase` |
 | [`invoice-templates/`](invoice-templates) | five reference sheets, hand-built from photographs, printed with WeasyPrint | `make templates` |
-| [`ornaments/`](ornaments) | every seal and flourish in `textures/ornament/`, on one white page | `make ornaments` |
+| [`ornaments/`](ornaments) | every seal and flourish in `assets/textures/ornament/`, on one white page | `make ornaments` |
 
-The full 60-image dataset — three renderers, five layouts, with labels and OCR
-scores — is in [`data/dataset60/`](../data/dataset60), not here.
+The full 60-image dataset — three renderers, fourteen layouts, with labels and
+OCR scores — is not committed: `make dataset` builds it into
+[`data/`](../data), which is where its README explains the label schema.
 
 ## Reading the degradation showcase
 
@@ -24,4 +25,4 @@ cannot tell which step caused what.
 
 The parameters here are chosen to be **clearly visible**, not to be realistic.
 The ones actually used are in
-[`rulebase/rules/augmentation.yaml`](../rulebase/rules/augmentation.yaml).
+[`src/rulebase/rules/augmentation.yaml`](../src/rulebase/rules/augmentation.yaml).

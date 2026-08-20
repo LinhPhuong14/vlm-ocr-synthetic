@@ -6,8 +6,9 @@ other says a run that really has drifted must speak. A threshold that passes onl
 one of them is not a threshold, it is a preference, so the same numbers are made
 to do both here.
 
-Vectors are built from `rulebase.make()` and real committed images rather than by
-rendering, so this stays in the dependency-free `tests` CI job.
+Vectors are built from `rulebase.make()` and the real renders in
+`tests/fixtures/images/` rather than by rendering, so this stays in the
+dependency-free `tests` CI job.
 """
 
 from __future__ import annotations
@@ -22,7 +23,7 @@ import rulebase
 from pipeline import drift, invariants
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-SOURCE_IMAGES = REPO_ROOT / "data" / "dataset60" / "html"
+SOURCE_IMAGES = REPO_ROOT / "tests" / "fixtures" / "images" / "html"
 
 
 def make_records(seeds, layout=None, force=None):

@@ -2,7 +2,7 @@
 
     python tools/generate_dataset.py -o data/dataset60 -n 20
 
-A thin shell over `pipeline/run.py` since W1. The flags are unchanged and mean
+A thin shell over `src/pipeline/run.py` since W1. The flags are unchanged and mean
 what they always meant, so `make dataset`, `make dataset-clean` and every
 committed invocation keep working; what changed underneath is that the work is
 now planned into shards, rendered by a pool of processes, and resumable.
@@ -25,7 +25,7 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(REPO_ROOT / "src"))
 
 # The augmentation value whose chain is empty. Named here rather than inlined
 # so renaming it in rules/augmentation.yaml fails loudly instead of silently
@@ -56,7 +56,7 @@ def main() -> int:
     parser.add_argument(
         "--layouts", nargs="+", metavar="NAME",
         help="draw from these layouts, by name, instead of every layout in "
-             "rulebase/layouts/. A fixed comparison should name them: the "
+             "src/rulebase/layouts/. A fixed comparison should name them: the "
              "quota walks the list in order, so an unnamed set changes the "
              "day someone adds a layout",
     )

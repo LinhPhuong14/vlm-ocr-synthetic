@@ -41,7 +41,7 @@ import numpy as np
 from genalog.generation.document import Document, DocumentGenerator
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(REPO_ROOT / "src"))
 
 import profiling  # noqa: E402
 import rulebase  # noqa: E402
@@ -50,7 +50,7 @@ from degradation.pipeline import apply_recipe  # noqa: E402
 
 TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
 TEMPLATE = "receipt.html.jinja"
-FONT_ROOT = REPO_ROOT / "fonts"
+FONT_ROOT = REPO_ROOT / "assets" / "fonts"
 
 
 def _hex(rgb) -> str:
@@ -272,7 +272,7 @@ class GenalogReceiptRenderer:
                     box["quad"] = [[round(x * factor, 1), round(y * factor, 1)]
                                    for x, y in box["quad"]]
 
-        # Ageing composites and filters in place; nothing in `degradation/`
+        # Ageing composites and filters in place; nothing in `src/degradation/`
         # resizes. Checked rather than trusted -- a resize slipped into the
         # chain would shift every box while the image still looked right.
         before = image.shape[:2]
@@ -375,7 +375,7 @@ def main() -> int:
 
     # Streamed, not collected: a job list may be a whole shard, and a record
     # carries every box on the page. Written in page order, which is the order
-    # the caller listed the jobs in -- `pipeline/worker.py` walks the runs in
+    # the caller listed the jobs in -- `src/pipeline/worker.py` walks the runs in
     # that order to name the files.
     with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as metadata:
         for index, job, seed in worklist.pages(jobs):

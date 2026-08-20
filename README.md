@@ -6,7 +6,7 @@ models, with structured labels and per-field boxes.
 [![ci](https://github.com/LinhPhuong14/vlm-ocr-synthetic/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 
 **One rule-base, three renderers.** What a page *says* is decided once, in
-[`rulebase/`](rulebase/README.md); how it *becomes pixels* is decided three
+[`src/rulebase/`](src/rulebase/README.md); how it *becomes pixels* is decided three
 different ways — glyph by glyph, screenshotted from Chromium, or printed
 through WeasyPrint. Every renderer receives the same `(recipe, receipt, grid)`
 and writes the same `metadata.jsonl`, so a difference between two images is a
@@ -26,10 +26,11 @@ make dataset N=14                # 42 images: one per layout, per renderer
 make check-boxes                 # the boxes still describe the pixels
 ```
 
-Or look at the committed output first, with nothing built:
+Or look at committed output first, with nothing built — every ageing model on
+the same page, the five reference invoice sheets, every seal and flourish:
 
 ```bash
-head -1 data/dataset60/html/metadata.jsonl
+ls samples/degradation/ samples/invoice-templates/
 ```
 
 No `make` — on Windows, or anywhere — call the task runner directly. Every task
@@ -76,7 +77,7 @@ flowchart LR
         out[("dataset<br/>images + labels")]
     end
 
-    assets[("fonts/ · textures/<br/>augmentations/ · corpus")]
+    assets[("assets/fonts/ · assets/textures/<br/>augmentations/ · corpus")]
     tess["Tesseract 5 (vie)<br/>external, optional"]
 
     author --> rb
@@ -95,7 +96,7 @@ OCR proof, optional).
 
 ```mermaid
 flowchart TD
-    subgraph rulebase["rulebase/ — content, one source of truth"]
+    subgraph rulebase["src/rulebase/ — content, one source of truth"]
         S["spec.py<br/>weighted draw, tags, family nodes"]
         C["content.py<br/>issuer, lines, totals, label"]
         L["layout.py<br/>Grid: cells + marks"]
@@ -107,7 +108,7 @@ flowchart TD
         R3["genalog/<br/>WeasyPrint → PDF → raster"]
     end
 
-    subgraph orch["pipeline/ — one run, declared and resumable"]
+    subgraph orch["src/pipeline/ — one run, declared and resumable"]
         CF["config.py + pipeline.yaml"]
         PL["plan.py — shards"]
         WK["worker.py — one shard, all or nothing"]
@@ -115,7 +116,7 @@ flowchart TD
         IV["invariants.py · drift.py · record.py"]
     end
 
-    D["degradation/<br/>DocCreator models"]
+    D["src/degradation/<br/>DocCreator models"]
     O[("metadata.jsonl + .jpg")]
 
     S --> C --> L
@@ -161,14 +162,14 @@ at a flat sheet.
 
 | # | stage | implementation | in → out | optional |
 | --- | --- | --- | --- | --- |
-| 1 | Sample a recipe | [`rulebase/spec.py`](rulebase/spec.py) `sample_recipe` | seed → `Recipe` (6 attributes + tags) | no |
-| 2 | Build the document | [`rulebase/content.py`](rulebase/content.py) `build` | `Recipe` → `Receipt` + `gt_parse` | no |
-| 3 | Lay it out | [`rulebase/layout.py`](rulebase/layout.py) `build_grid` | `Receipt` + layout → `Grid` (`Cell`s + `Mark`s) | no |
+| 1 | Sample a recipe | [`src/rulebase/spec.py`](src/rulebase/spec.py) `sample_recipe` | seed → `Recipe` (6 attributes + tags) | no |
+| 2 | Build the document | [`src/rulebase/content.py`](src/rulebase/content.py) `build` | `Recipe` → `Receipt` + `gt_parse` | no |
+| 3 | Lay it out | [`src/rulebase/layout.py`](src/rulebase/layout.py) `build_grid` | `Receipt` + layout → `Grid` (`Cell`s + `Mark`s) | no |
 | 4 | Draw it | `generators/*/render.py` | `Grid` → pixels + boxes | one of three |
-| 5 | Age it | [`degradation/pipeline.py`](degradation/pipeline.py) `apply_recipe` | image → image, **same size** | yes — empty for `augmentation=pristine` |
+| 5 | Age it | [`src/degradation/pipeline.py`](src/degradation/pipeline.py) `apply_recipe` | image → image, **same size** | yes — empty for `augmentation=pristine` |
 | 6 | Photograph it | [`generators/synthdog/elements/warp.py`](generators/synthdog/elements/warp.py) | image + quads → scene + warped quads | glyph backend only; off with `--clean` |
 | 7 | Downscale | each `render.py` | image + boxes × factor | skipped if already small |
-| 8 | Validate and write | [`pipeline/record.py`](pipeline/record.py), [`pipeline/invariants.py`](pipeline/invariants.py) | → `.jpg` + one metadata line | no |
+| 8 | Validate and write | [`src/pipeline/record.py`](src/pipeline/record.py), [`src/pipeline/invariants.py`](src/pipeline/invariants.py) | → `.jpg` + one metadata line | no |
 
 Stages 1–3 are pure content and need no image library — which is why
 [CI](.github/workflows/ci.yml) can test them with nothing but `pytest` and
@@ -180,8 +181,8 @@ Stages 1–3 are pure content and need no image library — which is why
 sequenceDiagram
     autonumber
     participant U as make run
-    participant R as pipeline/run.py
-    participant P as pipeline/plan.py
+    participant R as src/pipeline/run.py
+    participant P as src/pipeline/plan.py
     participant W as worker (process)
     participant B as backend venv
 
@@ -234,8 +235,8 @@ it was already doing.** Nothing new is learned by any renderer.
 
 | seam | a layout says | what it buys |
 | --- | --- | --- |
-| **marks** — [`rulebase/layout.py`](rulebase/layout.py) | `rules: marks` | rules, shaded boxes and frames on the *same* coordinate system as a cell, so a form stops being drawn out of `---`. A till roll keeps ASCII rules, because a thermal head really does print them as characters |
-| **cut sheets** — [`rulebase/style.py`](rulebase/style.py) | `sheet: a4` | a page whose height is decided *before* printing. A three-line invoice still fills the sheet, and the white space under it is part of what the document looks like. No name means a continuous roll, which has no bottom edge until the cutter makes one |
+| **marks** — [`src/rulebase/layout.py`](src/rulebase/layout.py) | `rules: marks` | rules, shaded boxes and frames on the *same* coordinate system as a cell, so a form stops being drawn out of `---`. A till roll keeps ASCII rules, because a thermal head really does print them as characters |
+| **cut sheets** — [`src/rulebase/style.py`](src/rulebase/style.py) | `sheet: a4` | a page whose height is decided *before* printing. A three-line invoice still fills the sheet, and the white space under it is part of what the document looks like. No name means a continuous roll, which has no bottom edge until the cutter makes one |
 
 Nine of the fourteen layouts are on A4; the five till receipts are on a roll.
 
@@ -247,20 +248,20 @@ This is the path the repository is built around, and it is mostly YAML.
 
 ```mermaid
 flowchart TD
-    A["1 · corpus<br/>rulebase/corpus/&lt;lang&gt;/"] --> B["2 · document value<br/>rules/document.yaml"]
-    B --> C["3 · layout file<br/>rulebase/layouts/&lt;id&gt;.yaml"]
+    A["1 · corpus<br/>src/rulebase/corpus/&lt;lang&gt;/"] --> B["2 · document value<br/>rules/document.yaml"]
+    B --> C["3 · layout file<br/>src/rulebase/layouts/&lt;id&gt;.yaml"]
     C --> D["4 · declare it under a family<br/>rules/layout.yaml groups:"]
-    D --> E["5 · content, if the fields are new<br/>rulebase/content.py"]
+    D --> E["5 · content, if the fields are new<br/>src/rulebase/content.py"]
     E --> F["6 · check<br/>preview-grid → preflight → pytest → dataset"]
 ```
 
 | step | where | notes |
 | --- | --- | --- |
-| 1 | [`rulebase/corpus/`](rulebase/corpus) | the strings the document prints; one file per kind of line |
-| 2 | [`rules/document.yaml`](rulebase/rules/document.yaml) | a value with a `weight`, the `tags` it sets, and `params` (`profile`, `num_items`, `titles`, …) |
-| 3 | [`rulebase/layouts/`](rulebase/layouts) | `sections:`, columns, and the form keys (`letterhead`, `parties`, `table`, `vat_summary`, `words`, `signatures`) |
-| 4 | [`rules/layout.yaml`](rulebase/rules/layout.yaml) | under the **family node** it joins; the node's `tags`/`requires`/`excludes` are unioned into every value below it, so a family-wide constraint is written once and a later layout cannot forget it |
-| 5 | [`rulebase/content.py`](rulebase/content.py) | only if the document carries fields no existing kind has |
+| 1 | [`src/rulebase/corpus/`](src/rulebase/corpus) | the strings the document prints; one file per kind of line |
+| 2 | [`rules/document.yaml`](src/rulebase/rules/document.yaml) | a value with a `weight`, the `tags` it sets, and `params` (`profile`, `num_items`, `titles`, …) |
+| 3 | [`src/rulebase/layouts/`](src/rulebase/layouts) | `sections:`, columns, and the form keys (`letterhead`, `parties`, `table`, `vat_summary`, `words`, `signatures`) |
+| 4 | [`rules/layout.yaml`](src/rulebase/rules/layout.yaml) | under the **family node** it joins; the node's `tags`/`requires`/`excludes` are unioned into every value below it, so a family-wide constraint is written once and a later layout cannot forget it |
+| 5 | [`src/rulebase/content.py`](src/rulebase/content.py) | only if the document carries fields no existing kind has |
 | 6 | — | `make preview-grid LAYOUT=<id>`, `make preflight`, `python -m pytest`, then a small `make dataset` |
 
 Nothing in `generators/` changes. A new layout is drawn by all three renderers
@@ -272,15 +273,15 @@ The same shape applies to the other axes:
 | --- | --- | --- |
 | a **document kind** | `rules/document.yaml` + `layouts/*.yaml` | the renderers |
 | a **layout family** | a `groups:` node in `rules/layout.yaml` | the sampler discovers it |
-| a **sampling attribute** | a new `rules/<name>.yaml` + a line in [`_order.yaml`](rulebase/rules/_order.yaml) | the attribute list is read, not hard-coded |
-| an **ageing effect** | a module in [`degradation/`](degradation) + its name in the registry | all three backends get it |
-| a **paper stock** | a file in [`textures/paper/`](textures/paper) named by `visual.paper` | the chain resolves it |
+| a **sampling attribute** | a new `rules/<name>.yaml` + a line in [`_order.yaml`](src/rulebase/rules/_order.yaml) | the attribute list is read, not hard-coded |
+| an **ageing effect** | a module in [`src/degradation/`](src/degradation) + its name in the registry | all three backends get it |
+| a **paper stock** | a file in [`assets/textures/paper/`](assets/textures/paper) named by `visual.paper` | the chain resolves it |
 | a **seal or flourish** | a draw function in [`tools/make_ornaments.py`](tools/make_ornaments.py) + a `marks:` entry in `rules/ornament.yaml` | preflight checks both directions |
-| a **sheet size** | one entry in `SHEETS` in [`rulebase/style.py`](rulebase/style.py) | every backend, which only reads the ratio |
+| a **sheet size** | one entry in `SHEETS` in [`src/rulebase/style.py`](src/rulebase/style.py) | every backend, which only reads the ratio |
 | a **renderer** | a `render.py` that consumes a `Grid` and writes a metadata line | the rule-base |
 
 Full guide, with the grammar of a layout file and the section list:
-**[`rulebase/README.md`](rulebase/README.md)**.
+**[`src/rulebase/README.md`](src/rulebase/README.md)**.
 
 ### Why the order of the seven attributes matters
 
@@ -328,7 +329,7 @@ the text, so a box cannot inherit a recognition error.
 
 ## Degradation
 
-[`degradation/`](degradation/README.md) is a Python port of the degradation
+[`src/degradation/`](src/degradation/README.md) is a Python port of the degradation
 models from [DocCreator](https://github.com/DocCreator/DocCreator) (Journet,
 Mansencal, Kieu et al., LaBRI Bordeaux). It runs on whatever a renderer
 produced, so the same ageing applies to all three — one implementation, not
@@ -345,7 +346,7 @@ flowchart LR
 ```
 
 That chain is `augmentation=medium`, copied from
-[`rules/augmentation.yaml`](rulebase/rules/augmentation.yaml); each image runs
+[`rules/augmentation.yaml`](src/rulebase/rules/augmentation.yaml); each image runs
 whichever chain its recipe drew, in order, sharing one seeded rng. Order is not
 commutative — ink decay before blur reads as worn ink that was scanned badly,
 the other way round as a smudged scan.
@@ -365,9 +366,9 @@ separates them is *where in the pipeline they enter*:
 
 | directory | when | what it is |
 | --- | --- | --- |
-| [`textures/paper/`](textures/paper) | head of the chain | the sheet the text is printed on — multiplied in, so ink stays ink |
-| [`augmentations/data/image/`](augmentations/data/image) | last step | a photograph of a real sheet laid over the finished page, ink included |
-| [`textures/background/`](textures/background) | after ageing, glyph backend only | the scene the sheet is photographed on |
+| [`assets/textures/paper/`](assets/textures/paper) | head of the chain | the sheet the text is printed on — multiplied in, so ink stays ink |
+| [`assets/overlays/`](assets/overlays) | last step | a photograph of a real sheet laid over the finished page, ink included |
+| [`assets/textures/background/`](assets/textures/background) | after ageing, glyph backend only | the scene the sheet is photographed on |
 
 ---
 
@@ -386,15 +387,15 @@ quality:  {drift_tolerance: 0.15, sample_for_ocr: 500}
 
 | property | what it buys | where |
 | --- | --- | --- |
-| **Unknown keys raise** | a config with `ouput:` in it does not silently run on the default | [`pipeline/config.py`](pipeline/config.py) |
-| **Shards are ranges, not layouts** | a worker can hold one browser for a whole shard | [`pipeline/plan.py`](pipeline/plan.py) |
-| **One renderer process per shard** | the renderer takes a job list, not one layout, so interpreter and backend start-up are paid once instead of once per layout — 1.43 images per process became 20, and the same plan went from 140s to 98s | [`worklist.py`](worklist.py), [`pipeline/worker.py`](pipeline/worker.py) |
-| **Resume is all-or-nothing** | `DONE` is written last and atomically; a shard without one is deleted and redone, never appended to — appending duplicates records, and duplicates in a training set are invisible | [`pipeline/worker.py`](pipeline/worker.py) |
-| **Processes, never threads** | Playwright's sync API is not thread-safe and synthtiger seeds numpy's global RNG | [`pipeline/run.py`](pipeline/run.py) |
-| **The layout list is explicit** | `run.layouts` empty means every file in `rulebase/layouts/` — what a dataset wants. A *fixed comparison* names them, because the quota walks the list in order and a run that took the directory draws a different set the day someone adds a layout | `pipeline.yaml` |
+| **Unknown keys raise** | a config with `ouput:` in it does not silently run on the default | [`src/pipeline/config.py`](src/pipeline/config.py) |
+| **Shards are ranges, not layouts** | a worker can hold one browser for a whole shard | [`src/pipeline/plan.py`](src/pipeline/plan.py) |
+| **One renderer process per shard** | the renderer takes a job list, not one layout, so interpreter and backend start-up are paid once instead of once per layout — 1.43 images per process became 20, and the same plan went from 140s to 98s | [`src/worklist.py`](src/worklist.py), [`src/pipeline/worker.py`](src/pipeline/worker.py) |
+| **Resume is all-or-nothing** | `DONE` is written last and atomically; a shard without one is deleted and redone, never appended to — appending duplicates records, and duplicates in a training set are invisible | [`src/pipeline/worker.py`](src/pipeline/worker.py) |
+| **Processes, never threads** | Playwright's sync API is not thread-safe and synthtiger seeds numpy's global RNG | [`src/pipeline/run.py`](src/pipeline/run.py) |
+| **The layout list is explicit** | `run.layouts` empty means every file in `src/rulebase/layouts/` — what a dataset wants. A *fixed comparison* names them, because the quota walks the list in order and a run that took the directory draws a different set the day someone adds a layout | `pipeline.yaml` |
 | **`pairing` is declared** | `paired` (default) gives every backend the same documents, so a difference between renderers is a difference in drawing; `independent` gives three times the distinct pages and no basis for comparison | `run.pairing` |
-| **Per-image invariants** | money arithmetic, quads inside the frame, no missing-glyph box, every label value actually printed | [`pipeline/invariants.py`](pipeline/invariants.py) |
-| **Drift** | whether the *mix* still matches the rules, measured per shard above the scatter a sample that size has anyway | [`pipeline/drift.py`](pipeline/drift.py) |
+| **Per-image invariants** | money arithmetic, quads inside the frame, no missing-glyph box, every label value actually printed | [`src/pipeline/invariants.py`](src/pipeline/invariants.py) |
+| **Drift** | whether the *mix* still matches the rules, measured per shard above the scatter a sample that size has anyway | [`src/pipeline/drift.py`](src/pipeline/drift.py) |
 | **A golden fingerprint** | sha256 of every image and every metadata line, so the parallel path is held to what the sequential one produced. Replacing it needs `make baseline-write REASON="..."`, and the reason is kept in the file — a comparison point that changed without saying why is one nobody can argue with later | [`tools/baseline.py`](tools/baseline.py), `make baseline-verify` |
 | **No durations in the manifest** | one worker and eight must produce byte-identical output; timings go to `timings.json` | `manifest.json` |
 
@@ -417,7 +418,7 @@ degradation, annotation, validation, export — separately per renderer and per
 ageing model, and writes a machine-readable cost model beside the table so a
 later run can be *predicted* and the prediction compared with the clock. The
 current numbers and the conditions they were taken under are in
-[`data/profile/README.md`](data/profile/README.md); the short version:
+[`docs/where-the-time-goes.md`](docs/where-the-time-goes.md); the short version:
 
 | | synthdog | html | genalog |
 | --- | ---: | ---: | ---: |
@@ -446,7 +447,7 @@ and eight still produce byte-identical output.
 ## What comes out
 
 One `metadata.jsonl` line per image, the same shape from every renderer, its
-keys fixed by [`pipeline/record.py`](pipeline/record.py) and validated on the
+keys fixed by [`src/pipeline/record.py`](src/pipeline/record.py) and validated on the
 way out:
 
 | field | |
@@ -473,7 +474,7 @@ Two properties are worth knowing before writing a loader:
 
 **Boxes are the definition of "printed".** `text_sequence` is built from the
 `Receipt`, so it can list a field the layout had no room for; `boxes` comes
-from the renderer's own geometry, one per drawn cell. `pipeline/invariants.py`
+from the renderer's own geometry, one per drawn cell. `src/pipeline/invariants.py`
 checks the label against the boxes for that reason, and
 [`tools/check_boxes.py`](tools/check_boxes.py) checks the boxes against the
 pixels.
@@ -496,7 +497,7 @@ code**: it only crops, scales, labels and tiles pixels that a renderer already
 produced, so it cannot show anything the generator did not.
 
 ```bash
-python docs/figures/make_figures.py      # from data/dataset60 and its clean twin
+python docs/figures/make_figures.py      # needs `make dataset` + `make dataset-clean` first
 ```
 
 ### One page per document family
@@ -568,14 +569,30 @@ TIỀN HÀNG                                794.000
 
 ## Repository structure
 
+Four kinds of thing, kept apart: code we wrote, renderers with their own
+environments, assets a page is drawn with, and output.
+
 ```
-rulebase/               THE RULE-BASE — one source of truth for content
-├── rules/              7 attributes, one file each; layout.yaml has families
-├── layouts/            one file per layout, measured off real paper
-├── corpus/vi/ en/      the strings a document prints
-├── spec.py             weighted draw, tags, parent nodes
-├── content.py          fills the fields, builds the label
-└── layout.py           Receipt + layout -> Grid (cells + marks)
+src/                    FIRST-PARTY CODE — importable, no install step
+├── rulebase/           THE RULE-BASE — one source of truth for content
+│   ├── rules/          7 attributes, one file each; layout.yaml has families
+│   ├── layouts/        one file per layout, measured off real paper
+│   ├── corpus/vi/ en/  the strings a document prints
+│   ├── spec.py         weighted draw, tags, parent nodes
+│   ├── content.py      fills the fields, builds the label
+│   └── layout.py       Receipt + layout -> Grid (cells + marks)
+├── pipeline/           ONE RUN — declared, sharded, resumable, checked
+│   ├── config.py       pipeline.yaml, with unknown keys rejected
+│   ├── plan.py         shards, deterministically
+│   ├── worker.py       one shard, completely or not at all
+│   ├── run.py          preflight, a pool of processes, assemble
+│   ├── record.py       the shape of one metadata line
+│   ├── invariants.py   what must be true of every image
+│   ├── drift.py        has the mix stopped matching the rules
+│   └── preflight.py    every check that must pass before drawing
+├── degradation/        DocCreator's models, ported — all backends call this
+├── profiling.py        the stopwatch, off unless asked
+└── worklist.py         what one renderer process is to draw
 
 generators/             THE RENDERERS — each with its own venv
 ├── synthdog/           glyph rendering, curl, background, camera
@@ -586,35 +603,33 @@ generators/             THE RENDERERS — each with its own venv
 │   └── page.py         shared: the browser, the fonts, the boxes
 └── genalog/            genalog + WeasyPrint (source vendored)
 
-pipeline/               ONE RUN — declared, sharded, resumable, checked
-├── config.py           pipeline.yaml, with unknown keys rejected
-├── plan.py             shards, deterministically
-├── worker.py           one shard, completely or not at all
-├── run.py              preflight, a pool of processes, assemble
-├── record.py           the shape of one metadata line
-├── invariants.py       what must be true of every image
-├── drift.py            has the mix stopped matching the rules
-└── preflight.py        every check that must pass before drawing
+assets/                 WHAT A PAGE IS DRAWN WITH AND ONTO
+├── fonts/              mono / sans / serif, all redistributable
+├── textures/           paper sheets, backgrounds, ornaments — generated
+└── overlays/           photographs of real paper, laid over a finished page
 
-degradation/            DocCreator's models, ported — all backends call this
-textures/ fonts/ augmentations/   the assets a page is drawn with and onto
-data/                   generated datasets
+data/                   OUTPUT — built by `make dataset`, ignored by git
 samples/                curated examples: degradation showcase, reference
                         sheets, the ornament contact sheet
 tools/                  drivers: dataset, proof, boxes, monitor, baseline
+tests/                  the suite, plus the few real renders it needs
 docs/                   notes that outlive any one generator, plus figures
 tasks.py                every task, and the only definition of them
 ```
+
+Everything under `src/` is imported from the path, never installed: the tools
+and each renderer venv put `src/` on `sys.path` and `import rulebase`. `pytest`
+does the same through `pythonpath` in `pyproject.toml`.
 
 Where to look for a thing:
 
 | you want | it is in |
 | --- | --- |
-| to add a document kind | [`rulebase/README.md`](rulebase/README.md), and the [checklist above](#adding-a-document-kind) |
-| to change what a document says | [`rulebase/corpus/`](rulebase/corpus), [`rules/content.yaml`](rulebase/rules/content.yaml) |
-| to change how often something appears | the `weight:` fields in [`rulebase/rules/`](rulebase/rules) |
+| to add a document kind | [`src/rulebase/README.md`](src/rulebase/README.md), and the [checklist above](#adding-a-document-kind) |
+| to change what a document says | [`src/rulebase/corpus/`](src/rulebase/corpus), [`rules/content.yaml`](src/rulebase/rules/content.yaml) |
+| to change how often something appears | the `weight:` fields in [`src/rulebase/rules/`](src/rulebase/rules) |
 | to change how a page is drawn | `generators/<renderer>/render.py` |
-| to make pages look old or scanned | [`degradation/`](degradation/README.md) |
+| to make pages look old or scanned | [`src/degradation/`](src/degradation/README.md) |
 | to run a long job | [`pipeline.yaml`](pipeline.yaml) and `make run` |
 | to run anything at all | `make help` — the tasks are there, not in a directory |
 | why a version is pinned | [`docs/python-versions.md`](docs/python-versions.md) |
@@ -691,8 +706,8 @@ generators/genalog/.venv/bin/python generators/genalog/render.py \
 | `--clean` | glyph backend: no curl, no perspective, no camera |
 | `--template NAME` | html backend: lay the page out with CSS instead of the grid ([`a4.py`](generators/html/a4.py)). One theme so far, `brand` |
 | `--scale` · `--dpi` | html device scale factor · genalog rasterisation dpi |
-| `--profile JSON` | time every stage and write the breakdown there. Off by default, and off costs nothing ([`profiling.py`](profiling.py)) |
-| `--jobs JSON` | draw several layouts in one process — a list of `{layout, seed, count, force}`. Overrides the three flags above it; see [`worklist.py`](worklist.py) |
+| `--profile JSON` | time every stage and write the breakdown there. Off by default, and off costs nothing ([`src/profiling.py`](src/profiling.py)) |
+| `--jobs JSON` | draw several layouts in one process — a list of `{layout, seed, count, force}`. Overrides the three flags above it; see [`src/worklist.py`](src/worklist.py) |
 
 A pinned value must still satisfy its own `requires`/`excludes`; if it cannot,
 the sampler names the tags at fault rather than drawing something else.
@@ -750,7 +765,7 @@ Verified in this environment (Python 3.11.15, 4 cores, all three venvs built):
 | `python tasks.py distribution` | 2000 / 2000 draws succeeded, over 14 layouts in 5 families |
 | `python tasks.py check-boxes` on both committed sets | 1330 boxes per renderer, all match |
 | `python tools/generate_dataset.py -n 14 --workers 3` | 42 images, all 14 layouts, 3 shards |
-| `python pipeline/run.py` (6 shards, 3 workers) | 18 images; a second run reported 0 unfinished and did nothing — resume works |
+| `python src/pipeline/run.py` (6 shards, 3 workers) | 18 images; a second run reported 0 unfinished and did nothing — resume works |
 | `python tasks.py tables -n 3` | 3 tables, no chromedriver and no fourth environment |
 | `python tools/degradation_showcase.py` | 10 degradation models |
 | `python tasks.py monitor` | the whole rule space, no run needed |
@@ -763,21 +778,27 @@ One gate did **not** pass here; it is recorded under
 
 ## Datasets
 
-Two labelled sets and one table set are committed, so the output can be
-inspected without building anything. Their contents, the label schema and how
-to rebuild an image exactly are in **[`data/README.md`](data/README.md)**.
+Datasets are **built, not committed**: they are a pure function of the rule-base
+and the renderers, and the rule-base is what this repository keeps. `data/` is
+output, ignored by git except for its README. The label schema, what separates
+the sets and how to rebuild an image exactly are in
+**[`data/README.md`](data/README.md)**.
 
-| set | |
-| --- | --- |
-| [`data/dataset60/`](data/dataset60) | aged — a degradation chain drawn from the rules |
-| [`data/dataset60_clean/`](data/dataset60_clean) | the same seeds with `augmentation=pristine` |
-| [`data/tables60/`](data/tables60) | table-structure images, a different task and a different label |
+| set | build it | |
+| --- | --- | --- |
+| `data/dataset60/` | `make dataset` | aged — a degradation chain drawn from the rules |
+| `data/dataset60_clean/` | `make dataset-clean` | the same seeds with `augmentation=pristine` |
+| `data/tables60/` | `make tables` | table-structure images, a different task and a different label |
+
+To see output without building three environments, look at
+[`samples/`](samples) and [`docs/figures/`](docs/figures), which are committed
+for that purpose.
 
 `make proof` reads a set back with Tesseract 5 (`vie`) and scores it order-free
 — Tesseract reads a two-column page in whatever order its layout analysis
 picks, so comparing its output to the label as one string would measure reading
-order rather than recognition. The scores live with the sets, in
-[`data/dataset60/proof/README.md`](data/dataset60/proof/README.md).
+order rather than recognition. It writes its scores into the set it read, at
+`data/<set>/proof/README.md`.
 
 Table images come from [`generators/html/tables.py`](generators/html/tables.py),
 on the browser the html backend already launches. The label is PubTabNet-style
@@ -799,7 +820,7 @@ use the document sets for anything about text.
 | `no interpreter at …/.venv/bin/python` | that renderer's environment was never built: `make setup-<renderer>`. |
 | a rule value never appears in the output | almost always a typo'd tag, which is silent. `make check-rules`, then `make distribution`. |
 | `unchecked: fontTools is not installed` from preflight | glyph coverage could not be verified. `pip install fonttools` — "I could not look" is not "it is fine". |
-| a font prints empty boxes | missing Vietnamese glyphs. `generators/synthdog/.venv/bin/python generators/synthdog/tools/check_fonts.py fonts/mono`. |
+| a font prints empty boxes | missing Vietnamese glyphs. `generators/synthdog/.venv/bin/python generators/synthdog/tools/check_fonts.py assets/fonts/mono`. |
 | a shard is redone instead of resumed | it has no `DONE` file, so it was incomplete. That is the design: appending to a half-written `metadata.jsonl` duplicates records. |
 | `make baseline-write` refuses to run | it needs `REASON="..."`. A recapture is a claim that the old pixels were wrong and the new ones are right; the reason is kept in the golden file. |
 | `CÙNG KẾ HOẠCH, KHÁC PIXEL` from `baseline-verify` | the plan's inputs did not move but the images did — a regression until shown otherwise. Diff before reaching for `baseline-write`. |
@@ -843,17 +864,20 @@ the two must stay in step.
 
 | | |
 | --- | --- |
-| [`rulebase/README.md`](rulebase/README.md) | the rule-base in full: attributes, families, the grammar of a layout file, adding one |
-| [`degradation/README.md`](degradation/README.md) | each model and the DocCreator file it came from |
+| [`src/rulebase/README.md`](src/rulebase/README.md) | the rule-base in full: attributes, families, the grammar of a layout file, adding one |
+| [`src/degradation/README.md`](src/degradation/README.md) | each model and the DocCreator file it came from |
 | [`data/README.md`](data/README.md) | the datasets and the label schema |
 | [`samples/README.md`](samples/README.md) | reading the degradation showcase |
 | [`samples/invoice-templates/README.md`](samples/invoice-templates/README.md) | the five reference sheets, and why they are not layouts |
 | [`docs/hoa-tiet-de-xuat.md`](docs/hoa-tiet-de-xuat.md) | ornaments surveyed and not built, with the reason each was left |
 | [`docs/brief-engine-html.md`](docs/brief-engine-html.md) | the three HTML render paths, what merged cells do and do not do in each, and what a fix has to preserve |
+| [`docs/where-the-time-goes.md`](docs/where-the-time-goes.md) | the cost model: every stage of every renderer, timed, and what it bought |
 | [`docs/python-versions.md`](docs/python-versions.md) | why the glyph renderer stops below Python 3.12, measured |
 | [`docs/windows.md`](docs/windows.md) | Windows setup: Python 3.11, GTK, Tesseract, proxies (Vietnamese) |
 | [`docs/huong-dan-va-giai-thich.md`](docs/huong-dan-va-giai-thich.md) | line-by-line walkthrough of all three renderers, with a Q&A (Vietnamese) |
-| [`fonts/README.md`](fonts/README.md) | which fonts, which licences, and why coverage is checked |
+| [`assets/fonts/README.md`](assets/fonts/README.md) | which fonts, which licences, and why coverage is checked |
+| [`generators/genalog/README.md`](generators/genalog/README.md) | what is vendored from genalog, what was stripped, and how to re-vendor |
+| [`tests/fixtures/README.md`](tests/fixtures/README.md) | the few real renders the suite needs, and how to refresh them |
 
 ## Licence
 
@@ -862,8 +886,8 @@ own terms: `generators/genalog/` ships [genalog's MIT
 licence](generators/genalog/LICENSE); the table model in
 [`generators/html/tables.py`](generators/html/tables.py) derives from
 TIES_DataGeneration by way of PaddleOCR (Apache-2.0) and says so in the file;
-the fonts in `fonts/` are OFL 1.1, Apache 2.0 or Bitstream Vera — see
-[`fonts/README.md`](fonts/README.md).
+the fonts in `assets/fonts/` are OFL 1.1, Apache 2.0 or Bitstream Vera — see
+[`assets/fonts/README.md`](assets/fonts/README.md).
 
 ## References
 

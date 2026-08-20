@@ -9,11 +9,11 @@ như mọi chỗ "viết lạ" trong repo này đều là hậu quả của mộ
 
 - [1. Chạy thử](#1-chạy-thử)
 - [2. Đường đi của một tấm ảnh](#2-đường-đi-của-một-tấm-ảnh)
-- [3. Phần dùng chung: `rulebase/`](#3-phần-dùng-chung-rulebase)
+- [3. Phần dùng chung: `src/rulebase/`](#3-phần-dùng-chung-rulebase)
 - [4. Framework 1 — synthdog (glyph)](#4-framework-1--synthdog-glyph)
 - [5. Framework 2 — html (Chromium)](#5-framework-2--html-chromium)
 - [6. Framework 3 — genalog (WeasyPrint)](#6-framework-3--genalog-weasyprint)
-- [7. Phần dùng chung: `degradation/`](#7-phần-dùng-chung-degradation)
+- [7. Phần dùng chung: `src/degradation/`](#7-phần-dùng-chung-degradation)
 - [8. Kiểm thử](#8-kiểm-thử)
 - [9. Q&A](#9-qa)
 
@@ -105,7 +105,7 @@ Số hiện tại — `token_recall`, đo lại sau W1b:
 Bảng cũ ở đây ghi 0.41 / 0.68 / 0.76 và kết luận genalog dễ đọc nhất. Sai hai
 lần. Một: con số 0.76 chưa bao giờ có trong `ocr_report.json` — số thật lúc đó
 là 0.638, và html 0.671 đã cao hơn rồi. Hai: ba renderer khi ấy vẽ **ba bộ hoá
-đơn khác nhau** (xem `pipeline/plan.py`, `pairing`), nên ba cột đó không so
+đơn khác nhau** (xem `src/pipeline/plan.py`, `pairing`), nên ba cột đó không so
 được với nhau dù số có đúng. Bảng trên là bộ đã sinh lại với `pairing: paired`,
 cùng 20 hoá đơn cho cả ba renderer, `money_total` bằng nhau (101) ở cả ba cột —
 đó mới là điều kiện để đọc bảng theo hàng ngang.
@@ -154,7 +154,7 @@ tháng sau mới phát hiện bố cục đó chưa từng xuất hiện trong d
 ```
 
 Ba dòng đầu gói trong một hàm: `rulebase.make(seed, force)` trong
-`rulebase/__init__.py`.
+`src/rulebase/__init__.py`.
 
 **Tại sao tách `Receipt` (dữ liệu) khỏi `Grid` (vị trí)?** Vì nhãn phải dựng từ
 `Receipt`, còn ảnh dựng từ `Grid`. Nếu gộp làm một thì mỗi renderer sẽ tự quyết
@@ -163,7 +163,7 @@ renderer thực chất là so sánh ba bộ dữ liệu khác nhau, vô nghĩa.
 
 ---
 
-## 3. Phần dùng chung: `rulebase/`
+## 3. Phần dùng chung: `src/rulebase/`
 
 ### 3.1 `spec.py` — bốc mẫu
 
@@ -340,8 +340,8 @@ Các bước, theo thứ tự trong hàm:
 5. `rulebase.padding(recipe, grid, rng)` — lề.
 6. Với mỗi ô: dựng `TextLayer`, scale, kẹp trong cột, canh lề, đặt `top`.
 
-**`_fonts(group)` ưu tiên `resources/font/<group>` rồi mới tới `fonts/` ở gốc
-repo.** Lý do: `fonts/` là bộ dùng chung, phát hành lại được, commit trong repo;
+**`_fonts(group)` ưu tiên `resources/font/<group>` rồi mới tới `assets/fonts/` ở gốc
+repo.** Lý do: `assets/fonts/` là bộ dùng chung, phát hành lại được, commit trong repo;
 `resources/font/` là chỗ để font riêng của bạn mà `.gitignore` giữ ngoài repo.
 Có thì dùng cái riêng.
 
@@ -491,7 +491,7 @@ height:{grid.nrows * line_px + pad_top + pad_bottom:.2f}px;
 *padding box* của cha, nên đặt `padding-top` bao nhiêu cũng vô hiệu. Đây là lỗi
 đã gặp: lần sửa đầu tiên đặt `padding` đúng mà tên quán vẫn sát mép trên.
 
-**`_font_faces()` nhúng font từ `fonts/` bằng `@font-face`.** Không để CSS stack
+**`_font_faces()` nhúng font từ `assets/fonts/` bằng `@font-face`.** Không để CSS stack
 rơi xuống font nào máy có sẵn: một font thiếu dấu tiếng Việt sẽ vẽ ô vuông trong
 khi nhãn vẫn khai là đã in chữ có dấu — **lỗi này không tự báo ra**.
 
@@ -589,10 +589,10 @@ nó là đường render thứ ba, và đó là lý do đủ.
 
 ---
 
-## 7. Phần dùng chung: `degradation/`
+## 7. Phần dùng chung: `src/degradation/`
 
 Port các model của [DocCreator](https://github.com/DocCreator/DocCreator).
-Chi tiết ở [`degradation/README.md`](../degradation/README.md); ở đây chỉ nói
+Chi tiết ở [`src/degradation/README.md`](../src/degradation/README.md); ở đây chỉ nói
 phần kiến trúc.
 
 `pipeline.apply_recipe(image, recipe, seed)` — **cả ba renderer đều gọi hàm
@@ -659,7 +659,7 @@ biến mất. Cắt trước là việc **mọi pipeline OCR thật đều làm*
 
 ### 8.1 Đo xem thời gian đi đâu — `make profile`
 
-`profiling.py` là một cái đồng hồ bấm giây **tắt mặc định**: tắt thì
+`src/profiling.py` là một cái đồng hồ bấm giây **tắt mặc định**: tắt thì
 `profiling.stage()` trả về một object dùng chung không làm gì, nên code sinh
 ảnh không chậm đi và không đổi một pixel nào vì có profiler. Bật thì
 `tools/profile_pipeline.py` đo từng giai đoạn — sampling · nội dung · layout ·
@@ -677,7 +677,7 @@ Ba nguyên tắc, và cả ba đều là lý do bảng số đọc được:
 * **Đo cả chính cái đồng hồ.** `enable()` hiệu chuẩn vài nghìn stage rỗng; báo
   cáo ghi giá mỗi lần gọi và tổng chi phí đó chiếm bao nhiêu phần trăm.
 
-Kết quả nằm ở [`data/profile/README.md`](../data/profile/README.md), cùng một
+Kết quả nằm ở [`docs/where-the-time-goes.md`](where-the-time-goes.md), cùng một
 **mô hình chi phí máy đọc được** (`cost_model.json`) để lần chạy sau *dự đoán*
 trước rồi đối chiếu với đồng hồ — lệch bao nhiêu chính là phát hiện.
 
@@ -699,7 +699,7 @@ so hai cái đó là gán cho một tối ưu cái mà thật ra là đổi phé
 ### 8.2 W3b — một tiến trình một shard, và một lỗi im lặng bốn wave
 
 Renderer chỉ nhận **một** bố cục mỗi lần gọi, nên worker khởi động lại nó cho
-mỗi bố cục. `worklist.py` cho nó nhận cả **danh sách công việc**
+mỗi bố cục. `src/worklist.py` cho nó nhận cả **danh sách công việc**
 (`--jobs jobs.json`), thành một tiến trình cho cả shard: 1,43 ảnh/tiến trình
 lên 20, cùng một kế hoạch từ 140 s xuống 98 s — **một phần ba** thời gian chạy.
 `--layout/--seed/--count` cũ giữ nguyên.
@@ -746,7 +746,7 @@ do rule-base là thứ được đầu tư nhất trong repo.
 Bố cục chỉ là một trong sáu trục. Không gian là tích của cả sáu, cộng thêm
 corpus (115 món quán + 88 mặt hàng siêu thị), số mặt hàng, seed. Nhưng đúng là
 5 bố cục ít — và **đó là thiết kế**: mỗi bố cục đo từ một ảnh hoá đơn thật, chứ
-không bịa. Thêm bố cục = thêm một file YAML, xem `rulebase/README.md` §3. Mình
+không bịa. Thêm bố cục = thêm một file YAML, xem `src/rulebase/README.md` §3. Mình
 thà có 5 cái đúng còn hơn 50 cái tưởng tượng.
 
 **H: Rule-base có phải là hard-code trá hình không?**
@@ -813,7 +813,7 @@ render được ngay, không phải tải gì. Có scan thật thì trỏ `stain
 Ba chỗ, xếp theo mức độ:
 1. **Font.** Font thiếu dấu tiếng Việt vẽ ra ô vuông mà nhãn vẫn khai đúng chữ —
    **lỗi im lặng**. DejaVu Sans Mono, lựa chọn mono hiển nhiên nhất, thiếu 46 ký
-   tự. Vì thế mới có `tools/check_fonts.py` và vì thế `fonts/` mới được commit.
+   tự. Vì thế mới có `generators/synthdog/tools/check_fonts.py` và vì thế `assets/fonts/` mới được commit.
 2. **Ngưỡng làm cũ.** Đặt quá tay thì ảnh vô dụng mà không có gì báo. `make proof`
    là cái phanh: bảng "theo mức làm cũ" phải giảm đơn điệu.
 3. **Nhãn lệch ảnh.** Đã dính hai lần (cắt chuỗi không ghi ngược, tiêu đề cột

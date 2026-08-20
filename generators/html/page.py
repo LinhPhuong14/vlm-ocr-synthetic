@@ -20,7 +20,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-FONT_ROOT = REPO_ROOT / "fonts"
+FONT_ROOT = REPO_ROOT / "assets" / "fonts"
 
 # Linux containers that ship a browser system-wide, this repository's own
 # included. Elsewhere -- Windows, macOS, a plain `pip install playwright` --

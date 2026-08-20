@@ -28,7 +28,8 @@ and could not say whether the plan had moved or the renderer had regressed --
 and the cheapest way to make it green was to recapture, i.e. to delete the
 check. Every plan now states its layouts by name, and every capture writes down
 the conditions it was taken under: layouts, seed, count, pairing, and a hash of
-`rulebase/rules`, `rulebase/corpus`, and *the layout files that plan names* --
+`src/rulebase/rules`, `src/rulebase/corpus`, and *the layout files that plan
+names* --
 not the whole layouts directory, or the baseline would go red again the moment
 someone added a layout no plan draws.
 
@@ -48,7 +49,7 @@ regression baseline must not move when someone adds unrelated content.
 
 This needs all three renderer virtualenvs, so it is a hand-run command and not
 part of the `tests` CI job. Keeping that job down to pytest and pyyaml is what
-holds `rulebase/` to its one dependency.
+holds `src/rulebase/` to its one dependency.
 """
 
 from __future__ import annotations
@@ -97,16 +98,18 @@ PLANS: dict[str, dict] = {
 # the baseline back where it started -- red the moment anyone adds a layout no
 # plan draws. So:
 #
-#   rulebase/rules     the rule set as the sampler resolves it, with the layout
-#                      attribute cut down to the layouts this plan names. Adding
-#                      a fifteenth layout leaves it untouched, which is correct:
-#                      a run pinned to `eatery_ascii` draws the same recipe
-#                      before and after -- measured, not assumed.
-#   rulebase/layouts   only the layout files the plan names.
-#   rulebase/corpus    the whole directory: every line is in play for any plan.
-CORPUS_ROOT = "rulebase/corpus"
-LAYOUT_ROOT = "rulebase/layouts"
-RULES_ROOT = "rulebase/rules"
+#   src/rulebase/rules     the rule set as the sampler resolves it, with the
+#                          layout attribute cut down to the layouts this plan
+#                          names. Adding a fifteenth layout leaves it untouched,
+#                          which is correct: a run pinned to `eatery_ascii` draws
+#                          the same recipe before and after -- measured, not
+#                          assumed.
+#   src/rulebase/layouts   only the layout files the plan names.
+#   src/rulebase/corpus    the whole directory: every line is in play for any
+#                          plan.
+CORPUS_ROOT = "src/rulebase/corpus"
+LAYOUT_ROOT = "src/rulebase/layouts"
+RULES_ROOT = "src/rulebase/rules"
 FINGERPRINTED = (RULES_ROOT, LAYOUT_ROOT, CORPUS_ROOT)
 
 
@@ -136,7 +139,7 @@ def _canonical_rules(layouts) -> str:
     formatting. The layout attribute is cut to the plan's own layouts: options
     it never draws are not inputs to it.
     """
-    sys.path.insert(0, str(REPO_ROOT))
+    sys.path.insert(0, str(REPO_ROOT / "src"))
     from rulebase.spec import load_rules
 
     wanted = set(layouts)

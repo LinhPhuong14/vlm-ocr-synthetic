@@ -11,7 +11,7 @@ chỗ này mới đáng giá — **vì sao chưa làm**.
 
 Muốn dựng mục nào thì thêm một hàm vẽ vào [`tools/make_ornaments.py`](../tools/make_ornaments.py),
 thêm một dòng vào `main()`, rồi khai báo trong
-[`rulebase/rules/ornament.yaml`](../rulebase/rules/ornament.yaml).
+[`src/rulebase/rules/ornament.yaml`](../src/rulebase/rules/ornament.yaml).
 `make preflight` sẽ đối chiếu luật với thư mục cả hai chiều.
 
 ---
@@ -40,7 +40,7 @@ Dấu chữ nhật có ba dải số xoay tay: “NGÀY 12 THÁNG 03 NĂM 2025�
 
 > **Cả họ này đã dựng một lần rồi bỏ.** Chữ ký, chữ điền tay, gạch chân bút và
 > vệt bút dạ quang đều đã có mã vẽ, đã sinh ra file, và đã bị gỡ khỏi
-> `textures/ornament/` vì không đạt.
+> `assets/textures/ornament/` vì không đạt.
 >
 > Chỗ hỏng không phải ở tham số mà ở cách tiếp cận. **Chữ điền tay** dựng bằng
 > cách lấy một mặt chữ in rồi làm lệch từng ký tự — nghiêng, xê dịch, đậm nhạt.
@@ -205,7 +205,7 @@ EAN-13 đáng kể; và chưa có loại document nào là phiếu xuất kho.
 
 Danh mục này chỉ nhận thứ **cố ý có mặt** trên tờ giấy: ai đó in nó, đóng nó,
 hoặc viết nó. Vết bẩn, nếp gấp, lỗ ghim, mực loang, bóng gáy sách là *hư hại*
-chứ không phải thiết kế — chúng thuộc [`degradation/`](../degradation) và
+chứ không phải thiết kế — chúng thuộc [`src/degradation/`](../src/degradation) và
 `rules/augmentation.yaml`, và phần lớn đã có ở đó.
 
 Vệt bút dạ quang nằm sát ranh giới; nó được xếp vào `ornament` vì có người cầm

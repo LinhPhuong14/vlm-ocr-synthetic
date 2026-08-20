@@ -49,7 +49,7 @@ def test_font_coverage_never_shrugs(monkeypatch, tmp_path):
     """Empty font directory, or no font library: either way it reports."""
     monkeypatch.setattr(preflight, "FONT_ROOT", tmp_path)
     problems = preflight.font_coverage({"a"})
-    assert problems, "an empty fonts/ produced no problem at all"
+    assert problems, "an empty assets/fonts/ produced no problem at all"
 
 
 def test_the_shipped_repository_is_clean():

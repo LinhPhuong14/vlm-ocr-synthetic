@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Generate the seals and flourishes in `textures/ornament/`.
+"""Generate the seals and flourishes in `assets/textures/ornament/`.
 
     python tools/make_ornaments.py
 
-The `ornament` attribute (`rulebase/rules/ornament.yaml`) names these files, so
-a rules file and a directory listing have to agree; `pipeline/preflight.py`
+The `ornament` attribute (`src/rulebase/rules/ornament.yaml`) names these files, so
+a rules file and a directory listing have to agree; `src/pipeline/preflight.py`
 checks that they do. They are generated rather than scanned for the same reason
 `tools/make_textures.py` generates paper: a scan of somebody's real company seal
 is neither redistributable nor reproducible from a seed, and a fresh clone would
@@ -16,7 +16,7 @@ effects stacked on it: perspective, elastic distortion, shadow, colour. It has
 no text-on-a-path primitive, and a round seal is exactly that: every glyph
 rotated to the tangent of a circle. So the drawing happens once, here, into PNGs
 with an alpha channel; the ageing and compositing that synthtiger and
-`degradation/` are good at then treat the result like any other overlay.
+`src/degradation/` are good at then treat the result like any other overlay.
 
 **No hand marks here.** Signatures, handwritten field values, pen underlines
 and highlighter swipes were drawn and then dropped: a typeface jittered per
@@ -40,7 +40,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-ASSETS = REPO_ROOT / "textures" / "ornament"
+ASSETS = REPO_ROOT / "assets" / "textures" / "ornament"
 CONTACT = REPO_ROOT / "samples" / "ornaments" / "contact.jpg"
 FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 FONT_REG = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"

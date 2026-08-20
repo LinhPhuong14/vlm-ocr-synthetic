@@ -182,6 +182,6 @@ def test_the_font_families_are_faces_the_page_actually_embeds():
     from page import font_faces
 
     embedded = set(re.findall(r"font-family:'([^']+)'", font_faces()))
-    assert embedded, "no fonts found under fonts/"
+    assert embedded, "no fonts found under assets/fonts/"
     for family in T.FAMILIES:
         assert family in embedded, family

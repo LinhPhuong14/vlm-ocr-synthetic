@@ -33,7 +33,7 @@ import cv2
 import numpy as np
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(REPO_ROOT / "src"))
 
 import rulebase  # noqa: E402
 

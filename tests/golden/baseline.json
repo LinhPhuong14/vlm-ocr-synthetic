@@ -12,9 +12,9 @@
         "pairing": "paired",
         "clean": false,
         "rules": {
-          "rulebase/rules": "47ac1070b58f5ecc8b7e038132340870a9099c4ab59f3f15aa9b32ce96c6f716",
-          "rulebase/layouts": "46a8103433dcca0508de72d588abc366c73a28399e0bcd99fc2822c0f7e75ed7",
-          "rulebase/corpus": "7fa651b532eceb6d39020ad29ce7af0d4fc616b396b0d521daa6d44aa7985ccf"
+          "src/rulebase/rules": "47ac1070b58f5ecc8b7e038132340870a9099c4ab59f3f15aa9b32ce96c6f716",
+          "src/rulebase/layouts": "46a8103433dcca0508de72d588abc366c73a28399e0bcd99fc2822c0f7e75ed7",
+          "src/rulebase/corpus": "7fa651b532eceb6d39020ad29ce7af0d4fc616b396b0d521daa6d44aa7985ccf"
         }
       },
       "images": {
@@ -73,9 +73,9 @@
         "pairing": "paired",
         "clean": false,
         "rules": {
-          "rulebase/rules": "e44997d5ebb3e6ab61bedaf35ecae33d041408ae6cbc95b3f0245ef883e3f1f5",
-          "rulebase/layouts": "b3d3ae57d0ff0ca317d186d8ed9a4647c9c868bf55d192ca5995832348f7719e",
-          "rulebase/corpus": "7fa651b532eceb6d39020ad29ce7af0d4fc616b396b0d521daa6d44aa7985ccf"
+          "src/rulebase/rules": "e44997d5ebb3e6ab61bedaf35ecae33d041408ae6cbc95b3f0245ef883e3f1f5",
+          "src/rulebase/layouts": "b3d3ae57d0ff0ca317d186d8ed9a4647c9c868bf55d192ca5995832348f7719e",
+          "src/rulebase/corpus": "7fa651b532eceb6d39020ad29ce7af0d4fc616b396b0d521daa6d44aa7985ccf"
         }
       },
       "images": {
@@ -157,9 +157,9 @@
         "pairing": "paired",
         "clean": false,
         "rules": {
-          "rulebase/rules": "2dfd8ed1e6f263ea8893b06a5df8b6d6c559e2b5afb6df5de769580460f98b5f",
-          "rulebase/layouts": "764a532bcaeb01902640b70a9521a7932121694c2d2fe6057f28cd3ff0f625a0",
-          "rulebase/corpus": "7fa651b532eceb6d39020ad29ce7af0d4fc616b396b0d521daa6d44aa7985ccf"
+          "src/rulebase/rules": "2dfd8ed1e6f263ea8893b06a5df8b6d6c559e2b5afb6df5de769580460f98b5f",
+          "src/rulebase/layouts": "764a532bcaeb01902640b70a9521a7932121694c2d2fe6057f28cd3ff0f625a0",
+          "src/rulebase/corpus": "7fa651b532eceb6d39020ad29ce7af0d4fc616b396b0d521daa6d44aa7985ccf"
         }
       },
       "images": {
