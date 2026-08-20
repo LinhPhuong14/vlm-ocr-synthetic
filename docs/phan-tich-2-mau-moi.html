@@ -102,6 +102,15 @@ footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--rule);
   <p class="lede">Đọc hai tệp quét, tách ra từng thành phần cấu trúc, rồi <strong>dựng thử lại bằng
   chính engine CSS mới</strong> (<code>generators/html/sheets/</code>) để đo xem còn thiếu gì. Mọi
   ảnh “bản dựng thử” trong trang này là WeasyPrint in ra thật, không phải ảnh chụp màn hình ghép.</p>
+  <div class="callout ok" style="margin:0 0 24px">
+    <b>Cập nhật — cả hai đã dựng xong và chạy được.</b> Bản phân tích bên dưới
+    giữ nguyên như lúc viết, vì nó là bản ghi những gì đo được TRƯỚC khi làm.
+    Hai bố cục giờ nằm trong bộ sinh — <code>medical_statement</code> và
+    <code>authorisation_letter</code> trong
+    <code>rulebase/layouts/</code> — và bản chạy thử 16 ảnh, hai renderer, ở
+    <code>data/forms16/</code>. Con số duy nhất không đổi là chỗ chặn: giấy uỷ
+    quyền vẫn được điền bằng chữ đánh máy, vì kho vẫn chưa có nguồn nét viết tay.
+  </div>
   <div class="verdicts">
     <div class="vcard">
       <div class="vname">Giấy uỷ quyền nhận tiền</div>

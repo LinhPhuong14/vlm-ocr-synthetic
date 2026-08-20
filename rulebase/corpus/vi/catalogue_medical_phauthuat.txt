@@ -1,0 +1,11 @@
+# Phẫu thuật, thủ thuật — nhóm 6.
+# Định dạng: tên<TAB>đơn giá tối thiểu<TAB>đơn giá tối đa   (đơn vị VND)
+#
+# Giá lấy theo khung giá dịch vụ kỹ thuật y tế, làm tròn — đủ để một người đọc
+# thấy con số hợp lý, không phải bảng giá của một bệnh viện cụ thể nào.
+Phẫu thuật nội soi nạo V.A	2400000	3200000
+Phẫu thuật cắt amidan bằng dao điện	2200000	3000000
+Phẫu thuật nội soi xoang hàm	3600000	4800000
+Thủ thuật chích rạch áp xe quanh amidan	480000	680000
+Phẫu thuật kết hợp xương cẳng tay	3600000	5200000
+Thủ thuật thay băng vết thương chiều dài trên 15cm	120000	175000

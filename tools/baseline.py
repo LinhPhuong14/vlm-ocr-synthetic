@@ -41,7 +41,7 @@ Three fixed plans, because one is not enough:
 
 * `n3` is the plan the W1 brief names, on three named layouts.
 * `n5` is every thermal layout -- the till-roll half of the rule-base.
-* `n14` is every layout, one image each per backend.
+* `n16` is every layout, one image each per backend.
 
 Adding a fifteenth layout leaves all three green, which is the point: a
 regression baseline must not move when someone adds unrelated content.
@@ -79,6 +79,12 @@ THERMAL = ["eatery_ascii", "eatery_indexed", "market_barcode",
 INVOICE = ["invoice_brand", "invoice_export", "invoice_hotel_compact",
            "invoice_hotel_stay", "invoice_power", "invoice_tax_en",
            "invoice_vat_form", "invoice_vat_summary", "invoice_water"]
+# Documents that are not a sale: a hospital's statement of treatment costs, and
+# an authorisation to collect money on somebody's behalf. Cut sheets like the
+# invoices, and drawn by the same three backends, but neither is an invoice and
+# neither is named like one -- which is why they are their own list rather than
+# an entry in the one above.
+FORM = ["authorisation_letter", "medical_statement"]
 
 PLANS: dict[str, dict] = {
     # The plan the W1 brief names, on the three layouts it named.
@@ -86,7 +92,14 @@ PLANS: dict[str, dict] = {
     # Every thermal layout: the till-roll half of the rule-base.
     "n5": {"per_backend": 5, "seed": 2026, "layouts": THERMAL},
     # Every layout, one image each per backend, so nothing is outside the net.
-    "n14": {"per_backend": 14, "seed": 2026, "layouts": sorted(THERMAL + INVOICE)},
+    # The name states the count, so it changes when the count does -- a plan
+    # called `n14` that draws sixteen layouts is a plan nobody can check by
+    # reading it. A rename means the golden file has no entry under the new key
+    # and `make baseline-verify` says so, which is the correct report: the
+    # generator grew, and the fingerprint has to be recaptured on a machine with
+    # all three renderer environments.
+    "n16": {"per_backend": 16, "seed": 2026,
+            "layouts": sorted(THERMAL + INVOICE + FORM)},
 }
 
 # What a plan's images are a function of, beyond the plan itself. A change to one

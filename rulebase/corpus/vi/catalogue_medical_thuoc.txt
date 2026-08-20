@@ -1,0 +1,17 @@
+# Thuốc — nhóm 8. Tên thương mại và tên gốc lẫn lộn, như bảng kê thật.
+# Định dạng: tên<TAB>đơn giá tối thiểu<TAB>đơn giá tối đa   (đơn vị VND)
+#
+# Giá lấy theo khung giá dịch vụ kỹ thuật y tế, làm tròn — đủ để một người đọc
+# thấy con số hợp lý, không phải bảng giá của một bệnh viện cụ thể nào.
+Ama-Power	52000	72000
+Natri Clorid 0,9%	1100	1600
+Nước cất tiêm	560	820
+Paracetamol Kabi 1000	9800	13500
+Glucose 5%	6800	9500
+Soli-Medon 40	24000	33000
+Cefotaxim 1g	16000	24000
+Alphachymotrypsin 4200 USP	2600	3800
+Vitamin C 500mg	1200	1900
+Ringer Lactat	9500	13500
+Diclofenac 75mg/3ml	7800	11000
+Omeprazol 40mg	28000	38000
