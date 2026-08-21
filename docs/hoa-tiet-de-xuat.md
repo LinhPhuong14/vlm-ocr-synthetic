@@ -58,15 +58,21 @@ Dấu chữ nhật có ba dải số xoay tay: “NGÀY 12 THÁNG 03 NĂM 2025�
 
 ### `handwriting_fill` — Số và chữ điền tay
 Ngày tháng, tên người mua, số tiền viết tay vào chỗ trống của tờ mẫu in sẵn.
-Vẫn là **khoảng trống lớn nhất** của bộ dữ liệu: tờ mẫu sinh ra để được điền
-tay, mà mọi tờ sinh ra đến giờ đều trống trơn hoặc in máy toàn bộ.
 *Hợp:* tờ mẫu in sẵn (GTGT, xuất khẩu).
-*Chưa làm vì:* xem khối trên. Cần mặt chữ viết tay có giấy phép, và nội dung
-phải đi đường `from_receipt` để ảnh và nhãn không nói hai chuyện khác nhau.
+
+**Đã làm một nửa, và nửa còn lại đã đo được.** Đoạn dây từ WriteViT vào engine
+HTML dựng xong trong [`handwriting-html.md`](handwriting-html.md): mực thật,
+đúng đường `from_receipt` (giá trị in ra chính là giá trị trong nhãn, có test
+giữ), hộp nhãn nằm trên nét bút, `data/hand12/` là 12 trang đầu tiên.
+
+Nhưng nó mới lấp được **14,6 %** số ô đáng điền tay, và **70 %** phần còn lại
+bị chặn vì **chữ số** — checkpoint không viết được chữ số, cắt chữ số thật từ
+`VN.pickle` cũng không (cả kho có đúng một ảnh số `0`). Ô "Số tiền", ngày
+tháng, số hoá đơn, mã số thuế vẫn in máy. Mở nốt chỗ ấy cần **một đợt huấn
+luyện lại**, không phải một miếng vá.
+
 Tám kho mã sinh chữ viết tay đã được khảo sát và xếp hạng trong
-[`khao-sat-sinh-chu-viet-tay.md`](khao-sat-sinh-chu-viet-tay.md) — hai kho có
-đường đi được, phần còn thiếu là chỗ nối `from_receipt` và điều khoản của dữ
-liệu học.
+[`khao-sat-sinh-chu-viet-tay.md`](khao-sat-sinh-chu-viet-tay.md).
 
 ### `signature_scrawl` — Chữ ký tay
 Nét ký nhanh bằng bút bi hoặc bút mực. Mọi hoá đơn đều có hai ô chữ ký và đến
