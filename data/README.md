@@ -7,6 +7,7 @@
 | [`invoices54/`](invoices54) | 54 | the nine **commercial invoice** layouts drawn as **CSS sheets** rather than as a character grid, by the two HTML backends — see its own [README](invoices54/README.md) |
 | [`forms16/`](forms16) | 16 | the two documents that are **not a sale**: a hospital's statement of treatment costs and an authorisation to collect money — see its own [README](forms16/README.md) |
 | [`hand12/`](hand12) | 12 | **điền tay** — the first pages here whose values are real handwriting rather than type, filled into printed form fields by WriteViT; see its own [README](hand12/README.md) and [`docs/handwriting-html.md`](../docs/handwriting-html.md) |
+| [`dataset_test/`](dataset_test) | 45 | a **scratch set for looking at**, one image per working layout per renderer. Regenerated whenever the ageing is retuned, and not a fixed comparison point — see below |
 
 20 images per renderer (synthdog / html / genalog) in each `dataset60*` set,
 spread evenly over the layouts. `invoices54/` is a different shape and says so
@@ -45,6 +46,27 @@ make dataset                              # the aged set
 make dataset-clean                        # the clean set
 make proof DATASET=data/dataset60         # read it back with Tesseract and score it
 ```
+
+## `dataset_test/` — what it is for, and what it is not
+
+Fifteen layouts, one image each, three renderers: a spread wide enough to see
+what a change to the ageing did, small enough to regenerate in about two
+minutes. It exists to be **looked at** after tuning something visual — most
+recently `DENSITY` in `degradation/ink_degradation.py`, which decides how much
+speckle an aged page carries.
+
+It is deliberately **not** a comparison point. It carries no `proof/`, nothing
+is fingerprinted against it, and it is overwritten in place. Use `dataset60/`
+for a number anyone will quote and `tests/golden/baseline.json` for a claim
+that pixels did not move; a set that is regenerated whenever someone retunes a
+constant cannot do either job, and pretending otherwise is how a moving target
+ends up cited as evidence.
+
+It holds **fifteen of the sixteen** layouts. `authorisation_letter` is left out
+because it fails the box-coverage invariant on the genalog backend — the
+right-hand address is in the label with no box under it, on 2 of 3 seeds. That
+is a real defect, reproduced on a clean checkout and unrelated to the ageing;
+html and synthdog draw the same layout cleanly.
 
 ## What separates the two sets
 
