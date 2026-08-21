@@ -4,10 +4,14 @@ Hai file HTML+CSS **độc lập**, mỗi file dựng theo một tệp PDF quét
 thẳng bằng trình duyệt, không cần dựng môi trường; hoặc xem file `.jpg` bên
 cạnh, chính là bản WeasyPrint in ra.
 
-| file | tờ giấy | khổ | số trang |
-| --- | --- | --- | --- |
-| [`authorisation_letter.html`](authorisation_letter.html) | giấy uỷ quyền nhận tiền, biểu mẫu in sẵn của công ty bảo hiểm nhân thọ | A4 | 1 |
-| [`medical_bill.html`](medical_bill.html) | bảng kê chi phí điều trị nội trú, Mẫu số 01/KBCB | A4 | 3 |
+| file | tờ giấy | khổ | số trang | bố cục nó là tham chiếu |
+| --- | --- | --- | --- | --- |
+| [`authorisation_letter.html`](authorisation_letter.html) | giấy uỷ quyền nhận tiền, biểu mẫu in sẵn của công ty bảo hiểm nhân thọ | A4 | 1 | `authorisation_letter` |
+| [`medical_statement.html`](medical_statement.html) | bảng kê chi phí điều trị nội trú, Mẫu số 01/KBCB | A4 | 3 | `medical_statement` |
+
+Tên file là **id của bố cục** trong
+[`rulebase/rules/layout.yaml`](../../rulebase/rules/layout.yaml), giống lệ của
+`invoice-templates/`, nên không cần bảng tra.
 
 ```bash
 make templates       # in lại cả đây lẫn invoice-templates/
@@ -32,8 +36,21 @@ Hai file ở đây là **bản vẽ tham chiếu** — HTML thường, CSS thư�
 tới `rulebase`, không đi qua `generators/html/sheets/`, nên **chưa sinh ra
 nhãn**. Chúng trả lời đúng một câu: *tờ giấy thật trông như thế nào?*
 
-Việc cần làm để nối chúng vào bộ sinh — kiểu tài liệu mới, ngữ liệu y tế, họ
-sheet mới, dòng nhóm có số cộng — liệt kê ở cuối bản phân tích.
+## Engine đã dựng theo hai tờ này
+
+Hai bố cục ấy nay đã có thật trong bộ sinh: `sheets/statement.py` dựng tờ uỷ
+quyền, `sheets/medical.py` dựng tờ bảng kê, ngữ liệu y tế nằm ở
+`rulebase/corpus/vi/catalogue_medical_*.txt`, và bộ ảnh sinh ra kèm nhãn nằm ở
+[`data/forms16/`](../../data/forms16).
+
+Nên quan hệ ở đây đúng như quan hệ giữa `invoice-templates/` và
+`sheets/statutory.py`: **hai tờ này là hình mẫu, engine là bản tham số hoá**.
+Sửa một tờ ở đây không tự động đổi engine — nhưng nếu tờ mẫu và trang engine
+sinh ra đã khác nhau thì một trong hai đang sai, và tờ mẫu là bên nói đúng.
+
+```bash
+generators/html/render.py -o out -c 1 --template --layout medical_statement
+```
 
 ## Số trên tờ bảng kê tự cộng đúng
 
