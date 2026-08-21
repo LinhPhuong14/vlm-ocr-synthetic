@@ -25,6 +25,7 @@ INPUTS = {
     "per_backend": 2,
     "pairing": "paired",
     "clean": False,
+    "schema": 8,
     "rules": {"rulebase/rules": "aaa", "rulebase/layouts": "bbb",
               "rulebase/corpus": "ccc"},
 }
@@ -64,6 +65,28 @@ def test_a_changed_layout_list_is_the_plan_moving_not_a_regression():
                      images={"html/html_000.jpg": "CHANGED"}))
     assert regressed == [], "a plan drawn under other conditions is not evidence"
     assert moved and "layouts 2 -> 3" in moved[0] and "+market_vat" in moved[0]
+
+
+def test_a_metadata_schema_change_is_the_plan_moving_not_a_regression():
+    """Half the fingerprint is metadata hashes, so a schema bump moves them all.
+
+    Calling that a pixel regression is how a baseline teaches people to
+    recapture on red -- which is the same as deleting the check.
+    """
+    before = plan()
+    after = plan(schema=9)
+    after["metadata"] = {"html": ["m0-in-the-new-shape"]}
+
+    moved, regressed = B.compare({"plans": {"n3": before}}, {"plans": {"n3": after}})
+    assert regressed == []
+    assert any("metadata schema 8 -> 9" in line for line in moved), moved
+
+
+def test_the_schema_recorded_is_the_one_the_records_are_written_in():
+    from pipeline import record
+    pinned = B.plan_inputs({"layouts": ["eatery_ascii"], "seed": 1,
+                            "per_backend": 1})
+    assert pinned["schema"] == record.SCHEMA_VERSION
 
 
 def test_a_changed_rule_base_is_the_plan_moving():

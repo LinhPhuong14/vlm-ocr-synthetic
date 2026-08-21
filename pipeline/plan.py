@@ -223,7 +223,7 @@ def build_plan(config, layouts: list[str]) -> dict[str, Any]:
     #
     # Without this the plan still spreads the run across all fourteen layouts
     # and hands each renderer `--layout Y --force layout=X`. The renderer draws
-    # X, because `--force` wins; the worker then stamps `item["layout"] = Y`
+    # X, because `--force` wins; the worker then stamps `synthesis.layout = Y`
     # from the plan. The image is X and the label says Y -- and the invariants,
     # which read the layout to know what that layout is allowed to suppress,
     # then judge X's page against Y's rules and fail on a correct run.

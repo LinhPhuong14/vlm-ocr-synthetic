@@ -199,18 +199,20 @@ def assemble(out: Path, plan: dict, shards_root: Path) -> tuple[dict, list[str]]
                         f"assembled dataset: no DONE")
                     continue
                 for item in record.read(directory / "metadata.jsonl"):
-                    source = directory / item["file_name"]
-                    destination = target / item["file_name"]
+                    name = record.file_name(item)
+                    source = directory / name
+                    destination = target / name
                     try:
                         os.link(source, destination)
                     except OSError:
                         shutil.copy2(source, destination)
                     json.dump(item, index, ensure_ascii=False)
                     index.write("\n")
-                    by_layout[item["layout"]] = by_layout.get(item["layout"], 0) + 1
-                    seeds.add((item.get("recipe") or {}).get("seed"))
+                    layout = record.layout(item)
+                    by_layout[layout] = by_layout.get(layout, 0) + 1
+                    seeds.add(record.recipe(item).get("seed"))
                     labels.add(hashlib.sha256(
-                        str(item.get("ground_truth", "")).encode("utf-8")).hexdigest())
+                        record.ground_truth(item).encode("utf-8")).hexdigest())
                     written += 1
         frameworks[backend] = {
             "images": written,

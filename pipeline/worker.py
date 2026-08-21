@@ -237,18 +237,21 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
                     # walking one list against another by position is exactly
                     # the arrangement where an off-by-one mislabels every image
                     # after it and nothing downstream notices.
-                    drawn = ((item.get("recipe") or {}).get("attributes", {})
-                             .get("layout", {}).get("id"))
+                    drawn = record.drawn_layout(item)
                     if drawn and drawn != run["layout"]:
                         raise ShardError(
                             f"shard {shard['index']} {backend}: record {cursor - 1} "
                             f"is {drawn!r} where the plan asked for "
                             f"{run['layout']!r}; the renderer returned its pages "
                             f"in a different order from the job list")
-                    shutil.move(str(staging / item["file_name"]), str(directory / target))
-                    item["file_name"] = target
-                    item["framework"] = backend
-                    item["layout"] = run["layout"]
+                    shutil.move(str(staging / record.file_name(item)),
+                                str(directory / target))
+                    # `rename` moves the three fields that follow the file name
+                    # -- `filename`, `source_files` and the `job_id` derived
+                    # from both -- and `attach` writes down what the plan knows
+                    # and the renderer did not.
+                    record.attach(item, framework=backend, layout=run["layout"])
+                    record.rename(item, target)
                     record.check(item, where=target)
                     try:
                         tally.inspect(item, image=directory / target, where=target)

@@ -63,6 +63,7 @@ import profiling  # noqa: E402
 import rulebase  # noqa: E402
 import worklist  # noqa: E402
 from degradation.pipeline import apply_recipe  # noqa: E402
+from pipeline import record  # noqa: E402
 
 TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
 TEMPLATE = "receipt.html.jinja"
@@ -769,24 +770,23 @@ def main() -> int:
             with profiling.stage("export"):
                 cv2.imwrite(str(args.out / name), image, [cv2.IMWRITE_JPEG_QUALITY, 90])
             with profiling.stage("annotation"):
-                record = {
-                    "file_name": name,
-                    "ground_truth": json.dumps({"gt_parse": receipt.ground_truth()},
-                                               ensure_ascii=False),
-                    "text_sequence": receipt.text_sequence(),
-                    "recipe": recipe.to_dict(),
-                    "boxes": boxes,
-                }
+                extra = {}
                 if hand_report is not None:
-                    record["handwriting"] = hand_report
+                    extra["handwriting"] = hand_report
                 if structure:
                     # Additive, and only for a sheet render: the structure half
                     # of the label, in the same PPStructure tokens the browser
-                    # backend writes. `boxes` is untouched, so every existing
-                    # loader keeps working.
-                    record["structure"] = structure
+                    # backend writes. The blocks are untouched, so every
+                    # existing loader keeps working.
+                    extra["structure"] = structure
+                item = record.build(
+                    filename=name, width=image.shape[1], height=image.shape[0],
+                    parser="genalog", boxes=boxes,
+                    extracted=receipt.ground_truth(),
+                    text_sequence=receipt.text_sequence(),
+                    recipe=recipe.to_dict(), synthesis=extra)
             with profiling.stage("export"):
-                json.dump(record, metadata, ensure_ascii=False)
+                json.dump(item, metadata, ensure_ascii=False)
                 metadata.write("\n")
             print(f"[ok] {name}  {image.shape[1]}x{image.shape[0]}  "
                   f"{recipe.layout.id}  {len(boxes)} boxes")
