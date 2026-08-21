@@ -28,7 +28,7 @@ QUALITY = 88
 # Số trang mỗi tờ phải in ra. Sai số trang = bố cục đã trôi.
 EXPECTED_PAGES = {
     "authorisation_letter": 1,
-    "medical_bill": 3,
+    "medical_statement": 3,
 }
 
 
