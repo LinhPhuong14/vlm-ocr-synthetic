@@ -1,14 +1,14 @@
 """What must be true of every image, checked while it is still cheap to say so.
 
 `record.validate()` checks the *shape* of a metadata line: the keys are there,
-the quad has four corners, `ground_truth` parses. That catches a renderer that
-forgot a field. It does not catch a renderer that filled every field with
+the quad has four corners, `extracted` is an object. That catches a renderer
+that forgot a field. It does not catch a renderer that filled every field with
 something wrong, and it is the second kind that produces a dataset which loads,
 trains, and teaches a model to hallucinate.
 
 This module checks the *content*, on every image, from the record alone:
 
-* every value in `ground_truth` is text some box actually printed;
+* every value in `extracted` is text some block actually printed;
 * `cnt x unitprice == price` on each line, the lines add up to the subtotal,
   and cash minus total is the change;
 * every quad lies inside the frame;
@@ -16,11 +16,11 @@ This module checks the *content*, on every image, from the record alone:
   missing-glyph box (U+25A1);
 * `recipe` names every attribute `rules/_order.yaml` declares.
 
-**Boxes are the definition of "printed".** Not `text_sequence` -- that is built
-from the `Receipt`, so it lists a phone number the layout never had room for and
-would agree with the label about text no reader can see. `boxes` comes from the
-renderer's own geometry, one per drawn cell, and `tools/check_boxes.py` verifies
-against the pixels that this is so.
+**Blocks are the definition of "printed".** Not `synthesis.text_sequence` --
+that is built from the `Receipt`, so it lists a phone number the layout never
+had room for and would agree with the label about text no reader can see.
+`blocks` comes from the renderer's own geometry, one per drawn cell, and
+`tools/check_boxes.py` verifies against the pixels that this is so.
 
 The budget, and why it is not one number
 ----------------------------------------
@@ -68,6 +68,7 @@ from pathlib import Path
 from typing import Any, Iterator
 
 import profiling
+from pipeline import record
 
 # Same convention as `pipeline/preflight.py`: a check that could not run is not
 # a check that passed, and it says which of the two it was.
@@ -380,7 +381,7 @@ def _check_totals_survived(item, gt, out) -> None:
     totals = gt.get("total")
     if not isinstance(totals, dict) or not totals:
         return
-    drawn = [str(box.get("text", "")) for box in (item.get("boxes") or [])
+    drawn = [str(box.get("text", "")) for box in record.boxes(item)
              if str(box.get("kind", "")).startswith("total.")
              and str(box.get("kind", "")).endswith(".label")]
     if not drawn:
@@ -402,11 +403,10 @@ def inspect(item: dict[str, Any], *, order: tuple[str, ...] | list[str],
     Errors are collected rather than raised so a caller can report all of them
     for one page; `Tally.inspect` is the one that stops the shard.
     """
-    out = Observation(layout=str(item.get("layout", "?")))
+    out = Observation(layout=record.layout(item))
     prefix = f"{where}: " if where else ""
 
-    recipe = item.get("recipe") or {}
-    attributes = recipe.get("attributes") or {}
+    attributes = record.attributes(item)
     for name in order:
         if name not in attributes:
             out.errors.append(f"recipe has no {name!r}, which rules/_order.yaml declares")
@@ -418,7 +418,7 @@ def inspect(item: dict[str, Any], *, order: tuple[str, ...] | list[str],
         style = str(content.get("money_style", "dot"))
         labels = document.get("total_labels") or {}
 
-    boxes = item.get("boxes") or []
+    boxes = record.boxes(item)
     out.boxes = len(boxes)
     page, by_kind = _printed(boxes)
 
@@ -439,6 +439,15 @@ def inspect(item: dict[str, Any], *, order: tuple[str, ...] | list[str],
                 f"quad was checked against the frame")
         else:
             width, height = size
+            # The record's own account of the page, against the pixels. New
+            # with the converter shape: `pages[0]` states a size, and a record
+            # that states the wrong one puts every bbox in it out of scale
+            # without a single quad leaving the frame.
+            stated = record.page_size(item)
+            if stated != (0, 0) and stated != (width, height):
+                out.errors.append(
+                    f"pages[0] says the page is {stated[0]}x{stated[1]} where "
+                    f"the image is {width}x{height}")
             for position, box in enumerate(boxes):
                 quad = box.get("quad") if isinstance(box, dict) else None
                 if not isinstance(quad, list):
@@ -458,13 +467,7 @@ def inspect(item: dict[str, Any], *, order: tuple[str, ...] | list[str],
                         break
 
     # --- the label against what was drawn
-    raw = item.get("ground_truth")
-    gt: dict[str, Any] = {}
-    if isinstance(raw, str):
-        try:
-            gt = json.loads(raw).get("gt_parse") or {}
-        except (json.JSONDecodeError, AttributeError):
-            gt = {}
+    gt: dict[str, Any] = record.extracted(item)
     for name, value in leaves(gt):
         if not value.strip() or value.startswith("receipt_"):
             continue          # doc_type is a class, not text on the page

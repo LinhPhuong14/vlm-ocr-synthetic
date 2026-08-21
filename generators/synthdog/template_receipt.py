@@ -37,6 +37,7 @@ if str(REPO_ROOT) not in sys.path:
 
 import profiling  # noqa: E402
 from degradation.pipeline import apply_recipe  # noqa: E402
+from pipeline import record  # noqa: E402
 
 
 def _warm_imgaug() -> None:
@@ -244,14 +245,16 @@ class SynthVNReceipt(templates.Template):
         else:
             gt_parse = data["gt_parse"]
 
-        metadata = {
-            "file_name": image_filename,
-            "ground_truth": json.dumps({"gt_parse": gt_parse}, ensure_ascii=False),
-            # Donut bỏ qua các khoá lạ trong ground_truth, nên box và recipe
-            # để riêng ở đây
-            "boxes": data["boxes"],
-            "recipe": data["recipe"],
-        }
+        # Cùng một shape với `render.py` và hai renderer còn lại: dựng ở
+        # `pipeline/record.py` chứ không viết tay ở đây, nếu không thì đường
+        # synthtiger CLI và đường dataset sẽ trôi khỏi nhau mà không ai biết.
+        metadata = record.build(
+            filename=image_filename, width=data["image"].shape[1],
+            height=data["image"].shape[0], parser="synthdog",
+            boxes=data["boxes"], extracted=gt_parse,
+            text_sequence=data["text_sequence"], recipe=data["recipe"],
+            layout=str(((data["recipe"].get("attributes") or {})
+                        .get("layout") or {}).get("id", "")))
         with open(os.path.join(output_dirpath, "metadata.jsonl"), "a", encoding="utf-8") as fp:
             json.dump(metadata, fp, ensure_ascii=False)
             fp.write("\n")

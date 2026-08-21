@@ -23,8 +23,8 @@ generators/html/.venv/bin/python generators/html/render.py \
 
 ## Điền được bao nhiêu, và cái gì chặn
 
-Mỗi ảnh mang thêm một khối `handwriting` trong `metadata.jsonl`: người viết, màu
-mực, cỡ chữ, danh sách ô đã điền, và **lý do từng ô bị từ chối**.
+Mỗi ảnh mang thêm một khối `handwriting` trong `synthesis` của `metadata.jsonl`:
+người viết, màu mực, cỡ chữ, danh sách ô đã điền, và **lý do từng ô bị từ chối**.
 
 | bố cục | ô điền tay | ô vẫn in máy | vì sao bị từ chối |
 | --- | ---: | ---: | --- |

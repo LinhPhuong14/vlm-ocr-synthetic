@@ -53,6 +53,7 @@ from page import CELL_REGIONS_JS, find_chromium, font_faces, served  # noqa: E40
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
+from pipeline import record  # noqa: E402
 from rulebase import corpus  # noqa: E402
 from rulebase.text import ascii_fold, money  # noqa: E402
 
@@ -363,22 +364,35 @@ def rebuild_html(label: dict) -> str:
     return "<html><body><table>{}</table></body></html>".format("".join(code))
 
 
-def metadata_record(label: dict) -> dict:
+def metadata_record(label: dict, width: int, height: int) -> dict:
     """The same label in this repository's index shape.
 
-    Deliberately not the receipts' schema: their `ground_truth` is a parsed
-    document and a table's is its structure. What is shared is the file name of
-    the index and the `file_name` key, so one loader finds both.
+    The *envelope* is the one every other page is written in -- the converter's
+    schema, built by `pipeline/record.py` -- and the `task` is what says this
+    one is not a document: `table_structure`, not `convert`. So one loader finds
+    both, which is what the index is for, and neither label pretends to be the
+    other.
+
+    Inside that envelope a table's label is still its own thing. A document's
+    `extracted` is a parsed receipt; a table has no fields to extract and the
+    key is `null`. A document's `html` is its text laid out; a table's *is* the
+    structure, so `gt` goes there verbatim. And there is no honest markdown for
+    a table with merged cells, so `markdown` is left empty rather than filled
+    with something a reader would have to un-guess.
     """
     cells = label["html"]["cells"]
-    return {
-        "file_name": label["filename"],
-        "task": "table_structure",
-        "ground_truth": label["gt"],
-        "structure_tokens": label["html"]["structure"]["tokens"],
-        "cells": cells,
-        "n_cells": len(cells),
-    }
+    built = record.build(
+        filename=label["filename"], width=width, height=height, parser="html",
+        task=record.TASK_TABLE,
+        boxes=[{"kind": "cell", "text": "".join(cell["tokens"]),
+                "quad": (cell["bbox"] or [None])[0]} for cell in cells],
+        extracted=None,
+        synthesis={"structure_tokens": label["html"]["structure"]["tokens"],
+                   "cells": cells, "n_cells": len(cells)},
+    )
+    built["html"] = label["gt"]
+    built["markdown"] = ""
+    return built
 
 
 # ------------------------------------------------------------ the renderer
@@ -475,7 +489,7 @@ def generate(out: Path, count: int, seed: int, *, box_type: str = "cell",
 
             label = ppstructure_label(name, tokens, cells)
             labels.append(label)
-            records.append(metadata_record(label))
+            records.append(metadata_record(label, image.shape[1], image.shape[0]))
             print(f"[ok] {name}  {image.shape[1]}x{image.shape[0]}  "
                   f"{table.rows}x{table.cols}  {table.border}  {len(cells)} cells")
 

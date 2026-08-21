@@ -19,6 +19,12 @@ field is excluded. If a path or a timestamp ever enters `metadata.jsonl` this
 verification starts failing on every machine, which is the correct outcome: both
 belong in `timings.json`, not in a label.
 
+**A metadata schema is a condition too.** Half the fingerprint is metadata
+hashes, so changing the shape of a line makes every one of them differ without a
+pixel moving. `inputs` therefore records `pipeline/record.py`'s schema version
+alongside the rule hashes, and a bump reads as KẾ HOẠCH ĐÃ ĐỔI -- recapture --
+rather than as the regression this file exists to catch.
+
 **A plan names its layouts, and the file records them.** Both halves of that
 were missing and it cost a week of ambiguity. `split_by_layout` hands quotas out
 in list order, so `-n 5` meant "the first five layouts in the directory"; when
@@ -63,6 +69,11 @@ import tempfile
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from pipeline import record  # noqa: E402
+
 GOLDEN = REPO_ROOT / "tests" / "golden" / "baseline.json"
 
 # Every plan NAMES ITS LAYOUTS. That is the whole of W2c and it is worth being
@@ -203,6 +214,12 @@ def plan_inputs(plan: dict) -> dict:
         "per_backend": plan["per_backend"],
         "pairing": plan.get("pairing", "paired"),
         "clean": bool(plan.get("clean", False)),
+        # The shape of a metadata line is a *condition*, not an output. Half
+        # this fingerprint is metadata hashes, so a schema change makes every
+        # line differ while not a pixel moved -- and a check that called that a
+        # regression would be teaching people to recapture on red, which is the
+        # one thing `compare` exists to avoid.
+        "schema": record.SCHEMA_VERSION,
         "rules": rules_fingerprint(plan["layouts"]),
     }
 
@@ -226,7 +243,7 @@ def fingerprint(root: Path) -> dict:
         metadata[backend] = [_sha(_normalise(line).encode("utf-8")) for line in lines]
         by_backend[backend] = len(lines)
         for line in lines:
-            layout = json.loads(line).get("layout", "?")
+            layout = record.layout(json.loads(line))
             by_layout[layout] = by_layout.get(layout, 0) + 1
 
     summary = root / "dataset.json"
@@ -295,6 +312,9 @@ def input_changes(want: dict, have: dict) -> list[str]:
     for key in ("seed", "per_backend", "pairing", "clean"):
         if a.get(key) != b.get(key):
             changes.append(f"{key} {a.get(key)!r} -> {b.get(key)!r}")
+    if a.get("schema") != b.get("schema"):
+        changes.append(f"metadata schema {a.get('schema')!r} -> {b.get('schema')!r}; "
+                       f"the labels are written differently, the pixels are not")
     for directory, digest in (b.get("rules") or {}).items():
         if (a.get("rules") or {}).get(directory) != digest:
             changes.append(f"{directory}/ changed")

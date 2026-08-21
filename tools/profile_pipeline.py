@@ -155,7 +155,8 @@ def time_validation(images: Path) -> dict:
     if not was:
         profiling.enable()
     for item in record.read(metadata):
-        tally.inspect(item, image=images / item["file_name"], where=item["file_name"])
+        name = record.file_name(item)
+        tally.inspect(item, image=images / name, where=name)
     entry = profiling.report()["stages"].get(
         "validation", {"calls": 0, "inclusive": 0.0, "exclusive": 0.0})
     if not was:

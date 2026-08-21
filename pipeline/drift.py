@@ -216,16 +216,21 @@ def shard_vector(directory: Path, shard: dict, *,
     pixels: list[int] = []
 
     for item in records:
-        for name, value in ((item.get("recipe") or {}).get("attributes") or {}).items():
+        for name, value in record.attributes(item).items():
             attributes.setdefault(name, Counter())[str(value.get("id"))] += 1
-        layouts[str(item.get("layout", "?"))] += 1
+        layouts[record.layout(item)] += 1
         # Absent means `corpus`: W2 has no other source, and defaulting keeps
         # the axis readable now rather than empty until W6 fills it in.
-        sources[str(item.get("content_source", PRIMARY_SOURCE))] += 1
-        text = str(item.get("text_sequence", ""))
+        sources[record.content_source(item, PRIMARY_SOURCE)] += 1
+        text = record.text_sequence(item)
         lengths.append(len(text))
         diacritics += 1 if has_diacritics(text) else 0
-        size = invariants.jpeg_size(directory / str(item.get("file_name", "")))
+        # Off the image, not off the record. The record says how big the page
+        # is and `pipeline/invariants.py` checks the two agree, but a quality
+        # vector is a measurement of what was produced, and measuring it from
+        # the label would make a shard that mislabelled its own pages look
+        # exactly like one that did not.
+        size = invariants.jpeg_size(directory / record.file_name(item))
         if size:
             pixels.append(size[0] * size[1])
 
@@ -234,7 +239,7 @@ def shard_vector(directory: Path, shard: dict, *,
             f"{UNCHECKED} {len(records) - len(pixels)} of {len(records)} images in "
             f"shard {shard.get('index')} would not give up their size")
 
-    coverages = [c for c in (ink_coverage(directory / str(item.get("file_name", "")))
+    coverages = [c for c in (ink_coverage(directory / record.file_name(item))
                              for item in records[:max(ink_sample, 0)]) if c is not None]
     sampled = min(max(ink_sample, 0), len(records))
     if sampled and not coverages:

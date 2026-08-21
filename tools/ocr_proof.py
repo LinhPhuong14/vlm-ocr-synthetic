@@ -42,6 +42,10 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
+# `record` is the name a metadata line goes by throughout this file, so the
+# module that defines their shape comes in under a name that cannot shadow one.
+from pipeline import record as schema  # noqa: E402
+
 FRAMEWORKS = ("synthdog", "html", "genalog")
 MONEY = re.compile(r"^-?\d[\d.,]*$")
 HIT_THRESHOLD = 0.7
@@ -174,16 +178,16 @@ def score_field(field: str, bag: Counter, folded: bool) -> float:
 
 
 def score_image(record: dict, text: str) -> dict:
-    ground_truth = json.loads(record["ground_truth"])
-    fields = expected_fields(ground_truth)
+    parse = schema.extracted(record)
+    fields = expected_fields({"gt_parse": parse})
 
-    result: dict = {"file_name": record["file_name"], "fields": len(fields)}
+    result: dict = {"file_name": schema.file_name(record), "fields": len(fields)}
     for folded, suffix in ((False, ""), (True, "_folded")):
         bag = Counter(tokens(text, folded))
         scores = [score_field(value, bag, folded) for _role, value in fields]
         hits = sum(1 for score in scores if score >= HIT_THRESHOLD)
 
-        wanted = Counter(tokens(record["text_sequence"], folded))
+        wanted = Counter(tokens(schema.text_sequence(record), folded))
         overlap = sum(min(count, bag[token]) for token, count in wanted.items())
         total = sum(wanted.values())
 
@@ -192,7 +196,6 @@ def score_image(record: dict, text: str) -> dict:
 
     # Amounts, exactly as printed -- the digits are the point of a receipt.
     amounts = [value for _role, value in fields if MONEY.match(value.strip())]
-    parse = ground_truth["gt_parse"]
     amounts += [item["price"] for item in parse.get("menu", []) if item.get("price")]
     amounts = [a for a in dict.fromkeys(amounts)]
     read = set(tokens(text))
@@ -353,15 +356,15 @@ def main() -> int:
             print(f"[skip] {framework}: no metadata.jsonl")
             continue
 
-        records = [json.loads(line) for line in metadata.read_text(encoding="utf-8").splitlines()]
+        records = schema.read(metadata)
         results = []
         for index, record in enumerate(records):
-            path = args.dataset / framework / record["file_name"]
+            path = args.dataset / framework / schema.file_name(record)
             text, words = run_tesseract(path, args.lang, args.psm, args.upscale_to)
             result = score_image(record, text)
             result["framework"] = framework
-            result["layout"] = record.get("layout", "")
-            attributes = record.get("recipe", {}).get("attributes", {})
+            result["layout"] = schema.layout(record)
+            attributes = schema.attributes(record)
             result["augmentation"] = attributes.get("augmentation", {}).get("id", "")
             result["visual"] = attributes.get("visual", {}).get("id", "")
             result["words_found"] = len(words)

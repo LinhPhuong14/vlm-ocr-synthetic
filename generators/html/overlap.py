@@ -20,6 +20,12 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from pipeline import record  # noqa: E402
+
 SKIP = {"sep", "colnum"}
 
 
@@ -44,8 +50,8 @@ def main(path: Path, threshold: float = 0.30) -> int:
     for line in path.read_text(encoding="utf-8").splitlines():
         item = json.loads(line)
         pages += 1
-        layout = item["recipe"]["attributes"]["layout"]["id"]
-        boxes = [box for box in (item.get("boxes") or [])
+        layout = record.layout(item)
+        boxes = [box for box in record.boxes(item)
                  if box.get("kind") not in SKIP and (box.get("text") or "").strip()]
         rects = [(rect(box["quad"]), box) for box in boxes]
         for i in range(len(rects)):

@@ -657,5 +657,6 @@ Weighed goods (`weight`) print a quantity of **1** and a unit price that is
 — which is what a real till prints. The label records what was printed, and
 carries the true weight in its own field.
 
-The glyph renderer also emits `boxes`: a polygon per cell, still correct after
-the sheet has been curled.
+Every renderer also emits `blocks`: one per drawn cell, carrying both a
+converter-shaped `bbox` and the polygon it was squared off from — still correct
+after the glyph backend has curled the sheet.

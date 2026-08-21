@@ -47,6 +47,7 @@ import profiling  # noqa: E402
 import rulebase  # noqa: E402
 import worklist  # noqa: E402
 from degradation.pipeline import apply_recipe  # noqa: E402
+from pipeline import record  # noqa: E402
 
 
 def _sheet_css(grid, line_px: float, padding_px: float) -> str:
@@ -475,30 +476,29 @@ def main() -> int:
                     cv2.imwrite(str(args.out / name), image,
                                 [cv2.IMWRITE_JPEG_QUALITY, 90])
                 with profiling.stage("annotation"):
-                    record = {
-                        "file_name": name,
-                        "ground_truth": json.dumps({"gt_parse": receipt.ground_truth()},
-                                                   ensure_ascii=False),
-                        "text_sequence": receipt.text_sequence(),
-                        "recipe": recipe.to_dict(),
-                        "boxes": boxes,
-                    }
+                    extra = {}
                     if hand_report is not None:
                         # What was written and what refused, per page. A sheet
                         # that asked for handwriting and got two inked fields
                         # is a fact about the checkpoint, and it belongs in the
-                        # record beside the boxes rather than in a log nobody
+                        # record beside the blocks rather than in a log nobody
                         # keeps -- see docs/handwriting-html.md.
-                        record["handwriting"] = hand_report
+                        extra["handwriting"] = hand_report
                     if cells:
                         # Additive, and only for a template render: the
                         # structure half of the label, so a merged cell is
-                        # recoverable. `boxes` is untouched, so every existing
-                        # loader keeps working.
-                        record["cells"] = cells
-                        record["structure"] = structure_from_cells(cells)
+                        # recoverable. The blocks are untouched, so every
+                        # existing loader keeps working.
+                        extra["cells"] = cells
+                        extra["structure"] = structure_from_cells(cells)
+                    item = record.build(
+                        filename=name, width=image.shape[1], height=image.shape[0],
+                        parser="html", boxes=boxes,
+                        extracted=receipt.ground_truth(),
+                        text_sequence=receipt.text_sequence(),
+                        recipe=recipe.to_dict(), synthesis=extra)
                 with profiling.stage("export"):
-                    json.dump(record, metadata, ensure_ascii=False)
+                    json.dump(item, metadata, ensure_ascii=False)
                     metadata.write("\n")
                 inked = len(hand_report["inked"]) if hand_report else 0
                 print(f"[ok] {name}  {image.shape[1]}x{image.shape[0]}  "
