@@ -1,0 +1,14 @@
+# Vật tư y tế tiêu hao — nhóm 9.
+# Định dạng: tên<TAB>đơn giá tối thiểu<TAB>đơn giá tối đa   (đơn vị VND)
+#
+# Giá lấy theo khung giá dịch vụ kỹ thuật y tế, làm tròn — đủ để một người đọc
+# thấy con số hợp lý, không phải bảng giá của một bệnh viện cụ thể nào.
+Bơm tiêm MPV sử dụng một lần 20ml	1900	2700
+Bơm tiêm MPV sử dụng một lần 5ml	1100	1600
+Kim tiêm MPV	340	480
+Bộ dây truyền dịch MPV sử dụng một lần kim cánh bướm (Luer slip hoặc luer lock)	4400	6200
+NIPRO SAFETOUCH CATH Winged with Injection port IV CANNULA WITH INJECTION PORT AND SAFETY DEVICE 24G X 3/4" (0.7 x 19mm)	12500	17500
+Găng tay khám bệnh không bột	1800	2600
+Gạc y tế tiệt trùng 10x10cm	2400	3400
+Băng dính lụa 2.5cm x 5m	7800	11000
+Kim luồn tĩnh mạch 22G	11000	16000

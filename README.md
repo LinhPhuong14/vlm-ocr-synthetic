@@ -103,7 +103,7 @@ flowchart TD
 
     subgraph backends["generators/ — pixels, one venv each"]
         R1["synthdog/<br/>glyph layers, curl, camera"]
-        R2["html/<br/>Chromium: render.py · a4.py · tables.py"]
+        R2["html/<br/>Chromium: render.py · sheets/ · tables.py"]
         R3["genalog/<br/>WeasyPrint → PDF → raster"]
     end
 
@@ -216,7 +216,7 @@ second path:
 ```mermaid
 flowchart LR
     G["Grid<br/>cells + marks"] --> P1["character-grid page<br/>generators/html/render.py"]
-    R["Receipt + Recipe"] --> P2["CSS page<br/>generators/html/a4.py"]
+    R["Receipt + Recipe"] --> P2["CSS sheet, per layout<br/>generators/html/sheets/"]
     P1 --> X["Chromium"]
     P2 --> X
     X --> Y["pixels + boxes<br/>generators/html/page.py"]
@@ -224,9 +224,14 @@ flowchart LR
 
 Both paths produce the same boxes through the same
 [`page.py`](generators/html/page.py) helper, so the label schema does not know
-which drew the page. The CSS path is opt-in per run
-(`render.py --template <theme>`); every layout that does not ask for it keeps
-the grid.
+which drew the page. The CSS path is opt-in per run (`render.py --template`),
+and the sheet it draws follows **`recipe.layout.id`** — a hotel folio comes out
+a hotel folio, not a tax form. `sheets/` groups the sixteen layouts into six
+families, each modelled on one of the hand-drawn references in
+[`samples/invoice-templates/`](samples/invoice-templates); which blocks and
+which columns a member gets is read from its own layout file. **Both HTML
+backends draw it**: Chromium reads the boxes off the DOM, WeasyPrint off the
+PDF's character stream, and the markup is the same string.
 
 Between the two sit cheaper seams, and they follow one rule: **the rule-base
 states geometry in its own units, and each backend does the one multiplication
@@ -237,7 +242,7 @@ it was already doing.** Nothing new is learned by any renderer.
 | **marks** — [`rulebase/layout.py`](rulebase/layout.py) | `rules: marks` | rules, shaded boxes and frames on the *same* coordinate system as a cell, so a form stops being drawn out of `---`. A till roll keeps ASCII rules, because a thermal head really does print them as characters |
 | **cut sheets** — [`rulebase/style.py`](rulebase/style.py) | `sheet: a4` | a page whose height is decided *before* printing. A three-line invoice still fills the sheet, and the white space under it is part of what the document looks like. No name means a continuous roll, which has no bottom edge until the cutter makes one |
 
-Nine of the fourteen layouts are on A4; the five till receipts are on a roll.
+Eleven of the sixteen layouts are on a cut sheet; the five till receipts are on a roll.
 
 ---
 
@@ -275,22 +280,24 @@ The same shape applies to the other axes:
 | a **sampling attribute** | a new `rules/<name>.yaml` + a line in [`_order.yaml`](rulebase/rules/_order.yaml) | the attribute list is read, not hard-coded |
 | an **ageing effect** | a module in [`degradation/`](degradation) + its name in the registry | all three backends get it |
 | a **paper stock** | a file in [`textures/paper/`](textures/paper) named by `visual.paper` | the chain resolves it |
+| a **seal or flourish** | a draw function in [`tools/make_ornaments.py`](tools/make_ornaments.py) + a `marks:` entry in `rules/ornament.yaml` | preflight checks both directions |
 | a **sheet size** | one entry in `SHEETS` in [`rulebase/style.py`](rulebase/style.py) | every backend, which only reads the ratio |
 | a **renderer** | a `render.py` that consumes a `Grid` and writes a metadata line | the rule-base |
 
 Full guide, with the grammar of a layout file and the section list:
 **[`rulebase/README.md`](rulebase/README.md)**.
 
-### Why the order of the six attributes matters
+### Why the order of the seven attributes matters
 
 ```mermaid
 flowchart LR
-    d["document"] --> l["layout"] --> c["content"] --> v["visual"] --> col["color"] --> a["augmentation"]
+    d["document"] --> l["layout"] --> c["content"] --> v["visual"] --> col["color"] --> o["ornament"] --> a["augmentation"]
     d -. tags .-> l
     l -. tags .-> c
     c -. tags .-> v
     v -. tags .-> col
-    col -. tags .-> a
+    col -. tags .-> o
+    o -. tags .-> a
 ```
 
 Each attribute sees the tags the earlier ones set, and a value may only
@@ -391,6 +398,7 @@ quality:  {drift_tolerance: 0.15, sample_for_ocr: 500}
 | **Processes, never threads** | Playwright's sync API is not thread-safe and synthtiger seeds numpy's global RNG | [`pipeline/run.py`](pipeline/run.py) |
 | **The layout list is explicit** | `run.layouts` empty means every file in `rulebase/layouts/` — what a dataset wants. A *fixed comparison* names them, because the quota walks the list in order and a run that took the directory draws a different set the day someone adds a layout | `pipeline.yaml` |
 | **`pairing` is declared** | `paired` (default) gives every backend the same documents, so a difference between renderers is a difference in drawing; `independent` gives three times the distinct pages and no basis for comparison | `run.pairing` |
+| **The page model is declared** | `run.template` draws the CSS sheets in [`generators/html/sheets/`](generators/html/sheets) instead of the character grid, and lands in `dataset.json` so a reader need not guess from the pixels. Only the two HTML backends can print one, and a run that asks for a sheet while listing `synthdog` is refused rather than quietly mixed | `run.template` |
 | **Per-image invariants** | money arithmetic, quads inside the frame, no missing-glyph box, every label value actually printed | [`pipeline/invariants.py`](pipeline/invariants.py) |
 | **Drift** | whether the *mix* still matches the rules, measured per shard above the scatter a sample that size has anyway | [`pipeline/drift.py`](pipeline/drift.py) |
 | **A golden fingerprint** | sha256 of every image and every metadata line, so the parallel path is held to what the sequential one produced. Replacing it needs `make baseline-write REASON="..."`, and the reason is kept in the file — a comparison point that changed without saying why is one nobody can argue with later | [`tools/baseline.py`](tools/baseline.py), `make baseline-verify` |
@@ -568,7 +576,7 @@ TIỀN HÀNG                                794.000
 
 ```
 rulebase/               THE RULE-BASE — one source of truth for content
-├── rules/              6 attributes, one file each; layout.yaml has families
+├── rules/              7 attributes, one file each; layout.yaml has families
 ├── layouts/            one file per layout, measured off real paper
 ├── corpus/vi/ en/      the strings a document prints
 ├── spec.py             weighted draw, tags, parent nodes
@@ -579,7 +587,7 @@ generators/             THE RENDERERS — each with its own venv
 ├── synthdog/           glyph rendering, curl, background, camera
 ├── html/               Chromium
 │   ├── render.py       the character-grid page
-│   ├── a4.py           the A4 invoice as real CSS
+│   ├── sheets/         one CSS sheet per layout family
 │   ├── tables.py       generic tables, labelled by structure
 │   └── page.py         shared: the browser, the fonts, the boxes
 └── genalog/            genalog + WeasyPrint (source vendored)
@@ -597,7 +605,8 @@ pipeline/               ONE RUN — declared, sharded, resumable, checked
 degradation/            DocCreator's models, ported — all backends call this
 textures/ fonts/ augmentations/   the assets a page is drawn with and onto
 data/                   generated datasets
-samples/                curated examples
+samples/                curated examples: degradation showcase, reference
+                        sheets, the ornament contact sheet
 tools/                  drivers: dataset, proof, boxes, monitor, baseline
 docs/                   notes that outlive any one generator, plus figures
 tasks.py                every task, and the only definition of them
@@ -686,7 +695,7 @@ generators/genalog/.venv/bin/python generators/genalog/render.py \
 | `--layout ID` | pin the layout — shorthand for `--force layout=ID` |
 | `--force ATTR=ID` | pin any attribute, repeatable |
 | `--clean` | glyph backend: no curl, no perspective, no camera |
-| `--template NAME` | html backend: lay the page out with CSS instead of the grid ([`a4.py`](generators/html/a4.py)). One theme so far, `brand` |
+| `--template [LAYOUT]` | both HTML backends: lay the page out with CSS instead of the grid ([`sheets/`](generators/html/sheets)). Bare, the sheet follows the layout the recipe drew; a layout id forces one particular dress |
 | `--scale` · `--dpi` | html device scale factor · genalog rasterisation dpi |
 | `--profile JSON` | time every stage and write the breakdown there. Off by default, and off costs nothing ([`profiling.py`](profiling.py)) |
 | `--jobs JSON` | draw several layouts in one process — a list of `{layout, seed, count, force}`. Overrides the three flags above it; see [`worklist.py`](worklist.py) |
@@ -742,16 +751,17 @@ Verified in this environment (Python 3.11.15, 4 cores, all three venvs built):
 | `python -m pytest` | 417 passed, 1 xfailed, 59 s |
 | `python tasks.py check` | all 64 python files compile |
 | `python tasks.py lint` | ruff: all checks passed |
-| `python tasks.py preflight` | clean, ~10 s (glyph coverage over 14 layouts' strings) |
+| `python tasks.py preflight` | clean, ~15 s (glyph coverage over 16 layouts' strings) |
 | `python tasks.py check-rules` / `check-corpus` | valid — vi 12 corpus files, en 5 |
-| `python tasks.py distribution` | 2000 / 2000 draws succeeded, over 14 layouts in 5 families |
+| `python tasks.py distribution` | 2000 / 2000 draws succeeded, over 16 layouts in 6 families |
 | `python tasks.py check-boxes` on both committed sets | 1330 boxes per renderer, all match |
 | `python tools/generate_dataset.py -n 14 --workers 3` | 42 images, all 14 layouts, 3 shards |
 | `python pipeline/run.py` (6 shards, 3 workers) | 18 images; a second run reported 0 unfinished and did nothing — resume works |
 | `python tasks.py tables -n 3` | 3 tables, no chromedriver and no fourth environment |
 | `python tools/degradation_showcase.py` | 10 degradation models |
 | `python tasks.py monitor` | the whole rule space, no run needed |
-| `generators/html/render.py --template brand` | the CSS page path, 63 boxes on an A4 invoice |
+| `generators/html/render.py --template` (120 pages) | the CSS sheets, all 14 layouts, 8512 boxes, 0 invariant failures, 0 overlapping pairs |
+| `generators/genalog/render.py --template` (100 pages) | the same sheets through WeasyPrint, 7206 boxes, 0 invariant failures, 0 overlapping pairs |
 
 One gate did **not** pass here; it is recorded under
 [Known issues](#known-issues).
@@ -768,6 +778,8 @@ to rebuild an image exactly are in **[`data/README.md`](data/README.md)**.
 | --- | --- |
 | [`data/dataset60/`](data/dataset60) | aged — a degradation chain drawn from the rules |
 | [`data/dataset60_clean/`](data/dataset60_clean) | the same seeds with `augmentation=pristine` |
+| [`data/invoices54/`](data/invoices54) | the nine commercial invoice layouts drawn as CSS sheets, by both HTML backends |
+| [`data/forms16/`](data/forms16) | a hospital cost statement and an authorisation to collect — the two documents here that are not a sale |
 | [`data/tables60/`](data/tables60) | table-structure images, a different task and a different label |
 
 `make proof` reads a set back with Tesseract 5 (`vie`) and scores it order-free
@@ -844,6 +856,11 @@ the two must stay in step.
 | [`degradation/README.md`](degradation/README.md) | each model and the DocCreator file it came from |
 | [`data/README.md`](data/README.md) | the datasets and the label schema |
 | [`samples/README.md`](samples/README.md) | reading the degradation showcase |
+| [`samples/invoice-templates/README.md`](samples/invoice-templates/README.md) | the five reference sheets, and why they are not layouts |
+| [`docs/hoa-tiet-de-xuat.md`](docs/hoa-tiet-de-xuat.md) | ornaments surveyed and not built, with the reason each was left |
+| [`docs/khao-sat-sinh-chu-viet-tay.md`](docs/khao-sat-sinh-chu-viet-tay.md) | eight handwriting-synthesis repositories ranked on breadth of data and on realism, for the `handwriting_fill` gap (Vietnamese) |
+| [`docs/writevit.md`](docs/writevit.md) | standing up WriteViT for Vietnamese handwriting, and what it measurably cannot write (Vietnamese) |
+| [`docs/brief-engine-html.md`](docs/brief-engine-html.md) | the three HTML render paths, what merged cells do and do not do in each, and what a fix has to preserve |
 | [`docs/python-versions.md`](docs/python-versions.md) | why the glyph renderer stops below Python 3.12, measured |
 | [`docs/windows.md`](docs/windows.md) | Windows setup: Python 3.11, GTK, Tesseract, proxies (Vietnamese) |
 | [`docs/huong-dan-va-giai-thich.md`](docs/huong-dan-va-giai-thich.md) | line-by-line walkthrough of all three renderers, with a Q&A (Vietnamese) |

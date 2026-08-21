@@ -382,6 +382,10 @@ def execute(config: Config, *, workers: int | None = None,
         "pairing": plan.get("pairing", "paired"),
         "clean": plan["clean"],
         "force": plan["force"],
+        # Which page model drew these images. Absent or empty is the character
+        # grid, which is what every set built before `generators/html/sheets/`
+        # existed was; a reader should not have to guess from the pixels.
+        "template": plan.get("template", ""),
         "frameworks": frameworks,
     }, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
