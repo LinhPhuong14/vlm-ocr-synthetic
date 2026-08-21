@@ -1,0 +1,291 @@
+"""The metadata line's shape, and the two things that would silently rot it.
+
+`pipeline/record.py` had no test of its own while it was five keys and a
+validator. It is the converter's schema now -- thirteen keys, a label
+vocabulary, a derived markdown and an id that has to come out the same twice --
+and three of those are the kind of thing that breaks without anybody noticing:
+
+* **the label vocabulary.** A new field kind falls through to `Text` and the
+  dataset still loads. So every kind in every committed dataset is walked
+  through `label_for` here, and one that lands on the fallback fails.
+* **the id.** `job_id` is a uuid5 because `metadata.jsonl` is hashed; a uuid4
+  would make every run differ from every other and nobody would see it until
+  `make baseline-verify` went red for no reason anyone could name.
+* **the committed datasets.** They are the first thing the README tells a
+  reader to look at, so they are validated here rather than assumed.
+
+Nothing below renders an image, so this runs in the dependency-free CI job.
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import pytest
+
+from pipeline import record as R
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+DATA = REPO_ROOT / "data"
+
+QUAD = [[10, 20], [110, 20], [110, 60], [10, 60]]
+
+
+def a_box(kind="store.name", text="NHA HANG", quad=None):
+    return {"kind": kind, "text": text, "quad": quad or QUAD}
+
+
+def a_record(**changes):
+    fields = dict(filename="html_000.jpg", width=800, height=1200, parser="html",
+                  layout="eatery_ascii", boxes=[a_box()],
+                  extracted={"store": {"name": "NHA HANG"}},
+                  text_sequence="NHA HANG", recipe={"seed": 7, "attributes":
+                                                    {"layout": {"id": "eatery_ascii"}}})
+    fields.update(changes)
+    return R.build(**fields)
+
+
+# --------------------------------------------------------------- the envelope
+
+
+def test_a_built_record_is_the_converters_shape():
+    item = a_record()
+    assert list(item) == list(R.ORDER)
+    assert item["schema_version"] == R.SCHEMA_VERSION
+    assert item["task"] == "convert"
+    assert item["source_files"] == [item["filename"]]
+    assert item["documents"] == []
+    assert item["pages"] == [{"page_number": 1, "width": 800, "height": 1200,
+                              "source_file": "", "document_index": None, "html": ""}]
+    assert not R.validate(item)
+
+
+def test_the_settings_describe_the_page_that_was_drawn():
+    item = a_record()
+    assert item["settings"]["convert_mode"] == "html"
+    assert item["settings"]["max_pixels"] == 800 * 1200
+    # `extract_fields` names what `extracted` actually carries, rather than
+    # being empty because nothing in particular was asked for.
+    assert item["settings"]["extract_fields"] == ["store.name"]
+    assert set(item["settings"]) == set(R.BASE_SETTINGS)
+
+
+def test_what_the_converter_has_no_field_for_is_kept_not_dropped():
+    """The seed and the six attributes. Without them no page can be drawn again."""
+    item = a_record()
+    assert R.recipe(item)["seed"] == 7
+    assert R.text_sequence(item) == "NHA HANG"
+    assert R.framework(item) == "html"
+    assert R.layout(item) == "eatery_ascii"
+
+
+# ------------------------------------------------------------------ the label
+
+
+@pytest.mark.parametrize("kind,label", [
+    ("title", "Title"),
+    ("subtitle", "Section-header"),
+    ("store.name", "Page-header"),
+    # A `.label` half follows its own family without being listed for it.
+    ("store.address.label", "Page-header"),
+    ("total.grand.label", "Table"),
+    ("menu.unit_price", "Table"),
+    ("footer", "Page-footer"),
+])
+def test_a_kind_lands_on_the_label_its_family_says(kind, label):
+    assert R.label_for(kind) == label
+
+
+def test_every_label_is_one_the_converter_knows():
+    assert set(R.LABELS.values()) <= R.PAGE_LABELS
+    assert R.DEFAULT_LABEL in R.PAGE_LABELS
+
+
+def test_every_kind_in_every_committed_dataset_is_mapped():
+    """The one that catches a field kind added without a label.
+
+    An unmapped kind is not an error at render time -- a shard must not die
+    halfway through a run over a label vocabulary -- so this is where it is
+    caught instead. If this fails, add the kind to `LABELS`; do not widen the
+    fallback.
+    """
+    unmapped: dict[str, str] = {}
+    seen = 0
+    for path in sorted(DATA.rglob("metadata.jsonl")):
+        for item in R.read(path):
+            for block in R.boxes(item):
+                kind = str(block.get("kind", ""))
+                seen += 1
+                if kind and R.label_for(kind) == R.DEFAULT_LABEL:
+                    # `Text` is a real answer for some kinds; only a kind that
+                    # matches no prefix at all is a hole.
+                    if not any(kind == p or kind.startswith(p) for p in R.LABELS):
+                        unmapped[kind] = str(path.relative_to(REPO_ROOT))
+    assert seen, "no committed dataset to check against"
+    assert unmapped == {}
+
+
+# --------------------------------------------------------------- the geometry
+
+
+def test_a_bbox_is_the_hull_of_a_quad_and_does_not_replace_it():
+    """The glyph backend curls the paper, so a bbox cannot be the whole story."""
+    curled = [[10, 25], [110, 20], [112, 62], [8, 60]]
+    block = R.blocks_from_boxes([a_box(quad=curled)])[0]
+    assert block["bbox"] == {"x1": 8, "y1": 20, "x2": 112, "y2": 62}
+    assert block["quad"] == curled
+
+
+def test_a_block_keeps_the_field_it_is_as_well_as_the_class_it_is_in():
+    block = R.blocks_from_boxes([a_box(kind="total.grand", text="232,000")])[0]
+    assert block["label"] == "Table"          # what the converter calls it
+    assert block["kind"] == "total.grand"     # which field it actually is
+    assert block["text"] == "232,000"
+    assert block["id"] == "p1-b0" and block["index_in_page"] == 0
+
+
+# --------------------------------------------------------------- the markdown
+
+
+def line(x1, y1, x2, y2, text, kind="menu.name"):
+    return {"kind": kind, "text": text,
+            "quad": [[x1, y1], [x2, y1], [x2, y2], [x1, y2]]}
+
+
+def test_a_printed_line_is_one_markdown_line_not_three():
+    """Three boxes on one row are a receipt line, not a column of three."""
+    blocks = R.blocks_from_boxes([
+        line(60, 350, 90, 380, "1", "menu.qty"),
+        line(110, 350, 620, 380, "CA LOC CHIEN MAM XOAI"),
+        line(780, 350, 930, 380, "58,000", "menu.amount"),
+    ])
+    assert R.markdown_of(blocks) == "1  CA LOC CHIEN MAM XOAI  58,000"
+
+
+def test_the_markdown_reads_down_the_page_not_in_the_order_it_was_drawn():
+    """A form draws its left column then its right; the page prints them paired."""
+    blocks = R.blocks_from_boxes([
+        line(40, 100, 300, 130, "Họ tên: Chu Văn Lâm", "invoice.field"),
+        line(40, 160, 300, 190, "Địa chỉ: 77 Nguyễn Chí Thanh", "invoice.field"),
+        line(600, 100, 900, 130, "Ngày sinh: 10/02/1960", "invoice.field"),
+        line(600, 160, 900, 190, "Giới tính: 2", "invoice.field"),
+    ])
+    assert R.markdown_of(blocks).split("\n\n") == [
+        "Họ tên: Chu Văn Lâm  Ngày sinh: 10/02/1960",
+        "Địa chỉ: 77 Nguyễn Chí Thanh  Giới tính: 2",
+    ]
+
+
+def test_a_heading_is_marked_as_one_and_never_joins_the_line_beside_it():
+    blocks = R.blocks_from_boxes([
+        line(300, 100, 700, 140, "HOÁ ĐƠN GIÁ TRỊ GIA TĂNG", "title"),
+        line(750, 105, 900, 135, "Ngày 25/03/2019", "invoice.field"),
+    ])
+    assert R.markdown_of(blocks).split("\n\n") == [
+        "# HOÁ ĐƠN GIÁ TRỊ GIA TĂNG", "Ngày 25/03/2019"]
+    assert R.html_of(blocks).startswith("<h1>HOÁ ĐƠN GIÁ TRỊ GIA TĂNG</h1>")
+
+
+def test_a_block_that_printed_nothing_is_in_no_line():
+    blocks = R.blocks_from_boxes([line(40, 100, 300, 130, "  ", "note"),
+                                  line(40, 160, 300, 190, "CAM ON", "footer")])
+    assert R.markdown_of(blocks) == "CAM ON"
+
+
+def test_the_html_escapes_what_it_prints():
+    blocks = R.blocks_from_boxes([line(40, 100, 300, 130, "A & B <C>", "note")])
+    assert R.html_of(blocks).strip() == "<p>A &amp; B &lt;C&gt;</p>"
+
+
+# --------------------------------------------------------------------- the id
+
+
+def test_the_same_page_gets_the_same_id_twice():
+    """A uuid4 here would make every run differ from every other run."""
+    assert a_record()["job_id"] == a_record()["job_id"]
+
+
+@pytest.mark.parametrize("change", [
+    {"parser": "genalog"},
+    {"layout": "market_vat"},
+    {"filename": "html_001.jpg"},
+    {"recipe": {"seed": 8, "attributes": {"layout": {"id": "eatery_ascii"}}}},
+])
+def test_the_id_moves_when_what_it_names_moves(change):
+    assert a_record(**change)["job_id"] != a_record()["job_id"]
+
+
+def test_renaming_the_file_moves_the_three_fields_that_follow_it():
+    item = a_record()
+    before = item["job_id"]
+    R.rename(item, "html_007.jpg")
+    assert item["filename"] == "html_007.jpg"
+    assert item["source_files"] == ["html_007.jpg"]
+    assert item["job_id"] != before
+
+
+def test_attaching_the_plans_layout_fills_it_in_everywhere():
+    item = a_record(layout="")
+    assert R.validate(item, strict=False) == []
+    assert "synthesis.layout is empty; nothing attached it" in R.validate(item)
+
+    R.attach(item, framework="genalog", layout="market_vat")
+    assert R.validate(item) == []
+    assert item["parser"] == "genalog"
+    assert item["settings"]["convert_mode"] == "genalog"
+    assert R.layout(item) == "market_vat"
+
+
+# -------------------------------------------------------------- the validator
+
+
+@pytest.mark.parametrize("break_it,expected", [
+    (lambda i: i.update(schema_version=7), "schema_version must be 8"),
+    (lambda i: i.update(filename="/tmp/x.jpg"), "must be relative"),
+    (lambda i: i.update(source_files=["other.jpg"]), "source_files must be exactly"),
+    (lambda i: i.update(pages=[]), "exactly one page"),
+    (lambda i: i["pages"][0].update(width=0), "no size"),
+    (lambda i: i.update(extracted=None), "extracted must be the nested label"),
+    (lambda i: i["synthesis"]["recipe"].pop("seed"), "recipe has no seed"),
+    (lambda i: i["synthesis"]["recipe"].pop("attributes"), "recipe has no attributes"),
+    (lambda i: i.update(parser=""), "parser is empty"),
+    (lambda i: i["blocks"][0].pop("quad"), "blocks[0] needs"),
+    (lambda i: i["blocks"][0].update(quad=[[0, 0]]), "must be four corners"),
+    (lambda i: i["blocks"][0].update(bbox={"x1": 0}), "bbox needs"),
+])
+def test_a_record_that_would_break_a_loader_is_named(break_it, expected):
+    item = a_record()
+    break_it(item)
+    problems = R.validate(item)
+    assert any(expected in problem for problem in problems), problems
+
+
+def test_a_good_record_survives_a_round_trip(tmp_path):
+    path = tmp_path / "metadata.jsonl"
+    assert R.write([a_record(), a_record(filename="html_001.jpg")], path) == 2
+    back = R.read(path)
+    assert [R.file_name(item) for item in back] == ["html_000.jpg", "html_001.jpg"]
+    assert back[0] == a_record()
+
+
+def test_writing_a_bad_record_raises_rather_than_writing_it(tmp_path):
+    path = tmp_path / "metadata.jsonl"
+    with pytest.raises(R.RecordError):
+        R.write([a_record(extracted=None)], path)
+
+
+# --------------------------------------------------------- what is committed
+
+
+def test_every_committed_dataset_is_in_the_shape_this_file_defines():
+    """`head -1 data/dataset60/html/metadata.jsonl` is the README's first example."""
+    files = sorted(DATA.rglob("metadata.jsonl"))
+    assert files, "no committed dataset to check"
+    for path in files:
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            item = json.loads(line)
+            where = f"{path.relative_to(REPO_ROOT)}:{item.get('filename')}"
+            assert R.validate(item) == [], where
