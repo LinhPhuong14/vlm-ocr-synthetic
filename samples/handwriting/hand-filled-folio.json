@@ -7,6 +7,7 @@
   "attributes": {
    "document": {
     "id": "hotel_stay",
+    "group": "service_invoice",
     "params": {
      "profile": "hotel",
      "invoice": true,
