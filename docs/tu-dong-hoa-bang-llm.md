@@ -16,8 +16,10 @@
 
 **Phần II · Khảo sát ngoài** — [§4 Sinh tài liệu tổng hợp](#4-sinh-tài-liệu-tổng-hợp-tình-hình-82026) · [§5 Chữ viết tay](#5-chữ-viết-tay-cập-nhật-khảo-sát-của-chính-repo) · [§6 Ba rủi ro đã có bằng chứng](#6-ba-rủi-ro-đã-có-bằng-chứng)
 
-> Bố cục nhân lên thành biến thể — gộp ô nhiều chỗ mà nội dung vẫn hợp lý — có tài liệu riêng:
-> **[`tang-cuong-bo-cuc.md`](tang-cuong-bo-cuc.md)**.
+> Hai tài liệu đồng hành: bố cục nhân lên thành biến thể — gộp ô nhiều chỗ mà nội
+> dung vẫn hợp lý — ở **[`tang-cuong-bo-cuc.md`](tang-cuong-bo-cuc.md)**; đường ống
+> vẽ đầy đủ cho **một tờ giấy**, và câu hỏi *ai sở hữu toạ độ*, ở
+> **[`duong-ong.md`](duong-ong.md)**.
 
 **Phần III · Thiết kế** — [§7 Chẩn đoán](#7-chẩn-đoán-repo-mô-hình-hoá-một-trang-một-nguồn-mực) · [§8 Trục thứ tám: lớp mực](#8-trục-thứ-tám-lớp-mực-ink) · [§9 Kiến trúc sáu tầng](#9-kiến-trúc-sáu-tầng) · [§10 Sáu tác nhân](#10-sáu-tác-nhân-mỗi-tác-nhân-một-hợp-đồng) · [§11 Vòng lặp đóng](#11-vòng-lặp-đóng-đo--chọn--sinh--đo-lại)
 
@@ -1390,6 +1392,7 @@ từng thấy có chứa chữ số; `VN.pickle` có 2.579/92.048 nhãn chứa c
 | [`docs/hoa-tiet-de-xuat.md` §B](hoa-tiet-de-xuat.md) | sáu mục nét tay đã dựng rồi gỡ, và lý do — nguồn gốc §7 |
 | [`docs/khao-sat-sinh-chu-viet-tay.md`](khao-sat-sinh-chu-viet-tay.md) | tám kho sinh chữ tay, xếp theo hai trục — §5 cập nhật nó |
 | [`docs/writevit.md`](writevit.md) | WriteViT đã dựng, và **đo được nó không viết được gì** |
+| [`docs/duong-ong.md`](duong-ong.md) | **tài liệu đồng hành**: một tờ giấy đi qua mười chặng, vòng đời của một cái hộp, và vì sao bbox **không bao giờ** do LLM sinh |
 | [`docs/tang-cuong-bo-cuc.md`](tang-cuong-bo-cuc.md) | **tài liệu đồng hành**: nhân một bố cục thành hàng trăm biến thể hợp lệ — cây cột, tám nước đi, `compose:`, và ba tầng bảo đảm nội dung hợp lý |
 | [`docs/brief-engine-html.md` §2](brief-engine-html.md) | ô gộp: ảnh có, nhãn không — nguồn gốc §8.8 |
 | [`docs/huong-dan-va-giai-thich.md` §9](huong-dan-va-giai-thich.md) | vì sao không dùng LLM sinh thẳng ảnh — câu trả lời vẫn đúng |
