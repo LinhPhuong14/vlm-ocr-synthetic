@@ -861,6 +861,7 @@ the two must stay in step.
 | [`docs/hoa-tiet-de-xuat.md`](docs/hoa-tiet-de-xuat.md) | ornaments surveyed and not built, with the reason each was left |
 | [`docs/khao-sat-sinh-chu-viet-tay.md`](docs/khao-sat-sinh-chu-viet-tay.md) | eight handwriting-synthesis repositories ranked on breadth of data and on realism, for the `handwriting_fill` gap (Vietnamese) |
 | [`docs/writevit.md`](docs/writevit.md) | standing up WriteViT for Vietnamese handwriting, and what it measurably cannot write (Vietnamese) |
+| [`docs/duong-ong.md`](docs/duong-ong.md) | the pipeline drawn end to end for one sheet: the author-time / render-time boundary, ten stages, the life of a bounding box, and why geometry belongs to the engine that laid out the text and never to a model (Vietnamese) |
 | [`docs/tang-cuong-bo-cuc.md`](docs/tang-cuong-bo-cuc.md) | multiplying one measured layout into hundreds of valid variants: a semantic column tree, eight legal moves, `compose:` for merged columns, and the three layers that keep the content sensible (Vietnamese) |
 | [`docs/brief-engine-html.md`](docs/brief-engine-html.md) | the three HTML render paths, what merged cells do and do not do in each, and what a fix has to preserve |
 | [`docs/python-versions.md`](docs/python-versions.md) | why the glyph renderer stops below Python 3.12, measured |
