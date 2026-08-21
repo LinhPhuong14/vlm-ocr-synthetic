@@ -38,6 +38,34 @@ import numpy as np
 
 # DocCreator: NUMBER_NOISE_PER_CC
 NOISE_REGIONS_PER_COMPONENT = 2
+
+# How much of DocCreator's dose to actually apply. A quarter.
+#
+# Their constant is two noise regions per connected component, and it was
+# tuned on scanned prose, where a component is a letter. It does not survive
+# the move to a Vietnamese invoice, because a *dotted leader line* -- the row
+# of full stops after "Ma so thue:" -- makes every dot its own component.
+# Measured on one page per layout at level 5:
+#
+#     eatery_ascii          403 components ->   806 seed points, 0% of them dots
+#     invoice_brand         544                1088                8%
+#     market_compact        476                 952               23%
+#     invoice_hotel_stay  2,250               4,500               70%
+#     invoice_export      3,132               6,264               49%
+#     invoice_vat_form    3,233               6,466               74%
+#
+# So the same `level` put eight times the speckle on an invoice as on a
+# receipt, for a reason that has nothing to do with how much ink is on the
+# page. Those are also, in that order, the layouts that lose most recall to
+# ageing (0.026 for `invoice_brand` against 0.487-0.521 for the three dotted
+# ones) -- see `data/dataset60/proof/README.md`.
+#
+# The real repair is to stop deriving the dose from a component count at all.
+# This is the smaller, reversible step asked for first: keep the shape of
+# DocCreator's model and thin it fourfold. `density` is a parameter of
+# `ink_degradation`, so a chain in `rules/augmentation.yaml` can override it
+# per scenario without editing code.
+DENSITY = 0.25
 # DocCreator: _sigma_gausien, the spread of the grey values drawn per region
 GREY_SIGMA = 20.0
 
@@ -145,10 +173,17 @@ def _seed_points(
 def ink_degradation(
     image: np.ndarray,
     level: int = 5,
+    density: float | None = None,
     rng: random.Random | None = None,
     config: InkDegradationConfig | None = None,
 ) -> np.ndarray:
-    """Degrade ink locally around seed points. ``level`` is 1 (light) to 10."""
+    """Degrade ink locally around seed points.
+
+    ``level`` is 1 (light) to 10 and sets how far each blot moves the pixels
+    under it. ``density`` scales how *many* blots there are, over and above
+    what ``level`` does; it defaults to `DENSITY`, which is a quarter of
+    DocCreator's dose and the reason is written there.
+    """
     import cv2
 
     rng = rng or random.Random(0)
@@ -164,7 +199,10 @@ def ink_degradation(
 
     paper = _paper_mask(grey, config.paper_threshold)
 
-    total = NOISE_REGIONS_PER_COMPONENT * _component_count(ink) * level // 5
+    scale = DENSITY if density is None else float(density)
+    if scale < 0:
+        raise ValueError(f"density must not be negative, got {density!r}")
+    total = int(NOISE_REGIONS_PER_COMPONENT * scale * _component_count(ink) * level / 5)
     total = max(total, 1)
 
     independent, cheval, inside = seed_mix(level)
