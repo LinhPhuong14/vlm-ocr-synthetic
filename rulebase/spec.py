@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import os
 import random
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any, Iterable, Sequence
 
@@ -43,6 +43,18 @@ import profiling
 # is exactly the shipped path and nothing about generation changes.
 RULES_ROOT = Path(os.environ.get("VLM_RULES_ROOT") or Path(__file__).resolve().parent / "rules")
 ORDER_FILE = "_order.yaml"
+
+# Attributes whose `params:` live one file per value, beside the rules rather
+# than inside them. `document` earned this: seventeen values, each carrying the
+# whole content model of a kind of paper, made one file of 750 lines where the
+# sampling space -- which values exist, how often, under what tags -- was the
+# part you actually came to read, and the part you had to scroll past fifty
+# lines of `total_labels` to find.
+#
+# The split is the one `layout` already uses: `rules/layout.yaml` holds the
+# space, `layouts/<id>.yaml` holds the detail. Nothing downstream notices,
+# because everything reads `Option.params` and that is filled in either way.
+PARAMS_DIRS = {"document": "documents"}
 
 
 class RuleError(ValueError):
@@ -323,6 +335,56 @@ def load_rules(root: Path | str = RULES_ROOT) -> dict[str, list[Option]]:
         return _load_rules(Path(root))
 
 
+def _params_root(root: Path, attribute: str) -> Path | None:
+    """Where `<attribute>/<id>.yaml` lives, or None if it keeps params inline.
+
+    Beside the rules directory, and only if it is actually there. A tree either
+    splits its params out or keeps them inline, and the directory is how it
+    says which -- there is no falling back to the shipped one, which would make
+    a tree's rules and another tree's params into one rule set.
+
+    Inline is not a legacy shape to be migrated away: `pipeline.config
+    .materialise_rules` writes a run's overrides as a flat directory with
+    `params:` in the file, because that tree is generated, read once by a
+    renderer subprocess, and never edited by anyone. The split exists to keep a
+    file a person edits readable, and that argument does not apply to it.
+    """
+    name = PARAMS_DIRS.get(attribute)
+    if name is None:
+        return None
+    candidate = root.parent / name
+    return candidate if candidate.is_dir() else None
+
+
+def _attach_params(entries: list[Option], attribute: str,
+                   params_root: Path) -> list[Option]:
+    """Fill each option's params from its own file, and check the pairing.
+
+    Both directions, because both failures are silent otherwise: an option with
+    no file would draw a document with an empty content model, and a file no
+    option names is a rename that got half done.
+    """
+    out = []
+    for option in entries:
+        if option.params:
+            raise RuleError(
+                f"{attribute}/{option.id}: params belong in "
+                f"{params_root.name}/{option.id}.yaml, not in the rules file")
+        path = params_root / f"{option.id}.yaml"
+        if not path.is_file():
+            raise RuleError(f"{attribute}/{option.id}: no {path}")
+        loaded = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        if not isinstance(loaded, dict):
+            raise RuleError(f"{path}: expected a mapping of params")
+        out.append(replace(option, params=loaded))
+    known = {option.id for option in entries}
+    for path in sorted(params_root.glob("*.yaml")):
+        if path.stem not in known:
+            raise RuleError(
+                f"{path}: no {attribute} option named {path.stem!r}")
+    return out
+
+
 def _load_rules(root: Path) -> dict[str, list[Option]]:
     files = sorted(path for path in root.glob("*.yaml") if not path.name.startswith("_"))
     if not files:
@@ -338,6 +400,9 @@ def _load_rules(root: Path) -> dict[str, list[Option]]:
             if option.id in seen:
                 raise RuleError(f"{path}: duplicate option id {option.id!r}")
             seen.add(option.id)
+        params_root = _params_root(root, attribute)
+        if params_root is not None:
+            entries = _attach_params(entries, attribute, params_root)
         parsed[attribute] = entries
 
     return {attribute: parsed[attribute] for attribute in attribute_order(root)}

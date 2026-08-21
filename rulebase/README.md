@@ -20,6 +20,8 @@ own content, what you compared would be two datasets, not two ways of drawing.
 ```
 rulebase/
 ├── rules/          7 ATTRIBUTES, one file each         ← tune the distribution here
+├── documents/      17 DOCUMENT KINDS, one file each    ← edit what a kind prints
+├── blanks.yaml     16 PHÔI GỐC and what became of them ← register a new form here
 ├── layouts/        14 LAYOUTS measured off real paper  ← add a layout here
 ├── corpus/vi/      Vietnamese corpus, WITH diacritics  ← add products here
 ├── corpus/en/      one document kind prints English
@@ -41,7 +43,7 @@ what reaches the image is Vietnamese.**
 
 | English — an identifier | Vietnamese — content |
 | --- | --- |
-| `id`, `tags`, `requires`, `excludes` | `titles`, `total_labels` in `rules/document.yaml` |
+| `id`, `tags`, `requires`, `excludes` | `titles`, `total_labels` in `documents/*.yaml` |
 | `profile: eatery \| market` | a column's `title:` in `layouts/*.yaml` |
 | `paper: thermal_white` (a filename in `textures/paper/`) | the discount row's `label:`, `notes:` |
 | a column's `key:`, `style:`, `money_style:` | everything in `corpus/vi/` |
@@ -133,7 +135,57 @@ filtered by document family.
 A file uses `options:` **or** `groups:`, never both: two places to add a value
 is two places to forget one.
 
-`rules/layout.yaml` is the file that needed this. Its five nodes:
+### Phôi gốc: the form before anyone measured it
+
+A layout is columns and rows in character units. A **phôi** is what it was
+measured *off* — the photograph or scan of the real paper. Every layout file has
+always named its own in a `source:` line, but one string per file is not a set:
+it cannot be counted, cannot be checked, and cannot say that a form was scanned
+and never converted.
+
+[`blanks.yaml`](blanks.yaml) is that set. Each blank carries where it came from,
+the layout it became (`null` if nobody has converted it yet — work still owed,
+where someone would look for it), and a redistributable redrawing in
+`samples/*-templates/` when one exists. The original scans are real paper with
+real names on them and are not in the repository.
+
+```bash
+make blanks          # per document: its phôi, what each became, and any drift
+```
+
+Then `documents:` says which blanks each kind may be drawn from. This is
+deliberately a **second** statement of something `requires`/`excludes` already
+decides, and the tags stay the deciding side. The reason is that a tag solver
+reports a relation and never an intention: give a new layout one `requires:` too
+few and every document sharing a tag silently gains a blank, with nothing to
+say so. `tests/test_blanks.py` fails when the two drift apart, in both
+directions — a layout the tags now allow that no blank lists, and a blank whose
+layout the tags now forbid.
+
+Most kinds have exactly one phôi. That is the number this file exists to make
+visible: layout variety for a document comes from adding blanks to it, and
+until one is added there is nothing to vary.
+
+### Where a value's params live
+
+Two shapes, and the file says which. `rules/<attribute>.yaml` normally carries
+`params:` inline. `document` does not: its seventeen values each carry the whole
+content model of a kind of paper — titles, labels, party fields, signature
+blocks — and one file of 750 lines buried the part you actually came to read,
+which is *which values exist, how often, under what tags*. So the params moved
+to `documents/<id>.yaml`, one file per kind, exactly the split `layout` already
+had with `layouts/<id>.yaml`.
+
+Nothing downstream noticed: everything reads `Option.params`, and that is filled
+either way. `rulebase/spec.py` pairs the two directions and refuses both halves
+of the obvious mistake — a value with no file, and a file no value names.
+
+A tree with no `documents/` beside its rules keeps its params inline, which is
+the shape `pipeline.config.materialise_rules` writes for a run override. That
+tree is generated, read once by a renderer subprocess, and never hand-edited,
+so the split would buy it nothing.
+
+`rules/layout.yaml` is the file that needed this. Its six nodes:
 
 | node | what the family is |
 | --- | --- |
@@ -142,6 +194,20 @@ is two places to forget one.
 | `utility_invoice` | điện, nước — charges a meter reading rather than a basket |
 | `lodging_invoice` | khách sạn — one line per night, dated rows, paid/outstanding |
 | `modern_invoice` | tờ tự thiết kế — no frame, totals against the right margin |
+| `administrative_form` | chứng từ hành chính — structure in the field block, not the table |
+
+`rules/document.yaml` is sorted the same way, into five nodes of its own. They
+are not a copy of the layout nodes: a document says what the paper *is*, a
+layout says how it is *drawn*, and the two cut the space differently — one
+`administrative_form` document can be drawn by either administrative layout.
+
+| node | what the family is |
+| --- | --- |
+| `till_receipt` | giấy tính tiền tại quầy — quán ăn, siêu thị, cửa hàng tiện lợi |
+| `statutory_invoice` | hoá đơn theo mẫu nhà nước — GTGT, tiền điện, tiền nước |
+| `commercial_invoice` | hoá đơn thương mại — bán buôn, xuất khẩu, song ngữ |
+| `service_invoice` | hoá đơn dịch vụ — lưu trú, ăn uống có thương hiệu |
+| `administrative_form` | chứng từ hành chính — không ghi lại một lần mua bán |
 
 ```bash
 make distribution        # the mix per node, then per value
@@ -431,7 +497,7 @@ works, the reverse does not.
 | `payments.txt` | label ⇥ group (`tienmat`/`the`/`vi`/`qr`) |
 | `people.txt` | one name per line — a till prints none, an invoice names its buyer |
 
-The `profile` in `rules/document.yaml` **is** the filename suffix:
+The `profile` in `documents/<id>.yaml` **is** the filename suffix:
 `profile: market` reads `items_market.txt`. Adding a profile means adding three
 corpus files with a matching suffix, not editing `corpus.py`. The eight so far:
 

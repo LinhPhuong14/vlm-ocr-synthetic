@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Giấy uỷ quyền nhận tiền — biểu mẫu in sẵn của công ty bảo hiểm nhân thọ</title>
+<style>
+  @page { size: A4 portrait; margin: 11mm 13mm 7mm; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: "Liberation Sans", "DejaVu Sans", sans-serif;
+    font-size: 8.8pt; color: #111; line-height: 1.38;
+  }
+  .sheet { position: relative; }
+
+  /* ---------- dấu chìm: chính hoa văn của logo, phóng to, in rất nhạt ---------- */
+  .watermark { position: absolute; left: 46mm; top: 86mm; width: 90mm; height: 90mm;
+               opacity: 0.22; z-index: -1; }
+
+  /* ---------- đầu trang: logo bên trái | khối liên hệ dồn phải ---------- */
+  .head { display: table; width: 100%; padding-bottom: 6mm; }
+  .head > div { display: table-cell; vertical-align: top; }
+  .brand { width: 42%; padding-left: 8mm; }
+  .brand .mark { width: 21mm; height: 16mm; display: block; margin-left: 10mm; }
+  .brand .name { font-family: "Liberation Serif", "DejaVu Serif", serif;
+                 font-size: 19pt; letter-spacing: 0.2pt; margin-top: -2.6mm; }
+  .brand .tag { font-size: 6.2pt; letter-spacing: 2.6pt; padding-left: 0.6mm; }
+
+  /* Cả năm dòng đều chạm mép phải; dòng địa chỉ giãn chữ cho đủ bề ngang. */
+  .corp { width: 58%; text-align: right; }
+  .corp .co { font-weight: bold; font-size: 9.4pt; }
+  .corp .street { letter-spacing: 1.5pt; }
+  .corp b { font-weight: bold; }
+
+  /* ---------- tiêu đề ---------- */
+  h1 { text-align: center; font-size: 16.5pt; font-weight: bold;
+       letter-spacing: 0.3pt; margin: 0 0 1.6mm; }
+  .subtitle { text-align: center; font-style: italic; font-size: 8.4pt;
+              margin-bottom: 11mm; }
+  .addressee { font-weight: bold; margin: 0 0 3mm; }
+  .addressee i { font-style: italic; }
+
+  /* ---------- khung bao thân đơn ---------- */
+  .frame { border: 0.35mm solid #1a1a1a; }
+  .band { background: #8d8d8d; color: #fff; font-weight: bold; font-size: 8.2pt;
+          letter-spacing: 0.55pt; padding: 1.15mm 2.2mm; }
+  .block { padding: 2.2mm 2.8mm 2.6mm; }
+  .line { margin: 1.15mm 0; }
+  .line i { font-style: italic; }
+
+  /* Giá trị điền tay: nghiêng, phông khác, trên nét kẻ mảnh -- xem README, trên
+     giấy thật những chỗ này là chữ VIẾT TAY, không phải chữ đánh máy. */
+  .fill { font-family: "DejaVu Sans", sans-serif; font-style: italic;
+          font-size: 8.4pt; padding: 0 1.8mm; border-bottom: 0.2mm solid #4a4a4a; }
+  .fill.wide { display: inline-block; min-width: 42mm; }
+  .dots { border-bottom: 0.25mm dotted #3c3c3c; }
+  .dots.rest { display: inline-block; }
+
+  /* ---------- điều khoản đánh số, in nghiêng, thụt lề ---------- */
+  .clauses { padding-top: 3.2mm; }
+  .clauses p { margin: 1.5mm 0; text-align: justify; }
+  .clauses .item { font-style: italic; padding-left: 4.5mm; }
+  .clauses .validity { font-style: italic; padding: 2.2mm 0 1mm; }
+
+  /* ---------- khối chữ ký: 4 cột bằng nhau, không có vạch dọc ngăn ---------- */
+  .signatures { width: 100%; border-collapse: collapse; }
+  .signatures td { text-align: center; vertical-align: top;
+                   border-top: 0.35mm solid #1a1a1a; padding: 2.2mm 1.2mm 18mm; }
+  .signatures .c1 { width: 23%; } .signatures .c2 { width: 29%; }
+  .signatures .c3 { width: 23%; } .signatures .c4 { width: 25%; }
+  .signatures .role { font-weight: bold; }
+  .signatures .hint { font-style: italic; font-size: 7.9pt; }
+
+  .signed-on { border-top: 0.35mm solid #1a1a1a; padding: 2.6mm 2.8mm; }
+  .footnote { border-top: 0.35mm solid #1a1a1a; padding: 2.4mm 2.8mm;
+              font-style: italic; }
+
+  /* ---------- chân trang: mã vạch Code 39 | mã biểu mẫu ---------- */
+  .foot { display: table; width: 100%; margin-top: 3.4mm; }
+  .foot > div { display: table-cell; vertical-align: bottom; }
+  .foot .barcode { width: 60%; }
+  .foot .formcode { width: 40%; text-align: right; font-size: 8.6pt; }
+  .bars { width: 46mm; height: 9mm; display: block; }
+  .bars-text { letter-spacing: 3.2pt; font-size: 8.2pt; padding-left: 1mm; }
+
+  /* ---------- con dấu: ảnh thật từ textures/ornament, đóng đè lên chữ in ---------- */
+  .seal { position: absolute; opacity: 0.84; }
+  .seal-signature { left: 18mm; top: 47mm; width: 45mm; transform: rotate(-1.4deg); }
+  .seal-received  { right: 8mm;  top: 43mm; width: 47mm; transform: rotate(2.6deg); }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <!-- dấu chìm -->
+  <svg class="watermark" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <g fill="#a8a8a8">
+      <ellipse cx="60" cy="30" rx="15" ry="25" transform="rotate(0 60 60)"/>
+      <ellipse cx="60" cy="30" rx="15" ry="25" transform="rotate(45 60 60)"/>
+      <ellipse cx="60" cy="30" rx="15" ry="25" transform="rotate(90 60 60)"/>
+      <ellipse cx="60" cy="30" rx="15" ry="25" transform="rotate(135 60 60)"/>
+      <ellipse cx="60" cy="30" rx="15" ry="25" transform="rotate(180 60 60)"/>
+      <ellipse cx="60" cy="30" rx="15" ry="25" transform="rotate(225 60 60)"/>
+      <ellipse cx="60" cy="30" rx="15" ry="25" transform="rotate(270 60 60)"/>
+      <ellipse cx="60" cy="30" rx="15" ry="25" transform="rotate(315 60 60)"/>
+    </g>
+  </svg>
+
+  <div class="head">
+    <div class="brand">
+      <!-- hoa 8 cánh, vẽ nét -- cùng hoa văn với dấu chìm ở trên -->
+      <svg class="mark" viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+        <g fill="none" stroke="#141414" stroke-width="2.4">
+          <ellipse cx="60" cy="26" rx="13" ry="21" transform="rotate(0 60 50)"/>
+          <ellipse cx="60" cy="26" rx="13" ry="21" transform="rotate(45 60 50)"/>
+          <ellipse cx="60" cy="26" rx="13" ry="21" transform="rotate(90 60 50)"/>
+          <ellipse cx="60" cy="26" rx="13" ry="21" transform="rotate(135 60 50)"/>
+          <ellipse cx="60" cy="26" rx="13" ry="21" transform="rotate(180 60 50)"/>
+          <ellipse cx="60" cy="26" rx="13" ry="21" transform="rotate(225 60 50)"/>
+          <ellipse cx="60" cy="26" rx="13" ry="21" transform="rotate(270 60 50)"/>
+          <ellipse cx="60" cy="26" rx="13" ry="21" transform="rotate(315 60 50)"/>
+          <circle cx="60" cy="50" r="5.5"/>
+        </g>
+      </svg>
+      <div class="name">An Khang</div>
+      <div class="tag">LIFE INSURANCE</div>
+    </div>
+    <div class="corp">
+      <div class="co">CÔNG TY CP BẢO HIỂM NHÂN THỌ AN KHANG</div>
+      <div class="street">Tầng 8, Toà nhà Sao Mai, 27 Nguyễn Văn Cừ</div>
+      <div>Phường Hoà Cường, Quận Hải Châu, Thành phố Đà Nẵng</div>
+      <div><b>Tel:</b> (84.236) 3821 4470 - <b>Fax:</b> (84.236) 3821 4471</div>
+      <div>info@ankhanglife.example - www.ankhanglife.example</div>
+    </div>
+  </div>
+
+  <h1>GIẤY ỦY QUYỀN NHẬN TIỀN</h1>
+  <div class="subtitle">(Chỉ áp dụng cho trường hợp ủy quyền cho Chuyên viên tư vấn bảo hiểm nhận Phí bảo hiểm hoàn lại với số tiền nhỏ hơn 5.000.000 đồng)</div>
+
+  <img class="seal seal-signature" src="../../textures/ornament/seal_name_block.png" alt="">
+  <img class="seal seal-received" src="../../textures/ornament/seal_round_company_faint.png" alt="">
+
+  <div class="addressee"><i>Kính gửi:</i> Công ty Cổ phần Bảo hiểm Nhân thọ An Khang (Công ty)</div>
+
+  <div class="frame">
+    <div class="band">NGƯỜI ỦY QUYỀN</div>
+    <div class="block">
+      <div class="line">Họ và tên <i>(CHỮ IN HOA)</i> <span class="fill wide">LÊ THỊ MINH CHÂU</span></div>
+      <div class="line">Số CMND <span class="fill">023456789</span>
+        <span style="padding-left:20mm">Ngày cấp <span class="fill">12/03/2013</span></span>
+        <span style="padding-left:10mm">Nơi cấp <span class="fill">Đà Nẵng</span></span></div>
+      <div class="line">Là Bên mua bảo hiểm của Hợp đồng bảo hiểm/Hồ sơ yêu cầu bảo hiểm số: <span class="fill">80042317</span></div>
+      <div class="line">Ủy quyền không hủy ngang cho người được nêu tên dưới đây:</div>
+    </div>
+
+    <div class="band">NGƯỜI ĐƯỢC ỦY QUYỀN</div>
+    <div class="block">
+      <div class="line">Họ và tên <i>(CHỮ IN HOA)</i> <span class="fill wide">TRẦN QUỐC BẢO</span></div>
+      <div class="line">Số CMND <span class="fill">025118402</span>
+        <span style="padding-left:20mm">Ngày cấp <span class="fill">05/07/2015</span></span>
+        <span style="padding-left:10mm">Nơi cấp <span class="fill">Đà Nẵng</span></span></div>
+      <div class="line">Địa chỉ <span class="fill wide">Số 14 Lê Lợi, Phường Thanh Bình, Hải Châu, Đà Nẵng</span></div>
+      <div class="line">Mã số tư vấn <span class="fill">60014502</span>
+        <span style="padding-left:28mm">Điện thoại <span class="fill">0903118476</span></span></div>
+      <div class="line">Nhận Phí bảo hiểm hoàn lại của Hợp đồng/ Hồ sơ yêu cầu bảo hiểm nói trên với số tiền là:</div>
+      <div class="line">Bằng số: <span class="fill dots rest" style="width:152mm">4.250.000 đ</span></div>
+      <div class="line">Bằng chữ: <span class="fill dots rest" style="width:150mm">Bốn triệu hai trăm năm mươi nghìn đồng</span></div>
+      <div class="line">theo thông báo của Công ty ngày <span class="fill dots rest" style="width:126mm">14/09/2019</span></div>
+
+      <div class="clauses">
+        <p>Tôi xác nhận rằng trên cơ sở khi Công ty thanh toán số tiền nêu trên cho Người được ủy quyền, Công ty được:</p>
+        <p class="item">1) Miễn trừ khỏi mọi khiếu nại hay yêu cầu bồi thường của tôi đối với Công ty về khoản thanh toán nói trên.</p>
+        <p class="item">2) Tôi bồi hoàn và giữ cho Công ty không phải chi trả bất kỳ khoản tiền gì đối với tất cả các yêu cầu, khiếu nại, nghĩa vụ nợ, tổn thất, chi phí (bao gồm cả chi phí tư vấn và các chi phí khác mà Công ty phải chịu liên quan đến việc bồi hoàn này) phát sinh liên quan đến hay do việc Công ty thanh toán khoản tiền này cho Người được ủy quyền nêu trên.</p>
+        <p class="validity">Giấy ủy quyền này chỉ có hiệu lực trong vòng ba (03) tháng kể từ ngày ký và có giá trị ràng buộc đối với những người đại diện của cá nhân tôi, những người thừa kế và/ hoặc quản lý di sản của tôi.</p>
+      </div>
+    </div>
+
+    <table class="signatures">
+      <tr>
+        <td class="c1"><div class="role">Bên mua bảo hiểm</div>
+            <div class="hint">(Ký và ghi rõ họ tên)</div></td>
+        <td class="c2"><div class="role">Chuyên viên tư vấn bảo hiểm<br>được ủy quyền</div>
+            <div class="hint">(Ký và ghi rõ họ tên)</div></td>
+        <td class="c3"><div class="role">Người làm chứng</div>
+            <div class="hint">(Ký và ghi rõ họ tên)</div></td>
+        <td class="c4"><div class="role">Xác nhận của ADM</div>
+            <div class="hint">(Ký và ghi rõ họ tên)</div></td>
+      </tr>
+    </table>
+
+    <div class="signed-on">Ngày ký đơn: <span class="fill dots rest" style="width:62mm">19 / 09 / 2019</span></div>
+    <div class="footnote">Lưu ý: Đề nghị Bên mua bảo hiểm ký đúng với chữ ký đã được đăng ký giao dịch với Công ty, vui lòng tham khảo chữ ký mẫu tại Hồ sơ yêu cầu bảo hiểm hoặc chữ ký đã được chấp thuận thay đổi lần sau cùng.</div>
+  </div>
+
+  <div class="foot">
+    <div class="barcode">
+      <!-- Code 39 thật: *POS0142*, tỷ lệ rộng/hẹp 3:1, khoảng cách ký tự 1 module -->
+      <svg class="bars" viewBox="0 0 143 30" preserveAspectRatio="none"
+           xmlns="http://www.w3.org/2000/svg">
+        <g fill="#000">
+          <rect x="0" y="0" width="1" height="30"/><rect x="4" y="0" width="1" height="30"/>
+          <rect x="6" y="0" width="3" height="30"/><rect x="10" y="0" width="3" height="30"/>
+          <rect x="14" y="0" width="1" height="30"/><rect x="16" y="0" width="1" height="30"/>
+          <rect x="18" y="0" width="3" height="30"/><rect x="22" y="0" width="3" height="30"/>
+          <rect x="26" y="0" width="1" height="30"/><rect x="30" y="0" width="1" height="30"/>
+          <rect x="32" y="0" width="3" height="30"/><rect x="36" y="0" width="1" height="30"/>
+          <rect x="38" y="0" width="3" height="30"/><rect x="42" y="0" width="1" height="30"/>
+          <rect x="46" y="0" width="1" height="30"/><rect x="48" y="0" width="1" height="30"/>
+          <rect x="50" y="0" width="3" height="30"/><rect x="54" y="0" width="1" height="30"/>
+          <rect x="56" y="0" width="3" height="30"/><rect x="62" y="0" width="1" height="30"/>
+          <rect x="64" y="0" width="1" height="30"/><rect x="66" y="0" width="1" height="30"/>
+          <rect x="70" y="0" width="3" height="30"/><rect x="74" y="0" width="3" height="30"/>
+          <rect x="78" y="0" width="1" height="30"/><rect x="80" y="0" width="3" height="30"/>
+          <rect x="84" y="0" width="1" height="30"/><rect x="88" y="0" width="1" height="30"/>
+          <rect x="90" y="0" width="1" height="30"/><rect x="92" y="0" width="3" height="30"/>
+          <rect x="96" y="0" width="1" height="30"/><rect x="98" y="0" width="1" height="30"/>
+          <rect x="102" y="0" width="3" height="30"/><rect x="106" y="0" width="1" height="30"/>
+          <rect x="108" y="0" width="3" height="30"/><rect x="112" y="0" width="1" height="30"/>
+          <rect x="114" y="0" width="3" height="30"/><rect x="120" y="0" width="1" height="30"/>
+          <rect x="122" y="0" width="1" height="30"/><rect x="124" y="0" width="3" height="30"/>
+          <rect x="128" y="0" width="1" height="30"/><rect x="132" y="0" width="1" height="30"/>
+          <rect x="134" y="0" width="3" height="30"/><rect x="138" y="0" width="3" height="30"/>
+          <rect x="142" y="0" width="1" height="30"/>
+        </g>
+      </svg>
+      <div class="bars-text">* P O S 0 1 4 2 *</div>
+    </div>
+    <div class="formcode">POSF_ULA_2019V02</div>
+  </div>
+
+</div>
+</body>
+</html>

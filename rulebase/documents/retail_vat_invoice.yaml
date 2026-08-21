@@ -1,0 +1,51 @@
+# THAM SỐ NỘI DUNG — retail_vat_invoice
+#
+# Nửa còn lại của loại document này. Không gian lấy mẫu (weight, tags,
+# họ) nằm ở `rules/document.yaml`; những gì `rulebase.content.build`
+# đọc thì nằm đây.
+
+profile: invoice
+invoice: true
+summary: true
+titles: ["HOÁ ĐƠN GIÁ TRỊ GIA TĂNG", "HOÁ ĐƠN GTGT"]
+num_items: [2, 7]
+price_step: 1000
+vat_rates: [5, 10]
+summary_rates: [0, 5, 10]
+item_vat: true
+show_form_no: true
+show_seller_account: true
+units: ["Cái", "Bộ", "Chiếc", "Kg", "Gói", "Thùng", "Hộp", "Lượt"]
+subtitle: "Bản thể hiện của hoá đơn điện tử"
+period_format: "Ngày (date) {date}"
+words_label: "Số tiền bằng chữ:"
+summary_labels:
+  exempt: "Hàng hoá không chịu thuế GTGT:"
+  taxed: "Hàng hoá chịu thuế suất:"
+  total: "Tổng cộng tiền thanh toán:"
+banks:
+  - "TMCP Đông Nam Á - CN Sở GD"
+  - "Vietcombank - CN Hà Nội"
+  - "Vietinbank - CN Đống Đa"
+  - "Techcombank - CN Hoàn Kiếm"
+  - "Agribank - CN Thăng Long"
+party_fields:
+  left:
+    - [buyer_name, "Tên người mua hàng:"]
+    - [buyer_company, "Tên đơn vị:"]
+    - [buyer_address, "Địa chỉ:"]
+    - [buyer_tax_code, "Mã số thuế:"]
+    - [buyer_account, "Số tài khoản:"]
+    - [payment_form, "Hình thức thanh toán:"]
+  right:
+    - [security_code, "Số bảo mật:"]
+    - [transaction_no, "Số giao dịch:"]
+    - [bank_name, "Tại ngân hàng:"]
+payment_forms: ["Tiền mặt", "Chuyển khoản", "TM/CK"]
+signature_labels:
+  - ["Người mua hàng", "(Ký, ghi rõ họ, tên)"]
+  - ["Người bán hàng", "(Ký, ghi rõ họ, tên)"]
+digital_signature: true
+signed_at_label: "Ngày ký:"
+total_labels:
+  subtotal: "Cộng tiền hàng chưa có thuế GTGT"

@@ -1,0 +1,79 @@
+# THAM SỐ NỘI DUNG — export_invoice
+#
+# Nửa còn lại của loại document này. Không gian lấy mẫu (weight, tags,
+# họ) nằm ở `rules/document.yaml`; những gì `rulebase.content.build`
+# đọc thì nằm đây.
+
+profile: export
+invoice: true
+show_vat: false
+show_subtotal: false
+titles: ["HOÁ ĐƠN XUẤT KHẨU (EXPORT INVOICE)"]
+num_items: [2, 6]
+price_step: 100
+qty_range: [120, 4800]
+show_form_no: true
+show_seller_account: true
+units: ["Chiếc (Pcs)", "Bộ (Set)", "Kg", "Thùng (Ctn)", "Đôi (Pair)", "Mét (M)"]
+subtitle: "Liên 1: Lưu (Copy 1 / Save)"
+period_format: "Ngày (Date) {date}"
+words_label: "Số tiền viết bằng chữ (Amount in words):"
+serial_format: "AA/{yy}P"
+banks:
+  - "Ngân hàng IBK (Industrial Bank of Korea) CN TPHCM"
+  - "Vietcombank - CN Đồng Nai"
+  - "Shinhan Bank Việt Nam - CN Bình Dương"
+  - "Woori Bank Việt Nam - CN Hà Nội"
+delivery_places:
+  - "Cảng Cát Lái, TP.HCM"
+  - "Cảng Hải Phòng"
+  - "ICD Sóng Thần, Bình Dương"
+  - "Cảng Cái Mép, Bà Rịa - Vũng Tàu"
+  - "Sân bay Nội Bài, Hà Nội"
+destinations:
+  - "Busan, Korea"
+  - "Yokohama, Japan"
+  - "Los Angeles, USA"
+  - "Hamburg, Germany"
+  - "Rotterdam, Netherlands"
+  - "Sydney, Australia"
+transporters:
+  - "Hãng tàu ONE"
+  - "Maersk Line"
+  - "Evergreen Marine"
+  - "Công ty CP Giao nhận Vinatrans"
+  - "Yusen Logistics Việt Nam"
+payment_forms: ["T/T", "L/C at sight", "D/P at sight", "T/T 30 ngày"]
+party_fields:
+  strip:
+    - [form_no, "Mẫu số (Form):"]
+    - [serial, "Ký hiệu (Serial):"]
+    - [number, "Số (Invoice No.):"]
+  left:
+    - [seller_name, "Tên đơn vị xuất khẩu (Exporter's name):"]
+    - [seller_tax_code, "Mã số thuế (Tax code):"]
+    - [seller_address, "Địa chỉ (Address):"]
+    - [seller_unit, "Đơn vị phát hành (Issuing unit):"]
+    - [seller_phone, "Điện thoại (Tel):"]
+    - [seller_account, "Số tài khoản (Account No) (VND):"]
+    - [seller_account_usd, "Số tài khoản (Account No) (USD):"]
+    - [bank_name, "Tại Ngân Hàng (Bank name):"]
+    - [buyer_company, "Tên đơn vị nhập khẩu (Importer's name):"]
+    - [buyer_address, "Địa chỉ (Address):"]
+    - [buyer_phone, "Điện thoại (Tel):"]
+    - [payment_form, "Hình thức thanh toán (Payment method):"]
+    - [buyer_account, "Số tài khoản (Bank Account):"]
+    - [contract_no, "Số hợp đồng (Contract No):"]
+    - [contract_date, "Ngày hợp đồng (Contract date):"]
+  right:
+    - [bill_of_lading, "Số vận đơn (Bill of lading No.):"]
+    - [container_no, "Số Container (Container No.):"]
+    - [place_of_delivery, "Địa điểm giao hàng (Place of delivery):"]
+    - [place_of_destination, "Địa điểm nhận hàng (Place of destination):"]
+    - [transporter, "Đơn vị vận chuyển (Transporter):"]
+notes:
+  - "Tỉ giá (Rate): {exchange_rate}"
+signature_labels:
+  - ["Người bán hàng (Seller)", "(Ký, đóng dấu, ghi rõ họ, tên - Sign, Stamp & Full name)"]
+total_labels:
+  grand: "Cộng tiền hàng (Total amount)"
