@@ -26,6 +26,7 @@ $ git diff --name-only f67e7d5..HEAD | grep -v '\.md$'
 | 1 | [`tu-dong-hoa-bang-llm.md`](tu-dong-hoa-bang-llm.md) | **Ai ra quyết định?** Hiện trạng, khảo sát ngoài, trục mực thứ tám, lộ trình, kinh tế | 1400 |
 | 2 | [`tang-cuong-bo-cuc.md`](tang-cuong-bo-cuc.md) | **Một bố cục nhân lên thành bao nhiêu?** Cây cột, chín nước đi, `compose:`, biến thể có tên | 957 |
 | 3 | [`duong-ong.md`](duong-ong.md) | **Một tờ giấy đi qua hệ thống ra sao, và ai sở hữu toạ độ?** | 591 |
+| 4 | [`ke-hoach.md`](ke-hoach.md) | **Làm gì, theo thứ tự nào?** Mười việc, mỗi việc mô tả đủ để nhận và làm | 619 |
 
 Không có thời gian đọc hết: đọc **§0 của (1)**, **§0 của (2)**, và **§9 của (3)**
 — khoảng bốn trang, đủ để phản biện.
@@ -117,6 +118,10 @@ Tất cả chạy lại được, phần lớn không cần dựng venv renderer
 
 Gộp `M0–M4` của tài liệu (1) và `T0–T3` của tài liệu (2) thành một danh sách
 theo đúng thứ tự phụ thuộc.
+
+> **Mô tả đầy đủ từng việc** — mục tiêu, file nào đụng vào, các bước, xong khi
+> nào, cổng nào phải xanh, bẫy nào đã biết trước — ở **[`ke-hoach.md`](ke-hoach.md)**.
+> Bảng dưới đây chỉ là mục lục.
 
 ### Đợt 0 · làm được **ngay hôm nay**, không phụ thuộc gì
 
