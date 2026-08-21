@@ -1681,6 +1681,7 @@
   }
  ],
  "handwriting": {
+  "source": "model",
   "writer": 98,
   "pen": "#1a1a20",
   "height_em": 2.094,

@@ -333,7 +333,11 @@ parties:
 
 table:
   frame: true            # a ruled table rather than a block of items
-  column_numbers: true   # the "(1) (2) ... (6 = 4 x 5)" row a form carries
+  column_numbers: true   # the "(1) (2) ... (6 = 4 x 5)" row a form carries.
+                         # No shipped layout sets it any more: the row is a note
+                         # on how a column is computed, not a field, and in a
+                         # generated image it became a table cell reading
+                         # "6 = 4x5" for a model to read.
   row_rules: true        # a rule under every item, not just under the block
   blank_rows: 4          # a form has the rows it was printed with
   header_rules: true     # unframed: rule above and below the column titles
