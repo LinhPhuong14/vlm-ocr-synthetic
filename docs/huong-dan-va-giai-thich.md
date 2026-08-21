@@ -799,10 +799,14 @@ màu đen) thì dataset đã commit được sinh lại — nếu không, recipe
 một ảnh mà code hiện tại không tạo ra nữa.
 
 **H: Nhãn có format gì? Dùng train được luôn không?**
-`ground_truth` là chuỗi JSON `{"gt_parse": {...}}` lồng nhau kiểu CORD —
-`DonutDataset` đọc trực tiếp. Thêm `text_sequence` cho pre-training đọc trơn, và
-`boxes` (polygon 4 điểm mỗi ô, **vẫn đúng sau khi giấy cong**) cho detection.
-Renderer glyph có `boxes`; hai renderer HTML thì chưa.
+Mỗi dòng `metadata.jsonl` mang đúng schema của bộ chuyển đổi tài liệu
+(`schema_version` 8): `blocks`, `markdown`, `html`, `extracted` — nên một trang
+vẽ ra ở đây và một trang quét về đọc bằng cùng một loader. `extracted` là nhãn
+CORD lồng nhau, dạng **object**; `record.ground_truth(item)` trả lại đúng chuỗi
+JSON `{"gt_parse": {...}}` mà `DonutDataset` đọc trực tiếp.
+`synthesis.text_sequence` cho pre-training đọc trơn, và `blocks` (mỗi ô một
+`bbox` phẳng cộng `quad` 4 điểm, **vẫn đúng sau khi giấy cong**) cho detection.
+Cả ba renderer đều có `blocks`.
 
 **H: Sao không vendor luôn ảnh texture của DocCreator cho giống?**
 Vì chúng là data LGPL. Nên pattern được sinh từ seed — bù lại repo clone về là

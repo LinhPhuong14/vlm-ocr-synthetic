@@ -36,6 +36,7 @@ from template_receipt import SynthVNReceipt  # noqa: E402
 import profiling  # noqa: E402
 import rulebase  # noqa: E402
 import worklist  # noqa: E402
+from pipeline import record  # noqa: E402
 
 
 def make_clean(config: dict) -> dict:
@@ -147,16 +148,13 @@ def main() -> int:
                     args.out / name, quality=data["quality"]
                 )
             with profiling.stage("annotation"):
-                record = {
-                    "file_name": name,
-                    "ground_truth": json.dumps({"gt_parse": data["gt_parse"]},
-                                               ensure_ascii=False),
-                    "text_sequence": data["text_sequence"],
-                    "recipe": data["recipe"],
-                    "boxes": data["boxes"],
-                }
+                item = record.build(
+                    filename=name, width=data["image"].shape[1],
+                    height=data["image"].shape[0], parser="synthdog",
+                    boxes=data["boxes"], extracted=data["gt_parse"],
+                    text_sequence=data["text_sequence"], recipe=data["recipe"])
             with profiling.stage("export"):
-                json.dump(record, metadata, ensure_ascii=False)
+                json.dump(item, metadata, ensure_ascii=False)
                 metadata.write("\n")
             print(f"[ok] {name}  {data['image'].shape[1]}x{data['image'].shape[0]}  "
                   f"{data['recipe']['attributes']['layout']['id']}")

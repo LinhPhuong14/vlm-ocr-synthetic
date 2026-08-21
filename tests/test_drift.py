@@ -19,7 +19,7 @@ from pathlib import Path
 import pytest
 
 import rulebase
-from pipeline import drift, invariants
+from pipeline import drift, invariants, record
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SOURCE_IMAGES = REPO_ROOT / "data" / "dataset60" / "html"
@@ -33,18 +33,15 @@ def make_records(seeds, layout=None, force=None):
         if layout:
             pinned["layout"] = layout
         recipe, receipt, grid = rulebase.make(seed=seed, force=pinned or None)
-        items.append({
-            "file_name": f"html_{index:03d}.jpg",
-            "ground_truth": json.dumps({"gt_parse": receipt.ground_truth()},
-                                       ensure_ascii=False),
-            "text_sequence": receipt.text_sequence(),
-            "recipe": recipe.to_dict(),
-            "boxes": [{"kind": c.role, "text": c.text,
-                       "quad": [[0, 0], [1, 0], [1, 1], [0, 1]]}
-                      for c in grid.cells if c.text.strip() and c.role != "sep"],
-            "framework": "html",
-            "layout": grid.layout_id,
-        })
+        items.append(record.build(
+            filename=f"html_{index:03d}.jpg", width=1000, height=1400,
+            parser="html", layout=grid.layout_id,
+            boxes=[{"kind": c.role, "text": c.text,
+                    "quad": [[0, 0], [1, 0], [1, 1], [0, 1]]}
+                   for c in grid.cells if c.text.strip() and c.role != "sep"],
+            extracted=receipt.ground_truth(),
+            text_sequence=receipt.text_sequence(),
+            recipe=recipe.to_dict()))
     return items
 
 
@@ -55,8 +52,9 @@ def build_shard(directory: Path, records, *, index=0, backend="html",
     images = sorted(SOURCE_IMAGES.glob("*.jpg"))
     for position, item in enumerate(records):
         if sources:
-            item["content_source"] = sources[position % len(sources)]
-        shutil.copy2(images[position % len(images)], directory / item["file_name"])
+            item["synthesis"]["content_source"] = sources[position % len(sources)]
+        shutil.copy2(images[position % len(images)],
+                     directory / record.file_name(item))
     (directory / "metadata.jsonl").write_text(
         "\n".join(json.dumps(item, ensure_ascii=False) for item in records) + "\n",
         encoding="utf-8")
@@ -65,7 +63,8 @@ def build_shard(directory: Path, records, *, index=0, backend="html",
                     "unprinted": {}, "occurrences": {}, "label_values": {}}),
         encoding="utf-8")
     return {"index": index, "backend": backend, "count": len(records),
-            "runs": [{"layout": item["layout"], "seed": item["recipe"]["seed"],
+            "runs": [{"layout": record.layout(item),
+                      "seed": record.recipe(item)["seed"],
                       "count": 1, "first_index": position}
                      for position, item in enumerate(records)]}
 

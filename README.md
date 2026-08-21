@@ -453,43 +453,88 @@ and eight still produce byte-identical output.
 
 One `metadata.jsonl` line per image, the same shape from every renderer, its
 keys fixed by [`pipeline/record.py`](pipeline/record.py) and validated on the
-way out:
+way out.
+
+**The shape is the document converter's, not this generator's.** A drawn page
+comes back in the schema a converted page comes back in — `schema_version`,
+`job_id`, `task`, `parser`, `filename`, `settings`, `pages`, `blocks`,
+`markdown`, `html`, `extracted` — so training and evaluation code reads one
+shape whether the page was drawn here or scanned somewhere else, and a synthetic
+set can be mixed into a real one without a translation layer in between.
 
 | field | |
 | --- | --- |
-| `file_name` | the image, relative to the backend's directory |
-| `ground_truth` | CORD-style nested label, as a **JSON string** |
-| `text_sequence` | flat reading order, for pre-training and OCR scoring |
-| `recipe` | the seed and all six sampled attributes with their params |
-| `boxes` | one `{kind, text, quad}` per drawn field; `quad` is four `[x, y]` corners |
-| `framework`, `layout` | which renderer drew it, and from which layout |
+| `schema_version` | `8` — the converter schema this line follows |
+| `job_id` | uuid5 of `parser\|layout\|seed\|filename`. **Not** random: `metadata.jsonl` is hashed by the golden baseline, so the same page must get the same id twice |
+| `task` | `convert` for a document page, `table_structure` for a table image |
+| `parser` | which renderer drew it — `synthdog`, `html` or `genalog` |
+| `filename`, `source_files` | the image, relative to the backend's directory |
+| `settings` | the job's options, spelled as the converter spells them |
+| `documents` | `[]` — a drawn page is one page of one document, so there is nothing to segment |
+| `pages` | one entry: the page number and its pixel size |
+| `blocks` | one per drawn field, in reading order — see below |
+| `markdown`, `html` | the page, built from the blocks |
+| `extracted` | the CORD-style nested label, as an **object** |
+| `synthesis` | the seed, the sampled attributes, the flat reading order — everything the converter has no field for |
+
+A **block** carries both vocabularies, because they answer different questions:
+
+| | | |
+| --- | --- | --- |
+| `label` | `Text`, `Table`, `Page-header`, `Title`… | DocLayNet's eleven classes, which is what a converter emits |
+| `kind` | `total.grand.label`, `menu.qty`, `store.name` | *which field it is* — this repository's own vocabulary, and what every check is written against |
+| `bbox` | `{x1, y1, x2, y2}` | the axis-aligned box, as the converter writes it |
+| `quad` | four `[x, y]` corners | the real geometry. The glyph backend curls the paper, and no bbox describes that |
+| `content` / `text` | the markdown / the raw string | a heading is `# …` in one and bare in the other |
 
 ```mermaid
 flowchart LR
     R["Recipe"] --> RC["Receipt"]
-    RC --> GT["ground_truth<br/>nested"]
-    RC --> TS["text_sequence<br/>flat"]
+    RC --> GT["extracted<br/>nested"]
+    RC --> TS["synthesis.<br/>text_sequence"]
     RC --> G["Grid"]
     G --> PX["pixels"]
-    G --> BX["boxes"]
-    GT & TS & PX & BX & R --> J[("metadata.jsonl + .jpg")]
+    G --> BX["blocks"]
+    BX --> MD["markdown + html"]
+    GT & TS & PX & BX & MD & R --> J[("metadata.jsonl + .jpg")]
 ```
 
-Two properties are worth knowing before writing a loader:
+Three properties are worth knowing before writing a loader:
 
-**Boxes are the definition of "printed".** `text_sequence` is built from the
-`Receipt`, so it can list a field the layout had no room for; `boxes` comes
-from the renderer's own geometry, one per drawn cell. `pipeline/invariants.py`
-checks the label against the boxes for that reason, and
-[`tools/check_boxes.py`](tools/check_boxes.py) checks the boxes against the
+**Blocks are the definition of "printed".** `synthesis.text_sequence` is built
+from the `Receipt`, so it can list a field the layout had no room for; `blocks`
+comes from the renderer's own geometry, one per drawn cell.
+`pipeline/invariants.py` checks the label against the blocks for that reason,
+and [`tools/check_boxes.py`](tools/check_boxes.py) checks the blocks against the
 pixels.
+
+**`markdown` is derived, not written.** It is the blocks grouped into the lines
+they were printed on — down the page, then across it — so a receipt row is one
+line and a form's left and right columns are paired back up. Nothing is in it
+that is not in a block.
 
 **The seed alone does not reproduce a page.** Pinning an attribute changes the
 tags it sets, so everything drawn afterwards diverges. Pin all six back:
 
 ```python
-force = {name: value["id"] for name, value in record["recipe"]["attributes"].items()}
-recipe, receipt, grid = rulebase.make(seed=record["recipe"]["seed"], force=force)
+from pipeline import record
+
+attributes = record.attributes(item)
+force = {name: value["id"] for name, value in attributes.items()}
+recipe, receipt, grid = rulebase.make(seed=record.recipe(item)["seed"], force=force)
+```
+
+Read through the accessors in [`pipeline/record.py`](pipeline/record.py) rather
+than reaching for a key by name — `record.file_name`, `record.boxes`,
+`record.extracted`, `record.layout` — so the next time the shape moves it moves
+in one file. An older dataset is brought forward with
+[`tools/migrate_metadata.py`](tools/migrate_metadata.py), which re-renders
+nothing: every value it writes is already in the record, or in the JPEG header
+beside it.
+
+```bash
+python tools/migrate_metadata.py data --check   # what would change
+python tools/migrate_metadata.py data           # in place
 ```
 
 ---
@@ -607,7 +652,7 @@ textures/ fonts/ augmentations/   the assets a page is drawn with and onto
 data/                   generated datasets
 samples/                curated examples: degradation showcase, reference
                         sheets, the ornament contact sheet
-tools/                  drivers: dataset, proof, boxes, monitor, baseline
+tools/                  drivers: dataset, proof, boxes, monitor, baseline, migrate
 docs/                   notes that outlive any one generator, plus figures
 tasks.py                every task, and the only definition of them
 ```
@@ -822,9 +867,10 @@ use the document sets for anything about text.
   run only as a check.
 - **Only the glyph renderer produces rotated boxes.** A detector trained on the
   two flat backends alone has never seen a non-axis-aligned quad.
-- **`text_sequence` is a canonical order**, not the order an eye or an OCR
-  engine follows on a two-column page — which is why the proof scores
-  order-free.
+- **`synthesis.text_sequence` is a canonical order**, not the order an eye or
+  an OCR engine follows on a two-column page — which is why the proof scores
+  order-free. `markdown` is the geometric reading order instead, so the two
+  disagree on a form and are meant to.
 - **Table images teach layout, not language**, and have no OCR proof: the right
   metric for table structure is TEDS, which is not implemented here.
 - **No licence is chosen yet.**
@@ -893,5 +939,7 @@ the fonts in `fonts/` are OFL 1.1, Apache 2.0 or Bitstream Vera — see
   ICDAR 2015.
 - **TIES_DataGeneration** — the table model.
   <https://github.com/hassan-mahmood/TIES_DataGeneration>
-- **CORD** — the receipt-parsing label schema `ground_truth` follows.
+- **CORD** — the receipt-parsing label schema `extracted` follows.
   <https://github.com/clovaai/cord>
+- **DocLayNet** — the eleven page-layout classes a block's `label` comes from.
+  <https://github.com/DS4SD/DocLayNet>

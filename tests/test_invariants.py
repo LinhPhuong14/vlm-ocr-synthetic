@@ -20,11 +20,17 @@ from pathlib import Path
 import pytest
 
 import rulebase
-from pipeline import invariants
+from pipeline import invariants, record
 from pipeline.invariants import BUDGETS, InvariantError, Tally, inspect
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 ORDER = invariants.attribute_names()
+
+# The size these records claim their page is. Nothing here draws one, so it is
+# arbitrary -- except in the two tests that pass a real image, which set it to
+# that image's own size, because a record that disagrees with its pixels is now
+# an error in its own right.
+PAGE = (1000, 1400)
 
 # Chosen for what they contain, and PINNED so they keep containing it: an
 # eatery roll that prints no title, two market receipts that carry barcodes and
@@ -55,16 +61,11 @@ def build(seed: int, layout: str | None = None) -> dict:
         {"kind": cell.role, "text": cell.text, "quad": [[0, 0], [1, 0], [1, 1], [0, 1]]}
         for cell in grid.cells if cell.text.strip() and cell.role != "sep"
     ]
-    return {
-        "file_name": f"test_{seed:03d}.jpg",
-        "ground_truth": json.dumps({"gt_parse": receipt.ground_truth()},
-                                   ensure_ascii=False),
-        "text_sequence": receipt.text_sequence(),
-        "recipe": recipe.to_dict(),
-        "boxes": boxes,
-        "framework": "test",
-        "layout": grid.layout_id,
-    }
+    return record.build(
+        filename=f"test_{seed:03d}.jpg", width=PAGE[0], height=PAGE[1],
+        parser="test", layout=grid.layout_id, boxes=boxes,
+        extracted=receipt.ground_truth(), text_sequence=receipt.text_sequence(),
+        recipe=recipe.to_dict())
 
 
 _RECORDS: list[dict] | None = None
@@ -84,7 +85,7 @@ def errors_of(item: dict, **kwargs) -> list[str]:
 def a_record(**wanted) -> dict:
     """A deep copy of the first record matching `wanted`, safe to mutate."""
     for item in records():
-        gt = json.loads(item["ground_truth"])["gt_parse"]
+        gt = item["extracted"]
         if all(key in gt and gt[key] for key in wanted.get("has", ())):
             return json.loads(json.dumps(item))
     raise AssertionError(f"no seed in {SEEDS} produced a record with {wanted}")
@@ -97,7 +98,7 @@ def test_a_faithfully_drawn_page_raises_nothing():
     """Criterion 3: the invariants must be silent on correct output."""
     tally = Tally(ORDER)
     for item in records():
-        tally.inspect(item, where=item["file_name"])
+        tally.inspect(item, where=item["filename"])
     assert tally.images == len(SEEDS)
     assert tally.problems() == []
 
@@ -107,9 +108,9 @@ def test_a_faithfully_drawn_page_raises_nothing():
 
 def test_a_known_suppressed_field_is_budgeted_not_errored():
     item = a_record()
-    gt = json.loads(item["ground_truth"])["gt_parse"]
+    gt = item["extracted"]
     gt["title"] = "MOT TIEU DE KHONG HE IN RA"
-    item["ground_truth"] = json.dumps({"gt_parse": gt}, ensure_ascii=False)
+    item["extracted"] = gt
     out = inspect(item, order=ORDER)
     assert out.errors == []
     assert out.unprinted == {"title": 1}
@@ -123,9 +124,9 @@ def test_a_field_outside_the_known_set_is_an_error():
     already uses; here it stops the first image that shows it.
     """
     item = a_record()
-    gt = json.loads(item["ground_truth"])["gt_parse"]
+    gt = item["extracted"]
     gt["store"]["name"] = "CUA HANG KHONG TON TAI TREN ANH"
-    item["ground_truth"] = json.dumps({"gt_parse": gt}, ensure_ascii=False)
+    item["extracted"] = gt
     errors = errors_of(item)
     assert any("store.name" in e and "not a field any layout" in e for e in errors), errors
 
@@ -151,10 +152,10 @@ def test_every_suppressed_pair_names_a_field_that_has_a_budget():
 
 def test_an_unprinted_total_is_an_error_not_a_budget_line():
     item = a_record()
-    gt = json.loads(item["ground_truth"])["gt_parse"]
+    gt = item["extracted"]
     label = next(iter(gt["total"]))
     gt["total"][label] = "999.999.999"
-    item["ground_truth"] = json.dumps({"gt_parse": gt}, ensure_ascii=False)
+    item["extracted"] = gt
     errors = errors_of(item)
     assert any("total" in e for e in errors), errors
 
@@ -162,17 +163,17 @@ def test_an_unprinted_total_is_an_error_not_a_budget_line():
 def test_wrapped_text_is_still_printed():
     """A dish name split over two rows is on the page and must not be a miss."""
     item = a_record()
-    gt = json.loads(item["ground_truth"])["gt_parse"]
+    gt = item["extracted"]
     name = gt["menu"][0]["nm"]
     if " " not in name:
         pytest.skip("this seed's first dish is one word, so it cannot wrap")
     head, _, tail = name.partition(" ")
-    for position, box in enumerate(item["boxes"]):
+    for position, box in enumerate(item["blocks"]):
         if box["text"] == name:
             box["text"] = head
             # Inserted next to its own head, which is where the second row of a
             # wrapped name actually lands in reading order.
-            item["boxes"].insert(position + 1,
+            item["blocks"].insert(position + 1,
                                  {"kind": box["kind"], "text": tail,
                                   "quad": box["quad"]})
             break
@@ -184,26 +185,26 @@ def test_wrapped_text_is_still_printed():
 
 def test_a_line_that_does_not_multiply_out_is_caught():
     item = a_record()
-    gt = json.loads(item["ground_truth"])["gt_parse"]
+    gt = item["extracted"]
     entry = next(e for e in gt["menu"] if "unitprice" in e)
     entry["price"] = "1.234.567"
-    item["ground_truth"] = json.dumps({"gt_parse": gt}, ensure_ascii=False)
+    item["extracted"] = gt
     errors = errors_of(item)
     assert any("price is" in e for e in errors), errors
 
 
 def test_lines_that_do_not_add_to_the_subtotal_are_caught():
     for item in records():
-        gt = json.loads(item["ground_truth"])["gt_parse"]
-        labels = item["recipe"]["attributes"]["document"]["params"].get("total_labels") or {}
+        gt = item["extracted"]
+        labels = record.attributes(item)["document"]["params"].get("total_labels") or {}
         if not any(invariants._fold(k) == invariants._fold(labels.get("subtotal", "\0"))
                    for k in gt["total"]):
             continue
         copy = json.loads(json.dumps(item))
-        gt = json.loads(copy["ground_truth"])["gt_parse"]
+        gt = copy["extracted"]
         # Drop one line: the remaining ones no longer reach the printed subtotal.
         gt["menu"] = gt["menu"][:-1]
-        copy["ground_truth"] = json.dumps({"gt_parse": gt}, ensure_ascii=False)
+        copy["extracted"] = gt
         errors = errors_of(copy)
         assert any("add to" in e for e in errors), errors
         return
@@ -212,8 +213,8 @@ def test_lines_that_do_not_add_to_the_subtotal_are_caught():
 
 def test_change_that_is_not_cash_minus_total_is_caught():
     for item in records():
-        gt = json.loads(item["ground_truth"])["gt_parse"]
-        labels = item["recipe"]["attributes"]["document"]["params"].get("total_labels") or {}
+        gt = item["extracted"]
+        labels = record.attributes(item)["document"]["params"].get("total_labels") or {}
         keys = [invariants._fold(k) for k in gt["total"]]
         change = invariants._fold(labels.get("change", "\0"))
         grand = invariants._fold(labels.get("grand", "\0"))
@@ -222,10 +223,10 @@ def test_change_that_is_not_cash_minus_total_is_caught():
         if keys.index(change) - 1 == keys.index(grand):
             continue  # the collapsed-label case; it has its own test
         copy = json.loads(json.dumps(item))
-        gt = json.loads(copy["ground_truth"])["gt_parse"]
+        gt = copy["extracted"]
         key = list(gt["total"])[keys.index(change)]
         gt["total"][key] = "7.777.777"
-        copy["ground_truth"] = json.dumps({"gt_parse": gt}, ensure_ascii=False)
+        copy["extracted"] = gt
         errors = errors_of(copy)
         assert any("minus" in e for e in errors), errors
         return
@@ -246,7 +247,7 @@ def test_a_total_row_the_label_cannot_carry_stops_the_shard():
     label, so the boxes are what says so.
     """
     item = a_record()
-    boxes = [box for box in item["boxes"]
+    boxes = [box for box in item["blocks"]
              if str(box["kind"]).startswith("total.")
              and str(box["kind"]).endswith(".label")]
     if len(boxes) < 2:
@@ -277,14 +278,36 @@ def test_a_quad_outside_the_frame_is_caught(tmp_path):
     image = REPO_ROOT / "data" / "dataset60" / "html" / "html_000.jpg"
     width, height = invariants.jpeg_size(image)
     item = a_record()
-    for box in item["boxes"]:
+    item["pages"][0].update(width=width, height=height)
+    for box in item["blocks"]:
         box["quad"] = [[0, 0], [10, 0], [10, 10], [0, 10]]
     assert errors_of(item, image=image) == []
 
-    item["boxes"][0]["quad"] = [[0, 0], [width + 40, 0],
+    item["blocks"][0]["quad"] = [[0, 0], [width + 40, 0],
                                 [width + 40, height + 40], [0, height + 40]]
     errors = errors_of(item, image=image)
     assert any("outside the" in e for e in errors), errors
+
+
+def test_a_page_size_that_disagrees_with_the_image_is_caught():
+    """`pages[0]` states a size, so a wrong one is a defect of its own.
+
+    Every bbox in the record is in the coordinates of that page. A record that
+    claims a page twice the size of the image it points at has no quad outside
+    the frame -- they are all comfortably inside a frame that does not exist --
+    and every box is at half the scale a loader will draw it at.
+    """
+    image = REPO_ROOT / "data" / "dataset60" / "html" / "html_000.jpg"
+    width, height = invariants.jpeg_size(image)
+    item = a_record()
+    item["pages"][0].update(width=width, height=height)
+    for box in item["blocks"]:
+        box["quad"] = [[0, 0], [10, 0], [10, 10], [0, 10]]
+    assert errors_of(item, image=image) == []
+
+    item["pages"][0]["width"] = width * 2
+    errors = errors_of(item, image=image)
+    assert any("says the page is" in e for e in errors), errors
 
 
 def test_an_unreadable_image_is_unchecked_rather_than_fine(tmp_path):
@@ -314,7 +337,7 @@ def test_jpeg_size_reads_what_the_renderers_wrote():
 @pytest.mark.parametrize("text", ["", "   "])
 def test_a_box_with_no_text_is_caught(text):
     item = a_record()
-    item["boxes"][0]["text"] = text
+    item["blocks"][0]["text"] = text
     errors = errors_of(item)
     assert any("no text" in e for e in errors), errors
 
@@ -322,7 +345,7 @@ def test_a_box_with_no_text_is_caught(text):
 @pytest.mark.parametrize("bad", ["�", "□"])
 def test_a_missing_glyph_in_a_box_is_caught(bad):
     item = a_record()
-    item["boxes"][0]["text"] = f"TIEN{bad}MAT"
+    item["blocks"][0]["text"] = f"TIEN{bad}MAT"
     errors = errors_of(item)
     assert any("missing glyph" in e for e in errors), errors
 
@@ -330,9 +353,9 @@ def test_a_missing_glyph_in_a_box_is_caught(bad):
 @pytest.mark.parametrize("bad", ["�", "□"])
 def test_a_missing_glyph_in_the_label_is_caught(bad):
     item = a_record()
-    gt = json.loads(item["ground_truth"])["gt_parse"]
+    gt = item["extracted"]
     gt["store"]["name"] = f"CUA{bad}HANG"
-    item["ground_truth"] = json.dumps({"gt_parse": gt}, ensure_ascii=False)
+    item["extracted"] = gt
     errors = errors_of(item)
     assert any("missing glyph" in e for e in errors), errors
 
@@ -343,7 +366,7 @@ def test_a_missing_glyph_in_the_label_is_caught(bad):
 @pytest.mark.parametrize("attribute", ORDER)
 def test_a_recipe_missing_any_declared_attribute_is_caught(attribute):
     item = a_record()
-    item["recipe"]["attributes"].pop(attribute)
+    record.attributes(item).pop(attribute)
     errors = errors_of(item)
     assert any(attribute in e and "_order.yaml" in e for e in errors), errors
 
@@ -371,10 +394,10 @@ def test_the_attribute_list_comes_from_the_manifest_not_from_six(tmp_path):
     assert probed[-1] == "probe" and len(probed) == len(ORDER) + 1
 
     item = a_record()
-    item["recipe"]["attributes"]["probe"] = {"id": "only_value", "params": {}}
+    record.attributes(item)["probe"] = {"id": "only_value", "params": {}}
     assert inspect(item, order=probed).errors == []
 
-    item["recipe"]["attributes"].pop("probe")
+    record.attributes(item).pop("probe")
     assert any("probe" in e for e in inspect(item, order=probed).errors)
 
 
@@ -386,11 +409,11 @@ def regressed(layout: str, images: int, fields=("branch", "address", "address2",
     tally = Tally(ORDER)
     for _ in range(images):
         item = a_record()
-        item["layout"] = layout
-        gt = json.loads(item["ground_truth"])["gt_parse"]
+        item["synthesis"]["layout"] = layout
+        gt = item["extracted"]
         for key in fields:
             gt["store"][key] = f"KHONG IN RA {key}"
-        item["ground_truth"] = json.dumps({"gt_parse": gt}, ensure_ascii=False)
+        item["extracted"] = gt
         tally.inspect(item)
     return tally
 
@@ -436,14 +459,14 @@ def test_a_single_stray_value_does_not_trip_a_budget():
     """MIN_COUNT: one value in a small shard is noise, not a regression."""
     tally = Tally(ORDER)
     strayed = a_record()
-    strayed["layout"] = "a_layout_that_prints_everything"
-    gt = json.loads(strayed["ground_truth"])["gt_parse"]
+    strayed["synthesis"]["layout"] = "a_layout_that_prints_everything"
+    gt = strayed["extracted"]
     gt["store"]["address"] = "MOT DIA CHI KHONG IN RA"
-    strayed["ground_truth"] = json.dumps({"gt_parse": gt}, ensure_ascii=False)
+    strayed["extracted"] = gt
     tally.inspect(strayed)
 
     assert tally.problems() == []
-    layout = strayed["layout"]
+    layout = record.layout(strayed)
     assert tally.report()["unprinted"][layout]["store.address"] == 1
 
 
@@ -470,7 +493,7 @@ def test_the_report_is_a_function_of_the_shard_alone():
     def run() -> str:
         tally = Tally(ORDER)
         for item in records():
-            tally.inspect(item, where=item["file_name"])
+            tally.inspect(item, where=item["filename"])
         return json.dumps(tally.report(), sort_keys=True, ensure_ascii=False)
 
     assert run() == run()
