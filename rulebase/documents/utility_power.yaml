@@ -1,0 +1,36 @@
+# THAM SỐ NỘI DUNG — utility_power
+#
+# Nửa còn lại của loại document này. Không gian lấy mẫu (weight, tags,
+# họ) nằm ở `rules/document.yaml`; những gì `rulebase.content.build`
+# đọc thì nằm đây.
+
+profile: utility_power
+invoice: true
+metered: true
+titles: ["HOÁ ĐƠN GIÁ TRỊ GIA TĂNG (TIỀN ĐIỆN)"]
+num_items: [2, 5]
+price_step: 1
+qty_range: [18, 240]
+vat_rates: [8, 10]
+tier_codes: ["SH", "KD", "SX"]
+subtitle: "(Bản thể hiện của hoá đơn điện tử)"
+period_format: "Kỳ hoá đơn: Tháng {month} năm {year}"
+party_fields:
+  left:
+    - [buyer_name, "Khách hàng:"]
+    - [buyer_address, "Địa chỉ:"]
+    - [buyer_tax_code, "Mã số thuế:"]
+    - [usage_period, "Từ ngày - đến ngày:"]
+  right:
+    - [buyer_code, "Mã khách hàng:"]
+    - [meter, "Số công tơ:"]
+    - [invoice_code, "Mã tra cứu hoá đơn:"]
+    - [consumption, "Điện tiêu thụ (kWh):"]
+signature_labels:
+  - ["Người mua điện", "(Ký, ghi rõ họ tên)"]
+  - ["Bên bán điện", "(Ký, đóng dấu, ghi rõ họ tên)"]
+digital_signature: true
+total_labels:
+  subtotal: "Cộng tiền điện"
+  vat: "Thuế GTGT"
+  grand: "Tổng cộng tiền thanh toán"
