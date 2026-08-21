@@ -203,6 +203,29 @@ def tables(args) -> None:
          "-o", args.out, "-n", str(args.count)])
 
 
+@task("handwriting", "regenerate data/hand12: the fields a person fills in, in ink")
+def handwriting(args) -> None:
+    # The html backend's own interpreter, and a job list rather than -n: which
+    # layouts are in the set is the measurement, not a quota. `setup-writevit`
+    # has to have run -- there is no fallback that draws letters, so a missing
+    # checkpoint stops the run rather than typing the values and calling them
+    # handwriting. See docs/handwriting-html.md.
+    out = Path(args.out if args.out != str(Path("data") / "dataset60")
+               else Path("data") / "hand12")
+    run([venv_python(VENVS["html"]), REPO_ROOT / "generators" / "html" / "render.py",
+         "--template", "auto", "--handwriting",
+         "--jobs", REPO_ROOT / "data" / "hand12" / "jobs.json",
+         "-o", out / "html"])
+
+
+@task("setup-writevit", "clone WriteViT beside the repo and fetch its weights")
+def setup_writevit(args) -> None:
+    # Not one of the three renderer environments and deliberately not part of
+    # `setup`: nothing here imports WriteViT, its weights and data are 294 MB,
+    # and only `--handwriting` needs it.
+    run([first_available_python(), REPO_ROOT / "tools" / "writevit" / "setup.py"])
+
+
 @task("run", "run pipeline.yaml: preflight, shards in parallel, assemble")
 def run_pipeline(args) -> None:
     command = [first_available_python(), REPO_ROOT / "pipeline" / "run.py"]

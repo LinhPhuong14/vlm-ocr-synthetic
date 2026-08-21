@@ -60,11 +60,18 @@ def main(path: Path, threshold: float = 0.30) -> int:
                 else:
                     touching[layout] += 1
     print(f"\n{pages} pages")
+    # `.get`, not `bad[layout]`: `bad` is a defaultdict, so reading a missing
+    # key here CREATED it, and the two lines below then saw a non-empty dict.
+    # A page with one merely-touching pair -- documented above as normal
+    # typography -- and no real overlap at all reported OVERLAPPING and exited
+    # 1. The verdict is now the count, which cannot be wrong for that reason.
     for layout in sorted(set(bad) | set(touching)):
-        print(f"  {layout:24} over>{threshold:.0%}: {bad[layout]:3d}   touching: "
-              f"{touching[layout]:4d}")
-    print("OVERLAPPING" if bad else "no pair overlaps by more than %.0f%%" % (threshold * 100))
-    return 1 if bad else 0
+        print(f"  {layout:24} over>{threshold:.0%}: {bad.get(layout, 0):3d}   touching: "
+              f"{touching.get(layout, 0):4d}")
+    failures = sum(bad.values())
+    print(f"{failures} overlapping pairs" if failures
+          else "no pair overlaps by more than %.0f%%" % (threshold * 100))
+    return 1 if failures else 0
 
 
 if __name__ == "__main__":

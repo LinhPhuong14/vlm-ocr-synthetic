@@ -287,8 +287,14 @@ def field_line(label: str, value: str, *, cls: str = "f", leader: bool = False) 
     Two labelled runs, not one: `invoice.field.label` and `invoice.field` are
     what the character grid emits, and a reader that learns to find the value
     should not have to split it off the label first.
+
+    The inner run carries **no class**. It used to be given `v`, the same one as
+    the table-cell wrapping it, and `.f.dot .v` then matched both: the form drew
+    its dotted leader across the whole cell *and* a second one hugging the value,
+    two rules under every field on `invoice_vat_form` and `invoice_export`. The
+    bold comes from the cell by inheritance, so nothing else needed changing.
     """
-    body = span("invoice.field", value, "v")
+    body = span("invoice.field", value)
     dots = " dot" if leader else ""
     return (f'<div class="{cls}{dots}"><span class="k">'
             f'{span("invoice.field.label", label)}</span>'
