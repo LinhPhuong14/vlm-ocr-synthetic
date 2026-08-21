@@ -124,6 +124,94 @@ và cả ba đều ở **phía đầu vào hoặc phía phán quyết**, không 
 
 Cả ba đều nằm ở **author-time**. Không cái nào đụng vào `metadata.jsonl`.
 
+### 1.6 "bbox đã có sẵn theo `td`/`tr`?" — **có, và đã chạy** — nhưng là **hộp thứ hai**
+
+Câu trả lời ngắn: đúng, và nó **đã được cài, đã sinh ra, đã nằm trong data
+commit sẵn**. Nhưng nó không phải cùng một hộp với hộp chữ — nó là **loại hộp
+thứ hai**, và cần cả hai.
+
+| | lấy từ | nói gì |
+| --- | --- | --- |
+| `boxes` | `span[data-kind]` — `CELL_RECTS_JS` | **mực ở đâu** |
+| `cells` | `[data-cell]` + `td.colSpan`/`rowSpan` — `CELL_REGIONS_JS` | **ô rộng tới đâu**, ở `row`/`col` nào, gộp mấy |
+
+`generators/html/sheets/base.py::cell()` nói vì sao phải có cái thứ hai:
+
+> *"the text box round 'Tổng tiền thanh toán' cannot say that its cell covers
+> six columns, and a model asked to rebuild the table needs exactly that."*
+
+Trình duyệt trả về **cả hình học lẫn cấu trúc** trong một lượt:
+
+```js
+[...document.querySelectorAll('#sheet [data-cell]')].map(td => ({
+  kind: td.dataset.cell,
+  row: Number(td.dataset.row), col: Number(td.dataset.col),
+  colspan: td.colSpan || 1,    rowspan: td.rowSpan || 1,
+  x: ..., y: ..., w: ..., h: ...,
+}));
+```
+
+và `structure_from_cells` dựng token PP-Structure **từ ô đã đo, không từ
+template** — *"so it describes the table the browser actually laid out."*
+
+**Đo trên data đã commit** (dòng đầu mỗi `metadata.jsonl`):
+
+| bộ | `boxes` | `cells` | `structure` |
+| --- | ---: | ---: | ---: |
+| `invoices54/html` (đường CSS) | 105 | **102** | 240 |
+| `invoices54/genalog` (đường CSS) | 105 | **0** | 240 |
+| `forms16/genalog` | 534 | **0** | 1016 |
+| `dataset60/html` (đường lưới) | 16 | **0** | 0 |
+| `dataset60/synthdog` | 16 | **0** | 0 |
+
+Một ví dụ ô gộp thật, `invoices54/html` ảnh đầu — 3 ô gộp trên 102:
+
+```json
+{"kind": "total.line.label", "row": 12, "col": 0, "colspan": 7,
+ "text": "Cộng tiền hàng chưa có thuế GTGT", "quad": [[...]]}
+```
+
+**Nên câu trả lời đầy đủ là: có, trên đúng một trong ba đường vẽ.**
+
+| backend | `boxes` | `cells` (hình học ô) | `structure` |
+| --- | :---: | --- | --- |
+| **html** (Chromium) | ✓ | ✓ **đo từ DOM** | ✓ đo |
+| **genalog** (WeasyPrint) | ✓ | ✗ | ✓ nhưng **parse từ markup**, không đo |
+| **synthdog** (glyph) | ✓ | ✗ | ✗ |
+
+`genalog` có cấu trúc đúng (240 token, **trùng khít** con số của html — nên hai
+engine đồng ý về cấu trúc) nhưng không có hình học ô, vì `<td>` không sống sót
+qua PDF. `synthdog` không có DOM nào để hỏi.
+
+> **Nhầm hai loại hộp là một lỗi thật.** Một ô gộp có `<td>` box to và `<span>`
+> box nhỏ nằm trong. Dạy một bộ dò bằng `<td>` box là dạy nó khoanh cả **giấy
+> trắng**; dạy bằng `<span>` box thì mất thông tin "ô này phủ bảy cột". Nhãn
+> phải mang cả hai, và `structure` là cái nối chúng lại.
+
+### 1.7 Và đây là chỗ engine bảng tường minh **trả công lần thứ hai**
+
+Bảng trên cho thấy `cells` hôm nay **phụ thuộc vào việc có một DOM để hỏi**.
+Nếu cấu trúc được **khai tường minh** — `merges: [{row: total[grand], from: stt,
+to: amount}]` ([`tang-cuong-bo-cuc.md` §3.2c](tang-cuong-bo-cuc.md#32c--toạ-độ-tường-minh-không-phải-xác-suất))
+— thì `row`/`col`/`colspan`/`rowspan` **đã biết trước khi vẽ**, và mỗi backend
+chỉ còn phải cung cấp một thứ: **biên của ô theo pixel**, mà nó đã biết:
+
+| backend | biên ô lấy từ đâu nếu cấu trúc được khai trước |
+| --- | --- |
+| html | vẫn `getBoundingClientRect()` — không đổi gì |
+| genalog | biên cột × `line_px` của hàng — cùng phép nhân `marks_for` đang làm cho `Mark` |
+| synthdog | `(row, col0, col1)` của `Grid` × advance của font — cùng phép nhân `RectLayer` đang làm |
+
+Nghĩa là **cả ba backend đều phát được `cells`**, không chỉ backend có trình
+duyệt. Và điều đó không đòi một cơ chế mới: `Mark` đã đi đúng con đường ấy —
+rule/fill/frame được khai trên **cùng lưới (row, col)** mà ô dùng, rồi mỗi
+backend nhân một lần. Một ô gộp là cùng loại đối tượng: một hình chữ nhật trên
+lưới ấy, chỉ khác là nó có chữ bên trong.
+
+Đây là lập luận mạnh nhất ủng hộ engine bảng tường minh, và nó không phải lập
+luận về sự tiện: **khai cấu trúc trước khi vẽ là cách duy nhất để nhãn cấu trúc
+không còn là đặc quyền của một renderer.**
+
 ---
 
 ## 2. Hai mặt phẳng

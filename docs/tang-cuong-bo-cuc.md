@@ -218,7 +218,7 @@ Nên có **hai chế độ**, và chúng khác nhau ở chỗ *bao giờ thì bi
 | chế độ | ai bảo đảm | kiểm lúc nào | ca |
 | --- | --- | --- | --- |
 | **Hợp lệ theo cấu tạo** | cây cột | không cần kiểm | **A** — tiêu đề nhóm, cột trụ, dải phân nhóm |
-| **Đề xuất rồi kiểm** | một vị từ rẻ | mỗi hàng, mỗi lần | **B** — gộp cục bộ trong một hàng |
+| **Chỉ đích danh rồi kiểm** | một vị từ rẻ | lúc soạn, và mỗi hàng | **B** — gộp cục bộ trong một hàng |
 
 Vị từ cho chế độ thứ hai chỉ có một câu, và **nó đã nằm sẵn trong repo** (§1.2):
 
@@ -227,7 +227,7 @@ Vị từ cho chế độ thứ hai chỉ có một câu, và **nó đã nằm s
 
 Rẻ (`values.get(key)` cho mỗi cột bị phủ), tất định, và **đủ**: nó chính là
 định nghĩa của "gộp mà không nuốt mất dữ liệu". Nên tờ B không cần một cây; nó
-cần một *phạm vi* được khai và một vị từ được chạy.
+cần một *toạ độ* được chỉ ra và một vị từ được chạy — §3.2c.
 
 Và một nhận xét làm mọi thứ nhẹ hơn: **ca B đã diễn tả được trong ngữ pháp hiện
 tại.** `{from: name, span: [qty, amount]}` trong `item.rows` **chính là** một
@@ -251,47 +251,115 @@ một lời hứa.
 | `stack_rows` | đổi giữa các mẫu dòng mặt hàng đã khai | `item.rows` có nhiều hơn một mẫu |
 | `total_span` | dòng tổng phủ tới cột đầu tiên có số | luôn hợp lệ — chính là luật §1.2 |
 | `blank_rows` | số dòng trống có kẻ ô | bố cục khai `blank_rows` là một khoảng |
-| **`row_local_merge`** | gộp một dải cột trên **một hàng** — ca B | dải nằm trong `row_merges.scope` đã khai, **và** vị từ §3.2 đúng cho hàng đó |
+| **`row_local_merge`** | gộp một dải cột trên **một hàng** — ca B | có một mục `merges:` **chỉ đích danh** hàng (bằng neo) và dải cột (bằng `key`), **và** vị từ §3.2 đúng cho hàng đó |
 
-Tám nước đầu là *hợp lệ theo cấu tạo*: không cần kiểm. Nước thứ chín là *đề
-xuất rồi kiểm*: được đề xuất tự do trong phạm vi đã khai, rồi vị từ nhận hoặc
-loại — **cho từng hàng một**, vì cùng một dải có thể hợp lệ ở hàng này và nuốt
-mất một số ở hàng kia.
+Tám nước đầu là *hợp lệ theo cấu tạo*: không cần kiểm. Nước thứ chín là *chỉ
+đích danh rồi kiểm*: một mục `merges:` nói thẳng hàng nào, cột nào, mấy ô (§3.2c),
+rồi vị từ nhận hoặc loại — **cho từng hàng một**, vì cùng một dải có thể hợp lệ
+ở hàng này và nuốt mất một số ở hàng kia.
 
 Vẫn không có `random_merge` trên toàn bảng, và không có `split_cell`. Khác biệt
-giữa `row_local_merge` và "gộp ngẫu nhiên" là **phạm vi được khai** cộng **vị từ
-được chạy** — không phải là chỗ gộp có đẹp hay không.
+giữa `row_local_merge` và "gộp ngẫu nhiên" là **toạ độ được chỉ ra** cộng **vị
+từ được chạy** — không phải là chỗ gộp có đẹp hay không.
 
-### 3.2c · `row_merges:` — khai phạm vi cho ca B
+### 3.2c · Toạ độ tường minh, không phải xác suất
+
+> **Sửa lại lần hai.** Bản trước khai phạm vi + xác suất
+> (`{scope: [name, unit], on: item, prob: 0.35}`) rồi để sampler bốc. Cách đó
+> có một khiếm khuyết mà chính tài liệu này lẽ ra phải bắt: khi vị từ từ chối,
+> hàng ấy **im lặng không gộp** — nên một khai báo sai trông y hệt một hàng
+> không đủ điều kiện. Đúng loại lỗi im lặng mà repo này liên tục trả giá.
+>
+> Cách đúng hơn: **LLM chỉ ra thẳng gộp ở đâu, gộp mấy ô**, nhìn vào nội dung
+> mà quyết. Vị từ vẫn chạy — nhưng bây giờ nó kiểm **một khẳng định cụ thể**,
+> nên khi sai thì lỗi **có địa chỉ**.
+
+| | khai phạm vi + xác suất | **toạ độ tường minh** |
+| --- | --- | --- |
+| ai quyết | sampler bốc, vị từ lọc | **LLM chỉ định, nhìn nội dung và ngữ cảnh** |
+| khi sai | "hàng 4 không đủ điều kiện" → **bỏ qua im lặng** | "`merge(item[2], name→unit)` nuốt giá trị `unit`" → **TỪ CHỐI, có địa chỉ** |
+| tái lập | phụ thuộc seed | **tất định hoàn toàn** |
+| người duyệt xem gì | một con số xác suất | **một danh sách hữu hạn, đọc được** |
+| bắt lỗi lúc nào | lúc chạy, mỗi ảnh | **lúc soạn, một lần** |
+
+#### Nhưng: **số hàng không cố định** — và đây là chỗ toạ độ tuyệt đối vỡ
+
+`num_items` do thuộc tính `document` bốc, thường là một khoảng (`[3, 12]`). Nên
+`merge ở hàng 7` **vô nghĩa** trên tờ chỉ có 4 dòng hàng. Cột thì khác: cột được
+khai trong file, có `key`, và không đổi theo nội dung.
+
+> **Cột địa chỉ bằng `key`. Hàng địa chỉ bằng *neo tượng trưng*, không bằng số
+> nguyên.**
 
 ```yaml
-table:
-  row_merges:
-    # Trên hàng mặt hàng, tên có thể chạy sang cột ĐVT khi mặt hàng không có
-    # đơn vị (dịch vụ, phí) -- đúng như tờ mẫu in ra.
-    - {scope: [name, unit], on: item, prob: 0.35}
-    # Trên hàng ghi chú, ghi chú chạy ngang ba cột số.
-    - {scope: [qty, amount], on: note, prob: 1.0}
-    # Trên hàng tổng, nhãn chạy tới cột đầu tiên có số -- luật §1.2, khai
-    # tường minh cho người đọc thấy.
-    - {scope: [stt, amount], on: total, prob: 1.0}
+merges:
+  # cột: bằng key. hàng: bằng neo.
+  - {row: header,       from: vat_rate, to: amount_with_vat}   # tiêu đề nhóm — ca A
+  - {row: "total[grand]", from: stt,    to: amount}            # dòng tổng chạy ngang
+  - {row: "item[0]",    from: name,     to: unit}              # đúng dòng hàng đầu
+  - {row: "item[*]",    from: name,     to: unit,
+     when: "not unit"}                                          # MỌI dòng không có ĐVT
+  - {row: "note@item",  from: qty,      to: amount}            # dòng ghi chú
+  - {row: "item[0]",    from: stt,      rows: 3}               # rowspan qua 3 dòng hàng
+
+fills:
+  - {row: header,        from: stt, to: amount_with_vat, tone: 0.10}
+  - {row: "total[grand]", from: stt, to: amount,          tone: 0.14}
 ```
 
-Ba trường, và mỗi trường chặn một kiểu sai:
+Neo hợp lệ — **danh sách đóng, schema kiểm**:
 
-* **`scope`** — dải cột **liền nhau** được phép gộp. Không khai thì không gộp.
-  Đây là chỗ "ngẫu nhiên" bị chặn: ngẫu nhiên *trong* một dải người viết bố cục
-  đã nhìn qua, chứ không ngẫu nhiên trên cả bảng.
-* **`on`** — loại hàng (`item` · `note` · `total` · `group` · `blank`). Cùng
-  một dải hợp lệ trên hàng ghi chú và vô nghĩa trên hàng mặt hàng.
-* **`prob`** — bao nhiêu phần hàng đủ điều kiện thì thật sự gộp. Đây là chỗ
-  "tuỳ chỗ" trong câu hỏi: **cùng một bảng, hàng này gộp, hàng kia không** —
-  vốn là hình dạng thật của một tờ mẫu, chứ không phải một quy luật đều.
+| neo | trỏ vào |
+| --- | --- |
+| `header` · `colnum` | hàng tiêu đề cột · hàng đánh số cột |
+| `item[i]` · `item[last]` · `item[*]` | dòng hàng thứ i · dòng cuối · mọi dòng |
+| `note@item` · `group[i]` | dòng ghi chú của mặt hàng · dòng phân nhóm |
+| `total[grand]` · `total[i]` | dòng tổng cộng · dòng tổng thứ i |
+| `blank[*]` · `vat_summary[i]` | dòng trống in sẵn · dòng bảng "Tổng hợp" |
 
-Vị từ vẫn chạy sau cùng và vẫn có quyền phủ quyết: `prob: 1.0` mà hàng đó có số
-ở cột bị phủ thì **không gộp**, và không báo lỗi — hàng ấy đơn giản là không đủ
-điều kiện. Đó là điểm khác then chốt so với "gộp rồi sửa": không có gì để sửa,
-vì nước đi không xảy ra.
+`item[*]` cộng `when:` là chỗ *"tuỳ chỗ"* quay lại — nhưng **tất định và tự giải
+thích**: "mọi dòng hàng nào không có đơn vị tính" tốt hơn `prob: 0.35` ở cả ba
+mặt — người đọc hiểu, máy kiểm được, và cùng nội dung luôn cho cùng kết quả.
+`when:` chỉ nhận biểu thức trên vốn từ `from:` đã có, và **cùng vị từ §3.2 vẫn
+là lời cuối**: `when` đúng mà ô bị phủ có giá trị thì vẫn là lỗi.
+
+#### `n_cols` được khai. `n_rows` thì **không**
+
+Cùng lý lẽ: số cột là khai báo, số hàng là **hàm của nội dung**
+(`num_items` + `blank_rows` + số dòng của các section). Khai `n_rows: 14` là nói
+một điều mà nội dung sẽ phủ định — và nếu engine *ép* cho đủ 14 dòng thì nhãn
+bắt đầu mô tả những dòng không có gì.
+
+Cái **được** khai là `blank_rows` — số dòng trống **đã in sẵn** trên tờ mẫu, vì
+đó thật sự là thuộc tính của tờ giấy chứ không phải của giao dịch.
+
+#### Đơn vị soạn là **biến thể có tên**, không phải mỗi ảnh
+
+Nếu LLM viết toạ độ cho **từng ảnh** thì chi phí quay về `k × N` — đúng thứ
+[Phụ lục C](tu-dong-hoa-bang-llm.md#phụ-lục-c--kinh-tế-đặt-llm-ở-đâu-thì-rẻ)
+vừa loại. Nên đơn vị là **một biến thể có tên**, soạn một lần, duyệt một lần,
+rồi sampler bốc theo trọng số:
+
+```
+rulebase/layouts/invoice_vat_form.yaml          ← PHÔI GỐC: đo từ ảnh thật, có provenance
+rulebase/layouts/variants/invoice_vat_form/
+├── v01-thue-gop-tieu-de.yaml       ← chỉ khai DELTA so với phôi gốc
+├── v02-bo-cot-dvt.yaml
+├── v03-tru-stt-rowspan.yaml
+└── ...                              ~20 biến thể, mỗi cái một dòng lý do
+```
+
+Ba điều cách này giữ được, và cả ba đều quan trọng:
+
+* **Provenance dây chuyền.** `v03` khai `derives_from: invoice_vat_form` và
+  `provenance.method: llm_variant`. Phôi gốc vẫn trỏ về bức ảnh nó được đo từ
+  đó; biến thể trỏ về phôi gốc. Không có file nào mất gốc.
+* **Chi phí vẫn `k × số biến thể`**, không phải `k × N`.
+* **Người duyệt đọc được.** Hai mươi file, mỗi file bốn dòng `merges:` — liếc
+  một lượt là xong, và `make preview-structures` in ra cả hai mươi cạnh nhau.
+
+Trọng số vào `rules/structure.yaml` như mọi thứ khác, và **phôi gốc phải nặng
+ký nhất** (§4.4).
 
 ### 3.2d · Chế độ thứ ba: hồ sơ gộp đo từ giấy thật
 
@@ -303,16 +371,16 @@ giấy thật** rồi lấy mẫu theo nó.
 Recognition*](https://arxiv.org/abs/2404.11100) đi (§8), và số của họ nói nó
 đáng: TEDS 0,9758 → 0,9847, lợi ích tập trung đúng ở bảng nhiều ô gộp. Điều
 kiện: một tập tờ giấy thật **đã chú thích cấu trúc**. Repo chưa có, và đó là
-lý do nó là chế độ thứ ba chứ không phải thứ nhất — nhưng nếu có thì `prob`
-trong `row_merges:` không phải đoán nữa mà là **đo được**.
+lý do nó là chế độ thứ ba chứ không phải thứ nhất — nhưng nếu có thì danh sách
+`merges:` của mỗi biến thể không phải nghĩ ra nữa mà là **rút từ tờ thật**.
 
 Ba chế độ xếp theo độ tin và theo giá:
 
 | | bảo đảm bằng | cần gì | dùng khi |
 | --- | --- | --- | --- |
 | 1 · cấu tạo | cây cột | một khai báo | quan hệ có thật và ổn định |
-| 2 · đề xuất+kiểm | vị từ không-nuốt-giá-trị | một phạm vi | gộp cục bộ, "tuỳ chỗ" |
-| 3 · hồ sơ đo | phân phối thật | tờ giấy thật đã chú thích | khi có dữ liệu — thay `prob` đoán bằng `prob` đo |
+| 2 · chỉ đích danh + kiểm | vị từ không-nuốt-giá-trị | một toạ độ có neo | gộp cục bộ, "tuỳ chỗ" |
+| 3 · hồ sơ đo | phân phối thật | tờ giấy thật đã chú thích | khi có dữ liệu — `merges:` **rút từ tờ thật** thay vì nghĩ ra |
 
 ### 3.3 `compose:` — chỗ bảo đảm "nội dung hợp lý"
 
@@ -373,55 +441,58 @@ vừa bốc, và phải đặt thẻ trước khi `content` quyết định các
 
 ```yaml
 # rules/structure.yaml — bốc thứ 3/9, ngay sau `layout`
+#
+# Không có tham số ngẫu nhiên nào ở đây. Mỗi giá trị trỏ vào MỘT file biến thể
+# đã soạn và đã duyệt (§3.2c), và trọng số là thứ duy nhất được tinh chỉnh.
 options:
-  # Đúng như tờ giấy được đo. PHẢI nặng ký nhất — xem §4.4.
-  - id: as_printed
-    weight: 12
+  - id: as_printed                 # phôi gốc, đúng như tờ giấy được đo
+    weight: 12                     # PHẢI nặng ký nhất — §4.4
     tags: [structure_measured]
-    params: {moves: []}
+    params: {variant: null}
 
-  - id: grouped_headers
+  - id: vat_form_grouped_tax
     weight: 3
-    requires: [has_optional_group]
+    requires: [layout_vat_form]
     tags: [structure_varied, two_band_header]
-    params:
-      moves: [expand_group]
-      group_prob: 1.0
+    params: {variant: "invoice_vat_form/v01-thue-gop-tieu-de"}
 
-  - id: compact
+  - id: vat_form_no_unit
     weight: 2
-    requires: [has_optional_column]
-    tags: [structure_varied]
-    params:
-      moves: [collapse_group, drop_column]
-      drop_prob: 0.5           # mỗi cột optional bị bỏ với xác suất này
-      max_drops: 2
-
-  - id: stubbed
-    weight: 2
-    requires: [has_stub_column, multi_row_item]
-    tags: [structure_varied, has_rowspan]
-    params: {moves: [stub_rowspan]}
-
-  - id: dense
-    weight: 1
-    requires: [has_merge_pair]
+    requires: [layout_vat_form]
     tags: [structure_varied, has_merged_columns]
-    params:
-      moves: [merge_pair, collapse_group, stub_rowspan]
-      merge_prob: 0.7
+    params: {variant: "invoice_vat_form/v02-bo-cot-dvt"}
+
+  - id: vat_form_stub
+    weight: 2
+    requires: [layout_vat_form]
+    tags: [structure_varied, has_rowspan]
+    params: {variant: "invoice_vat_form/v03-tru-stt-rowspan"}
 ```
+
+**Ranh giới giữa cái được bốc và cái phải khai**, và nó là ranh giới duy nhất
+cần nhớ:
+
+| loại quyết định | ví dụ | cách xử lý |
+| --- | --- | --- |
+| **cấu trúc** — có thể làm mất một giá trị | ô nào gộp · cột nào bỏ · component nào chạy | **khai tường minh**, có tên, có người duyệt |
+| **vô hướng trong khoảng** — không thể làm mất gì | `width: [104,118]` · `blank_rows: [3,6]` · `name_scale` · lề | **bốc từ seed**, như mọi thuộc tính khác |
+
+Đó là lý do `blank_rows` vẫn là một khoảng còn `merges` thì không: bốc thừa hai
+dòng trống thì tờ giấy chỉ dài hơn; bốc nhầm một phép gộp thì một con số biến
+mất khỏi trang trong khi nhãn vẫn khai nó.
 
 Ba thẻ `has_optional_group` / `has_optional_column` / `has_stub_column` do
 **giá trị `layout` đặt** trong `rules/layout.yaml`, và đó là chỗ cơ chế cũ trả
 công lần nữa: viết ở mức **node họ** thì cả họ nhận một lần, và bố cục thêm vào
 sau không quên được.
 
-Tham số ở đây mượn thẳng vốn từ của
+Vốn từ để *mô tả* một biến thể mượn thẳng của
 [SynthTabNet](https://github.com/IBM/SynthTabNet) — số tầng tiêu đề, **loại
 span** (chỉ tiêu đề / chỉ hàng / chỉ cột / cả hai), kích thước span lớn nhất,
-tỉ lệ diện tích bảng bị span phủ. Khác biệt: ở đây mỗi tham số bị chặn bởi
-những gì file bố cục **cho phép**, chứ không rải tự do lên lưới.
+tỉ lệ diện tích bảng bị span phủ. Khác biệt: SynthTabNet dùng chúng làm **tham
+số lấy mẫu**; ở đây chúng là **thuộc tính đo được của một biến thể đã soạn** —
+`make structures` in ra để đối chiếu với phân phối của tờ giấy thật, chứ không
+để rải span lên lưới.
 
 ### 4.3 Đếm thật, không nhân bừa
 
@@ -779,7 +850,8 @@ do, và thêm một component không phải sửa `build_grid`.
 ### T2 · Bộ tăng cường + `rules/structure.yaml` *(sau T1, T1b)*
 Chín nước đi ở mức cột (§3.2b) cộng bốn ở mức component (§4b.4), giải xung đột,
 `make structures` và `make preview-structures`, trần biến thể trong `drift.py`.
-Vị từ không-nuốt-giá-trị chạy cho `row_local_merge` **theo từng hàng**.
+Vị từ không-nuốt-giá-trị chạy cho mọi mục `merges:` **theo từng hàng**, và một mục
+không thoả thì **báo lỗi có địa chỉ lúc soạn**, không im lặng bỏ qua lúc chạy.
 **Xong khi:** `make structures` in ra 48 cấu trúc cột × 8 biến thể component
 cho `invoice_vat_form`, và mẫu ngẫu nhiên 100 trang trong số đó dựng được, qua
 bất biến, `preview-grid` đọc được.
@@ -797,7 +869,7 @@ nào gộp được và viết chung thế nào?"* — hỏi trên file đã có
 
 | không làm | vì sao |
 | --- | --- |
-| Gộp ngẫu nhiên trên **cả bảng**, không phạm vi, không vị từ | `tables.py` đã làm đúng cho bài của nó; ở đây nó tạo ra tờ giấy không tồn tại và làm đỏ bất biến đúng. Gộp cục bộ *có* phạm vi khai và *có* vị từ (§3.2c) thì khác — cái đó phải làm |
+| Gộp ngẫu nhiên trên **cả bảng**, không phạm vi, không vị từ | `tables.py` đã làm đúng cho bài của nó; ở đây nó tạo ra tờ giấy không tồn tại và làm đỏ bất biến đúng. Gộp cục bộ *có toạ độ chỉ đích danh* và *có* vị từ (§3.2c) thì khác — cái đó phải làm |
 | Để bộ tăng cường tự đoán cách nối hai giá trị | không có `compose:` thì không có nước đi. Đoán là chỗ "nội dung hợp lý" sẽ mất |
 | Lưu biến thể thành file trong `layouts/` | phá `provenance:`, phá thư mục, phá bộ test |
 | Nhập `tables.py` vào đường chứng từ | hai bài khác nhau, hai loại nhãn, hai loại nội dung |
