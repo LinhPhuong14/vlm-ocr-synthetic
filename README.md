@@ -781,7 +781,7 @@ to rebuild an image exactly are in **[`data/README.md`](data/README.md)**.
 | [`data/invoices54/`](data/invoices54) | the nine commercial invoice layouts drawn as CSS sheets, by both HTML backends |
 | [`data/forms16/`](data/forms16) | a hospital cost statement and an authorisation to collect — the two documents here that are not a sale |
 | [`data/tables60/`](data/tables60) | table-structure images, a different task and a different label |
-| [`data/hand12/`](data/hand12) | the first pages here whose values are **handwritten** rather than typed — real ink from WriteViT, filled into printed form fields |
+| [`data/hand12/`](data/hand12) | the first pages here whose values are **handwritten** rather than typed — real ink from WriteViT, filled into printed form fields. `samples/handwriting/` puts one of those beside the same form filled from a handwriting typeface, which covers every field |
 
 `make proof` reads a set back with Tesseract 5 (`vie`) and scores it order-free
 — Tesseract reads a two-column page in whatever order its layout analysis
@@ -866,7 +866,7 @@ the two must stay in step.
 | [`docs/python-versions.md`](docs/python-versions.md) | why the glyph renderer stops below Python 3.12, measured |
 | [`docs/windows.md`](docs/windows.md) | Windows setup: Python 3.11, GTK, Tesseract, proxies (Vietnamese) |
 | [`docs/huong-dan-va-giai-thich.md`](docs/huong-dan-va-giai-thich.md) | line-by-line walkthrough of all three renderers, with a Q&A (Vietnamese) |
-| [`fonts/README.md`](fonts/README.md) | which fonts, which licences, and why coverage is checked |
+| [`fonts/README.md`](fonts/README.md) | which fonts, which licences, and why coverage is checked — including the two handwriting faces in `fonts/hand/` and the one that failed the Vietnamese check |
 
 ## Licence
 

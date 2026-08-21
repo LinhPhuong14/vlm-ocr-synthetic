@@ -32,20 +32,35 @@ import rulebase  # noqa: E402
 class FakeHand:
     """A hand that writes nothing and reports what it was asked to write.
 
-    Everything `fill` needs from a `Hand` is `ink()`, so the double is this
-    small -- which is the point of `Hand.ink` existing at all.
+    An ink source is four methods -- `writable`, `refusal`, `span`, `css` --
+    and `fill` calls nothing else, which is why the double is this small and
+    why `FontHand` could be added without `fill` learning a second shape. The
+    policy under test here is the model's, so it delegates to the module.
     """
+
+    source = "fake"
 
     def __init__(self, refuse: set[str] | None = None):
         self.asked: list[str] = []
         self.refuse = refuse or set()
 
-    def ink(self, text, writer, seed, pen):
+    def writable(self, text, page):
+        return handwriting.writable(text)
+
+    def refusal(self, text, page):
+        return handwriting.refusal(text)
+
+    def span(self, kind, classes, text, page):
         if text in self.refuse:
             raise ValueError("characters outside the alphabet: '@'")
         self.asked.append(text)
-        # A 1x1 PNG: `fill` never looks inside, only at the size.
-        return b"\x89PNG-not-really", (16 * len(text), 32)
+        # Real ink is a PNG; the double never makes one. What `fill` is
+        # responsible for is the markup around it, and that is what comes back.
+        return handwriting.ink_span(kind, classes, text, b"png", (16 * len(text), 32),
+                                    page.height_em, page.sit())
+
+    def css(self, page):
+        return handwriting.CSS
 
 
 # --------------------------------------------------------------- the policy
@@ -149,6 +164,11 @@ def test_a_refused_run_stays_printed_and_is_counted():
     assert report["inked"] == []
 
 
+def test_the_report_names_the_source():
+    markup = '<style></style><span data-kind="invoice.field">Tiền mặt</span>'
+    assert _fill(markup)[1]["source"] == "fake"
+
+
 def test_a_worker_refusal_is_recorded_rather_than_raised():
     """The policy and the checkpoint disagreeing is data, not a crashed shard."""
     markup = '<style></style><span data-kind="invoice.field">Chuyển khoản</span>'
@@ -227,6 +247,83 @@ def test_structure_tokens_survive_inking():
     markup = sheets.build(recipe, receipt)
     filled, _ = _fill(markup, seed=7)
     assert sheets.structure_from_markup(filled) == sheets.structure_from_markup(markup)
+
+
+# ------------------------------------------------------------- the font source
+
+def _font():
+    hand = handwriting.FontHand()
+    if not hand.faces:
+        pytest.skip("no handwriting faces in fonts/hand/")
+    return hand.open()
+
+
+def test_every_declared_face_is_on_disk():
+    """A face named in FACES and missing is a page set in the system font.
+
+    `FontHand` skips a missing file rather than failing, so the check that the
+    shipped list is complete has to be here.
+    """
+    for _family, filename, _size in handwriting.FACES:
+        assert (handwriting.HAND_FONT_DIR / filename).exists(), filename
+
+
+@pytest.mark.parametrize("text", [
+    "15/06/2018", "3.920.000", "LÊ QUANG ĐẠO", "0956100526",
+    "Tân Mai - Biên Hoà - Đồng Nai", "01GTKT0/731",
+])
+def test_the_font_writes_what_the_model_refuses(text):
+    """The whole reason this source exists: digits, capitals and punctuation.
+
+    Each of these is a run the checkpoint cannot draw -- and they are 85 % of
+    the fields on a form. A face that could not draw them would be adding a
+    second hand for nothing.
+    """
+    hand = _font()
+    page = handwriting.Page(7)
+    assert not handwriting.writable(text), "the model was supposed to refuse this"
+    assert hand.writable(text, page), text
+
+
+@pytest.mark.parametrize("text", ["Nguyễn Thị Bích Ngọc", "Chuyển khoản",
+                                 "Hai trăm ba mươi tám triệu đồng"])
+def test_the_font_also_writes_everything_the_model_writes(text):
+    """Otherwise switching source would trade one set of blank fields for another."""
+    assert handwriting.writable(text)
+    assert _font().writable(text, handwriting.Page(7)), text
+
+
+def test_the_font_source_keeps_the_text_a_text_node():
+    """No <img> and no `data-text`: the browser boxes it as it boxes any text.
+
+    That is what lets a long value WRAP and be boxed per line, which an image
+    of ink cannot do -- and it is why neither box reader needed changing for
+    this source.
+    """
+    hand = _font()
+    page = handwriting.Page(7)
+    drawn = hand.span("invoice.field", ' class="v"', "15/06/2018", page)
+    assert "<img" not in drawn
+    assert "data-text" not in drawn
+    assert ">15/06/2018</span>" in drawn
+    assert 'class="v hand"' in drawn
+
+
+def test_the_font_css_embeds_the_face_it_names():
+    hand = _font()
+    page = handwriting.Page(7)
+    family, filename, _size = hand.face_for(page)
+    css = hand.css(page)
+    assert f"@font-face{{font-family:'{family}'" in css
+    assert filename in css
+    assert page.pen_hex in css
+
+
+def test_source_by_name():
+    assert isinstance(handwriting.source("font"), handwriting.FontHand)
+    assert isinstance(handwriting.source("model"), handwriting.Hand)
+    with pytest.raises(KeyError):
+        handwriting.source("crayon")
 
 
 # ------------------------------------------------------------- the pixel half
