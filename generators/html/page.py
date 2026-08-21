@@ -126,8 +126,12 @@ CELL_RECTS_JS = """() => {
     const kind = span.dataset.kind;
     const node = span.firstChild;
     const simple = node && node.nodeType === 3 && span.childNodes.length === 1;
+    // A hand-filled field holds an <img> of ink, not a text node, so its text
+    // rides on `data-text`. Without this the run has no textContent, `push`
+    // drops it, and the page loses the box for exactly the field a reader
+    // most needs one for. Nothing that types its values sets the attribute.
     if (!simple || span.getClientRects().length < 2) {
-      push(kind, span.textContent,
+      push(kind, span.dataset.text ?? span.textContent,
            (span.firstElementChild || span).getBoundingClientRect());
       continue;
     }
@@ -166,11 +170,35 @@ CELL_RECTS_JS = """() => {
 # idea and the token format come from TIES_DataGeneration by way of PaddleOCR.
 CELL_REGIONS_JS = """() => {
   const sheet = document.querySelector('#sheet').getBoundingClientRect();
+  // `textContent`, except that a hand-filled run contributes its `data-text`
+  // instead of the nothing an <img> contributes. Written as a walk rather than
+  // as "the first data-text in the cell" because a cell can hold a printed
+  // caption AND an inked value -- taking either one alone loses the other.
+  //
+  // No layout puts an inked value in a table cell today: checked over all
+  // sixteen layouts and twelve seeds, every field a person fills in sits
+  // outside the item table. This is here so that the first one that does not
+  // fails visibly rather than by reporting an empty cell into the structure
+  // label. With no `data-text` anywhere it is `textContent.trim()` exactly.
+  const cellText = (root) => {
+    let out = '';
+    const walk = (node) => {
+      if (node.nodeType === 3) { out += node.data; return; }
+      if (node.nodeType !== 1) return;
+      if (node.dataset && node.dataset.text !== undefined) {
+        out += node.dataset.text;
+        return;
+      }
+      for (const child of node.childNodes) walk(child);
+    };
+    walk(root);
+    return out.trim();
+  };
   return [...document.querySelectorAll('#sheet [data-cell]')].map(td => {
     const box = td.getBoundingClientRect();
     return {
       kind: td.dataset.cell,
-      text: td.textContent.trim(),
+      text: cellText(td),
       row: Number(td.dataset.row), col: Number(td.dataset.col),
       colspan: td.colSpan || 1, rowspan: td.rowSpan || 1,
       x: box.left - sheet.left, y: box.top - sheet.top,
