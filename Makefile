@@ -44,7 +44,7 @@ textures:        ## Regenerate the shared paper and background textures
 	$(TASKS) textures
 ornaments:       ## Regenerate the seals and flourishes in textures/ornament
 	$(TASKS) ornaments
-templates:       ## Print the reference sheets in samples/invoice-templates
+templates:       ## Print the reference sheets in samples/*-templates
 	$(TASKS) templates
 
 # ------------------------------------------------------------ generation
@@ -84,6 +84,8 @@ preflight:       ## Every check that must pass before generating an image
 	@$(TASKS) preflight
 check-rules:     ## Validate rules/: unreachable values, bad tags, missing files
 	$(TASKS) check-rules
+blanks:          ## The phôi gốc each document is drawn from, and any drift
+	@$(TASKS) blanks
 check-corpus:    ## Validate corpus/: missing files, wrong column counts
 	@$(TASKS) check-corpus
 distribution:    ## Show what 2000 draws from the rules actually look like

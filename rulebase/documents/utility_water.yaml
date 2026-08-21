@@ -1,0 +1,41 @@
+# THAM SỐ NỘI DUNG — utility_water
+#
+# Nửa còn lại của loại document này. Không gian lấy mẫu (weight, tags,
+# họ) nằm ở `rules/document.yaml`; những gì `rulebase.content.build`
+# đọc thì nằm đây.
+
+profile: utility_water
+invoice: true
+metered: true
+titles: ["HOÁ ĐƠN GIÁ TRỊ GIA TĂNG (TIỀN NƯỚC)"]
+num_items: [1, 3]
+price_step: 1
+qty_range: [3, 46]
+vat_rates: [5]
+tier_codes: ["SH", "DV", "HC", "SX"]
+subtitle: "(Bản thể hiện của hoá đơn điện tử)"
+period_format: "Tháng {month} năm {year}"
+# Phí bảo vệ môi trường tính trên tiền hàng, in thành một dòng riêng và
+# cộng vào số phải trả — xem ảnh mẫu Nước sạch Hà Nội.
+surcharges:
+  - ["Phí BVMT đối với nước thải SH 10%", 0.10]
+party_fields:
+  left:
+    - [buyer_name, "Tên khách hàng:"]
+    - [buyer_address, "Địa chỉ:"]
+    - [buyer_account, "Tài khoản:"]
+    - [buyer_tax_code, "Mã số thuế:"]
+    - [usage_period, "Thời gian sử dụng:"]
+  right:
+    - [invoice_code, "Mã hoá đơn:"]
+    - [buyer_code, "Mã số khách hàng:"]
+    - [households, "Số hộ sử dụng:"]
+    - [meter, "Khối - Số đọc:"]
+signature_labels:
+  - ["Người mua hàng", "(Ký, ghi rõ họ , tên)"]
+  - ["Người bán hàng", "(Ký, đóng dấu, ghi rõ họ, tên)"]
+digital_signature: true
+total_labels:
+  subtotal: "Cộng tiền hàng"
+  vat: "Thuế suất"
+  grand: "Tổng tiền thanh toán"

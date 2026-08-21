@@ -1,0 +1,60 @@
+# THAM SỐ NỘI DUNG — resort_stay
+#
+# Nửa còn lại của loại document này. Không gian lấy mẫu (weight, tags,
+# họ) nằm ở `rules/document.yaml`; những gì `rulebase.content.build`
+# đọc thì nằm đây.
+
+profile: hotel
+invoice: true
+stay: true
+show_vat: false
+show_subtotal: false
+show_payment: true
+show_amount_words: false
+payment_groups: [qr, the]
+titles: ["HOÁ ĐƠN"]
+nights: [1, 4]
+extra_items: 2
+room_items: 5
+price_step: 1000
+serial_format: "INV00{n}"
+show_number: false
+show_seller_tax_code: false
+show_seller_website: true
+signature_names: true
+checkin_time: "14:00"
+checkout_time: "12:00"
+item_notes:
+  - "Bao gồm bữa sáng"
+  - "Không bao gồm bữa sáng"
+  - "Đã bao gồm thuế và phí phục vụ"
+room_types:
+  - "Phòng Deluxe hướng biển"
+  - "Phòng Superior hướng thành phố"
+  - "Phòng Suite gia đình"
+  - "Phòng Studio ban công"
+  - "Bungalow hướng vườn"
+booking_sources: ["Booking.com", "Agoda", "Traveloka", "Expedia", "Trực tiếp tại quầy"]
+party_fields:
+  strip:
+    - [serial, "Số hoá đơn:"]
+    - [issued_at, "Ngày:"]
+    - [booking_code, "Mã đặt phòng:"]
+    - [channel_code, "Channel Code:"]
+    - [booking_source, "Nguồn:"]
+  left:
+    - [buyer_name, "Khách hàng:"]
+    - [checkin_date, "Ngày nhận phòng:"]
+    - [checkout_date, "Ngày trả phòng:"]
+    - [room_type, "Loại phòng:"]
+  right:
+    - [room_no, "Phòng:"]
+    - [checkin_time, "Thời gian nhận phòng:"]
+    - [checkout_time, "Thời gian trả phòng:"]
+    - [nights, "Số đêm lưu trú:"]
+signature_labels:
+  - ["Lễ tân", ""]
+  - ["Khách hàng", ""]
+total_labels:
+  grand: "Tổng tiền"
+  change: "Số tiền còn lại"
