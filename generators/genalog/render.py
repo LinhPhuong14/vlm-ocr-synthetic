@@ -11,6 +11,13 @@ genalog's own templates are for prose, so the template here is a receipt one
 (`templates/receipt.html.jinja`); everything else is genalog's:
 `DocumentGenerator` loads it, `Document` renders it, WeasyPrint paints it.
 
+`--template` switches page models. Instead of the character grid it prints one
+of the CSS sheets in `generators/html/sheets/` -- the same markup string the
+browser backend loads, through `templates/sheet.html.jinja`, which does nothing
+but hand it over. The boxes then come from the PDF's own **character** stream
+rather than its spans, because one WeasyPrint span can hold two table cells;
+`match_runs` says how, and what happens without it.
+
 Two things had to be worked around, both from genalog being pinned to 2020:
 
 * `Document.render_png()` calls WeasyPrint's `write_png()`, removed in
@@ -33,6 +40,7 @@ import io
 import json
 import random
 import sys
+import unicodedata
 from pathlib import Path
 
 import cv2
@@ -42,6 +50,14 @@ from genalog.generation.document import Document, DocumentGenerator
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
+# The CSS sheets are the browser backend's, imported rather than copied, so the
+# two engines print one markup and a change reaches both. `sheets/` pulls in
+# nothing heavier than `rulebase`, and `page.py` is the half of the browser
+# backend that deliberately has no browser in it.
+sys.path.insert(0, str(REPO_ROOT / "generators" / "html"))
+
+import sheets  # noqa: E402
+from page import font_faces  # noqa: E402
 
 import profiling  # noqa: E402
 import rulebase  # noqa: E402
@@ -50,6 +66,7 @@ from degradation.pipeline import apply_recipe  # noqa: E402
 
 TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
 TEMPLATE = "receipt.html.jinja"
+SHEET_TEMPLATE = "sheet.html.jinja"
 FONT_ROOT = REPO_ROOT / "fonts"
 
 
@@ -195,6 +212,235 @@ def match_boxes(grid, spans: list[dict]) -> list[dict]:
     return boxes
 
 
+def match_runs(runs: list[tuple[str, str]], glyphs: list[dict]) -> list[dict]:
+    """Give each labelled run of a CSS sheet the glyphs that drew it.
+
+    Glyphs, not spans, and that is the first difference from `match_boxes`. A
+    character-grid page puts every field in its own absolutely positioned
+    element, so a PDF span is a field. A CSS sheet does not: two `<td>` on one
+    line in one font come out of WeasyPrint as **one span** -- `"3 BÁNH CANH
+    CUA"` is the quantity cell and the name cell welded together -- and no
+    amount of concatenating spans forwards can take them apart again. Measured
+    before this was written: a till-roll sheet recovered 58% of its runs that
+    way, and the losses were every quantity and every dish on the page.
+
+    **Anchors first, then the gaps**, and that is the second. Walking the two
+    sequences in step works until a document repeats itself, and a hospital
+    bill repeats itself constantly: a rate column of `0` and `100`, a money
+    column ending `VND` on every line, the same service billed twice under two
+    prices. One wrong match there takes the cursor into the middle of a number
+    and every run after it lands somewhere it does not belong -- seventeen runs
+    lost on one page, and two boxes drawn on top of each other.
+
+    So the long runs go first. A run of ten characters or more that occurs
+    exactly once in the page's glyph stream can only be itself; those are
+    pinned, in increasing order, and they cut the stream into segments. Every
+    other run is then matched **inside its own segment**, where a stray `0`
+    cannot reach a number four rows away. What a greedy walk could only repair
+    after the fact, this prevents.
+    """
+    entries = [(kind, text, _squeeze(text)) for kind, text in runs]
+    entries = [entry for entry in entries if entry[2]]
+    stream = "".join(glyph["text"] for glyph in glyphs)
+    anchors = _anchors(entries, glyphs, stream)
+
+    boxes: list[dict] = []
+    cursor = 0
+    for position, (kind, text, wanted) in enumerate(entries):
+        if position in anchors:
+            start, end = anchors[position]
+            matched = [glyph for glyph in glyphs[start:end] if glyph["text"].strip()]
+        else:
+            limit = next((anchors[later][0] for later in range(position + 1, len(entries))
+                          if later in anchors), len(glyphs))
+            found = _consume_glyphs(glyphs, cursor, wanted, limit=limit)
+            if found is None:
+                continue
+            end, matched = found
+        cursor = max(cursor, end)
+        if kind == "sep" or not matched:
+            continue
+        # One box per LINE, not one per run. A run that wrapped has glyphs on
+        # two lines, and their union is a rectangle round both *and the blank
+        # paper between their ragged ends* -- which on a full-width block
+        # swallows whatever starts the first line. The browser backend splits
+        # the same way, for the same reason; see `CELL_RECTS_JS`.
+        lines = _lines(matched)
+        for line, shown in zip(lines, _split_like(text, [len(part) for part in lines])):
+            x0 = min(glyph["bbox"][0] for glyph in line)
+            y0 = min(glyph["bbox"][1] for glyph in line)
+            x1 = max(glyph["bbox"][2] for glyph in line)
+            y1 = max(glyph["bbox"][3] for glyph in line)
+            boxes.append({
+                "kind": kind,
+                "text": shown,
+                "quad": [[round(x0, 1), round(y0, 1)], [round(x1, 1), round(y0, 1)],
+                         [round(x1, 1), round(y1, 1)], [round(x0, 1), round(y1, 1)]],
+            })
+    return boxes
+
+
+# A run this long that occurs once in the whole page can only be itself. Ten
+# characters is where the false-positive rate goes to nothing on the documents
+# here: shorter than that and "100" or "0 VND" is every other cell.
+ANCHOR_LENGTH = 10
+
+
+def _anchors(entries: list[tuple[str, str, str]], glyphs: list[dict],
+             stream: str) -> dict[int, tuple[int, int]]:
+    """`{position: (first_glyph, past_last_glyph)}` for the runs that are unique.
+
+    Unique *and* increasing: an anchor that would send the cursor backwards is
+    dropped rather than trusted, because the order of the two sequences is the
+    one thing this whole walk is built on.
+    """
+    found: dict[int, tuple[int, int]] = {}
+    last = 0
+    for position, (_kind, _text, wanted) in enumerate(entries):
+        if len(wanted) < ANCHOR_LENGTH:
+            continue
+        starts = []
+        at = stream.find(wanted)
+        while at != -1 and len(starts) < 2:
+            if _starts_word(glyphs, at):
+                starts.append(at)
+            at = stream.find(wanted, at + 1)
+        if len(starts) != 1 or starts[0] < last:
+            continue
+        found[position] = (starts[0], starts[0] + len(wanted))
+        last = starts[0] + len(wanted)
+    return found
+
+
+def _squeeze(text: str) -> str:
+    """Text with every space removed, in NFC.
+
+    Whitespace goes because it is not ink: the markup says "Đơn vị tính (Unit)"
+    on one line and WeasyPrint breaks it over two, and the space that was
+    between the words becomes a line break that no glyph carries. NFC because
+    the corpus is composed and a PDF may not be, and "ệ" written two ways is one
+    letter on the page and two strings in Python.
+    """
+    return unicodedata.normalize("NFC", "".join(text.split()))
+
+
+def _consume_glyphs(glyphs: list[dict], cursor: int, wanted: str,
+                    back: int = 64, limit: int | None = None):
+    """`(end_index, matched_glyphs)` for the glyphs that spell `wanted`, or None.
+
+    Forwards from the cursor first, then backwards from it -- nearest first in
+    both directions, so the run is given the closest occurrence rather than the
+    first one anywhere on the page. `limit` is the next anchor: nothing between
+    two anchors may be matched past the second of them.
+
+    The walk looks *behind* the cursor because PyMuPDF groups a page's text
+    geometrically, so two blocks side by side come back interleaved by line: a
+    signature block prints "Lễ tân" and "Khách hàng" together, then both names,
+    while the markup lists each caption with its own name. The reordering is
+    local -- one line -- so a bounded look back recovers it, and the cursor
+    never moves backwards, which is what keeps the walk from re-reading a page
+    it has already passed.
+    """
+    ceiling = len(glyphs) if limit is None else min(limit, len(glyphs))
+    window = SHORT_RUN_WINDOW if len(wanted) < 4 else LONG_RUN_WINDOW
+    forwards = range(cursor, min(cursor + window, ceiling))
+    backwards = range(cursor - 1, max(cursor - back, 0) - 1, -1)
+    for start in list(forwards) + list(backwards):
+        if not _starts_word(glyphs, start):
+            continue
+        found = _spell(glyphs, start, wanted)
+        if found is not None:
+            return found
+    return None
+
+
+def _starts_word(glyphs: list[dict], index: int) -> bool:
+    """Is this glyph the first of a word?
+
+    A run may only be matched where a word begins, and that rules out a whole
+    class of wrong answers that the sequence alone cannot: without it a
+    one-character run `0` matches the `0` inside `264.400`.
+
+    Only a glyph sitting immediately to the right of the last one continues a
+    word. A gap wider than that is a space; a *negative* one is the reading
+    order jumping back to the left, which happens between two blocks printed
+    side by side -- and both are boundaries.
+    """
+    if index <= 0:
+        return True
+    before, here = glyphs[index - 1], glyphs[index]
+    _bx0, by0, bx1, by1 = before["bbox"]
+    hx0, hy0, _hx1, _hy1 = here["bbox"]
+    if abs(hy0 - by0) > 1.0:
+        return True                   # a different line
+    height = max(by1 - by0, 1.0)
+    return not (-0.3 * height <= hx0 - bx1 <= 0.2 * height)
+
+
+def _spell(glyphs: list[dict], start: int, wanted: str):
+    """`(end_index, matched_glyphs)` if the glyphs from `start` spell `wanted`."""
+    index, used = start, []
+    while index < len(glyphs) and len(used) < len(wanted):
+        glyph = glyphs[index]
+        if not glyph["text"].strip():
+            index += 1
+            continue              # a space carries no ink and no position
+        if glyph["text"] != wanted[len(used)]:
+            return None
+        used.append(glyph)
+        index += 1
+    return (index, used) if len(used) == len(wanted) else None
+
+
+def _split_like(text: str, counts: list[int]) -> list[str]:
+    """`text` cut into pieces of `counts` non-space characters each.
+
+    The box text has to be the words, not the glyphs. Spaces carry no ink so
+    they are not in the glyph stream at all, and a box labelled
+    "QUÁNNHẬUBÚNBÒOHOA" is a box whose text no reader would produce and no
+    check would match. So the pieces are cut out of the original string, which
+    still has its spaces, using the glyph counts only to say where to cut.
+    """
+    pieces, index = [], 0
+    for count in counts:
+        taken = 0
+        start = index
+        while index < len(text) and taken < count:
+            if not text[index].isspace():
+                taken += 1
+            index += 1
+        pieces.append(text[start:index].strip())
+    return pieces
+
+
+def _lines(glyphs: list[dict]) -> list[list[dict]]:
+    """The glyphs grouped into the lines they were set on.
+
+    By vertical position rather than by index: a wrap is where the baseline
+    moves, and nothing in the character stream marks it.
+    """
+    lines: list[list[dict]] = []
+    top = None
+    for glyph in glyphs:
+        y0 = glyph["bbox"][1]
+        if top is None or abs(y0 - top) > 1.0:
+            lines.append([])
+            top = y0
+        lines[-1].append(glyph)
+    return lines
+
+
+# How far the glyph walk may look ahead for the next labelled run: past a
+# watermark or a separator for a short one, past a repeated table header for a
+# long one. See `_consume_glyphs`.
+SHORT_RUN_WINDOW = 24
+LONG_RUN_WINDOW = 64
+
+
+
+
+
+
 def _consume(spans: list[dict], cursor: int, wanted: str, lookahead: int = 4):
     """`(next_cursor, bbox)` for the spans that spell `wanted`, or None.
 
@@ -220,16 +466,36 @@ def _consume(spans: list[dict], cursor: int, wanted: str, lookahead: int = 4):
 
 
 class GenalogReceiptRenderer:
-    def __init__(self, dpi: int = 150, short_size: tuple[int, int] = (960, 1400)):
+    """WeasyPrint, through genalog, over either page model.
+
+    Two page models, one engine. Without `template` the receipt is the character
+    grid every backend has drawn until now, laid out with absolutely positioned
+    spans. With it the page is one of the CSS sheets in
+    `generators/html/sheets/` -- the same markup the browser backend loads, so
+    the two renderers are finally comparable on the *document* and not only on
+    the roll of paper.
+
+    The boxes come from different places accordingly: the grid path walks its
+    own cells, the sheet path walks the labelled runs it can read back out of
+    the markup. Both end at the PDF's own text layer, which is exact -- this is
+    not OCR of our own output.
+    """
+
+    def __init__(self, dpi: int = 150, short_size: tuple[int, int] = (960, 1400),
+                 template: str | None = None):
         self.generator = DocumentGenerator(template_path=str(TEMPLATE_DIR))
-        if TEMPLATE not in self.generator.template_list:
+        wanted = SHEET_TEMPLATE if template else TEMPLATE
+        if wanted not in self.generator.template_list:
             raise RuntimeError(
-                f"{TEMPLATE} not visible to genalog; it lists {self.generator.template_list}"
+                f"{wanted} not visible to genalog; it lists {self.generator.template_list}"
             )
         self.dpi = dpi
         self.short_size = short_size
+        self.template = template
 
     def render(self, seed: int, force: dict[str, str] | None = None):
+        if self.template:
+            return self._render_sheet(seed, force)
         recipe, receipt, grid = rulebase.make(seed=seed, force=force)
         with profiling.stage("render"):
             visual = recipe.visual.params
@@ -283,16 +549,68 @@ class GenalogReceiptRenderer:
                 f"a degradation resized the page ({before} -> {aged.shape[:2]}); "
                 "the boxes no longer describe it"
             )
-        return recipe, receipt, grid, aged, boxes
+        return recipe, receipt, grid, aged, boxes, []
 
-    def _rasterise(self, pdf: bytes) -> tuple[np.ndarray, list[dict]]:
-        """PDF bytes to one BGR image plus the text spans, in image pixels.
+    def _render_sheet(self, seed: int, force: dict[str, str] | None = None):
+        """One of the CSS sheets, printed by WeasyPrint instead of a browser."""
+        # No grid: it would trim a value to a character column this page does
+        # not have, and write the trim back. See `rulebase.make_content`.
+        recipe, receipt, _rng = rulebase.make_content(seed=seed, force=force)
+        grid = None
+        with profiling.stage("render"):
+            override = None if self.template == "auto" else self.template
+            markup = sheets.build(recipe, receipt, override)
+            markup = markup.replace("{FONT_FACES}", font_faces())
+            template = self.generator.template_env.get_template(SHEET_TEMPLATE)
+            # No styles: the sheet carries its own, and genalog's prose defaults
+            # have nothing to say about a table of goods. `update_style` still
+            # runs, which is what compiles the WeasyPrint document.
+            document = Document(markup, template)
+            pdf = document.render_pdf()
+            image, glyphs = self._rasterise(pdf, glyphs=True)
+        with profiling.stage("geometry"):
+            boxes = match_runs(sheets.labelled_runs(markup), glyphs)
+            structure = sheets.structure_from_markup(markup)
 
-        The spans come out of the PDF's own text layer, so they are exact --
-        this is not OCR of our own output. They are collected in the same loop
-        as the raster because both need the same two transforms: PDF points to
-        pixels at `dpi`, and, when WeasyPrint has split the receipt across
-        pages, the y-offset of the page each span sits on.
+        target = random.Random(seed).randint(*self.short_size)
+        factor = target / min(image.shape[:2])
+        if factor < 1.0:
+            with profiling.stage("render"):
+                image = cv2.resize(
+                    image,
+                    (max(int(image.shape[1] * factor), 1),
+                     max(int(image.shape[0] * factor), 1)),
+                    interpolation=cv2.INTER_AREA,
+                )
+            with profiling.stage("geometry"):
+                for box in boxes:
+                    box["quad"] = [[round(x * factor, 1), round(y * factor, 1)]
+                                   for x, y in box["quad"]]
+
+        before = image.shape[:2]
+        with profiling.stage("degradation"):
+            aged = apply_recipe(image, recipe, seed=seed)
+        if aged.shape[:2] != before:
+            raise RuntimeError(
+                f"a degradation resized the page ({before} -> {aged.shape[:2]}); "
+                "the boxes no longer describe it"
+            )
+        return recipe, receipt, grid, aged, boxes, structure
+
+    def _rasterise(self, pdf: bytes, *, glyphs: bool = False
+                   ) -> tuple[np.ndarray, list[dict]]:
+        """PDF bytes to one BGR image plus its text, in image pixels.
+
+        The text comes out of the PDF's own layer, so it is exact -- this is not
+        OCR of our own output. It is collected in the same loop as the raster
+        because both need the same two transforms: PDF points to pixels at
+        `dpi`, and, when WeasyPrint has split the page in two, the y-offset of
+        the page each piece sits on.
+
+        `glyphs` picks the granularity. Spans are what the character grid wants:
+        one element per field, so one span is one cell. A CSS sheet needs single
+        characters, because there one span can hold two fields -- see
+        `match_runs`. Same loop, same transforms, one parameter.
         """
         scale = self.dpi / 72.0        # PDF user space is 72 points per inch
         pages: list[np.ndarray] = []
@@ -311,9 +629,21 @@ class GenalogReceiptRenderer:
                 else:
                     array = cv2.cvtColor(array, cv2.COLOR_GRAY2BGR)
 
-                for block in page.get_text("dict")["blocks"]:
+                kind = "rawdict" if glyphs else "dict"
+                for block in page.get_text(kind)["blocks"]:
                     for line in block.get("lines", []):
                         for span in line["spans"]:
+                            if glyphs:
+                                for char in span.get("chars", []):
+                                    if not char["c"].strip():
+                                        continue
+                                    x0, y0, x1, y1 = char["bbox"]
+                                    spans.append({
+                                        "text": unicodedata.normalize("NFC", char["c"]),
+                                        "bbox": (x0 * scale, y0 * scale + offset,
+                                                 x1 * scale, y1 * scale + offset),
+                                    })
+                                continue
                             # WeasyPrint emits whitespace-only spans between
                             # cells. They carry no ink, but they carry a bbox,
                             # and letting them into the sequence both inflates
@@ -353,6 +683,12 @@ def main() -> int:
     )
     parser.add_argument("--dpi", type=int, default=150)
     parser.add_argument(
+        "--template", metavar="LAYOUT", nargs="?", const="auto", default=None,
+        help="print the CSS sheet for this recipe's layout instead of the "
+             "character grid; see generators/html/sheets/. Bare, the sheet "
+             "follows the layout the recipe drew; give a layout id to force one",
+    )
+    parser.add_argument(
         "--profile", metavar="JSON",
         help="time every stage and write the breakdown here. Off by default, "
              "and off costs nothing: see profiling.py",
@@ -371,7 +707,7 @@ def main() -> int:
     forces = {job: rulebase.parse_force(job.pins(args.force), job.layout)
               for job in jobs}
     with profiling.stage("startup"):
-        renderer = GenalogReceiptRenderer(dpi=args.dpi)
+        renderer = GenalogReceiptRenderer(dpi=args.dpi, template=args.template)
 
     # Streamed, not collected: a job list may be a whole shard, and a record
     # carries every box on the page. Written in page order, which is the order
@@ -379,7 +715,8 @@ def main() -> int:
     # that order to name the files.
     with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as metadata:
         for index, job, seed in worklist.pages(jobs):
-            recipe, receipt, _grid, image, boxes = renderer.render(seed, forces[job])
+            recipe, receipt, _grid, image, boxes, structure = renderer.render(
+                seed, forces[job])
             name = f"genalog_{index:03d}.jpg"
             with profiling.stage("export"):
                 cv2.imwrite(str(args.out / name), image, [cv2.IMWRITE_JPEG_QUALITY, 90])
@@ -392,6 +729,12 @@ def main() -> int:
                     "recipe": recipe.to_dict(),
                     "boxes": boxes,
                 }
+                if structure:
+                    # Additive, and only for a sheet render: the structure half
+                    # of the label, in the same PPStructure tokens the browser
+                    # backend writes. `boxes` is untouched, so every existing
+                    # loader keeps working.
+                    record["structure"] = structure
             with profiling.stage("export"):
                 json.dump(record, metadata, ensure_ascii=False)
                 metadata.write("\n")

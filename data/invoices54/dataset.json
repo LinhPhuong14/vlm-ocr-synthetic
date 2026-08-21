@@ -1,0 +1,52 @@
+{
+  "per_framework": 27,
+  "layouts": [
+    "invoice_vat_form",
+    "invoice_vat_summary",
+    "invoice_export",
+    "invoice_water",
+    "invoice_power",
+    "invoice_hotel_stay",
+    "invoice_hotel_compact",
+    "invoice_tax_en",
+    "invoice_brand"
+  ],
+  "pairing": "paired",
+  "clean": false,
+  "force": [],
+  "template": "auto",
+  "frameworks": {
+    "html": {
+      "images": 27,
+      "distinct_seeds": 27,
+      "distinct_labels": 27,
+      "by_layout": {
+        "invoice_vat_form": 3,
+        "invoice_vat_summary": 3,
+        "invoice_export": 3,
+        "invoice_water": 3,
+        "invoice_power": 3,
+        "invoice_hotel_stay": 3,
+        "invoice_hotel_compact": 3,
+        "invoice_tax_en": 3,
+        "invoice_brand": 3
+      }
+    },
+    "genalog": {
+      "images": 27,
+      "distinct_seeds": 27,
+      "distinct_labels": 27,
+      "by_layout": {
+        "invoice_vat_form": 3,
+        "invoice_vat_summary": 3,
+        "invoice_export": 3,
+        "invoice_water": 3,
+        "invoice_power": 3,
+        "invoice_hotel_stay": 3,
+        "invoice_hotel_compact": 3,
+        "invoice_tax_en": 3,
+        "invoice_brand": 3
+      }
+    }
+  }
+}

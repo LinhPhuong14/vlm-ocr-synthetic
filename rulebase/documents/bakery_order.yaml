@@ -1,0 +1,47 @@
+# THAM SỐ NỘI DUNG — bakery_order
+#
+# Nửa còn lại của loại document này. Không gian lấy mẫu (weight, tags,
+# họ) nằm ở `rules/document.yaml`; những gì `rulebase.content.build`
+# đọc thì nằm đây.
+
+profile: bakery
+invoice: true
+show_vat: true
+show_subtotal: true
+show_payment: false
+show_amount_words: false
+show_seller_account: true
+show_seller_phone: true
+show_seller_tax_code: false
+titles: ["HOÁ ĐƠN"]
+num_items: [2, 6]
+price_step: 1000
+vat_rates: [0, 8]
+banks:
+  - "Ngân hàng Tiên Phong"
+  - "Ngân hàng Techcombank"
+  - "Ngân hàng Vietcombank"
+  - "Ngân hàng MB Bank"
+  - "Ngân hàng ACB"
+party_fields:
+  strip:
+    - [serial, "Số hoá đơn:"]
+    - [date, "Ngày:"]
+  right:
+    - [buyer_name, "Khách hàng:"]
+    - [buyer_phone, "Điện thoại Khách hàng:"]
+    - [buyer_address, "Địa chỉ Khách hàng:"]
+serial_format: "HD{n}"
+show_number: false
+notes:
+  - "Thông tin ngân hàng:"
+  - "{bank_name}"
+  - "Tên tài khoản: {seller_name}"
+  - "Số tài khoản: {seller_account}"
+  - ""
+  - "{seller_phone}"
+  - "{seller_address}"
+total_labels:
+  subtotal: "Tổng tiền đơn hàng"
+  vat: "Thuế"
+  grand: "Tổng tiền thanh toán"
