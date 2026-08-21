@@ -188,6 +188,59 @@ qua PDF. `synthdog` không có DOM nào để hỏi.
 > trắng**; dạy bằng `<span>` box thì mất thông tin "ô này phủ bảy cột". Nhãn
 > phải mang cả hai, và `structure` là cái nối chúng lại.
 
+### 1.6b Hộp = "ô trừ lề X%"? — **đúng làm lệnh bố trí, sai làm nhãn**, và đo được
+
+Một đề xuất tự nhiên: đừng ghim toạ độ tuyệt đối cho hộp chữ, chỉ nói *"hộp nằm
+trong ô này, thụt vào X%"*. Độc lập độ phân giải, chữ không đè lên component
+bên cạnh, chỉ cần biết ô ở đâu.
+
+Là **lệnh bố trí** thì đúng — nó chính là `padding` của CSS, và là cách đúng để
+nói mực đi vào đâu. Là **nhãn** thì không, và đây là con số:
+
+```
+data/invoices54/html — 27 ảnh, 1.094 cặp (hộp chữ, ô chứa nó)
+
+  diện tích hộp chữ / diện tích ô     trung vị 0,16   trung bình 0,17
+  bề rộng  hộp chữ / bề rộng  ô       trung vị 0,37   p10 0,10   p90 0,69
+  số cặp chữ chiếm < 50% bề rộng ô    779 / 1.094  =  71%
+  riêng Ô GỘP (57 cặp)                bề rộng trung vị 0,25, nhỏ nhất 0,10
+```
+
+**Mực chiếm 16% diện tích ô ở trung vị.** Lấy "ô trừ lề" làm hộp chữ là ra một
+hộp **lớn gấp khoảng sáu lần** thứ nó phải mô tả. Đó không phải sai số làm tròn,
+đó là một cái nhãn khác.
+
+Ba lý do, và không lý do nào chỉnh được bằng cách đổi con số `X%`:
+
+| | vì sao |
+| --- | --- |
+| **Chữ hiếm khi lấp đầy ô** | `1.500.000` canh phải trong cột 14 ký tự chiếm ~60% bề rộng; `2` trong cột `Số lượng` chiếm 10%. Lề là hằng số, độ lấp đầy thì không |
+| **Chữ xuống dòng** | tên hàng ba dòng: mực cao ba dòng nhưng dòng cuối có thể nửa bề rộng. `CELL_RECTS_JS` đã đi **từng ký tự** bằng `range.getBoundingClientRect()` và phát **một hộp cho mỗi dòng nhìn thấy** — một hình chữ nhật cho cả ô thì mất chuyện đó |
+| **Ô gộp là ca tệ nhất** | "Cộng tiền hàng chưa có thuế GTGT" trong ô phủ 7 cột: đo được là **0,25** bề rộng, có ca xuống **0,10**. Suy hộp chữ từ ô là khai bảy cột giấy trắng |
+
+Nghiêm trọng ở chỗ nó **qua được hai trong ba phép kiểm** của
+`check_boxes.py`: hộp vẫn nằm trong khung, và vẫn *có mực bên dưới* (có mực
+thật, chỉ là lệch tâm). Chỉ phép **coverage** thấy được — mà coverage đếm số
+lượng, không đếm kích thước. Nên đây là loại sai **im lặng qua cổng**, và mô
+hình học được thói khoanh rộng hơn chữ.
+
+#### Nhưng ý này đúng ở ba chỗ, và một chỗ trong đó là chỗ **bắt buộc phải có**
+
+| chỗ dùng | vì sao đúng |
+| --- | --- |
+| **Bố trí chữ in** | đúng là `padding` — declarative, tương đối, người duyệt đọc được. Không có gì phải bàn |
+| **★ Đặt mực của tầng `ink/`** | chữ viết tay **không có `<span>` nào để đo**. Renderer đặt chỗ cho ô, còn `ink/` phải được bảo *vẽ vào đâu bên trong ô*: `{inside: cell(r,c), inset: 8%, baseline: 70%}` là đúng thứ cần khai. Rồi **hộp thật đo từ alpha của nét mực đã đáp xuống**, không lấy từ lời khai |
+| **Một bất biến mới** | *"mọi hộp chữ phải nằm trong ô của nó, chừa ít nhất X% lề"* — bắt được chữ tràn ô, thứ hôm nay chỉ bắt gián tiếp (`test_text_fits_the_columns_it_claims` trên lưới, `overlap.py` trên đường CSS) |
+
+Cái thứ hai là chỗ ý này **bắt buộc phải có**, không phải tuỳ chọn: không có
+nó thì `ink/` không biết vẽ vào đâu. Và nó cho một quy tắc gọn cho cả hệ thống:
+
+> **Khai báo thì tương đối với ô. Nhãn thì đo từ thứ đã đáp xuống.**
+
+Cái thứ ba đáng chú ý vì nó **cần cả hai loại hộp cùng tồn tại** — thêm một lý
+do nữa để `cells` phải có trên cả ba backend, chứ không chỉ backend có trình
+duyệt (§1.7).
+
 ### 1.7 Và đây là chỗ engine bảng tường minh **trả công lần thứ hai**
 
 Bảng trên cho thấy `cells` hôm nay **phụ thuộc vào việc có một DOM để hỏi**.
@@ -486,6 +539,42 @@ Cấm:           LLM ở trong đường render
                ink/ nằm trong chuỗi augmentation
                toạ độ tuyệt đối trong file bố cục
 ```
+
+---
+
+## Phụ lục · Số đo tái lập được
+
+Con số ở §1.6b đo bằng đoạn dưới, trên data đã commit — không cần dựng venv nào:
+
+```python
+import json, statistics
+def rect(q):
+    xs=[p[0] for p in q]; ys=[p[1] for p in q]
+    return min(xs), min(ys), max(xs), max(ys)
+
+ratios, widths = [], []
+for line in open('data/invoices54/html/metadata.jsonl', encoding='utf-8'):
+    r = json.loads(line)
+    cells = [(rect(c['quad']), c) for c in (r.get('cells') or [])]
+    for b in r.get('boxes') or []:
+        bx0, by0, bx1, by1 = rect(b['quad'])
+        cx, cy = (bx0+bx1)/2, (by0+by1)/2          # tâm hộp chữ
+        inside = [(c, (x1-x0)*(y1-y0), x1-x0)      # mọi ô bao trọn tâm ấy
+                  for (x0,y0,x1,y1), c in cells
+                  if x0 <= cx <= x1 and y0 <= cy <= y1 and x1 > x0 and y1 > y0]
+        if not inside:
+            continue
+        _c, cell_area, cell_w = min(inside, key=lambda t: t[1])   # ô NHỎ NHẤT
+        ratios.append((bx1-bx0)*(by1-by0) / cell_area)
+        widths.append((bx1-bx0) / cell_w)
+
+print(len(ratios), statistics.median(ratios), statistics.median(widths))
+# 1094  0.16  0.37
+```
+
+Ghép hộp chữ với ô bằng **tâm của hộp nằm trong ô nhỏ nhất** — không phải bằng
+`row`/`col`, vì `boxes` không mang hai khoá đó. 1.094 trên khoảng 2.800 hộp
+khớp được, phần còn lại là chữ ngoài bảng (letterhead, chữ ký, chân trang).
 
 ---
 
