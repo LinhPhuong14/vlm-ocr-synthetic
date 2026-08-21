@@ -7,6 +7,7 @@
   "attributes": {
    "document": {
     "id": "vat_invoice_form",
+    "group": "statutory_invoice",
     "params": {
      "profile": "invoice",
      "invoice": true,
