@@ -364,9 +364,15 @@ class FontHand:
     # -- what it draws -----------------------------------------------------
 
     def span(self, kind: str, classes: str, text: str, page: "Page") -> str:
-        # The text stays a text node. `relative` + `top` shifts the line off the
-        # rule without taking it out of flow, so a long value still wraps.
-        style = f"top:{page.sit() - SIT_EM:.3f}em;"
+        # The text stays a text node, and the nudge off the rule is
+        # `vertical-align` -- NOT `position:relative`, which was the first
+        # attempt and broke WeasyPrint. Relative positioning paints in a later
+        # stacking pass, so every inked run landed at the END of the PDF's text
+        # layer instead of in document order; `match_runs` walks the runs beside
+        # that layer, so it desynchronised at the first filled field and a page
+        # came back with 16 boxes instead of 97. `vertical-align` is an inline
+        # shift with no stacking context, and it costs nothing in the browser.
+        style = f"vertical-align:{SIT_EM - page.sit():.3f}em;"
         return (f'<span data-kind="{html.escape(kind)}" '
                 f'class="{_classes(classes, "hand")}" style="{style}">'
                 f'{html.escape(text)}</span>')
@@ -386,7 +392,6 @@ class FontHand:
   font-size:{size * page.height_em / 2.1:.3f}em;
   color:{page.pen_hex};
   font-weight:400;
-  position:relative;
 }}
 #sheet span.hand b,#sheet span.hand strong{{font-weight:400;}}
 """
