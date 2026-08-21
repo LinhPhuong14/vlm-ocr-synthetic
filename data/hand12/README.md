@@ -8,7 +8,7 @@ tờ giấy **không phải chữ in**: nó là nét bút thật do WriteViT sin
 | | |
 | --- | --- |
 | renderer | `html` (Chromium), page model `--template auto` |
-| ghép cặp | `unpaired` — chỉ một renderer; đường WeasyPrint chưa nối được, xem tài liệu |
+| ghép cặp | `unpaired` — chỉ một renderer. Mực của **mô hình** là ảnh nên WeasyPrint không dựng lại hộp được; nguồn `font` thì ghép cặp được, xem tài liệu |
 | làm cũ | có, rút từ luật: `pristine`, `light`, `ghost_text`, `real_paper`, `stains`, `torn_edges`, `photocopy_stamped`, `forwarded_photo` |
 | box | 1 219 |
 | chữ viết tay | **30 ô**, 10 người viết khác nhau, 3 màu mực |
@@ -52,7 +52,13 @@ vẫn sạch. Cái giá là mặt chữ lặp lại — xem
 ```bash
 generators/html/.venv/bin/python generators/html/render.py \
     --template auto --handwriting font --jobs data/hand12/jobs.json -o out/html
+# và cùng 12 trang ấy qua WeasyPrint — nguồn font ghép cặp được:
+generators/genalog/.venv/bin/python generators/genalog/render.py \
+    --template auto --handwriting font --jobs data/hand12/jobs.json -o out/genalog
 ```
+
+Đo trên cặp ấy: 1 219 / 1 224 hộp, nhãn giống nhau **12/12**, và WeasyPrint dựng
+lại được 1 099/1 155 run có nhãn — **bằng đúng bản không viết tay**.
 
 `invoice_hotel_stay` dẫn đầu vì nó có thứ không tờ nào khác có: **tên người ký**
 in dưới hai ô chữ ký, mà tên người là chữ hoa đầu từ — đúng thứ checkpoint viết
