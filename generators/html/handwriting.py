@@ -13,10 +13,32 @@ between the two.
 
 **What it does not do is invent ink.** The rejected attempt in `ff9a9f0` took a
 printed typeface and jittered it; what came out was printing with a tremor,
-because the stroke shapes were still a typeface's. Every mark this module puts
-on a page comes out of the WriteViT generator, or the field stays printed. There
-is no fallback that draws letters, and adding one would put the repository back
-where that commit found it.
+because the stroke shapes were still a typeface's. Nothing here draws a letter:
+a mark on the page is either the WriteViT generator's or a handwriting
+typeface's own outline, and no glyph is nudged, slanted or thickened after the
+fact.
+
+## Two sources, and they are not interchangeable
+
+    Hand      WriteViT, one word at a time, pasted in as an <img> of ink
+    FontHand  a licensed handwriting typeface, set by the browser as text
+
+`Hand` is the real thing -- a generative model conditioned on a writer -- and it
+**cannot write digits or ALL-CAPS**, which caps it at 42 % of the fields on the
+best page in the rule space. `FontHand` fills every field, because a typeface
+has all ten digits and every mark, and `hoa-tiet-de-xuat.md` names "một mặt chữ
+viết tay có giấy phép cho phép phát hành lại" as a legitimate path alongside
+real stroke data.
+
+What it buys is coverage, and what it costs is written down rather than hoped
+past: **a typeface repeats.** Every `a` on the page is the same `a`, every page
+in a run drawn from the same face is the same hand, and there are two faces, not
+106 writers. Model ink varies per instance; font ink does not. A set built with
+`--handwriting font` should say so, and `record["handwriting"]["source"]` does.
+
+The default is `model`. Reach for `font` when the page needs its numeric fields
+filled and you would rather have one hand throughout than a form that is 42 %
+written and 58 % typed.
 
 ## The policy, and why it is per field
 
@@ -94,6 +116,19 @@ ALPHABET_SET = frozenset(ALPHABET)
 # never the furniture: a letterhead, a column title and a printed clause are
 # printed on the blank form, before anybody picks up a pen.
 HAND_KINDS = ("invoice.field", "invoice.words", "sign.name")
+
+# The handwriting typefaces, in `fonts/hand/`. Both are SIL OFL 1.1 and both
+# pass `generators/synthdog/tools/check_fonts.py` on the full Vietnamese
+# alphabet -- which is not a formality: **Caveat, the obvious casual-hand
+# choice, is missing 80 of those characters** and would have printed empty boxes
+# under a label claiming the word was written. `size` is the multiple of the
+# printed font size that puts the face's x-height where a person's writing sits;
+# it differs per face because their x-heights do.
+FACES = (
+    ("PatrickHand", "PatrickHand-Regular.ttf", 1.42),    # a neat print hand
+    ("IndieFlower", "IndieFlower-Regular.ttf", 1.34),    # rounder, looser
+)
+HAND_FONT_DIR = REPO_ROOT / "fonts" / "hand"
 
 # Ballpoint and fountain pen, as a form actually comes back: dark blue far more
 # often than black, and never the paper's own near-black. RGB.
@@ -226,6 +261,137 @@ def _interpreter(writevit_dir: Path) -> str:
     return str(venv_python(writevit_dir / ".venv"))
 
 
+class Page:
+    """One person, one pen, one sitting -- whichever source draws the ink.
+
+    Drawn once per page and handed to the source, because these are facts about
+    the person filling the form rather than about how the ink is made: a form
+    comes back in one hand and one colour. Only where each line lands on its
+    rule is drawn per field, since that is the part nobody holds steady.
+    """
+
+    def __init__(self, seed: int):
+        self.rng = random.Random(seed ^ 0x48414E44)
+        self.seed = seed
+        self.writer = self.rng.randrange(106)
+        self.pen = self.rng.choices([colour for colour, _ in PENS],
+                                    [weight for _, weight in PENS])[0]
+        self.height_em = self.rng.uniform(*INK_HEIGHT_EM)
+
+    @property
+    def pen_hex(self) -> str:
+        return "#%02x%02x%02x" % self.pen
+
+    def sit(self) -> float:
+        return SIT_EM + self.rng.uniform(-SIT_JITTER_EM, SIT_JITTER_EM)
+
+
+def _classes(classes: str, extra: str) -> str:
+    existing = re.search(r'class="([^"]*)"', classes)
+    return ((existing.group(1) + " ") if existing else "") + extra
+
+
+class FontHand:
+    """Ink from a licensed handwriting typeface, set by the browser as text.
+
+    No image and no `data-text`: the run keeps its text node, so `CELL_RECTS_JS`
+    boxes it exactly as it boxes printed text -- per line when it wraps, which
+    an `<img>` of ink cannot do -- and neither box reader needs to know this
+    source exists. That is the whole reason this is a CSS change rather than a
+    second raster pipeline.
+
+    The honest limit is in the module docstring: a typeface repeats. Nothing
+    here jitters a glyph to hide that, because hiding it is what `ff9a9f0`
+    removed.
+    """
+
+    source = "font"
+    device = "browser"
+
+    def __init__(self, faces=FACES, directory: Path = HAND_FONT_DIR):
+        self.directory = Path(directory)
+        self.faces = [f for f in faces if (self.directory / f[1]).exists()]
+        self._cmaps: dict[str, frozenset] = {}
+
+    # -- lifecycle: there is no process, so these are the shape of `Hand`'s --
+
+    def __enter__(self) -> "FontHand":
+        return self.open()
+
+    def __exit__(self, *exc) -> None:
+        self.close()
+
+    def open(self) -> "FontHand":
+        if not self.faces:
+            raise RuntimeError(
+                f"no handwriting faces in {self.directory}. Expected "
+                + ", ".join(name for _, name, _ in FACES)
+                + " -- see fonts/README.md.")
+        return self
+
+    def close(self) -> None:
+        pass
+
+    # -- what it can write -------------------------------------------------
+
+    def cmap(self, face: str) -> frozenset:
+        """Which characters the face actually has a glyph for.
+
+        Read from the font rather than assumed. A missing glyph renders as an
+        empty box while the label still claims the word was written, which is
+        the exact failure `fonts/README.md` exists to prevent.
+        """
+        if face not in self._cmaps:
+            from fontTools.ttLib import TTFont  # noqa: PLC0415 -- only this path
+
+            name = dict((f[0], f[1]) for f in self.faces)[face]
+            self._cmaps[face] = frozenset(
+                chr(code) for code in TTFont(self.directory / name).getBestCmap())
+        return self._cmaps[face]
+
+    def face_for(self, page: "Page") -> tuple[str, str, float]:
+        return self.faces[page.writer % len(self.faces)]
+
+    def writable(self, text: str, page: "Page") -> bool:
+        if not text.strip():
+            return False
+        covered = self.cmap(self.face_for(page)[0])
+        return all(c in covered or c.isspace() for c in text)
+
+    def refusal(self, text: str, page: "Page") -> str:
+        return "empty" if not text.strip() else "noglyph"
+
+    # -- what it draws -----------------------------------------------------
+
+    def span(self, kind: str, classes: str, text: str, page: "Page") -> str:
+        # The text stays a text node. `relative` + `top` shifts the line off the
+        # rule without taking it out of flow, so a long value still wraps.
+        style = f"top:{page.sit() - SIT_EM:.3f}em;"
+        return (f'<span data-kind="{html.escape(kind)}" '
+                f'class="{_classes(classes, "hand")}" style="{style}">'
+                f'{html.escape(text)}</span>')
+
+    def css(self, page: "Page") -> str:
+        face, filename, size = self.face_for(page)
+        path = (self.directory / filename).resolve()
+        return f"""
+/* Handwriting set as text, not pasted as an image -- see FontHand. The face is
+   embedded from {filename} the same way `page.font_faces()` embeds the printed
+   ones: a CSS stack that fell through to the system is how a page ends up in a
+   font with no Vietnamese diacritics. */
+@font-face{{font-family:'{face}';font-weight:400;
+  src:url('{path.as_uri()}') format('truetype');}}
+#sheet span.hand{{
+  font-family:'{face}',cursive;
+  font-size:{size * page.height_em / 2.1:.3f}em;
+  color:{page.pen_hex};
+  font-weight:400;
+  position:relative;
+}}
+#sheet span.hand b,#sheet span.hand strong{{font-weight:400;}}
+"""
+
+
 class Hand:
     """One long-lived WriteViT worker, and the ink it has already written.
 
@@ -235,6 +401,8 @@ class Hand:
     a corpus repeats -- "Nguyễn", "Chuyển khoản", "triệu" -- and one person
     writes the same word much the same way twice.
     """
+
+    source = "model"
 
     def __init__(self, writevit_dir: Path | None = None, python: str | None = None):
         self.dir = Path(writevit_dir or WRITEVIT_DIR)
@@ -354,13 +522,27 @@ class Hand:
             pen: tuple[int, int, int]) -> tuple[bytes, tuple[int, int]]:
         """The run as a PNG in the pen's colour, and its size in pixels.
 
-        The only method `fill` calls, and the reason it is here rather than
-        inlined there: `fill` decides what a page says and should not have to
-        hold a PIL image to do it. A test double is then four lines and needs
-        neither Pillow nor a checkpoint.
+        The pixels stop here: `fill` decides what a page says and should not
+        have to hold a PIL image to do it. A test double is then four lines and
+        needs neither Pillow nor a checkpoint.
         """
         line = self.line(text, writer, seed)
         return ink_png(line, pen), line.size
+
+    # -- the source interface, shared with FontHand ------------------------
+
+    def writable(self, text: str, page: "Page") -> bool:
+        return writable(text)
+
+    def refusal(self, text: str, page: "Page") -> str:
+        return refusal(text)
+
+    def span(self, kind: str, classes: str, text: str, page: "Page") -> str:
+        png, size = self.ink(text, page.writer, page.seed, page.pen)
+        return ink_span(kind, classes, text, png, size, page.height_em, page.sit())
+
+    def css(self, page: "Page") -> str:
+        return CSS
 
 
 def compose(pairs: list) -> "object":
@@ -469,42 +651,34 @@ def fill(markup: str, hand: Hand, *, seed: int = 0,
     and it belongs in the label rather than in a log line nobody keeps.
     """
     _check_contract(markup)
-    rng = random.Random(seed ^ 0x48414E44)
-    # One person fills one form: one writer index, one pen and one size of
-    # writing for the whole page. Only where on the rule each line lands is
-    # drawn per field, because that is the part a person does not hold steady.
-    writer = rng.randrange(106)
-    pen = rng.choices([colour for colour, _ in PENS],
-                      [weight for _, weight in PENS])[0]
-    height_em = rng.uniform(*INK_HEIGHT_EM)
-
-    report = {"writer": writer, "pen": "#%02x%02x%02x" % pen,
-              "height_em": round(height_em, 3), "inked": [], "printed": {}}
+    page = Page(seed)
+    report = {"source": getattr(hand, "source", "model"), "writer": page.writer,
+              "pen": page.pen_hex, "height_em": round(page.height_em, 3),
+              "inked": [], "printed": {}}
 
     def replace(match: re.Match) -> str:
         kind, classes, escaped = match.group(1), match.group(2), match.group(3)
         text = html.unescape(escaped)
         if kind not in kinds or not text.strip():
             return match.group(0)
-        if not writable(text):
-            reason = refusal(text)
+        if not hand.writable(text, page):
+            reason = hand.refusal(text, page)
             report["printed"][reason] = report["printed"].get(reason, 0) + 1
             return match.group(0)
         try:
-            png, size = hand.ink(text, writer, seed, pen)
+            drawn = hand.span(kind, classes, text, page)
         except ValueError as error:
-            # The worker refused a word the policy thought fine. Keep the page
+            # The source refused a run the policy thought fine. Keep the page
             # -- printed -- and record it, because it means these two disagree
             # and that is worth seeing rather than crashing a shard over.
             report["printed"]["worker:" + str(error)[:40]] = 1
             return match.group(0)
         report["inked"].append({"kind": kind, "text": text})
-        sit = SIT_EM + rng.uniform(-SIT_JITTER_EM, SIT_JITTER_EM)
-        return ink_span(kind, classes, text, png, size, height_em, sit)
+        return drawn
 
     filled = RUN.sub(replace, markup)
     if report["inked"]:
-        filled = filled.replace("</style>", CSS + "</style>", 1)
+        filled = filled.replace("</style>", hand.css(page) + "</style>", 1)
     return filled, report
 
 
@@ -535,10 +709,22 @@ def main() -> int:
     return 0
 
 
+SOURCES = {"model": Hand, "font": FontHand}
+
+
+def source(name: str = "model", **kwargs):
+    """One of the two ink sources by name, unopened."""
+    try:
+        return SOURCES[name](**kwargs)
+    except KeyError:
+        raise KeyError(f"no ink source {name!r}; have "
+                       + ", ".join(sorted(SOURCES))) from None
+
+
 __all__ = [
-    "ALPHABET", "CSS", "HAND_KINDS", "INK_HEIGHT_EM", "PENS", "SIT_EM", "Hand",
-    "compose", "extent", "fill", "ink_png", "ink_span", "refusal", "writable",
-    "words_of",
+    "ALPHABET", "CSS", "FACES", "HAND_KINDS", "INK_HEIGHT_EM", "PENS",
+    "SIT_EM", "SOURCES", "FontHand", "Hand", "Page", "compose", "extent",
+    "fill", "ink_png", "ink_span", "refusal", "source", "writable", "words_of",
 ]
 
 if __name__ == "__main__":

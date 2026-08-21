@@ -7,9 +7,10 @@ nhất có trọng số tiếng Việt và đo xem nó viết được gì. Tài
 dây nối hai đầu**, và — quan trọng hơn — **đo xem nối xong thì lấp được bao
 nhiêu phần của khoảng trống ấy**.
 
-Câu trả lời ngắn: **14,6 %**. Đoạn dây chạy được, ảnh ra đúng, nhãn không xê
-dịch một chữ nào; nhưng bảy phần tám số ô trên tờ giấy vẫn in máy, và **82 % số
-ô bị từ chối là vì có chữ số**.
+Câu trả lời ngắn: **14,6 %** với mô hình, **100 %** với một mặt chữ viết tay có
+giấy phép. Đoạn dây chạy được, ảnh ra đúng, nhãn không xê dịch một chữ nào;
+nhưng mô hình để lại bảy phần tám số ô vẫn in máy, và **82 % số ô bị từ chối là
+vì có chữ số**. Có hai nguồn mực vì thế, và chúng **không thay thế nhau**.
 
 ![Điền tay: chỗ chạy được và bức tường chữ số](figures/handwriting-html.jpg)
 
@@ -25,7 +26,38 @@ generators/html/.venv/bin/python generators/html/render.py \
 có "chỗ trống" nào để điền. Không có WriteViT thì lệnh **dừng**, không có đường
 lùi nào vẽ chữ thay — xem phần "Không có đường lùi" bên dưới.
 
-`data/hand12/` là đợt thử: 12 trang, 6 bố cục, 30 ô viết tay.
+`--handwriting` nhận tên nguồn mực: `model` (mặc định, WriteViT) hoặc `font`.
+`data/hand12/` là đợt thử với `model`: 12 trang, 6 bố cục, 30 ô viết tay. Cùng
+12 trang ấy chạy lại với `font` cho **159 ô, 0 ô in máy**.
+
+## Hai nguồn mực
+
+| | `model` | `font` |
+| --- | --- | --- |
+| là gì | checkpoint WriteViT, sinh từng từ | mặt chữ viết tay trong `fonts/hand/` |
+| đưa lên trang thế nào | ảnh PNG mực trong một `<img>` | **chữ thật**, trình duyệt dựng |
+| phủ được | 14,6 % (tốt nhất một trang: 42 %) | **mọi ô** |
+| chữ số, IN HOA, dấu câu | không | có |
+| nét chữ | mỗi lần một khác, 106 người viết | một mặt chữ; mọi `a` giống hệt nhau |
+| xuống dòng | không — ảnh không ngắt dòng được | có, và hộp cắt theo từng dòng |
+
+Cả hai đường đều là đường `hoa-tiet-de-xuat.md` nêu là hợp lệ: **dữ liệu nét
+thật, hoặc một mặt chữ viết tay có giấy phép cho phép phát hành lại.** Cái bị
+gỡ ở `ff9a9f0` là đường thứ ba — lấy mặt chữ **in** rồi làm lệch từng ký tự —
+và không có gì ở đây làm lệch một ký tự nào.
+
+Điều phải nói thẳng là **mặt chữ thì lặp**. Một tờ là một nét chữ, và có hai
+mặt chữ chứ không phải 106 người viết. Một tập dựng bằng `--handwriting font`
+phải khai điều đó, và `record["handwriting"]["source"]` khai.
+
+`FontHand` đặt chữ bằng CSS chứ không dán ảnh, nên run vẫn là nút văn bản: hai
+chỗ đọc hộp không cần biết nguồn mực này tồn tại, và một giá trị dài vẫn **xuống
+dòng** rồi được cắt hộp theo dòng — thứ một ảnh mực không làm được.
+
+`fonts/hand/` có hai mặt chữ, cả hai OFL 1.1 và cả hai qua được
+`check_fonts.py`. Việc kiểm tra ấy không phải thủ tục: **Caveat — lựa chọn hiển
+nhiên cho nét chữ thường — thiếu 80 ký tự tiếng Việt** và sẽ vẽ ra ô vuông rỗng
+trong khi nhãn vẫn khai là đã viết. Xem [`fonts/README.md`](../fonts/README.md).
 
 ## Đoạn dây gồm ba mảnh
 
@@ -152,9 +184,10 @@ sạn, 5/12 ô. Ghim `content` xoá sạch nhóm bị chặn vì IN HOA (chữ h
 nhất còn đứng lại là chữ số. Trang ấy nằm ở
 [`samples/handwriting/`](../samples/handwriting) để nhìn.
 
-**Một trang 100 % điền tay không dựng được từ mô hình hiện tại**, và không phải
-vì chưa tìm đúng hạt giống: mọi hoá đơn trong kho đều mang số hoá đơn, ngày, mã
-số thuế, số tài khoản. Đó là thứ tài liệu này *là*.
+**Một trang 100 % điền tay không dựng được từ mô hình**, và không phải vì chưa
+tìm đúng hạt giống: mọi hoá đơn trong kho đều mang số hoá đơn, ngày, mã số thuế,
+số tài khoản. Đó là thứ tài liệu này *là*. Muốn 100 % thì hoặc đổi nguồn mực
+sang `font`, hoặc huấn luyện lại checkpoint.
 
 ### Còn dấu ngăn thì sao
 
@@ -227,11 +260,9 @@ chữ sẽ **thu nhỏ cả nét** thay vì bóp ngang — `height` cộng `max-
   cũ — một việc thuộc `rulebase/`, không thuộc đoạn dây này.
 * **Chữ ký ngoằn ngoèo** (`signature_scrawl`) vẫn chưa có gì. Chữ ký là một
   động tác đã luyện thành nếp, không phải một từ; WriteViT không sinh ra nó.
-* **Chữ số** — chỗ chặn duy nhất còn lại, và hai đường còn mở là huấn luyện
-  tiếp WriteViT (cần GPU) hoặc một **mặt chữ viết tay có giấy phép phát hành
-  lại**, đường mà `hoa-tiet-de-xuat.md` có nêu là hợp lệ. Đường thứ hai đổi bản
-  chất nguồn mực từ mô hình sang phông chữ, nên là một quyết định chứ không
-  phải một miếng vá.
+* **Chữ số trong mực của mô hình.** `font` lấp được chỗ ấy nhưng bằng một mặt
+  chữ lặp lại; chỉ **huấn luyện tiếp WriteViT** cho `lex_upper_number` mới cho
+  chữ số bằng nét sinh, và việc đó cần GPU.
 * **Điều khoản dữ liệu.** Trọng số học từ VNOnDB. Trước khi công bố ảnh sinh ra
   thì thứ phải đọc là điều khoản phát hành lại của **dữ liệu**, không phải giấy
   phép MIT của **mã**. Câu này đã có trong `writevit.md` và được nhắc lại ở đây
