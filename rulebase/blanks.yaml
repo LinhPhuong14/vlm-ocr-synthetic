@@ -1,0 +1,119 @@
+# PHÔI GỐC — mẫu chuẩn mà mỗi loại document được dựng theo
+#
+# "Phôi" là tờ giấy thật: một ảnh chụp hoặc bản quét của mẫu chuẩn, trước khi ai
+# đo nó. `layout:` là phôi ấy sau khi đã được CHUYỂN thành bố cục đo bằng ký tự
+# trong `layouts/<id>.yaml`. Một phôi chưa chuyển thì ghi `layout: null` — đó là
+# việc còn nợ, và đây là chỗ nhìn thấy nó.
+#
+# Vì sao cần file này khi `requires`/`excludes` đã quyết định được document nào
+# vẽ bằng bố cục nào: cái tag suy ra được là quan hệ, không phải CHỦ ĐÍCH. Thêm
+# một bố cục mang tag rộng tay là lặng lẽ đổi mọi document trùng tag, và không
+# gì báo. `documents:` dưới đây là danh sách người viết luật CHỦ Ý muốn; tag vẫn
+# là bên quyết định, còn `tests/test_blanks.py` bắt lỗi khi hai bên lệch nhau.
+#
+# `sheet:` là bản dựng lại phát hành được của phôi — ảnh gốc là giấy tờ thật,
+# mang tên người thật, nên không nằm trong kho. `null` nghĩa là chưa dựng lại.
+#
+# Sinh danh sách hiện thời:  make blanks
+
+blanks:
+
+  authorisation_letter:
+    source: "ảnh giấy uỷ quyền nhận tiền của một công ty bảo hiểm nhân thọ, mẫu POSF_ALA"
+    layout: authorisation_letter
+    sheet: samples/form-templates/authorisation_letter.html
+
+  eatery_ascii:
+    source: "photo QUAN AN THIEN TAN, TPHCM 2011"
+    layout: eatery_ascii
+    sheet: null
+
+  eatery_indexed:
+    source: "photo QUÁN NHẬU BÌNH DÂN 129, Đà Nẵng"
+    layout: eatery_indexed
+    sheet: null
+
+  invoice_brand:
+    source: "ảnh hoá đơn một tiệm bánh, khối chuyển khoản và khối liên hệ ở chân trang"
+    layout: invoice_brand
+    sheet: samples/invoice-templates/invoice_brand.html
+
+  invoice_export:
+    source: "ảnh hoá đơn xuất khẩu mẫu 06HDXK3/001, ký hiệu AA/13P, của một doanh nghiệp FDI"
+    layout: invoice_export
+    sheet: samples/invoice-templates/invoice_export.html
+
+  invoice_hotel_compact:
+    source: "ảnh hoá đơn một khách sạn nhỏ, khối liên hệ hai cột ở chân trang"
+    layout: invoice_hotel_compact
+    sheet: samples/invoice-templates/invoice_hotel_compact.html
+
+  invoice_hotel_stay:
+    source: "ảnh hoá đơn một khu nghỉ dưỡng, số INV001421, đặt qua kênh trực tuyến"
+    layout: invoice_hotel_stay
+    sheet: samples/invoice-templates/invoice_hotel_stay.html
+
+  invoice_power:
+    source: "ảnh hoá đơn Tổng công ty Điện lực TP HCM, Điện lực Tân Thuận, 01/2021"
+    layout: invoice_power
+    sheet: null
+
+  invoice_tax_en:
+    source: "photo of an Australian tax invoice, ABN 1234, invoiced 28/06/2017"
+    layout: invoice_tax_en
+    sheet: null
+
+  invoice_vat_form:
+    source: "ảnh mẫu hoá đơn GTGT ký hiệu 1K22DAA số 6830, và mẫu có dấu HOÁ ĐƠN MẪU"
+    layout: invoice_vat_form
+    sheet: null
+
+  invoice_vat_summary:
+    source: "ảnh hoá đơn GTGT mẫu 01GTKT0/001, ký hiệu AA/18E, của một chuỗi bán lẻ"
+    layout: invoice_vat_summary
+    sheet: samples/invoice-templates/invoice_vat_summary.html
+
+  invoice_water:
+    source: "ảnh hoá đơn Công ty TNHH MTV Nước sạch Hà Nội, ký hiệu 1K25TAE, tháng 01/2025"
+    layout: invoice_water
+    sheet: null
+
+  market_barcode:
+    source: "photo VinCommerce / VM Royal City, Hà Nội"
+    layout: market_barcode
+    sheet: null
+
+  market_compact:
+    source: "photo WinMart, PHIẾU TÍNH TIỀN 2025"
+    layout: market_compact
+    sheet: null
+
+  market_vat:
+    source: "photo Saigon Co.op, PHIẾU TÍNH TIỀN 2022"
+    layout: market_vat
+    sheet: null
+
+  medical_statement:
+    source: "ảnh bảng kê 01/KBCB của một bệnh viện đa khoa, 3 trang, có dấu SAO Y BẢN CHÍNH"
+    layout: medical_statement
+    sheet: samples/form-templates/medical_statement.html
+
+# Phôi mà mỗi document được phép dựng từ. Thứ tự không quan trọng.
+documents:
+  pub_eatery: [eatery_indexed, eatery_ascii]
+  street_eatery: [eatery_indexed, eatery_ascii]
+  restaurant_vat: [eatery_indexed]
+  supermarket: [market_barcode, market_compact]
+  convenience_store: [market_compact]
+  supermarket_vat: [market_barcode, market_vat]
+  vat_invoice_form: [invoice_vat_form]
+  utility_water: [invoice_water]
+  utility_power: [invoice_power]
+  tax_invoice_en: [invoice_tax_en]
+  retail_vat_invoice: [invoice_vat_summary]
+  export_invoice: [invoice_export]
+  resort_stay: [invoice_hotel_stay, invoice_hotel_compact]
+  hotel_stay: [invoice_hotel_stay, invoice_hotel_compact]
+  bakery_order: [invoice_brand]
+  hospital_bill: [medical_statement]
+  authorisation_letter: [authorisation_letter]
