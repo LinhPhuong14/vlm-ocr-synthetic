@@ -164,6 +164,63 @@ def test_a_node_carries_no_params(tmp_path):
         load_rules(root)
 
 
+# ------------------------------------------------ params in their own file
+
+
+def _split_params(tmp_path: Path, options: list[dict],
+                  params: dict[str, dict]) -> Path:
+    """A rules tree whose `document` params live in a sibling `documents/`."""
+    spec = {name: [{"id": f"{name}1", "weight": 1}] for name in ATTRIBUTES}
+    spec["document"] = options
+    root = write_rules_dir(tmp_path / "rules", spec, order=list(ATTRIBUTES))
+    directory = tmp_path / "documents"
+    directory.mkdir()
+    for name, payload in params.items():
+        (directory / f"{name}.yaml").write_text(
+            yaml.safe_dump(payload, allow_unicode=True), encoding="utf-8")
+    return root
+
+
+def test_document_params_come_from_their_own_file(real_rules):
+    hospital = next(o for o in real_rules["document"] if o.id == "hospital_bill")
+    assert hospital.params["profile"] == "medical"
+
+
+def test_a_document_with_no_params_file_is_an_error(tmp_path):
+    root = _split_params(tmp_path, [{"id": "d1", "weight": 1}], {})
+    with pytest.raises(RuleError, match=r"no .*d1\.yaml"):
+        load_rules(root)
+
+
+def test_a_params_file_no_document_names_is_an_error(tmp_path):
+    """A half-finished rename leaves one, and it must not pass unnoticed."""
+    root = _split_params(tmp_path, [{"id": "d1", "weight": 1}],
+                         {"d1": {"profile": "x"}, "ghost": {"profile": "y"}})
+    with pytest.raises(RuleError, match="no document option named 'ghost'"):
+        load_rules(root)
+
+
+def test_params_may_not_sit_in_both_places(tmp_path):
+    root = _split_params(tmp_path,
+                         [{"id": "d1", "weight": 1, "params": {"a": 1}}],
+                         {"d1": {"profile": "x"}})
+    with pytest.raises(RuleError, match="belong in documents/"):
+        load_rules(root)
+
+
+def test_a_tree_without_the_directory_keeps_its_params_inline(tmp_path):
+    """The shape `pipeline.config.materialise_rules` writes for a run override.
+
+    That tree is generated, read once by a renderer subprocess and never edited,
+    so the split -- which exists to keep a hand-edited file readable -- would
+    buy it nothing and cost it a second directory to carry.
+    """
+    spec = {name: [{"id": f"{name}1", "weight": 1}] for name in ATTRIBUTES}
+    spec["document"] = [{"id": "d1", "weight": 1, "params": {"profile": "x"}}]
+    root = write_rules_dir(tmp_path / "rules", spec, order=list(ATTRIBUTES))
+    assert load_rules(root)["document"][0].params == {"profile": "x"}
+
+
 def test_load_groups_reports_the_nodes_with_their_labels(tmp_path):
     root = _grouped(tmp_path / "rules", [
         {"id": "till", "label": "giấy tính tiền", "options": [{"id": "a", "weight": 1}]},
