@@ -1,0 +1,16 @@
+# THAM SỐ NỘI DUNG — restaurant_vat
+#
+# Nửa còn lại của loại document này. Không gian lấy mẫu (weight, tags,
+# họ) nằm ở `rules/document.yaml`; những gì `rulebase.content.build`
+# đọc thì nằm đây.
+
+profile: eatery
+titles: ["HOÁ ĐƠN GTGT", "PHIẾU THANH TOÁN", "HOÁ ĐƠN BÁN HÀNG"]
+num_items: [4, 16]
+prob_table: 0.7
+vat_rates: [8, 10]
+total_labels:
+  subtotal: "Cộng tiền hàng"
+  vat: "Thuế GTGT"
+  grand: "Tổng thanh toán"
+  change: "Tiền trả lại"
