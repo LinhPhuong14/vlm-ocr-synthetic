@@ -1,0 +1,57 @@
+# Giấy uỷ quyền nhận tiền — biểu mẫu của doanh nghiệp bảo hiểm nhân thọ.
+#
+# Dấu hiệu nhận biết, và cũng là chỗ nó khác MỌI bố cục khác trong kho: KHÔNG
+# CÓ BẢNG HÀNG. `sections` không có `table`, và document của nó khai
+# `no_items: true`. Số tiền duy nhất trên tờ giấy nằm trong khối trường, ở hai
+# dòng "Bằng số" và "Bằng chữ".
+#
+# Hai khối trường xếp chồng, mỗi khối có một dải tiêu đề riêng — "NGƯỜI UỶ
+# QUYỀN" rồi "NGƯỜI ĐƯỢC UỶ QUYỀN". Trên lưới ký tự dải ấy là một dòng chữ có
+# nền tô; đường CSS vẽ đúng băng xám chữ trắng như tờ mẫu.
+id: authorisation_letter
+name: Authorisation to collect — a form of fields, with no table at all
+source: "ảnh giấy uỷ quyền nhận tiền của một công ty bảo hiểm nhân thọ, mẫu POSF_ALA"
+
+width: [92, 104]
+gutter: 2
+rule_char: "-"
+
+sheet: a4
+
+rules: marks
+
+sections: [letterhead, doctitle, parties, notes, signatures, footer]
+
+letterhead:
+  frame: false
+  name_scale: [1.0, 1.10]
+  name_bold: true
+  serial_width: 26
+  labels:
+    address: ""
+    tax_code: ""
+    phone: "Tel:"
+    account: ""
+    branch: ""
+    form_no: ""
+    serial: "Số:"
+    number: ""
+
+doctitle:
+  scale: [1.30, 1.50]
+
+parties:
+  # Xếp chồng, có dòng chấm: đây là tờ để ĐIỀN TAY, và dòng chấm là chỗ để điền.
+  style: stacked
+  leader: "."
+
+notes:
+  style: block
+
+signatures:
+  name_gap: 4
+  stamp_width: 0
+  stamp_gap: 3
+
+footer:
+  rule_before: true
