@@ -106,7 +106,7 @@ renderer's output often is not — a receipt sits on a dark surface — and plac
 specks there puts white dots in mid-air. The sheet is found by thresholding,
 opening, closing and keeping the largest component.
 
-**The dose is a quarter of theirs** (`DENSITY = 0.25`). Two regions per
+**The dose is a fraction of theirs** (`DENSITY = 0.25 * 0.7`). Two regions per
 component was tuned on scanned prose, where a component is a letter. On a
 Vietnamese invoice a *dotted leader line* — the row of full stops after `Mã số
 thuế:` — makes every dot its own component, so the count measures the layout
@@ -125,9 +125,11 @@ Eight times the speckle on an invoice as on a receipt, for a reason unrelated
 to how much ink is on the page — and those are, in that order, the layouts that
 lose most recall to ageing (0.026 for `invoice_brand` against 0.487–0.521 for
 the three dotted ones; see [`data/dataset60/proof/README.md`](../data/dataset60/proof/README.md)).
-`density` is a parameter, so a chain in `rules/augmentation.yaml` can ask for
-more. The deeper repair — not deriving the dose from a component count at all —
-is still open.
+The figure was set by eye against a rendered A4 invoice, in two passes — a
+quarter first, then 30% off that — and it is written as an expression so both
+passes stay legible. `density` is a parameter, so a chain in
+`rules/augmentation.yaml` can ask for more. The deeper repair — not deriving the
+dose from a component count at all — is still open.
 
 **`holes`** is the tear model, and three of its four ideas are easy to get
 wrong. A hole is a **pattern image, not a shape formula** — DocCreator ships

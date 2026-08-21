@@ -100,7 +100,7 @@ PROBE = textwrap.dedent("""
 
 CASES = [
     ("full", {"level": 5, "density": 1.0}),
-    ("shipped", {"level": 5, "density": 0.25}),
+    ("shipped", {"level": 5, "density": 0.175}),
     ("default", {"level": 5}),
     ("zero", {"level": 5, "density": 0.0}),
     ("level1", {"level": 1}),
@@ -120,9 +120,15 @@ def probe() -> dict:
     return json.loads(result.stdout.strip().splitlines()[-1])
 
 
-def test_the_shipped_dose_is_a_quarter_of_doccreators(probe):
-    """Named rather than buried in an expression, so it can be argued with."""
-    assert probe["DENSITY"] == 0.25
+def test_the_shipped_dose_is_a_fraction_of_doccreators(probe):
+    """Named rather than buried in an expression, so it can be argued with.
+
+    Pinned to the exact value on purpose. It was chosen by eye against a
+    rendered invoice, so nothing derives it and nothing else would notice it
+    drifting -- a constant tuned by looking needs a test that says what was
+    looked at.
+    """
+    assert probe["DENSITY"] == pytest.approx(0.175)
     assert probe["per_component"] == 2
 
 

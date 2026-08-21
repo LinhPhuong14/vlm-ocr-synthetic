@@ -61,11 +61,15 @@ NOISE_REGIONS_PER_COMPONENT = 2
 # ones) -- see `data/dataset60/proof/README.md`.
 #
 # The real repair is to stop deriving the dose from a component count at all.
-# This is the smaller, reversible step asked for first: keep the shape of
-# DocCreator's model and thin it fourfold. `density` is a parameter of
-# `ink_degradation`, so a chain in `rules/augmentation.yaml` can override it
-# per scenario without editing code.
-DENSITY = 0.25
+# This is the smaller, reversible step: keep the shape of DocCreator's model
+# and thin it. `density` is a parameter of `ink_degradation`, so a chain in
+# `rules/augmentation.yaml` can override it per scenario without editing code.
+#
+# The value was set by eye, in two passes, against a rendered A4 invoice --
+# a quarter of DocCreator's dose first, then 30% off that. It is a judgement
+# about how a Vietnamese invoice should look, not a measurement, and it is
+# written as an arithmetic expression so both steps stay legible.
+DENSITY = 0.25 * 0.7        # = 0.175
 # DocCreator: _sigma_gausien, the spread of the grey values drawn per region
 GREY_SIGMA = 20.0
 

@@ -1,0 +1,92 @@
+{
+  "per_framework": 15,
+  "layouts": [
+    "eatery_ascii",
+    "eatery_indexed",
+    "invoice_brand",
+    "invoice_export",
+    "invoice_hotel_compact",
+    "invoice_hotel_stay",
+    "invoice_power",
+    "invoice_tax_en",
+    "invoice_vat_form",
+    "invoice_vat_summary",
+    "invoice_water",
+    "market_barcode",
+    "market_compact",
+    "market_vat",
+    "medical_statement"
+  ],
+  "pairing": "paired",
+  "clean": false,
+  "force": [],
+  "template": "",
+  "frameworks": {
+    "synthdog": {
+      "images": 15,
+      "distinct_seeds": 15,
+      "distinct_labels": 15,
+      "by_layout": {
+        "eatery_ascii": 1,
+        "eatery_indexed": 1,
+        "invoice_brand": 1,
+        "invoice_export": 1,
+        "invoice_hotel_compact": 1,
+        "invoice_hotel_stay": 1,
+        "invoice_power": 1,
+        "invoice_tax_en": 1,
+        "invoice_vat_form": 1,
+        "invoice_vat_summary": 1,
+        "invoice_water": 1,
+        "market_barcode": 1,
+        "market_compact": 1,
+        "market_vat": 1,
+        "medical_statement": 1
+      }
+    },
+    "html": {
+      "images": 15,
+      "distinct_seeds": 15,
+      "distinct_labels": 15,
+      "by_layout": {
+        "eatery_ascii": 1,
+        "eatery_indexed": 1,
+        "invoice_brand": 1,
+        "invoice_export": 1,
+        "invoice_hotel_compact": 1,
+        "invoice_hotel_stay": 1,
+        "invoice_power": 1,
+        "invoice_tax_en": 1,
+        "invoice_vat_form": 1,
+        "invoice_vat_summary": 1,
+        "invoice_water": 1,
+        "market_barcode": 1,
+        "market_compact": 1,
+        "market_vat": 1,
+        "medical_statement": 1
+      }
+    },
+    "genalog": {
+      "images": 15,
+      "distinct_seeds": 15,
+      "distinct_labels": 15,
+      "by_layout": {
+        "eatery_ascii": 1,
+        "eatery_indexed": 1,
+        "invoice_brand": 1,
+        "invoice_export": 1,
+        "invoice_hotel_compact": 1,
+        "invoice_hotel_stay": 1,
+        "invoice_power": 1,
+        "invoice_tax_en": 1,
+        "invoice_vat_form": 1,
+        "invoice_vat_summary": 1,
+        "invoice_water": 1,
+        "market_barcode": 1,
+        "market_compact": 1,
+        "market_vat": 1,
+        "medical_statement": 1
+      }
+    }
+  }
+}
