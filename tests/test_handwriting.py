@@ -319,6 +319,23 @@ def test_the_font_css_embeds_the_face_it_names():
     assert page.pen_hex in css
 
 
+def test_the_font_source_is_not_relatively_positioned():
+    """`position:relative` here silently costs 81 boxes on the WeasyPrint path.
+
+    Relative positioning paints in a later stacking pass, so every inked run
+    landed at the END of the PDF's text layer rather than in document order --
+    and `match_runs` walks the run list beside that layer. Measured on one VAT
+    form: 16 boxes recovered instead of 97, with no error anywhere. The nudge
+    off the rule is `vertical-align`, which is an inline shift and creates no
+    stacking context.
+    """
+    hand = _font()
+    page = handwriting.Page(7)
+    drawn = hand.span("invoice.field", "", "15/06/2018", page)
+    assert "vertical-align" in drawn
+    assert "position" not in drawn + hand.css(page)
+
+
 def test_source_by_name():
     assert isinstance(handwriting.source("font"), handwriting.FontHand)
     assert isinstance(handwriting.source("model"), handwriting.Hand)

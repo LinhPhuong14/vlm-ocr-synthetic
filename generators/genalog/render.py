@@ -482,7 +482,7 @@ class GenalogReceiptRenderer:
     """
 
     def __init__(self, dpi: int = 150, short_size: tuple[int, int] = (960, 1400),
-                 template: str | None = None):
+                 template: str | None = None, hand=None):
         self.generator = DocumentGenerator(template_path=str(TEMPLATE_DIR))
         wanted = SHEET_TEMPLATE if template else TEMPLATE
         if wanted not in self.generator.template_list:
@@ -492,6 +492,19 @@ class GenalogReceiptRenderer:
         self.dpi = dpi
         self.short_size = short_size
         self.template = template
+        # An open handwriting source, or None to type every value.
+        #
+        # **Only the `font` source works here**, and the reason is `match_runs`:
+        # it gives each labelled run the glyphs that drew it, walking the run
+        # list beside the PDF's own text layer. `FontHand` sets the value as
+        # text in a handwriting face, so it puts glyphs in that layer like any
+        # other run and nothing about the walk changes. `Hand` pastes an <img>
+        # of generated ink, which contributes NO glyphs -- the two sequences
+        # would slip by one at the first inked field and every run after it
+        # would take a box belonging to something else. That is the exact
+        # failure the anchor-first rewrite above was written to fix, and it is
+        # not a thing to re-introduce quietly. `main` refuses `model` by name.
+        self.hand = hand
 
     def render(self, seed: int, force: dict[str, str] | None = None):
         if self.template:
@@ -549,7 +562,7 @@ class GenalogReceiptRenderer:
                 f"a degradation resized the page ({before} -> {aged.shape[:2]}); "
                 "the boxes no longer describe it"
             )
-        return recipe, receipt, grid, aged, boxes, []
+        return recipe, receipt, grid, aged, boxes, [], None
 
     def _render_sheet(self, seed: int, force: dict[str, str] | None = None):
         """One of the CSS sheets, printed by WeasyPrint instead of a browser."""
@@ -557,9 +570,17 @@ class GenalogReceiptRenderer:
         # not have, and write the trim back. See `rulebase.make_content`.
         recipe, receipt, _rng = rulebase.make_content(seed=seed, force=force)
         grid = None
+        hand_report = None
         with profiling.stage("render"):
             override = None if self.template == "auto" else self.template
             markup = sheets.build(recipe, receipt, override)
+            if self.hand is not None:
+                # After the sheet is built and before it is printed: the form
+                # is printed first and filled in second, the same order the
+                # browser backend fills in.
+                import handwriting
+
+                markup, hand_report = handwriting.fill(markup, self.hand, seed=seed)
             markup = markup.replace("{FONT_FACES}", font_faces())
             template = self.generator.template_env.get_template(SHEET_TEMPLATE)
             # No styles: the sheet carries its own, and genalog's prose defaults
@@ -595,7 +616,7 @@ class GenalogReceiptRenderer:
                 f"a degradation resized the page ({before} -> {aged.shape[:2]}); "
                 "the boxes no longer describe it"
             )
-        return recipe, receipt, grid, aged, boxes, structure
+        return recipe, receipt, grid, aged, boxes, structure, hand_report
 
     def _rasterise(self, pdf: bytes, *, glyphs: bool = False
                    ) -> tuple[np.ndarray, list[dict]]:
@@ -689,12 +710,27 @@ def main() -> int:
              "follows the layout the recipe drew; give a layout id to force one",
     )
     parser.add_argument(
+        "--handwriting", nargs="?", const="font", default=None,
+        choices=["font"], metavar="SOURCE",
+        help="fill the fields a person fills in with handwriting instead of "
+             "type, from a licensed handwriting typeface (fonts/hand/). Only "
+             "with --template. The WriteViT `model` source the browser backend "
+             "also offers is NOT available here: it pastes an image of ink, "
+             "which puts no glyphs in the PDF, and match_runs recovers boxes by "
+             "walking the runs beside that glyph layer",
+    )
+    parser.add_argument(
         "--profile", metavar="JSON",
         help="time every stage and write the breakdown here. Off by default, "
              "and off costs nothing: see profiling.py",
     )
     worklist.add_argument(parser)
     args = parser.parse_args()
+
+    if args.handwriting and not args.template:
+        parser.error(
+            "--handwriting needs --template: the character grid draws one glyph "
+            "per cell and has no field for a person to fill in.")
 
     profile = Path(args.profile) if args.profile else profiling.enable_from_env()
     if args.profile:
@@ -706,8 +742,20 @@ def main() -> int:
     # to validate the pin, and a job list is many pages over few distinct pins.
     forces = {job: rulebase.parse_force(job.pins(args.force), job.layout)
               for job in jobs}
+    hand = None
+    if args.handwriting:
+        import handwriting
+
+        with profiling.stage("startup"):
+            try:
+                hand = handwriting.source(args.handwriting).open()
+            except RuntimeError as error:
+                parser.error(str(error))
+        print(f"[hand] {args.handwriting} on {hand.device}")
+
     with profiling.stage("startup"):
-        renderer = GenalogReceiptRenderer(dpi=args.dpi, template=args.template)
+        renderer = GenalogReceiptRenderer(dpi=args.dpi, template=args.template,
+                                          hand=hand)
 
     # Streamed, not collected: a job list may be a whole shard, and a record
     # carries every box on the page. Written in page order, which is the order
@@ -715,8 +763,8 @@ def main() -> int:
     # that order to name the files.
     with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as metadata:
         for index, job, seed in worklist.pages(jobs):
-            recipe, receipt, _grid, image, boxes, structure = renderer.render(
-                seed, forces[job])
+            recipe, receipt, _grid, image, boxes, structure, hand_report = (
+                renderer.render(seed, forces[job]))
             name = f"genalog_{index:03d}.jpg"
             with profiling.stage("export"):
                 cv2.imwrite(str(args.out / name), image, [cv2.IMWRITE_JPEG_QUALITY, 90])
@@ -729,6 +777,8 @@ def main() -> int:
                     "recipe": recipe.to_dict(),
                     "boxes": boxes,
                 }
+                if hand_report is not None:
+                    record["handwriting"] = hand_report
                 if structure:
                     # Additive, and only for a sheet render: the structure half
                     # of the label, in the same PPStructure tokens the browser
