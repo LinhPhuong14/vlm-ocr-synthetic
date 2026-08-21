@@ -843,6 +843,7 @@ bố cục khai header_groups:     1/16   (medical_statement)
 | | |
 | --- | --- |
 | [`tu-dong-hoa-bang-llm.md`](tu-dong-hoa-bang-llm.md) | tài liệu chính: ai soạn bố cục, trục mực, lộ trình M0–M4 |
+| [`duong-ong.md`](duong-ong.md) | đường ống vẽ đầy đủ — nước đi mức 3 và 4, vòng đời cái hộp, ai sở hữu toạ độ |
 | [`brief-engine-html.md` §2](brief-engine-html.md) | đo và ghi lại: ảnh có ô gộp, nhãn không biết |
 | [`rulebase/README.md` §3](../rulebase/README.md) | ngữ pháp file bố cục — `span:`, `columns:`, `item.rows:` |
 | [`generators/html/sheets/base.py`](../generators/html/sheets/base.py) | `_header_rows` (nhóm tiêu đề thật) · `structure_tokens` · `_group_row` |
