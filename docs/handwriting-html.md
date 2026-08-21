@@ -40,6 +40,7 @@ lùi nào vẽ chữ thay — xem phần "Không có đường lùi" bên dướ
 | chữ số, IN HOA, dấu câu | không | có |
 | nét chữ | mỗi lần một khác, 106 người viết | một mặt chữ; mọi `a` giống hệt nhau |
 | xuống dòng | không — ảnh không ngắt dòng được | có, và hộp cắt theo từng dòng |
+| chạy trên WeasyPrint | **không** — xem dưới | có |
 
 Cả hai đường đều là đường `hoa-tiet-de-xuat.md` nêu là hợp lệ: **dữ liệu nét
 thật, hoặc một mặt chữ viết tay có giấy phép cho phép phát hành lại.** Cái bị
@@ -53,6 +54,35 @@ phải khai điều đó, và `record["handwriting"]["source"]` khai.
 `FontHand` đặt chữ bằng CSS chứ không dán ảnh, nên run vẫn là nút văn bản: hai
 chỗ đọc hộp không cần biết nguồn mực này tồn tại, và một giá trị dài vẫn **xuống
 dòng** rồi được cắt hộp theo dòng — thứ một ảnh mực không làm được.
+
+Nhờ đúng chỗ ấy mà **đường WeasyPrint chạy được với nguồn `font`**:
+
+```bash
+generators/genalog/.venv/bin/python generators/genalog/render.py \
+    --template auto --handwriting font --jobs data/hand12/jobs.json -o out/
+```
+
+Đo trên 12 trang của `jobs.json`, hai renderer cùng nội dung:
+
+| | |
+| --- | --- |
+| hộp | 1 219 (html) / 1 224 (genalog) |
+| nhãn giống nhau giữa cặp | **12/12** |
+| run có nhãn WeasyPrint dựng lại được | 1 099/1 155 — **bằng đúng bản không viết tay** |
+| `check_boxes` | sạch cả hai renderer |
+
+Con số cuối là con số đáng giá: điền tay **không làm mất một run nào**. 4,8 %
+còn thiếu là khoảng cách vốn có, do run bị xuống dòng — xem mục cuối tài liệu.
+
+### Một cái bẫy mất 81 hộp mà không báo lỗi
+
+Bản đầu của `FontHand` nhích chữ khỏi dòng kẻ bằng `position:relative` + `top`.
+Trên trình duyệt trông đúng. Trên WeasyPrint, định vị tương đối vẽ ở **lượt xếp
+chồng sau**, nên mọi run đã điền rơi xuống **cuối** lớp text của PDF thay vì
+nằm đúng thứ tự tài liệu — và `match_runs` đi theo thứ tự ấy. Một tờ hoá đơn
+GTGT ra **16 hộp thay vì 97**, không một dòng lỗi nào. Nhích bằng
+`vertical-align` — dịch chuyển inline, không tạo ngữ cảnh xếp chồng — và
+`tests/test_handwriting.py` giữ cho nó không quay lại.
 
 `fonts/hand/` có hai mặt chữ, cả hai OFL 1.1 và cả hai qua được
 `check_fonts.py`. Việc kiểm tra ấy không phải thủ tục: **Caveat — lựa chọn hiển
@@ -248,12 +278,13 @@ chữ sẽ **thu nhỏ cả nét** thay vì bóp ngang — `height` cộng `max-
 
 ## Chỗ chưa nối
 
-* **Đường WeasyPrint (`generators/genalog/`).** Nó dựng lại hộp bằng
-  `match_runs`, đi song song giữa danh sách run và **lớp glyph của chính file
-  PDF**. Một ô điền tay không có glyph nào trong PDF, nên hai dãy lệch nhau và
-  mọi run sau đó nhận nhầm hộp — đúng kiểu hỏng mà commit `forms16` đã tả. Nối
-  được, nhưng phải dạy `match_runs` biết có run lấy hộp từ khối ảnh chứ không
-  từ glyph. Chưa làm, và `--handwriting` chỉ có ở backend trình duyệt.
+* **Mực của mô hình trên đường WeasyPrint.** `generators/genalog/` dựng lại hộp
+  bằng `match_runs`, đi song song giữa danh sách run và **lớp glyph của chính
+  file PDF**. Một ô mực của mô hình là một `<img>`, không góp glyph nào, nên hai
+  dãy lệch nhau ngay ở ô đầu tiên và mọi run sau đó nhận nhầm hộp — đúng kiểu
+  hỏng mà commit `forms16` đã tả. Nối được, nhưng phải dạy `match_runs` biết có
+  run lấy hộp từ khối ảnh; chưa làm, nên `--handwriting` ở genalog chỉ nhận
+  `font` và từ chối `model` bằng tên.
 * **`sign.name` chỉ có ở tờ lưu trú.** Bốn ô ký của `authorisation_letter` đều
   đề *"(Ký và ghi rõ họ tên)"* và đều để trắng, vì `signature_names` không bật
   cho tài liệu ấy. Bật nó là đổi `ground_truth()`, tức là đổi nhãn của mọi ảnh
