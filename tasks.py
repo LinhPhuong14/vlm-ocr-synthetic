@@ -164,6 +164,24 @@ def textures(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "make_textures.py"])
 
 
+@task("ornaments", "regenerate the seals and flourishes in textures/ornament")
+def ornaments(args) -> None:
+    run([first_available_python(), REPO_ROOT / "tools" / "make_ornaments.py"])
+
+
+@task("templates", "print the reference sheets in samples/")
+def templates(args) -> None:
+    for directory in ("invoice-templates", "form-templates"):
+        run([first_available_python(),
+             REPO_ROOT / "samples" / directory / "render.py"])
+
+
+@task("blanks", "the standard forms each document is drawn from")
+def blanks(args) -> None:
+    run([first_available_python(), REPO_ROOT / "tools" / "rules_report.py",
+         "--blanks"])
+
+
 @task("dataset", "labelled dataset with all three renderers (-n per renderer)")
 def dataset(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "generate_dataset.py",

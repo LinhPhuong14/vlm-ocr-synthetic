@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Hoá đơn giá trị gia tăng — bản thể hiện, có bảng tổng hợp</title>
+<style>
+  @page { size: A4 portrait; margin: 8mm; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: "Liberation Serif", "DejaVu Serif", serif;
+    font-size: 8.6pt; color: #000; line-height: 1.28;
+  }
+  .sheet { border: 2.2mm solid #c9dcf0; padding: 1.2mm; }
+  .inner { border: 0.35mm solid #2b2b2b; padding: 3mm 3.5mm 2mm; position: relative; }
+
+  /* ---------- đầu trang: logo | tiêu đề | khối mẫu số ---------- */
+  .head { display: table; width: 100%; }
+  .head > div { display: table-cell; vertical-align: top; }
+  .head-logo { width: 27%; padding-top: 3mm; }
+  .head-title { width: 46%; text-align: center; }
+  .head-serial { width: 27%; }
+
+  .logo-mark { font-family: "DejaVu Sans", sans-serif; font-weight: bold;
+               font-size: 17pt; letter-spacing: -0.4pt; }
+  .logo-mark .a { color: #1a7a3c; } .logo-mark .b { color: #e8641c; }
+  .logo-sub { font-family: "DejaVu Sans", sans-serif; font-size: 5.4pt;
+              letter-spacing: 2.6pt; color: #1a7a3c; padding-left: 1mm; }
+
+  .doc-title { color: #d51a1a; font-weight: bold; font-size: 19pt; line-height: 1.12; }
+  .doc-sub { font-style: italic; font-size: 8.4pt; padding-top: 0.8mm; }
+  .doc-date { font-size: 8.6pt; padding-top: 1mm; }
+  .doc-secret { font-weight: bold; font-size: 8.4pt; padding-top: 0.6mm; }
+
+  .serial { width: 100%; border-collapse: collapse; font-size: 8.6pt; }
+  .serial td { padding: 0.5mm 0; vertical-align: top; }
+  .serial .k { font-weight: bold; white-space: nowrap; padding-right: 2mm; }
+  .serial .v { font-weight: bold; }
+  .serial .red { color: #d51a1a; }
+
+  .rule { border-top: 0.35mm solid #2b2b2b; margin: 2mm 0 0; }
+
+  /* ---------- khối người bán, trong khung, có mã QR ---------- */
+  .seller { display: table; width: 100%; padding: 2mm 0 1.5mm; }
+  .seller > div { display: table-cell; vertical-align: top; }
+  .seller-qr { width: 26mm; padding-right: 4mm; }
+  .seller-name { font-weight: bold; font-size: 11.4pt; padding-bottom: 0.8mm; }
+  .seller p { margin: 0.5mm 0; }
+  .seller .lbl { font-weight: bold; }
+  .mst { font-weight: bold; letter-spacing: 1.6pt; }
+  .two { display: table; width: 100%; }
+  .two > span { display: table-cell; }
+  .two > span:first-child { width: 42%; }
+
+  /* ---------- khối người mua, có dấu HOÁ ĐƠN MẪU ---------- */
+  .buyer { padding: 1.5mm 0 1mm; position: relative; }
+  .buyer p { margin: 1.1mm 0; font-weight: bold; }
+  .stamp {
+    position: absolute; left: 26mm; top: 8mm;
+    color: #e01b1b; font-family: "DejaVu Sans", sans-serif; font-weight: bold;
+    font-size: 21pt; letter-spacing: 0.6pt; transform: rotate(-1.5deg);
+  }
+
+  /* ---------- bảng hàng hoá ---------- */
+  table.grid { width: 100%; border-collapse: collapse; }
+  table.grid th, table.grid td { border: 0.3mm solid #000; padding: 1mm 1.2mm; }
+  table.grid th { font-weight: bold; text-align: center; font-size: 8.2pt; line-height: 1.16; }
+  td.n { text-align: right; } td.c { text-align: center; }
+  tr.body td { height: 4.6mm; }
+  tr.tall td { height: 46mm; vertical-align: top; }
+  td.sum-label { font-weight: bold; }
+
+  /* ---------- bảng tổng hợp theo thuế suất ---------- */
+  .gap { height: 2mm; }
+  table.sum th { font-weight: bold; text-align: center; }
+  table.sum td { height: 4.8mm; }
+
+  .words { border: 0.3mm solid #000; border-top: 0; padding: 1.4mm 1.2mm; font-weight: bold; }
+
+  /* ---------- chữ ký ---------- */
+  .sign { display: table; width: 100%; padding-top: 3mm; }
+  .sign > div { display: table-cell; width: 50%; text-align: center; vertical-align: top; }
+  .sign .t { font-weight: bold; }
+  .sign .n { font-size: 7.8pt; }
+  .signbox {
+    margin: 12mm 0 0 auto; width: 62mm; height: 15mm; border: 0.5mm solid #17a44b;
+    position: relative;
+  }
+  .signbox .lab { position: absolute; left: 2mm; bottom: 2mm;
+                  color: #17a44b; font-weight: bold; font-size: 9pt; }
+  .signbox .tick { position: absolute; right: 4mm; top: 1mm;
+                   color: #17a44b; font-size: 26pt; line-height: 1; }
+
+  .foot { text-align: center; font-size: 7.4pt; font-style: italic; padding-top: 4mm; }
+</style>
+</head>
+<body>
+<div class="sheet"><div class="inner">
+
+  <div class="head">
+    <div class="head-logo">
+      <div class="logo-mark"><span class="a">AN</span><span class="b">PHÚ</span> MART</div>
+      <div class="logo-sub">TƯƠI MỖI NGÀY</div>
+    </div>
+    <div class="head-title">
+      <div class="doc-title">HÓA ĐƠN<br>GIÁ TRỊ GIA TĂNG</div>
+      <div class="doc-sub">Bản thể hiện của hóa đơn điện tử</div>
+      <div class="doc-date">Ngày (date) &nbsp;&nbsp; tháng (month) &nbsp;&nbsp; năm (year)</div>
+      <div class="doc-secret">Số bảo mật:</div>
+    </div>
+    <div class="head-serial">
+      <table class="serial">
+        <tr><td class="k">Mẫu số:</td><td class="v">01GTKT0/001</td></tr>
+        <tr><td class="k">Ký hiệu:</td><td class="v">AA/18E</td></tr>
+        <tr><td class="k">Số :</td><td class="v red">0000000</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="rule"></div>
+
+  <div class="seller">
+    <div class="seller-qr"><svg xmlns="http://www.w3.org/2000/svg" width="24.0mm" height="24.0mm" viewBox="0 0 24.0 24.0" shape-rendering="crispEdges"><rect width="24.0" height="24.0" fill="#fff"/><g fill="#000"><rect x="0.000" y="0.000" width="5.793" height="0.828"/><rect x="6.621" y="0.000" width="0.828" height="0.828"/><rect x="9.103" y="0.000" width="0.828" height="0.828"/><rect x="10.759" y="0.000" width="0.828" height="0.828"/><rect x="13.241" y="0.000" width="3.310" height="0.828"/><rect x="18.207" y="0.000" width="5.793" height="0.828"/><rect x="0.000" y="0.828" width="0.828" height="0.828"/><rect x="4.966" y="0.828" width="0.828" height="0.828"/><rect x="6.621" y="0.828" width="0.828" height="0.828"/><rect x="13.241" y="0.828" width="1.655" height="0.828"/><rect x="15.724" y="0.828" width="1.655" height="0.828"/><rect x="18.207" y="0.828" width="0.828" height="0.828"/><rect x="23.172" y="0.828" width="0.828" height="0.828"/><rect x="0.000" y="1.655" width="0.828" height="0.828"/><rect x="1.655" y="1.655" width="2.483" height="0.828"/><rect x="4.966" y="1.655" width="0.828" height="0.828"/><rect x="6.621" y="1.655" width="3.310" height="0.828"/><rect x="10.759" y="1.655" width="0.828" height="0.828"/><rect x="12.414" y="1.655" width="4.138" height="0.828"/><rect x="18.207" y="1.655" width="0.828" height="0.828"/><rect x="19.862" y="1.655" width="2.483" height="0.828"/><rect x="23.172" y="1.655" width="0.828" height="0.828"/><rect x="0.000" y="2.483" width="0.828" height="0.828"/><rect x="1.655" y="2.483" width="2.483" height="0.828"/><rect x="4.966" y="2.483" width="0.828" height="0.828"/><rect x="11.586" y="2.483" width="0.828" height="0.828"/><rect x="14.897" y="2.483" width="0.828" height="0.828"/><rect x="16.552" y="2.483" width="0.828" height="0.828"/><rect x="18.207" y="2.483" width="0.828" height="0.828"/><rect x="19.862" y="2.483" width="2.483" height="0.828"/><rect x="23.172" y="2.483" width="0.828" height="0.828"/><rect x="0.000" y="3.310" width="0.828" height="0.828"/><rect x="1.655" y="3.310" width="2.483" height="0.828"/><rect x="4.966" y="3.310" width="0.828" height="0.828"/><rect x="8.276" y="3.310" width="0.828" height="0.828"/><rect x="10.759" y="3.310" width="4.966" height="0.828"/><rect x="18.207" y="3.310" width="0.828" height="0.828"/><rect x="19.862" y="3.310" width="2.483" height="0.828"/><rect x="23.172" y="3.310" width="0.828" height="0.828"/><rect x="0.000" y="4.138" width="0.828" height="0.828"/><rect x="4.966" y="4.138" width="0.828" height="0.828"/><rect x="9.103" y="4.138" width="0.828" height="0.828"/><rect x="10.759" y="4.138" width="0.828" height="0.828"/><rect x="13.241" y="4.138" width="0.828" height="0.828"/><rect x="18.207" y="4.138" width="0.828" height="0.828"/><rect x="23.172" y="4.138" width="0.828" height="0.828"/><rect x="0.000" y="4.966" width="5.793" height="0.828"/><rect x="6.621" y="4.966" width="0.828" height="0.828"/><rect x="8.276" y="4.966" width="0.828" height="0.828"/><rect x="9.931" y="4.966" width="0.828" height="0.828"/><rect x="11.586" y="4.966" width="0.828" height="0.828"/><rect x="13.241" y="4.966" width="0.828" height="0.828"/><rect x="14.897" y="4.966" width="0.828" height="0.828"/><rect x="16.552" y="4.966" width="0.828" height="0.828"/><rect x="18.207" y="4.966" width="5.793" height="0.828"/><rect x="6.621" y="5.793" width="1.655" height="0.828"/><rect x="9.103" y="5.793" width="0.828" height="0.828"/><rect x="10.759" y="5.793" width="1.655" height="0.828"/><rect x="13.241" y="5.793" width="0.828" height="0.828"/><rect x="0.828" y="6.621" width="0.828" height="0.828"/><rect x="2.483" y="6.621" width="0.828" height="0.828"/><rect x="4.966" y="6.621" width="1.655" height="0.828"/><rect x="7.448" y="6.621" width="1.655" height="0.828"/><rect x="14.069" y="6.621" width="1.655" height="0.828"/><rect x="20.690" y="6.621" width="0.828" height="0.828"/><rect x="22.345" y="6.621" width="1.655" height="0.828"/><rect x="0.000" y="7.448" width="0.828" height="0.828"/><rect x="1.655" y="7.448" width="1.655" height="0.828"/><rect x="7.448" y="7.448" width="0.828" height="0.828"/><rect x="9.931" y="7.448" width="0.828" height="0.828"/><rect x="12.414" y="7.448" width="1.655" height="0.828"/><rect x="14.897" y="7.448" width="0.828" height="0.828"/><rect x="19.862" y="7.448" width="0.828" height="0.828"/><rect x="22.345" y="7.448" width="1.655" height="0.828"/><rect x="0.828" y="8.276" width="0.828" height="0.828"/><rect x="4.138" y="8.276" width="1.655" height="0.828"/><rect x="9.103" y="8.276" width="0.828" height="0.828"/><rect x="10.759" y="8.276" width="0.828" height="0.828"/><rect x="13.241" y="8.276" width="1.655" height="0.828"/><rect x="18.207" y="8.276" width="4.966" height="0.828"/><rect x="0.828" y="9.103" width="0.828" height="0.828"/><rect x="2.483" y="9.103" width="0.828" height="0.828"/><rect x="7.448" y="9.103" width="1.655" height="0.828"/><rect x="12.414" y="9.103" width="0.828" height="0.828"/><rect x="14.069" y="9.103" width="0.828" height="0.828"/><rect x="17.379" y="9.103" width="0.828" height="0.828"/><rect x="20.690" y="9.103" width="0.828" height="0.828"/><rect x="0.828" y="9.931" width="4.966" height="0.828"/><rect x="6.621" y="9.931" width="0.828" height="0.828"/><rect x="9.103" y="9.931" width="0.828" height="0.828"/><rect x="11.586" y="9.931" width="0.828" height="0.828"/><rect x="17.379" y="9.931" width="0.828" height="0.828"/><rect x="19.862" y="9.931" width="0.828" height="0.828"/><rect x="22.345" y="9.931" width="0.828" height="0.828"/><rect x="1.655" y="10.759" width="0.828" height="0.828"/><rect x="5.793" y="10.759" width="2.483" height="0.828"/><rect x="9.931" y="10.759" width="3.310" height="0.828"/><rect x="16.552" y="10.759" width="0.828" height="0.828"/><rect x="19.862" y="10.759" width="4.138" height="0.828"/><rect x="0.000" y="11.586" width="0.828" height="0.828"/><rect x="4.138" y="11.586" width="2.483" height="0.828"/><rect x="7.448" y="11.586" width="0.828" height="0.828"/><rect x="9.931" y="11.586" width="2.483" height="0.828"/><rect x="14.069" y="11.586" width="4.966" height="0.828"/><rect x="20.690" y="11.586" width="2.483" height="0.828"/><rect x="0.000" y="12.414" width="0.828" height="0.828"/><rect x="1.655" y="12.414" width="1.655" height="0.828"/><rect x="4.138" y="12.414" width="0.828" height="0.828"/><rect x="6.621" y="12.414" width="0.828" height="0.828"/><rect x="9.931" y="12.414" width="1.655" height="0.828"/><rect x="13.241" y="12.414" width="0.828" height="0.828"/><rect x="15.724" y="12.414" width="0.828" height="0.828"/><rect x="17.379" y="12.414" width="0.828" height="0.828"/><rect x="21.517" y="12.414" width="0.828" height="0.828"/><rect x="0.000" y="13.241" width="0.828" height="0.828"/><rect x="1.655" y="13.241" width="0.828" height="0.828"/><rect x="4.138" y="13.241" width="2.483" height="0.828"/><rect x="9.103" y="13.241" width="5.793" height="0.828"/><rect x="16.552" y="13.241" width="1.655" height="0.828"/><rect x="20.690" y="13.241" width="2.483" height="0.828"/><rect x="0.000" y="14.069" width="0.828" height="0.828"/><rect x="1.655" y="14.069" width="3.310" height="0.828"/><rect x="8.276" y="14.069" width="0.828" height="0.828"/><rect x="11.586" y="14.069" width="0.828" height="0.828"/><rect x="13.241" y="14.069" width="0.828" height="0.828"/><rect x="15.724" y="14.069" width="1.655" height="0.828"/><rect x="18.207" y="14.069" width="2.483" height="0.828"/><rect x="0.000" y="14.897" width="0.828" height="0.828"/><rect x="1.655" y="14.897" width="0.828" height="0.828"/><rect x="3.310" y="14.897" width="0.828" height="0.828"/><rect x="4.966" y="14.897" width="2.483" height="0.828"/><rect x="8.276" y="14.897" width="1.655" height="0.828"/><rect x="12.414" y="14.897" width="1.655" height="0.828"/><rect x="16.552" y="14.897" width="0.828" height="0.828"/><rect x="19.862" y="14.897" width="0.828" height="0.828"/><rect x="22.345" y="14.897" width="0.828" height="0.828"/><rect x="2.483" y="15.724" width="2.483" height="0.828"/><rect x="5.793" y="15.724" width="2.483" height="0.828"/><rect x="10.759" y="15.724" width="1.655" height="0.828"/><rect x="13.241" y="15.724" width="1.655" height="0.828"/><rect x="16.552" y="15.724" width="0.828" height="0.828"/><rect x="19.034" y="15.724" width="0.828" height="0.828"/><rect x="21.517" y="15.724" width="1.655" height="0.828"/><rect x="1.655" y="16.552" width="0.828" height="0.828"/><rect x="4.138" y="16.552" width="4.138" height="0.828"/><rect x="9.931" y="16.552" width="0.828" height="0.828"/><rect x="14.069" y="16.552" width="1.655" height="0.828"/><rect x="16.552" y="16.552" width="1.655" height="0.828"/><rect x="19.034" y="16.552" width="0.828" height="0.828"/><rect x="20.690" y="16.552" width="0.828" height="0.828"/><rect x="23.172" y="16.552" width="0.828" height="0.828"/><rect x="6.621" y="17.379" width="0.828" height="0.828"/><rect x="8.276" y="17.379" width="4.966" height="0.828"/><rect x="14.069" y="17.379" width="1.655" height="0.828"/><rect x="16.552" y="17.379" width="0.828" height="0.828"/><rect x="19.862" y="17.379" width="1.655" height="0.828"/><rect x="22.345" y="17.379" width="0.828" height="0.828"/><rect x="0.000" y="18.207" width="5.793" height="0.828"/><rect x="6.621" y="18.207" width="2.483" height="0.828"/><rect x="10.759" y="18.207" width="1.655" height="0.828"/><rect x="14.069" y="18.207" width="1.655" height="0.828"/><rect x="17.379" y="18.207" width="2.483" height="0.828"/><rect x="20.690" y="18.207" width="0.828" height="0.828"/><rect x="0.000" y="19.034" width="0.828" height="0.828"/><rect x="4.966" y="19.034" width="0.828" height="0.828"/><rect x="7.448" y="19.034" width="0.828" height="0.828"/><rect x="9.103" y="19.034" width="0.828" height="0.828"/><rect x="12.414" y="19.034" width="3.310" height="0.828"/><rect x="17.379" y="19.034" width="0.828" height="0.828"/><rect x="23.172" y="19.034" width="0.828" height="0.828"/><rect x="0.000" y="19.862" width="0.828" height="0.828"/><rect x="1.655" y="19.862" width="2.483" height="0.828"/><rect x="4.966" y="19.862" width="0.828" height="0.828"/><rect x="6.621" y="19.862" width="2.483" height="0.828"/><rect x="9.931" y="19.862" width="0.828" height="0.828"/><rect x="16.552" y="19.862" width="0.828" height="0.828"/><rect x="18.207" y="19.862" width="3.310" height="0.828"/><rect x="0.000" y="20.690" width="0.828" height="0.828"/><rect x="1.655" y="20.690" width="2.483" height="0.828"/><rect x="4.966" y="20.690" width="0.828" height="0.828"/><rect x="7.448" y="20.690" width="0.828" height="0.828"/><rect x="9.931" y="20.690" width="0.828" height="0.828"/><rect x="12.414" y="20.690" width="3.310" height="0.828"/><rect x="16.552" y="20.690" width="2.483" height="0.828"/><rect x="20.690" y="20.690" width="1.655" height="0.828"/><rect x="23.172" y="20.690" width="0.828" height="0.828"/><rect x="0.000" y="21.517" width="0.828" height="0.828"/><rect x="1.655" y="21.517" width="2.483" height="0.828"/><rect x="4.966" y="21.517" width="0.828" height="0.828"/><rect x="6.621" y="21.517" width="1.655" height="0.828"/><rect x="9.931" y="21.517" width="0.828" height="0.828"/><rect x="13.241" y="21.517" width="0.828" height="0.828"/><rect x="14.897" y="21.517" width="0.828" height="0.828"/><rect x="16.552" y="21.517" width="1.655" height="0.828"/><rect x="19.034" y="21.517" width="2.483" height="0.828"/><rect x="22.345" y="21.517" width="0.828" height="0.828"/><rect x="0.000" y="22.345" width="0.828" height="0.828"/><rect x="4.966" y="22.345" width="0.828" height="0.828"/><rect x="7.448" y="22.345" width="0.828" height="0.828"/><rect x="9.103" y="22.345" width="0.828" height="0.828"/><rect x="10.759" y="22.345" width="2.483" height="0.828"/><rect x="14.897" y="22.345" width="0.828" height="0.828"/><rect x="16.552" y="22.345" width="0.828" height="0.828"/><rect x="18.207" y="22.345" width="2.483" height="0.828"/><rect x="21.517" y="22.345" width="1.655" height="0.828"/><rect x="0.000" y="23.172" width="5.793" height="0.828"/><rect x="6.621" y="23.172" width="1.655" height="0.828"/><rect x="9.103" y="23.172" width="0.828" height="0.828"/><rect x="10.759" y="23.172" width="0.828" height="0.828"/><rect x="16.552" y="23.172" width="0.828" height="0.828"/><rect x="20.690" y="23.172" width="0.828" height="0.828"/></g></svg></div>
+    <div>
+      <div class="seller-name">CÔNG TY TNHH BÁN LẺ AN PHÚ VIỆT NAM</div>
+      <p><span class="lbl">Địa chỉ:</span> Số 142, đường Lê Duẩn, Phường Khâm Thiên, Quận Đống Đa, Thành Phố Hà Nội, Việt Nam</p>
+      <p><span class="lbl">Mã số thuế:</span> <span class="mst">0108432911</span></p>
+      <p class="two"><span>Số tài khoản: 002 000 14759670</span><span>Tại ngân hàng &nbsp; TMCP Đông Nam Á - CN Sở Giao Dịch</span></p>
+      <p class="two"><span>Số giao dịch:</span><span>Kho:</span></p>
+    </div>
+  </div>
+
+  <div class="rule"></div>
+
+  <div class="buyer">
+    <div class="stamp">HÓA ĐƠN MẪU</div>
+    <p>Tên người mua hàng:</p>
+    <p>Tên đơn vị:</p>
+    <p>Địa chỉ:</p>
+    <p class="two"><span>Mã số thuế:</span><span>Số tài khoản:</span></p>
+    <p>Hình thức thanh toán:</p>
+  </div>
+
+  <table class="grid">
+    <thead>
+      <tr>
+        <th style="width:6%">STT</th>
+        <th>Tên hàng hóa, dịch vụ</th>
+        <th style="width:8%">Đơn vị</th>
+        <th style="width:10%">Số lượng</th>
+        <th style="width:11%">Đơn giá</th>
+        <th style="width:15%">Thành tiền chưa có thuế GTGT</th>
+        <th style="width:8%">Thuế suất</th>
+        <th style="width:14%">Tiền thuế GTGT</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="tall"><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="body">
+        <td class="sum-label" colspan="5">Cộng tiền hàng chưa có thuế GTGT:</td>
+        <td></td><td></td><td></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="gap"></div>
+
+  <table class="grid sum">
+    <thead>
+      <tr>
+        <th>Tổng hợp</th>
+        <th style="width:10%">Thuế suất<br>(VAT rate)</th>
+        <th style="width:20%">Trị giá chưa có thuế GTGT</th>
+        <th style="width:18%">Tiền thuế GTGT</th>
+        <th style="width:20%">Trị giá thanh toán</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Hàng hóa không chịu thuế GTGT:</td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>Hàng hóa chịu thuế suất:</td><td class="c">0%</td><td></td><td class="n">0</td><td></td></tr>
+      <tr><td>Hàng hóa chịu thuế suất:</td><td class="c">5%</td><td></td><td></td><td></td></tr>
+      <tr><td>Hàng hóa chịu thuế suất:</td><td class="c">10%</td><td></td><td></td><td></td></tr>
+      <tr><td>Tổng cộng tiền thanh toán:</td><td></td><td></td><td></td><td></td></tr>
+    </tbody>
+  </table>
+  <div class="words">Số tiền bằng chữ:</div>
+
+  <div class="sign">
+    <div>
+      <div class="t">Người mua hàng</div>
+      <div class="n">(Ký, ghi rõ họ, tên)</div>
+    </div>
+    <div>
+      <div class="t">Người bán hàng</div>
+      <div class="n">(Ký, ghi rõ họ, tên)</div>
+      <div class="signbox">
+        <span class="lab">Ngày ký:</span>
+        <span class="tick">&#10004;</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    (Cần kiểm tra, đối chiếu khi lập, giao, nhận hóa đơn)<br>
+    (Khởi tạo từ Phần mềm HĐĐT – Công ty CP dịch vụ Viễn thông và In Bưu điện- MST: 0100687474 - SĐT :0243 6521792 - 8271001)
+  </div>
+
+</div></div>
+</body>
+</html>

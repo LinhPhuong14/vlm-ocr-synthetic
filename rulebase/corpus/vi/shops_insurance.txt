@@ -1,0 +1,12 @@
+# Doanh nghiệp bảo hiểm nhân thọ trên giấy uỷ quyền: tên pháp nhân<TAB>phòng ban.
+#
+# Tên tự đặt, cùng lý do như `shops_medical.txt`: giấy uỷ quyền mang tên một
+# công ty bảo hiểm thật, kèm số CMND và số hợp đồng, là một giấy tờ giả.
+CÔNG TY CP BẢO HIỂM NHÂN THỌ AN PHÚC	Phòng Dịch vụ Khách hàng
+CÔNG TY TNHH BẢO HIỂM NHÂN THỌ TÂN AN	Phòng Nghiệp vụ
+CÔNG TY CP BẢO HIỂM NHÂN THỌ HỒNG ÂN	Phòng Dịch vụ Khách hàng
+CÔNG TY TNHH BẢO HIỂM NHÂN THỌ VIỆT TÍN	Trung tâm Dịch vụ Khách hàng
+CÔNG TY CP BẢO HIỂM NHÂN THỌ THÁI DƯƠNG	Phòng Bồi thường
+CÔNG TY TNHH BẢO HIỂM NHÂN THỌ MINH KHANG	Phòng Nghiệp vụ
+CÔNG TY CP BẢO HIỂM NHÂN THỌ ĐẠI TÍN	Phòng Dịch vụ Khách hàng
+CÔNG TY TNHH BẢO HIỂM NHÂN THỌ SAO MAI	Trung tâm Vận hành

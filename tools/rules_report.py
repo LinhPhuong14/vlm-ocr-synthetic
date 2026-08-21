@@ -22,6 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from rulebase import (  # noqa: E402
     ATTRIBUTES,
     available_layouts,
+    blanks,  # noqa: E402
     corpus,  # noqa: E402
     load_groups,
     load_rules,
@@ -42,6 +43,9 @@ def check() -> list[str]:
         problems.append(f"layout/{missing}: declared in rules but no {LAYOUTS_ROOT}/{missing}.yaml")
     for orphan in sorted(on_disk - declared):
         problems.append(f"layouts/{orphan}.yaml: on disk but not declared in rules/layout.yaml")
+
+    # The blank registry: intention against what the tags actually resolve to.
+    problems += blanks.problems(rules)
 
     # Chains may only name degradations that exist.
     try:
@@ -178,11 +182,12 @@ def main() -> int:
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--distribution", action="store_true")
     parser.add_argument("--corpus", action="store_true")
+    parser.add_argument("--blanks", action="store_true")
     parser.add_argument("-n", "--draws", type=int, default=2000)
     parser.add_argument("--seed", type=int, default=0)
     args = parser.parse_args()
 
-    if not (args.check or args.distribution or args.corpus):
+    if not (args.check or args.distribution or args.corpus or args.blanks):
         args.check = True
 
     failed = False
@@ -221,6 +226,31 @@ def main() -> int:
                 }
                 print(f"\ncorpus {lang}/ hợp lệ: "
                       + ", ".join(f"{k}={v}" for k, v in {**counts, **shared}.items()))
+
+    if args.blanks:
+        registry, documents = blanks.load_blanks()
+        by_tags = blanks.resolved(load_rules())
+        print("\nPHÔI GỐC theo từng loại document\n")
+        for name, members in documents.items():
+            print(f"  {name}  ({len(members)} phôi)")
+            for member in members:
+                blank = registry.get(member)
+                if blank is None:
+                    print(f"      {member:24} KHÔNG KHAI BÁO")
+                    continue
+                mark = "->" if blank.converted else "  chưa chuyển:"
+                sheet = f"  [{blank.sheet}]" if blank.sheet else ""
+                print(f"      {member:24} {mark} {blank.layout or ''}{sheet}")
+                print(f"        {blank.source}")
+            drift = by_tags[name] - {registry[m].layout for m in members
+                                     if m in registry and registry[m].converted}
+            if drift:
+                print(f"      LỆCH: tag còn cho phép {', '.join(sorted(drift))}")
+            print()
+        total = len(registry)
+        drawn = sum(1 for b in registry.values() if b.converted)
+        print(f"  {total} phôi, {drawn} đã chuyển thành bố cục, "
+              f"{sum(1 for b in registry.values() if b.sheet)} có tờ mẫu phát hành được")
 
     if args.distribution:
         print()

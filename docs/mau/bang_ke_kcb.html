@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Bảng kê chi phí điều trị nội trú — bản dựng thử</title>
+<style>
+  @page { size: A4 portrait; margin: 0; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:"LiberationSerif","DejaVu Serif",serif;
+         font-size:8pt; color:#111; line-height:1.34; }
+  .sheet { position:relative; width:210mm; min-height:297mm; padding:9mm 8mm 8mm;
+           background:#fff; overflow:hidden; }
+
+  /* ---------- đầu trang: 3 khối + mã QR ---------- */
+  .head { display:table; width:100%; }
+  .head > div { display:table-cell; vertical-align:top; }
+  .hl { width:46%; }
+  .hm { width:38%; }
+  .hr { width:16%; text-align:right; }
+  .logo { display:table; }
+  .logo > span { display:table-cell; vertical-align:middle; }
+  .logo .g { padding-right:2mm; }
+  .logo .g b { font-family:"DejaVuSans",sans-serif; font-weight:bold; font-size:12pt;
+               letter-spacing:-.6pt; display:block; border-bottom:.5mm solid #111; }
+  .logo .g i { font-style:normal; font-size:4.6pt; letter-spacing:1.4pt; display:block; }
+  .hl .n1 { font-size:10.5pt; }
+  .hl .n2 { font-size:10.5pt; }
+  .hl .kv { padding-left:6mm; }
+  .hm .kv { }
+  .hm b { font-weight:normal; }
+
+  h1 { text-align:center; font-size:14pt; font-weight:bold; margin:3mm 0 2mm;
+       letter-spacing:.2pt; }
+  .lien { position:absolute; right:9mm; top:26mm; border:.3mm solid #111;
+          width:11mm; height:8mm; text-align:center; line-height:8mm; font-size:11pt; }
+
+  /* ---------- phần hành chính: trường đánh số, ô đóng khung, ô tích ---------- */
+  .sec { font-weight:bold; }
+  .f { margin:.9mm 0; }
+  .f .n { }
+  .cell { display:inline-block; border:.3mm solid #111; padding:0 1.6mm;
+          min-width:9mm; text-align:center; }
+  .cell.w { min-width:24mm; }
+  .cell.s { min-width:6mm; }
+  .tick { display:inline-block; border:.3mm solid #111; width:5mm; height:4mm;
+          text-align:center; line-height:4mm; font-size:7pt; }
+  .right { float:right; }
+
+  /* ---------- bảng chi phí ---------- */
+  table.k { width:100%; border-collapse:collapse; margin-top:2mm; }
+  table.k th, table.k td { border:.25mm solid #111; padding:.7mm 1mm; vertical-align:top; }
+  table.k th { text-align:center; font-weight:bold; font-size:7.4pt; line-height:1.16;
+               vertical-align:middle; }
+  table.k th i { font-weight:normal; font-style:italic; }
+  td.n { text-align:right; } td.c { text-align:center; }
+  tr.num td { text-align:center; font-size:6.8pt; padding:.3mm; }
+  tr.g td { font-weight:bold; }
+  tr.sum td { font-weight:bold; }
+
+  /* ---------- khối quyết toán ---------- */
+  .tot { margin-top:2mm; }
+  .tot .l { margin:.9mm 0; }
+  .tot .i { padding-left:5mm; }
+  .tot .ii { padding-left:10mm; }
+  .tot em { font-style:italic; }
+  .tot .amt { font-style:italic; }
+
+  /* ---------- chữ ký ---------- */
+  .sign { display:table; width:100%; margin-top:4mm; }
+  .sign > div { display:table-cell; width:50%; text-align:center; vertical-align:top; }
+  .sign .r { font-weight:bold; }
+  .sign .h { font-style:italic; font-size:7.4pt; }
+  .sign .gap { height:16mm; }
+  .date { text-align:right; padding-right:22mm; font-style:italic; }
+
+  /* ---------- con dấu ---------- */
+  .stamp1 { position:absolute; left:60mm; top:6mm; width:34mm; opacity:.8; }
+  .stamp2 { position:absolute; left:78mm; top:118mm; width:40mm; opacity:.85;
+            transform:rotate(-4deg); }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <img class="stamp1" src="../../textures/ornament/seal_round_company_faint.png" alt="">
+  <img class="stamp2" src="../../textures/ornament/seal_square_copy.png" alt="">
+
+  <div class="head">
+    <div class="hl">
+      <div class="logo">
+        <span class="g"><b>TTH</b><i>HOSPITAL</i></span>
+        <span>
+          <div class="n1">CÔNG TY CỔ PHẦN TTH GROUP</div>
+          <div class="n2">BV ĐA KHOA TTH QUẢNG BÌNH</div>
+        </span>
+      </div>
+      <div class="kv">Khoa: &nbsp; KHOA TAI MŨI HỌNG</div>
+      <div class="kv">Mã khoa: &nbsp; K28</div>
+    </div>
+    <div class="hm">
+      <div>Mẫu số: 01/KBCB</div>
+      <div>Mã số người bệnh: &nbsp; BN240900000965</div>
+      <div>Số khám bệnh: &nbsp; TTHKCB2409007853</div>
+    </div>
+    <div class="hr"><svg xmlns="http://www.w3.org/2000/svg" width="17.0mm" height="17.0mm" viewBox="0 0 17.0 17.0" class="segno"><path transform="scale(0.5862068965517241)" class="qrline" stroke="#000" d="M0 0.5h7m2 0h2m3 0h1m2 0h1m1 0h1m2 0h7m-29 1h1m5 0h1m2 0h1m1 0h2m2 0h2m1 0h1m3 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m1 0h1m2 0h2m2 0h1m6 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h3m1 0h2m1 0h4m1 0h1m1 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h2m4 0h1m4 0h1m2 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m1 0h1m1 0h1m1 0h4m2 0h1m3 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-21 1h1m2 0h1m6 0h1m1 0h1m-21 1h1m1 0h5m2 0h5m1 0h4m1 0h1m1 0h5m-26 1h2m6 0h2m2 0h2m4 0h1m2 0h1m1 0h1m1 0h2m-27 1h1m2 0h4m1 0h1m1 0h1m3 0h1m2 0h1m5 0h3m-26 1h1m1 0h1m1 0h1m2 0h5m1 0h3m1 0h2m2 0h1m1 0h2m1 0h1m-28 1h1m3 0h1m1 0h6m1 0h1m1 0h4m1 0h2m1 0h1m3 0h2m-29 1h3m1 0h1m2 0h1m1 0h2m2 0h2m4 0h1m2 0h1m1 0h1m2 0h1m-28 1h3m3 0h1m4 0h1m3 0h1m2 0h1m2 0h2m1 0h3m-26 1h1m1 0h2m3 0h1m1 0h1m3 0h3m1 0h4m2 0h2m1 0h1m-28 1h2m1 0h1m1 0h2m1 0h2m1 0h3m1 0h5m1 0h1m1 0h1m-24 1h1m1 0h1m2 0h1m2 0h3m1 0h1m1 0h1m5 0h1m1 0h1m1 0h1m-25 1h1m1 0h1m2 0h2m1 0h1m5 0h2m2 0h1m4 0h2m1 0h1m-27 1h1m2 0h3m2 0h1m5 0h3m1 0h2m7 0h1m-28 1h1m1 0h1m3 0h2m3 0h3m2 0h3m1 0h7m-19 1h1m5 0h1m1 0h1m3 0h1m3 0h1m-25 1h7m2 0h1m1 0h1m2 0h3m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m-27 1h1m5 0h1m1 0h1m1 0h1m1 0h1m1 0h3m1 0h3m3 0h1m2 0h2m-29 1h1m1 0h3m1 0h1m1 0h2m1 0h1m3 0h4m1 0h9m-29 1h1m1 0h3m1 0h1m1 0h3m2 0h1m3 0h1m3 0h1m1 0h1m1 0h1m1 0h2m-29 1h1m1 0h3m1 0h1m1 0h2m2 0h2m1 0h1m2 0h3m1 0h1m1 0h1m2 0h1m-28 1h1m5 0h1m5 0h3m1 0h1m2 0h3m2 0h1m2 0h1m-28 1h7m1 0h2m2 0h8m2 0h1m1 0h3"/></svg>
+</div>
+  </div>
+
+  <h1>BẢNG KÊ CHI PHÍ ĐIỀU TRỊ NỘI TRÚ</h1>
+  <div class="lien">3</div>
+
+  <div class="sec">I. Phần hành chính:</div>
+  <div class="f">(1) Họ tên người bệnh: TRẦN BẢO KIM NGÂN <span style="padding-left:22mm">;Ngày, tháng, năm sinh: 09/12/2014</span> <span style="padding-left:14mm">; Giới tính: 2</span></div>
+  <div class="f">(2) Địa chỉ hiện tại: Phú Lộc, Xã Gia Ninh, Huyện Quảng Ninh, Quảng Bình <span style="padding-left:16mm">; (3) Mã khu vực (K1/K2/K3):</span></div>
+  <div class="f">(4) Mã thẻ BHYT: <span class="cell">CN</span><span class="cell s">3</span><span class="cell s">44</span><span class="cell w">4421069955</span>
+      Giá trị từ &nbsp; 01/01/2024 <span style="padding-left:14mm">đến &nbsp; 31/12/2024</span></div>
+  <div class="f">(5) Nơi ĐK KCB Ban Đầu: &nbsp; Trạm y tế xã Gia Ninh
+      <span class="right">; (6) Mã: <span class="cell w">44133</span></span></div>
+  <div class="f">(7) Đến khám: <span style="padding-left:14mm">09 giờ 15 phút ngày 25/09/2024</span></div>
+  <div class="f">(8) Điều trị ngoại trú/ nội trú từ: &nbsp; 14 giờ 20 phút ngày 25/09/2024</div>
+  <div class="f">(9) Kết thúc khám, điều trị: <span style="padding-left:6mm">08 giờ 05 phút ngày 28/09/2024</span>
+      <span class="right">(10) Tình trạng ra viện: <span class="cell s">1</span></span>
+      <span style="padding-left:26mm">Tổng số ngày điều trị: &nbsp; 4</span></div>
+  <div class="f">(11) Cấp cứu: <span class="tick"></span> (12) Đúng tuyến: <span class="tick">x</span> Nơi chuyển đến từ:
+      <span style="padding-left:16mm">Nơi chuyển đi:</span>
+      <span class="right">(13) Thông tuyến: <span class="tick"></span> (14) Trái tuyến: <span class="tick"></span></span></div>
+  <div class="f">(15) Chẩn đoán xác định: J35.2-Phì đại VA(đã phẫu thuật)
+      <span class="right">(16) Mã bệnh: <span class="cell w">J35.2</span></span></div>
+  <div class="f">(17) Bệnh kèm theo: (J30.3) Viêm mũi dị ứng khác
+      <span class="right">(18) Mã bệnh kèm theo: <span class="cell w">J30.3</span></span></div>
+  <div class="f">(19) Thời điểm đủ 5 năm liên tục từ ngày: &nbsp; 09/12/2019
+      <span style="padding-left:26mm">(20) Miễn cùng chi trả trong năm từ ngày:</span></div>
+
+  <div class="sec" style="margin-top:1.4mm">II. Phần chi phí khám bệnh, chữa bệnh: <span style="font-weight:normal">(Mỗi mã thẻ BHYT thống kê phần chi phí khám bệnh, chữa bệnh phát sinh tương ứng theo mã thẻ đó).</span></div>
+  <div class="f">Mã thẻ BHYT: <span class="cell">CN</span><span class="cell s">3</span><span class="cell s">44</span><span class="cell w">4421069955</span>
+      Giá trị từ &nbsp; 01/01/2024 <span style="padding-left:8mm">đến &nbsp; 31/12/2024</span>
+      <span class="right">Mức hưởng <span class="cell w">95</span></span></div>
+  <div class="f">(Chi phí KBCB tính từ 09 giờ 15 phút ngày 25/09/2024 đến 08 giờ 05 phút ngày 28/09/2024)</div>
+
+  <table class="k">
+    <thead>
+      <tr>
+        <th rowspan="2" style="width:24%">Nội dung</th>
+        <th rowspan="2" style="width:5%">Đơn vị tính</th>
+        <th rowspan="2" style="width:4.5%">Số lượng</th>
+        <th rowspan="2" style="width:7%">Đơn giá BV<br><i>(đồng)</i></th>
+        <th rowspan="2" style="width:7%">Đơn giá BH<br><i>(đồng)</i></th>
+        <th rowspan="2" style="width:5%">Tỷ lệ thanh toán Theo Dịch Vụ <i>(%)</i></th>
+        <th rowspan="2" style="width:7.5%">Thành tiền BV<br><i>(đồng)</i></th>
+        <th rowspan="2" style="width:5%">Tỷ lệ thanh toán BHYT <i>(%)</i></th>
+        <th rowspan="2" style="width:7.5%">Thành tiền BH<br><i>(đồng)</i></th>
+        <th colspan="4">Nguồn thanh toán <i>(đồng)</i></th>
+      </tr>
+      <tr>
+        <th style="width:7%">Quỹ BHYT</th>
+        <th style="width:7%">Người bệnh cùng chi trả</th>
+        <th style="width:5%">Khác</th>
+        <th style="width:8%">Người bệnh tự chi trả</th>
+      </tr>
+      <tr class="num">
+        <td>(1)</td><td>(2)</td><td>(3)</td><td>(4)</td><td>(5)</td><td>(6)</td>
+        <td>(7)</td><td>(8)</td><td>(9)</td><td>(10)</td><td>(11)</td><td>(12)</td>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="g"><td colspan="6">1. Khám bệnh</td><td class="n">0.00</td><td></td><td class="n">33,200.00</td><td class="n">31,540.00</td><td class="n">1,660.00</td><td class="n">0.00</td><td class="n">1,660.00</td></tr>
+      <tr><td>Khám Tai mũi họng</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">33,200.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">33,200.00</td><td class="n">31,540.00</td><td class="n">1,660.00</td><td class="n">0.00</td><td class="n">1,660.00</td></tr>
+
+      <tr class="g"><td colspan="6">2.2. Ngày giường bệnh điều trị nội trú</td><td class="n">78,000.00</td><td></td><td class="n">598,800.00</td><td class="n">568,860.00</td><td class="n">29,940.00</td><td class="n">0.00</td><td class="n">78,000.00</td></tr>
+      <tr><td>Giường Ngoại khoa loại 3 Hạng III - Khoa TMH (Phòng 5 giường trở lên)</td><td class="c">Ngày</td><td class="c">3</td><td class="n">0.00</td><td class="n">199,600.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">598,800.00</td><td class="n">568,860.00</td><td class="n">29,940.00</td><td class="n">0.00</td><td class="n">0.00</td></tr>
+      <tr><td>[Thu tiền chênh lệch giá] Giường Ngoại khoa loại 3 Hạng III - Khoa TMH (Phòng 5 giường trở lên)</td><td class="c">Ngày</td><td class="c">3</td><td class="n">26,000.00</td><td class="n">0.00</td><td class="c">0</td><td class="n">78,000.00</td><td class="c">0</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">78,000.00</td></tr>
+
+      <tr class="g"><td colspan="6">3. Xét nghiệm</td><td class="n">656,300.00</td><td></td><td class="n">313,700.00</td><td class="n">298,015.00</td><td class="n">15,685.00</td><td class="n">456,300.00</td><td class="n">215,685.00</td></tr>
+      <tr><td>Thời gian prothrombin (PT: Prothrombin Time), (Các tên khác: TQ; Tỷ lệ Prothrombin) bằng máy tự động</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">65,300.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">65,300.00</td><td class="n">62,035.00</td><td class="n">3,265.00</td><td class="n">0.00</td><td class="n">3,265.00</td></tr>
+      <tr><td>Tổng phân tích tế bào máu ngoại vi (bằng máy đếm laser)</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">47,500.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">47,500.00</td><td class="n">45,125.00</td><td class="n">2,375.00</td><td class="n">0.00</td><td class="n">2,375.00</td></tr>
+      <tr><td>Định nhóm máu hệ ABO (Kỹ thuật ống nghiệm)</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">40,200.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">40,200.00</td><td class="n">38,190.00</td><td class="n">2,010.00</td><td class="n">0.00</td><td class="n">2,010.00</td></tr>
+
+      <tr class="g"><td colspan="6">6. Phẫu thuật</td><td class="n">2,500,000.00</td><td></td><td class="n">2,898,000.00</td><td class="n">2,753,100.00</td><td class="n">144,900.00</td><td class="n">0.00</td><td class="n">2,644,900.00</td></tr>
+      <tr><td>Phẫu thuật nội soi nạo V.A</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">2,898,000.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">2,898,000.00</td><td class="n">2,753,100.00</td><td class="n">144,900.00</td><td class="n">0.00</td><td class="n">144,900.00</td></tr>
+
+      <tr class="g"><td colspan="6">8. Thuốc</td><td class="n">56,176.00</td><td></td><td class="n">349,400.00</td><td class="n">331,930.00</td><td class="n">17,470.00</td><td class="n">0.00</td><td class="n">73,646.00</td></tr>
+      <tr><td>Ama-Power</td><td class="c">Lọ</td><td class="c">5</td><td class="n">0.00</td><td class="n">62,000.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">310,000.00</td><td class="n">294,500.00</td><td class="n">15,500.00</td><td class="n">0.00</td><td class="n">15,500.00</td></tr>
+      <tr><td>Natri Clorid 0,9%</td><td class="c">Lọ</td><td class="c">1</td><td class="n">0.00</td><td class="n">1,320.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">1,320.00</td><td class="n">1,254.00</td><td class="n">66.00</td><td class="n">0.00</td><td class="n">66.00</td></tr>
+
+      <tr class="g"><td colspan="6">9. Vật tư y tế</td><td class="n">3,560.00</td><td></td><td class="n">38,900.00</td><td class="n">36,955.00</td><td class="n">1,945.00</td><td class="n">0.00</td><td class="n">5,505.00</td></tr>
+      <tr><td>Bơm tiêm MPV sử dụng một lần 20ml</td><td class="c">Cái</td><td class="c">5</td><td class="n">0.00</td><td class="n">2,300.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">11,500.00</td><td class="n">10,925.00</td><td class="n">575.00</td><td class="n">0.00</td><td class="n">575.00</td></tr>
+      <tr><td>Kim tiêm MPV</td><td class="c">Cái</td><td class="c">5</td><td class="n">0.00</td><td class="n">400.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">2,000.00</td><td class="n">1,900.00</td><td class="n">100.00</td><td class="n">0.00</td><td class="n">100.00</td></tr>
+
+      <tr class="sum"><td colspan="6">Cộng:</td><td class="n">3,340,336.00</td><td></td><td class="n">4,335,700.00</td><td class="n">4,118,915.00</td><td class="n">216,785.00</td><td class="n">502,600.00</td><td class="n">3,054,521.00</td></tr>
+    </tbody>
+  </table>
+
+  <div class="tot">
+    <div class="l">Tổng chi phí lần khám bệnh/ cả đợt điều trị (làm tròn đến đơn vị đồng): <span style="padding-left:8mm">7,676,036.00 đồng.</span></div>
+    <div class="l">Viết bằng chữ: <span class="amt" style="padding-left:8mm">Bảy triệu sáu trăm bảy mươi sáu nghìn không trăm ba mươi sáu đồng</span></div>
+    <div class="l"><b>Trong đó, số tiền do:</b></div>
+    <div class="l i">- Quỹ BHYT thanh toán theo giá dịch vụ y tế: <span class="amt" style="padding-left:6mm">4,118,915.00 đồng (Bằng chữ: Bốn triệu một trăm mười tám nghìn chín trăm mười lăm đồng)</span></div>
+    <div class="l i">- Quỹ BHYT thanh toán theo định suất: <span style="padding-left:6mm">Thanh toán vào cuối kỳ (cuối quý)</span></div>
+    <div class="l i">- Người bệnh trả, trong đó: <span class="amt" style="padding-left:6mm">3,557,121.00 đồng (Bằng chữ: Ba triệu năm trăm năm mươi bảy nghìn một trăm hai mươi mốt đồng)</span></div>
+    <div class="l ii">+ Cùng trả trong phạm vi BHYT: <span class="amt">216,785.00 đồng (Bằng chữ: Hai trăm mười sáu nghìn bảy trăm tám mươi lăm đồng)</span></div>
+    <div class="l ii">+ Các khoản phải trả khác: <span class="amt">2,837,736.00 đồng (Bằng chữ: Hai triệu tám trăm ba mươi bảy nghìn bảy trăm ba mươi sáu đồng)</span></div>
+    <div class="l ii">+ Được miễn giảm: <span class="amt">502,600.00 đồng (Bằng chữ: Năm trăm lẻ hai nghìn sáu trăm đồng)</span></div>
+    <div class="l i">- Nguồn khác: <span class="amt">0 đồng (Bằng chữ: Không đồng)</span></div>
+  </div>
+
+  <div class="date">Ngày 28 tháng 09 năm 2024</div>
+  <div class="sign">
+    <div><div class="r">NGƯỜI LẬP BẢNG KÊ</div><div class="h">(Ký, ghi rõ họ tên)</div><div class="gap"></div></div>
+    <div><div class="r">KẾ TOÁN VIỆN PHÍ</div><div class="h">(Ký, ghi rõ họ tên)</div><div class="gap"></div></div>
+  </div>
+  <div class="sign">
+    <div><div class="r">XÁC NHẬN CỦA NGƯỜI BỆNH</div><div class="h">(Ký, ghi rõ họ tên)</div>
+         <div class="h" style="font-weight:bold">(Tôi đã nhận ..... phim ..... Xquang/CT/MRI)</div></div>
+    <div><div class="h">Ngày &nbsp;&nbsp;&nbsp; tháng &nbsp;&nbsp;&nbsp; năm</div>
+         <div class="r">GIÁM ĐỊNH BHYT</div><div class="h">(Ký, ghi rõ họ tên)</div></div>
+  </div>
+
+</div>
+</body>
+</html>

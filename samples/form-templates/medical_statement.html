@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Bảng kê chi phí điều trị nội trú — Mẫu số 01/KBCB</title>
+<style>
+  @page { size: A4 portrait; margin: 9mm 8mm 8mm; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: "Liberation Serif", "DejaVu Serif", serif;
+    font-size: 8pt; color: #111; line-height: 1.32;
+  }
+  .sheet { position: relative; }
+  .sheet.turn { page-break-after: always; }
+
+  /* ---------- đầu trang: bệnh viện | mẫu số, mã người bệnh | mã QR ---------- */
+  .head { display: table; width: 100%; }
+  .head > div { display: table-cell; vertical-align: top; }
+  .head-hospital { width: 47%; }
+  .head-ids { width: 37%; }
+  .head-qr { width: 16%; text-align: right; }
+  .head-qr .qr { width: 17mm; height: 17mm; }
+
+  .logo { display: table; }
+  .logo > span { display: table-cell; vertical-align: middle; }
+  .logo .mark { padding-right: 2.2mm; text-align: center; }
+  .logo .mark b { font-family: "Liberation Sans", "DejaVu Sans", sans-serif;
+                  font-weight: bold; font-size: 12.5pt; letter-spacing: -0.4pt;
+                  display: block; border-bottom: 0.5mm solid #111; }
+  .logo .mark i { font-style: normal; font-size: 4.8pt; letter-spacing: 1.5pt;
+                  display: block; }
+  .head-hospital .org { font-size: 10.5pt; }
+  .head-hospital .dept { padding-left: 6mm; }
+
+  h1 { text-align: center; font-size: 14pt; font-weight: bold;
+       letter-spacing: 0.2pt; margin: 3.4mm 0 2.2mm; }
+  /* số liên, trong ô vuông cạnh tiêu đề */
+  .copy-no { position: absolute; right: 1mm; top: 25mm; border: 0.3mm solid #111;
+             width: 11mm; height: 8mm; text-align: center; line-height: 8mm;
+             font-size: 11pt; }
+
+  /* ---------- phần hành chính: trường đánh số, ô đóng khung, ô tích ---------- */
+  .part { font-weight: bold; }
+  .part span { font-weight: normal; }
+  .field { margin: 0.95mm 0; clear: both; }
+  .field .stack { float: right; text-align: right; }
+  .boxed { display: inline-block; border: 0.3mm solid #111; padding: 0 1.7mm;
+           min-width: 9mm; text-align: center; }
+  .boxed.narrow { min-width: 6mm; }
+  .boxed.wide { min-width: 25mm; }
+  .tick { display: inline-block; border: 0.3mm solid #111; width: 5mm; height: 4.1mm;
+          text-align: center; line-height: 4.1mm; font-size: 7pt; }
+  .to-right { float: right; }
+
+  /* ---------- bảng chi phí: 13 cột, tiêu đề hai tầng ---------- */
+  table.costs { width: 100%; border-collapse: collapse; table-layout: fixed;
+                margin-top: 2.2mm; }
+  table.costs { font-size: 7.5pt; }
+  table.costs th, table.costs td { border: 0.25mm solid #111; padding: 0.75mm 0.7mm;
+                                   vertical-align: top; }
+  table.costs td:first-child { word-wrap: break-word; }
+  table.costs td.n, table.costs td.c { white-space: nowrap; }
+  table.costs th { text-align: center; font-weight: bold; font-size: 7.4pt;
+                   line-height: 1.15; vertical-align: middle; }
+  table.costs th i { font-weight: normal; font-style: italic; }
+  table.costs td.n { text-align: right; }
+  table.costs td.c { text-align: center; }
+  tr.colnum td { text-align: center; font-size: 7pt; padding: 0.35mm; }
+  tr.group td, tr.total td { font-weight: bold; }
+  /* trang 2 và 3 chạy tiếp bảng, KHÔNG lặp lại tiêu đề -- đúng như bản gốc */
+  table.costs.continued { margin-top: 0; }
+
+  /* ---------- khối quyết toán: danh sách phân cấp hai mức ---------- */
+  .settle { margin-top: 2.2mm; }
+  .settle div { margin: 0.95mm 0; }
+  .settle .lv1 { padding-left: 5mm; }
+  .settle .lv2 { padding-left: 10mm; }
+  .settle .amount { font-style: italic; }
+
+  /* ---------- chữ ký: 4 vai trò, xếp 2x2 ---------- */
+  .signed-date { text-align: right; padding-right: 24mm; font-style: italic;
+                 margin-top: 3.5mm; }
+  .signatures { display: table; width: 100%; margin-top: 1.5mm; }
+  .signatures > div { display: table-cell; width: 50%; text-align: center;
+                      vertical-align: top; }
+  .signatures .role { font-weight: bold; }
+  .signatures .hint { font-style: italic; font-size: 7.5pt; }
+  .signatures .gap { height: 17mm; }
+  .day-line { font-style: italic; font-size: 7.5pt; }
+
+  /* ---------- con dấu: ảnh thật từ textures/ornament ---------- */
+  .seal { position: absolute; }
+  .seal-hospital { left: 56mm; top: 2mm; width: 33mm; opacity: 0.72; }
+  .seal-received { left: 74mm; top: 12mm; width: 38mm; opacity: 0.62;
+                   transform: rotate(-3deg); }
+  /* trang 2: dấu SAO Y xoay dựng đứng; trang 3: xoay chừng 12 độ */
+  .seal-copy-upright { left: 128mm; top: 96mm; width: 44mm; opacity: 0.8;
+                       transform: rotate(-90deg); }
+  .seal-copy-tilted { left: 132mm; top: 74mm; width: 44mm; opacity: 0.82;
+                      transform: rotate(-12deg); }
+  /* dấu tròn bệnh viện tràn qua mép phải trang cuối */
+  .seal-edge { right: -14mm; top: 118mm; width: 36mm; opacity: 0.7; }
+</style>
+</head>
+<body>
+
+<!-- ============================== TRANG 1 ============================== -->
+<div class="sheet turn">
+
+  <img class="seal seal-hospital" src="../../textures/ornament/seal_round_company_faint.png" alt="">
+  <img class="seal seal-received" src="../../textures/ornament/seal_accounting_posted.png" alt="">
+
+  <div class="head">
+    <div class="head-hospital">
+      <div class="logo">
+        <span class="mark"><b>MD</b><i>HOSPITAL</i></span>
+        <span>
+          <div class="org">CÔNG TY CỔ PHẦN Y TẾ MINH ĐỨC</div>
+          <div class="org">BV ĐA KHOA MINH ĐỨC</div>
+        </span>
+      </div>
+      <div class="dept">Khoa: &nbsp; KHOA TAI MŨI HỌNG</div>
+      <div class="dept">Mã khoa: &nbsp; K28</div>
+    </div>
+    <div class="head-ids">
+      <div>Mẫu số: 01/KBCB</div>
+      <div>Mã số người bệnh: &nbsp; BN250300004417</div>
+      <div>Số khám bệnh: &nbsp; MDKCB2503001182</div>
+    </div>
+    <div class="head-qr"><svg width="33" height="33" class="qr"><path class="qrline" stroke="#000" d="M2 2.5h7m2 0h2m2 0h1m5 0h1m2 0h7m-29 1h1m5 0h1m2 0h3m1 0h4m1 0h1m1 0h1m1 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m1 0h2m4 0h1m3 0h1m1 0h1m1 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h3m2 0h1m1 0h4m1 0h1m1 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h1m2 0h2m1 0h1m4 0h1m2 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m1 0h3m1 0h2m1 0h1m1 0h2m3 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-21 1h1m1 0h2m3 0h1m3 0h1m-20 1h1m1 0h5m3 0h1m1 0h2m1 0h4m1 0h1m1 0h5m-26 1h5m1 0h3m1 0h1m2 0h1m4 0h1m2 0h1m1 0h2m2 0h1m-29 1h1m3 0h3m5 0h1m2 0h2m1 0h1m2 0h1m2 0h2m1 0h1m-28 1h1m2 0h3m4 0h2m4 0h1m1 0h2m3 0h2m2 0h2m-25 1h1m1 0h1m1 0h1m2 0h3m3 0h2m2 0h1m1 0h1m1 0h3m-28 1h4m3 0h3m1 0h2m1 0h1m5 0h1m1 0h1m1 0h1m3 0h1m-29 1h1m1 0h6m1 0h1m3 0h1m1 0h2m1 0h1m1 0h1m3 0h1m2 0h1m-28 1h1m2 0h2m3 0h1m2 0h2m3 0h1m1 0h2m2 0h3m2 0h2m-27 1h1m2 0h2m1 0h1m2 0h3m1 0h4m4 0h1m1 0h2m1 0h1m-29 1h1m6 0h1m1 0h4m1 0h1m5 0h1m1 0h1m1 0h1m2 0h1m-28 1h1m1 0h1m1 0h1m1 0h1m2 0h2m3 0h3m1 0h1m1 0h1m1 0h1m1 0h3m-27 1h1m1 0h2m3 0h2m2 0h1m2 0h2m3 0h1m1 0h1m2 0h1m2 0h2m-29 1h1m3 0h5m2 0h2m2 0h13m-20 1h1m1 0h1m9 0h1m3 0h1m2 0h1m-28 1h7m3 0h3m2 0h1m2 0h1m1 0h1m1 0h1m1 0h1m-25 1h1m5 0h1m1 0h1m1 0h1m4 0h2m2 0h2m3 0h1m-25 1h1m1 0h3m1 0h1m1 0h5m3 0h3m1 0h9m-29 1h1m1 0h3m1 0h1m1 0h3m5 0h2m5 0h1m3 0h2m-29 1h1m1 0h3m1 0h1m1 0h4m3 0h1m2 0h2m1 0h1m2 0h1m2 0h1m-28 1h1m5 0h1m11 0h1m3 0h1m1 0h1m2 0h1m-28 1h7m1 0h2m1 0h2m1 0h6m4 0h3"/></svg></div>
+  </div>
+
+  <h1>BẢNG KÊ CHI PHÍ ĐIỀU TRỊ NỘI TRÚ</h1>
+  <div class="copy-no">3</div>
+
+  <div class="part">I. Phần hành chính:</div>
+  <div class="field">(1) Họ tên người bệnh: NGUYỄN GIA HÂN
+      <span style="padding-left:20mm">;Ngày, tháng, năm sinh: 17/05/2015</span>
+      <span style="padding-left:12mm">; Giới tính: 2</span></div>
+  <div class="field">(2) Địa chỉ hiện tại: Thôn Đông Hải, Xã Tân Lập, Huyện Vĩnh Cửu, Đồng Nai
+      <span style="padding-left:14mm">; (3) Mã khu vực (K1/K2/K3):</span></div>
+  <div class="field">(4) Mã thẻ BHYT: <span class="boxed">CN</span><span class="boxed narrow">3</span><span class="boxed narrow">75</span><span class="boxed wide">7501123489</span>
+      Giá trị từ &nbsp; 01/01/2025 <span style="padding-left:12mm">đến &nbsp; 31/12/2025</span></div>
+  <div class="field">(5) Nơi ĐK KCB Ban Đầu: &nbsp; Trạm y tế xã Tân Lập
+      <span class="to-right">; (6) Mã: <span class="boxed wide">75121</span></span></div>
+  <div class="field">(7) Đến khám: <span style="padding-left:12mm">08 giờ 40 phút ngày 14/03/2025</span></div>
+  <div class="field">(8) Điều trị ngoại trú/ nội trú từ: &nbsp; 13 giờ 30 phút ngày 14/03/2025</div>
+  <div class="field">(9) Kết thúc khám, điều trị: <span style="padding-left:5mm">09 giờ 15 phút ngày 17/03/2025</span>
+      <span class="to-right">(10) Tình trạng ra viện: <span class="boxed narrow">1</span></span>
+      <span style="padding-left:22mm">Tổng số ngày điều trị: &nbsp; 4</span></div>
+  <div class="field">(11) Cấp cứu: <span class="tick"></span> (12) Đúng tuyến: <span class="tick">x</span> Nơi chuyển đến từ:
+      <span style="padding-left:14mm">Nơi chuyển đi:</span>
+      <span class="to-right">(13) Thông tuyến: <span class="tick"></span> (14) Trái tuyến: <span class="tick"></span></span></div>
+  <div class="field">(15) Chẩn đoán xác định: J35.2-Phì đại VA (đã phẫu thuật)
+      <span class="to-right">(16) Mã bệnh: <span class="boxed wide">J35.2</span></span></div>
+  <div class="field"><div class="stack">(18) Mã bệnh<br>kèm theo: <span class="boxed wide">J30.3</span></div>
+      (17) Bệnh kèm theo: (J30.3) Viêm mũi dị ứng khác</div>
+  <div class="field">(19) Thời điểm đủ 5 năm liên tục từ ngày: &nbsp; 17/05/2020
+      <span style="padding-left:22mm">(20) Miễn cùng chi trả trong năm từ ngày:</span></div>
+
+  <div class="part" style="margin-top:1.6mm">II. Phần chi phí khám bệnh, chữa bệnh:
+      <span>(Mỗi mã thẻ BHYT thống kê phần chi phí khám bệnh, chữa bệnh phát sinh tương ứng theo mã thẻ đó).</span></div>
+  <div class="field">Mã thẻ BHYT: <span class="boxed">CN</span><span class="boxed narrow">3</span><span class="boxed narrow">75</span><span class="boxed wide">7501123489</span>
+      Giá trị từ &nbsp; 01/01/2025 <span style="padding-left:7mm">đến &nbsp; 31/12/2025</span>
+      <span class="to-right">Mức hưởng <span class="boxed wide">95</span></span></div>
+  <div class="field">(Chi phí KBCB tính từ 08 giờ 40 phút ngày 14/03/2025 đến 09 giờ 15 phút ngày 17/03/2025)</div>
+
+    <table class="costs ">
+      <colgroup>
+        <col style="width:20.0%"><col style="width:4.2%"><col style="width:3.9%">
+        <col style="width:7.5%"><col style="width:8.3%"><col style="width:4.3%">
+        <col style="width:7.9%"><col style="width:4.3%"><col style="width:8.3%">
+        <col style="width:8.3%"><col style="width:7.9%"><col style="width:6.8%">
+        <col style="width:8.3%">
+      </colgroup>
+      <thead>
+        <tr>
+          <th rowspan="2">Nội dung</th>
+          <th rowspan="2">Đơn vị tính</th>
+          <th rowspan="2">Số lượng</th>
+          <th rowspan="2">Đơn giá BV <i>(đồng)</i></th>
+          <th rowspan="2">Đơn giá BH <i>(đồng)</i></th>
+          <th rowspan="2">Tỷ lệ thanh toán Theo Dịch Vụ <i>(%)</i></th>
+          <th rowspan="2">Thành tiền BV <i>(đồng)</i></th>
+          <th rowspan="2">Tỷ lệ thanh toán BHYT <i>(%)</i></th>
+          <th rowspan="2">Thành tiền BH <i>(đồng)</i></th>
+          <th colspan="4">Nguồn thanh toán <i>(đồng)</i></th>
+        </tr>
+        <tr>
+          <th>Quỹ BHYT</th>
+          <th>Người bệnh cùng chi trả</th>
+          <th>Khác</th>
+          <th>Người bệnh tự chi trả</th>
+        </tr>
+        <tr class="colnum">
+          <td>(1)</td><td>(2)</td><td>(3)</td><td>(4)</td><td>(5)</td><td>(6)</td>
+          <td>(7)</td><td>(8)</td><td>(9)</td><td>(10)</td><td>(11)</td><td>(12)</td>
+          <td>(13)</td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="group"><td colspan="6">1. Khám bệnh</td><td class="n">0.00</td><td></td><td class="n">66,400.00</td><td class="n">63,080.00</td><td class="n">3,320.00</td><td class="n">0.00</td><td class="n">3,320.00</td></tr>
+        <tr><td>Khám Tai mũi họng</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">33,200.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">33,200.00</td><td class="n">31,540.00</td><td class="n">1,660.00</td><td class="n">0.00</td><td class="n">1,660.00</td></tr>
+        <tr><td>Khám Nội tổng quát (hội chẩn trước phẫu thuật)</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">33,200.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">33,200.00</td><td class="n">31,540.00</td><td class="n">1,660.00</td><td class="n">0.00</td><td class="n">1,660.00</td></tr>
+        <tr class="group"><td colspan="6">2.2. Ngày giường bệnh điều trị nội trú</td><td class="n">78,000.00</td><td></td><td class="n">598,800.00</td><td class="n">568,860.00</td><td class="n">29,940.00</td><td class="n">0.00</td><td class="n">107,940.00</td></tr>
+        <tr><td>Giường Ngoại khoa loại 3 Hạng III - Khoa TMH (Phòng 5 giường trở lên)</td><td class="c">Ngày</td><td class="c">3</td><td class="n">0.00</td><td class="n">199,600.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">598,800.00</td><td class="n">568,860.00</td><td class="n">29,940.00</td><td class="n">0.00</td><td class="n">29,940.00</td></tr>
+        <tr><td>[Thu tiền chênh lệch giá] Giường Ngoại khoa loại 3 Hạng III - Khoa TMH (Phòng 5 giường trở lên)</td><td class="c">Ngày</td><td class="c">3</td><td class="n">26,000.00</td><td class="n">0.00</td><td class="c">0</td><td class="n">78,000.00</td><td class="c">0</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">78,000.00</td></tr>
+        <tr class="group"><td colspan="6">3. Xét nghiệm</td><td class="n">105,800.00</td><td></td><td class="n">993,800.00</td><td class="n">944,110.00</td><td class="n">49,690.00</td><td class="n">105,800.00</td><td class="n">49,690.00</td></tr>
+        <tr><td>Thời gian prothrombin (PT: Prothrombin Time), (Các tên khác: TQ; Tỷ lệ Prothrombin) bằng máy tự động</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">65,300.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">65,300.00</td><td class="n">62,035.00</td><td class="n">3,265.00</td><td class="n">0.00</td><td class="n">3,265.00</td></tr>
+        <tr><td>Thời gian thromboplastin một phần hoạt hoá (APTT: Activated Partial Thromboplastin Time), (Tên khác: TCK) bằng máy tự động</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">41,500.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">41,500.00</td><td class="n">39,425.00</td><td class="n">2,075.00</td><td class="n">0.00</td><td class="n">2,075.00</td></tr>
+        <tr><td>Định lượng Fibrinogen (Yếu tố I) phương pháp Clauss - phương pháp trực tiếp, bằng máy tự động</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">71,400.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">71,400.00</td><td class="n">67,830.00</td><td class="n">3,570.00</td><td class="n">0.00</td><td class="n">3,570.00</td></tr>
+        <tr><td>Tổng phân tích tế bào máu ngoại vi (bằng máy đếm laser)</td><td class="c">Lần</td><td class="c">2</td><td class="n">0.00</td><td class="n">47,500.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">95,000.00</td><td class="n">90,250.00</td><td class="n">4,750.00</td><td class="n">0.00</td><td class="n">4,750.00</td></tr>
+        <tr><td>Định nhóm máu hệ ABO (Kỹ thuật ống nghiệm)</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">40,200.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">40,200.00</td><td class="n">38,190.00</td><td class="n">2,010.00</td><td class="n">0.00</td><td class="n">2,010.00</td></tr>
+        <tr><td>Định nhóm máu hệ Rh(D) (Kỹ thuật ống nghiệm)</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">32,000.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">32,000.00</td><td class="n">30,400.00</td><td class="n">1,600.00</td><td class="n">0.00</td><td class="n">1,600.00</td></tr>
+        <tr><td>Đo hoạt độ ALT (GPT) [Máu]</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">21,800.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">21,800.00</td><td class="n">20,710.00</td><td class="n">1,090.00</td><td class="n">0.00</td><td class="n">1,090.00</td></tr>
+      </tbody>
+    </table>
+</div>
+
+<!-- ============================== TRANG 2 ============================== -->
+<div class="sheet turn">
+  <img class="seal seal-copy-upright" src="../../textures/ornament/seal_square_copy.png" alt="">
+    <table class="costs continued">
+      <colgroup>
+        <col style="width:20.0%"><col style="width:4.2%"><col style="width:3.9%">
+        <col style="width:7.5%"><col style="width:8.3%"><col style="width:4.3%">
+        <col style="width:7.9%"><col style="width:4.3%"><col style="width:8.3%">
+        <col style="width:8.3%"><col style="width:7.9%"><col style="width:6.8%">
+        <col style="width:8.3%">
+      </colgroup>
+      <tbody>
+        <tr><td>Đo hoạt độ AST (GOT) [Máu]</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">21,800.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">21,800.00</td><td class="n">20,710.00</td><td class="n">1,090.00</td><td class="n">0.00</td><td class="n">1,090.00</td></tr>
+        <tr><td>Định lượng Creatinin (máu)</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">21,800.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">21,800.00</td><td class="n">20,710.00</td><td class="n">1,090.00</td><td class="n">0.00</td><td class="n">1,090.00</td></tr>
+        <tr><td>Định lượng Urê máu [Máu]</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">21,800.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">21,800.00</td><td class="n">20,710.00</td><td class="n">1,090.00</td><td class="n">0.00</td><td class="n">1,090.00</td></tr>
+        <tr><td>Định lượng Glucose [Máu]</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">21,800.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">21,800.00</td><td class="n">20,710.00</td><td class="n">1,090.00</td><td class="n">0.00</td><td class="n">1,090.00</td></tr>
+        <tr><td>Định lượng Protein toàn phần [Máu]</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">21,800.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">21,800.00</td><td class="n">20,710.00</td><td class="n">1,090.00</td><td class="n">0.00</td><td class="n">1,090.00</td></tr>
+        <tr><td>Định lượng Albumin [Máu]</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">21,800.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">21,800.00</td><td class="n">20,710.00</td><td class="n">1,090.00</td><td class="n">0.00</td><td class="n">1,090.00</td></tr>
+        <tr><td>Định lượng Bilirubin toàn phần [Máu]</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">21,800.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">21,800.00</td><td class="n">20,710.00</td><td class="n">1,090.00</td><td class="n">0.00</td><td class="n">1,090.00</td></tr>
+        <tr><td>Điện giải đồ (Na, K, Cl) [Máu]</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">29,000.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">29,000.00</td><td class="n">27,550.00</td><td class="n">1,450.00</td><td class="n">0.00</td><td class="n">1,450.00</td></tr>
+        <tr><td>Định lượng CRP hs (C-Reactive Protein high sensitivity) [Máu]</td><td class="c">Lần</td><td class="c">2</td><td class="n">0.00</td><td class="n">48,300.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">96,600.00</td><td class="n">91,770.00</td><td class="n">4,830.00</td><td class="n">0.00</td><td class="n">4,830.00</td></tr>
+        <tr><td>HBsAg test nhanh</td><td class="c">Lần</td><td class="c">1</td><td class="n">52,900.00</td><td class="n">0.00</td><td class="c">0</td><td class="n">52,900.00</td><td class="c">0</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">52,900.00</td><td class="n">0.00</td></tr>
+        <tr><td>HIV Ab test nhanh</td><td class="c">Lần</td><td class="c">1</td><td class="n">52,900.00</td><td class="n">0.00</td><td class="c">0</td><td class="n">52,900.00</td><td class="c">0</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">52,900.00</td><td class="n">0.00</td></tr>
+        <tr><td>Tổng phân tích nước tiểu (Bằng máy tự động)</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">27,400.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">27,400.00</td><td class="n">26,030.00</td><td class="n">1,370.00</td><td class="n">0.00</td><td class="n">1,370.00</td></tr>
+        <tr><td>Vi khuẩn nuôi cấy và định danh phương pháp thông thường</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">178,000.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">178,000.00</td><td class="n">169,100.00</td><td class="n">8,900.00</td><td class="n">0.00</td><td class="n">8,900.00</td></tr>
+        <tr><td>Tế bào học dịch chọc hút bằng kim nhỏ</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">143,000.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">143,000.00</td><td class="n">135,850.00</td><td class="n">7,150.00</td><td class="n">0.00</td><td class="n">7,150.00</td></tr>
+        <tr class="group"><td colspan="6">4. Chẩn đoán hình ảnh</td><td class="n">0.00</td><td></td><td class="n">417,600.00</td><td class="n">396,720.00</td><td class="n">20,880.00</td><td class="n">0.00</td><td class="n">20,880.00</td></tr>
+        <tr><td>Chụp X-quang ngực thẳng (số hoá 1 phim)</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">65,400.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">65,400.00</td><td class="n">62,130.00</td><td class="n">3,270.00</td><td class="n">0.00</td><td class="n">3,270.00</td></tr>
+        <tr><td>Chụp X-quang Blondeau (số hoá 1 phim)</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">65,400.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">65,400.00</td><td class="n">62,130.00</td><td class="n">3,270.00</td><td class="n">0.00</td><td class="n">3,270.00</td></tr>
+        <tr><td>Siêu âm ổ bụng (gan mật, tuỵ, lách, thận, bàng quang)</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">43,900.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">43,900.00</td><td class="n">41,705.00</td><td class="n">2,195.00</td><td class="n">0.00</td><td class="n">2,195.00</td></tr>
+        <tr><td>Siêu âm hạch vùng cổ</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">43,900.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">43,900.00</td><td class="n">41,705.00</td><td class="n">2,195.00</td><td class="n">0.00</td><td class="n">2,195.00</td></tr>
+        <tr><td>Nội soi Tai Mũi Họng (ống mềm)</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">199,000.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">199,000.00</td><td class="n">189,050.00</td><td class="n">9,950.00</td><td class="n">0.00</td><td class="n">9,950.00</td></tr>
+        <tr class="group"><td colspan="6">5. Thăm dò chức năng</td><td class="n">0.00</td><td></td><td class="n">140,300.00</td><td class="n">133,285.00</td><td class="n">7,015.00</td><td class="n">0.00</td><td class="n">7,015.00</td></tr>
+        <tr><td>Điện tim thường</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">32,800.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">32,800.00</td><td class="n">31,160.00</td><td class="n">1,640.00</td><td class="n">0.00</td><td class="n">1,640.00</td></tr>
+        <tr><td>Đo thính lực đơn âm</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">66,300.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">66,300.00</td><td class="n">62,985.00</td><td class="n">3,315.00</td><td class="n">0.00</td><td class="n">3,315.00</td></tr>
+        <tr><td>Đo nhĩ lượng (Nhĩ lượng đồ)</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">41,200.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">41,200.00</td><td class="n">39,140.00</td><td class="n">2,060.00</td><td class="n">0.00</td><td class="n">2,060.00</td></tr>
+        <tr class="group"><td colspan="6">6. Phẫu thuật, thủ thuật</td><td class="n">0.00</td><td></td><td class="n">3,744,600.00</td><td class="n">3,557,370.00</td><td class="n">187,230.00</td><td class="n">0.00</td><td class="n">187,230.00</td></tr>
+        <tr><td>Phẫu thuật nội soi nạo V.A</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">2,898,000.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">2,898,000.00</td><td class="n">2,753,100.00</td><td class="n">144,900.00</td><td class="n">0.00</td><td class="n">144,900.00</td></tr>
+        <tr><td>Gây mê nội khí quản (phẫu thuật loại II)</td><td class="c">Lần</td><td class="c">1</td><td class="n">0.00</td><td class="n">546,000.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">546,000.00</td><td class="n">518,700.00</td><td class="n">27,300.00</td><td class="n">0.00</td><td class="n">27,300.00</td></tr>
+        <tr><td>Thay băng vết mổ chiều dài dưới hoặc bằng 15cm</td><td class="c">Lần</td><td class="c">3</td><td class="n">0.00</td><td class="n">55,600.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">166,800.00</td><td class="n">158,460.00</td><td class="n">8,340.00</td><td class="n">0.00</td><td class="n">8,340.00</td></tr>
+        <tr><td>Khí dung mũi họng</td><td class="c">Lần</td><td class="c">6</td><td class="n">0.00</td><td class="n">22,300.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">133,800.00</td><td class="n">127,110.00</td><td class="n">6,690.00</td><td class="n">0.00</td><td class="n">6,690.00</td></tr>
+        <tr class="group"><td colspan="6">8. Thuốc</td><td class="n">71,400.00</td><td></td><td class="n">1,097,800.00</td><td class="n">1,042,910.00</td><td class="n">54,890.00</td><td class="n">0.00</td><td class="n">126,290.00</td></tr>
+        <tr><td>Ama-Power 1g (Ampicilin + Sulbactam)</td><td class="c">Lọ</td><td class="c">5</td><td class="n">0.00</td><td class="n">62,000.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">310,000.00</td><td class="n">294,500.00</td><td class="n">15,500.00</td><td class="n">0.00</td><td class="n">15,500.00</td></tr>
+        <tr><td>Natri Clorid 0,9% 500ml</td><td class="c">Chai</td><td class="c">4</td><td class="n">0.00</td><td class="n">11,300.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">45,200.00</td><td class="n">42,940.00</td><td class="n">2,260.00</td><td class="n">0.00</td><td class="n">2,260.00</td></tr>
+        <tr><td>Glucose 5% 500ml</td><td class="c">Chai</td><td class="c">3</td><td class="n">0.00</td><td class="n">12,100.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">36,300.00</td><td class="n">34,485.00</td><td class="n">1,815.00</td><td class="n">0.00</td><td class="n">1,815.00</td></tr>
+        <tr><td>Ringer Lactat 500ml</td><td class="c">Chai</td><td class="c">2</td><td class="n">0.00</td><td class="n">13,400.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">26,800.00</td><td class="n">25,460.00</td><td class="n">1,340.00</td><td class="n">0.00</td><td class="n">1,340.00</td></tr>
+        <tr><td>Paracetamol 500mg</td><td class="c">Viên</td><td class="c">12</td><td class="n">0.00</td><td class="n">2,400.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">28,800.00</td><td class="n">27,360.00</td><td class="n">1,440.00</td><td class="n">0.00</td><td class="n">1,440.00</td></tr>
+        <tr><td>Paracetamol 1g/100ml (truyền tĩnh mạch)</td><td class="c">Chai</td><td class="c">4</td><td class="n">0.00</td><td class="n">38,600.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">154,400.00</td><td class="n">146,680.00</td><td class="n">7,720.00</td><td class="n">0.00</td><td class="n">7,720.00</td></tr>
+        <tr><td>Alphachymotrypsin 4,2mg</td><td class="c">Viên</td><td class="c">20</td><td class="n">0.00</td><td class="n">1,150.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">23,000.00</td><td class="n">21,850.00</td><td class="n">1,150.00</td><td class="n">0.00</td><td class="n">1,150.00</td></tr>
+        <tr><td>Nước cất pha tiêm 5ml</td><td class="c">Ống</td><td class="c">10</td><td class="n">0.00</td><td class="n">900.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">9,000.00</td><td class="n">8,550.00</td><td class="n">450.00</td><td class="n">0.00</td><td class="n">450.00</td></tr>
+        <tr><td>Fentanyl 0,1mg/2ml</td><td class="c">Ống</td><td class="c">2</td><td class="n">0.00</td><td class="n">18,500.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">37,000.00</td><td class="n">35,150.00</td><td class="n">1,850.00</td><td class="n">0.00</td><td class="n">1,850.00</td></tr>
+        <tr><td>Propofol 200mg/20ml</td><td class="c">Ống</td><td class="c">2</td><td class="n">0.00</td><td class="n">78,000.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">156,000.00</td><td class="n">148,200.00</td><td class="n">7,800.00</td><td class="n">0.00</td><td class="n">7,800.00</td></tr>
+        <tr><td>Rocuronium bromid 50mg/5ml</td><td class="c">Lọ</td><td class="c">1</td><td class="n">0.00</td><td class="n">92,000.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">92,000.00</td><td class="n">87,400.00</td><td class="n">4,600.00</td><td class="n">0.00</td><td class="n">4,600.00</td></tr>
+        <tr><td>Midazolam 5mg/1ml</td><td class="c">Ống</td><td class="c">1</td><td class="n">0.00</td><td class="n">21,400.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">21,400.00</td><td class="n">20,330.00</td><td class="n">1,070.00</td><td class="n">0.00</td><td class="n">1,070.00</td></tr>
+      </tbody>
+    </table>
+</div>
+
+<!-- ============================== TRANG 3 ============================== -->
+<div class="sheet">
+  <img class="seal seal-copy-tilted" src="../../textures/ornament/seal_square_copy.png" alt="">
+  <img class="seal seal-edge" src="../../textures/ornament/seal_round_company.png" alt="">
+
+    <table class="costs continued">
+      <colgroup>
+        <col style="width:20.0%"><col style="width:4.2%"><col style="width:3.9%">
+        <col style="width:7.5%"><col style="width:8.3%"><col style="width:4.3%">
+        <col style="width:7.9%"><col style="width:4.3%"><col style="width:8.3%">
+        <col style="width:8.3%"><col style="width:7.9%"><col style="width:6.8%">
+        <col style="width:8.3%">
+      </colgroup>
+      <tbody>
+        <tr><td>Ondansetron 4mg/2ml</td><td class="c">Ống</td><td class="c">3</td><td class="n">0.00</td><td class="n">12,800.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">38,400.00</td><td class="n">36,480.00</td><td class="n">1,920.00</td><td class="n">0.00</td><td class="n">1,920.00</td></tr>
+        <tr><td>Dexamethason 4mg/1ml</td><td class="c">Ống</td><td class="c">3</td><td class="n">0.00</td><td class="n">4,700.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">14,100.00</td><td class="n">13,395.00</td><td class="n">705.00</td><td class="n">0.00</td><td class="n">705.00</td></tr>
+        <tr><td>Adrenalin 1mg/1ml</td><td class="c">Ống</td><td class="c">2</td><td class="n">0.00</td><td class="n">3,600.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">7,200.00</td><td class="n">6,840.00</td><td class="n">360.00</td><td class="n">0.00</td><td class="n">360.00</td></tr>
+        <tr><td>Cefixim 100mg/5ml (hỗn dịch uống)</td><td class="c">Chai</td><td class="c">1</td><td class="n">0.00</td><td class="n">46,500.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">46,500.00</td><td class="n">44,175.00</td><td class="n">2,325.00</td><td class="n">0.00</td><td class="n">2,325.00</td></tr>
+        <tr><td>Desloratadin 2,5mg/5ml (siro)</td><td class="c">Chai</td><td class="c">1</td><td class="n">0.00</td><td class="n">38,900.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">38,900.00</td><td class="n">36,955.00</td><td class="n">1,945.00</td><td class="n">0.00</td><td class="n">1,945.00</td></tr>
+        <tr><td>Natri Clorid 0,9% 10ml (nhỏ mũi)</td><td class="c">Lọ</td><td class="c">4</td><td class="n">0.00</td><td class="n">3,200.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">12,800.00</td><td class="n">12,160.00</td><td class="n">640.00</td><td class="n">0.00</td><td class="n">640.00</td></tr>
+        <tr><td>Vitamin C 500mg</td><td class="c">Viên</td><td class="c">10</td><td class="n">1,800.00</td><td class="n">0.00</td><td class="c">0</td><td class="n">18,000.00</td><td class="c">0</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">18,000.00</td></tr>
+        <tr><td>Men vi sinh Enterogermina 5ml</td><td class="c">Ống</td><td class="c">6</td><td class="n">8,900.00</td><td class="n">0.00</td><td class="c">0</td><td class="n">53,400.00</td><td class="c">0</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">53,400.00</td></tr>
+        <tr class="group"><td colspan="6">9. Vật tư y tế</td><td class="n">17,480.00</td><td></td><td class="n">555,200.00</td><td class="n">527,440.00</td><td class="n">27,760.00</td><td class="n">0.00</td><td class="n">45,240.00</td></tr>
+        <tr><td>NIPRO SAFETOUCH CATH™ Winged with Injection port IV CANNULA WITH INJECTION PORT AND SAFETY DEVICE 24G X 3/4" (0.7 x 19mm)</td><td class="c">Cái</td><td class="c">1</td><td class="n">0.00</td><td class="n">15,000.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">15,000.00</td><td class="n">14,250.00</td><td class="n">750.00</td><td class="n">0.00</td><td class="n">750.00</td></tr>
+        <tr><td>Kim luồn tĩnh mạch 24G</td><td class="c">Cái</td><td class="c">2</td><td class="n">0.00</td><td class="n">14,800.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">29,600.00</td><td class="n">28,120.00</td><td class="n">1,480.00</td><td class="n">0.00</td><td class="n">1,480.00</td></tr>
+        <tr><td>Dây truyền dịch MPV</td><td class="c">Bộ</td><td class="c">4</td><td class="n">0.00</td><td class="n">4,200.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">16,800.00</td><td class="n">15,960.00</td><td class="n">840.00</td><td class="n">0.00</td><td class="n">840.00</td></tr>
+        <tr><td>Găng tay phẫu thuật số 7</td><td class="c">Đôi</td><td class="c">4</td><td class="n">0.00</td><td class="n">8,900.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">35,600.00</td><td class="n">33,820.00</td><td class="n">1,780.00</td><td class="n">0.00</td><td class="n">1,780.00</td></tr>
+        <tr><td>Găng tay khám bệnh không bột</td><td class="c">Đôi</td><td class="c">20</td><td class="n">0.00</td><td class="n">1,450.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">29,000.00</td><td class="n">27,550.00</td><td class="n">1,450.00</td><td class="n">0.00</td><td class="n">1,450.00</td></tr>
+        <tr><td>Gạc y tế tiệt trùng 10x10cm</td><td class="c">Gói</td><td class="c">6</td><td class="n">0.00</td><td class="n">3,500.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">21,000.00</td><td class="n">19,950.00</td><td class="n">1,050.00</td><td class="n">0.00</td><td class="n">1,050.00</td></tr>
+        <tr><td>Bông y tế tiệt trùng 10g</td><td class="c">Gói</td><td class="c">3</td><td class="n">0.00</td><td class="n">4,800.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">14,400.00</td><td class="n">13,680.00</td><td class="n">720.00</td><td class="n">0.00</td><td class="n">720.00</td></tr>
+        <tr><td>Ống nội khí quản có bóng số 5.0</td><td class="c">Cái</td><td class="c">1</td><td class="n">0.00</td><td class="n">38,700.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">38,700.00</td><td class="n">36,765.00</td><td class="n">1,935.00</td><td class="n">0.00</td><td class="n">1,935.00</td></tr>
+        <tr><td>Mask thanh quản số 2</td><td class="c">Cái</td><td class="c">1</td><td class="n">0.00</td><td class="n">145,000.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">145,000.00</td><td class="n">137,750.00</td><td class="n">7,250.00</td><td class="n">0.00</td><td class="n">7,250.00</td></tr>
+        <tr><td>Dây hút dịch phẫu thuật dùng một lần</td><td class="c">Bộ</td><td class="c">1</td><td class="n">0.00</td><td class="n">26,500.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">26,500.00</td><td class="n">25,175.00</td><td class="n">1,325.00</td><td class="n">0.00</td><td class="n">1,325.00</td></tr>
+        <tr><td>Dao mổ điện đơn cực</td><td class="c">Cái</td><td class="c">1</td><td class="n">0.00</td><td class="n">89,000.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">89,000.00</td><td class="n">84,550.00</td><td class="n">4,450.00</td><td class="n">0.00</td><td class="n">4,450.00</td></tr>
+        <tr><td>Chỉ khâu Vicryl 3/0</td><td class="c">Sợi</td><td class="c">2</td><td class="n">0.00</td><td class="n">47,300.00</td><td class="c">100</td><td class="n">0.00</td><td class="c">100</td><td class="n">94,600.00</td><td class="n">89,870.00</td><td class="n">4,730.00</td><td class="n">0.00</td><td class="n">4,730.00</td></tr>
+        <tr><td>Bơm tiêm MPV sử dụng một lần 5ml</td><td class="c">Cái</td><td class="c">6</td><td class="n">1,300.00</td><td class="n">0.00</td><td class="c">0</td><td class="n">7,800.00</td><td class="c">0</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">7,800.00</td></tr>
+        <tr><td>Bơm tiêm MPV sử dụng một lần 10ml</td><td class="c">Cái</td><td class="c">4</td><td class="n">1,700.00</td><td class="n">0.00</td><td class="c">0</td><td class="n">6,800.00</td><td class="c">0</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">6,800.00</td></tr>
+        <tr><td>Kim tiêm MPV</td><td class="c">Cái</td><td class="c">6</td><td class="n">480.00</td><td class="n">0.00</td><td class="c">0</td><td class="n">2,880.00</td><td class="c">0</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">0.00</td><td class="n">2,880.00</td></tr>
+        <tr class="total"><td colspan="6">Cộng:</td><td class="n">272,680.00</td><td></td><td class="n">7,614,500.00</td><td class="n">7,233,775.00</td><td class="n">380,725.00</td><td class="n">105,800.00</td><td class="n">547,605.00</td></tr>
+      </tbody>
+    </table>
+
+  <div class="settle">
+    <div>Tổng chi phí lần khám bệnh/ cả đợt điều trị (làm tròn đến đơn vị đồng):
+        <span style="padding-left:7mm">7,887,180.00 đồng.</span></div>
+    <div>Viết bằng chữ: <span class="amount" style="padding-left:7mm">Bảy triệu tám trăm tám mươi bảy nghìn một trăm tám mươi đồng</span></div>
+    <div><b>Trong đó, số tiền do:</b></div>
+    <div class="lv1">- Quỹ BHYT thanh toán theo giá dịch vụ y tế:
+        <span class="amount" style="padding-left:5mm">7,233,775.00 đồng (Bằng chữ: Bảy triệu hai trăm ba mươi ba nghìn bảy trăm bảy mươi lăm đồng)</span></div>
+    <div class="lv1">- Quỹ BHYT thanh toán theo định suất:
+        <span style="padding-left:5mm">Thanh toán vào cuối kỳ (cuối quý)</span></div>
+    <div class="lv1">- Người bệnh trả, trong đó:
+        <span class="amount" style="padding-left:5mm">653,405.00 đồng (Bằng chữ: Sáu trăm năm mươi ba nghìn bốn trăm lẻ năm đồng)</span></div>
+    <div class="lv2">+ Cùng trả trong phạm vi BHYT:
+        <span class="amount">380,725.00 đồng (Bằng chữ: Ba trăm tám mươi nghìn bảy trăm hai mươi lăm đồng)</span></div>
+    <div class="lv2">+ Các khoản phải trả khác:
+        <span class="amount">166,880.00 đồng (Bằng chữ: Một trăm sáu mươi sáu nghìn tám trăm tám mươi đồng)</span></div>
+    <div class="lv2">+ Được miễn giảm:
+        <span class="amount">105,800.00 đồng (Bằng chữ: Một trăm lẻ năm nghìn tám trăm đồng)</span></div>
+    <div class="lv1">- Nguồn khác: <span class="amount">0 đồng (Bằng chữ: Không đồng)</span></div>
+    <div class="lv2">+ Nguồn ngân sách nhà nước chi trả: <span class="amount">0 đồng (Bằng chữ: Không đồng)</span></div>
+    <div class="lv2">+ Nguồn viện trợ trong nước: <span class="amount">0 đồng (Bằng chữ: Không đồng)</span></div>
+    <div class="lv2">+ Nguồn tài trợ của tổ chức, cơ quan, đơn vị, cá nhân trong nước:
+        <span class="amount">0 đồng (Bằng chữ: Không đồng)</span></div>
+    <div class="lv2">+ Các nguồn còn lại chi trả (Không thuộc 1 trong 3 nguồn trên (nếu có)):
+        <span class="amount">0 đồng (Bằng chữ: Không đồng)</span></div>
+  </div>
+
+  <div class="signed-date">Ngày 17 tháng 03 năm 2025</div>
+  <div class="signatures">
+    <div><div class="role">NGƯỜI LẬP BẢNG KÊ</div><div class="hint">(Ký, ghi rõ họ tên)</div>
+         <div class="gap"></div></div>
+    <div><div class="role">KẾ TOÁN VIỆN PHÍ</div><div class="hint">(Ký, ghi rõ họ tên)</div>
+         <div class="gap"></div></div>
+  </div>
+  <div class="signatures">
+    <div><div class="role">XÁC NHẬN CỦA NGƯỜI BỆNH</div><div class="hint">(Ký, ghi rõ họ tên)</div>
+         <div class="hint" style="font-weight:bold">(Tôi đã nhận ..... phim ..... Xquang/CT/MRI)</div></div>
+    <div><div class="day-line">Ngày &nbsp;&nbsp;&nbsp; tháng &nbsp;&nbsp;&nbsp; năm</div>
+         <div class="role">GIÁM ĐỊNH BHYT</div><div class="hint">(Ký, ghi rõ họ tên)</div></div>
+  </div>
+
+</div>
+</body>
+</html>

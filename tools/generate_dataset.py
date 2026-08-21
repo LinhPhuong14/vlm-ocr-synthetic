@@ -60,6 +60,13 @@ def main() -> int:
              "quota walks the list in order, so an unnamed set changes the "
              "day someone adds a layout",
     )
+    parser.add_argument(
+        "--template", nargs="?", const="auto", default=None, metavar="LAYOUT",
+        help="draw the CSS sheets in generators/html/sheets/ instead of the "
+             "character grid. Bare, each page follows the layout its recipe "
+             "drew; a layout id forces one dress. Only the two HTML backends "
+             "can print a sheet, so name them with --frameworks",
+    )
     parser.add_argument("--workers", type=int, default=1,
                         help="processes to render with; 1 keeps the old behaviour")
     parser.add_argument(
@@ -88,6 +95,7 @@ def main() -> int:
             "layouts": list(args.layouts or []),
             "force": list(args.force),
             "pairing": args.pairing,
+            "template": args.template or "",
         },
         "backends": list(args.frameworks),
         # One shard per backend. This is the small-job path -- `make dataset

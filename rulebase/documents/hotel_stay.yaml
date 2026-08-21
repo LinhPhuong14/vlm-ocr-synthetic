@@ -1,0 +1,54 @@
+# THAM SỐ NỘI DUNG — hotel_stay
+#
+# Nửa còn lại của loại document này. Không gian lấy mẫu (weight, tags,
+# họ) nằm ở `rules/document.yaml`; những gì `rulebase.content.build`
+# đọc thì nằm đây.
+
+profile: hotel
+invoice: true
+stay: true
+show_vat: false
+show_subtotal: false
+show_payment: true
+show_amount_words: false
+payment_groups: [tienmat, qr]
+titles: ["HOÁ ĐƠN", "HOÁ ĐƠN THANH TOÁN"]
+nights: [1, 3]
+extra_items: 3
+room_items: 5
+price_step: 1000
+serial_format: "HD{n}"
+show_number: false
+show_seller_tax_code: false
+signature_names: true
+checkin_time: "14:00"
+checkout_time: "12:00"
+item_notes:
+  - "Bao gồm bữa sáng"
+  - "Phòng đôi, 2 khách"
+room_types:
+  - "Phòng đôi tiêu chuẩn"
+  - "Phòng đơn tiêu chuẩn"
+  - "Phòng ba giường"
+  - "Phòng VIP"
+booking_sources: ["Trực tiếp tại quầy", "Điện thoại", "Đối tác lữ hành"]
+party_fields:
+  strip:
+    - [serial, "Số hoá đơn:"]
+    - [issued_at, "Ngày:"]
+  left:
+    - [buyer_name, "Khách hàng:"]
+    - [checkin_date, "Ngày nhận phòng:"]
+    - [checkout_date, "Ngày trả phòng:"]
+    - [booking_source, "Nguồn khách:"]
+  right:
+    - [room_no, "Phòng:"]
+    - [room_type, "Loại phòng:"]
+    - [nights, "Số đêm lưu trú:"]
+    - [guests, "Số khách:"]
+signature_labels:
+  - ["Lễ tân", ""]
+  - ["Khách hàng", ""]
+total_labels:
+  grand: "TỔNG TIỀN THANH TOÁN"
+  change: "Tiền thừa trả khách"

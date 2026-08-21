@@ -57,6 +57,21 @@ def items(profile: str, lang: str = DEFAULT_LANG) -> list[tuple[str, int, int]]:
 
 
 @functools.lru_cache(maxsize=None)
+def catalogue(name: str, lang: str = DEFAULT_LANG) -> list[tuple[str, int, int]]:
+    """(name, price_min, price_max), same shape as `items` and NOT a profile.
+
+    A profile is a whole kind of document -- it needs a shop to issue it and a
+    footer to end it, and `check()` says so. A catalogue is a *part* of one: the
+    hospital bill draws its lines from eight of them, one per numbered block of
+    the form, and there is no such thing as a shop that issues only laboratory
+    tests. Naming them apart is what keeps `check()` from demanding sixteen
+    files that would mean nothing.
+    """
+    rows = _columns(_dir(lang) / f"catalogue_{name}.txt", 3)
+    return [(text, int(lo), int(hi)) for text, lo, hi in rows]
+
+
+@functools.lru_cache(maxsize=None)
 def shops(profile: str, lang: str = DEFAULT_LANG) -> list[tuple[str, ...]]:
     """Shop names: one column, or two where the profile carries a branch.
 
@@ -142,6 +157,7 @@ def check(root: Path | str = CORPUS_ROOT) -> list[str]:
 __all__ = [
     "CORPUS_ROOT",
     "DEFAULT_LANG",
+    "catalogue",
     "check",
     "footers",
     "items",

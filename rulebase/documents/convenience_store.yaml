@@ -1,0 +1,15 @@
+# THAM SỐ NỘI DUNG — convenience_store
+#
+# Nửa còn lại của loại document này. Không gian lấy mẫu (weight, tags,
+# họ) nằm ở `rules/document.yaml`; những gì `rulebase.content.build`
+# đọc thì nằm đây.
+
+profile: market
+titles: ["PHIẾU TÍNH TIỀN", "HOÁ ĐƠN BÁN HÀNG"]
+num_items: [2, 8]
+show_tax_code: true
+total_labels:
+  subtotal: "TỔNG GIÁ TRỊ ĐƠN"
+  discount: "TỔNG TIỀN GIẢM"
+  grand: "TỔNG TIỀN THANH TOÁN"
+  change: "Tiền trả lại"

@@ -1,0 +1,19 @@
+# Cơ sở khám chữa bệnh trên bảng kê chi phí KCB: tên pháp nhân<TAB>khoa điều trị.
+#
+# Khác `shops_invoice.txt` ở chỗ cột hai KHÔNG phải chi nhánh phát hành mà là
+# KHOA — bảng kê 01/KBCB in "Khoa: ..." ngay dưới tên bệnh viện, và mã khoa đi
+# kèm nó. Tên bệnh viện ở đây là tên tự đặt: một bảng kê mang tên bệnh viện
+# thật kèm mã thẻ BHYT và chẩn đoán là một hồ sơ bệnh án giả, không phải một
+# mẫu dữ liệu.
+BỆNH VIỆN ĐA KHOA AN KHANG	KHOA TAI MŨI HỌNG
+BỆNH VIỆN ĐA KHOA HỒNG PHÚC	KHOA NỘI TỔNG HỢP
+BỆNH VIỆN ĐA KHOA MINH ĐỨC	KHOA NGOẠI TỔNG HỢP
+BỆNH VIỆN ĐA KHOA THÀNH AN	KHOA SẢN
+BỆNH VIỆN ĐA KHOA PHƯƠNG NAM	KHOA NHI
+BỆNH VIỆN ĐA KHOA TÂM PHÚC	KHOA MẮT
+BỆNH VIỆN ĐA KHOA VIỆT TÍN	KHOA RĂNG HÀM MẶT
+BỆNH VIỆN ĐA KHOA HOÀ BÌNH	KHOA TIM MẠCH
+BỆNH VIỆN ĐA KHOA SƠN TRÀ	KHOA CHẤN THƯƠNG CHỈNH HÌNH
+BỆNH VIỆN ĐA KHOA BẢO LONG	KHOA TRUYỀN NHIỄM
+BỆNH VIỆN ĐA KHOA NAM VIỆT	KHOA HỒI SỨC TÍCH CỰC
+BỆNH VIỆN ĐA KHOA ĐÔNG ĐÔ	KHOA THẦN KINH

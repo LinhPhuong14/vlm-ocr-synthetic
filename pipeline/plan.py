@@ -262,6 +262,7 @@ def build_plan(config, layouts: list[str]) -> dict[str, Any]:
         "shard_size": config.shard_size,
         "clean": config.clean,
         "force": list(config.force),
+        "template": config.template,
         "overrides": dict(config.overrides),
         "shards": [shard.to_dict() for shard in shards],
     }

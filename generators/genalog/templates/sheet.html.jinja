@@ -1,0 +1,14 @@
+{#-
+  The CSS sheet, handed to WeasyPrint through genalog unchanged.
+
+  genalog's own templates build a page out of the content they are given;
+  this one does not build anything. `generators/html/sheets/` has already
+  produced a whole `<!doctype html>` document -- the same string the browser
+  backend loads -- and the only job here is to let genalog's Jinja
+  environment and its `Document` wrapper hand it to WeasyPrint.
+
+  That is the point: one markup, two engines. A template that rebuilt the
+  page from parts would be a third renderer wearing the second one's name,
+  and the two would drift the first time either was edited.
+-#}
+{{ content | safe }}

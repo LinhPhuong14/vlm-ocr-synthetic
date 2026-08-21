@@ -26,14 +26,29 @@ from pipeline.invariants import BUDGETS, InvariantError, Tally, inspect
 REPO_ROOT = Path(__file__).resolve().parent.parent
 ORDER = invariants.attribute_names()
 
-# Chosen for what they contain, not at random: 3 is an eatery with a subtotal
-# and change, 11 and 27 are market receipts that carry barcodes and weights.
-SEEDS = (3, 11, 27, 40, 41)
+# Chosen for what they contain, and PINNED so they keep containing it: an
+# eatery roll that prints no title, two market receipts that carry barcodes and
+# weights, and two invoices. Unpinned, these were five bare seeds -- and a bare
+# seed draws whatever the rules currently offer, so adding a document type
+# silently turned the "eatery with a subtotal" into something else and three
+# tests about budgets started failing for a reason none of them was about.
+CASES = (
+    # First, and `a_record()` returns the first: a layout that prints
+    # everything it is given, so a test that removes one field measures that
+    # field and nothing else.
+    (3, "eatery_indexed"),
+    (11, "market_compact"),
+    (27, "market_barcode"),
+    (40, "invoice_vat_form"),
+    (41, "invoice_hotel_stay"),
+)
+SEEDS = tuple(seed for seed, _layout in CASES)
 
 
-def build(seed: int) -> dict:
+def build(seed: int, layout: str | None = None) -> dict:
     """One metadata line as a renderer that drew every cell would write it."""
-    recipe, receipt, grid = rulebase.make(seed=seed)
+    recipe, receipt, grid = rulebase.make(
+        seed=seed, force={"layout": layout} if layout else None)
     boxes = [
         # A real box also carries a quad; the frame check is the only invariant
         # that reads one, and the tests that exercise it add their own.
@@ -58,7 +73,7 @@ _RECORDS: list[dict] | None = None
 def records() -> list[dict]:
     global _RECORDS
     if _RECORDS is None:
-        _RECORDS = [build(seed) for seed in SEEDS]
+        _RECORDS = [build(seed, layout) for seed, layout in CASES]
     return _RECORDS
 
 

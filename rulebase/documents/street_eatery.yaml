@@ -1,0 +1,14 @@
+# THAM SỐ NỘI DUNG — street_eatery
+#
+# Nửa còn lại của loại document này. Không gian lấy mẫu (weight, tags,
+# họ) nằm ở `rules/document.yaml`; những gì `rulebase.content.build`
+# đọc thì nằm đây.
+
+profile: eatery
+titles: ["PHIẾU TÍNH TIỀN", "HOÁ ĐƠN", "PHIẾU THANH TOÁN"]
+num_items: [2, 10]
+prob_table: 0.45
+total_labels:
+  subtotal: "Tạm tính"
+  grand: "Tiền mặt"
+  change: "Tiền thối lại"

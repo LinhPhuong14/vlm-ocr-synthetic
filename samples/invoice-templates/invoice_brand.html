@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Hoá đơn tiệm bánh — tờ tự thiết kế</title>
+<style>
+  @page { size: A5 portrait; margin: 12mm 11mm 10mm; }
+  * { box-sizing: border-box; }
+  :root { --green: #2f5233; --rule: #2f5233; --muted: #4a4a4a; }
+  body {
+    margin: 0; font-family: "Liberation Sans", "DejaVu Sans", sans-serif;
+    font-size: 7.4pt; color: #1c1c1c; line-height: 1.45;
+  }
+
+  /* ---------- tên hiệu và dòng định vị ---------- */
+  .brand { text-align: center; padding-bottom: 6mm; }
+  .brand h1 {
+    margin: 0; color: var(--green); font-size: 15pt; font-weight: bold;
+    letter-spacing: 1.4pt;
+  }
+  .brand .tag {
+    margin-top: 1.6mm; color: var(--green); font-size: 6.4pt; letter-spacing: 3.4pt;
+  }
+
+  h2.doc { text-align: center; margin: 0 0 6mm; font-size: 15pt; letter-spacing: 0.6pt; }
+
+  /* ---------- khối trái (dòng thiết kế) và khối phải (khách hàng) ---------- */
+  .parties { display: table; width: 100%; margin-bottom: 7mm; }
+  .parties > div { display: table-cell; vertical-align: top; }
+  .parties .left { width: 40%; font-weight: bold; font-size: 7pt; line-height: 1.6; }
+  .parties .right { width: 60%; }
+  .parties .right div { margin-bottom: 0.8mm; }
+
+  /* ---------- bảng hàng ---------- */
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    font-weight: normal; color: var(--muted); font-size: 6.8pt; text-align: left;
+    padding: 2mm 1.5mm; border-top: 0.4mm solid var(--rule); border-bottom: 0.4mm solid var(--rule);
+  }
+  tbody td { padding: 2.6mm 1.5mm; vertical-align: middle; }
+  tbody tr + tr td { border-top: 0.15mm solid #cfd8cf; }
+  tbody tr:last-child td { border-bottom: 0.4mm solid var(--rule); }
+  th.num, td.num { text-align: right; }
+  th.mid, td.mid { text-align: center; }
+  td.pic { width: 12mm; }
+
+  /* ảnh sản phẩm: ô giữ chỗ, tờ mẫu in ảnh thật ở đây */
+  .thumb {
+    width: 9mm; height: 9mm; border-radius: 1mm; border: 0.2mm solid #d8d2c4;
+    background: #efe7d8;
+  }
+  .thumb.b { background: #e8d9c8; } .thumb.c { background: #f2ead6; }
+
+  /* ---------- tổng tiền, nép về lề phải ---------- */
+  .totals { margin: 6mm 0 0; text-align: right; }
+  .totals div { margin-bottom: 1.6mm; }
+  .totals .grand { font-weight: bold; margin-top: 3mm; }
+
+  /* ---------- chân trang: ngân hàng | liên hệ ---------- */
+  .foot { display: table; width: 100%; margin-top: 14mm; font-size: 6.8pt; }
+  .foot > div { display: table-cell; vertical-align: top; }
+  .foot .bank { width: 55%; }
+  .foot .contact { width: 45%; text-align: right; color: #2a2a2a; }
+  .foot .h { font-weight: bold; margin-bottom: 1.4mm; }
+  .foot div div { margin-bottom: 0.7mm; }
+</style>
+</head>
+<body>
+
+  <div class="brand">
+    <h1>NGUYỄN HOÀNG SANG</h1>
+    <div class="tag">CÀ PHÊ &amp; ĐỒ ĂN SÁNG</div>
+  </div>
+
+  <h2 class="doc">HÓA ĐƠN</h2>
+
+  <div class="parties">
+    <div class="left">TIỆN NGHI NHÀ BẾP<br>CỦA CHÚNG TÔI</div>
+    <div class="right">
+      <div>Điện thoại Khách hàng: +84 912 345 678</div>
+      <div>Địa chỉ Khách hàng: 123 Đường ABC, Thành phố DEF</div>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:12mm">Ảnh</th>
+        <th>Mục</th>
+        <th class="mid" style="width:16mm">Số lượng</th>
+        <th class="num" style="width:20mm">Đơn giá</th>
+        <th class="num" style="width:22mm">Thành tiền</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="pic"><div class="thumb"></div></td>
+        <td>Bánh nhung đỏ</td>
+        <td class="mid">1</td>
+        <td class="num">200.000đ</td>
+        <td class="num">200.000đ</td>
+      </tr>
+      <tr>
+        <td class="pic"><div class="thumb b"></div></td>
+        <td>Bánh cupcake Vani<br>(set 12 cái)</td>
+        <td class="mid">2</td>
+        <td class="num">200.000đ</td>
+        <td class="num">400.000đ</td>
+      </tr>
+      <tr>
+        <td class="pic"><div class="thumb c"></div></td>
+        <td>Bánh Cà rốt<br>truyền thống</td>
+        <td class="mid">1</td>
+        <td class="num">200.000đ</td>
+        <td class="num">200.000đ</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="totals">
+    <div>Tổng tiền đơn hàng: 800.000đ</div>
+    <div>Thuế (0%): 0đ</div>
+    <div class="grand">Tổng tiền thanh toán: 800.000đ</div>
+  </div>
+
+  <div class="foot">
+    <div class="bank">
+      <div class="h">Thông tin ngân hàng</div>
+      <div>Ngân hàng Tiên phong</div>
+      <div>Tên tài khoản: Phạm Quang Duy</div>
+      <div>Số tài khoản: 123 456 7890</div>
+    </div>
+    <div class="contact">
+      <div>xinchao@trangwebhay.com</div>
+      <div>+84 912 345 678</div>
+      <div>123 Trường Chinh,</div>
+      <div>Đống Đa, Hà Nội</div>
+    </div>
+  </div>
+
+</body>
+</html>

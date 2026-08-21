@@ -1,0 +1,11 @@
+# What the offline generators in `tools/` need. They run once and write files
+# into `textures/`, so nothing here is a dependency of `rulebase/` -- which
+# still has exactly one, pyyaml -- nor of any renderer at generation time.
+#
+#     pip install -r tools/requirements.txt
+#     make textures ornaments
+
+pillow>=10          # every drawing in make_ornaments.py
+numpy>=1.24         # the noise fields behind stamp ink and paper grain
+opencv-python-headless>=4.8,<5   # make_textures.py resizes its noise with cv2
+segno>=1.6          # real QR symbols; pure python, no extension to build

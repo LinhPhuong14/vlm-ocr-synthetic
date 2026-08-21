@@ -1,0 +1,8 @@
+# Ghi chú cuối bảng kê chi phí khám chữa bệnh.
+#
+# Không phải lời chào: bảng kê là chứng từ thanh quyết toán BHYT, nên dòng
+# cuối là dòng nhắc đối chiếu và nhắc quyền của người bệnh.
+Người bệnh có quyền yêu cầu giải thích các khoản chi phí ghi trên bảng kê
+Bảng kê được lập thành 03 liên: 01 liên lưu, 01 liên gửi cơ quan BHXH, 01 liên giao người bệnh
+Đề nghị kiểm tra, đối chiếu các khoản chi phí trước khi ký xác nhận
+Chi phí trên bảng kê tính theo giá dịch vụ y tế được cấp có thẩm quyền phê duyệt

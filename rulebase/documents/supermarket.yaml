@@ -1,0 +1,16 @@
+# THAM SỐ NỘI DUNG — supermarket
+#
+# Nửa còn lại của loại document này. Không gian lấy mẫu (weight, tags,
+# họ) nằm ở `rules/document.yaml`; những gì `rulebase.content.build`
+# đọc thì nằm đây.
+
+profile: market
+titles: ["HOÁ ĐƠN BÁN HÀNG", "PHIẾU TÍNH TIỀN"]
+num_items: [3, 12]
+vat_rates: [8, 10]
+show_tax_code: false
+total_labels:
+  subtotal: "TỔNG TIỀN PHẢI T.TOÁN"
+  discount: "TỔNG TIỀN ĐÃ GIẢM"
+  grand: "TIỀN KHÁCH TRẢ"
+  change: "TIỀN TRẢ LẠI"

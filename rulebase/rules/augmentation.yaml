@@ -83,6 +83,8 @@ options:
         - [ink_degradation, {level: 2}]
         - [blur_zones, {radius: 1.2, zones: 2, coverage: 0.15}]
 
+  # Bản photo dựng KHÔNG có lưới tram: tương phản cao, mực bệt, nhoè ống kính.
+  # `photocopy_screened` ở cuối file là bản có tram thật.
   - id: photocopy
     weight: 3
     tags: [textured, high_contrast]
@@ -130,3 +132,80 @@ options:
         # Thủng giữa trang, không phải rách mép.
         - [holes, {count: 3, placement: center, size_ratio: 0.09, fill: black}]
         - [shadow_binding, {border: left, distance_ratio: 0.10, intensity: 0.35}]
+
+  # --------------------------------------------------------------------
+  # HOẠ TIẾT CỦA KHÂU CHỤP LẠI
+  #
+  # Bốn giá trị dưới đây khác mọi giá trị trên ở chỗ chúng KHÔNG làm hỏng tờ
+  # giấy: tờ giấy vẫn nguyên, chỉ bản sao của nó mang thêm một hoạ tiết tuần
+  # hoàn do thiết bị áp lên — lưới tram của máy photocopy, dải sáng tối theo
+  # trục lăn của máy quét, lưới 8×8 của JPEG.
+  #
+  # Vì sao ở đây chứ không ở `ornament`: `ornament` là mực CỐ Ý có mặt trên
+  # giấy, ai đó in nó hoặc đóng nó. Bốn thứ này không ai muốn có — chúng là dấu
+  # vết của đường đi từ tờ giấy tới tệp ảnh. Thứ tự bốc nói đúng điều đó:
+  # `ornament` trước, `augmentation` sau.
+  #
+  # `pattern_overlay` là ngoại lệ có chủ ý và là cầu nối sang
+  # `textures/ornament/`: con dấu đóng lên BẢN SAO chứ không lên bản gốc, chữ
+  # chìm máy photocopy in đè lên tất cả. Nó trộn theo lối nhân nên chữ nằm dưới
+  # dấu vẫn đọc được — nhãn dữ liệu vẫn khai là có chữ ở đó.
+
+  # Khác `photocopy` ở trên: cái đó dựng dáng bản photo bằng những gì có sẵn
+  # trước khi có mô hình tram — tương phản cao, mực bệt, nhoè. Cái này có lưới
+  # tram thật. Giữ cả hai để một lượt chạy so được chúng với nhau, và để dataset
+  # cũ tham chiếu `photocopy` theo tên vẫn ra đúng thứ nó vẫn ra.
+  - id: photocopy_screened
+    weight: 3
+    excludes: [thermal]     # không ai photo một tờ giấy nhiệt: nó tự phai
+    tags: [textured, screened]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.28, grain: 0.4}]
+        # KHÔNG có `ink_degradation` ở đây, dù mọi kịch bản khác đều có. Lưới
+        # tram đã là hỏng mực rồi: nó băm nét chữ thành chấm. Chồng thêm mòn
+        # mực lên trên thì chữ không còn đọc được — đo bằng mắt trên chính tờ
+        # này, và một tờ không đọc được vẫn mang nhãn khai là có chữ.
+        - [halftone_screen, {cell: 4.2, angle: 45, strength: 0.5}]
+        # Tram trước, nhoè sau: máy photo tạo chấm rồi ống kính mới làm mềm
+        # mép chấm. Ngược lại thì ra chấm sắc trên nền đã nhoè, không máy nào
+        # cho ra như thế.
+        - [blur, {radius: 0.6}]
+        - [scan_banding, {period: 46, amplitude: 0.045}]
+
+  - id: photocopy_stamped
+    weight: 2
+    excludes: [thermal]
+    tags: [textured, screened]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.30, grain: 0.45}]
+        - [halftone_screen, {cell: 3.6, angle: 45, strength: 0.7}]
+        - [blur, {radius: 0.7}]
+        # Dấu đóng lên bản photo, nên nó nằm TRÊN lưới tram chứ không bị tram
+        # hoá cùng trang.
+        - [pattern_overlay, {pattern: seal_square_copy, scale: 0.34,
+                             opacity: 0.55, anchor: bottom_right, rotate: 8}]
+        - [scan_banding, {period: 34, amplitude: 0.06}]
+
+  - id: flatbed_scan
+    weight: 3
+    tags: [textured, scanned]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.24, grain: 0.35}]
+        - [scan_banding, {period: 30, amplitude: 0.07, tilt: 1.5}]
+        - [blur_zones, {radius: 1.1, zones: 2, coverage: 0.16}]
+        - [jpeg_blocks, {quality: 42, passes: 1}]
+
+  - id: forwarded_photo
+    weight: 3
+    tags: [textured, recompressed]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.30, grain: 0.5}]
+        - [ink_degradation, {level: 2}]
+        - [blur_zones, {radius: 1.4, zones: 2, coverage: 0.20}]
+        # Ảnh chụp điện thoại rồi chuyển tiếp mấy chặng: mỗi chặng nén lại một
+        # lần, sai số dồn lên lưới 8×8 chứ không chỉ làm ảnh mờ đi.
+        - [jpeg_blocks, {quality: 30, passes: 3}]
