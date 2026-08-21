@@ -72,16 +72,42 @@ like noise; this looks like ink that decayed, because of three choices:
    some straddling a character edge, some inside the ink — and the proportions
    shift with the level (50/30/20 up to level 4, 30/50/20 to 7, 20/30/50 above).
    Low levels speckle the page; high levels eat the glyphs.
-2. **The number of noise regions scales with the amount of ink**
-   (`2 × connected_components × level / 5`), so a sparse page gets sparse damage.
+2. **The number of noise regions scales with the number of connected
+   components of ink** (`2 × components × level / 5`), which is *not* the same
+   as the amount of ink — see the second deviation below.
 3. **Each region fades from its centre by a Gaussian**, so regions have no hard
    edges and overlapping ones compound.
 
-One deviation, and the reason for it: DocCreator's input is a scanned page that
-fills the frame, so its "background" is the sheet. A renderer's output often is
-not — a receipt sits on a dark surface — and placing specks there puts white
-dots in mid-air. Independent seed points are confined to the sheet, found by
-thresholding, opening, closing and keeping the largest component.
+Two deviations, and the reasons for them.
+
+**Independent seed points are confined to the sheet.** DocCreator's input is a
+scanned page that fills the frame, so its "background" is the sheet. A
+renderer's output often is not — a receipt sits on a dark surface — and placing
+specks there puts white dots in mid-air. The sheet is found by thresholding,
+opening, closing and keeping the largest component.
+
+**The dose is a quarter of theirs** (`DENSITY = 0.25`). Two regions per
+component was tuned on scanned prose, where a component is a letter. On a
+Vietnamese invoice a *dotted leader line* — the row of full stops after `Mã số
+thuế:` — makes every dot its own component, so the count measures the layout
+rather than the ink. Measured at `level: 5`, one page per layout:
+
+| layout | components | seed points | of them dots ≤12px |
+| --- | ---: | ---: | ---: |
+| `eatery_ascii` | 403 | 806 | 0% |
+| `invoice_brand` | 544 | 1,088 | 8% |
+| `market_compact` | 476 | 952 | 23% |
+| `invoice_hotel_stay` | 2,250 | 4,500 | 70% |
+| `invoice_export` | 3,132 | 6,264 | 49% |
+| `invoice_vat_form` | 3,233 | 6,466 | 74% |
+
+Eight times the speckle on an invoice as on a receipt, for a reason unrelated
+to how much ink is on the page — and those are, in that order, the layouts that
+lose most recall to ageing (0.026 for `invoice_brand` against 0.487–0.521 for
+the three dotted ones; see [`data/dataset60/proof/README.md`](../data/dataset60/proof/README.md)).
+`density` is a parameter, so a chain in `rules/augmentation.yaml` can ask for
+more. The deeper repair — not deriving the dose from a component count at all —
+is still open.
 
 **`holes`** is the tear model, and three of its four ideas are easy to get
 wrong. A hole is a **pattern image, not a shape formula** — DocCreator ships
