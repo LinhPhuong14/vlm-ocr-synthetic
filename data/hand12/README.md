@@ -40,6 +40,12 @@ Hai bố cục cuối ra **không một nét nào**, và chúng có mặt ở đ
 xuất khẩu in tên hàng IN HOA và phần còn lại là số; bảng kê bệnh viện thì mười
 ba cột đều là tiền. Một tập chỉ gồm những tờ điền được sẽ nói dối về độ phủ.
 
+Một trang **100 % điền tay không dựng được** từ mô hình hiện tại. Quét cả không
+gian luật — 11 bố cục có ô trường × mọi tuỳ chọn `content` hợp lệ × 40 hạt giống
+— trang nhiều mực nhất đạt **42 %**, và nó nằm ở
+[`samples/handwriting/`](../../samples/handwriting) để nhìn. Chặn ở đó là chữ
+số, thứ mọi hoá đơn đều phải có.
+
 `invoice_hotel_stay` dẫn đầu vì nó có thứ không tờ nào khác có: **tên người ký**
 in dưới hai ô chữ ký, mà tên người là chữ hoa đầu từ — đúng thứ checkpoint viết
 tốt nhất. Bốn ô ký của `authorisation_letter` đều đề *"(Ký và ghi rõ họ tên)"*
