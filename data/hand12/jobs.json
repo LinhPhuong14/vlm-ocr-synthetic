@@ -1,0 +1,8 @@
+[
+  {"layout": "invoice_vat_form",     "seed": 8,    "count": 3},
+  {"layout": "invoice_hotel_stay",   "seed": 3,    "count": 3},
+  {"layout": "invoice_tax_en",       "seed": 21,   "count": 2},
+  {"layout": "authorisation_letter", "seed": 7,    "count": 2},
+  {"layout": "invoice_export",       "seed": 5, "count": 1},
+  {"layout": "medical_statement",    "seed": 11,   "count": 1}
+]

@@ -144,6 +144,12 @@ class _Runs(HTMLParser):
             self._flush()
             self._kind = attributes["data-kind"]
             self._depth = 1
+            # A hand-filled field carries an <img> of ink and no text node, so
+            # its text is on `data-text`. Seeded into the buffer here, the run
+            # is recovered in document order like every other one and the PDF
+            # path needs no special case of its own.
+            if "data-text" in attributes:
+                self._buffer.append(attributes["data-text"])
         elif self._kind is not None and tag == "span":
             self._depth += 1
 

@@ -247,9 +247,14 @@ class HtmlReceiptRenderer:
     """Keeps one browser alive across a run -- launching costs ~300 ms each time."""
 
     def __init__(self, scale: float = 2.0, short_size: tuple[int, int] = (960, 1400),
-                 template: str | None = None):
+                 template: str | None = None, hand=None):
         self.scale = scale
         self.short_size = short_size
+        # An open `handwriting.Hand`, or None to type every value as before.
+        # It is passed in rather than built here because it holds a WriteViT
+        # process that costs 11 s to start and must outlive one page, exactly
+        # like the browser below.
+        self.hand = hand
         # None keeps the character-grid page every layout has used until now.
         # "auto" switches to `sheets/`, which lays the same receipt out with CSS
         # and picks the sheet from `recipe.layout.id`; a layout id in its place
@@ -290,11 +295,21 @@ class HtmlReceiptRenderer:
         else:
             recipe, receipt, grid = rulebase.make(seed=seed, force=force)
         with profiling.stage("render"):
+            hand_report = None
             if self.template:
                 from sheets import build as build_sheet
 
                 override = None if self.template == "auto" else self.template
                 markup = build_sheet(recipe, receipt, override)
+                if self.hand is not None:
+                    # After the sheet is built and before a pixel is drawn:
+                    # the form is printed first and filled in second, which is
+                    # also the order that keeps every family able to be
+                    # hand-filled without one of them knowing about ink.
+                    import handwriting
+
+                    markup, hand_report = handwriting.fill(
+                        markup, self.hand, seed=seed)
                 markup = markup.replace("{FONT_FACES}", font_faces())
             else:
                 markup = build_html(grid, recipe, receipt)
@@ -354,7 +369,7 @@ class HtmlReceiptRenderer:
                 f"a degradation resized the page ({before} -> {aged.shape[:2]}); "
                 "the boxes no longer describe it"
             )
-        return recipe, receipt, grid, aged, boxes, cells
+        return recipe, receipt, grid, aged, boxes, cells, hand_report
 
 
 def structure_from_cells(cells: list[dict]) -> list[str]:
@@ -391,6 +406,13 @@ def main() -> int:
              "a layout id to force one particular dress",
     )
     parser.add_argument(
+        "--handwriting", action="store_true",
+        help="fill the fields a person fills in with real handwriting instead "
+             "of type, using the WriteViT checkpoint (`python "
+             "tools/writevit/setup.py`). Only with --template: the character "
+             "grid has no field to fill. See generators/html/handwriting.py",
+    )
+    parser.add_argument(
         "--profile", metavar="JSON",
         help="time every stage and write the breakdown here. Off by default, "
              "and off costs nothing: see profiling.py",
@@ -402,6 +424,11 @@ def main() -> int:
     if args.profile:
         profiling.enable()
 
+    if args.handwriting and not args.template:
+        parser.error(
+            "--handwriting needs --template: the character grid draws one glyph "
+            "per cell and has no field for a person to fill in.")
+
     args.out.mkdir(parents=True, exist_ok=True)
     jobs = worklist.load(args)
     # One parse per job rather than one per page: `parse_force` reads the rules
@@ -409,8 +436,26 @@ def main() -> int:
     forces = {job: rulebase.parse_force(job.pins(args.force), job.layout)
               for job in jobs}
 
+    hand = None
+    if args.handwriting:
+        import handwriting
+
+        with profiling.stage("startup"):
+            # Opened before the browser and closed after it, so a failure to
+            # find the checkpoint costs nothing: there is no fallback that
+            # draws letters, so a run asking for ink and not getting it must
+            # stop rather than quietly produce printed pages. A missing clone
+            # is a setup mistake and reads as one -- the traceback above it
+            # says nothing a person needs.
+            try:
+                hand = handwriting.Hand().open()
+            except RuntimeError as error:
+                parser.error(str(error))
+        print(f"[hand] WriteViT on {hand.device}")
+
     with profiling.stage("startup"):
-        renderer = HtmlReceiptRenderer(scale=args.scale, template=args.template)
+        renderer = HtmlReceiptRenderer(scale=args.scale, template=args.template,
+                                       hand=hand)
         renderer.__enter__()
     try:
         # Streamed, not collected: a job list may be a whole shard, and a record
@@ -419,8 +464,8 @@ def main() -> int:
         # runs in that order to name the files.
         with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as metadata:
             for index, job, seed in worklist.pages(jobs):
-                recipe, receipt, _grid, image, boxes, cells = renderer.render(
-                    seed, forces[job])
+                recipe, receipt, _grid, image, boxes, cells, hand_report = (
+                    renderer.render(seed, forces[job]))
                 name = f"html_{index:03d}.jpg"
                 with profiling.stage("export"):
                     cv2.imwrite(str(args.out / name), image,
@@ -434,6 +479,13 @@ def main() -> int:
                         "recipe": recipe.to_dict(),
                         "boxes": boxes,
                     }
+                    if hand_report is not None:
+                        # What was written and what refused, per page. A sheet
+                        # that asked for handwriting and got two inked fields
+                        # is a fact about the checkpoint, and it belongs in the
+                        # record beside the boxes rather than in a log nobody
+                        # keeps -- see docs/handwriting-html.md.
+                        record["handwriting"] = hand_report
                     if cells:
                         # Additive, and only for a template render: the
                         # structure half of the label, so a merged cell is
@@ -444,11 +496,15 @@ def main() -> int:
                 with profiling.stage("export"):
                     json.dump(record, metadata, ensure_ascii=False)
                     metadata.write("\n")
+                inked = len(hand_report["inked"]) if hand_report else 0
                 print(f"[ok] {name}  {image.shape[1]}x{image.shape[0]}  "
-                      f"{recipe.layout.id}  {len(boxes)} boxes")
+                      f"{recipe.layout.id}  {len(boxes)} boxes"
+                      + (f"  {inked} inked" if hand_report is not None else ""))
     finally:
         with profiling.stage("startup"):
             renderer.__exit__(None, None, None)
+            if hand is not None:
+                hand.close()
 
     if profile:
         profiling.dump(profile, {"backend": "html", "images": worklist.total(jobs),

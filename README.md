@@ -781,6 +781,7 @@ to rebuild an image exactly are in **[`data/README.md`](data/README.md)**.
 | [`data/invoices54/`](data/invoices54) | the nine commercial invoice layouts drawn as CSS sheets, by both HTML backends |
 | [`data/forms16/`](data/forms16) | a hospital cost statement and an authorisation to collect — the two documents here that are not a sale |
 | [`data/tables60/`](data/tables60) | table-structure images, a different task and a different label |
+| [`data/hand12/`](data/hand12) | the first pages here whose values are **handwritten** rather than typed — real ink from WriteViT, filled into printed form fields |
 
 `make proof` reads a set back with Tesseract 5 (`vie`) and scores it order-free
 — Tesseract reads a two-column page in whatever order its layout analysis
@@ -860,6 +861,7 @@ the two must stay in step.
 | [`docs/hoa-tiet-de-xuat.md`](docs/hoa-tiet-de-xuat.md) | ornaments surveyed and not built, with the reason each was left |
 | [`docs/khao-sat-sinh-chu-viet-tay.md`](docs/khao-sat-sinh-chu-viet-tay.md) | eight handwriting-synthesis repositories ranked on breadth of data and on realism, for the `handwriting_fill` gap (Vietnamese) |
 | [`docs/writevit.md`](docs/writevit.md) | standing up WriteViT for Vietnamese handwriting, and what it measurably cannot write (Vietnamese) |
+| [`docs/handwriting-html.md`](docs/handwriting-html.md) | wiring that handwriting into the HTML engine, and how much of a form it can actually fill — 14.6%, with the rest measured (Vietnamese) |
 | [`docs/brief-engine-html.md`](docs/brief-engine-html.md) | the three HTML render paths, what merged cells do and do not do in each, and what a fix has to preserve |
 | [`docs/python-versions.md`](docs/python-versions.md) | why the glyph renderer stops below Python 3.12, measured |
 | [`docs/windows.md`](docs/windows.md) | Windows setup: Python 3.11, GTK, Tesseract, proxies (Vietnamese) |

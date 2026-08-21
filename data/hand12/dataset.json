@@ -1,0 +1,17 @@
+{
+  "per_framework": 12,
+  "layouts": [
+    "authorisation_letter",
+    "invoice_export",
+    "invoice_hotel_stay",
+    "invoice_tax_en",
+    "invoice_vat_form",
+    "medical_statement"
+  ],
+  "pairing": "unpaired",
+  "clean": false,
+  "force": {},
+  "template": "auto",
+  "handwriting": true,
+  "frameworks": {"html": {"images": 12}}
+}

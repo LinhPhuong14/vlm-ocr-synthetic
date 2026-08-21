@@ -17,7 +17,8 @@ PROFILE_N ?= 8
 LAYOUT  ?=
 
 .DEFAULT_GOAL := help
-.PHONY: help setup setup-synthdog setup-html setup-genalog textures \
+.PHONY: help setup setup-synthdog setup-html setup-genalog setup-writevit \
+        textures handwriting \
         receipts preview preview-grid dataset dataset-clean proof showcase \
         ornaments templates \
         preflight check-rules check-corpus check-boxes distribution monitor \
@@ -37,6 +38,8 @@ setup-html:      ## HTML renderer: playwright + a headless browser
 	$(TASKS) setup-html
 setup-genalog:   ## genalog renderer: WeasyPrint + PyMuPDF
 	$(TASKS) setup-genalog
+setup-writevit:  ## handwriting: clone WriteViT beside the repo, fetch its weights
+	$(TASKS) setup-writevit
 textures:        ## Regenerate the shared paper and background textures
 	$(TASKS) textures
 ornaments:       ## Regenerate the seals and flourishes in textures/ornament
@@ -54,6 +57,8 @@ dataset-clean:   ## The same dataset with no ageing and no distortion at all
 	$(TASKS) dataset-clean -o $(DATASET) -n $(N)
 tables:          ## Table-structure images, from the html backend (TABLES=60)
 	$(TASKS) tables -o data/tables60 -n $(TABLES)
+handwriting:     ## Regenerate data/hand12: form fields filled in with real ink
+	$(TASKS) handwriting
 run:             ## Run pipeline.yaml: preflight, shards in parallel, assemble
 	$(TASKS) run
 baseline-write:  ## Capture the golden fingerprint (needs REASON="...")
