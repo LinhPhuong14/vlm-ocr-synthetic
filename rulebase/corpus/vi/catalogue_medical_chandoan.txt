@@ -1,0 +1,12 @@
+# Chẩn đoán hình ảnh — nhóm 4.
+# Định dạng: tên<TAB>đơn giá tối thiểu<TAB>đơn giá tối đa   (đơn vị VND)
+#
+# Giá lấy theo khung giá dịch vụ kỹ thuật y tế, làm tròn — đủ để một người đọc
+# thấy con số hợp lý, không phải bảng giá của một bệnh viện cụ thể nào.
+Chụp Xquang ngực thẳng (Chụp X-quang số hóa 1 phim)	60000	78000
+Chụp Xquang cột sống thắt lưng thẳng nghiêng (số hóa 2 phim)	96000	128000
+Siêu âm ổ bụng (gan mật, tụy, lách, thận, bàng quang)	43000	58000
+Siêu âm Doppler tim	200000	260000
+Chụp CT Scanner sọ não không tiêm thuốc cản quang	520000	720000
+Chụp Xquang xoang mặt (số hóa 1 phim)	60000	78000
+Siêu âm phần mềm (một vị trí)	43000	58000

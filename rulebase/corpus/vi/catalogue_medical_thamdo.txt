@@ -1,0 +1,10 @@
+# Thăm dò chức năng — nhóm 5.
+# Định dạng: tên<TAB>đơn giá tối thiểu<TAB>đơn giá tối đa   (đơn vị VND)
+#
+# Giá lấy theo khung giá dịch vụ kỹ thuật y tế, làm tròn — đủ để một người đọc
+# thấy con số hợp lý, không phải bảng giá của một bệnh viện cụ thể nào.
+Điện tim thường	30000	42000
+Đo chức năng hô hấp	78000	102000
+Nội soi tai mũi họng	120000	170000
+Đo thính lực đơn âm	68000	92000
+Điện não đồ	120000	165000
