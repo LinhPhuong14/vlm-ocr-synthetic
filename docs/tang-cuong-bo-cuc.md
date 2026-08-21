@@ -323,15 +323,48 @@ mặt — người đọc hiểu, máy kiểm được, và cùng nội dung lu�
 `when:` chỉ nhận biểu thức trên vốn từ `from:` đã có, và **cùng vị từ §3.2 vẫn
 là lời cuối**: `when` đúng mà ô bị phủ có giá trị thì vẫn là lỗi.
 
-#### `n_cols` được khai. `n_rows` thì **không**
+#### `n_rows`: một nguồn sự thật, hai kiến trúc đều hợp lệ
 
-Cùng lý lẽ: số cột là khai báo, số hàng là **hàm của nội dung**
-(`num_items` + `blank_rows` + số dòng của các section). Khai `n_rows: 14` là nói
-một điều mà nội dung sẽ phủ định — và nếu engine *ép* cho đủ 14 dòng thì nhãn
-bắt đầu mô tả những dòng không có gì.
+> **Sửa lại.** Bản trước viết *"`n_rows` không khai được"*. Nói thế là hẹp.
+> Phản đối thật sự không phải về **chiều phụ thuộc**, mà về **hai nguồn sự
+> thật cho cùng một con số**.
 
-Cái **được** khai là `blank_rows` — số dòng trống **đã in sẵn** trên tờ mẫu, vì
-đó thật sự là thuộc tính của tờ giấy chứ không phải của giao dịch.
+Hôm nay repo đi **content-first**: `rules/document.yaml` khai
+`num_items: [3, 14]` và `document` được bốc **trước** `layout`
+([`_order.yaml`](../rulebase/rules/_order.yaml)). Nên số dòng hàng đã có trước
+khi bố cục được chọn, và một biến thể khai thêm `n_rows: 14` sẽ **mâu thuẫn**
+với nó — đó là ca tôi mô tả.
+
+Nhưng đảo chiều cũng hợp lệ, và nó chính là cách SynthTabNet làm:
+
+| | ai quyết số dòng | hệ quả |
+| --- | --- | --- |
+| **A · content-first** *(repo hôm nay)* | `document.num_items` | biến thể **không** được khai `n_rows`; `merges` phải dùng **neo tượng trưng** |
+| **B · layout-first** *(đề xuất)* | biến thể khai `item_rows` | `document.num_items` phải bị **ghi đè**, không cùng tồn tại; `merges` dùng được **chỉ số tuyệt đối** |
+
+**Điều kiện duy nhất: chọn một, và ghi ra là đã chọn.** Hai nguồn cùng nói về
+số dòng, không nguồn nào thắng tường minh — đó mới là lỗi, chứ không phải chiều
+phụ thuộc.
+
+**Cái giá của B, để chọn có mắt.** Số mặt hàng thôi không còn là thuộc tính của
+*giao dịch* mà thành thuộc tính của *tờ mẫu*. Một hoá đơn thật có 3 dòng vì
+người ta mua 3 thứ. Ghim `item_rows: 14` thì mọi ảnh của biến thể ấy đều có 14
+dòng, và phân phối số mặt hàng của cả bộ dữ liệu **co về vài giá trị cố định**.
+Điều đó đáng quan tâm vì số dòng chính là thứ gây sức ép lên trang: tràn khổ
+giấy, sang trang, bảng dài hơn phần chữ ký.
+
+**Cách giữ cả hai:** biến thể khai một **khoảng** (`item_rows: [10, 14]`) chứ
+không một số, rồi bốc trong khoảng đó. Khi ấy quy tắc về neo trở nên chính xác
+hơn "đừng bao giờ dùng số tuyệt đối":
+
+> **Chỉ số tuyệt đối cho những hàng tờ mẫu ghim; neo tượng trưng cho những hàng
+> nội dung định cỡ.**
+
+| dùng số tuyệt đối được | phải dùng neo |
+| --- | --- |
+| `header`, `colnum` — luôn ở đầu | `item[last]` — vị trí đổi theo số dòng |
+| `blank[0..n]` — dòng trống in sẵn | `total[grand]` — nằm sau khối hàng |
+| `item[0]`, `item[1]` — đếm từ đầu, luôn tồn tại nếu `item_rows` ≥ 2 | `note@item`, `vat_summary[i]` — có hay không tuỳ nội dung |
 
 #### Đơn vị soạn là **biến thể có tên**, không phải mỗi ảnh
 
