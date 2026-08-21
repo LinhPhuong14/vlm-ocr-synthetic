@@ -1,0 +1,48 @@
+# THAM SỐ NỘI DUNG — authorisation_letter
+#
+# Nửa còn lại của loại document này. Không gian lấy mẫu (weight, tags,
+# họ) nằm ở `rules/document.yaml`; những gì `rulebase.content.build`
+# đọc thì nằm đây.
+
+profile: insurance
+invoice: true
+no_items: true
+show_vat: false
+show_subtotal: false
+show_payment: false
+show_amount_words: false
+show_number: false
+show_seller_tax_code: false
+show_seller_website: true
+titles: ["GIẤY ỦY QUYỀN NHẬN TIỀN"]
+subtitle: "(Chỉ áp dụng cho trường hợp ủy quyền cho Chuyên viên tư vấn bảo hiểm nhận Phí bảo hiểm hoàn lại với số tiền nhỏ hơn 5.000.000 đồng)"
+serial_format: "POSF{n}"
+fixed_amount: [500000, 4900000]
+party_fields:
+  left:
+    - [principal_name, "Họ và tên (CHỮ IN HOA)"]
+    - [principal_id, "Số CMND"]
+    - [principal_id_date, "Ngày cấp"]
+    - [principal_id_place, "Nơi cấp"]
+    - [policy_no, "Là Bên mua bảo hiểm của Hợp đồng bảo hiểm/Hồ sơ yêu cầu bảo hiểm số:"]
+  right:
+    - [agent_name, "Họ và tên (CHỮ IN HOA)"]
+    - [agent_id, "Số CMND"]
+    - [agent_id_date, "Ngày cấp"]
+    - [agent_id_place, "Nơi cấp"]
+    - [agent_address, "Địa chỉ"]
+    - [agent_code, "Mã số tư vấn"]
+    - [agent_phone, "Điện thoại"]
+    - [refund_amount, "Bằng số:"]
+    - [refund_words, "Bằng chữ:"]
+    - [notified_on, "theo thông báo của Công ty ngày"]
+notes:
+  - "Tôi xác nhận rằng trên cơ sở khi Công ty thanh toán số tiền nêu trên cho Người được ủy quyền, Công ty được:"
+  - "1) Miễn trừ khỏi mọi khiếu nại hay yêu cầu bồi thường của tôi đối với Công ty về khoản thanh toán nói trên."
+  - "2) Tôi bồi hoàn và giữ cho Công ty không phải chi trả bất kỳ khoản tiền gì đối với tất cả các yêu cầu, khiếu nại, nghĩa vụ nợ, tổn thất, chi phí phát sinh liên quan đến hay do việc Công ty thanh toán khoản tiền này cho Người được ủy quyền nêu trên."
+  - "Giấy ủy quyền này chỉ có hiệu lực trong vòng ba (03) tháng kể từ ngày ký và có giá trị ràng buộc đối với những người đại diện của cá nhân tôi, những người thừa kế và/ hoặc quản lý di sản của tôi."
+signature_labels:
+  - ["Bên mua bảo hiểm", "(Ký và ghi rõ họ tên)"]
+  - ["Chuyên viên tư vấn bảo hiểm được ủy quyền", "(Ký và ghi rõ họ tên)"]
+  - ["Người làm chứng", "(Ký và ghi rõ họ tên)"]
+  - ["Xác nhận của ADM", "(Ký và ghi rõ họ tên)"]

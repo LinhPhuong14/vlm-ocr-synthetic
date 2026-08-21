@@ -1,0 +1,16 @@
+# THAM SỐ NỘI DUNG — supermarket_vat
+#
+# Nửa còn lại của loại document này. Không gian lấy mẫu (weight, tags,
+# họ) nằm ở `rules/document.yaml`; những gì `rulebase.content.build`
+# đọc thì nằm đây.
+
+profile: market
+titles: ["PHIẾU TÍNH TIỀN", "HOÁ ĐƠN GTGT"]
+num_items: [3, 10]
+vat_rates: [8, 10]
+total_labels:
+  subtotal: "Tổng tiền"
+  discount: "Tổng tiền giảm giá"
+  vat: "Thuế GTGT"
+  grand: "Tiền khách trả"
+  change: "Tiền trả lại cho khách"
