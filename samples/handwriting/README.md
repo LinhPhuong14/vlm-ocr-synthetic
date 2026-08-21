@@ -1,31 +1,39 @@
-# handwriting — một trang điền tay, ở mức tối đa mô hình làm được
+# handwriting — hai tờ điền tay, hai nguồn mực
 
-`hand-filled-folio.jpg` là **trang nhiều mực nhất** dựng được từ luật hiện có:
-folio khách sạn, nhãn in sẵn, **5 trong 12 ô giá trị là nét bút thật**. Đây là
-tờ để nhìn, không phải một bộ dữ liệu — bộ dữ liệu là
-[`data/hand12/`](../../data/hand12), 12 trang có làm cũ.
+Hai tờ để nhìn, không phải một bộ dữ liệu — bộ dữ liệu là
+[`data/hand12/`](../../data/hand12). Chúng khác nhau ở đúng một thứ: **mực đến
+từ đâu**, và đó là toàn bộ sự đánh đổi.
+
+| | `hand-filled-form.jpg` | `hand-filled-folio.jpg` |
+| --- | --- | --- |
+| nguồn mực | **mặt chữ viết tay** (`fonts/hand/`) | **mô hình WriteViT** |
+| ô điền tay | **9 / 9 — toàn bộ** | 5 / 12 |
+| ô còn in máy | không | 7, tất cả đều là chữ số |
+| nét chữ | một mặt chữ, mọi chữ `a` giống hệt nhau | sinh theo từng từ, mỗi lần một khác, 106 người viết |
+| chữ số, IN HOA, dấu câu | viết được | **không viết được** |
 
 ```bash
-generators/html/.venv/bin/python generators/html/render.py \
-    --template auto --handwriting --layout invoice_hotel_stay \
-    --force content=invoice_vi_upper --force augmentation=pristine \
-    --seed 24 -c 1 -o samples/handwriting
+# mọi giá trị là nét bút, chỉ nhãn là bản in
+generators/html/render.py --template auto --handwriting font \
+    --layout invoice_vat_form --force augmentation=pristine --seed 8
+
+# mực thật của mô hình, ở mức phủ cao nhất nó đạt được
+generators/html/render.py --template auto --handwriting model \
+    --layout invoice_hotel_stay --force content=invoice_vi_upper \
+    --force augmentation=pristine --seed 24
 ```
 
-`hand-filled-folio.json` là bản ghi `metadata.jsonl` của chính trang ấy: hộp,
-nhãn, và khối `handwriting` nói ô nào là mực, ô nào vẫn in và vì sao.
+`*.json` bên cạnh là bản ghi `metadata.jsonl` của chính tờ ấy: hộp, nhãn, và
+khối `handwriting` nói nguồn mực, ô nào là mực, ô nào vẫn in và vì sao. Cả hai
+tắt làm cũ để nhìn rõ nét bút; bản có làm cũ ở `data/hand12/`.
 
-| | |
-| --- | --- |
-| viết tay | Khách hàng, Loại phòng, Nguồn khách, và **hai tên dưới ô ký** |
-| vẫn in máy | Số hoá đơn `HD4488`, Ngày, Phòng `1201`, Ngày nhận, Ngày trả, Số đêm `3`, Số khách `2` |
-| lý do | cả bảy đều là **chữ số** |
-| làm cũ | tắt (`pristine`), để nhìn rõ nét bút — bản có làm cũ ở `data/hand12/` |
+## Vì sao cần hai
 
-## 42 % là trần, không phải may rủi
-
-Quét toàn bộ không gian luật — 11 bố cục có ô trường × mọi tuỳ chọn `content`
-hợp lệ × 40 hạt giống — không trang nào vượt được **42 %**:
+**Mô hình là thứ thật** — một bộ sinh có điều kiện theo người viết, nét mỗi lần
+một khác. Nhưng nó **không viết được chữ số**, và chữ số là số hoá đơn, ngày,
+mã số thuế, số tài khoản. Quét toàn bộ không gian luật — 11 bố cục có ô trường
+× mọi tuỳ chọn `content` hợp lệ × 40 hạt giống — trang nhiều mực nhất chỉ đạt
+**42 %**:
 
 | bố cục | tốt nhất | |
 | --- | ---: | --- |
@@ -37,20 +45,21 @@ hợp lệ × 40 hạt giống — không trang nào vượt được **42 %**:
 | `invoice_export` | 16 % | 4/25 |
 | `medical_statement` | 12 % | 3/24 |
 
-Ghim `content` bỏ được **toàn bộ** nhóm bị chặn vì IN HOA — chữ hoa toàn phần là
-do `prob_uppercase` và `prob_ascii_fold` trong luật, không phải bản chất tài
-liệu. Bỏ xong thì thứ duy nhất còn đứng là **chữ số**, và nó không bỏ đi được:
-mọi hoá đơn trong kho đều có số hoá đơn, ngày, mã số thuế, số tài khoản. Một
-trang **100 % điền tay không dựng được** từ mô hình hiện tại — không phải vì
-chưa tìm đúng hạt giống, mà vì đó là thứ tài liệu này *là*.
+**Mặt chữ lấp hết**, vì một mặt chữ có đủ mười chữ số và mọi dấu. Cái giá là nó
+**lặp lại**: một tờ là một nét chữ, mọi chữ `a` trên trang là cùng một chữ `a`,
+và có hai mặt chữ chứ không phải 106 người viết. Không có chỗ nào làm lệch từng
+ký tự để giấu chuyện đó — làm lệch chính là thứ `ff9a9f0` đã gỡ đi.
 
-Bốn đường mở nốt chỗ ấy, hai đường đã đo và đã chết:
+Cả hai đường đều được [`hoa-tiet-de-xuat.md`](../../docs/hoa-tiet-de-xuat.md)
+nêu là hợp lệ: dữ liệu nét thật, **hoặc** một mặt chữ viết tay có giấy phép cho
+phép phát hành lại. Đường thứ ba — huấn luyện tiếp WriteViT để nó biết chữ số —
+mới là đường xoá được sự đánh đổi này, và nó cần một đợt huấn luyện có GPU.
 
-| đường | trạng thái |
+Hai đường tắt đã đo và đã chết, để không ai thử lại:
+
+| đường tắt | vì sao chết |
 | --- | --- |
-| cắt ảnh chữ số thật từ `VN.pickle` | **chết** — cả kho có đúng một ảnh số `0` |
-| dùng checkpoint tiếng Anh (`eng_ckpt.pth`) | **chết** — đã tải và chạy thử: `0 1 2 … 9` ra nét giống chữ cái. Lexicon IAM có 26 token chứa chữ số trên 460.907, tức bộ sinh gần như chưa từng thấy chữ số, đúng lỗi lọc từ điển như bản tiếng Việt |
-| huấn luyện tiếp WriteViT cho `lex_upper_number` | làm được, cần GPU và một đợt huấn luyện |
-| một **mặt chữ viết tay** có giấy phép phát hành lại | làm được ngay, nhưng đổi bản chất nguồn mực — [`hoa-tiet-de-xuat.md`](../../docs/hoa-tiet-de-xuat.md) có nêu đây là đường hợp lệ |
+| cắt ảnh chữ số thật từ `VN.pickle` | cả kho VNOnDB có **đúng một** ảnh số `0`; `1.500.000` cần bốn |
+| dùng checkpoint tiếng Anh `eng_ckpt.pth` | đã tải và chạy: `0 1 2 … 9` ra nét giống chữ cái. Lexicon IAM có **26 token chứa chữ số trên 460.907** — cùng lỗi lọc từ điển như bản tiếng Việt |
 
 Chi tiết và cách nối trong [`docs/handwriting-html.md`](../../docs/handwriting-html.md).

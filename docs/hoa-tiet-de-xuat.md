@@ -65,11 +65,16 @@ HTML dựng xong trong [`handwriting-html.md`](handwriting-html.md): mực thậ
 đúng đường `from_receipt` (giá trị in ra chính là giá trị trong nhãn, có test
 giữ), hộp nhãn nằm trên nét bút, `data/hand12/` là 12 trang đầu tiên.
 
-Nhưng nó mới lấp được **14,6 %** số ô đáng điền tay, và **70 %** phần còn lại
-bị chặn vì **chữ số** — checkpoint không viết được chữ số, cắt chữ số thật từ
-`VN.pickle` cũng không (cả kho có đúng một ảnh số `0`). Ô "Số tiền", ngày
-tháng, số hoá đơn, mã số thuế vẫn in máy. Mở nốt chỗ ấy cần **một đợt huấn
-luyện lại**, không phải một miếng vá.
+Mô hình mới lấp được **14,6 %** số ô đáng điền tay, và **70 %** phần còn lại bị
+chặn vì **chữ số** — checkpoint không viết được chữ số, cắt chữ số thật từ
+`VN.pickle` cũng không (cả kho có đúng một ảnh số `0`), checkpoint tiếng Anh
+cũng không (lexicon IAM có 26 token chứa chữ số trên 460.907).
+
+Nên đường thứ hai mà mục này nêu ở khối trên — **mặt chữ viết tay có giấy phép
+phát hành lại** — đã được dựng: `fonts/hand/` có hai mặt chữ OFL, và
+`--handwriting font` lấp **mọi** ô. Nó không thay được mô hình, vì một mặt chữ
+thì lặp; nó là lựa chọn thứ hai, khai trong nhãn. Mở nốt chữ số bằng nét sinh
+vẫn cần **một đợt huấn luyện lại**.
 
 Tám kho mã sinh chữ viết tay đã được khảo sát và xếp hạng trong
 [`khao-sat-sinh-chu-viet-tay.md`](khao-sat-sinh-chu-viet-tay.md).

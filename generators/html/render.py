@@ -406,11 +406,15 @@ def main() -> int:
              "a layout id to force one particular dress",
     )
     parser.add_argument(
-        "--handwriting", action="store_true",
-        help="fill the fields a person fills in with real handwriting instead "
-             "of type, using the WriteViT checkpoint (`python "
-             "tools/writevit/setup.py`). Only with --template: the character "
-             "grid has no field to fill. See generators/html/handwriting.py",
+        "--handwriting", nargs="?", const="model", default=None,
+        choices=["model", "font"], metavar="SOURCE",
+        help="fill the fields a person fills in with handwriting instead of "
+             "type. `model` (the default) is the WriteViT checkpoint -- real "
+             "generated ink, but it cannot write digits or ALL-CAPS and so "
+             "reaches 42%% of the fields at best. `font` is a licensed "
+             "handwriting typeface from fonts/hand/, which fills every field "
+             "but repeats: one hand per face, every `a` the same `a`. Only "
+             "with --template. See generators/html/handwriting.py",
     )
     parser.add_argument(
         "--profile", metavar="JSON",
@@ -448,10 +452,10 @@ def main() -> int:
             # is a setup mistake and reads as one -- the traceback above it
             # says nothing a person needs.
             try:
-                hand = handwriting.Hand().open()
+                hand = handwriting.source(args.handwriting).open()
             except RuntimeError as error:
                 parser.error(str(error))
-        print(f"[hand] WriteViT on {hand.device}")
+        print(f"[hand] {args.handwriting} on {hand.device}")
 
     with profiling.stage("startup"):
         renderer = HtmlReceiptRenderer(scale=args.scale, template=args.template,
