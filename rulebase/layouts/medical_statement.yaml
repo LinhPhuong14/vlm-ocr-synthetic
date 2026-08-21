@@ -55,23 +55,22 @@ parties:
 column_header: true
 column_header_bold: true
 columns:
-  - {key: name,         title: "Nội dung",                   width: 0,  align: left,   title_align: center, number: "(1)"}
-  - {key: unit,         title: "Đơn vị tính",                width: 8,  align: center, title_align: center, number: "(2)"}
-  - {key: qty,          title: "Số lượng",                   width: 6,  align: right,  title_align: center, number: "(3)"}
-  - {key: price_bv,     title: "Đơn giá BV",                 width: 13, align: right,  title_align: center, number: "(4)"}
-  - {key: price_bh,     title: "Đơn giá BH",                 width: 13, align: right,  title_align: center, number: "(5)"}
-  - {key: rate_service, title: "Tỷ lệ TT dịch vụ",           width: 7,  align: center, title_align: center, number: "(6)"}
-  - {key: amount_bv,    title: "Thành tiền BV",              width: 15, align: right,  title_align: center, number: "(7)"}
-  - {key: rate_bhyt,    title: "Tỷ lệ TT BHYT",              width: 7,  align: center, title_align: center, number: "(8)"}
-  - {key: amount_bh,    title: "Thành tiền BH",              width: 15, align: right,  title_align: center, number: "(9)"}
-  - {key: fund,         title: "Quỹ BHYT",                   width: 15, align: right,  title_align: center, number: "(10)"}
-  - {key: copay,        title: "Người bệnh cùng chi trả",    width: 13, align: right,  title_align: center, number: "(11)"}
-  - {key: other_pay,    title: "Khác",                       width: 10, align: right,  title_align: center, number: "(12)"}
-  - {key: self_pay,     title: "Người bệnh tự chi trả",      width: 14, align: right,  title_align: center, number: "(13)"}
+  - {key: name,         title: "Nội dung",                   width: 0,  align: left,   title_align: center}
+  - {key: unit,         title: "Đơn vị tính",                width: 8,  align: center, title_align: center}
+  - {key: qty,          title: "Số lượng",                   width: 6,  align: right,  title_align: center}
+  - {key: price_bv,     title: "Đơn giá BV",                 width: 13, align: right,  title_align: center}
+  - {key: price_bh,     title: "Đơn giá BH",                 width: 13, align: right,  title_align: center}
+  - {key: rate_service, title: "Tỷ lệ TT dịch vụ",           width: 7,  align: center, title_align: center}
+  - {key: amount_bv,    title: "Thành tiền BV",              width: 15, align: right,  title_align: center}
+  - {key: rate_bhyt,    title: "Tỷ lệ TT BHYT",              width: 7,  align: center, title_align: center}
+  - {key: amount_bh,    title: "Thành tiền BH",              width: 15, align: right,  title_align: center}
+  - {key: fund,         title: "Quỹ BHYT",                   width: 15, align: right,  title_align: center}
+  - {key: copay,        title: "Người bệnh cùng chi trả",    width: 13, align: right,  title_align: center}
+  - {key: other_pay,    title: "Khác",                       width: 10, align: right,  title_align: center}
+  - {key: self_pay,     title: "Người bệnh tự chi trả",      width: 14, align: right,  title_align: center}
 
 table:
   frame: true
-  column_numbers: true
   row_rules: true
   blank_rows: 0
   shade: 0.10
