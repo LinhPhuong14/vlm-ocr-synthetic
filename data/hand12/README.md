@@ -10,7 +10,7 @@ tờ giấy **không phải chữ in**: nó là nét bút thật do WriteViT sin
 | renderer | `html` (Chromium), page model `--template auto` |
 | ghép cặp | `unpaired` — chỉ một renderer; đường WeasyPrint chưa nối được, xem tài liệu |
 | làm cũ | có, rút từ luật: `pristine`, `light`, `ghost_text`, `real_paper`, `stains`, `torn_edges`, `photocopy_stamped`, `forwarded_photo` |
-| box | 1 262 |
+| box | 1 219 |
 | chữ viết tay | **30 ô**, 10 người viết khác nhau, 3 màu mực |
 
 ## Sinh lại
@@ -40,11 +40,19 @@ Hai bố cục cuối ra **không một nét nào**, và chúng có mặt ở đ
 xuất khẩu in tên hàng IN HOA và phần còn lại là số; bảng kê bệnh viện thì mười
 ba cột đều là tiền. Một tập chỉ gồm những tờ điền được sẽ nói dối về độ phủ.
 
-Một trang **100 % điền tay không dựng được** từ mô hình hiện tại. Quét cả không
-gian luật — 11 bố cục có ô trường × mọi tuỳ chọn `content` hợp lệ × 40 hạt giống
-— trang nhiều mực nhất đạt **42 %**, và nó nằm ở
-[`samples/handwriting/`](../../samples/handwriting) để nhìn. Chặn ở đó là chữ
-số, thứ mọi hoá đơn đều phải có.
+Một trang **100 % điền tay không dựng được từ mô hình**. Quét cả không gian luật
+— 11 bố cục có ô trường × mọi tuỳ chọn `content` hợp lệ × 40 hạt giống — trang
+nhiều mực nhất đạt **42 %**. Chặn ở đó là chữ số, thứ mọi hoá đơn đều phải có.
+
+Đổi sang nguồn mực thứ hai thì lấp hết. Cùng 12 trang này, cùng `jobs.json`,
+chỉ thay `--handwriting font`: **159 ô điền tay, 0 ô in máy**, `check_boxes`
+vẫn sạch. Cái giá là mặt chữ lặp lại — xem
+[`samples/handwriting/`](../../samples/handwriting), nơi để hai tờ cạnh nhau.
+
+```bash
+generators/html/.venv/bin/python generators/html/render.py \
+    --template auto --handwriting font --jobs data/hand12/jobs.json -o out/html
+```
 
 `invoice_hotel_stay` dẫn đầu vì nó có thứ không tờ nào khác có: **tên người ký**
 in dưới hai ô chữ ký, mà tên người là chữ hoa đầu từ — đúng thứ checkpoint viết
@@ -55,7 +63,7 @@ và đều để trắng, vì tài liệu ấy không bật `signature_names`.
 
 | phép đo | kết quả |
 | --- | --- |
-| `make check-boxes DATASET=data/hand12` | **sạch** — 1 262 hộp, mọi hộp trong khung và trên nét mực |
+| `make check-boxes DATASET=data/hand12` | **sạch** — 1 219 hộp, mọi hộp trong khung và trên nét mực |
 | `tests/test_handwriting.py::…does_not_change_what_the_page_says` | `labelled_runs` trước và sau khi điền bằng nhau, 6 họ tờ giấy |
 | `generators/html/overlap.py` | **0** cặp hộp chữ chồng nhau >30 % |
 | `pipeline/invariants.py` | **0** lỗi / 12 ảnh |
