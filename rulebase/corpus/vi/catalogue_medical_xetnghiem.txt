@@ -1,0 +1,20 @@
+# Xét nghiệm — nhóm 3, nhóm dài nhất và có tên dài nhất của bảng kê.
+# Định dạng: tên<TAB>đơn giá tối thiểu<TAB>đơn giá tối đa   (đơn vị VND)
+#
+# Giá lấy theo khung giá dịch vụ kỹ thuật y tế, làm tròn — đủ để một người đọc
+# thấy con số hợp lý, không phải bảng giá của một bệnh viện cụ thể nào.
+Tổng phân tích tế bào máu ngoại vi (bằng máy đếm laser)	40000	52000
+Thời gian prothrombin (PT: Prothrombin Time), (Các tên khác: TQ; Tỷ lệ Prothrombin) bằng máy tự động	56000	72000
+Thời gian thromboplastin một phần hoạt hóa (APTT: Activated Partial Thromboplastin Time), (Tên khác: TCK) bằng máy tự động	36000	48000
+Định nhóm máu hệ ABO (Kỹ thuật ống nghiệm)	34000	46000
+Định nhóm máu hệ Rh(D) (Kỹ thuật ống nghiệm)	28000	38000
+Đo hoạt độ ALT (GPT) [Máu]	18000	26000
+Đo hoạt độ AST (GOT) [Máu]	18000	26000
+Định lượng Creatinin (máu)	18000	26000
+Định lượng Glucose [Máu]	18000	26000
+Định lượng Ure máu [Máu]	18000	26000
+HBsAg miễn dịch tự động	80000	118000
+HIV Ab test nhanh	80000	118000
+Tổng phân tích nước tiểu (Bằng máy tự động)	26000	38000
+Định lượng CRP hs (C-Reactive Protein high sensitivity) [Máu]	52000	72000
+Điện giải đồ (Na, K, Cl) [Máu]	28000	40000

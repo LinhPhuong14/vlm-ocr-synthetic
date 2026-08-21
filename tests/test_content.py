@@ -46,6 +46,8 @@ def test_line_amounts_are_quantity_times_price():
         for item in receipt.items:
             if item.weighed:
                 continue  # priced by weight; the rounding is checked below
+            if item.is_group:
+                continue          # a block heading repeats sums, it prices nothing
             assert item.amount == item.unit_price * item.qty, (
                 f"seed={seed}: {item.name!r} {item.qty} x {item.unit_price} "
                 f"!= {item.amount}"
@@ -78,6 +80,8 @@ def test_a_weighed_item_prints_quantity_one():
 def test_every_item_has_a_positive_amount():
     for seed, receipt, _grid in receipts():
         for item in receipt.items:
+            if item.is_group:
+                continue          # a block heading has no quantity of its own
             assert item.amount > 0, f"seed={seed}: {item.name!r} costs {item.amount}"
             assert item.qty > 0, f"seed={seed}: {item.name!r} qty {item.qty}"
 

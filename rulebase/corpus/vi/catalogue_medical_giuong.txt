@@ -1,0 +1,12 @@
+# Ngày giường bệnh — nhóm 2.x của bảng kê.
+# Định dạng: tên<TAB>đơn giá tối thiểu<TAB>đơn giá tối đa   (đơn vị VND)
+#
+# Giá lấy theo khung giá dịch vụ kỹ thuật y tế, làm tròn — đủ để một người đọc
+# thấy con số hợp lý, không phải bảng giá của một bệnh viện cụ thể nào.
+Giường Nội khoa loại 2 Hạng III (Phòng 5 giường trở lên)	150000	215000
+Giường Ngoại khoa loại 3 Hạng III - Khoa TMH (Phòng 5 giường trở lên)	180000	230000
+Giường Ngoại khoa loại 2 Hạng II (Phòng 3 giường)	230000	310000
+Giường Hồi sức cấp cứu Hạng III	320000	480000
+Giường Sản khoa sau đẻ thường Hạng III	160000	220000
+Giường Nhi khoa Hạng III (Phòng 5 giường trở lên)	150000	210000
+Giường Nội khoa loại 1 Hạng II (Phòng 2 giường)	290000	390000

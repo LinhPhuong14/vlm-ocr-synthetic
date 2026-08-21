@@ -1,0 +1,48 @@
+# THAM SỐ NỘI DUNG — tax_invoice_en
+#
+# Nửa còn lại của loại document này. Không gian lấy mẫu (weight, tags,
+# họ) nằm ở `rules/document.yaml`; những gì `rulebase.content.build`
+# đọc thì nằm đây.
+
+profile: invoice
+invoice: true
+lang: en
+titles: ["Tax Invoice"]
+serial_format: "INV-{year}-{n}"
+num_items: [2, 7]
+price_step: 1
+vat_rates: [10]
+item_vat: true
+show_amount_words: false
+show_seller_account: true
+# No `units:`: `invoice_tax_en` has no "Đơn vị tính" column, and a unit
+# nothing prints is a field in the label that no reader can check.
+address_format: "{number} {street}, {ward} {district}"
+phone_label: "Phone:"
+currency: "AUD"
+period_format: "Date invoiced: {date}"
+subtitle: "Due On Invoice"
+party_fields:
+  left_title: "Ship to"
+  left:
+    - [ship_name, ""]
+    - [ship_address, ""]
+    - [ship_locality, ""]
+  right_title: "Billed to"
+  right:
+    - [buyer_name, ""]
+    - [buyer_address, ""]
+    - [buyer_locality, ""]
+    - [due_date, "Date Due:"]
+surcharges:
+  - ["Express Shipping", 0.07]
+notes:
+  - "Payment Options:"
+  - "Credit Card - Master Card, Visa"
+  - "Direct Bank Deposit or Internet Transfer"
+  - "BSB xxxx, Account Number: {seller_account}"
+  - "Money Order or Cheque - payable to {seller_name}"
+total_labels:
+  subtotal: "Product Subtotal"
+  vat: "GST included"
+  grand: "Grand Total"

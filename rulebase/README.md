@@ -19,7 +19,9 @@ own content, what you compared would be two datasets, not two ways of drawing.
 
 ```
 rulebase/
-├── rules/          6 ATTRIBUTES, one file each         ← tune the distribution here
+├── rules/          7 ATTRIBUTES, one file each         ← tune the distribution here
+├── documents/      17 DOCUMENT KINDS, one file each    ← edit what a kind prints
+├── blanks.yaml     16 PHÔI GỐC and what became of them ← register a new form here
 ├── layouts/        14 LAYOUTS measured off real paper  ← add a layout here
 ├── corpus/vi/      Vietnamese corpus, WITH diacritics  ← add products here
 ├── corpus/en/      one document kind prints English
@@ -29,7 +31,7 @@ rulebase/
 └── text.py         diacritic folding, money formatting, wrapping
 ```
 
-The fourteen layouts are not fourteen variations on a receipt. A thermal till
+The sixteen layouts are not sixteen variations on a receipt. A thermal till
 receipt, a printed VAT form, a metered utility bill, a hotel folio and a
 self-designed order confirmation share a character grid and very little else,
 so `rules/layout.yaml` sorts them into **parent nodes** — see §1b.
@@ -41,7 +43,7 @@ what reaches the image is Vietnamese.**
 
 | English — an identifier | Vietnamese — content |
 | --- | --- |
-| `id`, `tags`, `requires`, `excludes` | `titles`, `total_labels` in `rules/document.yaml` |
+| `id`, `tags`, `requires`, `excludes` | `titles`, `total_labels` in `documents/*.yaml` |
 | `profile: eatery \| market` | a column's `title:` in `layouts/*.yaml` |
 | `paper: thermal_white` (a filename in `textures/paper/`) | the discount row's `label:`, `notes:` |
 | a column's `key:`, `style:`, `money_style:` | everything in `corpus/vi/` |
@@ -58,7 +60,7 @@ The label follows the same rule: `gt_parse.doc_type` is `receipt_eatery` /
 
 ---
 
-## 1. The six attributes
+## 1. The seven attributes
 
 Drawn in this order. Each attribute sees the `tags` the earlier ones set, so a
 later one can rule itself out when it does not fit.
@@ -70,7 +72,8 @@ later one can rule itself out when it does not fit.
 | 3 | `content` | diacritics or not, UPPER CASE, money format, VAT | [rules/content.yaml](rules/content.yaml) |
 | 4 | `visual` | font, size, ink weight, **white margin**, sheet, curl | [rules/visual.yaml](rules/visual.yaml) |
 | 5 | `color` | ink, paper tint, accent colour for the shop name | [rules/color.yaml](rules/color.yaml) |
-| 6 | `augmentation` | ageing: the degradation chain that runs after rendering | [rules/augmentation.yaml](rules/augmentation.yaml) |
+| 6 | `ornament` | seals and flourishes: the ink that is not text | [rules/ornament.yaml](rules/ornament.yaml) |
+| 7 | `augmentation` | ageing: the degradation chain that runs after rendering | [rules/augmentation.yaml](rules/augmentation.yaml) |
 
 **The list is not in the Python.** Attributes are discovered from `rules/*.yaml`
 and ordered by [rules/_order.yaml](rules/_order.yaml), so a seventh criterion is
@@ -132,7 +135,57 @@ filtered by document family.
 A file uses `options:` **or** `groups:`, never both: two places to add a value
 is two places to forget one.
 
-`rules/layout.yaml` is the file that needed this. Its five nodes:
+### Phôi gốc: the form before anyone measured it
+
+A layout is columns and rows in character units. A **phôi** is what it was
+measured *off* — the photograph or scan of the real paper. Every layout file has
+always named its own in a `source:` line, but one string per file is not a set:
+it cannot be counted, cannot be checked, and cannot say that a form was scanned
+and never converted.
+
+[`blanks.yaml`](blanks.yaml) is that set. Each blank carries where it came from,
+the layout it became (`null` if nobody has converted it yet — work still owed,
+where someone would look for it), and a redistributable redrawing in
+`samples/*-templates/` when one exists. The original scans are real paper with
+real names on them and are not in the repository.
+
+```bash
+make blanks          # per document: its phôi, what each became, and any drift
+```
+
+Then `documents:` says which blanks each kind may be drawn from. This is
+deliberately a **second** statement of something `requires`/`excludes` already
+decides, and the tags stay the deciding side. The reason is that a tag solver
+reports a relation and never an intention: give a new layout one `requires:` too
+few and every document sharing a tag silently gains a blank, with nothing to
+say so. `tests/test_blanks.py` fails when the two drift apart, in both
+directions — a layout the tags now allow that no blank lists, and a blank whose
+layout the tags now forbid.
+
+Most kinds have exactly one phôi. That is the number this file exists to make
+visible: layout variety for a document comes from adding blanks to it, and
+until one is added there is nothing to vary.
+
+### Where a value's params live
+
+Two shapes, and the file says which. `rules/<attribute>.yaml` normally carries
+`params:` inline. `document` does not: its seventeen values each carry the whole
+content model of a kind of paper — titles, labels, party fields, signature
+blocks — and one file of 750 lines buried the part you actually came to read,
+which is *which values exist, how often, under what tags*. So the params moved
+to `documents/<id>.yaml`, one file per kind, exactly the split `layout` already
+had with `layouts/<id>.yaml`.
+
+Nothing downstream noticed: everything reads `Option.params`, and that is filled
+either way. `rulebase/spec.py` pairs the two directions and refuses both halves
+of the obvious mistake — a value with no file, and a file no value names.
+
+A tree with no `documents/` beside its rules keeps its params inline, which is
+the shape `pipeline.config.materialise_rules` writes for a run override. That
+tree is generated, read once by a renderer subprocess, and never hand-edited,
+so the split would buy it nothing.
+
+`rules/layout.yaml` is the file that needed this. Its six nodes:
 
 | node | what the family is |
 | --- | --- |
@@ -141,6 +194,20 @@ is two places to forget one.
 | `utility_invoice` | điện, nước — charges a meter reading rather than a basket |
 | `lodging_invoice` | khách sạn — one line per night, dated rows, paid/outstanding |
 | `modern_invoice` | tờ tự thiết kế — no frame, totals against the right margin |
+| `administrative_form` | chứng từ hành chính — structure in the field block, not the table |
+
+`rules/document.yaml` is sorted the same way, into five nodes of its own. They
+are not a copy of the layout nodes: a document says what the paper *is*, a
+layout says how it is *drawn*, and the two cut the space differently — one
+`administrative_form` document can be drawn by either administrative layout.
+
+| node | what the family is |
+| --- | --- |
+| `till_receipt` | giấy tính tiền tại quầy — quán ăn, siêu thị, cửa hàng tiện lợi |
+| `statutory_invoice` | hoá đơn theo mẫu nhà nước — GTGT, tiền điện, tiền nước |
+| `commercial_invoice` | hoá đơn thương mại — bán buôn, xuất khẩu, song ngữ |
+| `service_invoice` | hoá đơn dịch vụ — lưu trú, ăn uống có thương hiệu |
+| `administrative_form` | chứng từ hành chính — không ghi lại một lần mua bán |
 
 ```bash
 make distribution        # the mix per node, then per value
@@ -426,7 +493,7 @@ works, the reverse does not.
 | `payments.txt` | label ⇥ group (`tienmat`/`the`/`vi`/`qr`) |
 | `people.txt` | one name per line — a till prints none, an invoice names its buyer |
 
-The `profile` in `rules/document.yaml` **is** the filename suffix:
+The `profile` in `documents/<id>.yaml` **is** the filename suffix:
 `profile: market` reads `items_market.txt`. Adding a profile means adding three
 corpus files with a matching suffix, not editing `corpus.py`. The eight so far:
 
@@ -445,6 +512,57 @@ document, not a translated one — see the naming rule at the top of this file.
 A row with the wrong number of columns is skipped rather than failing the whole
 run — a corpus is edited by hand, and one bad line should cost that line.
 Check with `make check-corpus`.
+
+---
+
+## 4b. Seals and flourishes
+
+The `ornament` attribute is the ink on a page that is **not text**: the round
+company seal seated over a signature, the wave band under a coloured masthead,
+the guilloche rosette printed faintly behind a table, a corner bracket, a grid
+of pale rectangles in the footer.
+
+```bash
+make ornaments           # regenerate textures/ornament/*.png
+```
+
+`tools/make_ornaments.py` draws them; `rules/ornament.yaml` says which page gets
+which, where it sits, how big and how opaque. A rule names a file by stem, and
+`make preflight` checks both directions — a rule naming a file that does not
+exist, and a file no rule names.
+
+**Why they are drawn here rather than by synthtiger.** synthtiger builds text
+images out of flat layers: a `TextLayer` is one horizontal run with effects
+stacked on it — perspective, elastic distortion, shadow, colour. There is no
+text-on-a-path primitive, and a round seal is exactly that — every glyph rotated
+to the tangent of a circle. So the drawing happens once, into PNGs with an alpha
+channel, and the ageing and compositing that synthtiger and `degradation/` are
+good at treat the result like any other overlay.
+
+Position is named, not measured: `anchor: signature_seller` rather than a pair
+of coordinates. A seal belongs over the seller's signature on a 148mm folio and
+on a 210mm form alike, and the two have that place in different millimetres.
+
+Two marks carry `from_receipt: true`: the shelf barcode and the verification
+QR. Their content comes from the values the rule-base already drew for that
+page, so the file in `textures/ornament/` is a sample to look at and not the
+thing to composite — a fixed barcode pasted onto a receipt whose label says a
+different number is the exact defect `pipeline/invariants.py` exists to catch.
+
+**There are no hand marks.** Signatures, handwritten field values, pen
+underlines and highlighter swipes were drawn and then removed: a typeface
+jittered per glyph is not handwriting, and a procedural squiggle is not a
+signature. Doing it properly wants stroke data or a hand-drawn face licensed
+for redistribution.
+
+Twenty-three ornaments were surveyed and not built — those four among them.
+Each is written down with the reason it was left, in
+[docs/hoa-tiet-de-xuat.md](../docs/hoa-tiet-de-xuat.md).
+
+> **Not yet drawn.** The attribute is sampled and recorded in `metadata.jsonl`,
+> and every asset it names exists. No renderer composites it onto the page yet —
+> that is the next piece of work, and it is why `make baseline-verify` needs a
+> recapture after this change.
 
 ---
 
