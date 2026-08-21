@@ -30,6 +30,8 @@ TITLES = {
     "hotel": ["HOÁ ĐƠN"],
     "export": ["HOÁ ĐƠN XUẤT KHẨU (EXPORT INVOICE)"],
     "bakery": ["HOÁ ĐƠN"],
+    "medical": ["BẢNG KÊ CHI PHÍ ĐIỀU TRỊ NỘI TRÚ"],
+    "insurance": ["GIẤY ỦY QUYỀN NHẬN TIỀN"],
 }
 SHOP_PREFIXES = [
     "Quán Ăn", "Nhà Hàng", "Cửa Hàng", "Quán", "Cafe", "Quán Nhậu",
@@ -81,6 +83,69 @@ class Item:
     # into a weighed one -- which put a weight and a per-kilo price in the
     # label that no invoice layout has a column for.
     weighed: bool = False
+    # ---- bảng kê chi phí khám chữa bệnh (Mẫu số 01/KBCB)
+    #
+    # A hospital bill does not price a line once. It prices it twice -- what the
+    # hospital charges (`price_bv`) and what the insurance schedule allows
+    # (`price_bh`) -- and then splits the money four ways between the fund, the
+    # patient's share of a covered service, whatever was waived, and what the
+    # patient pays outright. A line is one of the two: a covered service has a
+    # BH price and no BV price, a top-up line has a BV price and no BH price.
+    # That is why the totals of the two columns do not add up to anything on
+    # their own, and why the four source columns are what a reader checks.
+    price_bv: int = 0
+    price_bh: int = 0
+    rate_service: int = 0              # tỷ lệ thanh toán theo dịch vụ (%)
+    rate_bhyt: int = 0                 # tỷ lệ thanh toán BHYT (%)
+    waived: bool = False               # miễn giảm: the money goes to "Khác"
+    # Which numbered block of the form the line sits in ("3. Xét nghiệm"), and
+    # whether this line IS that block's heading. A heading is a row of the
+    # table carrying the block's subtotals, not a caption floating above it --
+    # which is what the form prints, and what lets both renderers draw it
+    # without either of them learning a new kind of section.
+    group: str = ""
+    is_group: bool = False
+    # The card's benefit level, carried on the line because the split between
+    # the fund and the patient is a property of the card and the line together,
+    # and `_item_values` has only the line.
+    benefit: int = 0
+
+    # A heading's six money columns, in the order the form rules them:
+    # (BV, BH, quỹ BHYT, cùng chi trả, khác, tự chi trả). A heading has no
+    # quantity and no unit price, so its numbers cannot be derived the way a
+    # line's are -- they are its block's sums, and a block mixes waived lines
+    # with charged ones, which no single flag on the heading could express.
+    sums: tuple[int, ...] = ()
+
+    def amount_bv(self) -> int:
+        return self.sums[0] if self.is_group else int(round(self.qty * self.price_bv))
+
+    def amount_bh(self) -> int:
+        return self.sums[1] if self.is_group else int(round(self.qty * self.price_bh))
+
+    def fund_bhyt(self, benefit: int) -> int:
+        """What the insurance fund pays: the allowed amount at the card's rate."""
+        if self.is_group:
+            return self.sums[2]
+        return int(round(self.amount_bh() * benefit / 100.0))
+
+    def copay(self, benefit: int) -> int:
+        """The patient's share of a covered service."""
+        if self.is_group:
+            return self.sums[3]
+        return self.amount_bh() - self.fund_bhyt(benefit)
+
+    def other_pay(self) -> int:
+        """Waived: charged to nobody, and reported as "được miễn giảm"."""
+        if self.is_group:
+            return self.sums[4]
+        return self.amount_bv() if self.waived else 0
+
+    def self_pay(self, benefit: int) -> int:
+        """Out of pocket: the copay, plus any top-up that was not waived."""
+        if self.is_group:
+            return self.sums[5]
+        return self.copay(benefit) + (0 if self.waived else self.amount_bv())
 
     def display_qty(self) -> float:
         """What goes in the SL column.
@@ -219,6 +284,15 @@ class Receipt:
             # display values the grid does; the true weight rides along
             # separately rather than replacing the printed quantity.
             shown_qty = item.display_qty()
+            if item.is_group:
+                # A block heading is furniture of the table, like a column
+                # title: it names a group and repeats that group's sums, all of
+                # which the label already carries line by line. It is drawn, and
+                # it gets a box, but it is not a line of the bill -- and `menu`
+                # is the list of lines. Putting it there would also break the
+                # entry shape every reader of this label expects, which is
+                # `nm` and `price` on every element.
+                continue
             entry: dict[str, str] = {
                 "nm": item.name,
                 "cnt": quantity(shown_qty, self.money_style, 3 if shown_qty % 1 else 0),
@@ -627,6 +701,123 @@ def _build_utility_items(profile: str, rng: random.Random, case, params: dict) -
     return items
 
 
+def _build_admission(rng: random.Random, params: dict) -> dict[str, Any]:
+    """One episode of treatment: when it started, how long, what was wrong.
+
+    Drawn before the cost lines for the same reason a booking is (see
+    `_build_stay`): both halves of the form describe one episode. The bed lines
+    charge one night per day of stay, and the administrative block above the
+    table states that number again -- two draws would let the block say four
+    days over a table that charges three nights.
+    """
+    lo, hi = params.get("days", [2, 7])
+    days = max(int(rng.randint(int(lo), int(hi))), 1)
+    start = _date(rng.randrange(2022, 2026), rng.randrange(1, 13), rng.randrange(1, 26))
+    code, name = rng.choice(params.get("diagnoses") or [["J35.2", "Phì đại VA"]])
+    other_code, other_name = rng.choice(
+        params.get("comorbidities") or [["J30.3", "Viêm mũi dị ứng khác"]])
+    born = _date(rng.randrange(1950, 2021), rng.randrange(1, 13), rng.randrange(1, 27))
+    return {
+        "days": days,
+        "admitted": start,
+        "discharged": start + timedelta(days=days),
+        "born": born,
+        # The card number is printed in four boxes because it is four fields:
+        # the entitlement group, the benefit level, the province, and the
+        # holder's number. A form that ruled one box would be a different form.
+        "card": (
+            rng.choice(params.get("card_groups") or ["CN", "DN", "HS", "TE", "HT"]),
+            str(rng.randint(1, 5)),
+            f"{rng.randrange(1, 99):02d}",
+            f"{rng.randrange(10 ** 9, 10 ** 10)}",
+        ),
+        "benefit": int(rng.choice(params.get("benefit_levels") or [80, 95, 100])),
+        "diagnosis": f"{code}-{name}",
+        "icd": code,
+        "comorbid": f"({other_code}) {other_name}",
+        "comorbid_icd": other_code,
+        "arrive": f"{rng.randrange(6, 20):02d} giờ {rng.randrange(0, 60):02d} phút",
+        "depart": f"{rng.randrange(6, 20):02d} giờ {rng.randrange(0, 60):02d} phút",
+    }
+
+
+def _build_medical_items(rng: random.Random, case, params: dict,
+                         admission: dict) -> list[Item]:
+    """The cost lines of a hospital bill, grouped, with a heading row per group.
+
+    A group heading is emitted as an `Item` with `is_group` set rather than as a
+    new kind of section, because on the form it *is* a row of the table: it
+    carries the group's subtotals in the money columns. Both renderers then draw
+    the table they already know how to draw.
+
+    Two lines can come out of one service. A hospital that charges more than the
+    insurance schedule allows bills the difference on its own line, marked
+    `[Thu tiền chênh lệch giá]`, priced in the BV column with no BH price -- and
+    that line is either waived or charged to the patient. That is where the
+    "Khác" and "Người bệnh tự chi trả" columns of a real bill come from, and
+    inventing the two numbers any other way would not survive a reader adding
+    the column up.
+    """
+    lang = params.get("lang", corpus.DEFAULT_LANG)
+    benefit = admission["benefit"]
+    step = int(params.get("price_step", 100))
+    top_up = float(params.get("top_up_probability", 0.35))
+    waive = float(params.get("waive_probability", 0.5))
+    groups = params.get("cost_groups") or []
+    out: list[Item] = []
+    stt = 0
+
+    for entry in groups:
+        code, name, profile, units, count = (list(entry) + [None] * 5)[:5]
+        catalogue = corpus.catalogue(str(profile), lang)
+        if not catalogue:
+            continue
+        wanted = int(count or 3)
+        if str(code).startswith("2"):
+            wanted = 1                # ngày giường: one bed, charged per night
+        picked = rng.sample(catalogue, min(wanted, len(catalogue)))
+        lines: list[Item] = []
+        for item_name, price_lo, price_hi in picked:
+            unit = case(rng.choice(list(units) or ["Lần"]))
+            qty = admission["days"] if str(code).startswith("2") else rng.randint(1, 5)
+            allowed = _round_to(rng.uniform(price_lo, price_hi), step)
+            stt += 1
+            lines.append(Item(
+                stt=stt, name=case(item_name), qty=qty, unit=unit,
+                unit_price=allowed, amount=int(qty * allowed),
+                price_bh=allowed, rate_service=100, rate_bhyt=100,
+                benefit=benefit, group=case(f"{code}. {name}"),
+            ))
+            if rng.random() < top_up:
+                extra = _round_to(rng.uniform(price_lo, price_hi) * 0.5, step)
+                stt += 1
+                lines.append(Item(
+                    stt=stt, name=case(f"[Thu tiền chênh lệch giá] {item_name}"),
+                    qty=qty, unit=unit, unit_price=extra, amount=int(qty * extra),
+                    price_bv=extra, rate_service=0, rate_bhyt=0,
+                    waived=rng.random() < waive, benefit=benefit,
+                    group=case(f"{code}. {name}"),
+                ))
+        if not lines:
+            continue
+        heading = Item(
+            stt=0, name=case(f"{code}. {name}"), qty=0, unit_price=0,
+            amount=sum(line.amount for line in lines),
+            benefit=benefit, group=case(f"{code}. {name}"), is_group=True,
+            sums=(
+                sum(line.amount_bv() for line in lines),
+                sum(line.amount_bh() for line in lines),
+                sum(line.fund_bhyt(benefit) for line in lines),
+                sum(line.copay(benefit) for line in lines),
+                sum(line.other_pay() for line in lines),
+                sum(line.self_pay(benefit) for line in lines),
+            ),
+        )
+        out.append(heading)
+        out.extend(lines)
+    return out
+
+
 def _build_stay(rng: random.Random, params: dict) -> dict[str, Any]:
     """One booking: when it starts, how many nights, which room.
 
@@ -771,7 +962,8 @@ def _vat_summary(items: list[Item], params: dict, case, cash, grand: int) -> lis
 
 def _build_invoice(profile: str, store: Store, items: list[Item], rng: random.Random,
                    case, cash, params: dict, grand: int,
-                   stay: dict | None = None) -> Invoice:
+                   stay: dict | None = None,
+                   admission: dict | None = None) -> Invoice:
     """The invoice half: the parties, the serial, the words, the signatures."""
     lang = params.get("lang", corpus.DEFAULT_LANG)
     day, month, year = rng.randrange(1, 29), rng.randrange(1, 13), rng.randrange(2019, 2027)
@@ -863,6 +1055,66 @@ def _build_invoice(profile: str, store: Store, items: list[Item], rng: random.Ra
             "guests": str(rng.randint(1, 4)),
             "issued_at": f"{issued} {rng.randrange(6, 23):02d}:{rng.randrange(0, 60):02d}",
         })
+    # ---- bảng kê KCB: the patient, the card, and the episode being billed.
+    if admission:
+        card = admission["card"]
+        values.update({
+            "patient_name": buyer.name,
+            "patient_code": f"BN{year % 100:02d}{month:02d}{rng.randrange(10 ** 8, 10 ** 9)}",
+            "born": admission["born"].strftime("%d/%m/%Y"),
+            "gender": str(rng.randint(1, 2)),
+            "patient_address": f"{buyer.address}, {buyer.locality}",
+            # Four fields in four boxes, joined for the layouts that rule one.
+            "card_no": " ".join(card),
+            "card_group": card[0], "card_level": card[1],
+            "card_province": card[2], "card_serial": card[3],
+            "card_from": f"01/01/{year}",
+            "card_to": f"31/12/{year}",
+            "benefit": f"{admission['benefit']}",
+            "first_place": case(f"Trạm y tế xã {rng.choice(corpus.wards(lang))[0]}"),
+            "first_code": f"{rng.randrange(10000, 99999)}",
+            "arrive_at": f"{admission['arrive']} ngày {admission['admitted']:%d/%m/%Y}",
+            "admit_at": f"{admission['arrive']} ngày {admission['admitted']:%d/%m/%Y}",
+            "discharge_at": f"{admission['depart']} ngày {admission['discharged']:%d/%m/%Y}",
+            "treatment_days": str(admission["days"]),
+            "discharge_state": str(rng.randint(1, 4)),
+            "diagnosis": case(admission["diagnosis"]),
+            "icd": admission["icd"],
+            "comorbid": case(admission["comorbid"]),
+            "comorbid_icd": admission["comorbid_icd"],
+            "five_year_date": admission["born"].replace(
+                year=min(admission["born"].year + 30, year)).strftime("%d/%m/%Y"),
+            "ward_code": f"K{rng.randrange(10, 99)}",
+            "form_code": str(params.get("form_code", "01/KBCB")),
+            "billing_period": (
+                f"từ {admission['arrive']} ngày {admission['admitted']:%d/%m/%Y} "
+                f"đến {admission['depart']} ngày {admission['discharged']:%d/%m/%Y}"),
+        })
+
+    # ---- giấy uỷ quyền: two named people and the one amount between them.
+    if params.get("no_items"):
+        lo, hi = params.get("fixed_amount", [500000, 4900000])
+        refund = _round_to(rng.uniform(float(lo), float(hi)), 1000)
+        agent = Party(name=case(rng.choice(corpus.people(lang))))
+        values.update({
+            "principal_name": buyer.name.upper(),
+            "principal_id": f"{rng.randrange(10 ** 8, 10 ** 9)}",
+            "principal_id_date": f"{rng.randrange(1, 29):02d}/{rng.randrange(1, 13):02d}/{year - rng.randint(3, 12)}",
+            "principal_id_place": case(rng.choice(corpus.wards(lang))[2]),
+            "policy_no": f"{rng.randrange(10 ** 7, 10 ** 8)}",
+            "agent_name": agent.name.upper(),
+            "agent_id": f"{rng.randrange(10 ** 8, 10 ** 9)}",
+            "agent_id_date": f"{rng.randrange(1, 29):02d}/{rng.randrange(1, 13):02d}/{year - rng.randint(1, 10)}",
+            "agent_id_place": case(rng.choice(corpus.wards(lang))[2]),
+            "agent_address": case(
+                " - ".join(rng.choice(corpus.wards(lang))[:3])),
+            "agent_code": f"{rng.randrange(10 ** 7, 10 ** 8)}",
+            "agent_phone": f"09{rng.randrange(10 ** 7, 10 ** 8)}",
+            "refund_amount": cash(refund),
+            "refund_words": case(words_vi(refund)),
+            "notified_on": f"{max(day - rng.randint(1, 20), 1):02d}/{month:02d}/{year}",
+        })
+
     # ---- xuất khẩu: the shipment the invoice travels with.
     values.update({
         "contract_no": f"{rng.randrange(1, 999):03d}/{year % 100:02d}/HĐXK",
@@ -976,7 +1228,20 @@ def build(recipe, rng: random.Random | None = None) -> Receipt:
         # The stay is drawn before its lines because both describe it -- see
         # `_build_stay`. `None` for every document that is not a bill for one.
         stay = _build_stay(rng, params) if params.get("stay") else None
-        if params.get("metered"):
+        # An episode of treatment, for the hospital bill. Same idea as `stay`
+        # and drawn at the same point, because the same object describes the
+        # lines and the block of fields above them.
+        admission = _build_admission(rng, params) if params.get("admission") else None
+        if params.get("no_items"):
+            # A form that authorises a payment has no basket at all: what it
+            # states is one amount, and it states it in the field block. An
+            # empty line list is the honest model -- inventing a single row
+            # would put a name and a price in the label that the paper does not
+            # have a column for.
+            items = []
+        elif admission:
+            items = _build_medical_items(rng, case, params, admission)
+        elif params.get("metered"):
             items = _build_utility_items(profile, rng, case, params)
         elif stay:
             items = _build_stay_items(profile, rng, case, params, stay)
@@ -987,12 +1252,14 @@ def build(recipe, rng: random.Random | None = None) -> Receipt:
         # facts into `text_sequence` twice, once for text nobody drew.
         meta: list[tuple[str, str]] = []
     else:
-        stay = None
+        stay = admission = None
         store = _build_store(profile, rng, case)
         items = _build_items(profile, rng, case, params)
         meta = _build_meta(profile, rng, case, params)
 
-    subtotal = sum(item.amount for item in items)
+    # A group heading is a row of the table that carries its block's subtotal,
+    # so summing it with the lines would count that block twice.
+    subtotal = sum(item.amount for item in items if not item.is_group)
     item_discount = sum(item.discount for item in items)
     grand = subtotal - item_discount
 
@@ -1045,6 +1312,32 @@ def build(recipe, rng: random.Random | None = None) -> Receipt:
         totals.append((case(labels.get("grand", "Thanh toán")), cash(grand)))
     numbers["grand"] = grand
 
+    # ---- how the total was met: the block a hospital bill ends with.
+    #
+    # Not a list of payments but a division of one amount: what the fund paid,
+    # what the patient paid, and which part of the patient's share was the copay
+    # on a covered service, which was billed outright, and which was waived. The
+    # four add back to the total, which is the arithmetic a reader checks and
+    # the reason these are computed from the lines rather than drawn.
+    if document.get("settlement") and admission:
+        benefit = admission["benefit"]
+        lines = [item for item in items if not item.is_group]
+        fund = sum(item.fund_bhyt(benefit) for item in lines)
+        copay = sum(item.copay(benefit) for item in lines)
+        waived = sum(item.other_pay() for item in lines)
+        outright = sum(0 if item.waived else item.amount_bv() for item in lines)
+        for key, default, amount in (
+            ("fund", "Quỹ BHYT thanh toán theo giá dịch vụ y tế:", fund),
+            ("patient", "Người bệnh trả, trong đó:", copay + outright),
+            ("copay", "+ Cùng trả trong phạm vi BHYT:", copay),
+            ("other_charges", "+ Các khoản phải trả khác:", outright),
+            ("waived", "+ Được miễn giảm:", waived),
+            ("other_source", "- Nguồn khác:", 0),
+        ):
+            totals.append((case(labels.get(key, default)), cash(amount)))
+        numbers.update({"fund": fund, "copay": copay, "waived": waived,
+                        "self_pay": outright, "benefit": benefit})
+
     if switch("show_payment", True):
         choices = corpus.payments(params["lang"])
         wanted = params.get("payment_groups")
@@ -1086,7 +1379,8 @@ def build(recipe, rng: random.Random | None = None) -> Receipt:
 
     title = case(rng.choice(document.get("titles") or TITLES[profile]))
     invoice = (
-        _build_invoice(profile, store, items, rng, case, cash, params, grand, stay)
+        _build_invoice(profile, store, items, rng, case, cash, params, grand,
+                       stay, admission)
         if is_invoice
         else None
     )

@@ -144,3 +144,24 @@ groups:
         weight: 2
         requires: [doc_brand]
         tags: [key_strip, footer_columns]
+
+  # ------------------------------------------------------------------------
+  - id: administrative_form
+    label: "Chứng từ hành chính — không phải hoá đơn, nhưng vẫn là giấy tờ có nhãn"
+    # Hai tờ đầu tiên trong kho KHÔNG ghi lại một lần mua bán. Một tờ kê chi phí
+    # điều trị và chia tiền cho bốn nguồn; một tờ uỷ quyền cho người khác đi
+    # nhận tiền và không có bảng hàng nào cả. Chúng ở chung một họ vì cùng một
+    # điểm: cấu trúc nằm ở KHỐI TRƯỜNG, không ở bảng — kể cả tờ có bảng mười
+    # hai cột, thì hai mươi trường đánh số phía trên vẫn là nửa còn lại của nó.
+    requires: [doc_invoice]
+    tags: [wide_paper, printed_form]
+    options:
+      - id: medical_statement
+        weight: 2
+        requires: [doc_medical]
+        tags: [ruled_table, grouped_rows, multi_source]
+
+      - id: authorisation_letter
+        weight: 2
+        requires: [doc_authorisation]
+        tags: [no_frame, dotted_fields, field_form]

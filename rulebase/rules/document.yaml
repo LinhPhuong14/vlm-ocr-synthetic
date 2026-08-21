@@ -591,3 +591,160 @@ options:
         subtotal: "Tổng tiền đơn hàng"
         vat: "Thuế"
         grand: "Tổng tiền thanh toán"
+
+  # ------------------------------------------------------------------------
+  # Hai loại chứng từ KHÔNG phải hoá đơn. Chúng ở đây vì `document` là chỗ nói
+  # "tờ giấy này là cái gì", và câu trả lời không nhất thiết phải là một lần
+  # mua bán. Xem `docs/phan-tich-2-mau-moi.html` cho ảnh mẫu gốc.
+
+  # Bảng kê chi phí khám chữa bệnh — Mẫu số 01/KBCB của Bộ Y tế.
+  #
+  # Đây là chứng từ nhiều cột nhất kho này có: mỗi dòng được định giá HAI lần,
+  # một theo giá bệnh viện và một theo giá bảo hiểm, rồi số tiền chia làm bốn
+  # nguồn. Bốn cột nguồn cộng lại đúng bằng tổng, và đó là phép tính người đọc
+  # kiểm — nên chúng được TÍNH TỪ các dòng chứ không bốc ra.
+  - id: hospital_bill
+    weight: 2
+    tags: [doc_invoice, doc_medical, doc_service, has_vat_lines]
+    params:
+      profile: medical
+      invoice: true
+      admission: true
+      settlement: true
+      show_vat: false
+      show_subtotal: false
+      show_payment: false
+      show_amount_words: true
+      show_number: false
+      show_seller_tax_code: false
+      titles: ["BẢNG KÊ CHI PHÍ ĐIỀU TRỊ NỘI TRÚ"]
+      words_label: "Viết bằng chữ:"
+      form_code: "01/KBCB"
+      serial_format: "TTHKCB{n}"
+      days: [2, 7]
+      price_step: 100
+      # Bệnh viện thu cao hơn giá bảo hiểm cho phép thì phần chênh lệch đi
+      # thành một dòng riêng; dòng ấy hoặc được miễn, hoặc người bệnh trả.
+      top_up_probability: 0.4
+      waive_probability: 0.5
+      benefit_levels: [80, 95, 100]
+      card_groups: ["CN", "DN", "HS", "TE", "HT", "GD"]
+      # [mã nhóm, tên nhóm, hồ sơ ngữ liệu, đơn vị tính, số dòng]
+      cost_groups:
+        - ["1", "Khám bệnh", "medical_kham", ["Lần"], 1]
+        - ["2.2", "Ngày giường bệnh điều trị nội trú", "medical_giuong", ["Ngày"], 1]
+        - ["3", "Xét nghiệm", "medical_xetnghiem", ["Lần"], 5]
+        - ["4", "Chẩn đoán hình ảnh", "medical_chandoan", ["Lần"], 2]
+        - ["5", "Thăm dò chức năng", "medical_thamdo", ["Lần"], 1]
+        - ["6", "Phẫu thuật", "medical_phauthuat", ["Lần"], 1]
+        - ["8", "Thuốc", "medical_thuoc", ["Lọ", "Ống", "Chai", "Viên", "Hộp"], 4]
+        - ["9", "Vật tư y tế", "medical_vattu", ["Cái", "Bộ", "Gói"], 3]
+      diagnoses:
+        - ["J35.2", "Phì đại VA(đã phẫu thuật)"]
+        - ["J35.0", "Viêm amidan mạn tính"]
+        - ["K35.8", "Viêm ruột thừa cấp"]
+        - ["J18.9", "Viêm phổi, không đặc hiệu"]
+        - ["A09", "Tiêu chảy và viêm dạ dày ruột do nhiễm khuẩn"]
+        - ["I10", "Tăng huyết áp vô căn (nguyên phát)"]
+        - ["S52.5", "Gãy đầu dưới xương quay"]
+        - ["N20.0", "Sỏi thận"]
+      comorbidities:
+        - ["J30.3", "Viêm mũi dị ứng khác"]
+        - ["K29.7", "Viêm dạ dày, không đặc hiệu"]
+        - ["E11.9", "Đái tháo đường týp 2 không biến chứng"]
+        - ["D50.9", "Thiếu máu thiếu sắt, không đặc hiệu"]
+        - ["J06.9", "Nhiễm khuẩn đường hô hấp trên cấp"]
+      party_fields:
+        strip:
+          - [form_code, "Mẫu số:"]
+          - [patient_code, "Mã số người bệnh:"]
+          # Số khám bệnh IS the document's serial -- one number, printed once.
+          # Issuing a second one put a value in the label that nothing drew.
+          - [serial, "Số khám bệnh:"]
+        left:
+          - [patient_name, "(1) Họ tên người bệnh:"]
+          - [patient_address, "(2) Địa chỉ hiện tại:"]
+          - [card_no, "(4) Mã thẻ BHYT:"]
+          - [first_place, "(5) Nơi ĐK KCB Ban Đầu:"]
+          - [arrive_at, "(7) Đến khám:"]
+          - [admit_at, "(8) Điều trị ngoại trú/ nội trú từ:"]
+          - [discharge_at, "(9) Kết thúc khám, điều trị:"]
+          - [diagnosis, "(15) Chẩn đoán xác định:"]
+          - [comorbid, "(17) Bệnh kèm theo:"]
+          - [five_year_date, "(19) Thời điểm đủ 5 năm liên tục từ ngày:"]
+        right:
+          - [born, "Ngày, tháng, năm sinh:"]
+          - [gender, "Giới tính:"]
+          - [first_code, "(6) Mã:"]
+          - [treatment_days, "Tổng số ngày điều trị:"]
+          - [discharge_state, "(10) Tình trạng ra viện:"]
+          - [icd, "(16) Mã bệnh:"]
+          - [comorbid_icd, "(18) Mã bệnh kèm theo:"]
+          - [benefit, "Mức hưởng:"]
+          - [card_from, "Giá trị từ:"]
+          - [card_to, "đến:"]
+      signature_labels:
+        - ["NGƯỜI LẬP BẢNG KÊ", "(Ký, ghi rõ họ tên)"]
+        - ["KẾ TOÁN VIỆN PHÍ", "(Ký, ghi rõ họ tên)"]
+        - ["XÁC NHẬN CỦA NGƯỜI BỆNH", "(Ký, ghi rõ họ tên)"]
+        - ["GIÁM ĐỊNH BHYT", "(Ký, ghi rõ họ tên)"]
+      total_labels:
+        grand: "Tổng chi phí lần khám bệnh/ cả đợt điều trị (làm tròn đến đơn vị đồng):"
+        fund: "- Quỹ BHYT thanh toán theo giá dịch vụ y tế:"
+        patient: "- Người bệnh trả, trong đó:"
+        copay: "+ Cùng trả trong phạm vi BHYT:"
+        other_charges: "+ Các khoản phải trả khác:"
+        waived: "+ Được miễn giảm:"
+        other_source: "- Nguồn khác:"
+
+  # Giấy uỷ quyền nhận tiền — biểu mẫu của doanh nghiệp bảo hiểm nhân thọ.
+  #
+  # `no_items: true`: tờ này KHÔNG có bảng hàng. Nó nêu đúng một số tiền, và
+  # nêu ngay trong khối trường. Dựng nó với một dòng hàng giả sẽ đặt vào nhãn
+  # một tên hàng mà tờ giấy không có cột nào để in.
+  - id: authorisation_letter
+    weight: 1
+    tags: [doc_invoice, doc_authorisation, doc_service]
+    params:
+      profile: insurance
+      invoice: true
+      no_items: true
+      show_vat: false
+      show_subtotal: false
+      show_payment: false
+      show_amount_words: false
+      show_number: false
+      show_seller_tax_code: false
+      show_seller_website: true
+      titles: ["GIẤY ỦY QUYỀN NHẬN TIỀN"]
+      subtitle: "(Chỉ áp dụng cho trường hợp ủy quyền cho Chuyên viên tư vấn bảo hiểm nhận Phí bảo hiểm hoàn lại với số tiền nhỏ hơn 5.000.000 đồng)"
+      serial_format: "POSF{n}"
+      fixed_amount: [500000, 4900000]
+      party_fields:
+        left:
+          - [principal_name, "Họ và tên (CHỮ IN HOA)"]
+          - [principal_id, "Số CMND"]
+          - [principal_id_date, "Ngày cấp"]
+          - [principal_id_place, "Nơi cấp"]
+          - [policy_no, "Là Bên mua bảo hiểm của Hợp đồng bảo hiểm/Hồ sơ yêu cầu bảo hiểm số:"]
+        right:
+          - [agent_name, "Họ và tên (CHỮ IN HOA)"]
+          - [agent_id, "Số CMND"]
+          - [agent_id_date, "Ngày cấp"]
+          - [agent_id_place, "Nơi cấp"]
+          - [agent_address, "Địa chỉ"]
+          - [agent_code, "Mã số tư vấn"]
+          - [agent_phone, "Điện thoại"]
+          - [refund_amount, "Bằng số:"]
+          - [refund_words, "Bằng chữ:"]
+          - [notified_on, "theo thông báo của Công ty ngày"]
+      notes:
+        - "Tôi xác nhận rằng trên cơ sở khi Công ty thanh toán số tiền nêu trên cho Người được ủy quyền, Công ty được:"
+        - "1) Miễn trừ khỏi mọi khiếu nại hay yêu cầu bồi thường của tôi đối với Công ty về khoản thanh toán nói trên."
+        - "2) Tôi bồi hoàn và giữ cho Công ty không phải chi trả bất kỳ khoản tiền gì đối với tất cả các yêu cầu, khiếu nại, nghĩa vụ nợ, tổn thất, chi phí phát sinh liên quan đến hay do việc Công ty thanh toán khoản tiền này cho Người được ủy quyền nêu trên."
+        - "Giấy ủy quyền này chỉ có hiệu lực trong vòng ba (03) tháng kể từ ngày ký và có giá trị ràng buộc đối với những người đại diện của cá nhân tôi, những người thừa kế và/ hoặc quản lý di sản của tôi."
+      signature_labels:
+        - ["Bên mua bảo hiểm", "(Ký và ghi rõ họ tên)"]
+        - ["Chuyên viên tư vấn bảo hiểm được ủy quyền", "(Ký và ghi rõ họ tên)"]
+        - ["Người làm chứng", "(Ký và ghi rõ họ tên)"]
+        - ["Xác nhận của ADM", "(Ký và ghi rõ họ tên)"]

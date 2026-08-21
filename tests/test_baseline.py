@@ -238,9 +238,19 @@ def test_a_plan_asks_the_driver_for_exactly_what_it_declares():
     assert argv == ["-n", "4", "--seed", "7", "--layouts", "a", "b"]
 
 
+def widest() -> str:
+    """The plan that names the most layouts, whatever it is called this month."""
+    return max(B.PLANS, key=lambda name: len(B.PLANS[name]["layouts"]))
+
+
 def test_the_widest_plan_covers_every_layout_that_ships():
     """Not required to stay true -- a new layout must not turn the file red --
-    but true today, and a test is how anyone finds out it stopped being."""
+    but true today, and a test is how anyone finds out it stopped being.
+
+    Found by size rather than by name: the widest plan is called after its own
+    count, so a layout added without a recapture renames it, and a test pinned
+    to the old name would fail for the wrong reason.
+    """
     from rulebase import available_layouts
 
-    assert sorted(B.PLANS["n14"]["layouts"]) == sorted(available_layouts())
+    assert sorted(B.PLANS[widest()]["layouts"]) == sorted(available_layouts())

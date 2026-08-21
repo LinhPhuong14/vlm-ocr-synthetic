@@ -226,7 +226,7 @@ Both paths produce the same boxes through the same
 [`page.py`](generators/html/page.py) helper, so the label schema does not know
 which drew the page. The CSS path is opt-in per run (`render.py --template`),
 and the sheet it draws follows **`recipe.layout.id`** — a hotel folio comes out
-a hotel folio, not a tax form. `sheets/` groups the fourteen layouts into four
+a hotel folio, not a tax form. `sheets/` groups the sixteen layouts into six
 families, each modelled on one of the hand-drawn references in
 [`samples/invoice-templates/`](samples/invoice-templates); which blocks and
 which columns a member gets is read from its own layout file. **Both HTML
@@ -242,7 +242,7 @@ it was already doing.** Nothing new is learned by any renderer.
 | **marks** — [`rulebase/layout.py`](rulebase/layout.py) | `rules: marks` | rules, shaded boxes and frames on the *same* coordinate system as a cell, so a form stops being drawn out of `---`. A till roll keeps ASCII rules, because a thermal head really does print them as characters |
 | **cut sheets** — [`rulebase/style.py`](rulebase/style.py) | `sheet: a4` | a page whose height is decided *before* printing. A three-line invoice still fills the sheet, and the white space under it is part of what the document looks like. No name means a continuous roll, which has no bottom edge until the cutter makes one |
 
-Nine of the fourteen layouts are on A4; the five till receipts are on a roll.
+Eleven of the sixteen layouts are on a cut sheet; the five till receipts are on a roll.
 
 ---
 
@@ -751,9 +751,9 @@ Verified in this environment (Python 3.11.15, 4 cores, all three venvs built):
 | `python -m pytest` | 417 passed, 1 xfailed, 59 s |
 | `python tasks.py check` | all 64 python files compile |
 | `python tasks.py lint` | ruff: all checks passed |
-| `python tasks.py preflight` | clean, ~10 s (glyph coverage over 14 layouts' strings) |
+| `python tasks.py preflight` | clean, ~15 s (glyph coverage over 16 layouts' strings) |
 | `python tasks.py check-rules` / `check-corpus` | valid — vi 12 corpus files, en 5 |
-| `python tasks.py distribution` | 2000 / 2000 draws succeeded, over 14 layouts in 5 families |
+| `python tasks.py distribution` | 2000 / 2000 draws succeeded, over 16 layouts in 6 families |
 | `python tasks.py check-boxes` on both committed sets | 1330 boxes per renderer, all match |
 | `python tools/generate_dataset.py -n 14 --workers 3` | 42 images, all 14 layouts, 3 shards |
 | `python pipeline/run.py` (6 shards, 3 workers) | 18 images; a second run reported 0 unfinished and did nothing — resume works |
@@ -779,6 +779,7 @@ to rebuild an image exactly are in **[`data/README.md`](data/README.md)**.
 | [`data/dataset60/`](data/dataset60) | aged — a degradation chain drawn from the rules |
 | [`data/dataset60_clean/`](data/dataset60_clean) | the same seeds with `augmentation=pristine` |
 | [`data/invoices54/`](data/invoices54) | the nine commercial invoice layouts drawn as CSS sheets, by both HTML backends |
+| [`data/forms16/`](data/forms16) | a hospital cost statement and an authorisation to collect — the two documents here that are not a sale |
 | [`data/tables60/`](data/tables60) | table-structure images, a different task and a different label |
 
 `make proof` reads a set back with Tesseract 5 (`vie`) and scores it order-free
@@ -857,6 +858,8 @@ the two must stay in step.
 | [`samples/README.md`](samples/README.md) | reading the degradation showcase |
 | [`samples/invoice-templates/README.md`](samples/invoice-templates/README.md) | the five reference sheets, and why they are not layouts |
 | [`docs/hoa-tiet-de-xuat.md`](docs/hoa-tiet-de-xuat.md) | ornaments surveyed and not built, with the reason each was left |
+| [`docs/khao-sat-sinh-chu-viet-tay.md`](docs/khao-sat-sinh-chu-viet-tay.md) | eight handwriting-synthesis repositories ranked on breadth of data and on realism, for the `handwriting_fill` gap (Vietnamese) |
+| [`docs/writevit.md`](docs/writevit.md) | standing up WriteViT for Vietnamese handwriting, and what it measurably cannot write (Vietnamese) |
 | [`docs/brief-engine-html.md`](docs/brief-engine-html.md) | the three HTML render paths, what merged cells do and do not do in each, and what a fix has to preserve |
 | [`docs/python-versions.md`](docs/python-versions.md) | why the glyph renderer stops below Python 3.12, measured |
 | [`docs/windows.md`](docs/windows.md) | Windows setup: Python 3.11, GTK, Tesseract, proxies (Vietnamese) |

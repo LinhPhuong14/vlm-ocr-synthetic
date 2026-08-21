@@ -1,0 +1,15 @@
+# Khám bệnh — nhóm 1 của bảng kê 01/KBCB.
+# Định dạng: tên<TAB>đơn giá tối thiểu<TAB>đơn giá tối đa   (đơn vị VND)
+#
+# Giá lấy theo khung giá dịch vụ kỹ thuật y tế, làm tròn — đủ để một người đọc
+# thấy con số hợp lý, không phải bảng giá của một bệnh viện cụ thể nào.
+Khám Tai mũi họng	30000	42000
+Khám Nội tổng hợp	30000	42000
+Khám Ngoại tổng hợp	30000	42000
+Khám Nhi	30000	42000
+Khám Sản phụ khoa	30000	42000
+Khám Mắt	30000	42000
+Khám Răng hàm mặt	30000	42000
+Khám Da liễu	30000	42000
+Khám chuyên khoa Tim mạch	38000	52000
+Khám Thần kinh	38000	52000

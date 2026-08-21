@@ -27,6 +27,8 @@ not a sixth template here.
     lodging            folio: booking block, a row per night   invoice_hotel_stay
                                                                invoice_hotel_compact
     modern             self-designed, totals right-aligned     invoice_brand
+    medical            hospital bill: 12 columns, grouped       docs/mau/bang_ke_kcb.html
+    statement          a form of fields, no table at all        docs/mau/giay_uy_quyen.html
     till               the thermal roll, so the flag is total  -- (grid is the model)
 
 The box contract is unchanged and is `base.py`'s to keep: every labelled run is
@@ -39,7 +41,7 @@ from __future__ import annotations
 
 from html.parser import HTMLParser
 
-from . import lodging, modern, statutory, till
+from . import lodging, medical, modern, statement, statutory, till
 from .base import structure_tokens
 
 # Layout id -> the module that dresses it. A layout missing from here is a
@@ -54,6 +56,8 @@ FAMILIES = {
     "invoice_hotel_stay": lodging,
     "invoice_hotel_compact": lodging,
     "invoice_brand": modern,
+    "medical_statement": medical,
+    "authorisation_letter": statement,
     "invoice_tax_en": modern,
     "eatery_indexed": till,
     "eatery_ascii": till,
