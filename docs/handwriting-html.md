@@ -132,6 +132,30 @@ lại là bài phân đoạn.
 Nên: **chữ số cần một đợt huấn luyện, không có mẹo thay thế.** Đó là một câu
 đã đo, không phải một phỏng đoán.
 
+### Checkpoint tiếng Anh cũng không
+
+Đường tắt thứ hai ai cũng nghĩ tới: `eng_ckpt.pth` học từ IAM, mà IAM là chữ
+viết tay tiếng Anh — chữ số thì hình dạng nào cũng như nhau. Đã tải về và chạy
+thử (lấy ảnh mẫu phong cách từ `VN.pickle` qua `--style-dir`): `0 1 2 3 4 5 6 7
+8 9` ra một dãy nét giống chữ cái, `1500000` ra một nét ngoằn ngoèo. Cùng một
+lỗi, cùng một nguyên nhân — `File/english_words.txt` có 466.550 token, bộ lọc
+`word.isupper() or word.isdigit()` đẩy 5.643 token sang `lex_upper_number`, và
+trong 460.907 token còn lại chỉ **26 token** chứa chữ số (`10th`, `1st`,
+`2,4-d`…). Bộ sinh tiếng Anh cũng gần như chưa từng thấy chữ số.
+
+### Trần là 42 %
+
+Quét 11 bố cục có ô trường × mọi tuỳ chọn `content` hợp lệ × 40 hạt giống:
+trang nhiều mực nhất trong toàn bộ không gian luật là **42 %** — folio khách
+sạn, 5/12 ô. Ghim `content` xoá sạch nhóm bị chặn vì IN HOA (chữ hoa toàn phần
+đến từ `prob_uppercase`/`prob_ascii_fold`, không phải từ tài liệu), và thứ duy
+nhất còn đứng lại là chữ số. Trang ấy nằm ở
+[`samples/handwriting/`](../samples/handwriting) để nhìn.
+
+**Một trang 100 % điền tay không dựng được từ mô hình hiện tại**, và không phải
+vì chưa tìm đúng hạt giống: mọi hoá đơn trong kho đều mang số hoá đơn, ngày, mã
+số thuế, số tài khoản. Đó là thứ tài liệu này *là*.
+
 ### Còn dấu ngăn thì sao
 
 `Tân Mai - Biên Hoà - Đồng Nai` bị chặn vì dấu gạch nối, mà gạch nối là một
@@ -203,6 +227,11 @@ chữ sẽ **thu nhỏ cả nét** thay vì bóp ngang — `height` cộng `max-
   cũ — một việc thuộc `rulebase/`, không thuộc đoạn dây này.
 * **Chữ ký ngoằn ngoèo** (`signature_scrawl`) vẫn chưa có gì. Chữ ký là một
   động tác đã luyện thành nếp, không phải một từ; WriteViT không sinh ra nó.
+* **Chữ số** — chỗ chặn duy nhất còn lại, và hai đường còn mở là huấn luyện
+  tiếp WriteViT (cần GPU) hoặc một **mặt chữ viết tay có giấy phép phát hành
+  lại**, đường mà `hoa-tiet-de-xuat.md` có nêu là hợp lệ. Đường thứ hai đổi bản
+  chất nguồn mực từ mô hình sang phông chữ, nên là một quyết định chứ không
+  phải một miếng vá.
 * **Điều khoản dữ liệu.** Trọng số học từ VNOnDB. Trước khi công bố ảnh sinh ra
   thì thứ phải đọc là điều khoản phát hành lại của **dữ liệu**, không phải giấy
   phép MIT của **mã**. Câu này đã có trong `writevit.md` và được nhắc lại ở đây
