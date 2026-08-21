@@ -85,22 +85,36 @@ def test_the_sheet_follows_the_layout():
 @pytest.mark.parametrize("layout", LAYOUTS)
 @pytest.mark.parametrize("seed", SEEDS)
 def test_rows_all_span_the_same_width(layout, seed):
-    """Every row of a table covers the table, counting spans.
+    """Every row of a table covers the table, counting both kinds of span.
 
     This is the check that a merged cell is *modelled* rather than drawn. A row
-    whose colspans sum short has a hole; one that sums over has a cell hanging
-    off the end. Either way the structure label describes a table that is not on
-    the page.
+    whose cells leave a gap has a hole; one that runs past the last column has a
+    cell hanging off the end. Either way the structure label describes a table
+    that is not on the page.
+
+    Occupancy, not a sum of `colspan`. A two-level header's lower band holds
+    four cells and covers thirteen columns, because nine cells in the band above
+    it reach down with `rowspan="2"` -- adding up one row's colspans and calling
+    that its width would report the row that makes the header work as the one
+    that breaks it.
     """
     _recipe, _receipt, markup = page(layout, seed)
-    rows: dict[int, list[dict]] = {}
-    for cell in sheets.cells_from_markup(markup):
-        rows.setdefault(cell["row"], []).append(cell)
-    widths = {row: sum(cell["colspan"] for cell in cells) for row, cells in rows.items()}
-    assert widths, f"{layout} drew no table cells"
+    cells = sheets.cells_from_markup(markup)
+    if not cells:
+        return                # a form of fields has no table; see sheets/statement.py
+    occupied: dict[int, set[int]] = {}
+    for cell in cells:
+        for row in range(cell["row"], cell["row"] + cell["rowspan"]):
+            occupied.setdefault(row, set()).update(
+                range(cell["col"], cell["col"] + cell["colspan"]))
+    widths = {row: max(columns) + 1 for row, columns in occupied.items()}
+    for row, columns in occupied.items():
+        assert columns == set(range(widths[row])), (
+            f"{layout} seed {seed}: row {row} covers {sorted(columns)}, "
+            f"which is not columns 0..{widths[row] - 1}")
     # Two tables on one sheet are allowed two widths -- the item table and the
-    # tax summary have different column counts -- but not more than two, and
-    # never a width used by a single row, which is what a hole looks like.
+    # tax summary have different column counts -- but never a width used by a
+    # single row, which is what a hole looks like.
     counts: dict[int, int] = {}
     for width in widths.values():
         counts[width] = counts.get(width, 0) + 1
