@@ -18,6 +18,29 @@ redistributable and a clone with no fonts cannot render anything at all.
 | `sans/` | DejaVu Sans (Regular, Bold) | Bitstream Vera / Public domain additions |
 | `sans/` | Noto Sans | SIL Open Font License 1.1 |
 | `serif/` | Liberation Serif (Regular, Bold) | SIL Open Font License 1.1 |
+| `hand/` | Patrick Hand, Indie Flower | SIL Open Font License 1.1 |
+
+## `hand/` is not a fourth printing font
+
+Nothing sets a page in these. They are the ink for `--handwriting font` --
+values a person writes into a printed form -- and `page.font_faces()`
+deliberately does not walk this directory, so a `font-family` stack can never
+fall through into one. `generators/html/handwriting.py` embeds the one face it
+picked, per page.
+
+They are here rather than generated because
+[`docs/hoa-tiet-de-xuat.md`](../docs/hoa-tiet-de-xuat.md) named exactly two
+honest ways to put handwriting on a page -- real stroke data, or **a
+handwriting typeface with a licence that allows redistribution** -- after an
+earlier attempt at jittering a printed face was removed for being printing with
+a tremor. Both files are redistributed verbatim under the OFL, unmodified.
+
+**The Vietnamese check caught one.** Caveat is the obvious casual-hand choice
+and is **missing 80 Vietnamese characters** -- `Ơ Ư ơ ư Ạ Ả Ấ Ầ Ẩ Ẫ Ậ Ắ Ằ ...`
+-- so it would have drawn empty boxes while the label claimed the word was
+written. It is not here. Dancing Script passes the check but ships only as a
+variable font, and instantiating a static cut would mean redistributing a
+modified face under a Reserved Font Name; it is not here either.
 
 ## Vietnamese coverage is not optional
 

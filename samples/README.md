@@ -8,6 +8,7 @@ Viewable straight away, with no environment to build.
 | [`invoice-templates/`](invoice-templates) | five reference sheets, hand-built from photographs, printed with WeasyPrint | `make templates` |
 | [`form-templates/`](form-templates) | two administrative forms — an authorisation letter and a three-page medical statement — hand-built from scans | `make templates` |
 | [`ornaments/`](ornaments) | every seal and flourish in `textures/ornament/`, on one white page | `make ornaments` |
+| [`handwriting/`](handwriting) | two **hand-filled** forms, one per ink source: a typeface fills every field, the model fills 5 of 12 and the seven it leaves are all digits | see its README |
 
 The full 60-image dataset — three renderers, five layouts, with labels and OCR
 scores — is in [`data/dataset60/`](../data/dataset60), not here.
