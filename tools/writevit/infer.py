@@ -53,9 +53,19 @@ from PIL import Image  # noqa: E402
 # Handwriting Transformers and left unused. The framework is one-shot.
 
 
+def missing_characters(words):
+    """Characters the checkpoint has no slot for, sorted, or an empty list.
+
+    Split out of `check_alphabet` because `serve.py` must answer a bad request
+    and keep running: a long-lived worker that calls `sys.exit` on the first
+    unwritable word takes the whole run down with it.
+    """
+    return sorted({c for w in words for c in w if c not in ALPHABET})
+
+
 def check_alphabet(words):
     """Fail early and legibly on characters the checkpoint never learned."""
-    missing = sorted({c for w in words for c in w if c not in ALPHABET})
+    missing = missing_characters(words)
     if missing:
         sys.exit(
             "These characters are not in the model's alphabet: "

@@ -2,9 +2,12 @@
 #
 # Dấu hiệu nhận biết: mọi nhãn trường in hai thứ tiếng, tiếng Anh trong ngoặc
 # ngay sau tiếng Việt — "Số vận đơn (Bill of lading No.)"; KHÔNG có cột thuế
-# suất nào cả (hàng xuất khẩu chịu 0%); dưới tiêu đề cột có dòng đánh số
-# "(1) (2) ... (6 = 4 x 5)"; và cuối trang chỉ MỘT ô chữ ký — bên bán — vì
-# người mua ở nước ngoài không ký vào tờ này.
+# suất nào cả (hàng xuất khẩu chịu 0%); và cuối trang chỉ MỘT ô chữ ký — bên
+# bán — vì người mua ở nước ngoài không ký vào tờ này.
+#
+# Tờ mẫu tham chiếu `samples/invoice-templates/invoice_export.html` còn giữ dòng
+# đánh số "(1) (2) ... (6 = 4 x 5)" vì nó chép lại tờ giấy thật; bố cục này thì
+# không vẽ nữa — xem `invoice_vat_form.yaml`.
 #
 # Khối bên bán KHÔNG phải letterhead mà là một khối trường như khối bên mua:
 # trên tờ mẫu cả hai đều là dòng chấm có nhãn, xếp chồng nhau, và tên đơn vị
@@ -48,16 +51,15 @@ parties:
 column_header: true
 column_header_bold: true
 columns:
-  - {key: stt,        title: "STT (No.)",                      width: 10,  align: center, title_align: center, number: "(1)"}
-  - {key: name,       title: "Tên hàng hoá, dịch vụ (Description)", width: 0, align: left, title_align: center, number: "(2)"}
-  - {key: unit,       title: "Đơn vị tính (Unit)",             width: 14, align: center, title_align: center, number: "(3)"}
-  - {key: qty,        title: "Số lượng (Quantity)",            width: 13, align: right,  title_align: center, number: "(4)"}
-  - {key: unit_price, title: "Đơn giá (Unit Price)",           width: 15, align: right,  title_align: center, number: "(5)"}
-  - {key: amount,     title: "Thành tiền (Amount)",            width: 17, align: right,  title_align: center, number: "(6 = 4 x 5)"}
+  - {key: stt,        title: "STT (No.)",                      width: 10,  align: center, title_align: center}
+  - {key: name,       title: "Tên hàng hoá, dịch vụ (Description)", width: 0, align: left, title_align: center}
+  - {key: unit,       title: "Đơn vị tính (Unit)",             width: 14, align: center, title_align: center}
+  - {key: qty,        title: "Số lượng (Quantity)",            width: 13, align: right,  title_align: center}
+  - {key: unit_price, title: "Đơn giá (Unit Price)",           width: 15, align: right,  title_align: center}
+  - {key: amount,     title: "Thành tiền (Amount)",            width: 17, align: right,  title_align: center}
 
 table:
   frame: true
-  column_numbers: true
   row_rules: false
   blank_rows: 4
 
