@@ -1,0 +1,35 @@
+# THAM SỐ NỘI DUNG — vat_invoice_form
+#
+# Nửa còn lại của loại document này. Không gian lấy mẫu (weight, tags,
+# họ) nằm ở `rules/document.yaml`; những gì `rulebase.content.build`
+# đọc thì nằm đây.
+
+profile: invoice
+invoice: true
+titles: ["HOÁ ĐƠN GIÁ TRỊ GIA TĂNG", "HOÁ ĐƠN GTGT"]
+num_items: [2, 6]
+price_step: 1000
+vat_rates: [5, 8, 10]
+item_vat: true
+show_form_no: true
+show_seller_account: true
+units: ["Cái", "Bộ", "Chiếc", "Kg", "Tháng", "Gói", "Thùng", "m2", "Lượt"]
+subtitle: "(Bản thể hiện của hoá đơn điện tử)"
+period_format: "Ngày {date}"
+words_label: "Số tiền viết bằng chữ:"
+party_fields:
+  left:
+    - [buyer_name, "Tên người mua hàng:"]
+    - [buyer_tax_code, "Mã số thuế:"]
+    - [buyer_address, "Địa chỉ:"]
+    - [payment_form, "Hình thức thanh toán:"]
+    - [buyer_account, "Số tài khoản:"]
+payment_forms: ["Tiền mặt", "Chuyển khoản", "Tiền mặt/Chuyển khoản"]
+signature_labels:
+  - ["NGƯỜI MUA HÀNG", "(Chữ ký số (nếu có))"]
+  - ["NGƯỜI BÁN HÀNG", "(Chữ ký điện tử, chữ ký số)"]
+digital_signature: true
+total_labels:
+  subtotal: "Cộng tiền hàng chưa có thuế GTGT"
+  vat: "Tổng số tiền thuế giá trị gia tăng"
+  grand: "Tổng tiền thanh toán đã có thuế GTGT"
