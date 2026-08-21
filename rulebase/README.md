@@ -21,6 +21,7 @@ own content, what you compared would be two datasets, not two ways of drawing.
 rulebase/
 ├── rules/          7 ATTRIBUTES, one file each         ← tune the distribution here
 ├── documents/      17 DOCUMENT KINDS, one file each    ← edit what a kind prints
+├── blanks.yaml     16 PHÔI GỐC and what became of them ← register a new form here
 ├── layouts/        14 LAYOUTS measured off real paper  ← add a layout here
 ├── corpus/vi/      Vietnamese corpus, WITH diacritics  ← add products here
 ├── corpus/en/      one document kind prints English
@@ -133,6 +134,37 @@ filtered by document family.
 
 A file uses `options:` **or** `groups:`, never both: two places to add a value
 is two places to forget one.
+
+### Phôi gốc: the form before anyone measured it
+
+A layout is columns and rows in character units. A **phôi** is what it was
+measured *off* — the photograph or scan of the real paper. Every layout file has
+always named its own in a `source:` line, but one string per file is not a set:
+it cannot be counted, cannot be checked, and cannot say that a form was scanned
+and never converted.
+
+[`blanks.yaml`](blanks.yaml) is that set. Each blank carries where it came from,
+the layout it became (`null` if nobody has converted it yet — work still owed,
+where someone would look for it), and a redistributable redrawing in
+`samples/*-templates/` when one exists. The original scans are real paper with
+real names on them and are not in the repository.
+
+```bash
+make blanks          # per document: its phôi, what each became, and any drift
+```
+
+Then `documents:` says which blanks each kind may be drawn from. This is
+deliberately a **second** statement of something `requires`/`excludes` already
+decides, and the tags stay the deciding side. The reason is that a tag solver
+reports a relation and never an intention: give a new layout one `requires:` too
+few and every document sharing a tag silently gains a blank, with nothing to
+say so. `tests/test_blanks.py` fails when the two drift apart, in both
+directions — a layout the tags now allow that no blank lists, and a blank whose
+layout the tags now forbid.
+
+Most kinds have exactly one phôi. That is the number this file exists to make
+visible: layout variety for a document comes from adding blanks to it, and
+until one is added there is nothing to vary.
 
 ### Where a value's params live
 

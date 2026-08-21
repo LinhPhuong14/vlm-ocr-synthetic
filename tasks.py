@@ -176,6 +176,12 @@ def templates(args) -> None:
              REPO_ROOT / "samples" / directory / "render.py"])
 
 
+@task("blanks", "the standard forms each document is drawn from")
+def blanks(args) -> None:
+    run([first_available_python(), REPO_ROOT / "tools" / "rules_report.py",
+         "--blanks"])
+
+
 @task("dataset", "labelled dataset with all three renderers (-n per renderer)")
 def dataset(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "generate_dataset.py",
