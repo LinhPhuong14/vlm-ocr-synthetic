@@ -47,7 +47,7 @@ import profiling  # noqa: E402
 import rulebase  # noqa: E402
 import worklist  # noqa: E402
 from degradation.pipeline import apply_recipe  # noqa: E402
-from pipeline import record  # noqa: E402
+from pipeline import record, synthesis  # noqa: E402
 
 
 def _sheet_css(grid, line_px: float, padding_px: float) -> str:
@@ -467,7 +467,8 @@ def main() -> int:
         # carries every box on the page. Written in page order, which is the
         # order the caller listed the jobs in -- `pipeline/worker.py` walks the
         # runs in that order to name the files.
-        with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as metadata:
+        with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as metadata, \
+                synthesis.Writer(synthesis.beside(args.out), "html") as notes:
             for index, job, seed in worklist.pages(jobs):
                 recipe, receipt, _grid, image, boxes, cells, hand_report = (
                     renderer.render(seed, forces[job]))
@@ -495,11 +496,16 @@ def main() -> int:
                         filename=name, width=image.shape[1], height=image.shape[0],
                         parser="html", boxes=boxes,
                         extracted=receipt.ground_truth(),
-                        text_sequence=receipt.text_sequence(),
-                        recipe=recipe.to_dict(), synthesis=extra)
+                        seed=seed, layout=recipe.layout.id)
                 with profiling.stage("export"):
                     json.dump(item, metadata, ensure_ascii=False)
                     metadata.write("\n")
+                    # Both files stream, page by page, so a shard's memory does
+                    # not grow with its size and the two stay in step line for
+                    # line.
+                    notes.add(name, job_id=item["job_id"], layout=recipe.layout.id,
+                              recipe=recipe.to_dict(),
+                              text_sequence=receipt.text_sequence(), extra=extra)
                 inked = len(hand_report["inked"]) if hand_report else 0
                 print(f"[ok] {name}  {image.shape[1]}x{image.shape[0]}  "
                       f"{recipe.layout.id}  {len(boxes)} boxes"

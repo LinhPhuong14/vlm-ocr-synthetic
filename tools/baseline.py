@@ -8,9 +8,11 @@ path gives the same result as the sequential one" is only checkable against a
 record of what the sequential one gave, taken *before* it was touched -- so this
 is captured first and everything after has to reproduce it.
 
-The fingerprint is sha256 of every image plus sha256 of every metadata line,
-normalised. Not a count, not a spot check: a driver that quietly drops one image
-or renumbers two of them passes a count.
+The fingerprint is sha256 of every image, of every metadata line, and of the
+`synthesis.json` beside each index -- all normalised. Not a count, not a spot
+check: a driver that quietly drops one image or renumbers two of them passes a
+count, and one that writes the right pixels from the wrong recipe passes on
+pixels alone.
 
 **What normalisation does, exactly.** Each metadata line is parsed and re-dumped
 with `sort_keys=True` and `ensure_ascii=False`, so key order and float spelling
@@ -72,7 +74,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from pipeline import record  # noqa: E402
+from pipeline import record, synthesis  # noqa: E402
 
 GOLDEN = REPO_ROOT / "tests" / "golden" / "baseline.json"
 
@@ -225,9 +227,10 @@ def plan_inputs(plan: dict) -> dict:
 
 
 def fingerprint(root: Path) -> dict:
-    """Hash every image and every metadata line under a generated dataset."""
+    """Hash every image, every metadata line and every provenance file."""
     images: dict[str, str] = {}
     metadata: dict[str, list[str]] = {}
+    provenance: dict[str, str] = {}
     by_backend: dict[str, int] = {}
     by_layout: dict[str, int] = {}
 
@@ -242,14 +245,25 @@ def fingerprint(root: Path) -> dict:
         lines = [line for line in index.read_text(encoding="utf-8").splitlines() if line.strip()]
         metadata[backend] = [_sha(_normalise(line).encode("utf-8")) for line in lines]
         by_backend[backend] = len(lines)
+
+        # The other half of the dataset. A run that produced the same pixels
+        # and the same labels from a different recipe would pass on images and
+        # metadata alone -- and a run that lost its provenance entirely would
+        # pass on both while leaving images nothing can redraw.
+        beside = synthesis.beside(backend_dir)
+        if beside.exists():
+            provenance[backend] = _sha(
+                _normalise(beside.read_text(encoding="utf-8")).encode("utf-8"))
+        drew = synthesis.read_if_there(backend_dir)
         for line in lines:
-            layout = record.layout(json.loads(line))
+            layout = drew.layout(record.file_name(json.loads(line)))
             by_layout[layout] = by_layout.get(layout, 0) + 1
 
     summary = root / "dataset.json"
     return {
         "images": images,
         "metadata": metadata,
+        "provenance": provenance,
         "counts": {"by_backend": by_backend, "by_layout": by_layout},
         "dataset_json": _sha(
             json.dumps(json.loads(summary.read_text(encoding="utf-8")),
@@ -345,6 +359,17 @@ def output_changes(name: str, want: dict, have: dict) -> list[str]:
         differing = [i for i, (x, y) in enumerate(zip(a, b)) if x != y]
         if differing:
             problems.append(f"{name}/{backend}: metadata lines {differing[:8]} differ")
+
+    for backend in sorted(set(want.get("provenance") or {})
+                          | set(have.get("provenance") or {})):
+        a = (want.get("provenance") or {}).get(backend)
+        b = (have.get("provenance") or {}).get(backend)
+        if a != b:
+            problems.append(
+                f"{name}/{backend}: {synthesis.NAME} differs"
+                if a and b else
+                f"{name}/{backend}: {synthesis.NAME} is "
+                f"{'new' if a is None else 'no longer written'}")
 
     if want["counts"] != have["counts"]:
         problems.append(f"{name}: counts differ\n      baseline {want['counts']}"

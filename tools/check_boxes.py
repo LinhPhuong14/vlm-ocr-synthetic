@@ -43,6 +43,7 @@ import rulebase  # noqa: E402
 # `record` is the name of a metadata line all over this file, so the module that
 # defines their shape comes in under a name that cannot shadow one.
 from pipeline import record as schema  # noqa: E402
+from pipeline import synthesis  # noqa: E402
 
 # Frameworks that emit boxes. The table generator writes per-cell bboxes in a
 # different schema and against a different task, so `data/tables60/` is checked
@@ -50,7 +51,7 @@ from pipeline import record as schema  # noqa: E402
 FRAMEWORKS = ("synthdog", "html", "genalog")
 
 
-def expected_fields(item: dict, template: str = "") -> list[tuple[str, str]] | None:
+def expected_fields(recipe: dict, template: str = "") -> list[tuple[str, str]] | None:
     """The (role, text) pairs this image should have a box for.
 
     Rebuilt from the recipe rather than trusted from the record, which is the
@@ -68,9 +69,8 @@ def expected_fields(item: dict, template: str = "") -> list[tuple[str, str]] | N
     changed since the dataset was generated, which is reported rather than
     quietly passed.
     """
-    recipe = schema.recipe(item)
-    seed = recipe.get("seed")
-    attributes = schema.attributes(item)
+    seed = (recipe or {}).get("seed")
+    attributes = (recipe or {}).get("attributes") or {}
     if seed is None or not attributes:
         return None
 
@@ -126,14 +126,15 @@ def _has_ink(image: np.ndarray, quad, margin: int = 25) -> bool:
     return max(middle - float(patch.min()), float(patch.max()) - middle) > margin
 
 
-def check_image(directory: Path, item: dict, template: str = "") -> list[str]:
+def check_image(directory: Path, item: dict, recipe: dict,
+                template: str = "") -> list[str]:
     problems: list[str] = []
     name = schema.file_name(item)
     boxes = schema.boxes(item)
     if not boxes:
         return [f"{name}: no boxes at all"]
 
-    fields = expected_fields(item, template)
+    fields = expected_fields(recipe, template)
     if fields is None:
         problems.append(f"{name}: recipe does not rebuild; coverage unchecked")
     elif template:
@@ -204,11 +205,22 @@ def main() -> int:
             continue
 
         records = schema.read(metadata)
+        # The recipe is what this file rebuilds a page from, and it is beside
+        # the index rather than in it. Without it there is nothing to check the
+        # boxes *against*, so a missing file is reported and the framework
+        # skipped -- not quietly scored as clean.
+        try:
+            drew = synthesis.read(directory)
+        except synthesis.SynthesisError as error:
+            print(f"[PROBLEM] {framework}: {error}")
+            total_problems += 1
+            continue
         problems: list[str] = []
         boxes = 0
         for item in records:
             boxes += len(schema.boxes(item))
-            problems += check_image(directory, item, template)
+            problems += check_image(directory, item,
+                                    drew.recipe(schema.file_name(item)), template)
 
         total_problems += len(problems)
         state = "ok" if not problems else "PROBLEM"

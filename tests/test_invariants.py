@@ -51,8 +51,42 @@ CASES = (
 SEEDS = tuple(seed for seed, _layout in CASES)
 
 
-def build(seed: int, layout: str | None = None) -> dict:
-    """One metadata line as a renderer that drew every cell would write it."""
+class Page:
+    """A metadata line and the provenance beside it -- which is two files now.
+
+    `pipeline/record.py` writes what a converted page looks like and nothing
+    else; the recipe and the layout live in `synthesis.json`. The checks take
+    both, so the tests hold both, and a test that mutates one is visibly
+    mutating one and not the other.
+    """
+
+    def __init__(self, item: dict, recipe: dict, layout: str) -> None:
+        self.item = item
+        self.recipe = recipe
+        self.layout = layout
+
+    def copy(self) -> "Page":
+        return Page(json.loads(json.dumps(self.item)),
+                    json.loads(json.dumps(self.recipe)), self.layout)
+
+    @property
+    def attributes(self) -> dict:
+        return self.recipe["attributes"]
+
+    def errors(self, **kwargs) -> list[str]:
+        return self.observe(**kwargs).errors
+
+    def observe(self, order=ORDER, **kwargs):
+        return inspect(self.item, order=order, recipe=self.recipe,
+                       layout=self.layout, **kwargs)
+
+    def into(self, tally: Tally, **kwargs):
+        return tally.inspect(self.item, recipe=self.recipe, layout=self.layout,
+                             **kwargs)
+
+
+def build(seed: int, layout: str | None = None) -> Page:
+    """One page as a renderer that drew every cell would write it."""
     recipe, receipt, grid = rulebase.make(
         seed=seed, force={"layout": layout} if layout else None)
     boxes = [
@@ -61,33 +95,33 @@ def build(seed: int, layout: str | None = None) -> dict:
         {"kind": cell.role, "text": cell.text, "quad": [[0, 0], [1, 0], [1, 1], [0, 1]]}
         for cell in grid.cells if cell.text.strip() and cell.role != "sep"
     ]
-    return record.build(
+    item = record.build(
         filename=f"test_{seed:03d}.jpg", width=PAGE[0], height=PAGE[1],
-        parser="test", layout=grid.layout_id, boxes=boxes,
-        extracted=receipt.ground_truth(), text_sequence=receipt.text_sequence(),
-        recipe=recipe.to_dict())
+        parser="test", layout=grid.layout_id, boxes=boxes, seed=seed,
+        extracted=receipt.ground_truth())
+    return Page(item, recipe.to_dict(), grid.layout_id)
 
 
-_RECORDS: list[dict] | None = None
+_RECORDS: list[Page] | None = None
 
 
-def records() -> list[dict]:
+def records() -> list[Page]:
     global _RECORDS
     if _RECORDS is None:
         _RECORDS = [build(seed, layout) for seed, layout in CASES]
     return _RECORDS
 
 
-def errors_of(item: dict, **kwargs) -> list[str]:
-    return inspect(item, order=ORDER, **kwargs).errors
+def errors_of(page: Page, **kwargs) -> list[str]:
+    return page.errors(**kwargs)
 
 
-def a_record(**wanted) -> dict:
-    """A deep copy of the first record matching `wanted`, safe to mutate."""
-    for item in records():
-        gt = item["extracted"]
+def a_record(**wanted) -> Page:
+    """A deep copy of the first page matching `wanted`, safe to mutate."""
+    for page in records():
+        gt = page.item["extracted"]
         if all(key in gt and gt[key] for key in wanted.get("has", ())):
-            return json.loads(json.dumps(item))
+            return page.copy()
     raise AssertionError(f"no seed in {SEEDS} produced a record with {wanted}")
 
 
@@ -98,7 +132,7 @@ def test_a_faithfully_drawn_page_raises_nothing():
     """Criterion 3: the invariants must be silent on correct output."""
     tally = Tally(ORDER)
     for item in records():
-        tally.inspect(item, where=item["filename"])
+        item.into(tally, where=item.item["filename"])
     assert tally.images == len(SEEDS)
     assert tally.problems() == []
 
@@ -108,10 +142,10 @@ def test_a_faithfully_drawn_page_raises_nothing():
 
 def test_a_known_suppressed_field_is_budgeted_not_errored():
     item = a_record()
-    gt = item["extracted"]
+    gt = item.item["extracted"]
     gt["title"] = "MOT TIEU DE KHONG HE IN RA"
-    item["extracted"] = gt
-    out = inspect(item, order=ORDER)
+    item.item["extracted"] = gt
+    out = item.observe()
     assert out.errors == []
     assert out.unprinted == {"title": 1}
 
@@ -124,9 +158,9 @@ def test_a_field_outside_the_known_set_is_an_error():
     already uses; here it stops the first image that shows it.
     """
     item = a_record()
-    gt = item["extracted"]
+    gt = item.item["extracted"]
     gt["store"]["name"] = "CUA HANG KHONG TON TAI TREN ANH"
-    item["extracted"] = gt
+    item.item["extracted"] = gt
     errors = errors_of(item)
     assert any("store.name" in e and "not a field any layout" in e for e in errors), errors
 
@@ -152,10 +186,10 @@ def test_every_suppressed_pair_names_a_field_that_has_a_budget():
 
 def test_an_unprinted_total_is_an_error_not_a_budget_line():
     item = a_record()
-    gt = item["extracted"]
+    gt = item.item["extracted"]
     label = next(iter(gt["total"]))
     gt["total"][label] = "999.999.999"
-    item["extracted"] = gt
+    item.item["extracted"] = gt
     errors = errors_of(item)
     assert any("total" in e for e in errors), errors
 
@@ -163,19 +197,19 @@ def test_an_unprinted_total_is_an_error_not_a_budget_line():
 def test_wrapped_text_is_still_printed():
     """A dish name split over two rows is on the page and must not be a miss."""
     item = a_record()
-    gt = item["extracted"]
+    gt = item.item["extracted"]
     name = gt["menu"][0]["nm"]
     if " " not in name:
         pytest.skip("this seed's first dish is one word, so it cannot wrap")
     head, _, tail = name.partition(" ")
-    for position, box in enumerate(item["blocks"]):
+    for position, box in enumerate(item.item["blocks"]):
         if box["text"] == name:
             box["text"] = head
             # Inserted next to its own head, which is where the second row of a
             # wrapped name actually lands in reading order.
-            item["blocks"].insert(position + 1,
-                                 {"kind": box["kind"], "text": tail,
-                                  "quad": box["quad"]})
+            item.item["blocks"].insert(
+                position + 1,
+                {"kind": box["kind"], "text": tail, "quad": box["quad"]})
             break
     assert errors_of(item) == []
 
@@ -185,26 +219,26 @@ def test_wrapped_text_is_still_printed():
 
 def test_a_line_that_does_not_multiply_out_is_caught():
     item = a_record()
-    gt = item["extracted"]
+    gt = item.item["extracted"]
     entry = next(e for e in gt["menu"] if "unitprice" in e)
     entry["price"] = "1.234.567"
-    item["extracted"] = gt
+    item.item["extracted"] = gt
     errors = errors_of(item)
     assert any("price is" in e for e in errors), errors
 
 
 def test_lines_that_do_not_add_to_the_subtotal_are_caught():
     for item in records():
-        gt = item["extracted"]
-        labels = record.attributes(item)["document"]["params"].get("total_labels") or {}
+        gt = item.item["extracted"]
+        labels = item.attributes["document"]["params"].get("total_labels") or {}
         if not any(invariants._fold(k) == invariants._fold(labels.get("subtotal", "\0"))
                    for k in gt["total"]):
             continue
-        copy = json.loads(json.dumps(item))
-        gt = copy["extracted"]
+        copy = item.copy()
+        gt = copy.item["extracted"]
         # Drop one line: the remaining ones no longer reach the printed subtotal.
         gt["menu"] = gt["menu"][:-1]
-        copy["extracted"] = gt
+        copy.item["extracted"] = gt
         errors = errors_of(copy)
         assert any("add to" in e for e in errors), errors
         return
@@ -213,8 +247,8 @@ def test_lines_that_do_not_add_to_the_subtotal_are_caught():
 
 def test_change_that_is_not_cash_minus_total_is_caught():
     for item in records():
-        gt = item["extracted"]
-        labels = record.attributes(item)["document"]["params"].get("total_labels") or {}
+        gt = item.item["extracted"]
+        labels = item.attributes["document"]["params"].get("total_labels") or {}
         keys = [invariants._fold(k) for k in gt["total"]]
         change = invariants._fold(labels.get("change", "\0"))
         grand = invariants._fold(labels.get("grand", "\0"))
@@ -222,11 +256,11 @@ def test_change_that_is_not_cash_minus_total_is_caught():
             continue
         if keys.index(change) - 1 == keys.index(grand):
             continue  # the collapsed-label case; it has its own test
-        copy = json.loads(json.dumps(item))
-        gt = copy["extracted"]
+        copy = item.copy()
+        gt = copy.item["extracted"]
         key = list(gt["total"])[keys.index(change)]
         gt["total"][key] = "7.777.777"
-        copy["extracted"] = gt
+        copy.item["extracted"] = gt
         errors = errors_of(copy)
         assert any("minus" in e for e in errors), errors
         return
@@ -247,27 +281,27 @@ def test_a_total_row_the_label_cannot_carry_stops_the_shard():
     label, so the boxes are what says so.
     """
     item = a_record()
-    boxes = [box for box in item["blocks"]
+    boxes = [box for box in item.item["blocks"]
              if str(box["kind"]).startswith("total.")
              and str(box["kind"]).endswith(".label")]
     if len(boxes) < 2:
         pytest.skip("this seed printed a single total line")
     boxes[1]["text"] = boxes[0]["text"]          # the page draws one label twice
 
-    out = inspect(item, order=ORDER)
+    out = item.observe()
     assert out.notes == {}
     assert any("in no label" in error or "one printed amount" in error
                for error in out.errors), out.errors
 
     with pytest.raises(InvariantError):
         tally = Tally(ORDER)
-        tally.inspect(item)
+        item.into(tally)
 
 
 def test_total_rows_that_all_differ_are_silent():
     """The opposite case, so the check is not simply always on."""
     item = a_record()
-    out = inspect(item, order=ORDER)
+    out = item.observe()
     assert not [e for e in out.errors if "in no label" in e], out.errors
 
 
@@ -278,12 +312,12 @@ def test_a_quad_outside_the_frame_is_caught(tmp_path):
     image = REPO_ROOT / "data" / "dataset60" / "html" / "html_000.jpg"
     width, height = invariants.jpeg_size(image)
     item = a_record()
-    item["pages"][0].update(width=width, height=height)
-    for box in item["blocks"]:
+    item.item["pages"][0].update(width=width, height=height)
+    for box in item.item["blocks"]:
         box["quad"] = [[0, 0], [10, 0], [10, 10], [0, 10]]
     assert errors_of(item, image=image) == []
 
-    item["blocks"][0]["quad"] = [[0, 0], [width + 40, 0],
+    item.item["blocks"][0]["quad"] = [[0, 0], [width + 40, 0],
                                 [width + 40, height + 40], [0, height + 40]]
     errors = errors_of(item, image=image)
     assert any("outside the" in e for e in errors), errors
@@ -300,12 +334,12 @@ def test_a_page_size_that_disagrees_with_the_image_is_caught():
     image = REPO_ROOT / "data" / "dataset60" / "html" / "html_000.jpg"
     width, height = invariants.jpeg_size(image)
     item = a_record()
-    item["pages"][0].update(width=width, height=height)
-    for box in item["blocks"]:
+    item.item["pages"][0].update(width=width, height=height)
+    for box in item.item["blocks"]:
         box["quad"] = [[0, 0], [10, 0], [10, 10], [0, 10]]
     assert errors_of(item, image=image) == []
 
-    item["pages"][0]["width"] = width * 2
+    item.item["pages"][0]["width"] = width * 2
     errors = errors_of(item, image=image)
     assert any("says the page is" in e for e in errors), errors
 
@@ -314,12 +348,12 @@ def test_an_unreadable_image_is_unchecked_rather_than_fine(tmp_path):
     """Law 3: not being able to look is not the same as nothing being wrong."""
     broken = tmp_path / "not_really.jpg"
     broken.write_bytes(b"this is not a JPEG")
-    out = inspect(a_record(), order=ORDER, image=broken)
+    out = a_record().observe(image=broken)
     assert out.errors == []
     assert out.unchecked and out.unchecked[0].startswith(invariants.UNCHECKED)
 
     tally = Tally(ORDER)
-    tally.inspect(a_record(), image=broken)
+    a_record().into(tally, image=broken)
     assert any(p.startswith(invariants.UNCHECKED) for p in tally.problems())
 
 
@@ -337,7 +371,7 @@ def test_jpeg_size_reads_what_the_renderers_wrote():
 @pytest.mark.parametrize("text", ["", "   "])
 def test_a_box_with_no_text_is_caught(text):
     item = a_record()
-    item["blocks"][0]["text"] = text
+    item.item["blocks"][0]["text"] = text
     errors = errors_of(item)
     assert any("no text" in e for e in errors), errors
 
@@ -345,7 +379,7 @@ def test_a_box_with_no_text_is_caught(text):
 @pytest.mark.parametrize("bad", ["�", "□"])
 def test_a_missing_glyph_in_a_box_is_caught(bad):
     item = a_record()
-    item["blocks"][0]["text"] = f"TIEN{bad}MAT"
+    item.item["blocks"][0]["text"] = f"TIEN{bad}MAT"
     errors = errors_of(item)
     assert any("missing glyph" in e for e in errors), errors
 
@@ -353,9 +387,9 @@ def test_a_missing_glyph_in_a_box_is_caught(bad):
 @pytest.mark.parametrize("bad", ["�", "□"])
 def test_a_missing_glyph_in_the_label_is_caught(bad):
     item = a_record()
-    gt = item["extracted"]
+    gt = item.item["extracted"]
     gt["store"]["name"] = f"CUA{bad}HANG"
-    item["extracted"] = gt
+    item.item["extracted"] = gt
     errors = errors_of(item)
     assert any("missing glyph" in e for e in errors), errors
 
@@ -366,7 +400,7 @@ def test_a_missing_glyph_in_the_label_is_caught(bad):
 @pytest.mark.parametrize("attribute", ORDER)
 def test_a_recipe_missing_any_declared_attribute_is_caught(attribute):
     item = a_record()
-    record.attributes(item).pop(attribute)
+    item.attributes.pop(attribute)
     errors = errors_of(item)
     assert any(attribute in e and "_order.yaml" in e for e in errors), errors
 
@@ -394,11 +428,11 @@ def test_the_attribute_list_comes_from_the_manifest_not_from_six(tmp_path):
     assert probed[-1] == "probe" and len(probed) == len(ORDER) + 1
 
     item = a_record()
-    record.attributes(item)["probe"] = {"id": "only_value", "params": {}}
-    assert inspect(item, order=probed).errors == []
+    item.attributes["probe"] = {"id": "only_value", "params": {}}
+    assert item.observe(order=probed).errors == []
 
-    record.attributes(item).pop("probe")
-    assert any("probe" in e for e in inspect(item, order=probed).errors)
+    item.attributes.pop("probe")
+    assert any("probe" in e for e in item.observe(order=probed).errors)
 
 
 # ------------------------------------------------------------- the budgets
@@ -409,12 +443,12 @@ def regressed(layout: str, images: int, fields=("branch", "address", "address2",
     tally = Tally(ORDER)
     for _ in range(images):
         item = a_record()
-        item["synthesis"]["layout"] = layout
-        gt = item["extracted"]
+        item.layout = layout
+        gt = item.item["extracted"]
         for key in fields:
             gt["store"][key] = f"KHONG IN RA {key}"
-        item["extracted"] = gt
-        tally.inspect(item)
+        item.item["extracted"] = gt
+        item.into(tally)
     return tally
 
 
@@ -445,7 +479,7 @@ def test_a_pair_already_recorded_as_suppressed_is_counted_not_judged():
     """The known defect must be measured every shard, and must not fail it."""
     tally = Tally(ORDER)
     for item in records():
-        tally.inspect(item)
+        item.into(tally)
     report = tally.report()
     assert tally.problems() == []
     counted = {(layout, name)
@@ -459,14 +493,14 @@ def test_a_single_stray_value_does_not_trip_a_budget():
     """MIN_COUNT: one value in a small shard is noise, not a regression."""
     tally = Tally(ORDER)
     strayed = a_record()
-    strayed["synthesis"]["layout"] = "a_layout_that_prints_everything"
-    gt = strayed["extracted"]
+    strayed.layout = "a_layout_that_prints_everything"
+    gt = strayed.item["extracted"]
     gt["store"]["address"] = "MOT DIA CHI KHONG IN RA"
-    strayed["extracted"] = gt
-    tally.inspect(strayed)
+    strayed.item["extracted"] = gt
+    strayed.into(tally)
 
     assert tally.problems() == []
-    layout = record.layout(strayed)
+    layout = strayed.layout
     assert tally.report()["unprinted"][layout]["store.address"] == 1
 
 
@@ -480,8 +514,8 @@ def test_the_budget_is_scored_against_one_layout_not_the_shard():
     assert tally.problems()
     for _ in range(40):                      # forty clean pages of another layout
         clean = a_record()
-        clean["layout"] = "a_layout_that_is_fine"
-        tally.inspect(clean)
+        clean.layout = "a_layout_that_is_fine"
+        clean.into(tally)
     assert tally.problems(), "a clean layout diluted another layout's regression"
 
 
@@ -493,7 +527,7 @@ def test_the_report_is_a_function_of_the_shard_alone():
     def run() -> str:
         tally = Tally(ORDER)
         for item in records():
-            tally.inspect(item, where=item["filename"])
+            item.into(tally, where=item.item["filename"])
         return json.dumps(tally.report(), sort_keys=True, ensure_ascii=False)
 
     assert run() == run()

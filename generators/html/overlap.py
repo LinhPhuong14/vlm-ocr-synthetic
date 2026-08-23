@@ -24,7 +24,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from pipeline import record  # noqa: E402
+from pipeline import record, synthesis  # noqa: E402
 
 SKIP = {"sep", "colnum"}
 
@@ -47,10 +47,11 @@ def main(path: Path, threshold: float = 0.30) -> int:
     bad: dict[str, int] = defaultdict(int)
     touching: dict[str, int] = defaultdict(int)
     pages = 0
+    drew = synthesis.read_if_there(path)
     for line in path.read_text(encoding="utf-8").splitlines():
         item = json.loads(line)
         pages += 1
-        layout = record.layout(item)
+        layout = drew.layout(record.file_name(item))
         boxes = [box for box in record.boxes(item)
                  if box.get("kind") not in SKIP and (box.get("text") or "").strip()]
         rects = [(rect(box["quad"]), box) for box in boxes]
