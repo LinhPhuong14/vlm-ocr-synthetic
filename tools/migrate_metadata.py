@@ -1,16 +1,26 @@
-"""Rewrite an old `metadata.jsonl` in the converter's shape.
+"""Split an old `metadata.jsonl` into the index and the provenance beside it.
 
     python tools/migrate_metadata.py data/dataset60          # in place
     python tools/migrate_metadata.py data --check            # say what would change
 
 The records committed under `data/` were written before `pipeline/record.py`
-followed the converter's schema. They are output, not source, but they are also
-the first thing the README tells a reader to look at -- `head -1
-data/dataset60/html/metadata.jsonl` -- so leaving half the repository in the old
-shape would make the documented format and the committed format disagree.
+followed the converter's schema and before how a page was made moved out of it.
+They are output, not source, but they are also the first thing the README tells
+a reader to look at -- `head -1 data/dataset60/html/metadata.jsonl` -- so
+leaving half the repository in the old shape would make the documented format
+and the committed format disagree.
 
-Nothing here re-renders. Every value in a converted record is already in the old
-one, with two exceptions, and both are read rather than invented:
+Each old line becomes two things:
+
+* a `metadata.jsonl` line in the converter's schema and nothing else;
+* an entry in `synthesis.json` beside it -- the seed, which option the page drew
+  for each attribute, its tags, its reading order, and whatever extras it
+  carried (`handwriting`, `cells`, `structure`). The params behind those option
+  ids are written once for the whole file rather than once per page, which is
+  most of why the old records were as large as they were.
+
+Nothing here re-renders. Every value written is already in the old record, with
+two exceptions, and both are read rather than invented:
 
 * **the page size**, which the old records never carried, comes from the JPEG
   header beside them (`pipeline/invariants.jpeg_size`, a few hundred bytes and
@@ -34,7 +44,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from pipeline import invariants, record  # noqa: E402
+from pipeline import invariants, record, synthesis  # noqa: E402
 
 # What a table's cell becomes on the way to a block. `tables.py` writes a cell
 # as a list of single-character tokens and a list of quads, because that is what
@@ -66,8 +76,8 @@ def page_size(path: Path) -> tuple[int, int]:
     return size
 
 
-def convert_page(item: dict, directory: Path) -> dict:
-    """One drawn document page, old shape to new."""
+def convert_page(item: dict, directory: Path) -> tuple[dict, dict]:
+    """One drawn document page, old shape to (index line, provenance entry)."""
     name = str(item["file_name"])
     width, height = page_size(directory / name)
     parser = framework_of(item, directory)
@@ -84,31 +94,37 @@ def convert_page(item: dict, directory: Path) -> dict:
         except (json.JSONDecodeError, AttributeError):
             extracted = {}
 
-    # Everything the old record carried beside the five renderer keys. Additive
-    # then, additive now: `handwriting` is what the checkpoint wrote and what it
-    # refused, `cells` and `structure` are the structure half of a template
-    # render, and dropping either would lose a label nothing else holds.
+    # Everything the old record carried beside the five renderer keys. It went
+    # in additively then and it goes to `synthesis.json` now: `handwriting` is
+    # what the checkpoint wrote and what it refused, `cells` and `structure` are
+    # the structure half of a template render, and dropping either would lose a
+    # label nothing else holds.
     extras = {key: value for key, value in item.items()
               if key not in {"file_name", "ground_truth", "text_sequence",
                              "recipe", "boxes", "framework", "layout"}}
-    return record.build(
+    built = record.build(
         filename=name, width=width, height=height, parser=parser,
         boxes=item.get("boxes") or [], extracted=extracted,
-        text_sequence=str(item.get("text_sequence", "")),
-        recipe=recipe, layout=layout, synthesis=extras,
+        seed=recipe.get("seed", ""), layout=layout,
     )
+    return built, {"job_id": built["job_id"], "layout": layout, "recipe": recipe,
+                   "text_sequence": str(item.get("text_sequence", "")),
+                   "extra": extras}
 
 
-def convert_table(item: dict, directory: Path) -> dict:
+def convert_table(item: dict, directory: Path) -> tuple[dict, dict]:
     """One table image, old shape to new.
 
     A table's label is its structure, so the HTML *is* the ground truth and goes
     where the converter puts a page's markup. There is no faithful markdown for
     a table with merged cells, so `markdown` is left empty rather than filled
-    with something a reader would have to un-guess.
+    with something a reader would have to un-guess. The border style is in the
+    file name, which is where `tables.py` put it, and it is the nearest thing a
+    table has to a layout.
     """
     name = str(item["file_name"])
     width, height = page_size(directory / name)
+    border = Path(name).stem.rsplit("_", 1)[0]
     boxes = []
     for cell in item.get("cells") or []:
         quads = cell.get("bbox") or []
@@ -119,37 +135,106 @@ def convert_table(item: dict, directory: Path) -> dict:
         })
     built = record.build(
         filename=name, width=width, height=height, parser="html",
-        boxes=boxes, extracted=None, task=record.TASK_TABLE, layout="",
-        synthesis={"structure_tokens": item.get("structure_tokens") or [],
-                   "n_cells": item.get("n_cells", len(boxes))},
+        boxes=boxes, extracted=None, task=record.TASK_TABLE, layout=border,
     )
     built["html"] = str(item.get("ground_truth", ""))
     built["markdown"] = ""
-    return built
+    return built, {"job_id": built["job_id"], "layout": border,
+                   "recipe": {"seed": None, "attributes": {}, "tags": []},
+                   "extra": {"n_cells": item.get("n_cells", len(boxes))}}
 
 
-def convert(item: dict, directory: Path) -> dict:
-    if item.get("schema_version") == record.SCHEMA_VERSION:
-        return item                       # already converted; run it twice
+def table_border(name: str) -> str:
+    """A table image's border style, which `tables.py` put in its file name.
+
+    The nearest thing a table has to a layout, and the axis a table set is
+    actually reported along -- so it is recovered rather than left blank.
+    """
+    return Path(name).stem.rsplit("_", 1)[0]
+
+
+def split_synthesis(item: dict, directory: Path) -> tuple[dict, dict]:
+    """A converter-shaped line that still carries its provenance inside it.
+
+    A shape this repository did ship, between moving to the converter's schema
+    and moving the provenance out of it. Nothing is read from disk here: every
+    value is already in the line, under `synthesis`.
+    """
+    item = dict(item)
+    name = str(item.get("filename", ""))
+    inside = item.pop("synthesis", None) or {}
+    recipe = inside.pop("recipe", None) or {}
+    layout = str(inside.pop("layout", ""))
+    extras = {key: value for key, value in inside.items() if key != "framework"}
+
     if item.get("task") == record.TASK_TABLE:
+        layout = layout or table_border(name)
+        # A table's structure tokens and cell boxes are its *label*, and
+        # `gt.txt` beside the index is the file that holds them, in the format
+        # other tools read. Carried in the record as well while the provenance
+        # rode inside it; dropped here, but only once that file is there to
+        # point at.
+        if (directory / "gt.txt").exists():
+            extras.pop("structure_tokens", None)
+            extras.pop("cells", None)
+
+    return item, {"job_id": str(item.get("job_id", "")), "layout": layout,
+                  "recipe": recipe, "text_sequence": str(inside.get("text_sequence", "")
+                                                         or extras.pop("text_sequence", "")),
+                  "extra": extras}
+
+
+def convert(item: dict, directory: Path) -> tuple[dict, dict]:
+    if item.get("schema_version") == record.SCHEMA_VERSION:
+        return split_synthesis(item, directory)
+    if item.get("task") == record.TASK_TABLE and "cells" in item:
         return convert_table(item, directory)
     return convert_page(item, directory)
 
 
 def convert_file(path: Path, *, write: bool = True) -> tuple[int, int]:
-    """Convert one `metadata.jsonl`. Returns (lines, lines that changed)."""
+    """Convert one `metadata.jsonl` and the file beside it.
+
+    Returns (lines, lines that changed). Already-converted input is recognised
+    by the line carrying a `schema_version`, and is left exactly as it is --
+    including its provenance, which is read back and written out again so the
+    two files never fall out of step.
+    """
     lines = [line for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
-    converted, changed = [], 0
+    if not lines:
+        return 0, 0
+
+    first = json.loads(lines[0])
+    if (first.get("schema_version") == record.SCHEMA_VERSION
+            and "synthesis" not in first and synthesis.beside(path).exists()):
+        return len(lines), 0            # already split; run it twice
+
+    converted: list[str] = []
+    entries: list[tuple[str, dict]] = []
+    changed = 0
+    framework = ""
     for line in lines:
         item = json.loads(line)
-        new = convert(item, path.parent)
+        if (item.get("schema_version") == record.SCHEMA_VERSION
+                and "synthesis" not in item):
+            raise SystemExit(
+                f"{path}: the index is already in the converter's schema but "
+                f"carries no provenance, and there is no {synthesis.NAME} beside "
+                f"it -- so how these {len(lines)} pages were made is gone and "
+                f"cannot be rebuilt from here")
+        new, entry = convert(item, path.parent)
         record.check(new, where=f"{path}:{record.file_name(new)}")
         text = json.dumps(new, ensure_ascii=False)
         changed += text != line
         converted.append(text)
+        entries.append((record.file_name(new), entry))
+        framework = framework or new["parser"]
+
     if write and changed:
         path.write_text("\n".join(converted) + "\n", encoding="utf-8")
+        synthesis.write(synthesis.beside(path), framework, entries)
     return len(lines), changed
+
 
 
 def main() -> int:

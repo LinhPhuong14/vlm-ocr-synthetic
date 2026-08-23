@@ -38,10 +38,8 @@ def a_box(kind="store.name", text="NHA HANG", quad=None):
 
 def a_record(**changes):
     fields = dict(filename="html_000.jpg", width=800, height=1200, parser="html",
-                  layout="eatery_ascii", boxes=[a_box()],
-                  extracted={"store": {"name": "NHA HANG"}},
-                  text_sequence="NHA HANG", recipe={"seed": 7, "attributes":
-                                                    {"layout": {"id": "eatery_ascii"}}})
+                  layout="eatery_ascii", seed=7, boxes=[a_box()],
+                  extracted={"store": {"name": "NHA HANG"}})
     fields.update(changes)
     return R.build(**fields)
 
@@ -64,20 +62,30 @@ def test_a_built_record_is_the_converters_shape():
 def test_the_settings_describe_the_page_that_was_drawn():
     item = a_record()
     assert item["settings"]["convert_mode"] == "html"
-    assert item["settings"]["max_pixels"] == 800 * 1200
+    # No cap was applied -- the page was drawn at the size it is, and that size
+    # is in `pages[0]` rather than restated here as if it were a limit.
+    assert item["settings"]["max_pixels"] is None
     # `extract_fields` names what `extracted` actually carries, rather than
     # being empty because nothing in particular was asked for.
     assert item["settings"]["extract_fields"] == ["store.name"]
     assert set(item["settings"]) == set(R.BASE_SETTINGS)
 
 
-def test_what_the_converter_has_no_field_for_is_kept_not_dropped():
-    """The seed and the six attributes. Without them no page can be drawn again."""
+def test_how_the_page_was_made_is_not_in_the_line():
+    """The whole point of the shape: a line is what a converter would return.
+
+    The seed, the attributes and the reading order are in `synthesis.json`, and
+    a record that grew a key for any of them is rejected rather than tolerated
+    -- a schema nobody enforces is a schema that drifts back.
+    """
     item = a_record()
-    assert R.recipe(item)["seed"] == 7
-    assert R.text_sequence(item) == "NHA HANG"
-    assert R.framework(item) == "html"
-    assert R.layout(item) == "eatery_ascii"
+    assert set(item) == set(R.ORDER)
+    for key in ("synthesis", "recipe", "text_sequence", "layout", "framework"):
+        assert key not in item
+
+    item["synthesis"] = {"recipe": {"seed": 7}}
+    problems = R.validate(item)
+    assert any("not in the converter's schema" in problem for problem in problems), problems
 
 
 # ------------------------------------------------------------------ the label
@@ -210,31 +218,26 @@ def test_the_same_page_gets_the_same_id_twice():
     {"parser": "genalog"},
     {"layout": "market_vat"},
     {"filename": "html_001.jpg"},
-    {"recipe": {"seed": 8, "attributes": {"layout": {"id": "eatery_ascii"}}}},
+    {"seed": 8},
 ])
 def test_the_id_moves_when_what_it_names_moves(change):
     assert a_record(**change)["job_id"] != a_record()["job_id"]
 
 
-def test_renaming_the_file_moves_the_three_fields_that_follow_it():
+def test_stamping_a_page_moves_every_field_that_follows_its_name():
+    """What a shard does when it moves a page out of staging."""
     item = a_record()
     before = item["job_id"]
-    R.rename(item, "html_007.jpg")
-    assert item["filename"] == "html_007.jpg"
-    assert item["source_files"] == ["html_007.jpg"]
-    assert item["job_id"] != before
 
-
-def test_attaching_the_plans_layout_fills_it_in_everywhere():
-    item = a_record(layout="")
-    assert R.validate(item, strict=False) == []
-    assert "synthesis.layout is empty; nothing attached it" in R.validate(item)
-
-    R.attach(item, framework="genalog", layout="market_vat")
-    assert R.validate(item) == []
+    R.stamp(item, parser="genalog", layout="market_vat", seed=9,
+            filename="genalog_007.jpg")
+    assert item["filename"] == "genalog_007.jpg"
+    assert item["source_files"] == ["genalog_007.jpg"]
     assert item["parser"] == "genalog"
     assert item["settings"]["convert_mode"] == "genalog"
-    assert R.layout(item) == "market_vat"
+    assert item["job_id"] == R.job_id("genalog", "market_vat", 9, "genalog_007.jpg")
+    assert item["job_id"] != before
+    assert R.validate(item) == []
 
 
 # -------------------------------------------------------------- the validator
@@ -247,9 +250,9 @@ def test_attaching_the_plans_layout_fills_it_in_everywhere():
     (lambda i: i.update(pages=[]), "exactly one page"),
     (lambda i: i["pages"][0].update(width=0), "no size"),
     (lambda i: i.update(extracted=None), "extracted must be the nested label"),
-    (lambda i: i["synthesis"]["recipe"].pop("seed"), "recipe has no seed"),
-    (lambda i: i["synthesis"]["recipe"].pop("attributes"), "recipe has no attributes"),
     (lambda i: i.update(parser=""), "parser is empty"),
+    (lambda i: i.update(synthesis={}), "not in the converter's schema"),
+    (lambda i: i.pop("markdown"), "missing key 'markdown'"),
     (lambda i: i["blocks"][0].pop("quad"), "blocks[0] needs"),
     (lambda i: i["blocks"][0].update(quad=[[0, 0]]), "must be four corners"),
     (lambda i: i["blocks"][0].update(bbox={"x1": 0}), "bbox needs"),

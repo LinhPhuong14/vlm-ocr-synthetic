@@ -18,12 +18,13 @@ run end to end, in the dependency-free CI job.
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
 import pytest
 
-from pipeline import record, worker
+from pipeline import invariants, record, synthesis, worker
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SOURCE = REPO_ROOT / "data" / "dataset60" / "html" / "html_000.jpg"
@@ -43,7 +44,7 @@ sys.path.insert(0, __REPO_ROOT__)
 
 import rulebase
 import worklist
-from pipeline import invariants, record
+from pipeline import invariants, record, synthesis
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-o", "--out", type=Path, required=True)
@@ -67,7 +68,8 @@ if os.environ.get("SHARD_TEST_REVERSE"):
     pages = [(index, job, seed) for index, (_i, job, seed)
              in enumerate(reversed(pages))]
 
-with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as handle:
+with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as handle, \\
+        synthesis.Writer(synthesis.beside(args.out), "html") as notes:
     for index, job, seed in pages:
         recipe, receipt, grid = rulebase.make(seed=seed, force={"layout": job.layout})
         name = f"html_{index:03d}.jpg"
@@ -77,10 +79,11 @@ with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as handle:
             boxes=[{"kind": cell.role, "text": cell.text,
                     "quad": [[0, 0], [10, 0], [10, 10], [0, 10]]}
                    for cell in grid.cells if cell.text.strip() and cell.role != "sep"],
-            extracted=receipt.ground_truth(),
-            text_sequence=receipt.text_sequence(), recipe=recipe.to_dict())
+            extracted=receipt.ground_truth(), seed=seed, layout=grid.layout_id)
         json.dump(item, handle, ensure_ascii=False)
         handle.write("\\n")
+        notes.add(name, job_id=item["job_id"], layout=grid.layout_id,
+                  recipe=recipe.to_dict(), text_sequence=receipt.text_sequence())
 '''
 
 
@@ -109,6 +112,10 @@ def rendered(shard, tmp_path, **plan):
     return result, directory, record.read(directory / "metadata.jsonl")
 
 
+def provenance(directory):
+    return synthesis.read(directory)
+
+
 def test_a_shard_comes_out_in_the_shape_record_defines(shard, tmp_path):
     result, directory, items = rendered(shard, tmp_path)
 
@@ -121,23 +128,59 @@ def test_a_shard_comes_out_in_the_shape_record_defines(shard, tmp_path):
         assert item["task"] == record.TASK_CONVERT
 
 
+def test_a_shard_writes_the_provenance_beside_the_index(shard, tmp_path):
+    """Two files or neither: an image nothing can redraw is not a deliverable."""
+    _result, directory, items = rendered(shard, tmp_path)
+    drew = provenance(directory)
+
+    names = [record.file_name(item) for item in items]
+    assert drew.problems(names) == []
+    assert drew.framework == "html"
+    for item, name in zip(items, names):
+        assert drew.entry(name)["job_id"] == item["job_id"]
+        # The recipe comes back the shape the rule-base produced, which is what
+        # `rulebase.make(force=...)` takes to redraw the page.
+        rebuilt = drew.recipe(name)
+        assert rebuilt["seed"] is not None
+        assert set(rebuilt["attributes"]) == set(invariants.attribute_names())
+        assert all("params" in value for value in rebuilt["attributes"].values())
+
+
+def test_the_params_are_written_once_and_not_once_per_page(shard, tmp_path):
+    """The reason this file exists: three pages, two layouts, one params block.
+
+    `ornament` and `augmentation` are recipes for a background. Twenty pages
+    that share one chain used to write that chain out twenty times.
+    """
+    _result, directory, _items = rendered(shard, tmp_path)
+    raw = json.loads((directory / synthesis.NAME).read_text(encoding="utf-8"))
+
+    assert raw["images"] == 3
+    # Two of the three pages drew `market_vat`, so its params appear once.
+    assert sorted(raw["attributes"]["layout"]) == ["eatery_ascii", "market_vat"]
+    for page in raw["pages"].values():
+        assert isinstance(page["attributes"]["layout"], str)
+
+
 def test_the_dataset_name_reaches_every_field_that_follows_it(shard, tmp_path):
     """The rename is three fields, not one, and the third is derived."""
     _result, directory, items = rendered(shard, tmp_path)
 
     names = [record.file_name(item) for item in items]
     assert names == ["html_000.jpg", "html_001.jpg", "html_002.jpg"]
+    drew = provenance(directory)
     for item, name in zip(items, names):
         assert (directory / name).exists()
         assert item["source_files"] == [name]
         assert item["job_id"] == record.job_id(
-            "html", record.layout(item), record.recipe(item)["seed"], name)
+            "html", drew.layout(name), drew.recipe(name)["seed"], name)
     assert len({item["job_id"] for item in items}) == 3
 
 
 def test_the_plans_layout_is_attached_to_every_page(shard, tmp_path):
-    _result, _directory, items = rendered(shard, tmp_path)
-    assert [record.layout(item) for item in items] == [
+    _result, directory, items = rendered(shard, tmp_path)
+    drew = provenance(directory)
+    assert [drew.layout(record.file_name(item)) for item in items] == [
         "eatery_ascii", "market_vat", "market_vat"]
     assert {record.framework(item) for item in items} == {"html"}
     assert {item["settings"]["convert_mode"] for item in items} == {"html"}

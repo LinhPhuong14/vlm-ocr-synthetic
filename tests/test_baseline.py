@@ -36,6 +36,7 @@ def plan(images=None, **input_changes):
         "inputs": {**INPUTS, **input_changes},
         "images": images if images is not None else {"html/html_000.jpg": "h0"},
         "metadata": {"html": ["m0"]},
+        "provenance": {"html": "s0"},
         "counts": {"by_backend": {"html": 1}, "by_layout": {"eatery_ascii": 1}},
         "dataset_json": "d",
     }
@@ -65,6 +66,29 @@ def test_a_changed_layout_list_is_the_plan_moving_not_a_regression():
                      images={"html/html_000.jpg": "CHANGED"}))
     assert regressed == [], "a plan drawn under other conditions is not evidence"
     assert moved and "layouts 2 -> 3" in moved[0] and "+market_vat" in moved[0]
+
+
+def test_a_dataset_that_lost_its_provenance_is_a_regression():
+    """Half the dataset, and the half a passing pixel check cannot see.
+
+    `synthesis.json` is what redraws a committed image. A run that produced
+    identical pixels and identical labels while writing no recipes at all would
+    be green on images and metadata alone -- and the images would be
+    unreproducible from the moment it landed.
+    """
+    without = plan()
+    without["provenance"] = {}
+    moved, regressed = compare(plan(), without)
+    assert moved == []
+    assert any("no longer written" in line for line in regressed), regressed
+
+
+def test_the_same_pixels_from_another_recipe_is_a_regression():
+    other = plan()
+    other["provenance"] = {"html": "CHANGED"}
+    moved, regressed = compare(plan(), other)
+    assert moved == []
+    assert any("synthesis.json differs" in line for line in regressed), regressed
 
 
 def test_a_metadata_schema_change_is_the_plan_moving_not_a_regression():
