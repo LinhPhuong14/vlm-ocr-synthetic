@@ -28,23 +28,26 @@ run:
   # `tools/baseline.py`, whose plans all name theirs.
   layouts: []
 
-backends: [synthdog, html, genalog]
+# `html` is the renderer. `genalog` and `synthdog` are retired from dataset
+# generation and naming either here is an error with the reason attached --
+# see pipeline/config.py and docs/renderers.md.
+backends: [html]
 
 shard:
   # Images per shard. Too small and subprocess and browser startup dominate;
   # too large and a kill loses more work and the load spreads unevenly.
   #
-  # At the cost of a page measured by `tools/profile_pipeline.py` -- synthdog
-  # 3.1s, html 1.4s, genalog 0.9s, under the conditions that file records --
-  # 100 to 250 puts a shard in the two-to-ten-minute band resume is designed
-  # for. The numbers here were re-measured from scratch rather than carried
+  # At the cost of a page measured by `tools/profile_pipeline.py` -- html 1.4s
+  # under the conditions that file records -- 100 to 250 puts a shard in the
+  # two-to-ten-minute band resume is designed for. (The same file records
+  # synthdog at 3.1s and genalog at 0.9s; both are retired, and the numbers are
+  # kept only because the band was chosen against them.) The numbers here were re-measured from scratch rather than carried
   # forward: the previous ones predated the `sample_recipe` fix, and comparing
   # a new measurement with an old one taken over a different layout and ageing
   # mix credits whatever changed in between with the difference.
   #
   # The fixed cost a shard pays ONCE -- interpreter plus backend start-up -- is
-  # 1.3s for synthdog, 0.7s for html (most of it launching Chromium) and 1.0s
-  # for genalog. Once, since W3b: a shard is one renderer process whatever its
+  # 0.7s for html, most of it launching Chromium. Once, since W3b: a shard is one renderer process whatever its
   # layout count. It used to be one process per layout, so a 20-image shard
   # over 14 layouts paid that cost 14 times and drew 1.43 images per process.
   # Fixing it cut the same plan from 140s to 98s, a third of the run, without
