@@ -65,11 +65,21 @@ NOISE_REGIONS_PER_COMPONENT = 2
 # and thin it. `density` is a parameter of `ink_degradation`, so a chain in
 # `rules/augmentation.yaml` can override it per scenario without editing code.
 #
-# The value was set by eye, in two passes, against a rendered A4 invoice --
-# a quarter of DocCreator's dose first, then 30% off that. It is a judgement
-# about how a Vietnamese invoice should look, not a measurement, and it is
-# written as an arithmetic expression so both steps stay legible.
-DENSITY = 0.25 * 0.7        # = 0.175
+# 0.35 is a bit over a third of DocCreator's dose. It was settled by eye
+# against a rendered A4 invoice over three passes -- 0.25, then 0.175, then
+# back up to here -- so it is a judgement about how a Vietnamese invoice
+# should look, not a measurement, and nothing derives it. What each setting
+# costs the reference page, at level 5:
+#
+#     density   changed px   blots on blank paper
+#     1.00        190,056     236
+#     0.35         84,952      75
+#     0.25         64,905      64
+#     0.175        45,995      42
+#
+# Because nothing derives it, nothing else would notice it drifting, which is
+# why `tests/test_ink_degradation.py` pins the exact value.
+DENSITY = 0.35
 # DocCreator: _sigma_gausien, the spread of the grey values drawn per region
 GREY_SIGMA = 20.0
 
