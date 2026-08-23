@@ -247,7 +247,7 @@ class HtmlReceiptRenderer:
     """Keeps one browser alive across a run -- launching costs ~300 ms each time."""
 
     def __init__(self, scale: float = 2.0, short_size: tuple[int, int] = (960, 1400),
-                 template: str | None = None, hand=None):
+                 template: str | None = None, hand=None, sign: bool = False):
         self.scale = scale
         self.short_size = short_size
         # An open `handwriting.Hand`, or None to type every value as before.
@@ -255,6 +255,11 @@ class HtmlReceiptRenderer:
         # process that costs 11 s to start and must outlive one page, exactly
         # like the browser below.
         self.hand = hand
+        # Draw a signature above each printed name in a signature block. A
+        # flag rather than an object, unlike `hand`: `signature.fill` opens a
+        # font per page and closes it again, which costs a parse and no
+        # process, so there is nothing here that has to outlive a page.
+        self.sign = sign
         # None keeps the character-grid page every layout has used until now.
         # "auto" switches to `sheets/`, which lays the same receipt out with CSS
         # and picks the sheet from `recipe.layout.id`; a layout id in its place
@@ -295,12 +300,22 @@ class HtmlReceiptRenderer:
         else:
             recipe, receipt, grid = rulebase.make(seed=seed, force=force)
         with profiling.stage("render"):
-            hand_report = None
+            hand_report = sign_report = None
             if self.template:
                 from sheets import build as build_sheet
 
                 override = None if self.template == "auto" else self.template
                 markup = build_sheet(recipe, receipt, override)
+                if self.sign:
+                    # Signed BEFORE the fields are filled in, which is not the
+                    # order a person does it in but is the order the markup
+                    # requires: `handwriting.fill` can replace a `sign.name`
+                    # run with an `<img>` of ink, and `signature.WHO` will not
+                    # match a run containing markup. See `signature.fill`.
+                    import signature
+
+                    markup, sign_report = signature.fill(
+                        markup, seed=seed, names=signers(seed))
                 if self.hand is not None:
                     # After the sheet is built and before a pixel is drawn:
                     # the form is printed first and filled in second, which is
@@ -369,7 +384,26 @@ class HtmlReceiptRenderer:
                 f"a degradation resized the page ({before} -> {aged.shape[:2]}); "
                 "the boxes no longer describe it"
             )
-        return recipe, receipt, grid, aged, boxes, cells, hand_report
+        return recipe, receipt, grid, aged, boxes, cells, hand_report, sign_report
+
+
+def signers(seed: int, count: int = 6) -> list[str]:
+    """Who signs the blocks that print no name.
+
+    Most signature blocks in the rule space print none: only a document with
+    `signature_names` puts a name under the caption, and the rest carry a bare
+    *(Ký, ghi rõ họ tên)* and a blank. Somebody signs those, and the names come
+    from `rulebase.corpus.people` -- the same corpus the documents draw their
+    buyers from -- rather than from a list invented in the renderer.
+
+    Drawn from the page's own seed, so a page is signed by the people its seed
+    has always been signed by.
+    """
+    from rulebase import corpus  # noqa: PLC0415 -- a corpus read, not a rule
+
+    people = corpus.people()
+    rng = random.Random(seed ^ 0x5349474E)
+    return [rng.choice(people) for _ in range(count)] if people else []
 
 
 def structure_from_cells(cells: list[dict]) -> list[str]:
@@ -417,6 +451,15 @@ def main() -> int:
              "with --template. See generators/html/handwriting.py",
     )
     parser.add_argument(
+        "--signature", action="store_true",
+        help="draw a signature above each printed name in a signature block: "
+             "letters taken from a handwriting face in fonts/hand/ and "
+             "stretched into a mark -- enlarged initial, simplified body, "
+             "lifted terminal, paraph. Unlabelled on purpose, so a reader has "
+             "to learn to leave it alone. Only with --template. See "
+             "generators/html/signature.py",
+    )
+    parser.add_argument(
         "--profile", metavar="JSON",
         help="time every stage and write the breakdown here. Off by default, "
              "and off costs nothing: see profiling.py",
@@ -432,6 +475,10 @@ def main() -> int:
         parser.error(
             "--handwriting needs --template: the character grid draws one glyph "
             "per cell and has no field for a person to fill in.")
+    if args.signature and not args.template:
+        parser.error(
+            "--signature needs --template: the character grid has no signature "
+            "block to sign, only cells.")
 
     args.out.mkdir(parents=True, exist_ok=True)
     jobs = worklist.load(args)
@@ -459,7 +506,7 @@ def main() -> int:
 
     with profiling.stage("startup"):
         renderer = HtmlReceiptRenderer(scale=args.scale, template=args.template,
-                                       hand=hand)
+                                       hand=hand, sign=args.signature)
         renderer.__enter__()
     try:
         # Streamed, not collected: a job list may be a whole shard, and a record
@@ -468,7 +515,7 @@ def main() -> int:
         # runs in that order to name the files.
         with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as metadata:
             for index, job, seed in worklist.pages(jobs):
-                recipe, receipt, _grid, image, boxes, cells, hand_report = (
+                recipe, receipt, _grid, image, boxes, cells, hand_report, sign_report = (
                     renderer.render(seed, forces[job]))
                 name = f"html_{index:03d}.jpg"
                 with profiling.stage("export"):
@@ -490,6 +537,13 @@ def main() -> int:
                         # record beside the boxes rather than in a log nobody
                         # keeps -- see docs/handwriting-html.md.
                         record["handwriting"] = hand_report
+                    if sign_report is not None:
+                        # The style of every mark on the page, and every block
+                        # that went unsigned. A signature carries no box and no
+                        # text, so this record is the only place it exists in
+                        # the label at all -- and a set that wanted signatures
+                        # and drew none should say so here.
+                        record["signature"] = sign_report
                     if cells:
                         # Additive, and only for a template render: the
                         # structure half of the label, so a merged cell is
@@ -501,9 +555,11 @@ def main() -> int:
                     json.dump(record, metadata, ensure_ascii=False)
                     metadata.write("\n")
                 inked = len(hand_report["inked"]) if hand_report else 0
+                signed = len(sign_report["marks"]) if sign_report else 0
                 print(f"[ok] {name}  {image.shape[1]}x{image.shape[0]}  "
                       f"{recipe.layout.id}  {len(boxes)} boxes"
-                      + (f"  {inked} inked" if hand_report is not None else ""))
+                      + (f"  {inked} inked" if hand_report is not None else "")
+                      + (f"  {signed} signed" if sign_report is not None else ""))
     finally:
         with profiling.stage("startup"):
             renderer.__exit__(None, None, None)
