@@ -1,0 +1,262 @@
+# Chữ ký: khảo sát mẫu trước, rồi mới dựng engine kéo giãn
+
+[`hoa-tiet-de-xuat.md`](hoa-tiet-de-xuat.md) đếm những thứ có trên tờ giấy thật
+mà bộ dữ liệu này chưa có. `handwriting_fill` đã được lấp bằng
+[`handwriting-html.md`](handwriting-html.md). Còn **một ô trống nữa, và nó nằm
+ngay dưới mỗi cái tên in**: khối chữ ký. Mọi bố cục trong rule space đều in ra
+chú thích *(Ký, ghi rõ họ tên)* rồi để trắng — và cái để trắng ấy, trên tờ giấy
+quay về, **không bao giờ trắng**.
+
+Tài liệu này ghi lại hai việc, theo đúng thứ tự đã làm: **khảo sát xem chữ ký
+là cái gì**, rồi **biến từng phát hiện thành một tham số hình học**. Không có
+tham số nào trong `generators/html/signature.py` mà không truy được về một dòng
+trong bảng dưới đây; những chỗ là **phán đoán** chứ không phải đo đạc thì được
+ghi thẳng là phán đoán, ngay tại chỗ khai báo.
+
+![18 chữ ký, 18 hạt giống](../samples/signatures/styles.jpg)
+
+## Vì sao đây không phải là thứ đã bị gỡ ở `ff9a9f0`
+
+Đây là câu hỏi phải trả lời đầu tiên, vì kho này đã từng từ chối đúng một việc
+nghe rất giống việc đang làm.
+
+`ff9a9f0` lấy **mặt chữ in**, làm lệch từng ký tự, rồi gọi kết quả là chữ viết
+tay. Nó bị gỡ vì cái ra được là *chữ in bị run tay*: hình dạng nét vẫn là hình
+dạng nét của một mặt chữ in, và không có lượng jitter nào sửa được điều đó.
+`handwriting.py` từ đó không nhúc nhích một glyph nào.
+
+Điều khẳng định ở đây hẹp hơn, và khác về bản chất: **chữ ký tự nó đã là một
+phép biến dạng.** Mọi nguồn khảo sát bên dưới đều mô tả nó giống nhau — chữ cái
+đầu phóng to quá cỡ, phần thân bị giản lược hoặc bỏ hẳn, nét cuối kéo dài và
+hất lên, cộng thêm một nét hoa **không thuộc về chữ cái nào cả**. Biến dạng
+không phải lớp ngụy trang phủ lên chữ viết; **nó chính là chữ ký**, và nó là
+phần duy nhất của chữ ký có thể phát biểu được bằng hình học.
+
+Nói ngắn: `ff9a9f0` làm lệch chữ in để **giả vờ** thành chữ viết. Engine này
+kéo giãn chữ viết để thành **chữ ký**, là thứ mà chữ ký vốn dĩ được tạo ra như
+thế.
+
+## Khảo sát: chữ ký khác chữ viết ở chỗ nào
+
+Mười lượt tìm, bốn nhóm nguồn: giám định tài liệu (forensic document
+examination), bút tướng học (graphology), thư pháp con chữ (calligraphy stroke
+construction), và hai nhóm thực dụng hơn — các hướng dẫn **tạo chữ ký tiếng
+Việt**, và các **bộ dữ liệu chữ ký offline** (GPDS, CEDAR, MCYT) mà giới nhận
+dạng dùng làm chuẩn.
+
+| Phát hiện | Nguồn | Thành tham số nào |
+| --- | --- | --- |
+| Chữ ký có **ba vùng**: nét đầu lớn, thân giản lược, nét cuối hất lên | giám định + hướng dẫn VN | `CAP_STRETCH`, `BODY_SQUEEZE`, `FLOURISH` |
+| "Chữ ký bắt đầu với nét chữ lớn… nét kết thúc được nâng lên" | hướng dẫn chữ ký VN | `CAP_STRETCH` = 1,35–2,40 x-height; `RISE` |
+| Nét đầu và nét cuối được giám định **thành một cặp** đặc điểm cá nhân | giám định | `LEAD` + `FLOURISH` |
+| Giản lược là **quá trình tích lũy**; viết nhanh thì giản lược mạnh | giám định | `BODY_FADE`, nhân theo số chữ cái |
+| Nét nghiêng về trước; chữ viết thường 60–75° so với phương ngang, thư pháp đặt trục ô-van ở 55° | bút tướng + thư pháp | `SLANT` = 5°–25° lệch khỏi phương thẳng đứng |
+| Đường chân chữ **đi lên** là phổ biến nhất, đi xuống là hiếm | bút tướng | `BASELINE`, trọng số 5/3/2/1 |
+| **Paraph** — nét gạch/nét hoa dưới tên — là *một phần của chữ ký*, không phải trang trí | giám định (thuật ngữ AHAF) | `PARAPH`, 5 kiểu |
+| Chữ cái nối liền nhau; **nét nối là một nét riêng**, không phải khoảng cách âm | giám định | `CONNECTED` + `_connectors` |
+| Chữ ký khó đọc là bình thường, phổ biến nhất ở người ký nhiều lần mỗi ngày | phân tích chữ ký | `LEGIBILITY`, 4 mức |
+| Người Việt thường ký **tên** (từ cuối), kéo dài chữ cái đầu của nó | hướng dẫn chữ ký VN | `parts_of` + `legibility="given"` |
+| Nét xuống dày, nét lên mảnh; nét vào và nét ra thon lại thành mũi | thư pháp | `ribbon(w0, w1, bulge)` |
+| Ô thu mẫu chuẩn: GPDS 5×1,8 cm và 4,5×2,5 cm; CEDAR 50×50 mm | bộ dữ liệu offline | `ASPECT` = 1,8–3,0, **chỉ để báo cáo** |
+
+Hai điều đáng nói về bảng này.
+
+**Cột thứ ba là toàn bộ engine.** Không có tham số nào ngoài bảng, và mỗi hằng
+số trong `signature.py` đều có một chú thích trỏ về đúng dòng ở đây.
+
+**Trọng số thì không đo được.** Khảo sát nói rằng cả bốn mức dễ đọc đều xảy ra
+và đọc được hoàn toàn là thiểu số; nó **không** nói bốn mức chia nhau bao nhiêu
+phần trăm. Chỗ nào con số là phán đoán, khai báo trong mã nguồn viết thẳng
+`WEIGHTS ARE A JUDGEMENT` bằng chữ hoa. Đó là ranh giới giữa "đọc được từ nguồn"
+và "chọn cho hợp lý", và nó phải nhìn thấy được từ chỗ khai báo, không phải chỉ
+ở đây.
+
+## Engine: bảy phép biến đổi trên đường bậc ba
+
+`signature.py` không vẽ chữ cái. Nó đọc **đường viền thật** của chữ từ mặt chữ
+viết tay trong `fonts/hand/` — cùng hai mặt chữ mà `handwriting.FontHand` dùng,
+cùng giấy phép SIL OFL 1.1 — rồi kéo giãn chúng.
+
+Toàn bộ hình học là **Python thuần**: một `contour` là đường bậc ba khép kín
+giữ dưới dạng 3n+1 điểm, một `path` là danh sách contour, đơn vị là x-height và
+**trục y hướng lên** như trong font. Không numpy, không Pillow. `fontTools` chỉ
+xuất hiện bên trong `Ink`, và không ở đâu khác — đúng lý do `handwriting.py`
+nêu cho các import cục bộ của nó: CI chạy bộ test bằng pytest và PyYAML, thế
+thôi, nên mọi phép biến đổi ở đây phải kiểm được mà không cần một cái `.ttf`.
+
+| Phép | Làm gì | Đến từ |
+| --- | --- | --- |
+| `affine` | co giãn + nghiêng quanh đường chân chữ | slant, cap stretch, body squeeze |
+| `bow` | uốn đường chân chữ: `rise` nâng đầu phải, `arch` phình giữa | baseline đi lên / phẳng / lượn / đi xuống |
+| `fade` | ép dần chiều cao về cuối chữ ký | giản lược tích lũy |
+| `swell` | giãn/nén dần khoảng cách theo chiều ngang | nhịp chữ trôi về cuối |
+| `ribbon` | biến một đường tâm thành nét có bề dày thon | nét nối, nét cuối, paraph |
+| `subdivided` | chẻ nhỏ đoạn trước khi uốn phi tuyến | cái giá phải trả của việc uốn điểm điều khiển |
+| `_entry` | tìm điểm mà nét vào **thật sự chạm được** vào chữ | xem bên dưới |
+
+Ba phép đầu là biến đổi *chữ*. Ba phép sau là hạ tầng. `_entry` là thứ học được
+từ việc **nhìn ảnh ra**, không phải từ khảo sát: nét vào nhắm vào mép trái của
+hộp bao chữ cái đầu thì với chữ `T` nó kết thúc **giữa không khí**, thành một
+cái gạch nhỏ lơ lửng bên cạnh. Nó phải nhắm vào một điểm mà chữ thật sự đi qua.
+
+Hai chỗ khác cũng chỉ lộ ra khi nhìn ảnh, và cả hai đều đã ghi lại trong mã:
+nét nối phải **chạy ngay trên** đường chân chữ chứ không võng xuống dưới (một
+cái võng ngắn giữa hai chữ hẹp không đọc thành nét nối, nó đọc thành **dấu
+chấm** — một chữ ký monogram ra thành `P.MT`); và **không nối hai chữ in hoa**,
+vì trong một mặt chữ in hoa không có nét ra để mà nối, và một gạch kẻ giữa hai
+chữ hoa đọc thành dấu gạch nối.
+
+### Thứ tự thì không phải chuyện thẩm mỹ
+
+```
+chữ cái  ->  nét nối  ->  nét vào  ->  [swell, fade, bow]  ->  nét cuối  ->  paraph  ->  nghiêng
+```
+
+Nét cuối rời chữ cái cuối **sau khi** đường chân chữ đã uốn, nên nó rời đúng
+chỗ chữ ấy thực sự nằm. Paraph đo trên toàn bộ dấu ký **kể cả nét cuối** — một
+đường gạch dừng lại lịch sự trước nét hất sẽ đọc thành hai dấu ký chứ không
+phải một. Nghiêng đi cuối cùng, một lần, cho tất cả.
+
+### Một hạt giống là một người
+
+`Style.__init__` rút **mọi thứ**, kể cả độ võng của đường gạch dưới. Đó không
+phải sạch sẽ cho vui: `render.py` ký nhiều khối trên một trang từ một hạt giống,
+và có một bug đã tồn tại đúng như vậy — `bow()` rút từ bộ sinh ngẫu nhiên tại
+thời điểm ký, nên chữ ký thứ hai phụ thuộc vào việc chữ ký thứ nhất tên là gì.
+Một dấu ký phải là **hàm thuần của `(seed, name)`**. Thuộc tính `Style.rng` bây
+giờ ném `AttributeError` kèm lời giải thích, để lỗi ấy không quay lại lặng lẽ.
+
+## Nối vào tờ giấy
+
+```bash
+generators/html/.venv/bin/python generators/html/render.py \
+    --template auto --signature --layout invoice_vat_form -c 3 -o out/
+```
+
+`--signature` đi cùng `--template`, cùng lý do với `--handwriting`: lưới ký tự
+không có khối chữ ký, chỉ có ô.
+
+**Khối chữ ký có hai hình dạng**, và đây là điều đáng biết nhất về rule space
+này. Chỉ tài liệu bật `signature_names` mới in tên dưới chú thích; phần còn lại
+phát ra `<div class="who"></div>` rỗng dưới một dòng đọc đúng là *(Ký, ghi rõ
+họ tên)* — và **đó mới là đa số**. Cả hai hình dạng đều được ký.
+
+| | tờ có in tên | tờ để trắng |
+| --- | --- | --- |
+| ví dụ | `invoice_hotel_stay` | `invoice_vat_form`, `medical_statement`, `authorisation_letter` |
+| ký tên ai | tên đã in trên tờ | `names=` do người gọi đưa vào |
+| nguồn tên | tài liệu | `rulebase.corpus.people` — cùng kho tên mà tài liệu rút người mua |
+| nếu không đưa `names` | vẫn ký | **để trắng, và đếm vào `skipped["unnamed"]`** |
+
+Chỗ cuối bảng là có chủ ý. Engine không bịa tên: một trang muốn có chữ ký mà
+không ký được thì phải **nói ra trong nhãn của chính nó**, chứ không phải quay
+về im lặng không có chữ ký.
+
+### Ký trước, điền sau
+
+`render.py` chạy `signature.fill` **trước** `handwriting.fill`, và không phải vì
+người ta làm thế. `handwriting.fill` có thể thay một run `sign.name` bằng một
+`<img>` mực của mô hình, còn `signature.WHO` cố ý **không** khớp một run có
+markup bên trong. Ký sau thì trên đúng những trang được điền tay nhiều nhất,
+chữ ký sẽ lặng lẽ không xuất hiện.
+
+### Dấu ký không bao giờ là một run có nhãn
+
+Đây là điểm tựa của cả thiết kế. Chữ ký là **mực không có hộp và không có
+chữ**: nó phải nằm trên trang và phải nằm ngoài nhãn.
+
+* thẻ phát ra là `<span class="sig">`, **không có `data-kind`**;
+* `sheets.labelled_runs` và `sheets.structure_from_markup` cho kết quả **y hệt**
+  trước và sau khi ký — có test trên sáu họ bố cục;
+* `handwriting._check_contract` vẫn qua trên trang đã ký;
+* thứ duy nhất ghi lại dấu ký trong nhãn là `record["signature"]`, và nó ghi
+  *kiểu dáng*, không ghi chữ.
+
+Ngược hẳn với `handwriting.ink_span`, vốn là mực **chính là một giá trị** và vì
+thế mang theo `data-text`. Hai loại mực, hai hợp đồng, và chúng không được lẫn.
+
+## Giới hạn, nói thẳng
+
+**Nét là nét của một mặt chữ.** Cái ra được là một **dấu ký có hình dạng chữ
+ký**: đúng cỡ, đúng độ nghiêng, đúng đường chân chữ, đúng cách nối và đúng nét
+hoa — vẽ bằng đường viền của một mặt chữ. Đủ để làm hoa tiết trên tờ giấy: mực
+mà bộ đọc phải học cách bỏ qua, nằm đúng chỗ chữ ký nằm. **Không** đủ để làm
+mẫu chữ ký của một người, và một bộ dựng từ đây **không phải** corpus để huấn
+luyện xác thực chữ ký: hai dấu ký cùng hạt giống là giống hệt nhau, và hai mặt
+chữ là hai mặt chữ, không phải 106 người viết. Cùng một sự đánh đổi như
+`FontHand`, và được ghi lại theo đúng cách ấy.
+
+**Chưa viết tay tên vào dòng để trắng.** Chú thích nói *(Ký, ghi rõ họ tên)* —
+tức là trên tờ giấy thật có **hai** thứ được viết vào đó: chữ ký và tên viết
+tay. Engine này vẽ thứ nhất. Thứ hai là việc của `handwriting.fill`, và nó chưa
+được nối vào vì `<div class="who">` rỗng không có run nào để điền. Đây là bước
+tiếp theo rõ ràng nhất.
+
+**Chữ ký ướt trên khối "chữ ký số".** `invoice_vat_form` in *(CHỮ KÝ ĐIỆN TỬ,
+CHỮ KÝ SỐ)* dưới chú thích và có sẵn ô xanh chữ ký số ở bên. Hoá đơn điện tử in
+ra ngoài đời thường **không** có chữ ký ướt ở đó. Ở đây vẫn ký, vì bộ dữ liệu
+cần mẫu chữ ký nhiều hơn là cần sự chuẩn xác ấy — nhưng đó là một lựa chọn, và
+lật lại nó là một điều kiện đọc `sign.note`. Ghi ra đây để nó là lựa chọn chứ
+không phải sơ suất.
+
+**Tỷ lệ khung không bị ép.** `ASPECT` chỉ để báo cáo: `Mark.report()` trả về
+`in_capture_box`, và với tên ngắn thì dấu ký hay rơi ra ngoài dải 1,8–3,0. Ép
+nó vào dải sẽ là bóp méo một dấu ký cho khớp một cái hộp mà tờ giấy này không
+có.
+
+## Chạy thử
+
+```bash
+# một chữ ký
+generators/html/.venv/bin/python generators/html/signature.py \
+    --name "Nguyễn Thị Bích Ngọc" --seed 7 --out /tmp/sig.svg
+
+# 18 kiểu cạnh nhau, để nhìn dải tham số làm việc
+generators/html/.venv/bin/python generators/html/signature.py \
+    --name "Lê Quang Đạo|Trần Văn Hùng" --grid 18 --out /tmp/sheet.svg
+
+# bộ mẫu trong samples/signatures/
+make signatures
+```
+
+Nhìn **một** chữ ký không chứng minh được gì. Cái đáng nhìn là lưới: một dải
+tham số bị đẩy quá tay hiện ra trong mười tám ô cùng lúc, chứ không hiện ra
+trong một ô.
+
+## Nguồn
+
+Giám định tài liệu và bút tướng học:
+
+- [Class and Individual Characteristics of Handwriting — Forensics Digest](https://forensicsdigest.com/class-and-individual-characteristics-of-handwriting/)
+- [General Principles of Forensic Handwriting Examination](https://www.forensicforgerydetection.com/handwriting-examination-principles)
+- [Individual Characteristics of Handwriting — Forensic's blog](https://forensicfield.blog/individual-characteristics-of-handwriting/)
+- [AHAF, Whiting glossary of handwriting terms (PDF)](https://ahafhandwriting.org/images/downloads/whiting_glossary2.pdf) — thuật ngữ *paraph*
+- [The Complete Guide to Signature Analysis — PenLoops](https://www.penloops.com/signature-analysis-guide)
+- [Slant (handwriting) — Wikipedia](https://en.wikipedia.org/wiki/Slant_(handwriting))
+- [Slant in Handwriting — Graphology](https://graphology.scry3d.com/slant-in-handwriting/)
+
+Cấu tạo nét, từ thư pháp:
+
+- [8 Basic Calligraphy Strokes — Loveleigh Loops](https://loveleighloops.com/blog/8-basic-calligraphy-strokes/)
+- [Copperplate Script with a Pointed Nib — Youblob](https://youblob.com/us/blueprints/copperplate-script-pointed-nib)
+- [The Basic Calligraphy Strokes Guide — Lettering Daily](https://www.lettering-daily.com/basic-calligraphy-strokes/)
+
+Chữ ký tiếng Việt:
+
+- [25+ Chữ Ký Tên Việt Đơn Giản Đẹp Nhất](https://chuky.vn/chu-ky-ten-viet.html)
+- [30+ Mẫu chữ ký đẹp ý nghĩa theo tên — Sforum](https://cellphones.com.vn/sforum/chu-ky-dep)
+- [Chữ ký đẹp theo tên — Kingpen](https://kingpen.vn/chu-ky-dep-theo-ten/)
+- [Tổng hợp 100+ mẫu chữ ký tên Việt — MISA eSign](https://esign.misa.vn/16099/chu-ky-ten-viet/)
+
+Bộ dữ liệu chữ ký offline, cho kích thước ô thu mẫu:
+
+- [Fixed-sized representation learning from Offline Handwritten Signatures of different sizes (arXiv 1804.00448)](https://arxiv.org/pdf/1804.00448) — ô GPDS 5×1,8 cm và 4,5×2,5 cm
+- [Learning Features for Offline Handwritten Signature Verification using Deep CNNs (arXiv 1705.05787)](https://arxiv.org/pdf/1705.05787) — GPDS, CEDAR, MCYT
+- [Intrapersonal Parameter Optimization for Offline Handwritten Signature Augmentation (arXiv 2010.06663)](https://arxiv.org/pdf/2010.06663)
+
+## Đọc tiếp
+
+- [`generators/html/signature.py`](../generators/html/signature.py) — engine, và mọi hằng số kèm chú thích nguồn
+- [`samples/signatures/`](../samples/signatures) — lưới kiểu dáng và hai tờ đã ký
+- [`handwriting-html.md`](handwriting-html.md) — mực điền vào ô, và vì sao nó không nhúc nhích một glyph nào
+- [`hoa-tiet-de-xuat.md`](hoa-tiet-de-xuat.md) — bản đếm những gì tờ giấy thật có mà bộ này chưa có
