@@ -19,18 +19,29 @@ make signatures        # dựng lại cả bốn
 
 ![18 chữ ký](styles.jpg)
 
-Nhãn dưới mỗi ô là `hạt-giống · mức-dễ-đọc · đường-chân-chữ · paraph · tỷ-lệ`.
+Nhãn dưới mỗi ô là `hạt-giống · chữ-còn-hình + số-chữ-đã-tan · đường-chân-chữ ·
+paraph · tỷ-lệ`. Nên `Ng+2` đọc là: hai chữ `N` `g` còn giữ hình, hai chữ nữa
+đã tan thành nét lượn.
 
 Một chữ ký không chứng minh được gì; lưới thì có. Ba thứ đáng nhìn:
 
-- **chữ cái đầu phóng to** so với phần thân — đặc điểm nhất quán nhất trong
-  khảo sát, và là thứ hiện ra rõ nhất ở đây (`4`, `8`, `17`);
-- **nét cuối hất lên** và **paraph** — hai nét duy nhất engine vẽ ra mà không
-  thuộc chữ cái nào, đúng như giám định mô tả chúng;
-- **mức dễ đọc** trôi từ cả họ tên (`5`, `11`) xuống chỉ chữ cái đầu (`2`,
-  `10`, `13`) — người ký nhiều lần mỗi ngày ký ngắn.
+- **hầu hết đều không đọc ra chữ** — chỉ một hai chữ đầu còn hình, phần còn
+  lại là nét lượn chạy. Đó là điều khảo sát nói và là điều lượt dựng đầu tiên
+  làm sai: bóp hẹp một chữ thì nó vẫn là một chữ;
+- **nét lượn giữ hướng của chữ nó thay**: chữ có đuôi (`g` `y` `p`) để lại vòng
+  cắm xuống, chữ cao (`l` `h` `đ`) để lại vòng vắt lên. Vì thế `5` và `11` là
+  hai nét lượn khác nhau chứ không phải một cái ngoằng dùng chung;
+- **chữ cái đầu phóng to** và **nét cuối hất lên** — hai đặc điểm nhất quán
+  nhất trong khảo sát, thấy rõ ở `4`, `8`, `15`.
 
-Tỷ lệ khung rơi vào khoảng 1,1–3,9. Dải các bộ dữ liệu chữ ký offline thu mẫu
+Sáu ô vẫn đọc được, vì hai lý do khác nhau. `2`, `10`, `12`, `13`, `17` là
+**chữ lồng toàn chữ hoa**, mà chữ hoa thì không bao giờ tan — ba chữ cái đầu là
+để đọc, đó là toàn bộ công dụng của chữ lồng. `9`, `14`, `18` thì là một phần
+mười số người ký **hình thành hết mọi chữ**, và đó cũng là chữ ký thật. Đo trên
+300 hạt giống: 74 % tan thành nét lượn, 13 % là chữ lồng, 13 % giữ nguyên mọi
+chữ.
+
+Tỷ lệ khung rơi vào khoảng 0,98–3,05. Dải các bộ dữ liệu chữ ký offline thu mẫu
 là 1,8–3,0; ở đây **không ép** vào dải ấy, chỉ báo cáo — xem `in_capture_box`
 trong `signatures.json`.
 
