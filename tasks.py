@@ -220,6 +220,18 @@ def handwriting(args) -> None:
          "-o", out / "html"])
 
 
+@task("signatures", "regenerate samples/signatures: the style grid and two signed sheets")
+def signatures(args) -> None:
+    # The html backend's interpreter: the showcase rasterises its own SVG with
+    # the renderer's Chromium rather than a second SVG library, so what the
+    # sample shows is what a page will show. No WriteViT and no checkpoint --
+    # the engine reads outlines out of `fonts/hand/` and nothing else.
+    out = Path(args.out if args.out != str(Path("data") / "dataset60")
+               else REPO_ROOT / "samples" / "signatures")
+    run([venv_python(VENVS["html"]), REPO_ROOT / "tools" / "signature_showcase.py",
+         "-o", out])
+
+
 @task("setup-writevit", "clone WriteViT beside the repo and fetch its weights")
 def setup_writevit(args) -> None:
     # Not one of the three renderer environments and deliberately not part of

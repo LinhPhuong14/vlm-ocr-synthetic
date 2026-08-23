@@ -252,6 +252,13 @@ def test_structure_tokens_survive_inking():
 # ------------------------------------------------------------- the font source
 
 def _font():
+    # `FontHand.cmap` reads the face with fontTools, which `.github/ci.yml`
+    # deliberately does not install -- the data-layer job is pytest and PyYAML
+    # and nothing else. Skipped rather than failed, for the same reason the
+    # two pixel tests below skip without numpy: "I could not look" is not the
+    # same as "it is broken", and a red job for a missing renderer dependency
+    # trains people to ignore the red.
+    pytest.importorskip("fontTools", reason="reading a cmap needs fontTools")
     hand = handwriting.FontHand()
     if not hand.faces:
         pytest.skip("no handwriting faces in fonts/hand/")
