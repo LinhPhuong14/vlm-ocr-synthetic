@@ -5,12 +5,13 @@ models, with structured labels and per-field boxes.
 
 [![ci](https://github.com/LinhPhuong14/vlm-ocr-synthetic/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 
-**One rule-base, three renderers.** What a page *says* is decided once, in
-[`rulebase/`](rulebase/README.md); how it *becomes pixels* is decided three
-different ways — glyph by glyph, screenshotted from Chromium, or printed
-through WeasyPrint. Every renderer receives the same `(recipe, receipt, grid)`
-and writes the same `metadata.jsonl`, so a difference between two images is a
-difference in *drawing* and nothing else.
+**One rule-base, one renderer.** What a page *says* is decided in
+[`rulebase/`](rulebase/README.md); how it *becomes pixels* is decided in
+[`generators/html/`](generators/html), which lays the page out as CSS and
+screenshots it from headless Chromium. Two further renderers — glyph-by-glyph
+through synthtiger, and printed through WeasyPrint — drew the committed sets
+under `data/` and are **retired from generation**; see
+[`docs/renderers.md`](docs/renderers.md) for what that means and what it cost.
 
 The document kinds are **data, not code**. A till receipt, a statutory VAT
 form, a water bill and an English tax invoice all come out of the same eight
@@ -46,7 +47,7 @@ py tasks.py                 # list every task
 
 - [How it works](#how-it-works) — [context](#system-context) · [components](#components) · [pipeline](#the-pipeline) · [stages](#the-eight-stages)
 - [The two render paths](#the-two-render-paths) · [Adding a document kind](#adding-a-document-kind)
-- [The three renderers](#the-three-renderers) · [Degradation](#degradation)
+- [The renderer](#the-renderer) · [Degradation](#degradation)
 - [Running at scale](#running-at-scale) · [What comes out](#what-comes-out)
 - [What it looks like](#what-it-looks-like) · [Repository structure](#repository-structure)
 - [Requirements](#requirements) · [Installation](#installation) · [Tasks](#tasks) · [Usage](#usage)
@@ -268,7 +269,7 @@ flowchart TD
 | 5 | [`rulebase/content.py`](rulebase/content.py) | only if the document carries fields no existing kind has |
 | 6 | — | `make preview-grid LAYOUT=<id>`, `make preflight`, `python -m pytest`, then a small `make dataset` |
 
-Nothing in `generators/` changes. A new layout is drawn by all three renderers
+Nothing in `generators/` changes. A new layout is drawn by the renderer
 the day it is declared, because they consume the `Grid` and not the layout file.
 
 The same shape applies to the other axes:
@@ -278,7 +279,7 @@ The same shape applies to the other axes:
 | a **document kind** | `rules/document.yaml` + `layouts/*.yaml` | the renderers |
 | a **layout family** | a `groups:` node in `rules/layout.yaml` | the sampler discovers it |
 | a **sampling attribute** | a new `rules/<name>.yaml` + a line in [`_order.yaml`](rulebase/rules/_order.yaml) | the attribute list is read, not hard-coded |
-| an **ageing effect** | a module in [`degradation/`](degradation) + its name in the registry | all three backends get it |
+| an **ageing effect** | a module in [`degradation/`](degradation) + its name in the registry | every backend gets it |
 | a **paper stock** | a file in [`textures/paper/`](textures/paper) named by `visual.paper` | the chain resolves it |
 | a **seal or flourish** | a draw function in [`tools/make_ornaments.py`](tools/make_ornaments.py) + a `marks:` entry in `rules/ornament.yaml` | preflight checks both directions |
 | a **sheet size** | one entry in `SHEETS` in [`rulebase/style.py`](rulebase/style.py) | every backend, which only reads the ratio |
@@ -307,27 +308,38 @@ decides what it prints long before the paper decides how it will crease.
 
 ---
 
-## The three renderers
+## The renderer
 
-| | [`generators/synthdog/`](generators/synthdog) | [`generators/html/`](generators/html) | [`generators/genalog/`](generators/genalog) |
-| --- | --- | --- | --- |
-| **engine** | [synthtiger](https://github.com/clovaai/synthtiger) glyph layers | Chromium, headless, via Playwright | [genalog](https://github.com/microsoft/genalog) → WeasyPrint → PyMuPDF |
-| **output** | a **photograph** of a page on a table | a **flat scan** | a **print / photocopy** |
-| **text layout** | ours, per glyph | the browser's | WeasyPrint's |
-| **geometry** | curl, perspective, lighting, background | none | page box, real pagination |
-| **box source** | the `TextLayer` it positioned, through the same warp as the pixels | `getBoundingClientRect()`, × device scale × downscale | the PDF's text layer via PyMuPDF, × `dpi/72` × downscale |
-| **quads** | rotated by the curl | axis-aligned | axis-aligned |
-| **Python** | **3.8 – 3.11** (enforced in [`tasks.py`](tasks.py)) | 3.9+ | 3.9+ |
-| **extra install** | — | a browser | GTK (Pango, cairo) |
-
-Three, rather than one, because the disagreement is the training signal: a
-model that has only seen browser screenshots has not met a print engine's text
-shaping, and one that has only seen flat scans has never seen a page lying
-under a lamp. The glyph backend is the hard end of that curve and the print
-engine the easy end.
+| | [`generators/html/`](generators/html) |
+| --- | --- |
+| **engine** | Chromium, headless, via Playwright |
+| **output** | a **flat scan** |
+| **text layout** | the browser's |
+| **box source** | `getBoundingClientRect()`, × device scale × downscale |
+| **quads** | axis-aligned |
+| **Python** | 3.9+ |
+| **extra install** | a browser |
 
 **No renderer re-reads its own output.** Boxes come from the engine that drew
 the text, so a box cannot inherit a recognition error.
+
+### The two that are retired
+
+`generators/synthdog/` (synthtiger glyph layers, a photograph of a page on a
+table) and `generators/genalog/` (WeasyPrint → PyMuPDF, a print or photocopy)
+are still on disk and still readable, but nothing generates with them: the
+glyph backend draws a character grid and cannot print any layout added since
+`generators/html/sheets/`, and the WeasyPrint backend recovers a box by walking
+the labelled runs beside the PDF's own glyph layer, a second implementation of
+the page geometry that every new feature had to pay for twice.
+
+What that costs is the cross-renderer comparison the committed sets under
+`data/` still carry, and it is stated rather than glossed:
+[`docs/renderers.md`](docs/renderers.md). What is off is the **producing** —
+every tool that *reads* a dataset still handles the halves they drew.
+
+`generators/synthdog/`'s remaining role is the pattern layer that every page is
+composited onto and marked with: `make patterns`.
 
 ---
 
@@ -336,8 +348,8 @@ the text, so a box cannot inherit a recognition error.
 [`degradation/`](degradation/README.md) is a Python port of the degradation
 models from [DocCreator](https://github.com/DocCreator/DocCreator) (Journet,
 Mansencal, Kieu et al., LaBRI Bordeaux). It runs on whatever a renderer
-produced, so the same ageing applies to all three — one implementation, not
-three that share a name.
+produced, so the same ageing applied to all three renderers — one
+implementation, not three that share a name.
 
 ```mermaid
 flowchart LR
@@ -383,7 +395,7 @@ it in [`pipeline.yaml`](pipeline.yaml) and use `make run`:
 
 ```yaml
 run:      {out: data/run01, per_backend: 20, seed: 2026, workers: auto, pairing: paired}
-backends: [synthdog, html, genalog]
+backends: [html]
 shard:    {size: 100}
 overrides: {}
 quality:  {drift_tolerance: 0.15, sample_for_ocr: 500}
@@ -647,9 +659,11 @@ and pytest.
 ## Installation
 
 ```bash
-make setup             # all three
+make setup             # the renderer: playwright + a headless browser
+make setup-writevit    # optional: handwriting, clones WriteViT beside the repo
+
+# retired backends -- only to re-read a dataset half they drew:
 make setup-synthdog    # synthtiger        (Python 3.8-3.11)
-make setup-html        # playwright + a headless browser
 make setup-genalog     # WeasyPrint + PyMuPDF
 ```
 
@@ -861,6 +875,7 @@ the two must stay in step.
 | [`docs/hoa-tiet-de-xuat.md`](docs/hoa-tiet-de-xuat.md) | ornaments surveyed and not built, with the reason each was left |
 | [`docs/khao-sat-sinh-chu-viet-tay.md`](docs/khao-sat-sinh-chu-viet-tay.md) | eight handwriting-synthesis repositories ranked on breadth of data and on realism, for the `handwriting_fill` gap (Vietnamese) |
 | [`docs/writevit.md`](docs/writevit.md) | standing up WriteViT for Vietnamese handwriting, and what it measurably cannot write (Vietnamese) |
+| [`docs/renderers.md`](docs/renderers.md) | why `html` is the only renderer that generates, what "retired" means for `synthdog` and `genalog`, and what the cross-renderer comparison cost (Vietnamese) |
 | [`docs/handwriting-html.md`](docs/handwriting-html.md) | wiring that handwriting into the HTML engine, and how much of a form it can actually fill — 14.6%, with the rest measured (Vietnamese) |
 | [`docs/brief-engine-html.md`](docs/brief-engine-html.md) | the three HTML render paths, what merged cells do and do not do in each, and what a fix has to preserve |
 | [`docs/python-versions.md`](docs/python-versions.md) | why the glyph renderer stops below Python 3.12, measured |
