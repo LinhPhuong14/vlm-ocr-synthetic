@@ -27,6 +27,7 @@ $ git diff --name-only f67e7d5..HEAD | grep -v '\.md$'
 | 2 | [`tang-cuong-bo-cuc.md`](tang-cuong-bo-cuc.md) | **Một bố cục nhân lên thành bao nhiêu?** Cây cột, chín nước đi, `compose:`, biến thể có tên | 957 |
 | 3 | [`duong-ong.md`](duong-ong.md) | **Một tờ giấy đi qua hệ thống ra sao, và ai sở hữu toạ độ?** | 591 |
 | 4 | [`ke-hoach.md`](ke-hoach.md) | **Làm gì, theo thứ tự nào?** Mười việc, mỗi việc mô tả đủ để nhận và làm | 619 |
+| 5 | [`brief-plan-run.md`](brief-plan-run.md) | **Brief cho agent làm P1** — việc đầu tiên, viết đủ để bắt tay vào code | 501 |
 
 Không có thời gian đọc hết: đọc **§0 của (1)**, **§0 của (2)**, và **§9 của (3)**
 — khoảng bốn trang, đủ để phản biện.
