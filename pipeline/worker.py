@@ -76,11 +76,14 @@ INVARIANTS = invariants.INVARIANTS_NAME
 # through `venv_python`, which knows that a virtualenv keeps it in `bin/` on
 # POSIX and `Scripts\` on Windows -- hardcoding either is how this breaks on the
 # other platform.
+#
+# `html` only. The glyph and WeasyPrint backends were removed from this table
+# rather than left in it unused: a registry is what turns a name in a plan into
+# a process, so a name still in here is a backend that still runs. Why each was
+# retired is in `pipeline/config.RETIRED_BACKENDS`, which refuses them earlier
+# and louder; this is the backstop for a plan that reached dispatch anyway.
 BACKENDS = {
-    "synthdog": (REPO_ROOT / "generators" / "synthdog" / "render.py",
-                 REPO_ROOT / "generators" / "synthdog"),
     "html": (REPO_ROOT / "generators" / "html" / "render.py", REPO_ROOT),
-    "genalog": (REPO_ROOT / "generators" / "genalog" / "render.py", REPO_ROOT),
 }
 
 CLEAN_AUGMENTATION = invariants.CLEAN_AUGMENTATION
@@ -115,14 +118,20 @@ def renderer_command(backend: str, staging: Path, jobs: Path,
     A shard used to be rendered by one process per run, and a run is one
     layout: twenty images over fourteen layouts meant fourteen processes of
     about one and a half images each, each paying interpreter and backend
-    start-up in full. Measured in `data/profile/README.md`, that was 23% of a
-    synthdog run, 29% of an html one and 44% of a genalog one -- the largest
-    single cost in the generator, and in none of the renderers.
+    start-up in full. Measured in `data/profile/README.md`, that was 29% of an
+    html run -- the largest single cost in the generator, and in none of the
+    renderers. (The same measurement put the two retired backends at 23% and
+    44%; the numbers stay because they are what the fix was judged against.)
 
     `--jobs` takes the whole list instead, so the cost is paid once. Nothing
     about a page changes: see `worklist.py`, and the byte comparison in
     `tests/test_worklist.py`.
     """
+    if backend not in BACKENDS:
+        raise ShardError(
+            f"{backend!r} is not a backend this repository draws with; "
+            f"have {sorted(BACKENDS)}. See pipeline/config.RETIRED_BACKENDS."
+        )
     interpreter = venv_python(VENVS[backend])
     if not interpreter.exists():
         raise ShardError(
@@ -140,13 +149,11 @@ def renderer_command(backend: str, staging: Path, jobs: Path,
         forced.append(f"augmentation={CLEAN_AUGMENTATION}")
     for item in forced:
         command += ["--force", item]
-    # Only the glyph backend has geometry of its own to switch off.
-    if clean and backend == "synthdog":
-        command.append("--clean")
-    # ...and only the two HTML backends have a second page model. `Config`
-    # refuses a run that asks for one and includes the glyph backend, so
-    # reaching here with both is a bug rather than a fall-through.
-    if template and backend != "synthdog":
+    # `--clean` used to ride along here as well: it switched off the glyph
+    # backend's own geometry -- the paper curl and the re-photograph -- which
+    # the ageing chain does not own. No drawable backend has geometry of that
+    # kind, so a clean run is now exactly `augmentation=pristine`.
+    if template:
         command += ["--template", template]
     return command
 
