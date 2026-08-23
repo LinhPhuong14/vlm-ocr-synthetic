@@ -18,7 +18,7 @@ LAYOUT  ?=
 
 .DEFAULT_GOAL := help
 .PHONY: help setup setup-synthdog setup-html setup-genalog setup-writevit \
-        textures handwriting \
+        textures patterns handwriting \
         receipts preview preview-grid dataset dataset-clean proof showcase \
         ornaments templates \
         preflight check-rules check-corpus check-boxes distribution monitor \
@@ -30,16 +30,18 @@ help:  ## Show this help
 
 # ---------------------------------------------------------------- setup
 
-setup:           ## Build all three renderer environments
+setup:           ## Build the renderer environment (html)
 	$(TASKS) setup
-setup-synthdog:  ## glyph renderer: synthtiger (needs Python 3.8-3.11)
-	$(TASKS) setup-synthdog
 setup-html:      ## HTML renderer: playwright + a headless browser
 	$(TASKS) setup-html
-setup-genalog:   ## genalog renderer: WeasyPrint + PyMuPDF
-	$(TASKS) setup-genalog
 setup-writevit:  ## handwriting: clone WriteViT beside the repo, fetch its weights
 	$(TASKS) setup-writevit
+setup-synthdog:  ## patterns: synthtiger (retired as a document backend)
+	$(TASKS) setup-synthdog
+setup-genalog:   ## WeasyPrint + PyMuPDF (retired; only to re-read old sets)
+	$(TASKS) setup-genalog
+patterns:        ## Regenerate every shared pattern: paper, backgrounds, ornaments
+	$(TASKS) patterns
 textures:        ## Regenerate the shared paper and background textures
 	$(TASKS) textures
 ornaments:       ## Regenerate the seals and flourishes in textures/ornament
@@ -51,7 +53,7 @@ templates:       ## Print the reference sheets in samples/*-templates
 
 receipts:        ## 100 receipts with the glyph renderer, via the synthtiger CLI
 	$(TASKS) receipts
-dataset:         ## Build a labelled dataset with all three renderers (N=20 each)
+dataset:         ## Build a labelled dataset with the html renderer (N=20)
 	$(TASKS) dataset -o $(DATASET) -n $(N)
 dataset-clean:   ## The same dataset with no ageing and no distortion at all
 	$(TASKS) dataset-clean -o $(DATASET) -n $(N)
