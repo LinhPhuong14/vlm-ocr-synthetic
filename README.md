@@ -601,6 +601,8 @@ generators/             THE RENDERERS — each with its own venv
 │   ├── render.py       the character-grid page
 │   ├── sheets/         one CSS sheet per layout family
 │   ├── tables.py       generic tables, labelled by structure
+│   ├── handwriting.py  ink in the fields a person fills in
+│   ├── signature.py    handwriting letters stretched into a signature
 │   └── page.py         shared: the browser, the fonts, the boxes
 └── genalog/            genalog + WeasyPrint (source vendored)
 
@@ -680,6 +682,7 @@ are equivalent — `make dataset N=5 DATASET=/tmp/x` is
 | group | tasks |
 | --- | --- |
 | **setup** | `setup`, `setup-synthdog`, `setup-html`, `setup-genalog`, `textures` |
+| **samples** | `templates`, `ornaments`, `handwriting`, `signatures` |
 | **generate** | `dataset`, `dataset-clean`, `run`, `tables`, `receipts`, `preview`, `preview-grid` |
 | **check** | `preflight`, `check-rules`, `check-corpus`, `check-boxes`, `proof`, `baseline-write`, `baseline-verify` |
 | **inspect** | `distribution`, `monitor`, `list-degradations`, `showcase`, `profile` |
@@ -710,6 +713,8 @@ generators/genalog/.venv/bin/python generators/genalog/render.py \
 | `--force ATTR=ID` | pin any attribute, repeatable |
 | `--clean` | glyph backend: no curl, no perspective, no camera |
 | `--template [LAYOUT]` | both HTML backends: lay the page out with CSS instead of the grid ([`sheets/`](generators/html/sheets)). Bare, the sheet follows the layout the recipe drew; a layout id forces one particular dress |
+| `--handwriting [SOURCE]` | html + `--template`: fill the fields a person fills in with ink instead of type. `model` is the WriteViT checkpoint, `font` a licensed handwriting typeface ([`handwriting.py`](generators/html/handwriting.py)) |
+| `--signature` | html + `--template`: draw a signature over each signature block — handwriting letters stretched into a mark, unlabelled on purpose ([`signature.py`](generators/html/signature.py)) |
 | `--scale` · `--dpi` | html device scale factor · genalog rasterisation dpi |
 | `--profile JSON` | time every stage and write the breakdown there. Off by default, and off costs nothing ([`profiling.py`](profiling.py)) |
 | `--jobs JSON` | draw several layouts in one process — a list of `{layout, seed, count, force}`. Overrides the three flags above it; see [`worklist.py`](worklist.py) |
@@ -877,6 +882,7 @@ the two must stay in step.
 | [`docs/writevit.md`](docs/writevit.md) | standing up WriteViT for Vietnamese handwriting, and what it measurably cannot write (Vietnamese) |
 | [`docs/renderers.md`](docs/renderers.md) | why `html` is the only renderer that generates, what "retired" means for `synthdog` and `genalog`, and what the cross-renderer comparison cost (Vietnamese) |
 | [`docs/handwriting-html.md`](docs/handwriting-html.md) | wiring that handwriting into the HTML engine, and how much of a form it can actually fill — 14.6%, with the rest measured (Vietnamese) |
+| [`docs/chu-ky.md`](docs/chu-ky.md) | the signature-pattern survey — forensic, graphological, calligraphic and Vietnamese sources — and the stretch engine each finding turned into (Vietnamese) |
 | [`docs/brief-engine-html.md`](docs/brief-engine-html.md) | the three HTML render paths, what merged cells do and do not do in each, and what a fix has to preserve |
 | [`docs/python-versions.md`](docs/python-versions.md) | why the glyph renderer stops below Python 3.12, measured |
 | [`docs/windows.md`](docs/windows.md) | Windows setup: Python 3.11, GTK, Tesseract, proxies (Vietnamese) |
