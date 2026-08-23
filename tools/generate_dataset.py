@@ -32,7 +32,9 @@ sys.path.insert(0, str(REPO_ROOT))
 # producing an aged "clean" set.
 CLEAN_AUGMENTATION = "pristine"
 
-BACKENDS = ("synthdog", "html", "genalog")
+# The backends this driver may run. `html` only: see pipeline/config.py, which
+# holds the same decision for a `pipeline.yaml` run and the reason with it.
+BACKENDS = ("html",)
 
 
 def main() -> int:
@@ -83,10 +85,11 @@ def main() -> int:
 
     config = Config.from_dict({
         "run": {
-            # Absolute: the glyph backend runs from `generators/synthdog/`
-            # because the paths in its config are relative to that directory, so
-            # a relative output path would land inside the generator instead --
-            # silently, since it creates the directory it writes to.
+            # Absolute, and it stays absolute now that only `html` draws. A
+            # backend may be run from its own directory -- the glyph one had to
+            # be, its config paths being relative to it -- and a relative output
+            # path then lands inside the generator instead, silently, since it
+            # creates the directory it writes to.
             "out": str(args.out.resolve()),
             "per_backend": args.per_framework,
             "seed": args.seed,
