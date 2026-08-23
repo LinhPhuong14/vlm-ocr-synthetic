@@ -55,6 +55,8 @@ dạng dùng làm chuẩn.
 | **Paraph** — nét gạch/nét hoa dưới tên — là *một phần của chữ ký*, không phải trang trí | giám định (thuật ngữ AHAF) | `PARAPH`, 5 kiểu |
 | Chữ cái nối liền nhau; **nét nối là một nét riêng**, không phải khoảng cách âm | giám định | `CONNECTED` + `_connectors` |
 | Chữ ký khó đọc là bình thường, phổ biến nhất ở người ký nhiều lần mỗi ngày | phân tích chữ ký | `LEGIBILITY`, 4 mức |
+| Phần thân bị **giản lược hoặc bỏ hẳn** | giám định | `SCRAWL`, `SURVIVES`, `_scrawl` |
+| **Chuyển động sống lâu hơn hình dạng**: chữ chết rồi vẫn giữ hướng nét | giám định | `_slot_up` / `_slot_down` / `_slot_hump` |
 | Người Việt thường ký **tên** (từ cuối), kéo dài chữ cái đầu của nó | hướng dẫn chữ ký VN | `parts_of` + `legibility="given"` |
 | Nét xuống dày, nét lên mảnh; nét vào và nét ra thon lại thành mũi | thư pháp | `ribbon(w0, w1, bulge)` |
 | Ô thu mẫu chuẩn: GPDS 5×1,8 cm và 4,5×2,5 cm; CEDAR 50×50 mm | bộ dữ liệu offline | `ASPECT` = 1,8–3,0, **chỉ để báo cáo** |
@@ -70,6 +72,51 @@ phần trăm. Chỗ nào con số là phán đoán, khai báo trong mã nguồn 
 `WEIGHTS ARE A JUDGEMENT` bằng chữ hoa. Đó là ranh giới giữa "đọc được từ nguồn"
 và "chọn cho hợp lý", và nó phải nhìn thấy được từ chỗ khai báo, không phải chỉ
 ở đây.
+
+## Chữ thôi không còn là chữ
+
+Đây là phần phải làm hai lượt mới đúng, và đáng ghi lại vì sao.
+
+**Lượt một sai.** Bóp hẹp một chữ rồi cho nó nhỏ dần thì nó vẫn là một chữ:
+engine ra những dấu ký đọc được thành `Nguyễn Thị Bích Ngọc` bằng một nét hơi
+nghiêng. Mà **một chữ ký đọc được rành mạch như thế thì không phải là thứ quay
+về trên tờ giấy.** Khảo sát đã nói điều này ngay từ đầu, chỉ là lượt một mới
+đọc một nửa của nó.
+
+Nửa còn lại, nói bằng ba giọng khác nhau: phần thân *bị giản lược hoặc bỏ hẳn*;
+chữ ký khó đọc là bình thường và phổ biến nhất ở người ký nhiều lần mỗi ngày —
+tức là chính những người ký các tờ giấy mà kho này sinh ra; và câu hữu dụng
+nhất, từ giám định: **chuyển động sống lâu hơn hình dạng.** Một chữ `g` đã chết
+vẫn cắm xuống dưới dòng, một chữ `l` đã chết vẫn quăng một vòng lên trên.
+
+Nên một dấu ký ở đây có **phần đầu là chữ** và **phần đuôi là một nét lượn
+chạy**:
+
+| | |
+| --- | --- |
+| `head_and_tail` | quyết định bàn tay buông ở đâu |
+| `SURVIVES` = 1–2 | số chữ giữ được hình trước khi buông |
+| chữ IN HOA | **không bao giờ tan** — chữ lồng là phần cố ý cho người ta đọc |
+| `_scrawl` | dựng nét lượn từ **lớp** của những chữ nó thay, không phải từ nhiễu |
+| `SCRAWL_SLOTS` = 6 | nét lượn **ngắn hơn cái tên** — buông chín chữ thì không đặt xuống chín cái bướu |
+
+Chỗ "từ lớp của chữ" là điểm mấu chốt. Chữ trong `TAIL_LETTERS` (g j p q y) để
+lại một vòng cắm xuống; chữ trong `TALL_LETTERS` (b d h k l t) và chữ hoa để
+lại một vòng vắt lên; còn lại là một cái bướu. Vì thế nét lượn thay cho "uyễn"
+và nét lượn thay cho "ọc" là **hai nét khác nhau**, chứ không phải một cái
+ngoằng dùng chung.
+
+Đo trên engine hiện tại, 300 hạt giống × 5 tên: **222 tan thành nét lượn, 39 là
+chữ lồng toàn chữ hoa** (loại này *cố ý* đọc được — ba chữ cái đầu là để đọc),
+**39 giữ nguyên mọi chữ** (một phần mười số người ký). Có test giữ đúng phân bố
+ấy, vì một lần chỉnh tham số vô tình kéo nó về phía đọc được sẽ không làm hỏng
+bất kỳ test nào khác trong tệp.
+
+Hai chi tiết nữa cũng chỉ lộ ra khi nhìn ảnh, cùng lượt: nét lượn phải **mảnh
+hơn và thưa hơn nét chữ** (vẽ dày và dày nhịp thì các bướu dính vào nhau thành
+một cái nêm đặc); và bề rộng bướu với chiều cao bướu phải rút **hai số ngẫu
+nhiên riêng** — dùng chung một số thì chúng cùng phình cùng xẹp, ra một đường
+răng cưa chứ không ra chữ.
 
 ## Engine: bảy phép biến đổi trên đường bậc ba
 
@@ -92,9 +139,11 @@ thôi, nên mọi phép biến đổi ở đây phải kiểm được mà khôn
 | `swell` | giãn/nén dần khoảng cách theo chiều ngang | nhịp chữ trôi về cuối |
 | `ribbon` | biến một đường tâm thành nét có bề dày thon | nét nối, nét cuối, paraph |
 | `subdivided` | chẻ nhỏ đoạn trước khi uốn phi tuyến | cái giá phải trả của việc uốn điểm điều khiển |
+| `_scrawl` | phần thân đã tan, thành một nét chạy | thân bị bỏ hẳn |
 | `_entry` | tìm điểm mà nét vào **thật sự chạm được** vào chữ | xem bên dưới |
 
-Ba phép đầu là biến đổi *chữ*. Ba phép sau là hạ tầng. `_entry` là thứ học được
+Ba phép đầu là biến đổi *chữ*, `ribbon` và `_scrawl` vẽ những nét không phải
+chữ, hai phép cuối là hạ tầng. `_entry` là thứ học được
 từ việc **nhìn ảnh ra**, không phải từ khảo sát: nét vào nhắm vào mép trái của
 hộp bao chữ cái đầu thì với chữ `T` nó kết thúc **giữa không khí**, thành một
 cái gạch nhỏ lơ lửng bên cạnh. Nó phải nhắm vào một điểm mà chữ thật sự đi qua.
@@ -109,11 +158,13 @@ chữ hoa đọc thành dấu gạch nối.
 ### Thứ tự thì không phải chuyện thẩm mỹ
 
 ```
-chữ cái  ->  nét nối  ->  nét vào  ->  [swell, fade, bow]  ->  nét cuối  ->  paraph  ->  nghiêng
+chữ cái -> nét nối -> nét vào -> nét lượn -> [swell, fade, bow] -> nét cuối -> paraph -> nghiêng
 ```
 
-Nét cuối rời chữ cái cuối **sau khi** đường chân chữ đã uốn, nên nó rời đúng
-chỗ chữ ấy thực sự nằm. Paraph đo trên toàn bộ dấu ký **kể cả nét cuối** — một
+Nét lượn rời chữ cái cuối cùng còn hình, nên phải dựng **trước** các phép uốn
+— nó đi theo đường chân chữ cùng với chữ, chứ không phải bị vắt ngang qua sau.
+Nét cuối thì rời cả dấu ký **sau khi** đường chân chữ đã uốn, nên nó rời đúng
+chỗ mực thực sự kết thúc. Paraph đo trên toàn bộ dấu ký **kể cả nét cuối** — một
 đường gạch dừng lại lịch sự trước nét hất sẽ đọc thành hai dấu ký chứ không
 phải một. Nghiêng đi cuối cùng, một lần, cho tất cả.
 
@@ -198,6 +249,11 @@ ra ngoài đời thường **không** có chữ ký ướt ở đó. Ở đây v
 cần mẫu chữ ký nhiều hơn là cần sự chuẩn xác ấy — nhưng đó là một lựa chọn, và
 lật lại nó là một điều kiện đọc `sign.note`. Ghi ra đây để nó là lựa chọn chứ
 không phải sơ suất.
+
+**Chữ lồng thì vẫn đọc được, và đó là cố ý.** Chữ hoa không bao giờ tan, nên
+`LQĐ` ra `LQĐ`. Ba chữ cái đầu là để người ta đọc — đó là toàn bộ công dụng của
+một chữ lồng — và một chữ lồng đã tan thì chỉ còn là cái ngoằng không nhận ra
+được ai. Khoảng 13 % số dấu ký là loại này.
 
 **Tỷ lệ khung không bị ép.** `ASPECT` chỉ để báo cáo: `Mark.report()` trả về
 `in_capture_box`, và với tên ngắn thì dấu ký hay rơi ra ngoài dải 1,8–3,0. Ép

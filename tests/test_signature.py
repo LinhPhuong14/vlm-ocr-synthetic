@@ -232,6 +232,116 @@ def test_a_hand_that_drops_its_marks_drops_them_everywhere():
     assert signature.letters_of("Lê Quang Đạo", style) == "Le Quang Dao"
 
 
+# ------------------------------------------------- letters that stop being letters
+#
+# The correction this group exists for. The first engine squeezed and faded the
+# body and left it a body: marks came out reading "Nguyễn Thị Bích Ngọc" in a
+# slightly slanted hand, and a signature you can read like that is not what
+# comes back on a form. These guard the fix -- and the last one guards the
+# symptom directly, because a range that drifts back toward legible would pass
+# every other test in this file.
+
+
+def test_the_first_letters_survive_and_the_rest_do_not():
+    style = signature.Style(1)
+    style.scrawl, style.survives = True, 2
+    assert signature.head_and_tail("Ngoc", style) == ("Ng", "oc")
+
+
+def test_a_capital_never_degenerates():
+    """Initials are the part of a signature meant to be read. A monogram whose
+    letters had collapsed would be a squiggle with nothing left to identify."""
+    style = signature.Style(1)
+    style.scrawl, style.survives = True, 1
+    assert signature.head_and_tail("LQD", style) == ("LQD", "")
+    assert signature.head_and_tail("LQDao", style) == ("LQD", "ao")
+
+
+def test_the_hand_does_not_pick_the_letters_back_up():
+    """Everything past the first degenerated character goes, spaces included --
+    a hand that has let go does not re-form the next word."""
+    style = signature.Style(1)
+    style.scrawl, style.survives = True, 1
+    head, tail = signature.head_and_tail("Nguyen Thi Bich Ngoc", style)
+    assert head == "N"
+    assert tail == "guyen Thi Bich Ngoc"
+
+
+def test_a_signer_who_does_not_scrawl_keeps_every_letter():
+    style = signature.Style(1)
+    style.scrawl = False
+    assert signature.head_and_tail("Ngoc", style) == ("Ngoc", "")
+
+
+def test_a_ribbon_follows_a_spine_of_more_than_one_segment():
+    """What the scrawl needed: the wave is many segments, not one curve."""
+    spine = signature.polyline([(0.0, 0.0), (1.0, 1.0), (2.0, 0.0), (3.0, 1.0)])
+    contour = signature.ribbon(spine, 0.1, 0.1, samples=6)
+    x0, _y0, x1, _y1 = signature.bounds([contour])
+    assert x1 - x0 == pytest.approx(3.0, abs=0.2)
+    assert len(contour) % 3 == 1
+
+
+def test_the_wave_keeps_the_direction_of_the_letters_it_replaced():
+    """The idea the scrawl is built on: the movement survives the form.
+
+    A degenerated `g` still dives under the baseline and a degenerated `l`
+    still throws a loop over it, so two different tails give two different
+    waves rather than the same squiggle twice.
+
+    Measured on `_scrawl` rather than on a whole mark, which is not fussiness:
+    the enlarged initial is 1.35-2.4 x-heights tall and sets the top of the box
+    whatever the wave does, so a mark-level assertion about height compares two
+    capitals and passes or fails for nothing.
+    """
+    _fonts()
+    with signature.Signer(3) as signer:
+        below = signature.bounds(signer._scrawl("gggg", (0.0, 0.0)))
+        above = signature.bounds(signer._scrawl("llll", (0.0, 0.0)))
+    assert below[1] < above[1], "descenders should hang lower than loops"
+    assert above[3] > below[3], "ascenders should reach higher"
+
+
+def test_a_long_name_does_not_get_one_hump_per_letter():
+    """A hand that has given up on nine letters puts down five or six humps
+    and lifts off; the wave is shorter than the name it stands for."""
+    _fonts()
+    with signature.Signer(3) as signer:
+        signer.style.scrawl, signer.style.survives = True, 1
+        short = signer.sign("Nguyen")
+        long = signer.sign("Nguyen Thi Bich Ngoc Mai Lan")
+    assert long.width < short.width * 2.2
+
+
+def test_most_signatures_are_not_readable():
+    """The property that was reported missing, stated as a count.
+
+    Three hundred seeds over five names, because eighty was inside its own
+    noise -- the first version of this asserted a bound it then failed by one
+    mark. Measured on the engine as it stands: 222 degenerate, 39 are short
+    all-capital monograms, 39 keep every letter. The bounds below are those
+    numbers with room, so ordinary re-weighting passes and a drift back toward
+    legible does not.
+
+    Monograms are counted separately and deliberately not held against the
+    engine: three capitals are *meant* to be read, and a signature that is
+    three initials is a real signature rather than a failure to degenerate.
+    """
+    _fonts()
+    ink = signature.Ink(signature.FACES[0]).open()
+    try:
+        scrawled = readable = 0
+        for seed in range(300):
+            signer = signature.Signer(seed, ink=ink)
+            mark = signer.sign(NAMES[seed % len(NAMES)])
+            scrawled += bool(mark.tail)
+            readable += not mark.tail and len(mark.head) > 3
+    finally:
+        ink.close()
+    assert scrawled >= 190, f"only {scrawled}/300 signatures degenerated"
+    assert readable <= 60, f"{readable}/300 signatures are still fully readable"
+
+
 # ------------------------------------------------------------------- style
 
 
