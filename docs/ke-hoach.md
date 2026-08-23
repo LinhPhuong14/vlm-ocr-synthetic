@@ -47,6 +47,10 @@ flowchart LR
 
 **Công:** 2 ngày · **Phụ thuộc:** không · **Giá trị:** ★★★
 
+> **Brief đầy đủ cho agent nhận việc này: [`brief-plan-run.md`](brief-plan-run.md)** —
+> schema đầu vào đã đo, lời gọi SDK chính xác, danh sách cấm, mười test phải
+> viết, và checklist nghiệm thu. Mục dưới đây là bản tóm tắt.
+
 **Mục tiêu.** Biến *"một mục tiêu bằng lời + các số đo đã có"* thành một
 `pipeline.yaml` hợp lệ **kèm lý do**, thay cho việc một người đọc
 `ocr_report.json` rồi tự cân trọng số.
