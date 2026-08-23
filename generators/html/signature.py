@@ -20,8 +20,30 @@ is the one thing about a signature that can be stated as geometry.
 
 So this engine stretches. It takes real letter outlines from the licensed
 handwriting faces in `fonts/hand/` and applies the transformations the survey
-named -- and it invents exactly two marks that are not letters, the terminal
-flourish and the paraph, both of which the survey says are not letters either.
+named -- and it draws three marks that are not letters: the terminal flourish,
+the paraph, and the **scrawl** the body collapses into. The survey says none of
+those three is a letter, which is exactly why they have to be drawn rather than
+set.
+
+## Letters that stop being letters
+
+The scrawl is the part that took two passes to get right, and it is worth
+saying why. Squeezing a letter and fading it leaves it a letter: the first
+version of this engine produced marks that read `Nguyễn Thị Bích Ngọc` in a
+slightly slanted hand, and **a signature you can read like that is not what
+comes back on a form.**
+
+The survey does say what happens instead, in several voices. The body is
+"simplified or abandoned". An illegible signature is normal, and commonest in
+people who sign many times a day -- which is who signs the documents this
+repository generates. And the useful part, from the forensic sources: **the
+movement survives when the form does not.** A degenerated `g` still dives below
+the line; a degenerated `l` still throws a loop above it.
+
+So a mark here has a head that is letters and a tail that is a running wave,
+`head_and_tail` decides where the hand let go, and `_scrawl` builds the wave out
+of the *classes* of the letters it replaces rather than out of noise. That is
+what keeps two different names from collapsing into the same squiggle.
 
 ## The limit, said first
 
@@ -46,6 +68,7 @@ judgement rather than a measurement say so where they are defined.
     aspect       1.8:1 to 3:1 wide -- the boxes the reference corpora capture in
     paraph       an underline or flourish that is part of the mark, not a letter
     legibility   the given name survives; the rest degenerates or is dropped
+    movement     it outlives the form: a dead `g` still dives, a dead `l` loops
     connection   letters run together, and the ligature is a stroke of its own
 
 ## The shape of the code
@@ -53,7 +76,7 @@ judgement rather than a measurement say so where they are defined.
     geometry     cubic contours and warps -- pure Python, no dependency at all
     Ink          letter outlines out of a .ttf, the one part that needs fontTools
     Style        one signer's parameters, drawn from a seed
-    Signer.sign  the composition: stretch, place, connect, flourish, warp
+    Signer.sign  stretch, place, connect, scrawl, warp, flourish, paraph, slant
 
 `fontTools` is imported inside `Ink` and nowhere else, for the reason
 `handwriting.py` gives for its own local imports: the geometry is a pure
@@ -284,20 +307,30 @@ def swell(x0: float, x1: float, k: float):
 
 def ribbon(spine, w0: float, w1: float, *, bulge: float = 0.0,
            samples: int = 26) -> list:
-    """A tapered stroke along one cubic `spine`, as a closed contour.
+    """A tapered stroke along a cubic `spine`, as one closed contour.
 
     The marks a signature has that letters do not -- the ligature between two
-    letters, the terminal sweep, the paraph -- are strokes, not outlines, and
-    this is what turns a centreline into ink. Width runs `w0 -> w1` with
-    `bulge` fattening the middle, which is the pointed-nib behaviour the
-    calligraphy sources describe: thin on the entry, full through the pull,
-    thin again at the lift.
+    letters, the terminal sweep, the paraph, and the scrawl the body collapses
+    into -- are strokes, not outlines, and this is what turns a centreline into
+    ink. Width runs `w0 -> w1` with `bulge` fattening the middle, which is the
+    pointed-nib behaviour the calligraphy sources describe: thin on the entry,
+    full through the pull, thin again at the lift.
+
+    The spine is a polybezier of 3n+1 points like everything else here, so a
+    four-point spine is the one-segment case and a running scrawl is the same
+    call with more points. `samples` is **per segment**, so a longer stroke is
+    not sampled more coarsely than a short one.
     """
+    count = max((len(spine) - 1) // 3, 1)
+    steps = samples * count
     left, right = [], []
-    for index in range(samples + 1):
-        t = index / samples
-        x, y = at(spine, t)
-        tx, ty = tangent(spine, t)
+    for index in range(steps + 1):
+        t = index / steps
+        which = min(int(t * count), count - 1)
+        seg = tuple(spine[which * 3:which * 3 + 4])
+        local = t * count - which
+        x, y = at(seg, local)
+        tx, ty = tangent(seg, local)
         width = (w0 + (w1 - w0) * t + bulge * math.sin(math.pi * t)) / 2.0
         width = max(width, 1e-4)
         left.append((x - ty * width, y + tx * width))
@@ -512,14 +545,36 @@ CAP_STRETCH = (1.35, 2.40)
 
 # What the body does under speed: narrower than it is tall, and shorter as the
 # hand runs on. Both are the survey's "simplification" as geometry.
-BODY_SQUEEZE = (0.55, 0.95)      # horizontal scale on the letters after the first
-BODY_FADE = (0.00, 0.28)         # vertical squeeze accumulated across the mark
+BODY_SQUEEZE = (0.40, 0.88)      # horizontal scale on the letters after the first
+BODY_FADE = (0.04, 0.40)         # vertical squeeze accumulated across the mark
 
 # Connection. A ligature is a stroke in its own right in the survey's account,
 # so `overlap` pulls the letters together and the connector is drawn between
 # them; a signature that is not connected simply has neither.
-OVERLAP = (0.02, 0.20)           # of an advance, taken back between letters
+OVERLAP = (0.05, 0.32)           # of an advance, taken back between letters
 CONNECTED = 0.72                 # of signers; the rest print their mark
+
+# ---- how much of the name stays letters at all ----------------------------
+#
+# The correction that mattered most. Squeezing a letter and fading it leaves it
+# a letter: the first pass at this engine produced marks reading `Nguyễn Thị
+# Bích Ngọc` in a slightly slanted hand, and a signature that can be read like
+# that is not what comes back on a form. The survey does say what happens
+# instead, and says it in several voices: the body is *simplified or
+# abandoned*, an illegible signature is normal and commonest in people who sign
+# many times a day, and -- the useful part -- **the movement survives when the
+# form does not**. A degenerated `g` still dives below the line; a degenerated
+# `l` still throws a loop above it. The letters stop being letters and go on
+# being the same gesture.
+#
+# So a signature here has a head that is letters and a tail that is a running
+# scrawl, and `_scrawl` builds the tail out of the *classes* of the letters it
+# replaces rather than out of noise.
+SCRAWL = 0.90                    # of signers whose body degenerates at all
+SURVIVES = (1, 2)                # letters that keep their shape before it does
+SCRAWL_SLOTS = 6                 # most humps a hand will actually put down
+SCRAWL_STEP = (0.54, 0.95)       # x-heights of travel per slot
+SCRAWL_DECAY = (0.15, 0.55)      # how far the wave has shrunk by the end
 
 # The terminal. `reach` is how far past the last letter it travels and `rise`
 # how far it lifts, both in x-heights. This is the "nét kết thúc được nâng
@@ -532,6 +587,15 @@ RISE = (0.3, 1.8)
 # The other half of the same finding: the run-up into the initial. Rarer than a
 # terminal, because a hand can start on the letter but has to leave it somehow.
 LEAD = 0.45
+
+# Which letters reach above the x-height band and which hang below it. The same
+# two classes `handwriting.extent` reckons with, restated here rather than
+# imported for the reason that module restates its own alphabet: reading them
+# across would pull a renderer's policy in to answer a question about a string.
+# `_scrawl` needs them because a letter that has degenerated keeps its
+# direction -- that is the whole idea it is built on.
+TALL_LETTERS = frozenset("bdhklt")
+TAIL_LETTERS = frozenset("gjpqy")
 
 # The capture aspect the reference corpora use -- GPDS boxes 5x1.8 cm and
 # 4.5x2.5 cm, so 1.8:1 to 2.8:1 -- rounded out to 3. Nothing is forced into it;
@@ -572,8 +636,18 @@ class Style:
         # Marks (dấu) survive or are dropped. The survey's simplification
         # finding covers "the diacritic is the first thing a fast hand loses";
         # THE SPLIT IS A JUDGEMENT, not a count.
-        self.marks = rng.random() < 0.45
+        # Marks are dropped far more often than they are kept: a hand moving
+        # fast enough to abandon the letters is not going back for the dấu.
+        self.marks = rng.random() < 0.20
+        self.scrawl = rng.random() < SCRAWL
+        self.survives = rng.randint(*SURVIVES)
+        self.step = rng.uniform(*SCRAWL_STEP)
+        self.decay = rng.uniform(*SCRAWL_DECAY)
         self.bow = _bow(rng, self.baseline)
+        # One number per slot of the scrawl, drawn here for the reason `wobble`
+        # is: a mark is a pure function of `(seed, name)`, and a draw taken
+        # while the wave is being laid down would break that.
+        self.pulse = tuple(rng.random() for _ in range(SCRAWL_SLOTS * 2))
         # The paraph's own wobble, drawn HERE rather than while it is being
         # laid down. Everything a signer is has to be settled by the end of
         # this constructor: a mark is a pure function of `(seed, name)`, and it
@@ -593,7 +667,7 @@ class Style:
         return {"face": self.face, "legibility": self.legibility,
                 "baseline": self.baseline, "paraph": self.paraph,
                 "connected": self.connected, "flourish": self.flourish,
-                "lead": self.lead,
+                "lead": self.lead, "scrawl": self.scrawl,
                 "slant_deg": round(math.degrees(math.atan(self.slant)), 1),
                 "marks": self.marks}
 
@@ -678,6 +752,33 @@ def letters_of(name: str, style: Style) -> str:
     return text if style.marks else undiacritic(text)
 
 
+def head_and_tail(text: str, style: "Style") -> tuple:
+    """`(letters that stay letters, letters that become a wave)`.
+
+    Three rules, and each is something the survey says rather than something
+    that looked right:
+
+    * the first `survives` characters are formed, because a hand starts a
+      signature deliberately and lets go of it afterwards -- "simplification is
+      a continuous process";
+    * **a capital never degenerates.** Initials are the part of a signature
+      meant to be read, and a monogram whose letters had collapsed would be a
+      squiggle with nothing left to identify it;
+    * once the hand has let go it does not pick the letters back up, so the
+      tail is everything from the first degenerated character on, spaces
+      included.
+    """
+    if not style.scrawl:
+        return text, ""
+    kept = 0
+    for index, char in enumerate(text):
+        if index < style.survives or char.isupper() or char.isspace():
+            kept = index + 1
+        else:
+            break
+    return text[:kept], text[kept:]
+
+
 # ------------------------------------------------------------------- marks
 
 
@@ -689,11 +790,17 @@ class Mark:
     separately would be a caller that could paint them wrong.
     """
 
-    def __init__(self, path: list, style: Style, text: str, name: str):
+    def __init__(self, path: list, style: Style, text: str, name: str,
+                 head: str = "", tail: str = ""):
         self.path = path
         self.style = style
         self.text = text
         self.name = name
+        # What stayed letters and what became a wave. In the label because it
+        # is the one honest answer to "how much of this is readable" -- and a
+        # reader-training set wants to know that about its own ink.
+        self.head = head or text
+        self.tail = tail
         self.box = bounds(path)
 
     @property
@@ -711,12 +818,13 @@ class Mark:
     def report(self) -> dict:
         report = self.style.report()
         report.update({"name": self.name, "drawn": self.text,
+                       "legible": self.head, "degenerated": self.tail,
                        "aspect": round(self.aspect, 2),
                        "in_capture_box": ASPECT[0] <= self.aspect <= ASPECT[1]})
         return report
 
     def __repr__(self) -> str:
-        return (f"<Mark {self.text!r} {self.style.legibility}/"
+        return (f"<Mark {self.head!r}+{len(self.tail)} {self.style.legibility}/"
                 f"{self.style.baseline}/{self.style.paraph} "
                 f"aspect={self.aspect:.2f}>")
 
@@ -756,34 +864,48 @@ class Signer:
     def sign(self, name: str) -> Mark:
         """The whole engine, in the order a hand does it.
 
-        Stretch and place the letters, run the ligatures between them, warp
-        the line they sit on, pull the terminal out, then lay the paraph under
-        the finished thing. The order is not cosmetic: the flourish leaves the
-        last letter *after* the baseline has bowed, so it leaves from where the
-        letter actually ended up, and the paraph is measured against the mark
-        including its flourish -- an underline that stopped short of the
-        terminal sweep would read as two marks rather than one.
+        Stretch and place the letters the hand still forms, run the ligatures
+        between them, let the rest collapse into a wave, warp the line they all
+        sit on, pull the terminal out, then lay the paraph under the finished
+        thing.
+
+        The order is not cosmetic. The scrawl leaves the last formed letter, so
+        it has to be built before the warps rather than after -- it rides the
+        baseline with the letters instead of being laid across it. The flourish
+        leaves the mark *after* the baseline has bowed, so it leaves from where
+        the ink actually ended up. And the paraph is measured against the whole
+        mark including its flourish: an underline that stopped politely short of
+        the terminal sweep would read as two marks rather than one.
         """
         style = self.style
         text = letters_of(name, style)
         if not text.strip():
             raise ValueError(f"nothing to sign in {name!r}")
+        head, tail = head_and_tail(text, style)
 
-        glyphs = self._letters(text)
+        glyphs = self._letters(head)
         if not glyphs:
-            raise ValueError(f"the face has no glyph for anything in {text!r}")
+            # Every character of the head was outside the face. Falling back to
+            # a scrawl alone would be a mark that stands for nothing, so this
+            # is an error the caller sees rather than ink nobody can account
+            # for -- `fill` counts it and leaves the block blank.
+            raise ValueError(f"the face has no glyph for anything in {head!r}")
 
         path = [contour for _box, sub, _char in glyphs for contour in sub]
         if style.connected:
             path += self._connectors(glyphs)
         if style.lead:
             path += self._lead(glyphs[0][1])
+        if tail:
+            last = glyphs[-1][0]
+            path += self._scrawl(tail, (last[2] - self.ink.stem() * 0.5, last[1]))
 
-        path = self._warp(path, len(glyphs))
+        path = self._warp(path, len(glyphs) + len(tail))
         if style.flourish:
             path += self._terminal(path)
         path += self._paraph(path)
-        return Mark(mapped(path, affine(shear=style.slant)), style, text, name)
+        return Mark(mapped(path, affine(shear=style.slant)), style, text, name,
+                    head=head, tail=tail)
 
     def _letters(self, text: str) -> list:
         """Each letter stretched to its role and set down at the pen's x.
@@ -812,8 +934,113 @@ class Signer:
             x0 = bounds(outline)[0]
             placed = mapped(outline, affine(sx, sy, dx=pen - x0 * sx))
             drawn.append((bounds(placed), placed, char))
-            pen += advance * sx - (0.0 if initial else style.overlap * advance)
+            # Capitals are pulled together harder than lowercase. `_connectors`
+            # refuses to join two of them -- a print face gives them no exit
+            # stroke -- so overlap is the only thing that can make a monogram
+            # read as one mark instead of three letters set side by side.
+            close = style.overlap * (1.35 if char.isupper() and not initial else 1.0)
+            pen += advance * sx - (0.0 if initial else min(close, 0.38) * advance)
         return drawn
+
+    def _scrawl(self, tail: str, start: tuple) -> list:
+        """The body once it has stopped being letters: one running stroke.
+
+        Built from the *classes* of the characters it replaces, not from noise.
+        The forensic sources make the point that what identifies a hand is the
+        movement rather than the form, and it survives the form: a `g` that has
+        degenerated still dives below the line and an `l` still throws a loop
+        above it. So each dead character contributes one slot, and its slot is
+        chosen by what the letter would have done -- which is why the scrawl for
+        "uyễn" and the scrawl for "ọc" are different scrawls rather than the
+        same squiggle twice.
+
+        The wave is **shorter than the name it stands for**. A hand that has
+        given up on nine letters does not put down nine humps; it puts down
+        five or six and lifts off. `SCRAWL_SLOTS` caps it, and the cap samples
+        the classes evenly rather than truncating, so a descender near the end
+        of a long name still reaches the paper.
+        """
+        style = self.style
+        slots = [char for char in tail if not char.isspace()]
+        if not slots:
+            return []
+        if len(slots) > SCRAWL_SLOTS:
+            step = len(slots) / SCRAWL_SLOTS
+            slots = [slots[min(int(index * step), len(slots) - 1)]
+                     for index in range(SCRAWL_SLOTS)]
+
+        width = self.ink.stem()
+        x, foot = start
+        spine = [(x, foot)]
+        for index, char in enumerate(slots):
+            # Amplitude decays along the wave: the hand is running down, which
+            # is the same finding `fade` applies to the letters.
+            scale = 1.0 - style.decay * (index / max(len(slots) - 1, 1))
+            # Two independent draws: one for how far this slot travels, one for
+            # how high it reaches. Sharing one number made width and height
+            # rise and fall together, and a wave whose humps all grow at once
+            # is a sawtooth rather than writing.
+            wide = style.pulse[(index * 2) % len(style.pulse)]
+            jog = style.pulse[(index * 2 + 1) % len(style.pulse)]
+            step = style.step * (0.62 + 0.78 * wide)
+            plain = undiacritic(char).lower()
+            if plain in TAIL_LETTERS:
+                spine += self._slot_down(x, foot, step, scale, jog)
+            elif plain in TALL_LETTERS or char.isupper():
+                spine += self._slot_up(x, foot, step, scale, jog)
+            elif jog < 0.22:
+                # A letter that has gone completely: barely a ripple.
+                spine += self._slot_hump(x, foot, step, scale * 0.34, jog)
+            else:
+                spine += self._slot_hump(x, foot, step, scale, jog)
+            x += step
+        # Lighter than the letters and never fattened in the middle. A hand
+        # that has stopped forming letters has stopped pressing too, and a
+        # steep wave stroked at full width closes its own gaps into a wedge --
+        # which is exactly what the first attempt at this drew.
+        return [ribbon(spine, width * 0.58, width * 0.36, samples=12)]
+
+    @staticmethod
+    def _slot_hump(x: float, foot: float, step: float, scale: float,
+                   jog: float) -> list:
+        """`n`, `m`, `u`, `a`, `o`, `e` -- an arch up and back to the line.
+
+        The calligraphy sources' overturn-into-underturn, which is what most
+        lowercase letters are once the detail that told them apart is gone.
+        """
+        rise = (0.38 + 0.52 * jog) * scale
+        return [(x + step * 0.08, foot + rise * 0.92),
+                (x + step * 0.92, foot + rise),
+                (x + step, foot + 0.03 * scale)]
+
+    @staticmethod
+    def _slot_up(x: float, foot: float, step: float, scale: float,
+                 jog: float) -> list:
+        """`b d h k l t` and any capital: a loop thrown above the band.
+
+        Two segments, and they cross -- the second control leans back left of
+        where the first left off, which is what makes an ascender loop a loop
+        rather than a spike.
+        """
+        top = foot + (1.20 + 0.50 * jog) * scale
+        return [(x - step * 0.30, foot + (top - foot) * 0.55),
+                (x + step * 0.34, top),
+                (x + step * 0.52, foot + (top - foot) * 0.72),
+                (x + step * 0.66, foot + (top - foot) * 0.42),
+                (x + step * 0.90, foot + 0.10 * scale),
+                (x + step, foot + 0.03 * scale)]
+
+    @staticmethod
+    def _slot_down(x: float, foot: float, step: float, scale: float,
+                   jog: float) -> list:
+        """`g j p q y`: a loop dropped below the line and pulled back up."""
+        drop = foot - (0.55 + 0.30 * jog) * scale
+        return [(x + step * 0.10, foot + 0.30 * scale),
+                (x + step * 0.46, drop * 0.55 + foot * 0.45),
+                (x + step * 0.30, drop),
+                (x + step * 0.14, drop),
+                (x + step * 0.86, drop * 0.30 + foot * 0.70),
+                (x + step, foot + 0.05 * scale)]
 
     def _lead(self, glyph: list) -> list:
         """The entry stroke into the initial, swung up from below and left.
@@ -1044,7 +1271,7 @@ def sheet(names: list, seeds: list, *, colour: str = PEN,
 
 def seed_label(mark: Mark, seed: int) -> str:
     style = mark.style
-    return (f"{seed} {style.legibility[:4]} {style.baseline[:4]} "
+    return (f"{seed} {mark.head}+{len(mark.tail)} {style.baseline[:4]} "
             f"{style.paraph[:4]} {mark.aspect:.1f}")
 
 
@@ -1231,9 +1458,11 @@ def main() -> int:
 
 __all__ = [
     "ASPECT", "BASELINE", "CAP_STRETCH", "CSS", "FACES", "LEAD", "LEGIBILITY",
-    "OVERLAP", "PARAPH", "PEN", "SLANT", "WHO", "Ink", "Mark", "Signer",
+    "OVERLAP", "PARAPH", "PEN", "SCRAWL", "SLANT", "SURVIVES", "WHO",
+    "Ink", "Mark", "Signer",
     "Style", "affine", "at", "bounds", "bow", "d", "fade", "fill",
-    "letters_of", "line_controls", "mapped", "mark_span", "parts_of",
+    "head_and_tail", "letters_of", "line_controls", "mapped", "mark_span",
+    "parts_of",
     "polyline", "ribbon", "sheet", "subdivided", "svg", "swell", "tangent",
     "undiacritic", "view",
 ]
