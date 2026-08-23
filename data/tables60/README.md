@@ -62,6 +62,7 @@ tables60/
 ├── html/*.html         the page each was screenshotted from
 ├── gt.txt              the PP-Structure label file, as that format defines it
 ├── metadata.jsonl      the same labels in this repository's shape
+├── synthesis.json      how each image was made: its seed and its border style
 └── README.md
 ```
 
@@ -80,14 +81,15 @@ One line of `metadata.jsonl`:
               "text": "Phạm Thị Bích", "quad": [[5,8],[180,8],[180,74],[5,74]]}],
   "markdown": "",
   "html": "<html><body><table><tr><td colspan=\"3\">Phạm Thị Bích</td>…",
-  "extracted": null,
-  "synthesis": {
-    "structure_tokens": ["<tr>", "<td", " colspan=\"3\"", ">", "</td>", …],
-    "cells": [{"tokens": ["P","h","ạ","m"," ","T","h","ị"," ","B","í","c","h"],
-               "bbox": [[[5,8],[180,8],[180,74],[5,74]]]}],
-    "n_cells": 39
-  }
+  "extracted": null
 }
+```
+
+...and its entry in `synthesis.json` beside it:
+
+```json
+"img/border_0002.jpg": {"job_id": "…", "seed": 4102, "layout": "border",
+                        "attributes": {}, "tags": [], "n_cells": 39}
 ```
 
 Three of those are the table's own answers to a document page's questions. A
@@ -96,10 +98,15 @@ structure, so the PP-Structure `gt` string goes where a page's markup goes; and
 there is no honest markdown for a grid of merged cells, so `markdown` is empty
 rather than invented.
 
-Inside `synthesis.cells`, `bbox` holds the quad rather than being it. That
+A table has no rule-base recipe, so its `attributes` are empty and its `layout`
+is the border style — the axis a table set is actually reported along. The
+structure tokens and the cell boxes are the *label*, not provenance, so they
+stay in `gt.txt`, where PP-Structure readers already look.
+
+Inside `gt.txt`, a cell's `bbox` holds the quad rather than being it. That
 nesting is upstream's and is kept on purpose: the only value this format has is
-that other tools already read it. The block's own `bbox` is the converter's
-flat `{x1, y1, x2, y2}`, and its `quad` is the same corners the cell carries.
+that other tools already read it. A block's own `bbox` is the converter's flat
+`{x1, y1, x2, y2}`, and its `quad` is the same corners the cell carries.
 
 ## The text is Vietnamese, and now it is words
 

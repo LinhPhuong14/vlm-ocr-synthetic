@@ -74,7 +74,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from pipeline import invariants, record
+from pipeline import invariants, record, synthesis
 from pipeline.invariants import UNCHECKED
 
 # What `quality.drift_tolerance` means, in one sentence: the share of draws that
@@ -207,6 +207,16 @@ def shard_vector(directory: Path, shard: dict, *,
                           f"so no quality vector was computed"],
         }
     records = record.read(metadata)
+    # How each page was made, from beside the index. `read_if_there` rather than
+    # `read`: a shard with no provenance is a thing to report on the vector, not
+    # a thing to stop the run over -- the attribute axes come out empty and
+    # `unchecked` says why.
+    drew = synthesis.read_if_there(directory)
+    if len(drew) < len(records):
+        unchecked.append(
+            f"{UNCHECKED} shard {shard.get('index')} has provenance for "
+            f"{len(drew)} of {len(records)} images, so its attribute shares are "
+            f"drawn from fewer pages than it holds")
 
     attributes: dict[str, Counter] = {}
     layouts: Counter = Counter()
@@ -216,13 +226,14 @@ def shard_vector(directory: Path, shard: dict, *,
     pixels: list[int] = []
 
     for item in records:
-        for name, value in record.attributes(item).items():
-            attributes.setdefault(name, Counter())[str(value.get("id"))] += 1
-        layouts[record.layout(item)] += 1
+        name = record.file_name(item)
+        for attribute, identifier in (drew.entry(name).get("attributes") or {}).items():
+            attributes.setdefault(attribute, Counter())[str(identifier)] += 1
+        layouts[drew.layout(name) if name in drew else "?"] += 1
         # Absent means `corpus`: W2 has no other source, and defaulting keeps
         # the axis readable now rather than empty until W6 fills it in.
-        sources[record.content_source(item, PRIMARY_SOURCE)] += 1
-        text = record.text_sequence(item)
+        sources[drew.content_source(name, PRIMARY_SOURCE)] += 1
+        text = drew.text_sequence(name)
         lengths.append(len(text))
         diacritics += 1 if has_diacritics(text) else 0
         # Off the image, not off the record. The record says how big the page

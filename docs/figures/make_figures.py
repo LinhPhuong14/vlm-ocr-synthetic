@@ -46,7 +46,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from pipeline import record  # noqa: E402
+from pipeline import record, synthesis  # noqa: E402
 
 AGED = REPO_ROOT / "data" / "dataset60"
 CLEAN = REPO_ROOT / "data" / "dataset60_clean"
@@ -139,8 +139,9 @@ def figure_families(source: Path, out: Path, framework: str = "html") -> None:
     """One page per layout family — the shape of the space, not a sample of it."""
     by_family: dict[str, dict] = {}
     mapping = families()
+    drew = synthesis.read(source / framework)
     for row in records(source, framework):
-        family = mapping.get(record.layout(row), "")
+        family = mapping.get(drew.layout(record.file_name(row)), "")
         by_family.setdefault(family, row)
     if len(by_family) < 2:
         print(f"[skip] families.jpg: {source} covers {len(by_family)} family; "
@@ -148,7 +149,7 @@ def figure_families(source: Path, out: Path, framework: str = "html") -> None:
         return
     panels = [
         caption(read(source, framework, record.file_name(row)),
-                f"{family}  |  {record.layout(row)}")
+                f"{family}  |  {drew.layout(record.file_name(row))}")
         for family, row in sorted(by_family.items())
     ]
     save(tile(panels), out / "families.jpg")
@@ -159,8 +160,10 @@ def figure_renderers(aged: Path, out: Path, index: int = 0) -> None:
     panels = []
     for framework in FRAMEWORKS:
         row = records(aged, framework)[index]
-        image = read(aged, framework, record.file_name(row))
-        panels.append(caption(image, f"{framework}  {record.layout(row)}  "
+        name = record.file_name(row)
+        image = read(aged, framework, name)
+        layout = synthesis.read(aged / framework).layout(name)
+        panels.append(caption(image, f"{framework}  {layout}  "
                                      f"{image.shape[1]}x{image.shape[0]}"))
     save(tile(panels), out / "renderers.jpg")
 
@@ -171,8 +174,10 @@ def figure_ageing(aged: Path, clean: Path, out: Path, index: int = 0) -> None:
     for framework in FRAMEWORKS:
         clean_row = records(clean, framework)[index]
         aged_row = records(aged, framework)[index]
-        clean_ids = {k: v["id"] for k, v in record.attributes(clean_row).items()}
-        aged_ids = {k: v["id"] for k, v in record.attributes(aged_row).items()}
+        clean_ids = dict(synthesis.read(clean / framework)
+                         .entry(record.file_name(clean_row))["attributes"])
+        aged_ids = dict(synthesis.read(aged / framework)
+                        .entry(record.file_name(aged_row))["attributes"])
         differing = {k for k in aged_ids if aged_ids[k] != clean_ids.get(k)}
         # The whole claim of this figure. If the two sets ever stop differing in
         # exactly the augmentation, it is not a before/after any more.

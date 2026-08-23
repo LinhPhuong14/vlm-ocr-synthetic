@@ -6,15 +6,9 @@ fifth of it. This is the one definition: `build` assembles a record, `validate`
 is called on the way out, and every reader goes through the accessors at the
 bottom rather than reaching for a key by name.
 
-**The shape is the converter's, not the generator's.** A page produced here is
-meant to stand in for a page that came back from the document converter --
-`schema_version`, `job_id`, `task`, `parser`, `filename`, `source_files`,
-`settings`, `documents`, `pages`, `blocks`, `markdown`, `html`, `extracted` --
-so training and evaluation code reads one shape whether the page was drawn or
-scanned. What the generator knows and a converter cannot (the seed, the six
-sampled attributes, the flat reading order) is kept, under one additive
-`synthesis` key that a converter-shaped loader ignores and that
-`tools/migrate_metadata.py` carries across from the old records.
+**The shape is the converter's, and only the converter's.** A page produced
+here is meant to stand in for a page that came back from the document converter,
+so a line carries what a converted line carries and nothing else:
 
     schema_version  8 -- the converter's schema this shape follows
     job_id          uuid5 of parser|layout|seed|filename: same page, same id
@@ -29,7 +23,16 @@ sampled attributes, the flat reading order) is kept, under one additive
     markdown        the page as markdown, built from the blocks
     html            the same, as HTML
     extracted       the CORD-style nested label as an object (was `ground_truth`)
-    synthesis       framework, layout, recipe, text_sequence, and the extras
+
+**How the page was made is not in here.** The seed, the six sampled attributes
+and their params, the flat reading order: none of that is something a converter
+could return, and most of it is the same text on every page of a run --
+`ornament` and `augmentation` describe a *background*, and twenty pages sharing
+one chain wrote that chain out twenty times. It lives in `synthesis.json` beside
+the index instead, params written once per option id, joined back to a line by
+its `job_id` or its file name. `pipeline/synthesis.py` is that file, and
+`Synthesis.recipe()` hands back exactly the `recipe.to_dict()` the rule-base
+produced.
 
 **Why a block keeps `kind`, `text` and `quad` beside `label`, `bbox` and
 `content`.** The converter's block is a region of a page and its label is one of
@@ -134,6 +137,8 @@ HTML_TAG = {"Title": "h1", "Section-header": "h2", "Page-header": "p",
 #   keep_header_footer  True  -- the label carries them, so they are not dropped
 #   convert_mode        the renderer, same value as `parser`
 #   retry_repeat        False -- a page is drawn once; a repeat is a bug
+#   max_pixels          null -- no cap: the page was drawn at the size it is,
+#                       not resized to fit one. Its size is in `pages[0]`
 #   segment_document_mode  "single" -- one image, one page, no segmentation
 #   segment_output_format  "standard"
 #   target_language     Vietnamese; the corpus is, including the folded layouts
@@ -144,7 +149,7 @@ BASE_SETTINGS: dict[str, Any] = {
     "keep_header_footer": True,
     "convert_mode": "",
     "retry_repeat": False,
-    "max_pixels": 0,
+    "max_pixels": None,
     "segment_document_mode": "single",
     "segment_output_format": "standard",
     "target_language": "Vietnamese",
@@ -156,17 +161,12 @@ BASE_SETTINGS: dict[str, Any] = {
 # order, so a record built here reads down the page the way the sample does.
 ORDER = ("schema_version", "job_id", "task", "parser", "filename", "source_files",
          "settings", "documents", "pages", "blocks", "markdown", "html",
-         "extracted", "synthesis")
+         "extracted")
 
-# Written by the renderers themselves.
-RENDERER_KEYS = {"schema_version", "job_id", "task", "parser", "filename",
-                 "source_files", "settings", "documents", "pages", "blocks",
-                 "markdown", "html", "extracted", "synthesis"}
-# Added by whatever assembles the dataset: which layout the plan asked for.
-# `parser` is the renderer's own name and it knows it, so unlike the old
-# `framework` it is there from the start.
-ASSEMBLY_KEYS = {"synthesis.layout"}
-REQUIRED = RENDERER_KEYS
+# Every key, and there is no second set: a line has these and nothing else, so
+# a record that grew one is as wrong as a record that lost one. That is checked
+# rather than described -- see `validate`.
+REQUIRED = frozenset(ORDER)
 
 
 class RecordError(ValueError):
@@ -263,7 +263,7 @@ def rows(blocks: Iterable[dict[str, Any]]) -> list[list[dict[str, Any]]]:
     a row: a title beside a date is still a title.
 
     **Down the page, then across it -- not the order the renderer drew in.**
-    `synthesis.text_sequence` keeps the canonical order the label is built in,
+    `synthesis.json` keeps the canonical `text_sequence` the label is built in,
     which is a different thing and stays a different thing: a form draws its
     left column and then its right, so drawn order puts every label in one run
     and every value in another, and the markdown would read as two lists rather
@@ -343,24 +343,18 @@ def field_paths(extracted: Any, prefix: str = "") -> list[str]:
 
 def build(*, filename: str, width: int, height: int, parser: str,
           boxes: Iterable[dict[str, Any]] = (), extracted: Any = None,
-          text_sequence: str = "", recipe: dict[str, Any] | None = None,
-          layout: str = "", task: str = TASK_CONVERT,
-          settings: dict[str, Any] | None = None,
-          synthesis: dict[str, Any] | None = None) -> dict[str, Any]:
+          seed: Any = "", layout: str = "", task: str = TASK_CONVERT,
+          settings: dict[str, Any] | None = None) -> dict[str, Any]:
     """One metadata line, assembled once so the three renderers cannot drift.
 
-    `layout` is left empty by a renderer and filled in by `attach`, which is
-    where the plan's own name for the layout is known; the drawn layout is in
-    the recipe either way and `pipeline/worker.py` checks the two against each
-    other rather than trusting one.
+    `seed` and `layout` are not written down -- they are in `synthesis.json` --
+    but the `job_id` is a function of both, so they are asked for here and again
+    in `stamp`, which is the only other place that id is derived.
     """
-    recipe = recipe or {}
-    seed = recipe.get("seed", "")
     blocks = blocks_from_boxes(boxes)
 
     options = {**BASE_SETTINGS, **(settings or {})}
     options["convert_mode"] = parser
-    options["max_pixels"] = int(width) * int(height)
     options["extract_fields"] = field_paths(extracted)
 
     return {
@@ -389,49 +383,29 @@ def build(*, filename: str, width: int, height: int, parser: str,
         "markdown": markdown_of(blocks),
         "html": html_of(blocks),
         "extracted": extracted,
-        # What the converter has no field for and this repository cannot lose:
-        # the seed and the six sampled attributes, without which no page can be
-        # drawn again, and the flat reading order the OCR scoring reads.
-        "synthesis": {
-            "framework": parser,
-            "layout": layout,
-            "recipe": recipe,
-            "text_sequence": text_sequence,
-            **(synthesis or {}),
-        },
     }
 
 
-def attach(item: dict[str, Any], *, framework: str = "",
-           layout: str = "") -> dict[str, Any]:
-    """Fill in what the dataset knows and the renderer did not, in place.
+def stamp(item: dict[str, Any], *, parser: str, layout: str, seed: Any,
+          filename: str) -> dict[str, Any]:
+    """Say again whose page this is, in place, and re-derive the id from it.
 
-    The `job_id` is re-derived, because it is a function of the four things this
-    may have just changed.
+    A shard renames every image as it moves it out of staging and attaches the
+    layout the plan asked for, and four fields follow: `parser`,
+    `settings.convert_mode`, `filename` with its `source_files`, and the
+    `job_id`, which is a function of all four.
+
+    All four are arguments rather than read back off the record, because two of
+    them -- the layout and the seed -- are not on it: they are in
+    `synthesis.json`, and the caller renaming a page is the caller that has
+    them.
     """
-    synthesis = item.setdefault("synthesis", {})
-    if framework:
-        item["parser"] = framework
-        synthesis["framework"] = framework
-        (item.setdefault("settings", {}))["convert_mode"] = framework
-    if layout:
-        synthesis["layout"] = layout
-    item["job_id"] = job_id(str(item.get("parser", "")), str(synthesis.get("layout", "")),
-                            (synthesis.get("recipe") or {}).get("seed", ""),
-                            str(item.get("filename", "")))
+    item["parser"] = parser
+    item.setdefault("settings", {})["convert_mode"] = parser
+    item["filename"] = filename
+    item["source_files"] = [filename]
+    item["job_id"] = job_id(parser, layout, seed, filename)
     return item
-
-
-def rename(item: dict[str, Any], name: str) -> dict[str, Any]:
-    """Point the record at the file the dataset gave it, in place.
-
-    A shard renames every image as it moves it out of staging, and three fields
-    follow the name: `filename`, `source_files`, and the `job_id` derived from
-    it.
-    """
-    item["filename"] = name
-    item["source_files"] = [name]
-    return attach(item)
 
 
 # ------------------------------------------------------------------- checking
@@ -440,12 +414,19 @@ def rename(item: dict[str, Any], name: str) -> dict[str, Any]:
 def validate(record: dict[str, Any], *, strict: bool = True) -> list[str]:
     """Everything wrong with one record, most important first.
 
-    `strict=False` allows a record straight from a renderer, before the plan's
-    layout name has been attached.
+    A key that is *not* in the schema is as wrong as one that is missing.
+    That is the whole point of the shape: a line is what a converted page
+    looks like, and a generator that quietly appended its own key to it would
+    put this repository's business back in a file that is meant to be free of
+    it. `strict=False` is kept for a caller checking a record still being
+    assembled, and today relaxes nothing else.
     """
     problems: list[str] = []
     for key in sorted(REQUIRED - set(record)):
         problems.append(f"missing key {key!r}")
+    for key in sorted(set(record) - REQUIRED):
+        problems.append(f"{key!r} is not in the converter's schema; how a page "
+                        f"was made belongs in synthesis.json")
 
     if record.get("schema_version") != SCHEMA_VERSION:
         problems.append(f"schema_version must be {SCHEMA_VERSION}, "
@@ -474,36 +455,14 @@ def validate(record: dict[str, Any], *, strict: bool = True) -> list[str]:
             elif not (int(page["width"]) > 0 and int(page["height"]) > 0):
                 problems.append("pages[0] has no size, so no bbox can be checked")
 
-    # A drawn document page carries a recipe and a nested label; a table image
-    # carries neither, and `generators/html/tables.py` says so with its own
-    # `task`. Asking a table for a `total` it has no notion of is how a shared
-    # envelope turns into a lie, so the two are checked for different things.
-    drawn = record.get("task") == TASK_CONVERT
-
-    synthesis = record.get("synthesis")
-    if synthesis is not None:
-        if not isinstance(synthesis, dict):
-            problems.append("synthesis must be a mapping")
-        else:
-            recipe = synthesis.get("recipe")
-            if drawn:
-                if not isinstance(recipe, dict):
-                    problems.append("synthesis.recipe must be a mapping")
-                else:
-                    if "seed" not in recipe:
-                        problems.append(
-                            "recipe has no seed, so the image cannot be rebuilt")
-                    if not recipe.get("attributes"):
-                        problems.append("recipe has no attributes")
-                if strict and not synthesis.get("layout"):
-                    problems.append("synthesis.layout is empty; nothing attached it")
-            if not synthesis.get("framework"):
-                problems.append("synthesis.framework is empty; nothing attached it")
-
     if not record.get("parser"):
         problems.append("parser is empty; nothing said which renderer drew it")
 
-    if drawn:
+    # A drawn document page carries a nested label; a table image does not, and
+    # `generators/html/tables.py` says so with its own `task`. Asking a table
+    # for a `total` it has no notion of is how a shared envelope turns into a
+    # lie, so the two are checked for different things.
+    if record.get("task") == TASK_CONVERT:
         value = record.get("extracted")
         if not isinstance(value, dict) or not value:
             problems.append("extracted must be the nested label, as an object")
@@ -589,44 +548,11 @@ def ground_truth(item: dict[str, Any]) -> str:
     return json.dumps({"gt_parse": extracted(item)}, ensure_ascii=False)
 
 
-def synthesis_of(item: dict[str, Any]) -> dict[str, Any]:
-    value = item.get("synthesis")
-    return value if isinstance(value, dict) else {}
-
-
-def recipe(item: dict[str, Any]) -> dict[str, Any]:
-    value = synthesis_of(item).get("recipe")
-    return value if isinstance(value, dict) else {}
-
-
-def attributes(item: dict[str, Any]) -> dict[str, Any]:
-    value = recipe(item).get("attributes")
-    return value if isinstance(value, dict) else {}
-
-
-def text_sequence(item: dict[str, Any]) -> str:
-    return str(synthesis_of(item).get("text_sequence", ""))
-
-
 def framework(item: dict[str, Any]) -> str:
-    return str(item.get("parser") or synthesis_of(item).get("framework", ""))
-
-
-def layout(item: dict[str, Any]) -> str:
-    """The plan's layout, falling back to the one the recipe says was drawn."""
-    named = synthesis_of(item).get("layout")
-    if named:
-        return str(named)
-    return str((attributes(item).get("layout") or {}).get("id", "?"))
-
-
-def drawn_layout(item: dict[str, Any]) -> str:
-    """What the recipe says was drawn, with no fallback to the plan's name."""
-    return str((attributes(item).get("layout") or {}).get("id", ""))
-
-
-def content_source(item: dict[str, Any], default: str = "") -> str:
-    return str(synthesis_of(item).get("content_source", default))
+    """Which renderer drew it. The recipe, the layout and the reading order are
+    not here any more -- they are in `synthesis.json`, and
+    `pipeline/synthesis.py` reads them by file name."""
+    return str(item.get("parser", ""))
 
 
 def page_size(item: dict[str, Any]) -> tuple[int, int]:
@@ -636,29 +562,23 @@ def page_size(item: dict[str, Any]) -> tuple[int, int]:
 
 
 __all__ = [
-    "ASSEMBLY_KEYS",
     "BASE_SETTINGS",
     "DEFAULT_LABEL",
     "JOB_NAMESPACE",
     "LABELS",
     "ORDER",
     "PAGE_LABELS",
-    "RENDERER_KEYS",
     "REQUIRED",
     "SCHEMA_VERSION",
     "TASK_CONVERT",
     "TASK_TABLE",
     "RecordError",
-    "attach",
-    "attributes",
     "bbox_of",
     "blocks_from_boxes",
     "block_content",
     "boxes",
     "build",
     "check",
-    "content_source",
-    "drawn_layout",
     "extracted",
     "field_paths",
     "file_name",
@@ -667,15 +587,11 @@ __all__ = [
     "html_of",
     "job_id",
     "label_for",
-    "layout",
     "markdown_of",
     "page_size",
     "read",
-    "recipe",
-    "rename",
+    "stamp",
     "rows",
-    "synthesis_of",
-    "text_sequence",
     "validate",
     "write",
 ]

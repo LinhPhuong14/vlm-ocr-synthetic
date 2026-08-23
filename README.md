@@ -451,16 +451,58 @@ and eight still produce byte-identical output.
 
 ## What comes out
 
-One `metadata.jsonl` line per image, the same shape from every renderer, its
-keys fixed by [`pipeline/record.py`](pipeline/record.py) and validated on the
-way out.
+**Two files per backend directory**, and they are two files on purpose:
 
-**The shape is the document converter's, not this generator's.** A drawn page
-comes back in the schema a converted page comes back in — `schema_version`,
-`job_id`, `task`, `parser`, `filename`, `settings`, `pages`, `blocks`,
-`markdown`, `html`, `extracted` — so training and evaluation code reads one
-shape whether the page was drawn here or scanned somewhere else, and a synthetic
-set can be mixed into a real one without a translation layer in between.
+```
+data/dataset60/html/
+    html_000.jpg …       the images
+    metadata.jsonl       one line per image — what a converted page looks like
+    synthesis.json       how those images were made — what no converter could say
+```
+
+`metadata.jsonl` is the **document converter's schema and nothing else**:
+`schema_version`, `job_id`, `task`, `parser`, `filename`, `source_files`,
+`settings`, `documents`, `pages`, `blocks`, `markdown`, `html`, `extracted`.
+Training and evaluation code reads one shape whether the page was drawn here or
+scanned somewhere else, and a synthetic set drops into a real one with no
+translation layer in between. The keys are fixed by
+[`pipeline/record.py`](pipeline/record.py) and validated on the way out — a key
+that is *not* in the schema is as much an error as one that is missing.
+
+`synthesis.json` holds what a converter could never return: the seed, which
+option each of the six attributes drew, the tags, the flat reading order. It
+used to ride in every line, and it did not belong there — `ornament` and
+`augmentation` are recipes for a *background*, and twenty pages sharing one
+chain wrote that chain out twenty times. Here the params behind an option id
+are written **once**, and a page names ids:
+
+```json
+{
+  "schema_version": 8,
+  "framework": "html",
+  "pages": {
+    "html_000.jpg": {
+      "job_id": "c95630e9-…", "seed": 2026, "layout": "eatery_ascii",
+      "attributes": {"document": "street_eatery", "layout": "eatery_ascii",
+                     "visual": "thermal_narrow", "augmentation": "real_paper", "…": "…"},
+      "tags": ["thermal", "till_receipt", "…"],
+      "text_sequence": "NHA HANG - KARAOKE VUON CAU 40-168 HOANG VAN THU …"
+    }
+  },
+  "attributes": {
+    "augmentation": {"real_paper": {"params": {"chain": [["paper_texture", {"…": "…"}]]}}},
+    "layout": {"eatery_ascii": {"group": "retail_receipt", "params": {}}}
+  },
+  "images": 20
+}
+```
+
+[`pipeline/synthesis.py`](pipeline/synthesis.py) reads it, and
+`Synthesis.recipe(filename)` folds the two halves back into exactly the
+`recipe.to_dict()` the rule-base produced — so everything that redraws a page is
+handed what it always was.
+
+One `metadata.jsonl` line, field by field:
 
 | field | |
 | --- | --- |
@@ -469,13 +511,12 @@ set can be mixed into a real one without a translation layer in between.
 | `task` | `convert` for a document page, `table_structure` for a table image |
 | `parser` | which renderer drew it — `synthdog`, `html` or `genalog` |
 | `filename`, `source_files` | the image, relative to the backend's directory |
-| `settings` | the job's options, spelled as the converter spells them |
+| `settings` | the job's options, spelled as the converter spells them. `max_pixels` is `null`: the page was drawn at the size it is, not resized to fit a cap |
 | `documents` | `[]` — a drawn page is one page of one document, so there is nothing to segment |
 | `pages` | one entry: the page number and its pixel size |
 | `blocks` | one per drawn field, in reading order — see below |
 | `markdown`, `html` | the page, built from the blocks |
 | `extracted` | the CORD-style nested label, as an **object** |
-| `synthesis` | the seed, the sampled attributes, the flat reading order — everything the converter has no field for |
 
 A **block** carries both vocabularies, because they answer different questions:
 
@@ -491,19 +532,20 @@ A **block** carries both vocabularies, because they answer different questions:
 flowchart LR
     R["Recipe"] --> RC["Receipt"]
     RC --> GT["extracted<br/>nested"]
-    RC --> TS["synthesis.<br/>text_sequence"]
+    RC --> TS["text_sequence<br/>flat"]
     RC --> G["Grid"]
     G --> PX["pixels"]
     G --> BX["blocks"]
     BX --> MD["markdown + html"]
-    GT & TS & PX & BX & MD & R --> J[("metadata.jsonl + .jpg")]
+    GT & PX & BX & MD --> J[("metadata.jsonl + .jpg")]
+    R & TS --> S[("synthesis.json")]
 ```
 
 Three properties are worth knowing before writing a loader:
 
-**Blocks are the definition of "printed".** `synthesis.text_sequence` is built
-from the `Receipt`, so it can list a field the layout had no room for; `blocks`
-comes from the renderer's own geometry, one per drawn cell.
+**Blocks are the definition of "printed".** `text_sequence` is built from the
+`Receipt`, so it can list a field the layout had no room for; `blocks` comes
+from the renderer's own geometry, one per drawn cell.
 `pipeline/invariants.py` checks the label against the blocks for that reason,
 and [`tools/check_boxes.py`](tools/check_boxes.py) checks the blocks against the
 pixels.
@@ -517,20 +559,21 @@ that is not in a block.
 tags it sets, so everything drawn afterwards diverges. Pin all six back:
 
 ```python
-from pipeline import record
+from pipeline import record, synthesis
 
-attributes = record.attributes(item)
-force = {name: value["id"] for name, value in attributes.items()}
-recipe, receipt, grid = rulebase.make(seed=record.recipe(item)["seed"], force=force)
+drew = synthesis.read("data/dataset60/html")          # or the metadata.jsonl
+recipe = drew.recipe(record.file_name(item))          # the rule-base's own dict
+force = {name: value["id"] for name, value in recipe["attributes"].items()}
+recipe, receipt, grid = rulebase.make(seed=recipe["seed"], force=force)
 ```
 
-Read through the accessors in [`pipeline/record.py`](pipeline/record.py) rather
-than reaching for a key by name — `record.file_name`, `record.boxes`,
-`record.extracted`, `record.layout` — so the next time the shape moves it moves
-in one file. An older dataset is brought forward with
-[`tools/migrate_metadata.py`](tools/migrate_metadata.py), which re-renders
-nothing: every value it writes is already in the record, or in the JPEG header
-beside it.
+Read through the accessors — `record.file_name`, `record.boxes`,
+`record.extracted` for a line; `Synthesis.recipe`, `.layout`, `.text_sequence`
+for the file beside it — rather than reaching for a key by name, so the next
+time either shape moves it moves in one file. An older dataset is brought
+forward with [`tools/migrate_metadata.py`](tools/migrate_metadata.py), which
+re-renders nothing: every value it writes is already in the record, or in the
+JPEG header beside it.
 
 ```bash
 python tools/migrate_metadata.py data --check   # what would change
@@ -643,6 +686,7 @@ pipeline/               ONE RUN — declared, sharded, resumable, checked
 ├── worker.py           one shard, completely or not at all
 ├── run.py              preflight, a pool of processes, assemble
 ├── record.py           the shape of one metadata line
+├── synthesis.py        how a page was made, beside the index
 ├── invariants.py       what must be true of every image
 ├── drift.py            has the mix stopped matching the rules
 └── preflight.py        every check that must pass before drawing
@@ -867,10 +911,10 @@ use the document sets for anything about text.
   run only as a check.
 - **Only the glyph renderer produces rotated boxes.** A detector trained on the
   two flat backends alone has never seen a non-axis-aligned quad.
-- **`synthesis.text_sequence` is a canonical order**, not the order an eye or
-  an OCR engine follows on a two-column page — which is why the proof scores
-  order-free. `markdown` is the geometric reading order instead, so the two
-  disagree on a form and are meant to.
+- **`text_sequence` in `synthesis.json` is a canonical order**, not the order an
+  eye or an OCR engine follows on a two-column page — which is why the proof
+  scores order-free. `markdown` is the geometric reading order instead, so the
+  two disagree on a form and are meant to.
 - **Table images teach layout, not language**, and have no OCR proof: the right
   metric for table structure is TEDS, which is not implemented here.
 - **No licence is chosen yet.**

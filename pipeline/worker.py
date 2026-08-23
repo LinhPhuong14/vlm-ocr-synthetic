@@ -59,7 +59,7 @@ for extra in (REPO_ROOT, REPO_ROOT / "tools"):
 from paths import VENVS, venv_python  # noqa: E402
 
 import worklist  # noqa: E402
-from pipeline import drift, invariants, record  # noqa: E402
+from pipeline import drift, invariants, record, synthesis  # noqa: E402
 from pipeline.config import RULES_ENV  # noqa: E402
 from pipeline.plan import image_name  # noqa: E402
 
@@ -183,7 +183,11 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
     written = 0
     metadata_path = directory / "metadata.jsonl"
     staging = Path(tempfile.mkdtemp(prefix="shard-", dir=str(directory)))
-    with open(metadata_path, "w", encoding="utf-8") as metadata:
+    # Two files, written together. `metadata.jsonl` is what a converted page
+    # looks like; `synthesis.json` is how this one was made, which no converter
+    # could return and which nothing can redraw a committed image without.
+    with open(metadata_path, "w", encoding="utf-8") as metadata, \
+            synthesis.Writer(synthesis.beside(directory), backend) as notes:
         try:
             # One renderer process for the whole shard. The runs are handed
             # over as a job list in the order the plan put them, and the
@@ -226,46 +230,74 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
                     f"shard {shard['index']} {backend}: asked for "
                     f"{expected_total} images, got {len(produced)}")
 
+            # The renderer's own provenance, read back whole: it is small (one
+            # entry per page plus one params block per option the rule-base
+            # offers) and it is needed per page below, by the invariants and by
+            # the rename.
+            try:
+                drew = synthesis.read(staging)
+            except synthesis.SynthesisError as error:
+                raise ShardError(
+                    f"shard {shard['index']} {backend}: {error}") from error
+            gaps = drew.problems(record.file_name(item) for item in produced)
+            if gaps:
+                raise ShardError(
+                    f"shard {shard['index']} {backend}: " + "; ".join(gaps))
+
             cursor = 0
             for run in shard["runs"]:
                 for offset in range(run["count"]):
                     item = produced[cursor]
                     cursor += 1
                     target = image_name(backend, run["first_index"] + offset)
-                    # The renderer's own record says which layout it drew.
+                    drawn_name = record.file_name(item)
+                    # The renderer's own provenance says which layout it drew.
                     # Checked against the job it was meant to be, because
                     # walking one list against another by position is exactly
                     # the arrangement where an off-by-one mislabels every image
                     # after it and nothing downstream notices.
-                    drawn = record.drawn_layout(item)
+                    drawn = drew.drawn_layout(drawn_name)
                     if drawn and drawn != run["layout"]:
                         raise ShardError(
                             f"shard {shard['index']} {backend}: record {cursor - 1} "
                             f"is {drawn!r} where the plan asked for "
                             f"{run['layout']!r}; the renderer returned its pages "
                             f"in a different order from the job list")
-                    shutil.move(str(staging / record.file_name(item)),
-                                str(directory / target))
-                    # `rename` moves the three fields that follow the file name
-                    # -- `filename`, `source_files` and the `job_id` derived
-                    # from both -- and `attach` writes down what the plan knows
-                    # and the renderer did not.
-                    record.attach(item, framework=backend, layout=run["layout"])
-                    record.rename(item, target)
+                    shutil.move(str(staging / drawn_name), str(directory / target))
+
+                    page = dict(drew.entry(drawn_name))
+                    recipe = drew.recipe(drawn_name)
+                    # Four fields follow the dataset's own name for the page,
+                    # and the `job_id` is a function of all four. The layout is
+                    # the plan's here, not the renderer's: they were checked
+                    # against each other a moment ago.
+                    record.stamp(item, parser=backend, layout=run["layout"],
+                                 seed=recipe.get("seed"), filename=target)
                     record.check(item, where=target)
                     try:
-                        tally.inspect(item, image=directory / target, where=target)
+                        tally.inspect(item, recipe=recipe, layout=run["layout"],
+                                      image=directory / target, where=target)
                     except invariants.InvariantError as error:
                         raise ShardError(
                             f"shard {shard['index']} {backend}/{run['layout']}: "
                             f"{error}") from error
                     json.dump(item, metadata, ensure_ascii=False)
                     metadata.write("\n")
+                    notes.add(target, job_id=item["job_id"], layout=run["layout"],
+                              recipe=recipe,
+                              text_sequence=str(page.pop("text_sequence", "")),
+                              extra={key: value for key, value in page.items()
+                                     if key not in ("job_id", "seed", "layout",
+                                                    "attributes", "tags")})
                     written += 1
         finally:
             shutil.rmtree(staging, ignore_errors=True)
         # Flushed and fsynced before DONE can exist: a DONE in front of an
         # unwritten last line is a shard that resume would skip while short.
+        # `notes` is closed by its context manager immediately after, and its
+        # last write is what makes `synthesis.json` parse at all -- so a shard
+        # killed here leaves a file that fails to load rather than one that
+        # loads and is short.
         metadata.flush()
         os.fsync(metadata.fileno())
 

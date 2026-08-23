@@ -53,7 +53,7 @@ from page import CELL_REGIONS_JS, find_chromium, font_faces, served  # noqa: E40
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
-from pipeline import record  # noqa: E402
+from pipeline import record, synthesis  # noqa: E402
 from rulebase import corpus  # noqa: E402
 from rulebase.text import ascii_fold, money  # noqa: E402
 
@@ -364,7 +364,8 @@ def rebuild_html(label: dict) -> str:
     return "<html><body><table>{}</table></body></html>".format("".join(code))
 
 
-def metadata_record(label: dict, width: int, height: int) -> dict:
+def metadata_record(label: dict, width: int, height: int, seed: int = 0,
+                    border: str = "") -> dict:
     """The same label in this repository's index shape.
 
     The *envelope* is the one every other page is written in -- the converter's
@@ -379,6 +380,10 @@ def metadata_record(label: dict, width: int, height: int) -> dict:
     structure, so `gt` goes there verbatim. And there is no honest markdown for
     a table with merged cells, so `markdown` is left empty rather than filled
     with something a reader would have to un-guess.
+
+    The structure tokens and the cell boxes are the *label*, not provenance, so
+    they stay where PP-Structure readers already look: `gt.txt`, beside the
+    index. What goes in `synthesis.json` is what made the page.
     """
     cells = label["html"]["cells"]
     built = record.build(
@@ -386,9 +391,7 @@ def metadata_record(label: dict, width: int, height: int) -> dict:
         task=record.TASK_TABLE,
         boxes=[{"kind": "cell", "text": "".join(cell["tokens"]),
                 "quad": (cell["bbox"] or [None])[0]} for cell in cells],
-        extracted=None,
-        synthesis={"structure_tokens": label["html"]["structure"]["tokens"],
-                   "cells": cells, "n_cells": len(cells)},
+        extracted=None, seed=seed, layout=border,
     )
     built["html"] = label["gt"]
     built["markdown"] = ""
@@ -477,7 +480,7 @@ def generate(out: Path, count: int, seed: int, *, box_type: str = "cell",
     (out / "img").mkdir(parents=True, exist_ok=True)
     (out / "html").mkdir(parents=True, exist_ok=True)
 
-    records, labels = [], []
+    records, labels, notes = [], [], []
     with TableRenderer(scale=scale, max_side=max_side,
                        box_type=box_type, **shape) as renderer:
         for index in range(count):
@@ -489,7 +492,18 @@ def generate(out: Path, count: int, seed: int, *, box_type: str = "cell",
 
             label = ppstructure_label(name, tokens, cells)
             labels.append(label)
-            records.append(metadata_record(label, image.shape[1], image.shape[0]))
+            item = metadata_record(label, image.shape[1], image.shape[0],
+                                   seed + index, table.border)
+            records.append(item)
+            # A table has no rule-base recipe: what made this page is its seed
+            # and the border style it drew, and `border` is the nearest thing it
+            # has to a layout.
+            notes.append((name, {
+                "job_id": item["job_id"], "layout": table.border,
+                "recipe": {"seed": seed + index, "attributes": {}, "tags": []},
+                "extra": {"rows": table.rows, "cols": table.cols,
+                          "n_cells": len(cells)},
+            }))
             print(f"[ok] {name}  {image.shape[1]}x{image.shape[0]}  "
                   f"{table.rows}x{table.cols}  {table.border}  {len(cells)} cells")
 
@@ -498,9 +512,10 @@ def generate(out: Path, count: int, seed: int, *, box_type: str = "cell",
             json.dump(label, handle, ensure_ascii=False)
             handle.write("\n")
     with open(out / "metadata.jsonl", "w", encoding="utf-8") as handle:
-        for record in records:
-            json.dump(record, handle, ensure_ascii=False)
+        for item in records:
+            json.dump(item, handle, ensure_ascii=False)
             handle.write("\n")
+    synthesis.write(synthesis.beside(out), "html", notes)
     return len(records)
 
 

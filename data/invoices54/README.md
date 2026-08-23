@@ -12,7 +12,7 @@ trang được dựng bằng `<table>` thật, `colspan` thật, đơn vị `mm`
 | renderer | `html` (Chromium) và `genalog` (WeasyPrint) — hai engine duy nhất in được tờ CSS |
 | ghép cặp | `paired`: `html_007.jpg` và `genalog_007.jpg` là **cùng một hoá đơn**, in hai cách |
 | làm cũ | có, rút từ luật như thường lệ — 13 chuỗi khác nhau xuất hiện trong 27 ảnh |
-| nhãn | `blocks` như mọi bộ khác, **cộng thêm** `synthesis.structure` — chuỗi token PPStructure của bảng |
+| nhãn | `blocks` như mọi bộ khác, **cộng thêm** `structure` trong `synthesis.json` — chuỗi token PPStructure của bảng |
 
 `dataset.json` ghi `"template": "auto"`. Đó là chỗ đọc để biết bộ này dựng bằng
 mô hình trang nào; bộ nào không có khoá ấy là lưới ký tự.
@@ -79,11 +79,10 @@ invoices54/
 
 `plan.json`, `manifest.json` và `timings.json` là trạng thái làm việc của lần
 chạy, `.gitignore` bỏ chúng như với mọi bộ khác — seed của từng ảnh nằm trong
-`synthesis.recipe.seed` của chính dòng metadata, nên dựng lại một ảnh không cần
+`seed` trong `synthesis.json` của chính trang ấy, nên dựng lại một ảnh không cần
 tới chúng.
 
-Một dòng `metadata.jsonl` có thêm khoá `structure` trong `synthesis` so với các
-bộ cũ:
+Một dòng `metadata.jsonl` như mọi bộ khác:
 
 ```json
 {"schema_version": 8,
@@ -92,12 +91,17 @@ bộ cũ:
  "filename": "html_004.jpg",
  "blocks": [{"label": "Table", "kind": "menu.name", "text": "...",
              "bbox": {"x1": 0, "y1": 0, "x2": 0, "y2": 0}, "quad": [[x,y], ...]}],
- "extracted": {...},
- "synthesis": {
-   "recipe": {...},
-   "text_sequence": "...",
-   "cells": [{"kind": "menu.name", "row": 4, "col": 1, "colspan": 1, "rowspan": 1, "quad": [...]}],
-   "structure": ["<tr>", "<td", " colspan=\"7\"", ">", "</td>", "<td>", "</td>", "</tr>"]}}
+ "extracted": {...}}
+```
+
+...còn `synthesis.json` bên cạnh có thêm `cells` và `structure` so với các bộ cũ:
+
+```json
+"html_004.jpg": {
+  "job_id": "...", "seed": 4026, "layout": "invoice_vat_form",
+  "attributes": {...}, "tags": [...], "text_sequence": "...",
+  "cells": [{"kind": "menu.name", "row": 4, "col": 1, "colspan": 1, "rowspan": 1, "quad": [...]}],
+  "structure": ["<tr>", "<td", " colspan=\"7\"", ">", "</td>", "<td>", "</td>", "</tr>"]}
 ```
 
 `blocks` là chữ, `cells` + `structure` là bảng. Hai nửa ấy tả cùng một trang:

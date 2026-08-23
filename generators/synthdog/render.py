@@ -36,7 +36,7 @@ from template_receipt import SynthVNReceipt  # noqa: E402
 import profiling  # noqa: E402
 import rulebase  # noqa: E402
 import worklist  # noqa: E402
-from pipeline import record  # noqa: E402
+from pipeline import record, synthesis  # noqa: E402
 
 
 def make_clean(config: dict) -> dict:
@@ -112,7 +112,8 @@ def main() -> int:
     # carries every box on the page. Written in page order, which is the order
     # the caller listed the jobs in -- `pipeline/worker.py` walks the runs in
     # that order to name the files.
-    with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as metadata:
+    with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as metadata, \
+            synthesis.Writer(synthesis.beside(args.out), "synthdog") as notes:
         for index, job, seed in worklist.pages(jobs):
             # ALL THREE global generators, not just numpy's.
             #
@@ -148,14 +149,19 @@ def main() -> int:
                     args.out / name, quality=data["quality"]
                 )
             with profiling.stage("annotation"):
+                drawn = str(((data["recipe"].get("attributes") or {})
+                             .get("layout") or {}).get("id", ""))
                 item = record.build(
                     filename=name, width=data["image"].shape[1],
                     height=data["image"].shape[0], parser="synthdog",
                     boxes=data["boxes"], extracted=data["gt_parse"],
-                    text_sequence=data["text_sequence"], recipe=data["recipe"])
+                    seed=seed, layout=drawn)
             with profiling.stage("export"):
                 json.dump(item, metadata, ensure_ascii=False)
                 metadata.write("\n")
+                notes.add(name, job_id=item["job_id"], layout=drawn,
+                          recipe=data["recipe"],
+                          text_sequence=data["text_sequence"])
             print(f"[ok] {name}  {data['image'].shape[1]}x{data['image'].shape[0]}  "
                   f"{data['recipe']['attributes']['layout']['id']}")
 

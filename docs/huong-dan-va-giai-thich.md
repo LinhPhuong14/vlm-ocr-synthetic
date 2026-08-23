@@ -799,14 +799,19 @@ màu đen) thì dataset đã commit được sinh lại — nếu không, recipe
 một ảnh mà code hiện tại không tạo ra nữa.
 
 **H: Nhãn có format gì? Dùng train được luôn không?**
-Mỗi dòng `metadata.jsonl` mang đúng schema của bộ chuyển đổi tài liệu
-(`schema_version` 8): `blocks`, `markdown`, `html`, `extracted` — nên một trang
-vẽ ra ở đây và một trang quét về đọc bằng cùng một loader. `extracted` là nhãn
-CORD lồng nhau, dạng **object**; `record.ground_truth(item)` trả lại đúng chuỗi
-JSON `{"gt_parse": {...}}` mà `DonutDataset` đọc trực tiếp.
-`synthesis.text_sequence` cho pre-training đọc trơn, và `blocks` (mỗi ô một
-`bbox` phẳng cộng `quad` 4 điểm, **vẫn đúng sau khi giấy cong**) cho detection.
-Cả ba renderer đều có `blocks`.
+Mỗi dòng `metadata.jsonl` mang **đúng** schema của bộ chuyển đổi tài liệu
+(`schema_version` 8) và không mang gì khác: `blocks`, `markdown`, `html`,
+`extracted` — nên một trang vẽ ra ở đây và một trang quét về đọc bằng cùng một
+loader. `extracted` là nhãn CORD lồng nhau, dạng **object**;
+`record.ground_truth(item)` trả lại đúng chuỗi JSON `{"gt_parse": {...}}` mà
+`DonutDataset` đọc trực tiếp. `blocks` (mỗi ô một `bbox` phẳng cộng `quad` 4
+điểm, **vẫn đúng sau khi giấy cong**) cho detection; cả ba renderer đều có.
+
+Còn *trang ấy được sinh ra thế nào* — hạt giống, sáu thuộc tính đã bốc,
+`text_sequence` đọc trơn — nằm ở `synthesis.json` cạnh chỉ mục, chứ không nằm
+trong từng dòng: `ornament` với `augmentation` là công thức dựng **nền**, hai
+mươi trang chung một chuỗi thì trước đây chép chuỗi ấy hai mươi lần. Ở đó tham
+số của mỗi id chỉ ghi **một** lần, còn mỗi trang chỉ gọi tên id.
 
 **H: Sao không vendor luôn ảnh texture của DocCreator cho giống?**
 Vì chúng là data LGPL. Nên pattern được sinh từ seed — bù lại repo clone về là

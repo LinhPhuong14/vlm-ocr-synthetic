@@ -1,8 +1,8 @@
 """What must be true of every image, checked while it is still cheap to say so.
 
-`record.validate()` checks the *shape* of a metadata line: the keys are there,
-the quad has four corners, `extracted` is an object. That catches a renderer
-that forgot a field. It does not catch a renderer that filled every field with
+`record.validate()` checks the *shape* of a metadata line: the keys are there
+and no others, the quad has four corners, `extracted` is an object. That catches
+a renderer that forgot a field. It does not catch a renderer that filled every field with
 something wrong, and it is the second kind that produces a dataset which loads,
 trains, and teaches a model to hallucinate.
 
@@ -14,7 +14,8 @@ This module checks the *content*, on every image, from the record alone:
 * every quad lies inside the frame;
 * no text is empty, and none carries a replacement character (U+FFFD) or the
   missing-glyph box (U+25A1);
-* `recipe` names every attribute `rules/_order.yaml` declares.
+* the recipe in `synthesis.json` names every attribute `rules/_order.yaml`
+  declares, and the page size it states is the size of the image beside it.
 
 **Blocks are the definition of "printed".** Not `synthesis.text_sequence` --
 that is built from the `Receipt`, so it lists a phone number the layout never
@@ -397,16 +398,24 @@ def _check_totals_survived(item, gt, out) -> None:
 
 
 def inspect(item: dict[str, Any], *, order: tuple[str, ...] | list[str],
+            recipe: dict[str, Any] | None = None, layout: str = "",
             image: Path | None = None, where: str = "") -> Observation:
-    """Everything one metadata line and its image say about themselves.
+    """Everything one metadata line, its provenance and its image say.
+
+    `recipe` and `layout` come from `synthesis.json` -- a metadata line is the
+    converter's shape and carries neither. They are arguments rather than
+    something read here because the caller with the line is the caller with the
+    file beside it, and a check that went looking for its own inputs would
+    silently pass on a dataset that had lost them.
 
     Errors are collected rather than raised so a caller can report all of them
     for one page; `Tally.inspect` is the one that stops the shard.
     """
-    out = Observation(layout=record.layout(item))
+    recipe = recipe or {}
+    out = Observation(layout=str(layout or "?"))
     prefix = f"{where}: " if where else ""
 
-    attributes = record.attributes(item)
+    attributes = recipe.get("attributes") or {}
     for name in order:
         if name not in attributes:
             out.errors.append(f"recipe has no {name!r}, which rules/_order.yaml declares")
@@ -520,11 +529,13 @@ class Tally:
         self.notes: dict[str, int] = {}
         self.unchecked: list[str] = []
 
-    def inspect(self, item: dict[str, Any], *, image: Path | None = None,
+    def inspect(self, item: dict[str, Any], *, recipe: dict[str, Any] | None = None,
+                layout: str = "", image: Path | None = None,
                 where: str = "") -> Observation:
         """Check one image and keep the numbers. Raises on anything absolute."""
         with profiling.stage("validation"):
-            out = inspect(item, order=self.order, image=image, where=where)
+            out = inspect(item, order=self.order, recipe=recipe, layout=layout,
+                          image=image, where=where)
         if out.errors:
             raise InvariantError("\n".join(out.errors))
         self.images += 1
