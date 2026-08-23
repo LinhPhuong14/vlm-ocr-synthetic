@@ -100,7 +100,7 @@ PROBE = textwrap.dedent("""
 
 CASES = [
     ("full", {"level": 5, "density": 1.0}),
-    ("shipped", {"level": 5, "density": 0.175}),
+    ("shipped", {"level": 5, "density": 0.35}),
     ("default", {"level": 5}),
     ("zero", {"level": 5, "density": 0.0}),
     ("level1", {"level": 1}),
@@ -128,7 +128,7 @@ def test_the_shipped_dose_is_a_fraction_of_doccreators(probe):
     drifting -- a constant tuned by looking needs a test that says what was
     looked at.
     """
-    assert probe["DENSITY"] == pytest.approx(0.175)
+    assert probe["DENSITY"] == pytest.approx(0.35)
     assert probe["per_component"] == 2
 
 
