@@ -45,6 +45,7 @@ sys.path.insert(0, str(REPO_ROOT))
 # `record` is the name a metadata line goes by throughout this file, so the
 # module that defines their shape comes in under a name that cannot shadow one.
 from pipeline import record as schema  # noqa: E402
+from pipeline import synthesis  # noqa: E402
 
 FRAMEWORKS = ("synthdog", "html", "genalog")
 MONEY = re.compile(r"^-?\d[\d.,]*$")
@@ -177,7 +178,7 @@ def score_field(field: str, bag: Counter, folded: bool) -> float:
     return found / len(wanted)
 
 
-def score_image(record: dict, text: str) -> dict:
+def score_image(record: dict, text: str, reading: str = "") -> dict:
     parse = schema.extracted(record)
     fields = expected_fields({"gt_parse": parse})
 
@@ -187,7 +188,7 @@ def score_image(record: dict, text: str) -> dict:
         scores = [score_field(value, bag, folded) for _role, value in fields]
         hits = sum(1 for score in scores if score >= HIT_THRESHOLD)
 
-        wanted = Counter(tokens(schema.text_sequence(record), folded))
+        wanted = Counter(tokens(reading, folded))
         overlap = sum(min(count, bag[token]) for token, count in wanted.items())
         total = sum(wanted.values())
 
@@ -357,14 +358,17 @@ def main() -> int:
             continue
 
         records = schema.read(metadata)
+        drew = synthesis.read_if_there(args.dataset / framework)
         results = []
         for index, record in enumerate(records):
-            path = args.dataset / framework / schema.file_name(record)
+            name = schema.file_name(record)
+            path = args.dataset / framework / name
             text, words = run_tesseract(path, args.lang, args.psm, args.upscale_to)
-            result = score_image(record, text)
+            result = score_image(record, text, drew.text_sequence(name))
             result["framework"] = framework
-            result["layout"] = schema.layout(record)
-            attributes = schema.attributes(record)
+            result["layout"] = drew.layout(name) if name in drew else ""
+            attributes = {key: {"id": value} for key, value
+                          in (drew.entry(name).get("attributes") or {}).items()}
             result["augmentation"] = attributes.get("augmentation", {}).get("id", "")
             result["visual"] = attributes.get("visual", {}).get("id", "")
             result["words_found"] = len(words)

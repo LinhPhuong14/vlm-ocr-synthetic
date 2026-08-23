@@ -144,7 +144,7 @@ def time_validation(images: Path) -> dict:
     version of it, which would measure a different thing that happened to have
     the same name.
     """
-    from pipeline import invariants, record
+    from pipeline import invariants, record, synthesis
 
     metadata = images / "metadata.jsonl"
     if not metadata.exists():
@@ -154,9 +154,12 @@ def time_validation(images: Path) -> dict:
     was = profiling.enabled()
     if not was:
         profiling.enable()
+    drew = synthesis.read_if_there(images)
     for item in record.read(metadata):
         name = record.file_name(item)
-        tally.inspect(item, image=images / name, where=name)
+        tally.inspect(item, recipe=drew.recipe(name) if name in drew else {},
+                      layout=drew.layout(name) if name in drew else "?",
+                      image=images / name, where=name)
     entry = profiling.report()["stages"].get(
         "validation", {"calls": 0, "inclusive": 0.0, "exclusive": 0.0})
     if not was:

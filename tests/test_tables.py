@@ -82,7 +82,7 @@ def test_the_rebuilt_html_carries_every_cell_text(seed):
     # Upstream's nesting, kept deliberately: `bbox` holds the quad, it is not
     # the quad. Tools that read PP-Structure labels expect it that way.
     assert label["html"]["cells"][0]["bbox"] == [cells[0]["quad"]]
-    assert T.metadata_record(label, 800, 600)["synthesis"]["n_cells"] == len(cells)
+    assert len(T.metadata_record(label, 800, 600)["blocks"]) == len(cells)
     assert table.rows >= 3
 
 
@@ -99,17 +99,32 @@ def test_the_index_record_is_not_the_receipts_schema():
     cells = [{"text": "x", "quad": [[0, 0], [1, 0], [1, 1], [0, 1]]}
              for _ in range(cell_slots(tokens))]
     label = T.ppstructure_label("img/x.jpg", tokens, cells)
-    item = T.metadata_record(label, 800, 600)
+    item = T.metadata_record(label, 800, 600, seed=7, border="no_border")
 
     assert item["task"] == "table_structure"
     assert item["schema_version"] == R.SCHEMA_VERSION
     assert item["extracted"] is None
     assert item["markdown"] == ""
     assert item["html"] == label["gt"]
-    assert item["synthesis"]["n_cells"] == len(cells)
+    assert len(item["blocks"]) == len(cells)
     assert {block["label"] for block in item["blocks"]} == {"Table"}
     # ...and nothing a receipt carries that a table cannot answer for.
     assert not R.validate(item, strict=False)
+
+
+def test_the_pp_structure_label_is_still_upstreams():
+    """The border style reaches the record as an argument, not through `gt.txt`.
+
+    `gt.txt` is the one file in this repository written to somebody else's
+    format, and its whole value is that other tools already read it. A key added
+    for this repository's convenience would be a key those tools did not ask
+    for.
+    """
+    _table, _markup, tokens = built(4)
+    cells = [{"text": "x", "quad": [[0, 0], [1, 0], [1, 1], [0, 1]]}
+             for _ in range(cell_slots(tokens))]
+    label = T.ppstructure_label("img/x.jpg", tokens, cells)
+    assert set(label) == {"filename", "html", "gt"}
 
 
 # ------------------------------------------------------------- the content
