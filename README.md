@@ -861,6 +861,7 @@ the two must stay in step.
 | [`docs/hoa-tiet-de-xuat.md`](docs/hoa-tiet-de-xuat.md) | ornaments surveyed and not built, with the reason each was left |
 | [`docs/khao-sat-sinh-chu-viet-tay.md`](docs/khao-sat-sinh-chu-viet-tay.md) | eight handwriting-synthesis repositories ranked on breadth of data and on realism, for the `handwriting_fill` gap (Vietnamese) |
 | [`docs/writevit.md`](docs/writevit.md) | standing up WriteViT for Vietnamese handwriting, and what it measurably cannot write (Vietnamese) |
+| [`docs/muc-tieu.md`](docs/muc-tieu.md) | what the automation work is actually for: the four capabilities it adds, five testable statements of what "done" means, what the project is not trying to do, and four ways it fails even if every task ships (Vietnamese) |
 | [`docs/README.md`](docs/README.md) | **start here for the automation work**: what the three design documents say, the ten decisions that carry weight, the four that were revised and why, the measurements behind them, and one consolidated plan (Vietnamese) |
 | [`docs/brief-plan-run.md`](docs/brief-plan-run.md) | a work order for whoever picks up the first task: the measured input schemas, the exact two-pass SDK calls, what the model may and may not set, ten tests to write, and an acceptance checklist (Vietnamese) |
 | [`docs/ke-hoach.md`](docs/ke-hoach.md) | the work broken down: ten tasks, each with its goal, the files it touches, the steps, a testable definition of done, the gates that must stay green, and the traps already known (Vietnamese) |

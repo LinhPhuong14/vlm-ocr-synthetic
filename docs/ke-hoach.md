@@ -5,6 +5,9 @@
 > vào · các bước · xong khi nào · cổng nào phải xanh · bẫy nào đã biết trước.**
 >
 > Ước lượng công là cho **một người** đã đọc ba tài liệu thiết kế.
+>
+> Việc nào phục vụ **mục tiêu** nào, và "xong" ở mức dự án nghĩa là gì:
+> [`muc-tieu.md` §3](muc-tieu.md#3-bản-đồ-việc-nào-phục-vụ-năng-lực-nào).
 
 ## Bản đồ phụ thuộc
 
