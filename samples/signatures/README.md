@@ -1,18 +1,20 @@
 # signatures — chữ ký kéo giãn từ chữ viết tay
 
-Bốn tệp để nhìn. Toàn bộ lý do chúng có hình dạng như thế nằm ở
-[`docs/chu-ky.md`](../../docs/chu-ky.md) — khảo sát mẫu chữ ký trước, rồi mới
-dựng engine.
+Sáu tệp để nhìn, chia theo **hai nguồn mực**. Toàn bộ lý do chúng có hình dạng
+như thế nằm ở [`docs/chu-ky.md`](../../docs/chu-ky.md) — khảo sát mẫu chữ ký
+trước, rồi mới dựng engine.
 
-| tệp | là gì |
-| --- | --- |
-| `styles.jpg` | 18 hạt giống, 5 cái tên: lưới để nhìn **dải tham số**, không phải một chữ ký |
-| `signed-folio.jpg` | tờ **có in tên** dưới chú thích — chữ ký nằm đè lên tên |
-| `signed-form.jpg` | tờ **để trắng** dưới chú thích — đa số bố cục là loại này |
-| `signatures.json` | kiểu dáng của từng dấu ký, đúng như nó vào nhãn của bộ dữ liệu |
+| tệp | nguồn | là gì |
+| --- | --- | --- |
+| `styles.jpg` | `font` | 18 hạt giống, 5 tên: lưới để nhìn **dải tham số** |
+| `styles-model.jpg` | `model` | 7 dấu ký từ mực WriteViT — **nét mỏng, nối liền** |
+| `signed-folio.jpg` | `font` | tờ **có in tên** — chữ ký đè lên tên |
+| `signed-form.jpg` | `font` | tờ **để trắng** — đa số bố cục là loại này |
+| `signed-model.jpg` | `model` | cùng loại tờ ấy, ký bằng mực mô hình |
+| `signatures.json` | | kiểu dáng từng dấu ký, đúng như nó vào nhãn |
 
 ```bash
-make signatures        # dựng lại cả bốn
+make signatures        # dựng lại tất cả; bỏ qua phần model nếu chưa clone WriteViT
 ```
 
 ## Nhìn cái gì ở lưới
@@ -45,6 +47,22 @@ Tỷ lệ khung rơi vào khoảng 0,98–3,05. Dải các bộ dữ liệu ch�
 là 1,8–3,0; ở đây **không ép** vào dải ấy, chỉ báo cáo — xem `in_capture_box`
 trong `signatures.json`.
 
+## Mực mô hình
+
+![7 chữ ký từ WriteViT](styles-model.jpg)
+
+Đây là nét mà mặt chữ không cho được: **mỏng, nối liền, mỗi lần một khác**, vì
+nó do checkpoint sinh ra chứ không phải glyph dựng sẵn. `trace` biến ảnh ấy
+thành contour, rồi mọi phép biến đổi của engine áp lên y như áp lên một glyph —
+xem `5` và `11`: phần đầu là chữ model viết, phần đuôi là nét lượn engine vẽ,
+và hai thứ ăn khớp vì cùng bề dày nét.
+
+Chỉ có **7 trên 18** hạt giống ở đây, và đó không phải lỗi: 11 cái còn lại là
+`monogram`/`initials` — chuỗi chữ hoa liền nhau, thứ checkpoint không viết được
+(`docs/writevit.md` đo việc này). Trên một trang thật, `fill` **lùi về font theo
+từng khối**, nên tờ vẫn được ký; ở đây thì liệt kê ra để thấy giới hạn thay vì
+lặng lẽ thay mực.
+
 ## Nhìn cái gì ở hai tờ
 
 `signed-folio.jpg` là `invoice_hotel_stay`, bố cục duy nhất trong bộ mẫu này có
@@ -56,13 +74,20 @@ chỉ có một dòng trắng. Tên người ký lấy từ `rulebase.corpus.peo
 tên mà tài liệu rút người mua ra. Không có `names` thì khối ấy **để trắng và
 được đếm**, không bịa.
 
-Cả hai vẽ với `augmentation=pristine`: đây là ca-ta-lô mực, không phải bộ dữ
+`signed-model.jpg` là cùng bố cục ấy nhưng `--signature model`: hai khối đều là
+mực mô hình thật.
+
+Cả ba vẽ với `augmentation=pristine`: đây là ca-ta-lô mực, không phải bộ dữ
 liệu. Bộ dữ liệu là `make dataset`.
 
 ## Điều phải nói thẳng
 
-Nét là nét của **một mặt chữ**, kéo giãn. Đủ để làm hoa tiết trên tờ giấy —
-mực mà bộ đọc phải học cách bỏ qua, nằm đúng chỗ chữ ký nằm — và **không** đủ
-để làm mẫu chữ ký của một người. Hai dấu ký cùng hạt giống là giống hệt nhau,
-và có hai mặt chữ chứ không phải 106 người viết. Cùng sự đánh đổi mà
-[`samples/handwriting/`](../handwriting) đã ghi cho `FontHand`.
+Với `font`, nét là nét của **một mặt chữ**, kéo giãn — đủ để làm hoa tiết trên
+tờ giấy, không đủ để làm mẫu chữ ký của một người, và hai mặt chữ thì không
+phải 106 người viết. Cùng sự đánh đổi mà [`samples/handwriting/`](../handwriting)
+đã ghi cho `FontHand`.
+
+Với `model`, giới hạn ấy được gỡ — nét do mô hình sinh, 106 kiểu người viết —
+và đổi lấy một giới hạn khác: không chữ số, không IN HOA, một clone 1,7 GB, và
+vài giây mỗi từ. Cả hai đều **không** phải corpus để huấn luyện xác thực chữ
+ký: một hạt giống vẫn là một dấu ký cố định.

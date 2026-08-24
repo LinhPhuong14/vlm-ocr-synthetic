@@ -118,16 +118,71 @@ một cái nêm đặc); và bề rộng bướu với chiều cao bướu phả
 nhiên riêng** — dùng chung một số thì chúng cùng phình cùng xẹp, ra một đường
 răng cưa chứ không ra chữ.
 
-## Engine: bảy phép biến đổi trên đường bậc ba
+## Hai nguồn mực
 
-`signature.py` không vẽ chữ cái. Nó đọc **đường viền thật** của chữ từ mặt chữ
-viết tay trong `fonts/hand/` — cùng hai mặt chữ mà `handwriting.FontHand` dùng,
-cùng giấy phép SIL OFL 1.1 — rồi kéo giãn chúng.
+Engine không vẽ chữ cái. Nó lấy **chữ thật** rồi kéo giãn — và chữ thật đến từ
+một trong hai chỗ, đúng hai chỗ mà `handwriting.py` đã có:
+
+| | `font` | `model` |
+| --- | --- | --- |
+| là gì | đường viền glyph trong `fonts/hand/` | mực WriteViT, **trace thành contour** |
+| nét | của một mặt chữ, dù kéo giãn thế nào | **mỏng, nối liền, do mô hình sinh** |
+| khác nhau mỗi lần | không — mọi chữ `a` giống hệt nhau | có, 106 kiểu người viết |
+| chữ số, IN HOA | viết được | **không** — xem `writevit.md` |
+| chuỗi chữ hoa liền (`LQĐ`) | viết được | **không**, và đó là lý do có đường lùi |
+| cần gì | không gì cả | clone 1,7 GB, ~7 giây mỗi từ trên CPU |
+| mặc định | ✔ | |
+
+Không phải một cái hơn cái kia. `model` viết một cái tên rất đẹp và **không**
+viết nổi `LQĐ`; `font` viết được mọi thứ nhưng lần nào cũng y hệt lần nào. Nên
+`fill` **lùi theo từng khối, không phải theo cả lượt chạy**: khối nào model
+viết được thì model viết, khối nào không thì font, và nhãn ghi lại từng dấu ký
+thực sự bằng mực nào.
+
+![7 chữ ký từ mực WriteViT](../samples/signatures/styles-model.jpg)
+
+### `trace`: chỗ raster lọt được vào engine vector
+
+WriteViT trả về **ảnh**, engine này làm việc trên **điểm điều khiển**. `trace`
+là đoạn nối, và một khi các pixel ấy thành contour thì mọi phép biến đổi trong
+tệp áp lên chúng y như áp lên một glyph — không phần nào phía sau biết có sự
+khác biệt.
+
+Ba chi tiết, mỗi cái là một lỗi nhìn thấy được trước khi thành một quy tắc:
+
+- **Phóng to trước khi trace, và bắt buộc.** `Hand._ask` trả tile ở **32 px
+  gốc**, nét rộng một hai pixel; trace ra **rỗng**, chữ đầu biến mất, vai trò
+  "initial" rơi sang cả từ còn lại rồi bị kéo dọc thành lưỡi dao. Phóng 6× thì
+  một nét 1 px thành một hình có ruột.
+- **Làm mờ trước khi lấy ngưỡng, và chỉ một chút.** Ảnh có khử răng cưa, lấy
+  ngưỡng thẳng để lại bậc thang trên mọi mép nét; sigma 0,6 xoá bậc thang,
+  sigma 1,2 làm béo nét và **bít luôn bụng chữ `g`**.
+- **Chiều quấn tính theo diện tích có dấu**, không tin quy ước của thư viện.
+  Contour ngoài và lỗ của nó phải quấn ngược chiều nhau, nếu không
+  `fill-rule:nonzero` tô đặc ruột chữ `o` — đúng chuyện đã xảy ra khi mã này
+  tin `findContours` trả sẵn ngược chiều rồi đảo thêm một lần nữa.
+
+### Một đơn vị là một **từ**, không phải một chữ cái
+
+Đây là chỗ đo được chứ không phải chọn cho gọn. Hỏi model `T` và `uan` riêng ra
+thì được một chữ `T` cứng đơ và một `uan` đẹp; hỏi `Tuan` một lần thì được một
+nét viết liền có chữ hoa đầu đúng kiểu chữ ký. Model được huấn luyện theo từ, và
+nó thể hiện ra. Nên với nguồn `model`:
+
+- một đơn vị = một từ, mọi nét nối **bên trong** từ là của model, tệp này chỉ
+  thêm nét nối **giữa** các đơn vị;
+- `head_and_tail` cắt ở **ranh giới từ** — cắt lấy hai chữ cái sẽ đưa cho model
+  đúng ca yếu nhất của nó trên mọi chữ ký;
+- **không kéo dọc chữ đầu.** Chữ hoa của font là chữ hoa nhà in, không có dạng
+  chữ ký nên phải kéo; chữ hoa model viết ra vốn đã là chữ hoa chữ ký rồi, kéo
+  thêm chỉ thành lưỡi dao.
+
+## Engine: bảy phép biến đổi trên đường bậc ba
 
 Toàn bộ hình học là **Python thuần**: một `contour` là đường bậc ba khép kín
 giữ dưới dạng 3n+1 điểm, một `path` là danh sách contour, đơn vị là x-height và
 **trục y hướng lên** như trong font. Không numpy, không Pillow. `fontTools` chỉ
-xuất hiện bên trong `Ink`, và không ở đâu khác — đúng lý do `handwriting.py`
+xuất hiện bên trong `Ink`, numpy và OpenCV chỉ trong `trace`, và không ở đâu khác — đúng lý do `handwriting.py`
 nêu cho các import cục bộ của nó: CI chạy bộ test bằng pytest và PyYAML, thế
 thôi, nên mọi phép biến đổi ở đây phải kiểm được mà không cần một cái `.ttf`.
 
@@ -180,8 +235,13 @@ giờ ném `AttributeError` kèm lời giải thích, để lỗi ấy không qu
 ## Nối vào tờ giấy
 
 ```bash
+# mực mặt chữ — chạy được ngay, không cần gì thêm
 generators/html/.venv/bin/python generators/html/render.py \
     --template auto --signature --layout invoice_vat_form -c 3 -o out/
+
+# mực mô hình — cần `python tools/writevit/setup.py` trước
+generators/html/.venv/bin/python generators/html/render.py \
+    --template auto --signature model --layout invoice_vat_form -c 3 -o out/
 ```
 
 `--signature` đi cùng `--template`, cùng lý do với `--handwriting`: lưới ký tự
@@ -254,6 +314,12 @@ không phải sơ suất.
 `LQĐ` ra `LQĐ`. Ba chữ cái đầu là để người ta đọc — đó là toàn bộ công dụng của
 một chữ lồng — và một chữ lồng đã tan thì chỉ còn là cái ngoằng không nhận ra
 được ai. Khoảng 13 % số dấu ký là loại này.
+
+**`model` bỏ mất một phần ba số kiểu.** Chuỗi chữ hoa liền nhau là thứ
+checkpoint không viết được, mà `monogram` và `initials` theo định nghĩa là chuỗi
+chữ hoa. Trong lưới 18 hạt giống, model vẽ được 7 và 11 cái còn lại lùi về font
+— nên một bộ dựng bằng `--signature model` vẫn có mực mặt chữ trên khoảng một
+phần ba số khối. Nhãn ghi rõ từng cái, `skipped` ghi rõ lý do.
 
 **Tỷ lệ khung không bị ép.** `ASPECT` chỉ để báo cáo: `Mark.report()` trả về
 `in_capture_box`, và với tên ngắn thì dấu ký hay rơi ra ngoài dải 1,8–3,0. Ép
