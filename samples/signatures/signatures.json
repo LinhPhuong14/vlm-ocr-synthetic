@@ -46,7 +46,7 @@
           "drawn": "Ngoc",
           "legible": "Ng",
           "degenerated": "oc",
-          "aspect": 1.08,
+          "aspect": 1.14,
           "in_capture_box": false
         },
         {
@@ -65,7 +65,7 @@
           "drawn": "LQD",
           "legible": "LQD",
           "degenerated": "",
-          "aspect": 1.05,
+          "aspect": 1.08,
           "in_capture_box": false
         },
         {
@@ -84,7 +84,7 @@
           "drawn": "TVHùng",
           "legible": "TVH",
           "degenerated": "ùng",
-          "aspect": 1.33,
+          "aspect": 1.39,
           "in_capture_box": false
         },
         {
@@ -103,7 +103,7 @@
           "drawn": "Tuấn",
           "legible": "T",
           "degenerated": "uấn",
-          "aspect": 1.87,
+          "aspect": 1.98,
           "in_capture_box": true
         },
         {
@@ -122,7 +122,7 @@
           "drawn": "Đặng Đình Đức",
           "legible": "Đ",
           "degenerated": "ặng Đình Đức",
-          "aspect": 2.67,
+          "aspect": 2.84,
           "in_capture_box": true
         },
         {
@@ -141,7 +141,7 @@
           "drawn": "NTBNgoc",
           "legible": "NTBN",
           "degenerated": "goc",
-          "aspect": 1.94,
+          "aspect": 2.03,
           "in_capture_box": true
         },
         {
@@ -179,8 +179,8 @@
           "drawn": "Hùng",
           "legible": "H",
           "degenerated": "ùng",
-          "aspect": 1.72,
-          "in_capture_box": false
+          "aspect": 1.83,
+          "in_capture_box": true
         },
         {
           "legibility": "initials",
@@ -236,7 +236,7 @@
           "drawn": "Nguyễn Thị Bích Ngọc",
           "legible": "N",
           "degenerated": "guyễn Thị Bích Ngọc",
-          "aspect": 2.73,
+          "aspect": 2.89,
           "in_capture_box": true
         },
         {
@@ -293,7 +293,7 @@
           "drawn": "PMTuấn",
           "legible": "PMTuấn",
           "degenerated": "",
-          "aspect": 1.92,
+          "aspect": 1.97,
           "in_capture_box": true
         },
         {
@@ -312,8 +312,8 @@
           "drawn": "ĐĐĐức",
           "legible": "ĐĐĐ",
           "degenerated": "ức",
-          "aspect": 2.99,
-          "in_capture_box": true
+          "aspect": 3.18,
+          "in_capture_box": false
         },
         {
           "legibility": "given",
@@ -774,7 +774,7 @@
             "drawn": "LQD",
             "legible": "LQD",
             "degenerated": "",
-            "aspect": 1.72,
+            "aspect": 1.77,
             "in_capture_box": false,
             "printed": true,
             "pen": "#1a1a20"
@@ -828,7 +828,7 @@
             "drawn": "LQĐạo",
             "legible": "LQĐ",
             "degenerated": "ạo",
-            "aspect": 1.36,
+            "aspect": 1.44,
             "in_capture_box": false,
             "printed": false,
             "pen": "#1c2a68"
@@ -849,7 +849,7 @@
             "drawn": "CVL",
             "legible": "CVL",
             "degenerated": "",
-            "aspect": 1.81,
+            "aspect": 1.82,
             "in_capture_box": true,
             "printed": false,
             "pen": "#1c2a68"
