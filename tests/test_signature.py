@@ -524,6 +524,161 @@ def test_a_contact_sheet_draws_every_seed_it_was_given():
     assert body.count("<text") == 4
 
 
+# ------------------------------------------------------- the model ink source
+#
+# The policy is testable without a checkpoint and is tested that way: what the
+# model may be asked for, where the head is cut, and what happens when it
+# refuses. Only the two tests that need actual generated ink reach for the
+# clone, and they skip without it -- WriteViT is 1.7 GB beside the repository
+# and CI has neither it nor torch.
+
+
+def _writevit() -> None:
+    pytest.importorskip("fontTools", reason="the fallback source needs fontTools")
+    if not signature.HAND_FONT_DIR.joinpath(signature.FACES[0]).exists():
+        pytest.skip("no handwriting faces in fonts/hand/")
+    import handwriting  # noqa: PLC0415
+
+    if not Path(handwriting.WRITEVIT_DIR).is_dir():
+        pytest.skip("WriteViT is not cloned; see tools/writevit/setup.py")
+
+
+def test_the_model_refuses_a_run_of_capitals():
+    """`docs/writevit.md` measures this: a leading capital is fine and a run of
+    them is not -- `HOA DON GIA TRI` comes back as `Hai Đồng Giữ Tư`. The cause
+    is in the training code, so another seed does not fix it."""
+    ink = signature.ModelInk()
+    assert ink.writable("Nguyen")
+    assert ink.writable("Ngoc")
+    assert not ink.writable("LQD"), "a monogram is a run of capitals"
+    assert not ink.writable("TVHung"), "initials in front of a name are too"
+
+
+def test_the_model_refuses_what_the_checkpoint_has_no_glyph_for():
+    ink = signature.ModelInk()
+    assert not ink.writable("15/06/2018")
+    assert not ink.writable("3.920.000")
+
+
+def test_the_head_is_cut_at_a_word_when_the_source_writes_words():
+    """The model is trained on words: asked for `Ng` it returns a stiff
+    fragment, asked for `Nguyen` a connected hand. Cutting mid-word would hand
+    it its weakest case on every signature."""
+    style = signature.Style(1)
+    style.scrawl, style.survives = True, 1
+    assert signature.head_and_tail("Nguyen Thi Ngoc", style, whole_words=True) == (
+        "Nguyen", " Thi Ngoc")
+    assert signature.head_and_tail("Ngoc", style, whole_words=True) == ("Ngoc", "")
+
+
+class _Refuses:
+    """An ink source that writes nothing, to exercise the fallback alone."""
+
+    source = "model"
+    stretches_initial = False
+    writes_words = True
+
+    def writable(self, text):
+        return False
+
+    def units(self, text):
+        return iter(())
+
+    def stem(self):
+        return 0.05
+
+    def open(self):
+        return self
+
+    def close(self):
+        return None
+
+
+def test_a_block_the_model_refuses_falls_back_to_the_font(monkeypatch):
+    """Per block, not per run. A third of signers come out as capital
+    monograms, and refusing whole pages for them would throw away the model's
+    ink on the other two thirds."""
+    _fonts()
+    monkeypatch.setattr(signature, "ModelInk",
+                        lambda *args, **kwargs: _Refuses())
+    _filled, report = signature.fill(BLOCK, seed=3, names=("Vũ Thị Lan",),
+                                     source="model")
+    assert len(report["marks"]) == 2
+    assert {mark["source"] for mark in report["marks"]} == {"font"}
+    assert any(key.startswith("model:") for key in report["skipped"])
+    assert report["source"] == "model"
+
+
+def test_the_report_says_which_ink_each_mark_is_actually_in():
+    """The run asks for one source and a block may get the other, so the label
+    has to carry both or it describes ink that was never laid down."""
+    _fonts()
+    _filled, report = signature.fill(BLOCK, seed=3, names=("Vũ Thị Lan",))
+    assert report["source"] == "font"
+    assert all(mark["source"] == "font" for mark in report["marks"])
+
+
+def test_tracing_a_ring_gives_an_outline_and_a_hole():
+    """The one thing `fill-rule:nonzero` needs from the tracer: an outer
+    contour and its hole must wind opposite ways, or the counter of an `o`
+    fills solid. It did, when this trusted OpenCV to return them already
+    opposed and then reversed the holes as well."""
+    pytest.importorskip("cv2", reason="tracing needs OpenCV")
+    image = pytest.importorskip("PIL.ImageDraw", reason="tracing needs Pillow")
+    from PIL import Image
+
+    tile = Image.new("L", (120, 120), 255)
+    image.Draw(tile).ellipse((10, 10, 110, 110), outline=0, width=12)
+    contours = signature.trace(tile)
+    assert len(contours) == 2, "an outer ring and its hole"
+
+    def signed(contour):
+        points = contour[::3]
+        return sum(a[0] * b[1] - b[0] * a[1]
+                   for a, b in zip(points, points[1:] + points[:1]))
+
+    areas = [signed(contour) for contour in contours]
+    assert (areas[0] > 0) != (areas[1] > 0), "opposite winding"
+
+
+def test_tracing_an_empty_tile_gives_nothing_rather_than_a_speck():
+    pytest.importorskip("cv2", reason="tracing needs OpenCV")
+    from PIL import Image
+
+    assert signature.trace(Image.new("L", (40, 40), 255)) == []
+
+
+def test_the_model_writes_a_signature_end_to_end():
+    """The slow one, and the only proof that the seam holds: real generated
+    ink, traced, stretched, warped and finished with a paraph."""
+    _writevit()
+    ink = signature.ModelInk(writer=3, seed=5).open()
+    try:
+        mark = signature.Signer(5, ink=ink).sign("Nguyễn Thị Bích Ngọc")
+    finally:
+        ink.close()
+    assert mark.source == "model"
+    assert mark.path and mark.width > 0 and mark.height > 0
+    # The model's pen is measurably thinner than the typeface's, which is the
+    # whole reason this source exists.
+    assert 0.01 < ink.stem() < 0.10
+
+
+def test_the_model_puts_its_words_on_one_baseline():
+    """There is no baseline in a WriteViT tile -- it crops tight -- so it is
+    worked out from the letters, exactly as `handwriting.compose` does. A word
+    with a descender must hang below one without."""
+    _writevit()
+    ink = signature.ModelInk(writer=3, seed=5).open()
+    try:
+        flat = signature.bounds(list(ink.units("nan"))[0][0])
+        tail = signature.bounds(list(ink.units("gug"))[0][0])
+    finally:
+        ink.close()
+    assert flat[1] == pytest.approx(0.0, abs=0.05), "the baseline is y = 0"
+    assert tail[1] < -0.15, "a descender hangs below it"
+
+
 # ----------------------------------------------------- the seam into a sheet
 
 BLOCK = (

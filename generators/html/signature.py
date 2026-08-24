@@ -18,12 +18,32 @@ lifted, and a flourish is added that belongs to no letter at all. The
 distortion is not a disguise laid over writing -- it *is* the signature, and it
 is the one thing about a signature that can be stated as geometry.
 
-So this engine stretches. It takes real letter outlines from the licensed
-handwriting faces in `fonts/hand/` and applies the transformations the survey
-named -- and it draws three marks that are not letters: the terminal flourish,
-the paraph, and the **scrawl** the body collapses into. The survey says none of
-those three is a letter, which is exactly why they have to be drawn rather than
-set.
+So this engine stretches. It takes real letters -- from a licensed handwriting
+face, or from the WriteViT checkpoint -- and applies the transformations the
+survey named. And it draws three marks that are not letters: the terminal
+flourish, the paraph, and the **scrawl** the body collapses into. The survey
+says none of those three is a letter, which is exactly why they have to be
+drawn rather than set.
+
+## Two inks
+
+    font    outlines out of `fonts/hand/`, stretched. Always there, and it
+            repeats: every `a` is the same `a` and the strokes are a
+            typeface's however hard they are pulled.
+    model   WriteViT's own ink, traced into contours. Thin, joined up, 106
+            writer styles, different every time -- and it needs the clone,
+            about seven seconds a word on CPU, and it cannot write a run of
+            capitals.
+
+They are not a hierarchy with a winner. `model` writes a name beautifully and
+cannot write `LQĐ` at all; `font` writes anything and writes it the same way
+twice. `fill` therefore falls back **per block** rather than per run, and the
+label records which ink each mark is actually in.
+
+The seam that lets a raster into a vector engine is `trace`, and it is the
+whole trick: once the model's pixels are contours, every warp in this file
+applies to them exactly as it applies to a glyph, and nothing downstream knows
+the difference.
 
 ## Letters that stop being letters
 
@@ -47,7 +67,8 @@ what keeps two different names from collapsing into the same squiggle.
 
 ## The limit, said first
 
-The strokes are a typeface's strokes. This makes a **signature-shaped mark**:
+**With `font`**, the strokes are a typeface's strokes. This makes a
+**signature-shaped mark**:
 the right size, slant, baseline, connection and flourish for a signature, drawn
 with a typeface's contours. That is enough to be furniture on a form -- ink a
 reader must not mistake for text, sitting where a signature sits -- and it is
@@ -55,6 +76,13 @@ what `docs/hoa-tiet-de-xuat.md` asks for. It is **not** a specimen of any
 person's signature, and a set built from it is not a signature-verification
 corpus: two marks from one seed are identical, and the two faces are two
 faces, not 106 writers. Same trade as `FontHand`, written down the same way.
+
+**With `model`**, the strokes are generated rather than set, and that limit
+lifts: the ink is a hand's, it is thin and joined up, and 106 writer styles
+are not two. What replaces it is narrower and is `docs/writevit.md`'s subject
+-- no digits, no ALL-CAPS, no punctuation, so a monogram falls back to the
+font -- plus the cost, which is a 1.7 GB clone and seconds a word. Still not a
+corpus for signature verification: one seed is still one mark.
 
 ## What the survey established
 
@@ -74,7 +102,9 @@ judgement rather than a measurement say so where they are defined.
 ## The shape of the code
 
     geometry     cubic contours and warps -- pure Python, no dependency at all
-    Ink          letter outlines out of a .ttf, the one part that needs fontTools
+    Ink          letter outlines out of a .ttf; the one part that needs fontTools
+    trace        a raster of ink -> contours; the one part that needs OpenCV
+    ModelInk     WriteViT's words, traced and put on a baseline
     Style        one signer's parameters, drawn from a seed
     Signer.sign  stretch, place, connect, scrawl, warp, flourish, paraph, slant
 
@@ -428,6 +458,24 @@ class Ink:
                                  advance * scale)
         return self._cache[char]
 
+    # A print capital is stretched into a signature initial; see `_letters`.
+    stretches_initial = True
+
+    def units(self, text: str):
+        """`(path, advance, char)` per drawable unit -- for a font, per letter.
+
+        A space is not a unit: it is an advance with no ink, and it comes back
+        as an empty path so `_letters` moves the pen without setting anything
+        down. A character the face has no glyph for is skipped entirely, which
+        is `FontHand`'s rule too.
+        """
+        for char in text:
+            if char.isspace():
+                yield ([], 0.42, char)         # a word gap, in x-heights
+            elif self.has(char):
+                path, advance = self.outline(char)
+                yield (path, advance, char)
+
     def stem(self) -> float:
         """The face's stroke width in x-heights, measured off its own `l`.
 
@@ -464,6 +512,275 @@ def _ContourPen(glyphset):
         made = type("ContourPen", (_ContourPenBody, BasePen), {})
         _ContourPen._class = made
     return made(glyphset)
+
+
+# --------------------------------------------------------------- ModelInk
+
+
+# Turning a raster of ink into contours. Tuned against WriteViT's own output at
+# `--scale 4`, which is black-on-white, anti-aliased, and thin: a wider blur or
+# a lower level closes the counter of a `g` into a blob, which is exactly what
+# the first attempt did.
+TRACE_BLUR = 0.6                 # sigma, in source pixels: kills the pixel grid
+TRACE_LEVEL = 140                # of 255, on the inverted image
+TRACE_SMOOTH = 2                 # moving-average half-width over the outline
+TRACE_MIN_AREA = 4.0             # source px^2; below this it is a stray speck
+
+# What the tile is enlarged by before it is traced, and it is not optional.
+# `Hand._ask` hands back the model's **native 32 px**, where a stroke is one or
+# two pixels across -- `findContours` returns nothing that survives the length
+# and area filters above, so an un-enlarged tile traces to an empty path and the
+# letter silently disappears. It did: the initial vanished, the "initial" role
+# fell through to the rest of the word, and the vertical cap stretch turned a
+# whole word into a blade. Six is enough for a 1 px stroke to become a shape
+# with an inside.
+TRACE_ZOOM = 6
+
+
+def trace(image, *, blur: float = TRACE_BLUR, level: int = TRACE_LEVEL,
+          smooth: int = TRACE_SMOOTH, min_area: float = TRACE_MIN_AREA) -> list:
+    """A grayscale image of ink -> contours, in source pixels with y up.
+
+    The seam that lets a generated raster into a vector engine. Everything
+    `signature.py` does -- stretch, slant, bow, terminal, paraph -- is arithmetic
+    on control points, so ink that arrives as pixels has to become points once,
+    here, and then it is indistinguishable from a glyph downstream.
+
+    Three details, each of which was a visible failure before it was a rule:
+
+    * **Blur before threshold, and only a little.** The raster is anti-aliased,
+      so a bare threshold leaves a pixel staircase on every stroke edge. 0.6
+      sigma smooths that; 1.2 fattens the ink and seals the loop of a `g`.
+    * **Winding by signed area, not by the library's convention.** An outer
+      contour and its holes must wind opposite ways or `fill-rule:nonzero`
+      fills the counter of an `o` solid -- which is what happened when this
+      trusted `findContours` to return them already opposed and then reversed
+      them again.
+    * **y is negated.** OpenCV's rows go down, this file's y goes up.
+
+    numpy and OpenCV are imported here and nowhere else in this module, for the
+    reason the module docstring gives: the geometry is a pure function of
+    numbers and CI runs the suite without either.
+    """
+    import cv2  # noqa: PLC0415 -- the renderer's environment, not the test one
+    import numpy as np  # noqa: PLC0415
+
+    grey = np.asarray(image.convert("L"), dtype=np.uint8)
+    ink = 255 - grey
+    if blur:
+        ink = cv2.GaussianBlur(ink, (0, 0), blur)
+    _level, mask = cv2.threshold(ink, level, 255, cv2.THRESH_BINARY)
+    found, hierarchy = cv2.findContours(mask, cv2.RETR_CCOMP,
+                                        cv2.CHAIN_APPROX_NONE)
+    out = []
+    for index, contour in enumerate(found):
+        if len(contour) < 12 or cv2.contourArea(contour) < min_area:
+            continue
+        points = contour[:, 0, :].astype(float)
+        if smooth:
+            # Periodic, because an outline is a loop: averaging a closed ring
+            # with its ends padded from the other end keeps the join smooth.
+            window = np.ones(smooth * 2 + 1) / (smooth * 2 + 1)
+            pad = smooth * 2
+            wide = np.vstack([points[-pad:], points, points[:pad]])
+            points = np.stack([np.convolve(wide[:, 0], window, "same"),
+                               np.convolve(wide[:, 1], window, "same")],
+                              axis=1)[pad:-pad]
+        points = points[::2]                   # one point per two source px
+        if len(points) < 4:
+            continue
+        area = 0.5 * float(np.sum(points[:, 0] * np.roll(points[:, 1], -1)
+                                  - np.roll(points[:, 0], -1) * points[:, 1]))
+        hole = hierarchy[0][index][3] != -1
+        if (area > 0) != hole:
+            points = points[::-1]
+        out.append(polyline([(float(x), float(-y)) for x, y in points]))
+    return out
+
+
+class ModelInk:
+    """Ink from the WriteViT checkpoint, traced into contours.
+
+    The other ink source, and the one that answers the honest limit `Ink` is
+    stuck with. A typeface repeats: every `a` is the same `a`, and the stroke
+    shapes are a typeface's however hard they are stretched. WriteViT generates
+    a word at a time from one of 106 writer styles, and what comes back is thin,
+    joined-up and different every time -- which is what a signature is made of.
+
+    It writes **words**, not letters, and that is the point twice over. The
+    joins inside "Tuấn" are the model's, not this file's -- and asking it for
+    the letters separately is measurably worse output, not merely a lost join:
+    `T` and `uan` fetched apart come back as a stiff `T` and a good `uan`,
+    while `Tuan` in one call comes back as one connected hand. So a unit here
+    is a whole word, and the enlarged initial that `Ink` gets by stretching is
+    something the model has already written.
+
+    What it cannot do is `docs/writevit.md`'s subject and is not small: no
+    digits, no ALL-CAPS, no punctuation. For a signature that matters far less
+    than it does for a form field -- a signature is a name -- but a monogram of
+    three capitals is a run of capitals, so `writable` refuses those and the
+    caller falls back rather than getting a row of wrong letters.
+    """
+
+    source = "model"
+    # A unit is a word, so the head has to be one too -- see `head_and_tail`.
+    writes_words = True
+    # The model's capitals are already cursive signature capitals. Stretching
+    # one vertically turns a whole word into a blade -- which is what the first
+    # version of this did, having also lost the initial to an empty trace.
+    stretches_initial = False
+
+    def __init__(self, writer: int = 0, seed: int = 0, hand=None,
+                 writevit_dir=None):
+        self.writer = writer
+        self.seed = seed
+        self._hand = hand
+        self._owned = hand is None
+        self._dir = writevit_dir
+        self._cache: dict = {}
+        self._stem = 0.0
+
+    def __enter__(self) -> "ModelInk":
+        return self.open()
+
+    def __exit__(self, *exc) -> None:
+        self.close()
+
+    def open(self) -> "ModelInk":
+        if self._hand is None:
+            import handwriting  # noqa: PLC0415 -- the worker lives there
+
+            self._hand = handwriting.Hand(writevit_dir=self._dir).open()
+        return self
+
+    def close(self) -> None:
+        if self._owned and self._hand is not None:
+            self._hand.close()
+            self._hand = None
+
+    # -- what it can write -------------------------------------------------
+
+    def has(self, char: str) -> bool:
+        import handwriting  # noqa: PLC0415
+
+        return char in handwriting.ALPHABET_SET
+
+    def writable(self, text: str) -> bool:
+        """What the checkpoint can actually write, not merely spell.
+
+        `handwriting.writable` checks the alphabet, which is necessary and not
+        sufficient. `docs/writevit.md` measures the rest: **a leading capital
+        is fine and a run of them is not** -- `Nguyễn`, `Địa`, `Một` come back
+        correct while `HOA DON GIA TRI` comes back as `Hai Đồng Giữ Tư`, and
+        the cause is in the training code rather than in the sampling, so it
+        does not go away with another seed.
+
+        Two capitals in a row is where it starts. That refuses exactly the
+        monogram and initials styles, which is the right place to lose them:
+        those are runs of capitals by definition, and `fill` hands them to the
+        font, which draws capitals well and has no cursive joins to lose.
+        """
+        import handwriting  # noqa: PLC0415
+
+        if not handwriting.writable(text):
+            return False
+        run = 0
+        for char in text:
+            run = run + 1 if char.isupper() else 0
+            if run >= 2:
+                return False
+        return True
+
+    # -- what it draws -----------------------------------------------------
+
+    def units(self, text: str):
+        """One unit per word, which is the unit the model actually writes in.
+
+        Not per letter, and the reason is worth keeping: fetched apart, `T` and
+        `uan` come back as a stiff isolated `T` and a good `uan`; fetched
+        together, `Tuan` comes back as one connected hand with a proper
+        signature capital on the front. The model is trained on words and it
+        shows. Every join inside a unit is therefore the model's own, and this
+        file adds joins only *between* units.
+        """
+        words = [part for part in text.split() if part]
+        if not words:
+            return
+        for index, (word, tile) in enumerate(zip(words, self._tiles(words))):
+            path, advance = self._normalise(word, tile)
+            if index:
+                advance += 0.28              # a word gap, in x-heights
+            yield (path, advance, word[0])
+
+    def _tiles(self, words: list):
+        wanted = [word for word in words if word not in self._cache]
+        if wanted:
+            fresh = self._hand._ask(wanted, self.writer, self.seed)
+            for word, tile in zip(wanted, fresh):
+                self._cache[word] = tile
+        return [self._cache[word] for word in words]
+
+    def _normalise(self, word: str, tile):
+        """One tile -> contours in x-heights, baseline at y = 0.
+
+        The generator emits every word the same height and crops tight, so
+        **there is no baseline in the image to read back** -- `handwriting.py`
+        says so at length and works one out from the letters instead. The same
+        model is used here: `extent` says how far this word reaches above and
+        below the x-height band, so the tile's pixel height divides into
+        `above + 1 + below` and the baseline sits `below` of them up from the
+        bottom. Being a model it is approximate, but it is approximate in the
+        same direction for every word, which is all that is needed to put them
+        on one line.
+        """
+        import handwriting  # noqa: PLC0415
+
+        raw = trace(self._zoom(tile))
+        if not raw:
+            return ([], 0.0)
+        above, below = handwriting.extent(word)
+        x0, y0, x1, y1 = bounds(raw)
+        unit = max((y1 - y0) / (above + handwriting.X_HEIGHT + below), 1e-6)
+        scale = 1.0 / unit
+        placed = mapped(raw, affine(scale, scale, dx=-x0 * scale,
+                                    dy=-(y0 + below * unit) * scale))
+        if not self._stem:
+            # The pen this hand writes with, in x-heights. Taken as twice the
+            # median distance from the ink to its own edge -- a distance
+            # transform is the one measurement that gives a stroke width from a
+            # shape with no stems to look up, which is every word here.
+            self._stem = self._measure(self._zoom(tile)) / unit
+        return (placed, (bounds(placed)[2] - bounds(placed)[0]) + 0.14)
+
+    @staticmethod
+    def _zoom(tile, factor: int = TRACE_ZOOM):
+        """The tile enlarged, smoothly, before anything measures it.
+
+        LANCZOS rather than nearest: the point is to turn a two-pixel stroke
+        into a smooth shape with an inside, and a nearest-neighbour blow-up
+        would only make the staircase bigger.
+        """
+        from PIL import Image  # noqa: PLC0415
+
+        return tile.resize((tile.width * factor, tile.height * factor),
+                           Image.LANCZOS)
+
+    @staticmethod
+    def _measure(tile) -> float:
+        import cv2  # noqa: PLC0415
+        import numpy as np  # noqa: PLC0415
+
+        grey = np.asarray(tile.convert("L"), dtype=np.uint8)
+        mask = (255 - grey > TRACE_LEVEL).astype(np.uint8)
+        if not mask.any():
+            return 1.0
+        distance = cv2.distanceTransform(mask, cv2.DIST_L2, 3)
+        return 2.0 * float(np.median(distance[distance > 0]))
+
+    def stem(self) -> float:
+        """The width the model's own pen draws at, so the marks that are not
+        letters -- ligature, terminal, paraph -- are drawn with the same pen."""
+        return self._stem or 0.09
 
 
 class _ContourPenBody:
@@ -648,6 +965,11 @@ class Style:
         # is: a mark is a pure function of `(seed, name)`, and a draw taken
         # while the wave is being laid down would break that.
         self.pulse = tuple(rng.random() for _ in range(SCRAWL_SLOTS * 2))
+        # Which of WriteViT's 106 writer styles signs, when the ink comes from
+        # the model. Drawn last on purpose: appending here leaves every draw
+        # above it untouched, so adding the second source did not silently
+        # restyle every signature the font source had already produced.
+        self.writer = rng.randrange(106)
         # The paraph's own wobble, drawn HERE rather than while it is being
         # laid down. Everything a signer is has to be settled by the end of
         # this constructor: a mark is a pure function of `(seed, name)`, and it
@@ -668,6 +990,7 @@ class Style:
                 "baseline": self.baseline, "paraph": self.paraph,
                 "connected": self.connected, "flourish": self.flourish,
                 "lead": self.lead, "scrawl": self.scrawl,
+                "writer": self.writer,
                 "slant_deg": round(math.degrees(math.atan(self.slant)), 1),
                 "marks": self.marks}
 
@@ -752,11 +1075,19 @@ def letters_of(name: str, style: Style) -> str:
     return text if style.marks else undiacritic(text)
 
 
-def head_and_tail(text: str, style: "Style") -> tuple:
+def head_and_tail(text: str, style: "Style", whole_words: bool = False) -> tuple:
     """`(letters that stay letters, letters that become a wave)`.
 
-    Three rules, and each is something the survey says rather than something
-    that looked right:
+    `whole_words` keeps the hand from letting go mid-word, and it exists for
+    the model source. WriteViT is trained on words: asked for `Ng` it returns a
+    stiff fragment, asked for `Nguyễn` it returns a connected hand with a
+    proper signature capital. Cutting a two-letter head out of a name would
+    hand the model its weakest case on every signature. So with words the split
+    lands on a space -- the first word survives, the rest becomes the wave,
+    which is also a shape real signatures come in.
+
+    Three rules otherwise, and each is something the survey says rather than
+    something that looked right:
 
     * the first `survives` characters are formed, because a hand starts a
       signature deliberately and lets go of it afterwards -- "simplification is
@@ -770,6 +1101,9 @@ def head_and_tail(text: str, style: "Style") -> tuple:
     """
     if not style.scrawl:
         return text, ""
+    if whole_words:
+        first, space, rest = text.partition(" ")
+        return first, (space + rest) if rest else ""
     kept = 0
     for index, char in enumerate(text):
         if index < style.survives or char.isupper() or char.isspace():
@@ -791,8 +1125,9 @@ class Mark:
     """
 
     def __init__(self, path: list, style: Style, text: str, name: str,
-                 head: str = "", tail: str = ""):
+                 head: str = "", tail: str = "", source: str = "font"):
         self.path = path
+        self.source = source
         self.style = style
         self.text = text
         self.name = name
@@ -817,7 +1152,7 @@ class Mark:
 
     def report(self) -> dict:
         report = self.style.report()
-        report.update({"name": self.name, "drawn": self.text,
+        report.update({"source": self.source, "name": self.name, "drawn": self.text,
                        "legible": self.head, "degenerated": self.tail,
                        "aspect": round(self.aspect, 2),
                        "in_capture_box": ASPECT[0] <= self.aspect <= ASPECT[1]})
@@ -832,16 +1167,31 @@ class Mark:
 class Signer:
     """One person's hand, over as many names as you like.
 
-    The face is opened once and the outlines cached, so a page with four
-    signature blocks costs one font parse. Reused across names deliberately:
-    the same seed is the same signer, and a signer signing two different names
-    should differ only in the letters.
+    The ink is opened once and cached, so a page with four signature blocks
+    costs one font parse -- or, with the model, one worker. Reused across names
+    deliberately: the same seed is the same signer, and a signer signing two
+    different names should differ only in the letters.
+
+    `source` names where the letters come from, the same two words
+    `handwriting.py` uses for the same two things:
+
+        font    outlines from `fonts/hand/` -- always available, and repeats
+        model   WriteViT, traced -- thin, joined-up, 106 writers, needs the
+                clone and about seven seconds a word on CPU
     """
 
-    def __init__(self, seed: int = 0, ink: "Ink | None" = None,
-                 directory: Path = HAND_FONT_DIR):
+    def __init__(self, seed: int = 0, ink=None,
+                 directory: Path = HAND_FONT_DIR, source: str = "font"):
         self.style = Style(seed)
-        self.ink = ink if ink is not None else Ink(self.style.face, directory)
+        if ink is not None:
+            self.ink = ink
+        elif source == "model":
+            self.ink = ModelInk(writer=self.style.writer, seed=seed)
+        elif source == "font":
+            self.ink = Ink(self.style.face, directory)
+        else:
+            raise KeyError(f"no ink source {source!r}; have font, model")
+        self.source = getattr(self.ink, "source", "font")
         self._opened = ink is None
 
     def __enter__(self) -> "Signer":
@@ -881,7 +1231,15 @@ class Signer:
         text = letters_of(name, style)
         if not text.strip():
             raise ValueError(f"nothing to sign in {name!r}")
-        head, tail = head_and_tail(text, style)
+        head, tail = head_and_tail(
+            text, style, whole_words=getattr(self.ink, "writes_words", False))
+        refuse = getattr(self.ink, "writable", None)
+        if refuse is not None and not refuse(head):
+            # The model has no digits, no ALL-CAPS and no punctuation, and a
+            # monogram is a run of capitals. Raised rather than approximated:
+            # `fill` counts it and leaves the block blank, which is the same
+            # bargain `handwriting.fill` strikes with the same checkpoint.
+            raise ValueError(f"this ink source cannot write {head!r}")
 
         glyphs = self._letters(head)
         if not glyphs:
@@ -905,34 +1263,42 @@ class Signer:
             path += self._terminal(path)
         path += self._paraph(path)
         return Mark(mapped(path, affine(shear=style.slant)), style, text, name,
-                    head=head, tail=tail)
+                    head=head, tail=tail, source=self.source)
 
     def _letters(self, text: str) -> list:
-        """Each letter stretched to its role and set down at the pen's x.
+        """Each unit stretched to its role and set down at the pen's x.
 
         Three roles, which is the survey's three zones: the initial is pulled
-        up out of proportion, the body is squeezed narrow, and the last letter
+        up out of proportion, the body is squeezed narrow, and the last unit
         keeps the body's width but is where the terminal will leave from. The
-        stretch is applied about the baseline and the letter's own left edge,
-        so a taller initial grows upward off the line rather than floating.
+        stretch is applied about the baseline and the unit's own left edge, so
+        a taller initial grows upward off the line rather than floating.
+
+        A **unit** is whatever the ink source hands back, and the two sources
+        disagree about it on purpose. `Ink` splits a font into one unit per
+        letter, because that is what a glyph is. `ModelInk` splits into the
+        initial and then the rest, because WriteViT writes a *word* at a time
+        and the joins inside that word are the whole reason to use it -- asking
+        it for one letter at a time would throw away the thing it is good at.
+        Everything below works the same either way.
         """
         style, ink = self.style, self.ink
+        # Whether the first unit gets the vertical cap stretch. A PRINT capital
+        # has no signature form of its own, so it is pulled up out of
+        # proportion; a capital the model wrote is already a cursive signature
+        # capital, and stretching it only makes a blade. The source knows which
+        # it is, and it is the source's call.
+        stretch = getattr(ink, "stretches_initial", True)
         drawn, pen = [], 0.0
-        for index, char in enumerate(text):
-            if char.isspace():
-                pen += 0.42                    # a word gap, in x-heights
-                continue
-            if not ink.has(char):
-                continue
-            outline, advance = ink.outline(char)
-            if not outline:
+        for path, advance, char in ink.units(text):
+            if not path:
                 pen += advance
                 continue
             initial = not drawn
             sx = 1.0 if initial else style.squeeze
-            sy = style.cap if initial else 1.0
-            x0 = bounds(outline)[0]
-            placed = mapped(outline, affine(sx, sy, dx=pen - x0 * sx))
+            sy = style.cap if initial and stretch else 1.0
+            x0 = bounds(path)[0]
+            placed = mapped(path, affine(sx, sy, dx=pen - x0 * sx))
             drawn.append((bounds(placed), placed, char))
             # Capitals are pulled together harder than lowercase. `_connectors`
             # refuses to join two of them -- a print face gives them no exit
@@ -1335,8 +1701,26 @@ WHO = re.compile(
     r'</div>')
 
 
+def _signer(seed: int, source: str, directory: Path, hand) -> "Signer":
+    """One opened `Signer`, sharing the caller's WriteViT worker if there is one.
+
+    A page has two signature blocks and a run has many pages; standing up a
+    second worker per block would pay the 11-second checkpoint load again for
+    nothing. `render.py` already keeps one alive for `--handwriting`, so when
+    both are on there is exactly one.
+    """
+    if source == "model":
+        # Built and opened HERE, not by `Signer`: a `Signer` handed an ink
+        # treats it as the caller's and neither opens nor closes it, which is
+        # right -- and makes opening and closing this one `fill`'s job.
+        ink = ModelInk(writer=Style(seed).writer, seed=seed, hand=hand).open()
+        return Signer(seed, ink=ink)
+    return Signer(seed, directory=directory, source=source).open()
+
+
 def fill(markup: str, *, seed: int = 0, names=(), colour: str = "",
-         directory: Path = HAND_FONT_DIR, height_em: float = 3.4):
+         directory: Path = HAND_FONT_DIR, height_em: float = 3.4,
+         source: str = "font", hand=None):
     """Sign the sheet: a mark above every printed name in a signature block.
 
     Returns the markup and a report, the same shape and for the same reason as
@@ -1366,6 +1750,17 @@ def fill(markup: str, *, seed: int = 0, names=(), colour: str = "",
     The mark carries no `data-kind` and never will. It is ink a reader must
     learn to leave alone: on the page, absent from the boxes, and absent from
     `labelled_runs`, so inking a sheet cannot change what the sheet says.
+
+    `source` is `font` or `model`, and **`model` falls back to `font` per
+    block** rather than per run. WriteViT has no ALL-CAPS, so a signer whose
+    style came out as a three-capital monogram is a signer the checkpoint
+    cannot write for -- about a third of them. Refusing those pages outright
+    would throw away the model's ink on the other two thirds; refusing those
+    blocks and printing nothing would leave a form unsigned for a reason that
+    has nothing to do with the form. So the block falls back, and the report
+    says which ink each mark is actually in. That is the same bargain
+    `docs/handwriting-html.md` strikes for field values, made per block instead
+    of per field.
     """
     from handwriting import PENS  # noqa: PLC0415 -- one table, not two
 
@@ -1377,9 +1772,10 @@ def fill(markup: str, *, seed: int = 0, names=(), colour: str = "",
     rng = random.Random(seed ^ 0x50454E53)
     pen = colour or "#%02x%02x%02x" % rng.choices(
         [rgb for rgb, _ in PENS], [weight for _, weight in PENS])[0]
-    report = {"pen": pen, "marks": [], "skipped": {}}
+    report = {"pen": pen, "source": source, "marks": [], "skipped": {}}
     column = [0]
     signers: dict = {}
+    shared = hand
 
     def replace(match: "re.Match") -> str:
         inner, escaped = match.group(1), match.group(2)
@@ -1398,13 +1794,18 @@ def fill(markup: str, *, seed: int = 0, names=(), colour: str = "",
         # what is wanted is only that column 0 and column 1 land far apart in
         # the seed space, so that two people on one page are two people.
         key = seed ^ (index * 0x9E3779B1)
-        try:
-            if key not in signers:
-                signers[key] = Signer(key, directory=directory).open()
-            mark = signers[key].sign(name)
-        except (ValueError, FileNotFoundError) as error:
-            reason = type(error).__name__ + ":" + str(error)[:40]
-            report["skipped"][reason] = report["skipped"].get(reason, 0) + 1
+        mark = None
+        for attempt in ((source, "font") if source != "font" else ("font",)):
+            token = (key, attempt)
+            try:
+                if token not in signers:
+                    signers[token] = _signer(key, attempt, directory, shared)
+                mark = signers[token].sign(name)
+                break
+            except (ValueError, FileNotFoundError, RuntimeError) as error:
+                reason = f"{attempt}:{type(error).__name__}:{str(error)[:32]}"
+                report["skipped"][reason] = report["skipped"].get(reason, 0) + 1
+        if mark is None:
             return match.group(0)
         entry = mark.report()
         entry["printed"] = bool(escaped)
@@ -1417,6 +1818,10 @@ def fill(markup: str, *, seed: int = 0, names=(), colour: str = "",
     finally:
         for signer in signers.values():
             signer.close()
+            # And the ink `_signer` built, which a `Signer` handed an ink does
+            # not own. Closing twice is a no-op on both sources; not closing at
+            # all leaks a WriteViT worker per block on a long run.
+            signer.ink.close()
     if report["marks"]:
         filled = filled.replace("</style>", CSS + "</style>", 1)
     return filled, report
@@ -1456,9 +1861,12 @@ def main() -> int:
     return 0
 
 
+SOURCES = ("font", "model")
+
 __all__ = [
     "ASPECT", "BASELINE", "CAP_STRETCH", "CSS", "FACES", "LEAD", "LEGIBILITY",
-    "OVERLAP", "PARAPH", "PEN", "SCRAWL", "SLANT", "SURVIVES", "WHO",
+    "OVERLAP", "PARAPH", "PEN", "SCRAWL", "SLANT", "SOURCES", "SURVIVES",
+    "TRACE_ZOOM", "WHO", "ModelInk", "trace",
     "Ink", "Mark", "Signer",
     "Style", "affine", "at", "bounds", "bow", "d", "fade", "fill",
     "head_and_tail", "letters_of", "line_controls", "mapped", "mark_span",
