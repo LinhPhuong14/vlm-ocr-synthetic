@@ -30,7 +30,7 @@ make check-boxes                 # the boxes still describe the pixels
 Or look at the committed output first, with nothing built:
 
 ```bash
-head -1 data/dataset60/html/metadata.jsonl
+cat data/dataset60/html/html_000.json
 ```
 
 No `make` — on Windows, or anywhere — call the task runner directly. Every task
@@ -68,7 +68,7 @@ match the pixels ([`tools/ocr_proof.py`](tools/ocr_proof.py)).
 ```mermaid
 flowchart LR
     author["Dataset author<br/>adds YAML, runs tasks"]
-    consumer["Training / eval code<br/>reads metadata.jsonl"]
+    consumer["Training / eval code<br/>reads a record per image"]
 
     subgraph repo["vlm-ocr-synthetic"]
         rb["rule-base<br/>what the page says"]
@@ -117,7 +117,7 @@ flowchart TD
     end
 
     D["degradation/<br/>DocCreator models"]
-    O[("metadata.jsonl + .jpg")]
+    O[(".jpg + .json per page")]
 
     S --> C --> L
     L --> R1 & R2 & R3
@@ -151,7 +151,7 @@ flowchart TD
     F1 --> G["7 · downscale<br/>boxes scaled with the pixels"]
     F2 --> G
     G --> H["8 · validate + write<br/>record.validate, invariants"]
-    H --> O[("jpg + metadata.jsonl")]
+    H --> O[("jpg + json per page")]
 ```
 
 Stage 6 is the only structural divergence: the glyph backend curls the sheet,
@@ -463,45 +463,141 @@ and eight still produce byte-identical output.
 
 ## What comes out
 
-One `metadata.jsonl` line per image, the same shape from every renderer, its
-keys fixed by [`pipeline/record.py`](pipeline/record.py) and validated on the
-way out:
+**One record per image**, and one file for the set:
+
+```
+data/dataset60/html/
+    html_000.jpg  html_000.json    the page, and what a converted page looks like
+    html_001.jpg  html_001.json
+    …
+    synthesis.json                 how those images were made — what no converter could say
+```
+
+A page's record has the image's name with a `.json` suffix and sits next to it,
+because a converted page comes back as one document about one file. The images
+are therefore the listing: nothing has to be told which files in a directory are
+records, an image with no record beside it is an error `record.read` raises
+rather than skips, and one page can be handed to somebody without shipping the
+index of a set they do not have.
+
+That record is the **document converter's schema and nothing else**:
+`schema_version`, `job_id`, `task`, `parser`, `filename`, `source_files`,
+`settings`, `documents`, `pages`, `blocks`, `markdown`, `html`, `extracted`.
+Training and evaluation code reads one shape whether the page was drawn here or
+scanned somewhere else, and a synthetic set drops into a real one with no
+translation layer in between. The keys are fixed by
+[`pipeline/record.py`](pipeline/record.py) and validated on the way out — a key
+that is *not* in the schema is as much an error as one that is missing.
+
+`synthesis.json` holds what a converter could never return: the seed, which
+option each of the six attributes drew, the tags, the flat reading order. It
+used to ride in every line, and it did not belong there — `ornament` and
+`augmentation` are recipes for a *background*, and twenty pages sharing one
+chain wrote that chain out twenty times. Here the params behind an option id
+are written **once**, and a page names ids:
+
+```json
+{
+  "schema_version": 8,
+  "framework": "html",
+  "pages": {
+    "html_000.jpg": {
+      "job_id": "c95630e9-…", "seed": 2026, "layout": "eatery_ascii",
+      "attributes": {"document": "street_eatery", "layout": "eatery_ascii",
+                     "visual": "thermal_narrow", "augmentation": "real_paper", "…": "…"},
+      "tags": ["thermal", "till_receipt", "…"],
+      "text_sequence": "NHA HANG - KARAOKE VUON CAU 40-168 HOANG VAN THU …"
+    }
+  },
+  "attributes": {
+    "augmentation": {"real_paper": {"params": {"chain": [["paper_texture", {"…": "…"}]]}}},
+    "layout": {"eatery_ascii": {"group": "retail_receipt", "params": {}}}
+  },
+  "images": 20
+}
+```
+
+[`pipeline/synthesis.py`](pipeline/synthesis.py) reads it, and
+`Synthesis.recipe(filename)` folds the two halves back into exactly the
+`recipe.to_dict()` the rule-base produced — so everything that redraws a page is
+handed what it always was.
+
+One record, field by field:
 
 | field | |
 | --- | --- |
-| `file_name` | the image, relative to the backend's directory |
-| `ground_truth` | CORD-style nested label, as a **JSON string** |
-| `text_sequence` | flat reading order, for pre-training and OCR scoring |
-| `recipe` | the seed and all six sampled attributes with their params |
-| `boxes` | one `{kind, text, quad}` per drawn field; `quad` is four `[x, y]` corners |
-| `framework`, `layout` | which renderer drew it, and from which layout |
+| `schema_version` | `8` — the converter schema this line follows |
+| `job_id` | uuid5 of `parser\|layout\|seed\|filename`. **Not** random: every record is hashed by the golden baseline, so the same page must get the same id twice |
+| `task` | `convert` for a document page, `table_structure` for a table image |
+| `parser` | which renderer drew it — `synthdog`, `html` or `genalog` |
+| `filename`, `source_files` | the image, relative to the backend's directory |
+| `settings` | the job's options, spelled as the converter spells them. `max_pixels` is `null`: the page was drawn at the size it is, not resized to fit a cap |
+| `documents` | `[]` — a drawn page is one page of one document, so there is nothing to segment |
+| `pages` | one entry: the page number and its pixel size |
+| `blocks` | one per drawn field, in reading order — see below |
+| `markdown`, `html` | the page, built from the blocks |
+| `extracted` | the CORD-style nested label, as an **object** |
+
+A **block** carries both vocabularies, because they answer different questions:
+
+| | | |
+| --- | --- | --- |
+| `label` | `Text`, `Table`, `Page-header`, `Title`… | DocLayNet's eleven classes, which is what a converter emits |
+| `kind` | `total.grand.label`, `menu.qty`, `store.name` | *which field it is* — this repository's own vocabulary, and what every check is written against |
+| `bbox` | `{x1, y1, x2, y2}` | the axis-aligned box, as the converter writes it |
+| `quad` | four `[x, y]` corners | the real geometry. The glyph backend curls the paper, and no bbox describes that |
+| `content` / `text` | the markdown / the raw string | a heading is `# …` in one and bare in the other |
 
 ```mermaid
 flowchart LR
     R["Recipe"] --> RC["Receipt"]
-    RC --> GT["ground_truth<br/>nested"]
+    RC --> GT["extracted<br/>nested"]
     RC --> TS["text_sequence<br/>flat"]
     RC --> G["Grid"]
     G --> PX["pixels"]
-    G --> BX["boxes"]
-    GT & TS & PX & BX & R --> J[("metadata.jsonl + .jpg")]
+    G --> BX["blocks"]
+    BX --> MD["markdown + html"]
+    GT & PX & BX & MD --> J[("html_000.jpg + html_000.json")]
+    R & TS --> S[("synthesis.json")]
 ```
 
-Two properties are worth knowing before writing a loader:
+Three properties are worth knowing before writing a loader:
 
-**Boxes are the definition of "printed".** `text_sequence` is built from the
-`Receipt`, so it can list a field the layout had no room for; `boxes` comes
-from the renderer's own geometry, one per drawn cell. `pipeline/invariants.py`
-checks the label against the boxes for that reason, and
-[`tools/check_boxes.py`](tools/check_boxes.py) checks the boxes against the
+**Blocks are the definition of "printed".** `text_sequence` is built from the
+`Receipt`, so it can list a field the layout had no room for; `blocks` comes
+from the renderer's own geometry, one per drawn cell.
+`pipeline/invariants.py` checks the label against the blocks for that reason,
+and [`tools/check_boxes.py`](tools/check_boxes.py) checks the blocks against the
 pixels.
+
+**`markdown` is derived, not written.** It is the blocks grouped into the lines
+they were printed on — down the page, then across it — so a receipt row is one
+line and a form's left and right columns are paired back up. Nothing is in it
+that is not in a block.
 
 **The seed alone does not reproduce a page.** Pinning an attribute changes the
 tags it sets, so everything drawn afterwards diverges. Pin all six back:
 
 ```python
-force = {name: value["id"] for name, value in record["recipe"]["attributes"].items()}
-recipe, receipt, grid = rulebase.make(seed=record["recipe"]["seed"], force=force)
+from pipeline import record, synthesis
+
+drew = synthesis.read("data/dataset60/html")          # or any page in it
+recipe = drew.recipe(record.file_name(item))          # the rule-base's own dict
+force = {name: value["id"] for name, value in recipe["attributes"].items()}
+recipe, receipt, grid = rulebase.make(seed=recipe["seed"], force=force)
+```
+
+Read through the accessors — `record.file_name`, `record.boxes`,
+`record.extracted` for a line; `Synthesis.recipe`, `.layout`, `.text_sequence`
+for the file beside it — rather than reaching for a key by name, so the next
+time either shape moves it moves in one file. An older dataset is brought
+forward with [`tools/migrate_metadata.py`](tools/migrate_metadata.py), which
+re-renders nothing: every value it writes is already in the record, or in the
+JPEG header beside it.
+
+```bash
+python tools/migrate_metadata.py data --check   # what would change
+python tools/migrate_metadata.py data           # in place
 ```
 
 ---
@@ -546,7 +642,7 @@ camera are off, so the sheet fills the frame with no background at all.
 
 Green for text fields, orange for amounts.
 
-![Per-field quads from metadata.jsonl drawn on one image per renderer](docs/figures/boxes.jpg)
+![Per-field quads from each record drawn on one image per renderer](docs/figures/boxes.jpg)
 
 The quads follow the paper curl on the left and are axis-aligned in the middle
 and on the right — but the schema and the `kind` vocabulary are identical, so
@@ -610,6 +706,7 @@ pipeline/               ONE RUN — declared, sharded, resumable, checked
 ├── worker.py           one shard, completely or not at all
 ├── run.py              preflight, a pool of processes, assemble
 ├── record.py           the shape of one metadata line
+├── synthesis.py        how a page was made, beside the index
 ├── invariants.py       what must be true of every image
 ├── drift.py            has the mix stopped matching the rules
 └── preflight.py        every check that must pass before drawing
@@ -619,7 +716,7 @@ textures/ fonts/ augmentations/   the assets a page is drawn with and onto
 data/                   generated datasets
 samples/                curated examples: degradation showcase, reference
                         sheets, the ornament contact sheet
-tools/                  drivers: dataset, proof, boxes, monitor, baseline
+tools/                  drivers: dataset, proof, boxes, monitor, baseline, migrate
 docs/                   notes that outlive any one generator, plus figures
 tasks.py                every task, and the only definition of them
 ```
@@ -824,7 +921,7 @@ use the document sets for anything about text.
 | a rule value never appears in the output | almost always a typo'd tag, which is silent. `make check-rules`, then `make distribution`. |
 | `unchecked: fontTools is not installed` from preflight | glyph coverage could not be verified. `pip install fonttools` — "I could not look" is not "it is fine". |
 | a font prints empty boxes | missing Vietnamese glyphs. `generators/synthdog/.venv/bin/python generators/synthdog/tools/check_fonts.py fonts/mono`. |
-| a shard is redone instead of resumed | it has no `DONE` file, so it was incomplete. That is the design: appending to a half-written `metadata.jsonl` duplicates records. |
+| a shard is redone instead of resumed | it has no `DONE` file, so it was incomplete. That is the design: a half-finished shard is a directory whose images and records do not agree about what it holds. |
 | `make baseline-write` refuses to run | it needs `REASON="..."`. A recapture is a claim that the old pixels were wrong and the new ones are right; the reason is kept in the golden file. |
 | `CÙNG KẾ HOẠCH, KHÁC PIXEL` from `baseline-verify` | the plan's inputs did not move but the images did — a regression until shown otherwise. Diff before reaching for `baseline-write`. |
 
@@ -836,9 +933,10 @@ use the document sets for anything about text.
   run only as a check.
 - **Only the glyph renderer produces rotated boxes.** A detector trained on the
   two flat backends alone has never seen a non-axis-aligned quad.
-- **`text_sequence` is a canonical order**, not the order an eye or an OCR
-  engine follows on a two-column page — which is why the proof scores
-  order-free.
+- **`text_sequence` in `synthesis.json` is a canonical order**, not the order an
+  eye or an OCR engine follows on a two-column page — which is why the proof
+  scores order-free. `markdown` is the geometric reading order instead, so the
+  two disagree on a form and are meant to.
 - **Table images teach layout, not language**, and have no OCR proof: the right
   metric for table structure is TEDS, which is not implemented here.
 - **No licence is chosen yet.**
@@ -908,5 +1006,7 @@ the fonts in `fonts/` are OFL 1.1, Apache 2.0 or Bitstream Vera — see
   ICDAR 2015.
 - **TIES_DataGeneration** — the table model.
   <https://github.com/hassan-mahmood/TIES_DataGeneration>
-- **CORD** — the receipt-parsing label schema `ground_truth` follows.
+- **CORD** — the receipt-parsing label schema `extracted` follows.
   <https://github.com/clovaai/cord>
+- **DocLayNet** — the eleven page-layout classes a block's `label` comes from.
+  <https://github.com/DS4SD/DocLayNet>
