@@ -152,7 +152,7 @@ def _render(backend: str, out: Path, args: list[str]) -> list[tuple]:
         cwd=cwd, capture_output=True, text=True)
     assert result.returncode == 0, result.stderr[-2000:]
     pages = []
-    for item in record.read(out / "metadata.jsonl"):
+    for item in record.read(out):
         pages.append((
             hashlib.sha256((out / record.file_name(item)).read_bytes()).hexdigest(),
             record.ground_truth(item),
