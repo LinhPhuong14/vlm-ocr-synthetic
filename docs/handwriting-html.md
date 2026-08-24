@@ -261,6 +261,29 @@ Ba việc nhỏ, mỗi việc có một lý do đo được.
 kẻ chấm dưới ô bị xoá trắng. `alpha = 255 - giá trị điểm ảnh`, đúng như
 `writevit.md` dặn, rồi tô màu bút — xanh mực là chính, đen ít hơn.
 
+**Không được thu nhỏ ảnh mực.** Bản đầu của `compose` chọn tỉ lệ sao cho một từ
+dùng **hết** dải chữ giữ nguyên 32 px của bộ sinh. Nhưng phần lớn từ không dùng
+hết dải: `Chu Văn Lâm` không có nét nào thõng xuống, nên cả dòng ra 25 px, rồi
+trình duyệt phóng ngược lên ~35 px mà ô trường dành cho nó — **thu rồi phóng**,
+và nét mất cạnh. Đo trên một ô: trung bình nét đi từ 91 (đầu ra của mô hình) lên
+133 trên trang. Lấy `max(chiều cao / dải)` thay vì `max(chiều cao) / dải trọn`
+thì từ nào lẽ ra bị co nhiều nhất sẽ giữ nguyên điểm ảnh, mọi ảnh còn lại được
+phóng lên — không ảnh nào bị thu. Trung bình nét về 122.
+
+Có thử **ghép ở độ phân giải cao hơn** rồi để trình duyệt thu xuống, theo lập
+luận thu thì giữ cạnh tốt hơn phóng. Đo ở 1×, 2×, 3×, 4×: lệch 7 điểm và
+**không đơn điệu** — nhiễu, không phải tín hiệu, vì nguồn có 32 px mà ô cho 35.
+Không đưa vào.
+
+**Phần lớn chỗ nhạt còn lại là màu bút, không phải phép lấy mẫu.** Ghép alpha
+lên giấy trắng cho `giá trị = bút·a + 255·(1−a)`, nên với bút `#1a1a20` (độ sáng
+27) thì nét đậm nhất **không bao giờ** xuống dưới 27, và trung bình 91 của mô
+hình thành 108. Đó là chủ ý — bút bi không đen tuyệt đối — nhưng nó là yếu tố
+lớn nhất, và nói ra thì hơn để người đọc tự đoán. `INK_GAMMA = 0.8` bẻ phần phủ
+một phần về phía đục, lấy lại chừng ba điểm tương phản; quét tới 0,5 thì nét phủ
+19,2 % ô trong khi bản gốc phủ 15,9 % — lúc ấy không còn là ghép nét của mô hình
+mà là làm dày nó, nên dừng ở 0,8.
+
 **Các từ phải chung một dòng kẻ chân.** Đây là chỗ đáng kể nhất. WriteViT cắt
 sát từng từ rồi kéo về 32 px, nên `Tiền` và `mặt` trả về **cùng chiều cao** dù
 `mặt` không có nét vươn lên. Nối thẳng hai ảnh ấy ra một dòng đọc như hai cỡ chữ
