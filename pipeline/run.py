@@ -50,7 +50,7 @@ for extra in (REPO_ROOT, REPO_ROOT / "tools"):
     if str(extra) not in sys.path:
         sys.path.insert(0, str(extra))
 
-from pipeline import drift, invariants, preflight, record  # noqa: E402
+from pipeline import drift, invariants, preflight, record, synthesis  # noqa: E402
 from pipeline.config import Config, apply_overrides, materialise_rules  # noqa: E402
 from pipeline.plan import build_plan, write_plan  # noqa: E402
 from pipeline.worker import (  # noqa: E402
@@ -189,7 +189,10 @@ def assemble(out: Path, plan: dict, shards_root: Path) -> tuple[dict, list[str]]
         seeds: set[int] = set()
         labels: set[str] = set()
         written = 0
-        with open(target / "metadata.jsonl", "w", encoding="utf-8") as index:
+        # The records and the provenance, assembled together: they are one
+        # dataset, and a run that produced only half of it would leave images
+        # nothing can redraw.
+        with synthesis.Writer(synthesis.beside(target), backend) as notes:
             for shard in sorted((s for s in plan["shards"] if s["backend"] == backend),
                                 key=lambda s: s["index"]):
                 directory = shard_dir(shards_root, shard["index"])
@@ -198,19 +201,32 @@ def assemble(out: Path, plan: dict, shards_root: Path) -> tuple[dict, list[str]]
                         f"shard {shard['index']} ({backend}) is missing from the "
                         f"assembled dataset: no DONE")
                     continue
-                for item in record.read(directory / "metadata.jsonl"):
-                    source = directory / item["file_name"]
-                    destination = target / item["file_name"]
+                drew = synthesis.read_if_there(directory)
+                for item in record.read(directory):
+                    name = record.file_name(item)
+                    source = directory / name
+                    destination = target / name
                     try:
                         os.link(source, destination)
                     except OSError:
                         shutil.copy2(source, destination)
-                    json.dump(item, index, ensure_ascii=False)
-                    index.write("\n")
-                    by_layout[item["layout"]] = by_layout.get(item["layout"], 0) + 1
-                    seeds.add((item.get("recipe") or {}).get("seed"))
+                    record.write_one(item, target)
+
+                    page = dict(drew.entry(name))
+                    recipe = drew.recipe(name) if name in drew else {}
+                    notes.add(name, job_id=item["job_id"],
+                              layout=drew.layout(name) if name in drew else "",
+                              recipe=recipe,
+                              text_sequence=str(page.pop("text_sequence", "")),
+                              extra={key: value for key, value in page.items()
+                                     if key not in ("job_id", "seed", "layout",
+                                                    "attributes", "tags")})
+
+                    layout = drew.layout(name) if name in drew else "?"
+                    by_layout[layout] = by_layout.get(layout, 0) + 1
+                    seeds.add(recipe.get("seed"))
                     labels.add(hashlib.sha256(
-                        str(item.get("ground_truth", "")).encode("utf-8")).hexdigest())
+                        record.ground_truth(item).encode("utf-8")).hexdigest())
                     written += 1
         frameworks[backend] = {
             "images": written,
