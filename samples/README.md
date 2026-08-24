@@ -9,7 +9,7 @@ Viewable straight away, with no environment to build.
 | [`form-templates/`](form-templates) | two administrative forms — an authorisation letter and a three-page medical statement — hand-built from scans | `make templates` |
 | [`ornaments/`](ornaments) | every seal and flourish in `textures/ornament/`, on one white page | `make ornaments` |
 | [`handwriting/`](handwriting) | two **hand-filled** forms, one per ink source: a typeface fills every field, the model fills 5 of 12 and the seven it leaves are all digits | see its README |
-| [`signatures/`](signatures) | 18 synthesised **signatures** on one grid, plus two signed sheets — one with the name printed under the caption, one with the line left blank | `make signatures` |
+| [`signatures/`](signatures) | synthesised **signatures** from both ink sources — a grid each, plus three signed sheets — with the name printed under the caption, with the line left blank, and in the model's own thin joined-up ink | `make signatures` |
 
 The full 60-image dataset — three renderers, five layouts, with labels and OCR
 scores — is in [`data/dataset60/`](../data/dataset60), not here.

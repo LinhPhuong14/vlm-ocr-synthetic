@@ -247,7 +247,8 @@ class HtmlReceiptRenderer:
     """Keeps one browser alive across a run -- launching costs ~300 ms each time."""
 
     def __init__(self, scale: float = 2.0, short_size: tuple[int, int] = (960, 1400),
-                 template: str | None = None, hand=None, sign: bool = False):
+                 template: str | None = None, hand=None,
+                 sign: str | None = None):
         self.scale = scale
         self.short_size = short_size
         # An open `handwriting.Hand`, or None to type every value as before.
@@ -255,10 +256,11 @@ class HtmlReceiptRenderer:
         # process that costs 11 s to start and must outlive one page, exactly
         # like the browser below.
         self.hand = hand
-        # Draw a signature above each printed name in a signature block. A
-        # flag rather than an object, unlike `hand`: `signature.fill` opens a
-        # font per page and closes it again, which costs a parse and no
-        # process, so there is nothing here that has to outlive a page.
+        # Which ink signs, or None. A name rather than an object, unlike
+        # `hand`: the font source opens and closes a face per page, which costs
+        # a parse and no process. The model source needs a worker, and rather
+        # than stand up a second one it borrows `hand` when that is already a
+        # WriteViT worker -- see `render`.
         self.sign = sign
         # None keeps the character-grid page every layout has used until now.
         # "auto" switches to `sheets/`, which lays the same receipt out with CSS
@@ -315,7 +317,13 @@ class HtmlReceiptRenderer:
                     import signature
 
                     markup, sign_report = signature.fill(
-                        markup, seed=seed, names=signers(seed))
+                        markup, seed=seed, names=signers(seed),
+                        source=self.sign,
+                        # The same worker `--handwriting model` already keeps
+                        # alive, when both are on: one checkpoint load a run,
+                        # not one per signature block.
+                        hand=self.hand if getattr(
+                            self.hand, "source", "") == "model" else None)
                 if self.hand is not None:
                     # After the sheet is built and before a pixel is drawn:
                     # the form is printed first and filled in second, which is
@@ -451,12 +459,16 @@ def main() -> int:
              "with --template. See generators/html/handwriting.py",
     )
     parser.add_argument(
-        "--signature", action="store_true",
+        "--signature", nargs="?", const="font", default=None,
+        choices=["font", "model"], metavar="SOURCE",
         help="draw a signature above each printed name in a signature block: "
-             "letters taken from a handwriting face in fonts/hand/ and "
-             "stretched into a mark -- enlarged initial, simplified body, "
-             "lifted terminal, paraph. Unlabelled on purpose, so a reader has "
-             "to learn to leave it alone. Only with --template. See "
+             "an enlarged initial, a body that degenerates into a scrawl, a "
+             "lifted terminal and a paraph. `font` (the default) stretches "
+             "outlines from fonts/hand/; `model` traces WriteViT's own ink, "
+             "which is thin and joined-up and different every time, and falls "
+             "back to the font per block for the capital runs the checkpoint "
+             "cannot write. Unlabelled on purpose, so a reader has to learn to "
+             "leave it alone. Only with --template. See "
              "generators/html/signature.py",
     )
     parser.add_argument(
