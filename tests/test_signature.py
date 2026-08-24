@@ -560,6 +560,80 @@ def test_the_model_refuses_what_the_checkpoint_has_no_glyph_for():
     assert not ink.writable("3.920.000")
 
 
+def test_the_model_is_given_only_the_styles_it_can_draw():
+    """The fallback used to fire on eleven of eighteen seeds, so a run asking
+    for model ink got mostly typeface. The order was wrong: a style was drawn
+    and only then was the ink asked whether it could write it."""
+    for seed in range(200):
+        style = signature.Style(seed)
+        style.restrict(signature.ModelInk.legibility)
+        assert style.legibility in ("given", "full")
+
+
+def test_restricting_leaves_a_style_that_was_already_drawable_alone():
+    style = signature.Style(0)
+    style.legibility = "given"
+    style.restrict(("given", "full"))
+    assert style.legibility == "given"
+
+
+def test_restricting_is_a_pure_function_of_the_seed():
+    for seed in range(50):
+        one, two = signature.Style(seed), signature.Style(seed)
+        one.restrict(("given", "full"))
+        two.restrict(("given", "full"))
+        assert one.legibility == two.legibility
+
+
+def test_the_font_source_is_not_restricted_at_all():
+    """A typeface draws every style in the survey; only the model narrows."""
+    assert signature.Ink.legibility is None
+    seen = {signature.Style(seed).legibility for seed in range(200)}
+    assert seen == {name for name, _weight in signature.LEGIBILITY}
+
+
+def test_a_character_the_model_cannot_write_becomes_a_break_not_a_deletion():
+    """Deleted, `O'Donnell` closes into `ODonnell`, whose `OD` is a run of
+    capitals the checkpoint cannot write either -- a refusal manufactured by
+    the repair."""
+    ink = signature.ModelInk()
+    assert ink.normalise("O'Donnell") == "O Donnell"
+    assert ink.normalise("Nguyễn Thị") == "Nguyễn Thị"
+    assert ink.normalise("!!!") == "!!!", "never normalise a name to nothing"
+
+
+def test_a_one_letter_first_word_reaches_for_the_next():
+    """The model writes an isolated capital badly -- `N` alone comes back a
+    scribble where `Nguyen` comes back a hand."""
+    style = signature.Style(1)
+    style.scrawl = True
+    assert signature.head_and_tail("O Donnell", style, whole_words=True) == (
+        "O Donnell", "")
+
+
+def test_the_model_is_asked_for_a_name_it_can_write():
+    """The property this whole group exists for, over the corpus the documents
+    actually draw their people from: after restricting the style and
+    normalising the letters, the model is never handed something it refuses.
+
+    Measured rather than asserted in the abstract -- it was 55 % refusals
+    before the style was chosen from what the ink can draw.
+    """
+    from rulebase import corpus  # noqa: PLC0415
+
+    ink = signature.ModelInk()
+    names = corpus.people("vi") + corpus.people("en")
+    refused = []
+    for seed in range(600):
+        name = names[seed % len(names)]
+        signer = signature.Signer(seed, ink=ink)
+        text = ink.normalise(signature.letters_of(name, signer.style))
+        head, _tail = signature.head_and_tail(text, signer.style, whole_words=True)
+        if not ink.writable(head):
+            refused.append((seed, name, head))
+    assert not refused, f"{len(refused)} of 600 would fall back: {refused[:3]}"
+
+
 def test_the_head_is_cut_at_a_word_when_the_source_writes_words():
     """The model is trained on words: asked for `Ng` it returns a stiff
     fragment, asked for `Nguyen` a connected hand. Cutting mid-word would hand
@@ -577,6 +651,10 @@ class _Refuses:
     source = "model"
     stretches_initial = False
     writes_words = True
+    legibility = None
+
+    def normalise(self, text):
+        return text
 
     def writable(self, text):
         return False
