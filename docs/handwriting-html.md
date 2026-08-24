@@ -12,7 +12,9 @@ giấy phép. Đoạn dây chạy được, ảnh ra đúng, nhãn không xê d�
 nhưng mô hình để lại bảy phần tám số ô vẫn in máy, và **82 % số ô bị từ chối là
 vì có chữ số**. Có hai nguồn mực vì thế, và chúng **không thay thế nhau**.
 
-![Điền tay: chỗ chạy được và bức tường chữ số](figures/handwriting-html.jpg)
+![Hai nguồn mực trên cùng một kiểu tờ: mặt chữ lấp hết, mô hình dừng ở chữ số](figures/handwriting-html.jpg)
+
+*Dựng lại bằng `generators/html/.venv/bin/python docs/figures/make_handwriting_figure.py`, từ hai ảnh trong `samples/handwriting/`.*
 
 ## Chạy thử
 
@@ -27,8 +29,13 @@ có "chỗ trống" nào để điền. Không có WriteViT thì lệnh **dừng
 lùi nào vẽ chữ thay — xem phần "Không có đường lùi" bên dưới.
 
 `--handwriting` nhận tên nguồn mực: `model` (mặc định, WriteViT) hoặc `font`.
-`data/hand12/` là đợt thử với `model`: 12 trang, 6 bố cục, 30 ô viết tay. Cùng
-12 trang ấy chạy lại với `font` cho **159 ô, 0 ô in máy**.
+[`data/hand12/`](../data/hand12) là đợt thử, dựng bằng **`font`**: 12 trang, 6
+bố cục, **159 ô điền tay, 0 ô in máy**. Cùng 12 trang ấy chạy bằng `model` chỉ
+được **30 ô**, 129 ô còn lại vẫn in máy — chênh lệch ấy là toàn bộ nội dung của
+tài liệu này.
+
+Sau đợt sinh lại ấy **không tập dữ liệu nào còn mang mực của mô hình**; trang
+mực-mô-hình duy nhất là `samples/handwriting/hand-filled-folio.jpg`.
 
 ## Hai nguồn mực
 
@@ -250,7 +257,7 @@ làm đổi tờ giấy nói gì** — có test riêng trên sáu họ tờ gi�
 lệch, `check_boxes` sẽ báo mọi ảnh viết tay là mất trường; nếu nó lệch **im
 lặng**, nhãn sẽ mô tả một tờ giấy chưa từng được vẽ.
 
-Đo trên `data/hand12/`: **1.262 hộp, 12 ảnh, `check_boxes` sạch** — mọi hộp nằm
+Đo trên `data/hand12/`: **1.219 hộp, 12 ảnh, `check_boxes` sạch** — mọi hộp nằm
 trong khung và mọi hộp đè lên mực.
 
 ## Ghép mực lên giấy

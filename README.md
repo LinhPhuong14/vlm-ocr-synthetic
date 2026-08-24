@@ -795,7 +795,7 @@ to rebuild an image exactly are in **[`data/README.md`](data/README.md)**.
 | [`data/invoices54/`](data/invoices54) | the nine commercial invoice layouts drawn as CSS sheets, by both HTML backends |
 | [`data/forms16/`](data/forms16) | a hospital cost statement and an authorisation to collect — the two documents here that are not a sale |
 | [`data/tables60/`](data/tables60) | table-structure images, a different task and a different label |
-| [`data/hand12/`](data/hand12) | the first pages here whose values are **handwritten** rather than typed — real ink from WriteViT, filled into printed form fields. `samples/handwriting/` puts one of those beside the same form filled from a handwriting typeface, which covers every field |
+| [`data/hand12/`](data/hand12) | every value a person fills in is **handwritten** rather than typed — 159 fields, none left printed. `samples/handwriting/` puts one page from each ink source side by side: a handwriting typeface fills every field, the WriteViT model fills 5 of 12 and the rest are digits it cannot write |
 
 `make proof` reads a set back with Tesseract 5 (`vie`) and scores it order-free
 — Tesseract reads a two-column page in whatever order its layout analysis
