@@ -26,7 +26,7 @@ generators/html/render.py --template auto --handwriting model \
     --force augmentation=pristine --seed 24
 ```
 
-`*.json` bên cạnh là bản ghi `metadata.jsonl` của chính tờ ấy: hộp, nhãn, và
+`*.json` bên cạnh là record của chính tờ ấy: hộp, nhãn, và
 khối `handwriting` nói nguồn mực, ô nào là mực, ô nào vẫn in và vì sao. Cả hai
 tắt làm cũ để nhìn rõ nét bút; bản có làm cũ ở `data/hand12/`.
 

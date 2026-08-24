@@ -42,6 +42,11 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
+# `record` is the name a metadata line goes by throughout this file, so the
+# module that defines their shape comes in under a name that cannot shadow one.
+from pipeline import record as schema  # noqa: E402
+from pipeline import synthesis  # noqa: E402
+
 FRAMEWORKS = ("synthdog", "html", "genalog")
 MONEY = re.compile(r"^-?\d[\d.,]*$")
 HIT_THRESHOLD = 0.7
@@ -173,17 +178,17 @@ def score_field(field: str, bag: Counter, folded: bool) -> float:
     return found / len(wanted)
 
 
-def score_image(record: dict, text: str) -> dict:
-    ground_truth = json.loads(record["ground_truth"])
-    fields = expected_fields(ground_truth)
+def score_image(record: dict, text: str, reading: str = "") -> dict:
+    parse = schema.extracted(record)
+    fields = expected_fields({"gt_parse": parse})
 
-    result: dict = {"file_name": record["file_name"], "fields": len(fields)}
+    result: dict = {"file_name": schema.file_name(record), "fields": len(fields)}
     for folded, suffix in ((False, ""), (True, "_folded")):
         bag = Counter(tokens(text, folded))
         scores = [score_field(value, bag, folded) for _role, value in fields]
         hits = sum(1 for score in scores if score >= HIT_THRESHOLD)
 
-        wanted = Counter(tokens(record["text_sequence"], folded))
+        wanted = Counter(tokens(reading, folded))
         overlap = sum(min(count, bag[token]) for token, count in wanted.items())
         total = sum(wanted.values())
 
@@ -192,7 +197,6 @@ def score_image(record: dict, text: str) -> dict:
 
     # Amounts, exactly as printed -- the digits are the point of a receipt.
     amounts = [value for _role, value in fields if MONEY.match(value.strip())]
-    parse = ground_truth["gt_parse"]
     amounts += [item["price"] for item in parse.get("menu", []) if item.get("price")]
     amounts = [a for a in dict.fromkeys(amounts)]
     read = set(tokens(text))
@@ -323,7 +327,7 @@ def mean(values: list[float]) -> float:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("dataset", type=Path, help="directory holding <framework>/metadata.jsonl")
+    parser.add_argument("dataset", type=Path, help="directory holding <framework>/ image and record pairs")
     parser.add_argument("-o", "--out", type=Path, default=None)
     parser.add_argument("--lang", default="vie")
     parser.add_argument("--psm", type=int, default=4, help="4 = one column of variable-size text")
@@ -348,20 +352,23 @@ def main() -> int:
     per_image: list[dict] = []
 
     for framework in FRAMEWORKS:
-        metadata = args.dataset / framework / "metadata.jsonl"
-        if not metadata.exists():
-            print(f"[skip] {framework}: no metadata.jsonl")
+        directory = args.dataset / framework
+        if not directory.is_dir() or not schema.images(directory):
+            print(f"[skip] {framework}: no images")
             continue
 
-        records = [json.loads(line) for line in metadata.read_text(encoding="utf-8").splitlines()]
+        records = schema.read(directory)
+        drew = synthesis.read_if_there(args.dataset / framework)
         results = []
         for index, record in enumerate(records):
-            path = args.dataset / framework / record["file_name"]
+            name = schema.file_name(record)
+            path = args.dataset / framework / name
             text, words = run_tesseract(path, args.lang, args.psm, args.upscale_to)
-            result = score_image(record, text)
+            result = score_image(record, text, drew.text_sequence(name))
             result["framework"] = framework
-            result["layout"] = record.get("layout", "")
-            attributes = record.get("recipe", {}).get("attributes", {})
+            result["layout"] = drew.layout(name) if name in drew else ""
+            attributes = {key: {"id": value} for key, value
+                          in (drew.entry(name).get("attributes") or {}).items()}
             result["augmentation"] = attributes.get("augmentation", {}).get("id", "")
             result["visual"] = attributes.get("visual", {}).get("id", "")
             result["words_found"] = len(words)
