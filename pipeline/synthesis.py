@@ -1,8 +1,9 @@
 """How a page was made, kept beside the dataset instead of inside every line.
 
     data/dataset60/html/
-        metadata.jsonl      one converter-shaped line per image
-        synthesis.json      how those images were made -- this file
+        html_000.jpg  html_000.json   one converter-shaped record per image
+        …
+        synthesis.json                how those images were made -- this file
 
 `pipeline/record.py` writes the converter's schema and nothing else: a line is
 what a converted page looks like, so a loader reads a drawn set and a scanned
@@ -40,10 +41,11 @@ import json
 from pathlib import Path
 from typing import Any, Iterable, Iterator
 
-# Beside `metadata.jsonl`, always. One convention, so nothing has to be told
-# where to look: `beside()` is the only place the two names meet.
+# One per dataset directory, because it is a statement about the *set*: which
+# options were drawn, and what the params behind each id are. The per-page
+# records sit beside their images (`pipeline/record.py`); this sits beside them
+# all. `beside()` is the only place that convention is written down.
 NAME = "synthesis.json"
-METADATA = "metadata.jsonl"
 
 # The same number `pipeline/record.py` writes. The two files are one dataset and
 # are read together; a pair that disagreed about which schema it is would be a
@@ -56,10 +58,10 @@ class SynthesisError(ValueError):
 
 
 def beside(path: Path | str) -> Path:
-    """The synthesis file for a `metadata.jsonl`, for a directory, or itself.
+    """The synthesis file for a dataset directory, for a file in it, or itself.
 
-    Three things get passed around as "the dataset": the index, the directory
-    holding it, and this file. All three name the same provenance, so all three
+    Three things get passed around as "the dataset": the directory, a page
+    inside it, and this file. All three name the same provenance, so all three
     resolve to it rather than each caller remembering which it has.
     """
     path = Path(path)
@@ -304,7 +306,6 @@ def merge(destination: Path | str, framework: str,
 
 __all__ = [
     "EMPTY",
-    "METADATA",
     "NAME",
     "SCHEMA_VERSION",
     "Synthesis",

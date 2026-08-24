@@ -209,7 +209,7 @@ print(dict(bad) or "không có chồng lấn")
 ```bash
 cd generators/html
 python3 render.py -o /tmp/sweep -c 20 --seed 1 --force augmentation=pristine
-python3 overlap.py /tmp/sweep/metadata.jsonl
+python3 overlap.py /tmp/sweep
 ```
 
 ---

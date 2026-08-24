@@ -189,11 +189,10 @@ def assemble(out: Path, plan: dict, shards_root: Path) -> tuple[dict, list[str]]
         seeds: set[int] = set()
         labels: set[str] = set()
         written = 0
-        # The index and the provenance beside it, assembled together: they are
-        # one dataset, and a run that produced only half of it would leave
-        # images nothing can redraw.
-        with open(target / "metadata.jsonl", "w", encoding="utf-8") as index, \
-                synthesis.Writer(synthesis.beside(target), backend) as notes:
+        # The records and the provenance, assembled together: they are one
+        # dataset, and a run that produced only half of it would leave images
+        # nothing can redraw.
+        with synthesis.Writer(synthesis.beside(target), backend) as notes:
             for shard in sorted((s for s in plan["shards"] if s["backend"] == backend),
                                 key=lambda s: s["index"]):
                 directory = shard_dir(shards_root, shard["index"])
@@ -203,7 +202,7 @@ def assemble(out: Path, plan: dict, shards_root: Path) -> tuple[dict, list[str]]
                         f"assembled dataset: no DONE")
                     continue
                 drew = synthesis.read_if_there(directory)
-                for item in record.read(directory / "metadata.jsonl"):
+                for item in record.read(directory):
                     name = record.file_name(item)
                     source = directory / name
                     destination = target / name
@@ -211,8 +210,7 @@ def assemble(out: Path, plan: dict, shards_root: Path) -> tuple[dict, list[str]]
                         os.link(source, destination)
                     except OSError:
                         shutil.copy2(source, destination)
-                    json.dump(item, index, ensure_ascii=False)
-                    index.write("\n")
+                    record.write_one(item, target)
 
                     page = dict(drew.entry(name))
                     recipe = drew.recipe(name) if name in drew else {}
