@@ -23,14 +23,18 @@ $ git diff --name-only f67e7d5..HEAD | grep -v '\.md$'
 
 | # | tài liệu | trả lời câu gì | dài |
 | --- | --- | --- | ---: |
+| **0** | **[`muc-tieu.md`](muc-tieu.md)** | **Vì sao?** Bốn năng lực, năm phát biểu "xong" kiểm được, và bốn cách dự án thất bại dù mọi việc đều xong | 293 |
 | 1 | [`tu-dong-hoa-bang-llm.md`](tu-dong-hoa-bang-llm.md) | **Ai ra quyết định?** Hiện trạng, khảo sát ngoài, trục mực thứ tám, lộ trình, kinh tế | 1400 |
 | 2 | [`tang-cuong-bo-cuc.md`](tang-cuong-bo-cuc.md) | **Một bố cục nhân lên thành bao nhiêu?** Cây cột, chín nước đi, `compose:`, biến thể có tên | 957 |
 | 3 | [`duong-ong.md`](duong-ong.md) | **Một tờ giấy đi qua hệ thống ra sao, và ai sở hữu toạ độ?** | 591 |
 | 4 | [`ke-hoach.md`](ke-hoach.md) | **Làm gì, theo thứ tự nào?** Mười việc, mỗi việc mô tả đủ để nhận và làm | 619 |
 | 5 | [`brief-plan-run.md`](brief-plan-run.md) | **Brief cho agent làm P1** — việc đầu tiên, viết đủ để bắt tay vào code | 501 |
 
-Không có thời gian đọc hết: đọc **§0 của (1)**, **§0 của (2)**, và **§9 của (3)**
-— khoảng bốn trang, đủ để phản biện.
+**Thứ tự đọc: (0) → (4) → (5)** — vì sao → làm gì → làm thế nào. Ba tài liệu ở
+giữa là thiết kế, đọc khi cần cãi lại một quyết định.
+
+Không có thời gian đọc hết: đọc **[`muc-tieu.md` §0–§4](muc-tieu.md)** — hai trang,
+và là hai trang duy nhất cần để phản biện *phạm vi* dự án.
 
 ---
 
