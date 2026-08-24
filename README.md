@@ -194,13 +194,24 @@ Hai điều cần biết trước khi viết loader:
 Đọc qua các accessor — `record.file_name`, `record.boxes`, `record.extracted`
 cho bản ghi; `Synthesis.recipe`, `.layout`, `.text_sequence` cho file bên cạnh —
 chứ đừng với tay lấy khoá theo tên, để lần sau hình dạng có đổi thì nó đổi ở một
-file. Mọi tập đã commit đều đã ở dạng này nên không có gì phải chuyển; một tập
-sinh ra trước đó và giữ ở nơi khác thì đưa lên bằng **`pipeline.record.migrate`**,
-hàm này **không vẽ lại gì cả**: mọi giá trị nó ghi đều đã có sẵn trong bản ghi cũ
-hoặc trong header của chính file JPEG bên cạnh. Nó nằm trong `record.py`, cạnh
+file. Một tập cũ được đưa lên bằng **`pipeline.record.migrate`**, hàm này
+**không vẽ lại gì cả**: mọi giá trị nó ghi đều đã có sẵn trong bản ghi cũ hoặc
+trong header của chính file JPEG bên cạnh. Nó nằm trong `record.py`, cạnh
 `record.build`, chứ không thành một tool riêng — một bản ghi chỉ có **một** định
 nghĩa, và cả hai phía đều với tới đúng định nghĩa ấy: renderer thì cầm pixel,
 bộ chuyển đổi thì cầm một dòng cũ.
+
+Hai thứ có thể cũ, và một tập có thể dính một hoặc cả hai:
+
+* **hình dạng** — một `metadata.jsonl` cho cả tập thay vì một bản ghi cho mỗi
+  ảnh, với cách trang được làm ra trộn vào cùng dòng;
+* **một giá trị** — bản ghi đã đúng schema, nhưng được viết khi một tuỳ chọn
+  hằng còn mang nghĩa khác. `settings.max_pixels` từng giữ đúng số điểm ảnh của
+  trang cho tới khi nó thành `null` — đó là một **trần**, và không có trần nào
+  được áp; kích thước vốn đã nằm trong `pages[0]`. Pixel không hề dịch đi, chỉ
+  có điều bản ghi *nói về* pixel là sai, nên đưa lên chỉ là viết lại một giá
+  trị. `record.validate` kiểm `settings` theo từng khoá nên lần sau một tuỳ
+  chọn dịch nghĩa thì hoặc dữ liệu đi cùng, hoặc test đỏ ngay.
 
 ```bash
 python -c "from pathlib import Path; from pipeline import record; \
@@ -536,8 +547,6 @@ từng bộ và schema nhãn nằm trong **[`data/README.md`](data/README.md)**.
 
 | | |
 | :--- | :--- |
-| **`settings.max_pixels` lệch giữa dữ liệu và bộ ghi** | **295 / 307** bản ghi đã commit mang diện tích trang ở `settings.max_pixels`, còn `BASE_SETTINGS` hiện tại ghi `null` — nghĩa là "không có trần, trang được vẽ đúng cỡ của nó" — và `tests/test_record.py` khẳng định `null`. Dữ liệu đang **cũ hơn bộ ghi đúng một trường**. Chưa sửa: viết lại 295 bản ghi đã commit là một thay đổi trên toàn bộ dữ liệu, rộng hơn việc đang làm. Loader nào đọc khoá này phải chịu được cả hai giá trị. |
-| **`check_boxes` báo thiếu hộp cho run xuống dòng** | Một run có nhãn mà **dài quá một dòng** thì `CELL_RECTS_JS` cắt đúng thành hai hộp, mỗi dòng một hộp; nhưng `check_image` chờ **một hộp cho mỗi run**, nên nó báo thiếu. Lỗi nằm ở phía *kiểm*, không ở phía *vẽ*: ảnh và nhãn đều đúng. Có từ trước phần chữ viết tay và dựng lại được **không cần** chữ viết tay — `--layout invoice_export --seed 2026`. Các tập đã commit không dính vì seed của chúng khác. |
 | **`make baseline-verify` phụ thuộc môi trường** | file vàng lưu hash ảnh chính xác từng byte và ghi lại luật/bố cục/corpus nó được chụp dưới, **nhưng không ghi phiên bản thư viện**. Một venv dựng tại chỗ có thể raster khác một trang và bị báo là hồi quy. |
 | **Hai renderer đã nghỉ vẫn nằm trên đĩa** | `generators/synthdog/` và `generators/genalog/` không còn sinh dataset nhưng vẫn import sạch, vì **phía đọc giữ nguyên cả ba**: một công cụ đọc mà quên một renderer sẽ làm mù phần dữ liệu đã công bố chứ không làm sạch nó. Xem [`docs/renderers.md`](docs/renderers.md). |
 

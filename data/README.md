@@ -196,8 +196,13 @@ force = {name: value["id"] for name, value in recipe["attributes"].items()}
 recipe, receipt, grid = rulebase.make(seed=recipe["seed"], force=force)
 ```
 
-An older dataset — anything written before the two files were split — is brought
-forward with `pipeline.record.migrate`, which re-renders nothing.
+An older dataset is brought forward with `pipeline.record.migrate`, which
+re-renders nothing. Two things can be out of date: the *shape* — anything
+written before the two files were split — and a *value*, a record already in
+the right schema but written when a constant job option meant something else.
+`settings.max_pixels` was one: it held the page's own pixel count until it was
+made null, since it is a cap and none was applied. `record.validate` now checks
+`settings` key by key, so the next option to move takes the records with it.
 
 `tools/check_boxes.py` does exactly this, and it is how the requirement was
 found — rebuilding from the bare seed reported every field of every image as

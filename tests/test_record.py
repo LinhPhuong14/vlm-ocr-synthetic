@@ -256,6 +256,15 @@ def test_stamping_a_page_moves_every_field_that_follows_its_name():
     (lambda i: i["blocks"][0].pop("quad"), "blocks[0] needs"),
     (lambda i: i["blocks"][0].update(quad=[[0, 0]]), "must be four corners"),
     (lambda i: i["blocks"][0].update(bbox={"x1": 0}), "bbox needs"),
+    # `settings` was described as exact and never checked. These four are the
+    # ways it can be wrong, and the first is the one that actually happened.
+    (lambda i: i["settings"].update(max_pixels=800 * 1200), "settings.max_pixels"),
+    (lambda i: i["settings"].pop("retry_repeat"), "settings is missing"),
+    (lambda i: i["settings"].update(dpi=300), "not one of the converter's"),
+    (lambda i: i["settings"].update(convert_mode="genalog"), "must be the parser"),
+    # `False == 0` in Python, so a value check alone would let this through and
+    # the record would claim a flag it does not have.
+    (lambda i: i["settings"].update(end2end=0), "settings.end2end"),
 ])
 def test_a_record_that_would_break_a_loader_is_named(break_it, expected):
     item = a_record()
@@ -402,3 +411,112 @@ def test_migrate_splits_an_old_index_into_a_record_per_image(tmp_path):
 
     # Running it again is a no-op: there is no index left to convert.
     assert record.migrate(tmp_path) == (0, 0)
+
+
+def test_a_page_size_left_in_max_pixels_is_named_for_what_it_is():
+    """The drift, in the shape it had on disk.
+
+    `settings.max_pixels` held the page's own pixel count until it was made
+    null -- it is a *cap*, none was applied, and the size is already in
+    `pages[0]`. 295 records written before that kept the old value, so the data
+    described a cap the generator had stopped applying and no test said so,
+    because `validate` walked every top-level key and never looked inside
+    `settings`. It looks now.
+    """
+    item = a_record()
+    item["settings"]["max_pixels"] = 800 * 1200
+    problems = R.validate(item)
+    assert len(problems) == 1
+    assert "settings.max_pixels must be None, got 960000" in problems[0]
+
+
+def test_refresh_moves_a_constant_option_and_leaves_the_rest_alone():
+    """Bringing a record forward is not re-rendering it.
+
+    The pixels never moved -- only what the record claimed about them -- so a
+    stale option is fixed by rewriting one value, and everything a renderer
+    put there stays exactly as it was.
+    """
+    item = a_record()
+    before = json.dumps(item, sort_keys=True)
+    item["settings"]["max_pixels"] = 800 * 1200
+
+    assert R.refresh(item) is True
+    assert item["settings"]["max_pixels"] is None
+    assert json.dumps(item, sort_keys=True) == before
+    assert R.validate(item) == []
+
+    # Idempotent, which is what lets a caller run it over a whole tree and
+    # leave the files it would rewrite byte for byte alone.
+    assert R.refresh(item) is False
+
+
+def test_refresh_leaves_the_two_options_that_differ_per_page():
+    """`convert_mode` names the renderer and `extract_fields` names the label.
+
+    Resetting either to the constant would make every record in a set claim the
+    same renderer and the same fields, which is the opposite of the point.
+    """
+    item = a_record(parser="genalog")
+    assert item["settings"]["convert_mode"] == "genalog"
+    assert item["settings"]["extract_fields"] == ["store.name"]
+
+    assert R.refresh(item) is False
+    assert item["settings"]["convert_mode"] == "genalog"
+    assert item["settings"]["extract_fields"] == ["store.name"]
+
+
+def test_migrate_brings_a_stale_option_forward_without_touching_the_image(tmp_path):
+    """The second thing that can be out of date about a set.
+
+    The first is its *shape* -- one index instead of a record per image. This
+    is a set already in the right shape, written when a constant option meant
+    something else, which is every committed set as of this commit. There is no
+    index to find it by, so `migrate` walks the images too.
+    """
+    directory = tmp_path / "html"
+    directory.mkdir()
+    pixels = _jpeg(800, 1200)
+    (directory / "html_000.jpg").write_bytes(pixels)
+    item = a_record()
+    item["settings"]["max_pixels"] = 800 * 1200
+    (directory / "html_000.json").write_text(json.dumps(item, ensure_ascii=False),
+                                             encoding="utf-8")
+
+    assert R.migrate(tmp_path, write=False) == (1, 1)
+    # A dry run reports and writes nothing.
+    assert json.loads((directory / "html_000.json").read_text(
+        encoding="utf-8"))["settings"]["max_pixels"] == 960000
+
+    assert R.migrate(tmp_path) == (1, 1)
+    brought = R.read_one(directory / "html_000.json")
+    assert brought["settings"]["max_pixels"] is None
+    assert R.validate(brought) == []
+    # Nothing was re-rendered: the image is the same bytes it was.
+    assert (directory / "html_000.jpg").read_bytes() == pixels
+
+    assert R.migrate(tmp_path) == (0, 0)
+
+
+def test_migrate_writes_beside_the_image_when_the_record_names_a_subdirectory(tmp_path):
+    """`generators/html/tables.py` keeps its pages in `img/` and says so.
+
+    Its records carry `img/border_0001.jpg` as the filename, not a bare name.
+    Resolving that against the image's own directory writes
+    `img/img/border_0001.json` -- a second record for a page that already had
+    one, and the original left stale. All 60 of them landed there first.
+    """
+    directory = tmp_path / "tables" / "img"
+    directory.mkdir(parents=True)
+    (directory / "border_0001.jpg").write_bytes(_jpeg(800, 1200))
+    item = a_record(filename="img/border_0001.jpg")
+    item["settings"]["max_pixels"] = 800 * 1200
+    (directory / "border_0001.json").write_text(json.dumps(item, ensure_ascii=False),
+                                                encoding="utf-8")
+
+    assert R.migrate(tmp_path) == (1, 1)
+
+    assert not (directory / "img").exists()
+    brought = R.read_one(directory / "border_0001.json")
+    assert brought["settings"]["max_pixels"] is None
+    assert R.file_name(brought) == "img/border_0001.jpg"
