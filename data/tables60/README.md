@@ -15,10 +15,12 @@ nested CORD record — shop, items, totals. This set teaches a model to
 **recover a table's structure**: its label is the `<td>` token sequence, the
 row and column spans, and a box per cell.
 
-They share no schema, and flattening one into the other would produce a label
-that claims to be something it is not. What they do share is the index file
-name (`metadata.jsonl`) and the `file_name` key, so a loader finds them the
-same way.
+The two labels are different things, and flattening one into the other would
+produce a label that claims to be something it is not. What they share is the
+*envelope*: the document converter's schema, built by
+[`pipeline/record.py`](../../pipeline/record.py), with `task` saying which of
+the two is inside. So one loader finds both, and neither pretends to be the
+other.
 
 ## Same backend as the html receipts
 
@@ -57,29 +59,54 @@ anything that reads PubTabNet or PP-Structure reads this. What is different:
 ```
 tables60/
 ├── img/*.jpg           the rendered tables
+├── img/*.json          the same labels in this repository's shape, one per image
 ├── html/*.html         the page each was screenshotted from
 ├── gt.txt              the PP-Structure label file, as that format defines it
-├── metadata.jsonl      the same labels in this repository's shape
+├── synthesis.json      how each image was made: its seed and its border style
 └── README.md
 ```
 
-One line of `metadata.jsonl`:
+One record — `img/border_0002.json`:
 
 ```json
 {
-  "file_name": "img/border_0002.jpg",
+  "schema_version": 8,
+  "job_id": "…",
   "task": "table_structure",
-  "ground_truth": "<html><body><table><tr><td colspan=\"3\">Phạm Thị Bích</td>…",
-  "structure_tokens": ["<tr>", "<td", " colspan=\"3\"", ">", "</td>", …],
-  "cells": [{"tokens": ["P","h","ạ","m"," ","T","h","ị"," ","B","í","c","h"],
-             "bbox": [[[5,8],[180,8],[180,74],[5,74]]]}],
-  "n_cells": 39
+  "parser": "html",
+  "filename": "img/border_0002.jpg",
+  "pages": [{"page_number": 1, "width": 1200, "height": 331, …}],
+  "blocks": [{"id": "p1-b0", "label": "Table", "kind": "cell",
+              "bbox": {"x1": 5, "y1": 8, "x2": 180, "y2": 74},
+              "text": "Phạm Thị Bích", "quad": [[5,8],[180,8],[180,74],[5,74]]}],
+  "markdown": "",
+  "html": "<html><body><table><tr><td colspan=\"3\">Phạm Thị Bích</td>…",
+  "extracted": null
 }
 ```
 
-`bbox` holds the quad rather than being it. That nesting is upstream's and is
-kept on purpose: the only value this format has is that other tools already
-read it.
+...and its entry in `synthesis.json` beside it:
+
+```json
+"img/border_0002.jpg": {"job_id": "…", "seed": 4102, "layout": "border",
+                        "attributes": {}, "tags": [], "n_cells": 39}
+```
+
+Three of those are the table's own answers to a document page's questions. A
+table has no fields to extract, so `extracted` is `null`; its label *is* its
+structure, so the PP-Structure `gt` string goes where a page's markup goes; and
+there is no honest markdown for a grid of merged cells, so `markdown` is empty
+rather than invented.
+
+A table has no rule-base recipe, so its `attributes` are empty and its `layout`
+is the border style — the axis a table set is actually reported along. The
+structure tokens and the cell boxes are the *label*, not provenance, so they
+stay in `gt.txt`, where PP-Structure readers already look.
+
+Inside `gt.txt`, a cell's `bbox` holds the quad rather than being it. That
+nesting is upstream's and is kept on purpose: the only value this format has is
+that other tools already read it. A block's own `bbox` is the converter's flat
+`{x1, y1, x2, y2}`, and its `quad` is the same corners the cell carries.
 
 ## The text is Vietnamese, and now it is words
 

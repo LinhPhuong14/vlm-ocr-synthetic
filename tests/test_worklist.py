@@ -33,6 +33,7 @@ for extra in (REPO_ROOT, REPO_ROOT / "tools"):
 from paths import VENVS, venv_python  # noqa: E402
 
 import worklist as W  # noqa: E402
+from pipeline import record  # noqa: E402
 
 # What the renderer comparison draws: two layouts, one of them twice, so the
 # test covers both "first page of a job" and "later page of a job".
@@ -150,14 +151,12 @@ def _render(backend: str, out: Path, args: list[str]) -> list[tuple]:
         [str(interpreter), str(script), "-o", str(out.resolve()), *args],
         cwd=cwd, capture_output=True, text=True)
     assert result.returncode == 0, result.stderr[-2000:]
-    lines = (out / "metadata.jsonl").read_text(encoding="utf-8").splitlines()
     pages = []
-    for line in lines:
-        item = json.loads(line)
+    for item in record.read(out / "metadata.jsonl"):
         pages.append((
-            hashlib.sha256((out / item["file_name"]).read_bytes()).hexdigest(),
-            item["ground_truth"],
-            json.dumps(item["boxes"], sort_keys=True),
+            hashlib.sha256((out / record.file_name(item)).read_bytes()).hexdigest(),
+            record.ground_truth(item),
+            json.dumps(record.boxes(item), sort_keys=True),
         ))
     return pages
 

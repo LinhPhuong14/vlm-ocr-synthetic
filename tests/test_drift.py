@@ -19,55 +19,57 @@ from pathlib import Path
 import pytest
 
 import rulebase
-from pipeline import drift, invariants
+from pipeline import drift, invariants, record, synthesis
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SOURCE_IMAGES = REPO_ROOT / "data" / "dataset60" / "html"
 
 
 def make_records(seeds, layout=None, force=None):
-    """Metadata lines as a renderer would have written them."""
-    items = []
+    """The index and the provenance beside it, as a renderer writes both."""
+    items, notes = [], []
     for index, seed in enumerate(seeds):
         pinned = dict(force or {})
         if layout:
             pinned["layout"] = layout
         recipe, receipt, grid = rulebase.make(seed=seed, force=pinned or None)
-        items.append({
-            "file_name": f"html_{index:03d}.jpg",
-            "ground_truth": json.dumps({"gt_parse": receipt.ground_truth()},
-                                       ensure_ascii=False),
-            "text_sequence": receipt.text_sequence(),
-            "recipe": recipe.to_dict(),
-            "boxes": [{"kind": c.role, "text": c.text,
-                       "quad": [[0, 0], [1, 0], [1, 1], [0, 1]]}
-                      for c in grid.cells if c.text.strip() and c.role != "sep"],
-            "framework": "html",
-            "layout": grid.layout_id,
-        })
-    return items
+        name = f"html_{index:03d}.jpg"
+        item = record.build(
+            filename=name, width=1000, height=1400,
+            parser="html", layout=grid.layout_id, seed=seed,
+            boxes=[{"kind": c.role, "text": c.text,
+                    "quad": [[0, 0], [1, 0], [1, 1], [0, 1]]}
+                   for c in grid.cells if c.text.strip() and c.role != "sep"],
+            extracted=receipt.ground_truth())
+        items.append(item)
+        notes.append((name, {"job_id": item["job_id"], "layout": grid.layout_id,
+                             "recipe": recipe.to_dict(),
+                             "text_sequence": receipt.text_sequence()}))
+    return items, notes
 
 
-def build_shard(directory: Path, records, *, index=0, backend="html",
+def build_shard(directory: Path, made, *, index=0, backend="html",
                 notes=None, sources=None) -> dict:
     """A shard directory complete enough for `shard_vector` to read."""
+    records, provenance = made
     directory.mkdir(parents=True, exist_ok=True)
     images = sorted(SOURCE_IMAGES.glob("*.jpg"))
     for position, item in enumerate(records):
         if sources:
-            item["content_source"] = sources[position % len(sources)]
-        shutil.copy2(images[position % len(images)], directory / item["file_name"])
-    (directory / "metadata.jsonl").write_text(
-        "\n".join(json.dumps(item, ensure_ascii=False) for item in records) + "\n",
-        encoding="utf-8")
+            provenance[position][1].setdefault("extra", {})["content_source"] = \
+                sources[position % len(sources)]
+        shutil.copy2(images[position % len(images)],
+                     directory / record.file_name(item))
+    record.write(records, directory)
+    synthesis.write(synthesis.beside(directory), backend, provenance)
     (directory / invariants.INVARIANTS_NAME).write_text(
         json.dumps({"images": len(records), "notes": notes or {},
                     "unprinted": {}, "occurrences": {}, "label_values": {}}),
         encoding="utf-8")
     return {"index": index, "backend": backend, "count": len(records),
-            "runs": [{"layout": item["layout"], "seed": item["recipe"]["seed"],
+            "runs": [{"layout": entry["layout"], "seed": entry["recipe"]["seed"],
                       "count": 1, "first_index": position}
-                     for position, item in enumerate(records)]}
+                     for position, (_name, entry) in enumerate(provenance)]}
 
 
 def plan_for(shard, **extra):
