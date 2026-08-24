@@ -28,7 +28,7 @@ LAYOUTS = ["eatery_ascii", "eatery_indexed", "market_barcode",
 def make_config(**changes) -> Config:
     raw = {
         "run": {"out": "data/x", "per_backend": 20, "seed": 2026, "workers": 4},
-        "backends": ["synthdog", "html", "genalog"],
+        "backends": ["html", "second", "third"],
         "shard": {"size": 7},
     }
     for key, value in changes.items():
@@ -244,14 +244,14 @@ def test_the_guard_does_not_cry_wolf_in_either_mode():
     """
     for pairing in ("paired", "independent"):
         runs = {backend: backend_runs(index, 2000, 2026, LAYOUTS, pairing)
-                for index, backend in enumerate(["synthdog", "html", "genalog"])}
+                for index, backend in enumerate(["html", "second", "third"])}
         assert disjoint_seeds(runs, pairing) == [], pairing
 
 
 def test_an_overlap_inside_one_backend_is_still_caught_when_paired():
     per_backend = (LAYOUT_STRIDE + 2) * len(LAYOUTS)
     runs = {backend: backend_runs(index, per_backend, 0, LAYOUTS, "paired")
-            for index, backend in enumerate(["synthdog", "html"])}
+            for index, backend in enumerate(["html", "second"])}
     problems = disjoint_seeds(runs, "paired")
     assert problems and "overlap" in problems[0]
 

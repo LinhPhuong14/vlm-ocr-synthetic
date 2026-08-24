@@ -103,7 +103,7 @@ def _make_venv(name: str, requirements: Path, extra_first: list[str] | None = No
     return python
 
 
-@task("setup-synthdog", "glyph renderer: synthtiger (needs Python 3.8-3.11)")
+@task("setup-synthdog", "patterns: synthtiger (retired as a document backend)")
 def setup_synthdog(args) -> None:
     if sys.version_info >= (3, 12):
         raise SystemExit(
@@ -130,7 +130,7 @@ def setup_html(args) -> None:
         run([python, "-m", "playwright", "install", "chromium"])
 
 
-@task("setup-genalog", "genalog renderer: WeasyPrint plus PyMuPDF")
+@task("setup-genalog", "WeasyPrint plus PyMuPDF (retired; reads old sets)")
 def setup_genalog(args) -> None:
     genalog = REPO_ROOT / "generators" / "genalog"
     python = _make_venv("genalog", genalog / "requirements.txt")
@@ -149,11 +149,13 @@ def setup_genalog(args) -> None:
         )
 
 
-@task("setup", "build all three renderer environments")
+@task("setup", "build the renderer environment (html)")
 def setup(args) -> None:
-    setup_synthdog(args)
+    # `html` is the renderer, so this builds one environment and not three.
+    # `setup-synthdog` and `setup-genalog` are still here for anyone reviving a
+    # retired backend or re-reading a dataset half it drew, but neither is part
+    # of setting the repository up -- see pipeline/config.RETIRED_BACKENDS.
     setup_html(args)
-    setup_genalog(args)
 
 
 # ------------------------------------------------------------- generation
@@ -182,7 +184,7 @@ def blanks(args) -> None:
          "--blanks"])
 
 
-@task("dataset", "labelled dataset with all three renderers (-n per renderer)")
+@task("dataset", "labelled dataset with the html renderer (-n images)")
 def dataset(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "generate_dataset.py",
          "-o", args.out, "-n", str(args.count)])
@@ -272,7 +274,20 @@ def showcase(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "degradation_showcase.py"])
 
 
-@task("receipts", "100 receipts with the glyph renderer, via the synthtiger CLI")
+@task("patterns", "regenerate every shared pattern: paper, backgrounds, ornaments")
+def patterns(args) -> None:
+    """The whole pattern layer in one task, which is the synthdog side's job now.
+
+    `textures/paper/`, `textures/background/` and `textures/ornament/` are what
+    every page is composited onto and marked with. They are generated rather
+    than photographed so a fresh clone can render, and so a seed reproduces a
+    sheet exactly.
+    """
+    textures(args)
+    ornaments(args)
+
+
+@task("receipts", "100 receipts through synthtiger's CLI (retired backend)")
 def receipts(args) -> None:
     run([venv_tool(VENVS["synthdog"], "synthtiger"),
          "-o", "./outputs/VNReceipt", "-c", "100", "-w", "4", "-v",
@@ -280,7 +295,7 @@ def receipts(args) -> None:
         cwd=SYNTHDOG)
 
 
-@task("preview", "render a grid of sample receipts")
+@task("preview", "grid of sample receipts from the glyph path (retired backend)")
 def preview(args) -> None:
     run([venv_python(VENVS["synthdog"]), "tools/preview_receipt.py",
          "--count", "8", "--grid", "4", "--seed", "2026", "--out", args.out],
