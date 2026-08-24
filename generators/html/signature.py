@@ -965,11 +965,6 @@ class Style:
         # is: a mark is a pure function of `(seed, name)`, and a draw taken
         # while the wave is being laid down would break that.
         self.pulse = tuple(rng.random() for _ in range(SCRAWL_SLOTS * 2))
-        # Which of WriteViT's 106 writer styles signs, when the ink comes from
-        # the model. Drawn last on purpose: appending here leaves every draw
-        # above it untouched, so adding the second source did not silently
-        # restyle every signature the font source had already produced.
-        self.writer = rng.randrange(106)
         # The paraph's own wobble, drawn HERE rather than while it is being
         # laid down. Everything a signer is has to be settled by the end of
         # this constructor: a mark is a pure function of `(seed, name)`, and it
@@ -977,6 +972,13 @@ class Style:
         # two names would advance it and the second underline would sag
         # differently from the first for no reason a dataset could explain.
         self.wobble = tuple(rng.uniform(-1.0, 1.0) for _ in range(6))
+        # Which of WriteViT's 106 writer styles signs, when the ink comes from
+        # the model. Drawn **last**, and the position is load-bearing: every
+        # draw above it has to keep the stream position it already had, or
+        # adding a second ink source silently restyles every signature the
+        # first one had already produced. It did -- put in one line higher, it
+        # moved `wobble` and shifted the paraph jitter on half the sample grid.
+        self.writer = rng.randrange(106)
 
     @property
     def rng(self) -> random.Random:
