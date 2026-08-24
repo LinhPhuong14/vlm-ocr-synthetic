@@ -98,6 +98,11 @@ def expected_fields(recipe: dict, template: str = "") -> list[tuple[str, str]] |
             if cell.text.strip() and cell.role != "sep"]
 
 
+def _squeeze(text: str) -> str:
+    """`text` with every space taken out -- see the note in `check_image`."""
+    return "".join(str(text).split())
+
+
 def _has_ink(image: np.ndarray, quad, margin: int = 25) -> bool:
     """Is there anything clearly standing out from the paper inside this box?
 
@@ -143,12 +148,26 @@ def check_image(directory: Path, item: dict, recipe: dict,
         # between two ragged ends. So the run is looked for in the boxes of its
         # own kind joined together, not as one box. Joining per kind rather than
         # over the page is what stops an unrelated field matching by accident.
+        #
+        # The spaces come out of both sides rather than being normalised,
+        # because **a line break does not always eat one**. Broken at a space,
+        # the space is gone and the two boxes have to be rejoined with one;
+        # broken after a hyphen, nothing was consumed and rejoining with a space
+        # invents a character the page does not have. `MEN'S LONG-SLEEVE SHIRT`
+        # split after `LONG-` reported itself missing for exactly that reason,
+        # on a page where the box was squarely on the word. Nothing here can
+        # tell the two cases apart: a box carries its `kind` and its text, not
+        # which run it came from, so where a line was split is not a question
+        # this tool can ask. What it *can* ask -- are the run's characters on
+        # the page, in order, in boxes of its own kind -- is the coverage
+        # question anyway. The cost is that two adjacent fields of one kind can
+        # now abut into a match; joining per kind already allowed that with a
+        # space between them.
         joined: dict[str, str] = {}
         for box in boxes:
-            joined[box["kind"]] = " ".join(
-                (joined.get(box["kind"], "") + " " + box.get("text", "")).split())
+            joined[box["kind"]] = joined.get(box["kind"], "") + _squeeze(box.get("text", ""))
         for role, text in fields:
-            wanted = " ".join(text.split())
+            wanted = _squeeze(text)
             if wanted and wanted not in joined.get(role, ""):
                 problems.append(f"{name}: no box for {role} {text[:30]!r}")
     else:
