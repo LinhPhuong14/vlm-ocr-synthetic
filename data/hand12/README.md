@@ -48,8 +48,8 @@ lặp**: một tờ là một nét chữ, và có **hai** mặt chữ chứ khô
 viết — mọi chữ `a` trên một trang là cùng một chữ `a`. Không có chỗ nào làm lệch
 từng ký tự để giấu điều đó; làm lệch chính là thứ `ff9a9f0` đã gỡ.
 
-`record["handwriting"]["source"]` khai nguồn trên từng ảnh, nên một tập không
-thể nhận mình là đằng này rồi thực ra là đằng kia.
+`handwriting.source` khai nguồn trên từng trang, nên một tập không thể nhận mình
+là đằng này rồi thực ra là đằng kia.
 
 **Sau đợt sinh lại này, không tập dữ liệu nào trong kho còn mang mực của mô
 hình.** Trang mực-mô-hình duy nhất còn lại là
@@ -63,8 +63,8 @@ tờ để nhìn, không làm cũ, ở mức phủ cao nhất mô hình đạt �
 | `make check-boxes DATASET=data/hand12` | **sạch** — 1 219 hộp, mọi hộp trong khung và trên nét mực |
 | `tests/test_handwriting.py::…does_not_change_what_the_page_says` | `labelled_runs` trước và sau khi điền bằng nhau, 6 họ tờ giấy |
 | `generators/html/overlap.py` | **0** cặp hộp chữ chồng nhau >30 % |
-| `pipeline/invariants.py` | **0** lỗi / 12 ảnh |
-| sinh lại từ `jobs.json` | `metadata.jsonl` **trùng từng byte** — mặt chữ, màu mực, cỡ chữ đều rút từ hạt giống của trang |
+| `pipeline/invariants.py` | **0** lỗi / 12 ảnh, 1 219 hộp |
+| sinh lại từ `jobs.json` | trùng từng byte — mặt chữ, màu mực, cỡ chữ đều rút từ hạt giống của trang |
 
 Phép đo thứ hai là phép đo đáng giá nhất ở đây. Mực **thay cách vẽ một giá trị,
 không thay giá trị** — nếu nó đổi nhãn thì `check_boxes` sẽ báo mọi ảnh mất
@@ -78,13 +78,17 @@ dòng** như chữ thường và được cắt hộp theo từng dòng — th�
 
 ## Đọc khối `handwriting`
 
+Nó nằm trong `html/synthesis.json`, dưới `pages["html_000.jpg"]` — cùng chỗ với
+`seed`, `layout` và `attributes`, tức là **cách một trang được làm ra**, tách
+khỏi bản ghi mỗi ảnh vốn mang schema của bộ chuyển đổi tài liệu.
+
 ```json
-{
+"handwriting": {
   "source": "font",
-  "writer": 66,
+  "writer": 27,
   "pen": "#1c2a68",
-  "height_em": 2.11,
-  "inked": [{"kind": "invoice.field", "text": "Lê Thị Kiều Trinh"}],
+  "height_em": 2.006,
+  "inked": [{"kind": "invoice.field", "text": "Đinh Công Khanh"}],
   "printed": {}
 }
 ```
@@ -93,3 +97,8 @@ dòng** như chữ thường và được cắt hộp theo từng dòng — th�
 nó chọn **mặt chữ** (`writer % 2`) chứ không chọn người viết trong `VN.pickle`.
 `printed` rỗng ở mọi ảnh của tập này — đếm theo lý do chứ không liệt kê chữ, vì
 lý do mới là thứ nói được điều gì cần sửa.
+
+Muốn chạy lại `pipeline/invariants.py` trên tập đã có thì phải ghép recipe lại:
+`synthesis.json` giữ id thuộc tính ở từng trang và **định nghĩa đầy đủ một lần**
+ở cấp tập, nên `{a: {"id": i, **attributes[a][i]} for a, i in page["attributes"].items()}`
+là thứ `Tally.inspect(recipe=…)` chờ.

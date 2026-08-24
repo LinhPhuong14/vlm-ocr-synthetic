@@ -13,6 +13,7 @@ survive, and it needs no engine.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -63,8 +64,15 @@ def test_a_different_layout_mix_moves_the_pooled_score_and_not_the_strata(scored
     """
     heavy = [r for r in scored]
     # Half the invoices dropped: the same images, a different mix.
+    # `hash()` on a str is salted per process, so this split -- and with it
+    # whether the assertions below hold -- used to change every run. Seen once
+    # in a full-suite run and not in the next three, which is exactly the shape
+    # of a PYTHONHASHSEED flake. A stable digest keeps the mix fixed.
+    def keep(name: str) -> int:
+        return int(hashlib.sha1(name.encode()).hexdigest(), 16) % 2
+
     light = [r for r in scored
-             if not r["layout"].startswith("invoice_") or hash(r["file_name"]) % 2]
+             if not r["layout"].startswith("invoice_") or keep(r["file_name"])]
     assert len(light) < len(heavy)
 
     a, b = summarise(heavy), summarise(light)

@@ -21,7 +21,8 @@ LAYOUT  ?=
         textures patterns handwriting \
         receipts preview preview-grid dataset dataset-clean proof showcase \
         ornaments templates \
-        preflight check-rules check-corpus check-boxes distribution monitor \
+        preflight check-rules check-corpus check-boxes migrate-metadata \
+        distribution monitor \
         list-degradations \
         lint format check clean
 
@@ -73,6 +74,8 @@ profile:         ## Time every stage of every renderer into $(PROFILE)
 	$(TASKS) profile --count $(PROFILE_N) --out $(PROFILE)
 check-boxes:     ## Verify every renderer's boxes still land on its text
 	$(TASKS) check-boxes --dataset $(DATASET)
+migrate-metadata: ## Bring $(DATASET)'s metadata.jsonl into the current schema
+	$(TASKS) migrate-metadata --dataset $(DATASET)
 showcase:        ## One before/after image per degradation into samples/degradation/
 	$(TASKS) showcase
 preview:         ## Render a grid of sample receipts to eyeball the config

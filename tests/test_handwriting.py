@@ -252,6 +252,9 @@ def test_structure_tokens_survive_inking():
 # ------------------------------------------------------------- the font source
 
 def _font():
+    # `FontHand.writable` reads the face's cmap, which is fontTools -- absent in
+    # the dependency-free CI job, where this test has nothing to say.
+    pytest.importorskip("fontTools")
     hand = handwriting.FontHand()
     if not hand.faces:
         pytest.skip("no handwriting faces in fonts/hand/")
