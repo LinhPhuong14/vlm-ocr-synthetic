@@ -97,7 +97,8 @@ dataset60/
 ├── dataset.json            images per renderer, and the split by layout
 ├── synthdog/
 │   ├── synthdog_000.jpg …  20 images
-│   └── metadata.jsonl      one line per image
+│   ├── synthdog_000.json … one record per image — the converter's schema
+│   └── synthesis.json      how those images were made — seed, attributes, tags
 ├── html/       …
 ├── genalog/    …
 └── proof/
@@ -106,37 +107,97 @@ dataset60/
     └── proof_*.jpg         the image with a box round every word Tesseract read
 ```
 
-## One line of `metadata.jsonl`
+## A record per image, and one file for the set
+
+`<image>.json` beside each image is the document converter's schema, so a drawn
+page and a converted one load the same way. Its keys are fixed by
+[`pipeline/record.py`](../pipeline/record.py), and a key that is not in that
+schema is as much an error as one that is missing.
+
+`synthesis.json` in the same directory is how those pages were made — the half no converter
+could return, and the half nothing can redraw a committed image without. See
+[below](#synthesisjson).
+
+### One record — `synthdog_000.json`
 
 ```json
 {
-  "file_name": "synthdog_000.jpg",
-  "framework": "synthdog",
-  "layout": "eatery_indexed",
-  "ground_truth": "{\"gt_parse\": {…}}",
-  "text_sequence": "QUÁN NHẬU SEN VÀNG 251 235 Phan Xích Long …",
-  "recipe": {"seed": 2026, "attributes": {…}, "tags": […]},
-  "boxes": [{"kind": "menu.nm", "text": "…", "quad": [[x,y],…]}]
+  "schema_version": 8,
+  "job_id": "c95630e9-7613-58d2-a948-781f8ffa636d",
+  "task": "convert",
+  "parser": "synthdog",
+  "filename": "synthdog_000.jpg",
+  "source_files": ["synthdog_000.jpg"],
+  "settings": {"convert_mode": "synthdog", "target_language": "Vietnamese", …},
+  "documents": [],
+  "pages": [{"page_number": 1, "width": 629, "height": 572, …}],
+  "blocks": [{"id": "p1-b6", "index_in_page": 6, "label": "Table",
+              "bbox": {"x1": 68, "y1": 350, "x2": 92, "y2": 380},
+              "content": "…", "kind": "menu.nm", "text": "…",
+              "quad": [[x,y],…]}],
+  "markdown": "QUÁN NHẬU SEN VÀNG\n\n251 235 Phan Xích Long …",
+  "html": "<p>QUÁN NHẬU SEN VÀNG</p>…",
+  "extracted": {"doc_type": "receipt_eatery", …}
 }
 ```
 
 | field | |
 | --- | --- |
-| `ground_truth` | CORD-style nested label, as a JSON string (Donut reads it directly) |
-| `text_sequence` | flat reading label, for pre-training and for OCR scoring |
-| `recipe` | **all six** sampled attributes plus the seed — enough to rebuild the exact image |
-| `boxes` | one `{kind, text, quad}` per drawn field, from **all three** renderers. synthdog's quads are rotated by the paper curl; the other two are axis-aligned |
+| `job_id` | uuid5 of `parser\|layout\|seed\|filename` — the same page gets the same id twice, because this file is hashed by the golden baseline |
+| `extracted` | CORD-style nested label, as an **object** (`record.ground_truth()` gives back the JSON string a Donut loader reads) |
+| `blocks` | one per drawn field, from **all three** renderers. `label` + `bbox` is the converter's vocabulary; `kind` + `quad` is this repository's, and synthdog's quads are rotated by the paper curl where the other two are axis-aligned |
+| `markdown`, `html` | the blocks grouped into the lines they were printed on. Derived — nothing is in them that is not in a block |
+| `settings` | the converter's job options. `max_pixels` is `null` — the page was drawn at the size it is, and that size is in `pages[0]` |
 
-`recipe.seed` reproduces the content — but **only together with the attributes
-recorded beside it**. `generate_dataset.py` pins the layout so each renderer
-draws all five equally often, and a pin does not merely filter: with `layout`
-restricted to one value the tags it sets differ, so every attribute drawn after
-it diverges. To rebuild an image exactly, pin all six ids back:
+### `synthesis.json`
+
+Everything the converter has no field for: the flat reading order, and **all
+six** sampled attributes plus the seed — enough to rebuild the exact image. It
+is one file rather than a key on every line because most of it was the same text
+over and over: `ornament` and `augmentation` are recipes for a *background*, and
+twenty pages sharing one chain wrote that chain out twenty times. Here the
+params behind an option id are written **once**, and a page names ids.
+
+```json
+{
+  "schema_version": 8,
+  "framework": "synthdog",
+  "pages": {
+    "synthdog_000.jpg": {
+      "job_id": "c95630e9-…", "seed": 2026, "layout": "eatery_indexed",
+      "attributes": {"document": "street_eatery", "layout": "eatery_indexed",
+                     "visual": "thermal_narrow", "augmentation": "real_paper", "…": "…"},
+      "tags": ["thermal", "till_receipt", "…"],
+      "text_sequence": "QUÁN NHẬU SEN VÀNG 251 235 Phan Xích Long …"
+    }
+  },
+  "attributes": {
+    "augmentation": {"real_paper": {"params": {"chain": [["paper_texture", {"…": "…"}]]}}},
+    "layout": {"eatery_indexed": {"group": "retail_receipt", "params": {}}}
+  },
+  "images": 20
+}
+```
+
+`Synthesis.recipe(filename)` folds the two halves back into exactly the
+`recipe.to_dict()` the rule-base produced. The seed reproduces the content —
+but **only together with the attributes recorded beside it**.
+`generate_dataset.py` pins the layout so each renderer draws all five equally
+often, and a pin does not merely filter: with `layout` restricted to one value
+the tags it sets differ, so every attribute drawn after it diverges. To rebuild
+an image exactly, pin all six ids back:
 
 ```python
-force = {name: value["id"] for name, value in record["recipe"]["attributes"].items()}
-recipe, receipt, grid = rulebase.make(seed=record["recipe"]["seed"], force=force)
+from pipeline import record, synthesis
+
+drew = synthesis.read("data/dataset60/synthdog")
+recipe = drew.recipe(record.file_name(item))
+force = {name: value["id"] for name, value in recipe["attributes"].items()}
+recipe, receipt, grid = rulebase.make(seed=recipe["seed"], force=force)
 ```
+
+An older dataset — anything written before the two files were split — is brought
+forward with `pipeline.record.migrate`, which re-renders nothing.
 
 `tools/check_boxes.py` does exactly this, and it is how the requirement was
 found — rebuilding from the bare seed reported every field of every image as

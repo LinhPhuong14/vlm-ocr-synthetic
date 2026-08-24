@@ -74,7 +74,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from pipeline import invariants, record
+from pipeline import invariants, record, synthesis
 from pipeline.invariants import UNCHECKED
 
 # What `quality.drift_tolerance` means, in one sentence: the share of draws that
@@ -190,7 +190,7 @@ def shard_vector(directory: Path, shard: dict, *,
                  ink_sample: int = INK_SAMPLE) -> dict[str, Any]:
     """What one shard drew, as numbers. A deterministic function of the shard.
 
-    Reads `metadata.jsonl` and `invariants.json`, and decodes at most
+    Reads every page's record, `invariants.json`, and decodes at most
     `ink_sample` images. Nothing here is allowed to vary between two runs of the
     same plan -- that is what makes the vector comparable, and it is the same
     rule that keeps durations out of `manifest.json`.
@@ -198,15 +198,32 @@ def shard_vector(directory: Path, shard: dict, *,
     directory = Path(directory)
     unchecked: list[str] = []
 
-    metadata = directory / "metadata.jsonl"
-    if not metadata.exists():
+    try:
+        records = record.read(directory)
+    except record.RecordError as error:
         return {
             "backend": shard.get("backend", "?"),
             "images": 0,
-            "unchecked": [f"{UNCHECKED} shard {shard.get('index')} has no metadata, "
+            "unchecked": [f"{UNCHECKED} shard {shard.get('index')}: {error}, "
                           f"so no quality vector was computed"],
         }
-    records = record.read(metadata)
+    if not records:
+        return {
+            "backend": shard.get("backend", "?"),
+            "images": 0,
+            "unchecked": [f"{UNCHECKED} shard {shard.get('index')} has no records, "
+                          f"so no quality vector was computed"],
+        }
+    # How each page was made, from the file beside them. `read_if_there` rather than
+    # `read`: a shard with no provenance is a thing to report on the vector, not
+    # a thing to stop the run over -- the attribute axes come out empty and
+    # `unchecked` says why.
+    drew = synthesis.read_if_there(directory)
+    if len(drew) < len(records):
+        unchecked.append(
+            f"{UNCHECKED} shard {shard.get('index')} has provenance for "
+            f"{len(drew)} of {len(records)} images, so its attribute shares are "
+            f"drawn from fewer pages than it holds")
 
     attributes: dict[str, Counter] = {}
     layouts: Counter = Counter()
@@ -216,16 +233,22 @@ def shard_vector(directory: Path, shard: dict, *,
     pixels: list[int] = []
 
     for item in records:
-        for name, value in ((item.get("recipe") or {}).get("attributes") or {}).items():
-            attributes.setdefault(name, Counter())[str(value.get("id"))] += 1
-        layouts[str(item.get("layout", "?"))] += 1
+        name = record.file_name(item)
+        for attribute, identifier in (drew.entry(name).get("attributes") or {}).items():
+            attributes.setdefault(attribute, Counter())[str(identifier)] += 1
+        layouts[drew.layout(name) if name in drew else "?"] += 1
         # Absent means `corpus`: W2 has no other source, and defaulting keeps
         # the axis readable now rather than empty until W6 fills it in.
-        sources[str(item.get("content_source", PRIMARY_SOURCE))] += 1
-        text = str(item.get("text_sequence", ""))
+        sources[drew.content_source(name, PRIMARY_SOURCE)] += 1
+        text = drew.text_sequence(name)
         lengths.append(len(text))
         diacritics += 1 if has_diacritics(text) else 0
-        size = invariants.jpeg_size(directory / str(item.get("file_name", "")))
+        # Off the image, not off the record. The record says how big the page
+        # is and `pipeline/invariants.py` checks the two agree, but a quality
+        # vector is a measurement of what was produced, and measuring it from
+        # the label would make a shard that mislabelled its own pages look
+        # exactly like one that did not.
+        size = invariants.jpeg_size(directory / record.file_name(item))
         if size:
             pixels.append(size[0] * size[1])
 
@@ -234,7 +257,7 @@ def shard_vector(directory: Path, shard: dict, *,
             f"{UNCHECKED} {len(records) - len(pixels)} of {len(records)} images in "
             f"shard {shard.get('index')} would not give up their size")
 
-    coverages = [c for c in (ink_coverage(directory / str(item.get("file_name", "")))
+    coverages = [c for c in (ink_coverage(directory / record.file_name(item))
                              for item in records[:max(ink_sample, 0)]) if c is not None]
     sampled = min(max(ink_sample, 0), len(records))
     if sampled and not coverages:

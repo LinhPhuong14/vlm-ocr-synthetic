@@ -1,6 +1,6 @@
 """Do any two text boxes on a page sit on top of each other?
 
-    python3 overlap.py /tmp/sweep/metadata.jsonl
+    python3 overlap.py /tmp/sweep
 
 Measured from the boxes the renderer itself wrote, so it checks what the engine
 drew rather than what a reader thought they saw. Separators and column-number
@@ -15,10 +15,15 @@ edge -- and is printed only as context.
 
 from __future__ import annotations
 
-import json
 import sys
 from collections import defaultdict
 from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from pipeline import record, synthesis  # noqa: E402
 
 SKIP = {"sep", "colnum"}
 
@@ -41,11 +46,11 @@ def main(path: Path, threshold: float = 0.30) -> int:
     bad: dict[str, int] = defaultdict(int)
     touching: dict[str, int] = defaultdict(int)
     pages = 0
-    for line in path.read_text(encoding="utf-8").splitlines():
-        item = json.loads(line)
+    drew = synthesis.read_if_there(path)
+    for item in record.read(path):
         pages += 1
-        layout = item["recipe"]["attributes"]["layout"]["id"]
-        boxes = [box for box in (item.get("boxes") or [])
+        layout = drew.layout(record.file_name(item))
+        boxes = [box for box in record.boxes(item)
                  if box.get("kind") not in SKIP and (box.get("text") or "").strip()]
         rects = [(rect(box["quad"]), box) for box in boxes]
         for i in range(len(rects)):
