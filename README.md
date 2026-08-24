@@ -1,918 +1,593 @@
-# vlm-ocr-synthetic
+# 📄 vlm-ocr-synthetic — Bộ sinh ảnh chứng từ Việt Nam có nhãn
 
-Synthetic Vietnamese document images for training and evaluating VLM / OCR
-models, with structured labels and per-field boxes.
+> **Kho:** [LinhPhuong14/vlm-ocr-synthetic](https://github.com/LinhPhuong14/vlm-ocr-synthetic)
+> **One-liner:** Một luật sinh + một renderer → ảnh hoá đơn / biểu mẫu Việt Nam kèm nhãn CORD lồng nhau, hộp từng trường, và toàn bộ công thức đã sinh ra nó.
 
 [![ci](https://github.com/LinhPhuong14/vlm-ocr-synthetic/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB.svg?logo=python&logoColor=white)](pyproject.toml)
+[![Renderer](https://img.shields.io/badge/Renderer-Chromium_via_Playwright-4285F4.svg?logo=googlechrome&logoColor=white)](generators/html)
+[![Layouts](https://img.shields.io/badge/Bố_cục-16_/_6_họ-28C840.svg)](rulebase/layouts)
+[![Degradation](https://img.shields.io/badge/Làm_cũ-14_mô_hình_DocCreator-FF6B6B.svg)](degradation/README.md)
+[![Handwriting](https://img.shields.io/badge/Chữ_viết_tay-2_nguồn_mực-9B59B6.svg)](docs/handwriting-html.md)
+[![License](https://img.shields.io/badge/License-chưa_chọn-lightgrey.svg)](#-repository--licence)
 
-**One rule-base, one renderer.** What a page *says* is decided in
-[`rulebase/`](rulebase/README.md); how it *becomes pixels* is decided in
-[`generators/html/`](generators/html), which lays the page out as CSS and
-screenshots it from headless Chromium. Two further renderers — glyph-by-glyph
-through synthtiger, and printed through WeasyPrint — drew the committed sets
-under `data/` and are **retired from generation**; see
-[`docs/renderers.md`](docs/renderers.md) for what that means and what it cost.
+---
 
-The document kinds are **data, not code**. A till receipt, a statutory VAT
-form, a water bill and an English tax invoice all come out of the same eight
-pipeline stages; what separates them is a YAML file and a family node. Adding
-the next kind is [a checklist](#adding-a-document-kind), not a refactor.
+## 📌 1. Bối Cảnh & Bài Toán
+
+### Bài toán thực tế
+
+Huấn luyện một mô hình VLM/OCR đọc chứng từ Việt Nam cần **ảnh có nhãn chính
+xác tới từng trường** — không chỉ "đọc được chữ gì", mà "chữ đó nằm ở đâu,
+thuộc mục nào, và tờ giấy này là loại gì". Dữ liệu thật thì vướng thông tin cá
+nhân, gán nhãn tay thì đắt và chậm, còn dữ liệu sinh tự động thì thường **nhãn
+không khớp pixel**: nhãn ghi một trường mà bố cục không đủ chỗ in ra.
+
+Khó hơn nữa, chứng từ Việt Nam không phải một loại giấy. Tờ hoá đơn nhiệt in ở
+quán ăn, tờ mẫu GTGT có khung kẻ sẵn và ô ký, hoá đơn tiền nước tính theo chỉ
+số công tơ, bảng kê viện phí mười ba cột, giấy uỷ quyền để điền tay — mỗi loại
+có cấu trúc riêng, và một bộ sinh chỉ vẽ được hoá đơn bán lẻ thì vô dụng với
+phần còn lại.
+
+### Sứ mệnh của dự án
+
+Xây một **bộ sinh dữ liệu** (không phải mô hình): khai báo *nội dung tờ giấy*
+một lần trong YAML, dựng nó thành pixel qua một đường render duy nhất, làm cũ
+bằng các mô hình xuống cấp có nguồn gốc học thuật, và xuất ra bản ghi theo
+**đúng schema của bộ chuyển đổi tài liệu** — để một tờ giấy *vẽ ra* và một tờ
+giấy *quét vào* đọc lên giống hệt nhau.
+
+> **Loại chứng từ là DỮ LIỆU, không phải CODE.** Thêm một loại giấy mới là thêm
+> một file YAML và một dòng khai báo — [xem mục 6](#-6-thêm-một-loại-chứng-từ-mới).
+> Không renderer nào phải sửa.
+
+---
+
+## 🧩 2. Ma Trận Thành Phần
+
+| Thành phần | Vai trò trong hệ thống | Trạng thái |
+| :--- | :--- | :--- |
+| **Chromium** (Playwright) — [`generators/html/`](generators/html) | Renderer **duy nhất** sinh dataset: dàn trang bằng CSS thật, chụp màn hình, đọc hộp từ chính DOM vừa dàn. | **Bắt buộc (Required)** |
+| **Rule-base** — [`rulebase/`](rulebase/README.md) | 7 thuộc tính có trọng số + ràng buộc thẻ, quyết định *tờ giấy nói gì*: loại chứng từ, bố cục, nội dung, hình thức, màu, hoạ tiết, cách làm cũ. | **Bắt buộc (Required)** |
+| **Degradation** — [`degradation/`](degradation/README.md) | 14 mô hình xuống cấp chuyển thể từ **DocCreator** (LaBRI Bordeaux): vân giấy, mực mòn, thấm mặt sau, nhoè vùng, rách, bóng gáy, lưới halftone, sọc quét. | **Bắt buộc (Required)** |
+| **Pipeline** — [`pipeline/`](pipeline) | Một lượt chạy được **khai báo, chia shard, chạy song song và resume được**, kèm bất biến từng ảnh và đo trôi phân phối. | **Bắt buộc (Required)** |
+| **Chữ viết tay** — [`generators/html/handwriting.py`](generators/html/handwriting.py), [`docs/handwriting-html.md`](docs/handwriting-html.md) | Điền ô trống của biểu mẫu bằng **nét bút chứ không phải font in bị rung**. Hai nguồn mực, **không thay thế nhau**: `font` phủ hết mọi ô nhưng một trang chỉ một nét chữ; `model` là [WriteViT](docs/writevit.md) ([`tools/writevit/`](tools/writevit)), nét mỗi lần một khác nhưng không viết được chữ số. | *Mở rộng (Handwriting)* |
+| **Chữ ký** — [`generators/html/signature.py`](generators/html/signature.py), [`docs/chu-ky.md`](docs/chu-ky.md) | Ký vào khối chữ ký — ô trống cuối cùng của tờ mẫu. Lấy chữ thật (từ `fonts/hand/` hoặc từ WriteViT, **trace thành contour**) rồi kéo giãn thành dấu ký: chữ đầu phóng to, phần thân tan thành nét lượn, nét cuối hất lên, paraph. Mực **không mang nhãn** — nó phải nằm trên trang và nằm ngoài nhãn. | *Mở rộng (Signature)* |
+| **Tesseract 5 (`vie`)** — [`tools/ocr_proof.py`](tools/ocr_proof.py) | Đọc ngược dataset và chấm điểm **không phụ thuộc thứ tự đọc**, để chứng minh ảnh đọc được và nhãn khớp pixel. | *Mở rộng (Kiểm chứng)* |
+| **synthtiger / WeasyPrint** — [`docs/renderers.md`](docs/renderers.md) | Hai renderer cũ. **Đã nghỉ phần sinh**, giữ nguyên phần đọc: các bộ chúng đã vẽ vẫn được commit và vẫn kiểm tra được. | *Nghỉ (Retired)* |
+
+---
+
+## 🧠 3. Kiến Trúc Pipeline
+
+Tám giai đoạn, từ một hạt giống ngẫu nhiên tới một ảnh kèm bản ghi. Ba giai
+đoạn đầu **thuần nội dung**, không cần thư viện ảnh nào — đó là lý do CI kiểm
+được chúng chỉ với `pytest` và `pyyaml`.
+
+```mermaid
+flowchart TD
+    seed(["seed + tuỳ chọn --force ATTR=ID"]) --> A
+
+    subgraph S1 ["Giai đoạn 1-3: Nội dung — rulebase/"]
+        A["1 · sample_recipe<br/>bốc 7 thuộc tính theo trọng số + ràng buộc thẻ"]
+        A --> B["2 · build_receipt<br/>đơn vị phát hành, dòng hàng, tổng tiền, nhãn CORD"]
+        B --> C["3 · build_grid<br/>sections → ô chữ (Cell) và nét vẽ (Mark)"]
+    end
+
+    subgraph S2 ["Giai đoạn 4: Dựng pixel — generators/html/"]
+        C --> D1["4a · lưới ký tự<br/>render.py — giấy cuộn nhiệt"]
+        C --> D2["4b · tờ CSS<br/>sheets/ — A4 có khung, bảng, chữ ký"]
+        D2 --> D3["4c · điền tay (tuỳ chọn)<br/>handwriting.py — nguồn font hoặc WriteViT"]
+    end
+
+    subgraph S3 ["Giai đoạn 5-7: Làm cũ & hình học"]
+        D1 --> E["5 · chuỗi làm cũ<br/>apply_recipe — KHÔNG đổi kích thước"]
+        D3 --> E
+        E --> F["6 · hoạ tiết & con dấu<br/>thuộc tính ornament"]
+        F --> G["7 · thu nhỏ<br/>hộp co theo pixel"]
+    end
+
+    subgraph S4 ["Giai đoạn 8: Kiểm & ghi"]
+        G --> H["8 · record.validate + invariants<br/>số học tiền, hộp trong khung, không ô trống"]
+        H --> O[("ảnh .jpg<br/>+ .json từng ảnh<br/>+ synthesis.json")]
+    end
+```
+
+### Thứ tự bảy thuộc tính không phải chuyện thẩm mỹ
+
+Mỗi thuộc tính **nhìn thấy thẻ (`tags`) mà các thuộc tính trước đã đặt**, và
+một giá trị chỉ được `require` thẻ do thuộc tính **trước** nó đặt. Nên thứ tự
+này quyết định *ràng buộc nào viết ra được*. Nó theo nhân quả: cửa hàng quyết
+định in gì từ lâu trước khi tờ giấy quyết định nó sẽ nhàu thế nào.
+
+```mermaid
+flowchart LR
+    d["1 document<br/>loại chứng từ"] --> l["2 layout<br/>bố cục"] --> c["3 content<br/>nội dung"] --> v["4 visual<br/>font, mực, giấy"]
+    v --> col["5 color<br/>màu mực, nền"] --> orn["6 ornament<br/>dấu, hoa văn"] --> a["7 augmentation<br/>chuỗi làm cũ"]
+```
+
+| # | Thuộc tính | Quyết định | File |
+| ---: | :--- | :--- | :--- |
+| 1 | `document` | loại chứng từ — 5 họ, 17 giá trị | [`rules/document.yaml`](rulebase/rules/document.yaml) |
+| 2 | `layout` | bố cục — 6 họ, 16 file | [`rules/layout.yaml`](rulebase/rules/layout.yaml) |
+| 3 | `content` | dấu tiếng Việt, viết hoa, định dạng tiền, VAT | [`rules/content.yaml`](rulebase/rules/content.yaml) |
+| 4 | `visual` | font, cỡ chữ, độ đậm mực, lề, khổ giấy | [`rules/visual.yaml`](rulebase/rules/visual.yaml) |
+| 5 | `color` | màu mực, sắc nền, màu nhấn | [`rules/color.yaml`](rulebase/rules/color.yaml) |
+| 6 | `ornament` | **mực không phải chữ**: con dấu tròn, dấu vuông, hoa văn chìm, nẹp sóng, QR | [`rules/ornament.yaml`](rulebase/rules/ornament.yaml) |
+| 7 | `augmentation` | chuỗi làm cũ chạy sau khi vẽ | [`rules/augmentation.yaml`](rulebase/rules/augmentation.yaml) |
+
+### Hai đường dựng trang, và cái nối chúng
+
+```mermaid
+flowchart LR
+    G["Grid<br/>ô chữ + nét vẽ"] --> P1["lưới ký tự<br/>render.py"]
+    R["Receipt + Recipe"] --> P2["tờ CSS theo họ<br/>sheets/*.py"]
+    P1 --> X["Chromium"]
+    P2 --> X
+    X --> Y["pixel + hộp<br/>page.py — một chỗ đọc DOM"]
+```
+
+Giấy cuộn nhiệt **thật sự** là thiết bị monospace, nên lưới ký tự là mô hình
+đúng cho nó. Tờ GTGT A4 thì không: nó có logo, ô kẻ, chữ nhiều cỡ, khối ký tên.
+Cả hai đường đều đi qua cùng một [`page.py`](generators/html/page.py) để lấy
+hộp, nên **schema nhãn không biết đường nào đã vẽ**.
+
+Giữa hai đường là các *mối nối rẻ tiền*, và tất cả theo một nguyên tắc:
+**rule-base khai hình học bằng đơn vị của nó, mỗi backend làm đúng một phép
+nhân mà nó vốn đã làm.**
+
+| Mối nối | Bố cục khai | Được gì |
+| :--- | :--- | :--- |
+| **`Mark`** — [`rulebase/layout.py`](rulebase/layout.py) | `rules: marks` | đường kẻ, ô tô nền, khung viền **trên cùng hệ toạ độ với ô chữ**, nên tờ mẫu thôi phải kẻ bằng `---` |
+| **Khổ giấy** — [`rulebase/style.py`](rulebase/style.py) | `sheet: a4` | trang có chiều cao **định trước khi in**: hoá đơn ba dòng vẫn chiếm trọn tờ, phần trắng dưới là một phần diện mạo. Không khai tên = giấy cuộn, không có mép dưới cho tới khi dao cắt |
+
+---
+
+## 📦 4. Đầu Ra Chuẩn Hoá
+
+Mỗi ảnh có **một file JSON nằm cạnh nó**, cộng một `synthesis.json` cho cả bộ:
+
+```
+data/dataset60/html/
+├── html_000.jpg        html_000.json      ← bản ghi, đúng schema bộ chuyển đổi
+├── html_001.jpg        html_001.json
+└── synthesis.json      ← tờ giấy này được SINH RA thế nào
+```
+
+**Vì sao tách làm hai.** Một trang *chuyển đổi từ ảnh quét* không có seed, không
+có công thức. Nếu nhét provenance vào từng dòng thì bản ghi của trang vẽ ra khác
+bản ghi của trang quét vào, và loader phải biết mình đang đọc loại nào. Nên
+`record.py` viết **đúng và chỉ** schema của bộ chuyển đổi; còn seed, bảy thuộc
+tính, thứ tự đọc phẳng thì sang `synthesis.json` — nơi tham số của mỗi lựa chọn
+được ghi **một lần cho mỗi id**, không lặp lại hai mươi lần.
+
+| Khoá trong bản ghi | Nội dung |
+| :--- | :--- |
+| `schema_version`, `job_id` | phiên bản schema; `uuid5` của `parser\|layout\|seed\|filename` — cùng trang thì cùng id |
+| `task`, `parser` | việc gì đã sinh ra nó (`convert` / `table_structure`); renderer nào đã vẽ |
+| `filename`, `source_files`, `settings` | tên ảnh, đầu vào của job, tuỳ chọn — đúng cách bộ chuyển đổi viết |
+| `pages`, `blocks` | kích thước trang; **một block mỗi trường đã vẽ**, theo thứ tự đọc |
+| `markdown`, `html` | chính trang đó dựng lại từ các block |
+| `extracted` | nhãn CORD lồng nhau, dạng object |
+
+```mermaid
+flowchart LR
+    R["Recipe<br/>7 thuộc tính + seed"] --> RC["Receipt"]
+    RC --> GT["extracted<br/>nhãn CORD"]
+    RC --> G["Grid"]
+    G --> PX["pixel"]
+    G --> BX["blocks<br/>hộp từng trường"]
+    GT & PX & BX --> J[("&lt;ảnh&gt;.json")]
+    R --> SY[("synthesis.json<br/>seed · thuộc tính · thứ tự đọc")]
+```
+
+Hai điều cần biết trước khi viết loader:
+
+1. **Hộp là định nghĩa của "đã in".** Thứ tự đọc phẳng dựng từ `Receipt`, nên nó
+   có thể liệt kê một trường mà bố cục không đủ chỗ in; `blocks` thì đến từ
+   chính hình học renderer vừa dàn. [`pipeline/invariants.py`](pipeline/invariants.py)
+   đối chiếu nhãn với hộp vì lý do đó, còn [`tools/check_boxes.py`](tools/check_boxes.py)
+   đối chiếu hộp với pixel.
+2. **Chỉ seed thôi không dựng lại được trang.** Ghim một thuộc tính làm đổi thẻ
+   nó đặt, nên mọi thuộc tính bốc sau đều lệch. Phải ghim lại cả bảy id — đó
+   đúng là việc `check_boxes.py` làm.
+
+Đọc qua các accessor — `record.file_name`, `record.boxes`, `record.extracted`
+cho bản ghi; `Synthesis.recipe`, `.layout`, `.text_sequence` cho file bên cạnh —
+chứ đừng với tay lấy khoá theo tên, để lần sau hình dạng có đổi thì nó đổi ở một
+file. Một tập cũ được đưa lên bằng **`pipeline.record.migrate`**, hàm này
+**không vẽ lại gì cả**: mọi giá trị nó ghi đều đã có sẵn trong bản ghi cũ hoặc
+trong header của chính file JPEG bên cạnh. Nó nằm trong `record.py`, cạnh
+`record.build`, chứ không thành một tool riêng — một bản ghi chỉ có **một** định
+nghĩa, và cả hai phía đều với tới đúng định nghĩa ấy: renderer thì cầm pixel,
+bộ chuyển đổi thì cầm một dòng cũ.
+
+Hai thứ có thể cũ, và một tập có thể dính một hoặc cả hai:
+
+* **hình dạng** — một `metadata.jsonl` cho cả tập thay vì một bản ghi cho mỗi
+  ảnh, với cách trang được làm ra trộn vào cùng dòng;
+* **một giá trị** — bản ghi đã đúng schema, nhưng được viết khi một tuỳ chọn
+  hằng còn mang nghĩa khác. `settings.max_pixels` từng giữ đúng số điểm ảnh của
+  trang cho tới khi nó thành `null` — đó là một **trần**, và không có trần nào
+  được áp; kích thước vốn đã nằm trong `pages[0]`. Pixel không hề dịch đi, chỉ
+  có điều bản ghi *nói về* pixel là sai, nên đưa lên chỉ là viết lại một giá
+  trị. `record.validate` kiểm `settings` theo từng khoá nên lần sau một tuỳ
+  chọn dịch nghĩa thì hoặc dữ liệu đi cùng, hoặc test đỏ ngay.
+
+```bash
+python -c "from pathlib import Path; from pipeline import record; \
+           print(record.migrate(Path('data/old'), write=False))"
+```
+
+---
+
+## ⚡ 5. Hai Chế Độ Vận Hành
+
+1. **🚀 Một lệnh (`make dataset`)** — cho lần chạy nhanh và cho CI cục bộ. Vẫn
+   đi qua đúng bộ máy shard bên dưới, chỉ là mọi tuỳ chọn nằm trên dòng lệnh.
+
+   ```bash
+   make dataset N=16 DATASET=data/thu
+   ```
+
+2. **🛠️ Khai báo cả lượt chạy ([`pipeline.yaml`](pipeline.yaml) + `make run`)** —
+   cho công việc dài. Chia shard, chạy song song theo tiến trình, **resume
+   được**, và mỗi tính chất dưới đây là một quyết định có lý do:
+
+| Tính chất | Được gì | Ở đâu |
+| :--- | :--- | :--- |
+| **Khoá lạ thì báo lỗi** | một file có `ouput:` sẽ **không** lặng lẽ chạy bằng giá trị mặc định | [`pipeline/config.py`](pipeline/config.py) |
+| **Shard là một khoảng ảnh, không phải một bố cục** | worker giữ được một trình duyệt cho cả shard | [`pipeline/plan.py`](pipeline/plan.py) |
+| **Resume là được-cả-hoặc-không** | `DONE` ghi **cuối cùng và nguyên tử**; shard thiếu `DONE` bị xoá làm lại chứ không ghi nối — ghi nối vào một `metadata` dở dang sinh bản ghi trùng, mà bản ghi trùng thì vô hình | [`pipeline/worker.py`](pipeline/worker.py) |
+| **Song song bằng tiến trình, không bằng luồng** | API đồng bộ của Playwright không an toàn đa luồng | [`pipeline/run.py`](pipeline/run.py) |
+| **Danh sách bố cục khai tường minh** | `layouts: []` nghĩa là mọi file — thứ một dataset muốn. Một **phép so sánh cố định** phải gọi tên, vì quota đi theo thứ tự danh sách | `pipeline.yaml` |
+| **Bất biến từng ảnh** | số học tiền, hộp nằm trong khung, không ký tự thay thế / ô trống glyph | [`pipeline/invariants.py`](pipeline/invariants.py) |
+| **Đo trôi (drift)** | *phân phối* còn khớp luật không, tính trên từng shard, đã trừ đi độ tán của mẫu cỡ đó | [`pipeline/drift.py`](pipeline/drift.py) |
+| **Vân tay vàng** | sha256 từng ảnh và từng bản ghi, để đường song song bị buộc phải cho ra đúng thứ đường tuần tự cho ra | [`tools/baseline.py`](tools/baseline.py) |
+
+Theo dõi khi lượt chạy **đang** chạy — `manifest.json` chỉ ghi một lần lúc kết
+thúc, mà đó không phải lúc người ta muốn nhìn:
+
+```bash
+make monitor                       # toàn bộ không gian luật, không cần lượt chạy nào
+make monitor RUN=data/run01        # một lượt đang chạy, đọc thẳng từ shard
+```
+
+---
+
+## 🧱 6. Thêm Một Loại Chứng Từ Mới
+
+Đây là trục thay đổi thường xuyên nhất của kho, và nó **gần như toàn YAML**.
+
+```mermaid
+flowchart TD
+    A["1 · corpus<br/>rulebase/corpus/&lt;lang&gt;/"] --> B["2 · giá trị document<br/>rules/document.yaml"]
+    B --> C["3 · file bố cục<br/>rulebase/layouts/&lt;id&gt;.yaml"]
+    C --> D["4 · khai dưới một HỌ<br/>rules/layout.yaml groups:"]
+    D --> E["5 · tờ CSS, nếu là giấy rời<br/>generators/html/sheets/"]
+    E --> F["6 · kiểm<br/>preview-grid → preflight → pytest → dataset"]
+```
+
+| Bước | Ở đâu | Ghi chú |
+| ---: | :--- | :--- |
+| 1 | [`rulebase/corpus/`](rulebase/corpus) | các chuỗi tờ giấy in ra, một file cho mỗi loại dòng |
+| 2 | [`rules/document.yaml`](rulebase/rules/document.yaml) | một giá trị có `weight`, các `tags` nó đặt, và `params` |
+| 3 | [`rulebase/layouts/`](rulebase/layouts) | `sections:`, cột, và các khoá của tờ mẫu (`letterhead`, `parties`, `table`, `signatures`, `words`) |
+| 4 | [`rules/layout.yaml`](rulebase/rules/layout.yaml) | đặt dưới **node cha** của họ nó thuộc về — `tags`/`requires`/`excludes` của node được **hợp vào** mọi giá trị bên dưới, nên ràng buộc chung viết một lần và bố cục thêm sau **không thể quên** |
+| 5 | [`generators/html/sheets/`](generators/html/sheets) | chỉ khi là **một họ giấy mới**; thêm thành viên vào họ có sẵn thì đọc từ file bố cục, không cần template thứ sáu |
+| 6 | — | `make preview-grid LAYOUT=<id>` → `make preflight` → `python -m pytest` → một `make dataset` nhỏ |
+
+Các trục mở rộng khác cùng một dạng:
+
+| Muốn thêm | Sửa ở | Thứ **không** phải đổi |
+| :--- | :--- | :--- |
+| một **thuộc tính bốc thứ 8** | `rules/<tên>.yaml` + một dòng trong [`_order.yaml`](rulebase/rules/_order.yaml) | danh sách thuộc tính được **đọc**, không hard-code |
+| một **mô hình làm cũ** | một module trong [`degradation/`](degradation) + tên trong registry | mọi backend đều nhận được |
+| một **con dấu / hoa văn** | một PNG do [`tools/make_ornaments.py`](tools/make_ornaments.py) sinh + một dòng trong `rules/ornament.yaml` | preflight báo trước nếu thiếu file |
+| một **loại giấy in** | một file trong [`textures/paper/`](textures/paper) gọi tên bởi `visual.paper` | chuỗi làm cũ tự tra |
+| một **khổ giấy** | một mục trong `SHEETS` của [`rulebase/style.py`](rulebase/style.py) | mọi backend, vốn chỉ đọc tỉ lệ |
+
+📖 Hướng dẫn đầy đủ, kèm ngữ pháp của một file bố cục:
+**[`rulebase/README.md`](rulebase/README.md)**
+
+---
+
+## 🖼️ 7. Hình Ảnh Thực Tế
+
+Mọi hình dưới đây do [`docs/figures/make_figures.py`](docs/figures/make_figures.py)
+dựng — **code tài liệu**: nó chỉ cắt, co, dán nhãn và ghép những pixel mà bộ
+sinh đã tạo ra, nên không hình nào cho thấy thứ kho này không có.
+
+```bash
+python docs/figures/make_figures.py      # đọc từ data/dataset60 và bản sạch của nó
+```
+
+### 7.1 Mỗi họ chứng từ một trang
+
+Đọc danh sách node cha ngay từ `rules/layout.yaml`, nên **một họ thêm vào ngày
+mai sẽ tự xuất hiện** mà không phải sửa script.
+
+![Mỗi họ bố cục một trang đã dựng](docs/figures/families.jpg)
+
+### 7.2 Một tờ giấy, ba engine
+
+Các bộ đã commit là **paired** — đúng một tờ giấy được chụp ảnh, quét, và in.
+Hai engine bên phải nay đã nghỉ phần sinh, nhưng ảnh chúng vẽ vẫn được giữ và
+vẫn kiểm được.
+
+![Cùng một hoá đơn do synthdog, html và genalog vẽ](docs/figures/renderers.jpg)
+
+### 7.3 Trước và sau chuỗi làm cũ
+
+Bộ đã làm cũ và bộ sạch sinh từ cùng seed; script **assert** hai công thức chỉ
+khác nhau đúng một thuộc tính — `augmentation` — trước khi vẽ.
+
+![Trang với augmentation=pristine và với chuỗi được bốc](docs/figures/ageing.jpg)
+
+### 7.4 Nhãn, vẽ đè lên pixel
+
+Xanh lá cho trường chữ, cam cho tiền.
+
+![Hộp từng trường vẽ trên ảnh nó mô tả](docs/figures/boxes.jpg)
+
+### 7.5 Chữ viết tay, không phải font in bị rung
+
+![Hai nguồn mực trên cùng một loại tờ mẫu, đỏ là nét bút, xám là còn in máy](docs/figures/handwriting-html.jpg)
+
+Có **hai nguồn mực và chúng không thay thế nhau**. `handwriting.source` khai
+nguồn ngay trên từng trang, nên một tập không thể nhận mình là đằng này rồi thực
+ra là đằng kia.
+
+| nguồn | phủ được | cái giá |
+| :--- | :--- | :--- |
+| `font` — mặt chữ viết tay có giấy phép trong [`fonts/hand/`](fonts/hand) | **mọi ô**, vì một mặt chữ có đủ mười chữ số và mọi dấu | **lặp**: một trang là một nét chữ, và có hai mặt chữ chứ không phải 106 người viết |
+| `model` — [WriteViT](docs/writevit.md), nét sinh ra thật, 106 người viết | **14,6 %** số ô; quét cả không gian luật thì trang nhiều mực nhất đạt **42 %** | **không viết được chữ số** — mà chữ số là số hoá đơn, ngày, mã số thuế, số tài khoản |
+
+Không có đường thứ ba: làm lệch từng ký tự của một mặt chữ **in** để giả nét tay
+chính là thứ `ff9a9f0` đã gỡ. Vì thế [`data/hand12/`](data/hand12) dùng `font` —
+đổi 106 người viết lấy việc không còn ô nào in máy — và trang mực-mô-hình duy
+nhất còn lại trong kho là
+[`samples/handwriting/hand-filled-folio.jpg`](samples/handwriting), giữ để nhìn
+thấy đúng cái trần ấy.
+
+Chi tiết cách nối và **lý do từng ô bị từ chối** nằm trong
+[`docs/handwriting-html.md`](docs/handwriting-html.md); khảo sát mô hình trong
+[`docs/khao-sat-sinh-chu-viet-tay.md`](docs/khao-sat-sinh-chu-viet-tay.md).
+
+### 7.6 Mỗi mô hình làm cũ một ảnh
+
+Đã commit sẵn trong [`samples/degradation/`](samples/degradation): mỗi mô hình
+áp **riêng lẻ** lên cùng một trang. Chạy cả chuỗi thì không biết bước nào gây ra
+cái gì.
+
+![Bảng ghép: từng mô hình làm cũ áp riêng lên một trang](samples/degradation/showcase-contact.jpg)
+
+---
+
+## 📁 8. Cấu Trúc Thư Mục
+
+```
+vlm-ocr-synthetic/
+├── rulebase/                       # LUẬT SINH — nguồn sự thật duy nhất về nội dung
+│   ├── rules/                      # 7 thuộc tính, mỗi thuộc tính một file YAML
+│   ├── layouts/                    # 16 bố cục, đo từ giấy thật (`source:` ghi từ đâu)
+│   ├── corpus/vi/ · corpus/en/     # các chuỗi tờ giấy in ra
+│   ├── spec.py                     # bốc có trọng số, thẻ, node cha
+│   ├── content.py                  # điền trường, dựng nhãn CORD
+│   ├── layout.py                   # Receipt + bố cục -> Grid (ô chữ + nét vẽ)
+│   └── style.py                    # lề, bảng mực, khổ giấy
+│
+├── generators/html/                # RENDERER — Chromium qua Playwright
+│   ├── render.py                   # đường lưới ký tự (giấy cuộn nhiệt)
+│   ├── sheets/                     # một tờ CSS cho mỗi HỌ bố cục (A4)
+│   ├── handwriting.py              # điền tay: WriteViT, hoặc font viết tay
+│   ├── signature.py                # chữ ký: chữ thật kéo giãn thành dấu ký
+│   ├── tables.py                   # ảnh bảng, nhãn theo cấu trúc PubTabNet
+│   ├── overlap.py                  # phát hiện chữ chồng lên nhau
+│   └── page.py                     # dùng chung: trình duyệt, font nhúng, đọc hộp
+│
+├── pipeline/                       # MỘT LƯỢT CHẠY — khai báo, chia shard, resume
+│   ├── config.py                   # pipeline.yaml, khoá lạ thì báo lỗi
+│   ├── plan.py                     # chia shard, tất định
+│   ├── worker.py                   # một shard, xong hẳn hoặc không gì cả
+│   ├── run.py                      # preflight → pool tiến trình → ráp lại
+│   ├── record.py                   # schema bản ghi, + migrate tập schema cũ
+│   ├── synthesis.py                # trang này được sinh ra thế nào
+│   ├── invariants.py               # điều phải đúng với MỌI ảnh
+│   ├── drift.py                    # phân phối còn khớp luật không
+│   └── preflight.py                # mọi kiểm tra phải qua trước khi vẽ
+│
+├── degradation/                    # 14 mô hình DocCreator, mọi backend đều gọi
+├── textures/paper/ · background/   # tờ giấy được in LÊN · cảnh nó được chụp TRÊN
+├── textures/ornament/              # 27 con dấu và hoa văn (make ornaments)
+├── augmentations/data/image/       # ảnh giấy thật phủ LÊN trang đã vẽ xong
+├── fonts/                          # font mọi renderer dùng (đã kiểm phủ chữ Việt)
+├── data/                           # các bộ đã sinh và công bố
+├── samples/                        # ví dụ đã tuyển, tờ mẫu tham chiếu
+├── tools/                          # driver: dataset, proof, boxes, monitor, baseline
+├── docs/                           # ghi chú sống lâu hơn bất kỳ generator nào
+├── tests/                          # bộ test, phần lớn không cần thư viện ảnh
+├── tasks.py                        # MỌI tác vụ, và là định nghĩa duy nhất của chúng
+└── Makefile                        # chỉ chuyển tiếp sang tasks.py
+```
+
+---
+
+## 💻 9. Hướng Dẫn Cài Đặt & Khởi Chạy
+
+### Yêu Cầu Môi Trường
+
+| | |
+| :--- | :--- |
+| **Python** | ≥ 3.9 cho renderer. `tasks.py` chỉ dùng thư viện chuẩn nên chạy được trên Python hệ thống trước khi có venv nào. |
+| **Chromium** | Playwright tự tải, **trừ** container đã có sẵn ở `/opt/pw-browsers` hoặc `/usr/bin/chromium` — chỗ đó tự tìm thấy. |
+| **Tesseract 5 + gói `vie`** | Chỉ cần cho `make proof`. Không có thì các phần khác vẫn chạy đủ. |
+| **Git, ~450 MB đĩa** | cho một venv của renderer. |
+
+---
+
+### Bước 1: Dựng Môi Trường
 
 ```bash
 git clone https://github.com/LinhPhuong14/vlm-ocr-synthetic.git
 cd vlm-ocr-synthetic
-make setup                       # three environments, one per renderer
-make preflight                   # every check that must hold before drawing
-make dataset N=14                # 42 images: one per layout, per renderer
-make check-boxes                 # the boxes still describe the pixels
+
+# Dựng môi trường renderer (html). Trên Windows: py -3.11 tasks.py setup
+make setup
 ```
 
-Or look at the committed output first, with nothing built:
+> Không có `make` — trên Windows hay bất kỳ đâu — gọi thẳng task runner:
+> `py tasks.py setup`. Mọi tác vụ định nghĩa ở đó và Makefile chỉ chuyển tiếp,
+> nên hai bên **không thể lệch nhau**. `py tasks.py` liệt kê toàn bộ.
+
+---
+
+### Bước 2: Kiểm Trước Khi Vẽ
 
 ```bash
-head -1 data/dataset60/html/metadata.jsonl
+make preflight
 ```
 
-No `make` — on Windows, or anywhere — call the task runner directly. Every task
-is defined there and the Makefile only forwards to it, so the two cannot drift:
+Đây là **cổng chặn**. Nó kiểm luật, bố cục, corpus, tờ giấy, con dấu, chuỗi làm
+cũ — và thứ đắt giá nhất: **độ phủ glyph trên mọi ký tự luật này có thể in ra**,
+rộng hơn corpus, vì tiếng Việt viết hoa dùng codepoint khác và luật bật viết hoa
+phần lớn thời gian. Một font chỉ kiểm chữ thường sẽ qua trong khi in ra ô vuông.
 
-```powershell
-py -3.11 tasks.py setup
-py tasks.py                 # list every task
-```
+> Kiểm tra **không chạy được** — thiếu thư viện chứ không phải luật sai — được
+> đánh dấu `unchecked:` và **vẫn làm hỏng lượt chạy**: một job bắt đầu mà không
+> biết chính là thứ preflight sinh ra để ngăn.
 
 ---
 
-## Contents
-
-- [How it works](#how-it-works) — [context](#system-context) · [components](#components) · [pipeline](#the-pipeline) · [stages](#the-eight-stages)
-- [The two render paths](#the-two-render-paths) · [Adding a document kind](#adding-a-document-kind)
-- [The renderer](#the-renderer) · [Degradation](#degradation)
-- [Running at scale](#running-at-scale) · [What comes out](#what-comes-out)
-- [What it looks like](#what-it-looks-like) · [Repository structure](#repository-structure)
-- [Requirements](#requirements) · [Installation](#installation) · [Tasks](#tasks) · [Usage](#usage)
-- [Quality gates](#quality-gates) · [Datasets](#datasets) · [Troubleshooting](#troubleshooting)
-- [Limitations](#limitations) · [Known issues](#known-issues) · [Docs](#further-documentation) · [Licence](#licence)
-
----
-
-## How it works
-
-The repository is a **data generator**. There is no training code, no
-checkpoint and no inference server in the tree; the only model it runs is
-Tesseract, and only as a check that the images are readable and that the labels
-match the pixels ([`tools/ocr_proof.py`](tools/ocr_proof.py)).
-
-### System context
-
-```mermaid
-flowchart LR
-    author["Dataset author<br/>adds YAML, runs tasks"]
-    consumer["Training / eval code<br/>reads metadata.jsonl"]
-
-    subgraph repo["vlm-ocr-synthetic"]
-        rb["rule-base<br/>what the page says"]
-        gen["renderers<br/>what it looks like"]
-        deg["degradation<br/>how it has aged"]
-        out[("dataset<br/>images + labels")]
-    end
-
-    assets[("fonts/ · textures/<br/>augmentations/ · corpus")]
-    tess["Tesseract 5 (vie)<br/>external, optional"]
-
-    author --> rb
-    rb --> gen --> deg --> out
-    assets --> gen
-    assets --> deg
-    out --> consumer
-    out --> tess --> out
-```
-
-Nothing calls a network service. The external executables are a headless
-Chromium (HTML backend), the GTK/Pango stack (WeasyPrint) and Tesseract (the
-OCR proof, optional).
-
-### Components
-
-```mermaid
-flowchart TD
-    subgraph rulebase["rulebase/ — content, one source of truth"]
-        S["spec.py<br/>weighted draw, tags, family nodes"]
-        C["content.py<br/>issuer, lines, totals, label"]
-        L["layout.py<br/>Grid: cells + marks"]
-    end
-
-    subgraph backends["generators/ — pixels, one venv each"]
-        R1["synthdog/<br/>glyph layers, curl, camera"]
-        R2["html/<br/>Chromium: render.py · sheets/ · tables.py"]
-        R3["genalog/<br/>WeasyPrint → PDF → raster"]
-    end
-
-    subgraph orch["pipeline/ — one run, declared and resumable"]
-        CF["config.py + pipeline.yaml"]
-        PL["plan.py — shards"]
-        WK["worker.py — one shard, all or nothing"]
-        RN["run.py — preflight, pool, assemble"]
-        IV["invariants.py · drift.py · record.py"]
-    end
-
-    D["degradation/<br/>DocCreator models"]
-    O[("metadata.jsonl + .jpg")]
-
-    S --> C --> L
-    L --> R1 & R2 & R3
-    R1 & R2 & R3 --> D --> O
-    CF --> PL --> RN --> WK --> R1 & R2 & R3
-    IV -.guards.-> O
-    O --> T["tools/<br/>proof · check_boxes · monitor · baseline"]
-```
-
-### The pipeline
-
-```mermaid
-flowchart TD
-    seed(["seed + optional --force ATTR=ID"]) --> A
-
-    A["1 · sample_recipe<br/>6 attributes, weights + tag constraints"]
-    A --> B["2 · build_receipt<br/>issuer, lines, totals, footer + label"]
-    B --> C["3 · build_grid<br/>sections → cells and marks"]
-
-    C --> D1["4a · glyph<br/>one TextLayer per cell"]
-    C --> D2["4b · browser<br/>one positioned span per cell"]
-    C --> D3["4c · print engine<br/>Jinja2 → WeasyPrint → PDF"]
-
-    D1 --> E["5 · degradation chain<br/>apply_recipe(image, recipe, seed)"]
-    D2 --> E
-    D3 --> E
-
-    E --> F1["6 · curl → background → camera<br/>glyph backend only"]
-    E --> F2["6 · nothing<br/>the two flat backends"]
-
-    F1 --> G["7 · downscale<br/>boxes scaled with the pixels"]
-    F2 --> G
-    G --> H["8 · validate + write<br/>record.validate, invariants"]
-    H --> O[("jpg + metadata.jsonl")]
-```
-
-Stage 6 is the only structural divergence: the glyph backend curls the sheet,
-drops it on a photographed background and re-photographs it; the other two stop
-at a flat sheet.
-
-### The eight stages
-
-| # | stage | implementation | in → out | optional |
-| --- | --- | --- | --- | --- |
-| 1 | Sample a recipe | [`rulebase/spec.py`](rulebase/spec.py) `sample_recipe` | seed → `Recipe` (6 attributes + tags) | no |
-| 2 | Build the document | [`rulebase/content.py`](rulebase/content.py) `build` | `Recipe` → `Receipt` + `gt_parse` | no |
-| 3 | Lay it out | [`rulebase/layout.py`](rulebase/layout.py) `build_grid` | `Receipt` + layout → `Grid` (`Cell`s + `Mark`s) | no |
-| 4 | Draw it | `generators/*/render.py` | `Grid` → pixels + boxes | one of three |
-| 5 | Age it | [`degradation/pipeline.py`](degradation/pipeline.py) `apply_recipe` | image → image, **same size** | yes — empty for `augmentation=pristine` |
-| 6 | Photograph it | [`generators/synthdog/elements/warp.py`](generators/synthdog/elements/warp.py) | image + quads → scene + warped quads | glyph backend only; off with `--clean` |
-| 7 | Downscale | each `render.py` | image + boxes × factor | skipped if already small |
-| 8 | Validate and write | [`pipeline/record.py`](pipeline/record.py), [`pipeline/invariants.py`](pipeline/invariants.py) | → `.jpg` + one metadata line | no |
-
-Stages 1–3 are pure content and need no image library — which is why
-[CI](.github/workflows/ci.yml) can test them with nothing but `pytest` and
-`pyyaml`.
-
-### Sequence: one run
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant U as make run
-    participant R as pipeline/run.py
-    participant P as pipeline/plan.py
-    participant W as worker (process)
-    participant B as backend venv
-
-    U->>R: pipeline.yaml
-    R->>R: preflight — any problem stops the run
-    R->>P: build_plan(config, layouts)
-    P-->>R: shards (a range of images, per backend)
-    par one process per shard
-        R->>W: --plan plan.json --shard k
-        W->>W: DONE present? leave it. Absent? delete and redo
-        W->>B: render each image
-        B-->>W: image + metadata line (streamed)
-        W->>W: invariants + drift vector, then DONE (atomic, last)
-    end
-    R->>R: assemble metadata, manifest.json, timings.json
-    R-->>U: images + labels + manifest
-```
-
----
-
-## The two render paths
-
-A page is laid out on a **character grid**: every field sits at a row and a
-column range measured in character widths. That is the right model for a
-thermal till roll — which really is a monospace device — and it is what lets
-three different text engines put the same word in the same column.
-
-It is the wrong model for a printed VAT form, which has a logo, ruled table
-cells, proportional type at four sizes and a signature block. So there is a
-second path:
-
-```mermaid
-flowchart LR
-    G["Grid<br/>cells + marks"] --> P1["character-grid page<br/>generators/html/render.py"]
-    R["Receipt + Recipe"] --> P2["CSS sheet, per layout<br/>generators/html/sheets/"]
-    P1 --> X["Chromium"]
-    P2 --> X
-    X --> Y["pixels + boxes<br/>generators/html/page.py"]
-```
-
-Both paths produce the same boxes through the same
-[`page.py`](generators/html/page.py) helper, so the label schema does not know
-which drew the page. The CSS path is opt-in per run (`render.py --template`),
-and the sheet it draws follows **`recipe.layout.id`** — a hotel folio comes out
-a hotel folio, not a tax form. `sheets/` groups the sixteen layouts into six
-families, each modelled on one of the hand-drawn references in
-[`samples/invoice-templates/`](samples/invoice-templates); which blocks and
-which columns a member gets is read from its own layout file. **Both HTML
-backends draw it**: Chromium reads the boxes off the DOM, WeasyPrint off the
-PDF's character stream, and the markup is the same string.
-
-Between the two sit cheaper seams, and they follow one rule: **the rule-base
-states geometry in its own units, and each backend does the one multiplication
-it was already doing.** Nothing new is learned by any renderer.
-
-| seam | a layout says | what it buys |
-| --- | --- | --- |
-| **marks** — [`rulebase/layout.py`](rulebase/layout.py) | `rules: marks` | rules, shaded boxes and frames on the *same* coordinate system as a cell, so a form stops being drawn out of `---`. A till roll keeps ASCII rules, because a thermal head really does print them as characters |
-| **cut sheets** — [`rulebase/style.py`](rulebase/style.py) | `sheet: a4` | a page whose height is decided *before* printing. A three-line invoice still fills the sheet, and the white space under it is part of what the document looks like. No name means a continuous roll, which has no bottom edge until the cutter makes one |
-
-Eleven of the sixteen layouts are on a cut sheet; the five till receipts are on a roll.
-
----
-
-## Adding a document kind
-
-This is the path the repository is built around, and it is mostly YAML.
-
-```mermaid
-flowchart TD
-    A["1 · corpus<br/>rulebase/corpus/&lt;lang&gt;/"] --> B["2 · document value<br/>rules/document.yaml"]
-    B --> C["3 · layout file<br/>rulebase/layouts/&lt;id&gt;.yaml"]
-    C --> D["4 · declare it under a family<br/>rules/layout.yaml groups:"]
-    D --> E["5 · content, if the fields are new<br/>rulebase/content.py"]
-    E --> F["6 · check<br/>preview-grid → preflight → pytest → dataset"]
-```
-
-| step | where | notes |
-| --- | --- | --- |
-| 1 | [`rulebase/corpus/`](rulebase/corpus) | the strings the document prints; one file per kind of line |
-| 2 | [`rules/document.yaml`](rulebase/rules/document.yaml) | a value with a `weight`, the `tags` it sets, and `params` (`profile`, `num_items`, `titles`, …) |
-| 3 | [`rulebase/layouts/`](rulebase/layouts) | `sections:`, columns, and the form keys (`letterhead`, `parties`, `table`, `vat_summary`, `words`, `signatures`) |
-| 4 | [`rules/layout.yaml`](rulebase/rules/layout.yaml) | under the **family node** it joins; the node's `tags`/`requires`/`excludes` are unioned into every value below it, so a family-wide constraint is written once and a later layout cannot forget it |
-| 5 | [`rulebase/content.py`](rulebase/content.py) | only if the document carries fields no existing kind has |
-| 6 | — | `make preview-grid LAYOUT=<id>`, `make preflight`, `python -m pytest`, then a small `make dataset` |
-
-Nothing in `generators/` changes. A new layout is drawn by the renderer
-the day it is declared, because they consume the `Grid` and not the layout file.
-
-The same shape applies to the other axes:
-
-| to add | edit | nothing else changes |
-| --- | --- | --- |
-| a **document kind** | `rules/document.yaml` + `layouts/*.yaml` | the renderers |
-| a **layout family** | a `groups:` node in `rules/layout.yaml` | the sampler discovers it |
-| a **sampling attribute** | a new `rules/<name>.yaml` + a line in [`_order.yaml`](rulebase/rules/_order.yaml) | the attribute list is read, not hard-coded |
-| an **ageing effect** | a module in [`degradation/`](degradation) + its name in the registry | every backend gets it |
-| a **paper stock** | a file in [`textures/paper/`](textures/paper) named by `visual.paper` | the chain resolves it |
-| a **seal or flourish** | a draw function in [`tools/make_ornaments.py`](tools/make_ornaments.py) + a `marks:` entry in `rules/ornament.yaml` | preflight checks both directions |
-| a **sheet size** | one entry in `SHEETS` in [`rulebase/style.py`](rulebase/style.py) | every backend, which only reads the ratio |
-| a **renderer** | a `render.py` that consumes a `Grid` and writes a metadata line | the rule-base |
-
-Full guide, with the grammar of a layout file and the section list:
-**[`rulebase/README.md`](rulebase/README.md)**.
-
-### Why the order of the seven attributes matters
-
-```mermaid
-flowchart LR
-    d["document"] --> l["layout"] --> c["content"] --> v["visual"] --> col["color"] --> o["ornament"] --> a["augmentation"]
-    d -. tags .-> l
-    l -. tags .-> c
-    c -. tags .-> v
-    v -. tags .-> col
-    col -. tags .-> o
-    o -. tags .-> a
-```
-
-Each attribute sees the tags the earlier ones set, and a value may only
-`require` a tag an **earlier** attribute sets. So the order decides which
-constraints are expressible at all. It is causal, not alphabetical: a shop
-decides what it prints long before the paper decides how it will crease.
-
----
-
-## The renderer
-
-| | [`generators/html/`](generators/html) |
-| --- | --- |
-| **engine** | Chromium, headless, via Playwright |
-| **output** | a **flat scan** |
-| **text layout** | the browser's |
-| **box source** | `getBoundingClientRect()`, × device scale × downscale |
-| **quads** | axis-aligned |
-| **Python** | 3.9+ |
-| **extra install** | a browser |
-
-**No renderer re-reads its own output.** Boxes come from the engine that drew
-the text, so a box cannot inherit a recognition error.
-
-### The two that are retired
-
-`generators/synthdog/` (synthtiger glyph layers, a photograph of a page on a
-table) and `generators/genalog/` (WeasyPrint → PyMuPDF, a print or photocopy)
-are still on disk and still readable, but nothing generates with them: the
-glyph backend draws a character grid and cannot print any layout added since
-`generators/html/sheets/`, and the WeasyPrint backend recovers a box by walking
-the labelled runs beside the PDF's own glyph layer, a second implementation of
-the page geometry that every new feature had to pay for twice.
-
-What that costs is the cross-renderer comparison the committed sets under
-`data/` still carry, and it is stated rather than glossed:
-[`docs/renderers.md`](docs/renderers.md). What is off is the **producing** —
-every tool that *reads* a dataset still handles the halves they drew.
-
-`generators/synthdog/`'s remaining role is the pattern layer that every page is
-composited onto and marked with: `make patterns`.
-
----
-
-## Degradation
-
-[`degradation/`](degradation/README.md) is a Python port of the degradation
-models from [DocCreator](https://github.com/DocCreator/DocCreator) (Journet,
-Mansencal, Kieu et al., LaBRI Bordeaux). It runs on whatever a renderer
-produced, so the same ageing applied to all three renderers — one
-implementation, not three that share a name.
-
-```mermaid
-flowchart LR
-    img["rendered sheet"] --> P["paper_texture<br/>sheet from visual.paper"]
-    P --> I["ink_degradation"]
-    I --> Z["blur_zones"]
-    Z --> S["shadow_binding"]
-    S --> O["paper_overlay<br/>real-sheet photograph, last"]
-    O --> out["aged sheet — same dimensions"]
-```
-
-That chain is `augmentation=medium`, copied from
-[`rules/augmentation.yaml`](rulebase/rules/augmentation.yaml); each image runs
-whichever chain its recipe drew, in order, sharing one seeded rng. Order is not
-commutative — ink decay before blur reads as worn ink that was scanned badly,
-the other way round as a smudged scan.
-
-Ten models are registered (`make list-degradations`). Four **paste a texture**
-rather than filter — `paper_texture`, `paper_overlay`, `gradient_domain`
-(Poisson blending) and `phantom_character` — and they are the ones that stop a
-synthetic page looking synthetic. The rest filter (`ink_degradation`,
-`bleed_through`, `blur_zones`, `blur`, `shadow_binding`) or tear (`holes`).
-
-**Ageing must not move a pixel.** The HTML backend asserts the image dimensions
-are unchanged after `apply_recipe`, because a resize slipped into a chain would
-shift every box without changing anything visible.
-
-Three directories hold surface photographs and are easy to confuse; what
-separates them is *where in the pipeline they enter*:
-
-| directory | when | what it is |
-| --- | --- | --- |
-| [`textures/paper/`](textures/paper) | head of the chain | the sheet the text is printed on — multiplied in, so ink stays ink |
-| [`augmentations/data/image/`](augmentations/data/image) | last step | a photograph of a real sheet laid over the finished page, ink included |
-| [`textures/background/`](textures/background) | after ageing, glyph backend only | the scene the sheet is photographed on |
-
----
-
-## Running at scale
-
-`make dataset` is a thin shell over the same machinery. For a long job, declare
-it in [`pipeline.yaml`](pipeline.yaml) and use `make run`:
-
-```yaml
-run:      {out: data/run01, per_backend: 20, seed: 2026, workers: auto, pairing: paired}
-backends: [html]
-shard:    {size: 100}
-overrides: {}
-quality:  {drift_tolerance: 0.15, sample_for_ocr: 500}
-```
-
-| property | what it buys | where |
-| --- | --- | --- |
-| **Unknown keys raise** | a config with `ouput:` in it does not silently run on the default | [`pipeline/config.py`](pipeline/config.py) |
-| **Shards are ranges, not layouts** | a worker can hold one browser for a whole shard | [`pipeline/plan.py`](pipeline/plan.py) |
-| **One renderer process per shard** | the renderer takes a job list, not one layout, so interpreter and backend start-up are paid once instead of once per layout — 1.43 images per process became 20, and the same plan went from 140s to 98s | [`worklist.py`](worklist.py), [`pipeline/worker.py`](pipeline/worker.py) |
-| **Resume is all-or-nothing** | `DONE` is written last and atomically; a shard without one is deleted and redone, never appended to — appending duplicates records, and duplicates in a training set are invisible | [`pipeline/worker.py`](pipeline/worker.py) |
-| **Processes, never threads** | Playwright's sync API is not thread-safe and synthtiger seeds numpy's global RNG | [`pipeline/run.py`](pipeline/run.py) |
-| **The layout list is explicit** | `run.layouts` empty means every file in `rulebase/layouts/` — what a dataset wants. A *fixed comparison* names them, because the quota walks the list in order and a run that took the directory draws a different set the day someone adds a layout | `pipeline.yaml` |
-| **`pairing` is declared** | `paired` (default) gives every backend the same documents, so a difference between renderers is a difference in drawing; `independent` gives three times the distinct pages and no basis for comparison | `run.pairing` |
-| **The page model is declared** | `run.template` draws the CSS sheets in [`generators/html/sheets/`](generators/html/sheets) instead of the character grid, and lands in `dataset.json` so a reader need not guess from the pixels. Only the two HTML backends can print one, and a run that asks for a sheet while listing `synthdog` is refused rather than quietly mixed | `run.template` |
-| **Per-image invariants** | money arithmetic, quads inside the frame, no missing-glyph box, every label value actually printed | [`pipeline/invariants.py`](pipeline/invariants.py) |
-| **Drift** | whether the *mix* still matches the rules, measured per shard above the scatter a sample that size has anyway | [`pipeline/drift.py`](pipeline/drift.py) |
-| **A golden fingerprint** | sha256 of every image and every metadata line, so the parallel path is held to what the sequential one produced. Replacing it needs `make baseline-write REASON="..."`, and the reason is kept in the file — a comparison point that changed without saying why is one nobody can argue with later | [`tools/baseline.py`](tools/baseline.py), `make baseline-verify` |
-| **No durations in the manifest** | one worker and eight must produce byte-identical output; timings go to `timings.json` | `manifest.json` |
-
-Watch a run while it is still going — `manifest.json` is written once, at the
-end, which is not when anyone wants to look:
+### Bước 3: Sinh Dữ Liệu
 
 ```bash
-make monitor                       # the whole rule space, no run needed
-make monitor RUN=data/run01        # a run in progress, read from its shards
+# Một lệnh: 16 ảnh, mỗi bố cục một ảnh
+make dataset N=16 DATASET=data/thu
+
+# Kiểm hộp còn mô tả đúng pixel không
+make check-boxes DATASET=data/thu
+
+# Hoặc: khai cả lượt chạy rồi chạy có shard, resume được
+make run
 ```
 
-### Where the time goes
+Xem thử đầu ra mà **không dựng gì cả**:
 
 ```bash
-make profile                       # every stage, every renderer -> data/profile/
-```
-
-Times each of the nine stages — sampling, content, layout, render, geometry,
-degradation, annotation, validation, export — separately per renderer and per
-ageing model, and writes a machine-readable cost model beside the table so a
-later run can be *predicted* and the prediction compared with the clock. The
-current numbers and the conditions they were taken under are in
-[`data/profile/README.md`](data/profile/README.md); the short version:
-
-| | synthdog | html | genalog |
-| --- | ---: | ---: | ---: |
-| seconds an image | 3.1 | 1.4 | 0.9 |
-| dearest stage | `geometry` 55% | `render` 44% | `degradation` 54% |
-
-Three things it found that reading the code would not have:
-
-* **The dearest stage of the glyph renderer is not drawing.** Curl, canvas,
-  background and camera effects are 55% of a synthdog image — more than the
-  render and the ageing together.
-* **`gradient_domain` is not the bottleneck** it had been assumed to be: 4% of
-  all the ageing time, which is about 1% of a run.
-* **The largest single lever is the shape of the plan, not any renderer.** A
-  shard used to start one renderer process per *layout*, so twenty images over
-  fourteen layouts started fourteen processes and paid start-up fourteen times
-  — between 23% and 44% of the run depending on the backend. Fixed in W3b; the
-  cost model predicted the saving to within 7.3% before the change was made.
-
-The instrument is off unless asked for: `profiling.stage()` returns a shared
-no-op object, `make baseline-verify` is green with it in place, and one worker
-and eight still produce byte-identical output.
-
----
-
-## What comes out
-
-One `metadata.jsonl` line per image, the same shape from every renderer, its
-keys fixed by [`pipeline/record.py`](pipeline/record.py) and validated on the
-way out:
-
-| field | |
-| --- | --- |
-| `file_name` | the image, relative to the backend's directory |
-| `ground_truth` | CORD-style nested label, as a **JSON string** |
-| `text_sequence` | flat reading order, for pre-training and OCR scoring |
-| `recipe` | the seed and all six sampled attributes with their params |
-| `boxes` | one `{kind, text, quad}` per drawn field; `quad` is four `[x, y]` corners |
-| `framework`, `layout` | which renderer drew it, and from which layout |
-
-```mermaid
-flowchart LR
-    R["Recipe"] --> RC["Receipt"]
-    RC --> GT["ground_truth<br/>nested"]
-    RC --> TS["text_sequence<br/>flat"]
-    RC --> G["Grid"]
-    G --> PX["pixels"]
-    G --> BX["boxes"]
-    GT & TS & PX & BX & R --> J[("metadata.jsonl + .jpg")]
-```
-
-Two properties are worth knowing before writing a loader:
-
-**Boxes are the definition of "printed".** `text_sequence` is built from the
-`Receipt`, so it can list a field the layout had no room for; `boxes` comes
-from the renderer's own geometry, one per drawn cell. `pipeline/invariants.py`
-checks the label against the boxes for that reason, and
-[`tools/check_boxes.py`](tools/check_boxes.py) checks the boxes against the
-pixels.
-
-**The seed alone does not reproduce a page.** Pinning an attribute changes the
-tags it sets, so everything drawn afterwards diverges. Pin all six back:
-
-```python
-force = {name: value["id"] for name, value in record["recipe"]["attributes"].items()}
-recipe, receipt, grid = rulebase.make(seed=record["recipe"]["seed"], force=force)
+cat data/dataset60/html/html_000.json      # bản ghi một trang
+make preview-grid                          # tờ giấy dưới dạng văn bản, trước mọi pixel
 ```
 
 ---
 
-## What it looks like
+## 🧪 10. Kiểm Thử & Cổng Chất Lượng
 
-The figures below are built by
-[`docs/figures/make_figures.py`](docs/figures/make_figures.py) — **documentation
-code**: it only crops, scales, labels and tiles pixels that a renderer already
-produced, so it cannot show anything the generator did not.
+Mỗi cổng bắt một lớp lỗi khác nhau — và phần lớn lỗi ở kho này là **im lặng**:
+một thẻ gõ sai không ném exception, nó chỉ làm một giá trị không bao giờ được
+bốc, còn generation vẫn chạy tới hết.
 
-```bash
-python docs/figures/make_figures.py      # from data/dataset60 and its clean twin
-```
+| Lệnh | Bắt được gì |
+| :--- | :--- |
+| `make preflight` | giá trị luật không bao giờ bốc được, thiếu bố cục / giấy / hoạ tiết, chuỗi làm cũ gọi tên lạ, **độ phủ glyph** |
+| `python -m pytest` | tầng nội dung: bốc mẫu, bố cục, văn bản, kế hoạch shard, drift, bất biến |
+| `make check-boxes` | hộp còn mô tả đúng pixel: phủ đủ, nằm trong khung, có mực bên dưới |
+| `make baseline-verify` | bộ sinh còn cho ra **đúng** thứ nó từng cho ra, so từng hash ảnh |
+| `make proof` | một engine OCR đọc được ảnh thật không, chấm **không phụ thuộc thứ tự đọc** |
+| `make distribution` / `make monitor` | luật **thật sự** bốc ra cái gì — không giống điều trọng số nói |
+| `make check` / `make lint` | mọi file đã theo dõi đều parse; ruff trên code tự viết |
 
-### One page per document family
+### Kết quả đo trong môi trường này
 
-What the rule-base covers today. Each family is a parent node in
-`rules/layout.yaml`; the figure reads the node list rather than hard-coding it,
-so a family added tomorrow appears without editing the script.
+Python 3.11.15, 4 nhân, venv `html` đã dựng:
 
-![One rendered page from each of the five layout families](docs/figures/families.jpg)
-
-### One document, three engines
-
-The committed sets are **paired**, so this really is one document photographed,
-scanned and printed — not three similar pages.
-
-![The same receipt drawn by synthdog, html and genalog](docs/figures/renderers.jpg)
-
-### With and without the degradation chain
-
-The aged and clean sets come from the same seeds; the figure script asserts the
-two recipes differ in exactly one attribute — `augmentation` — before drawing.
-
-![Each renderer's page with augmentation=pristine and with its sampled chain](docs/figures/ageing.jpg)
-
-The glyph pair also shows stage 6: with `--clean` the curl, perspective and
-camera are off, so the sheet fills the frame with no background at all.
-
-### The labels, drawn on the pixels
-
-Green for text fields, orange for amounts.
-
-![Per-field quads from metadata.jsonl drawn on one image per renderer](docs/figures/boxes.jpg)
-
-The quads follow the paper curl on the left and are axis-aligned in the middle
-and on the right — but the schema and the `kind` vocabulary are identical, so
-one loader reads all three.
-
-### One image per degradation model
-
-Committed under [`samples/degradation/`](samples/degradation): every model
-applied **on its own** to the same page, plus a contact sheet. Run the whole
-chain and you cannot tell which step caused what.
-
-![Contact sheet: every degradation model applied on its own to one page](samples/degradation/showcase-contact.jpg)
-
-Regenerate with `make showcase`. The parameters there are chosen to be
-*visible*, not realistic.
-
-### The grid, before any pixel is drawn
-
-`make preview-grid` prints a sampled document in the character grid the
-renderers will draw — the fastest way to check a layout change. Actual output,
-trimmed:
-
-```text
-seed=18  document=pub_eatery  layout=eatery_indexed  content=diacritics_upper
-             QUÁN NHẬU SEN VÀNG 251
-   235 PHAN XÍCH LONG - NGÔ QUYỀN - HẢI PHÒNG
-               HOÁ ĐƠN THANH TOÁN
-SỐ PHIẾU: 57376                           BÀN 33
-STT   SỐ LƯỢNG         GIÁ                  TIỀN
-  1 NƯỚC NGỌT CHAI
-             4      15.000                60.000
-       ----------------------------------
-TIỀN HÀNG                                794.000
-```
+| Lệnh | Kết quả |
+| :--- | :--- |
+| `python -m pytest` | **750 passed**, 1 skipped, 1 xfailed, 3 phút 28 |
+| `python tasks.py check` | 96 file Python đều compile |
+| `python tasks.py lint` | ruff: sạch |
+| `python tasks.py preflight` | sạch, ~30 s (phủ glyph trên 16 bố cục) |
+| `python tasks.py check-rules` / `check-corpus` | hợp lệ |
+| `python tasks.py list-degradations` | 14 mô hình |
+| `python tools/generate_dataset.py -n 16 --workers 3` | 16 ảnh, đủ 16 bố cục, 1 shard |
+| `python tasks.py check-boxes` trên bộ vừa sinh | 1 443 hộp, khớp hết |
+| `python tasks.py check-boxes` trên `data/dataset60` | 1 330 hộp mỗi renderer (cả ba), khớp hết |
 
 ---
 
-## Repository structure
+## 📚 11. Bộ Dữ Liệu Đã Công Bố
 
-```
-rulebase/               THE RULE-BASE — one source of truth for content
-├── rules/              7 attributes, one file each; layout.yaml has families
-├── layouts/            one file per layout, measured off real paper
-├── corpus/vi/ en/      the strings a document prints
-├── spec.py             weighted draw, tags, parent nodes
-├── content.py          fills the fields, builds the label
-└── layout.py           Receipt + layout -> Grid (cells + marks)
+Tất cả đều **commit trong kho**, xem được ngay mà không phải dựng gì. Chi tiết
+từng bộ và schema nhãn nằm trong **[`data/README.md`](data/README.md)**.
 
-generators/             THE RENDERERS — each with its own venv
-├── synthdog/           glyph rendering, curl, background, camera
-├── html/               Chromium
-│   ├── render.py       the character-grid page
-│   ├── sheets/         one CSS sheet per layout family
-│   ├── tables.py       generic tables, labelled by structure
-│   ├── handwriting.py  ink in the fields a person fills in
-│   ├── signature.py    letters stretched into a signature: font or model ink
-│   └── page.py         shared: the browser, the fonts, the boxes
-└── genalog/            genalog + WeasyPrint (source vendored)
-
-pipeline/               ONE RUN — declared, sharded, resumable, checked
-├── config.py           pipeline.yaml, with unknown keys rejected
-├── plan.py             shards, deterministically
-├── worker.py           one shard, completely or not at all
-├── run.py              preflight, a pool of processes, assemble
-├── record.py           the shape of one metadata line
-├── invariants.py       what must be true of every image
-├── drift.py            has the mix stopped matching the rules
-└── preflight.py        every check that must pass before drawing
-
-degradation/            DocCreator's models, ported — all backends call this
-textures/ fonts/ augmentations/   the assets a page is drawn with and onto
-data/                   generated datasets
-samples/                curated examples: degradation showcase, reference
-                        sheets, the ornament contact sheet
-tools/                  drivers: dataset, proof, boxes, monitor, baseline
-docs/                   notes that outlive any one generator, plus figures
-tasks.py                every task, and the only definition of them
-```
-
-Where to look for a thing:
-
-| you want | it is in |
-| --- | --- |
-| to add a document kind | [`rulebase/README.md`](rulebase/README.md), and the [checklist above](#adding-a-document-kind) |
-| to change what a document says | [`rulebase/corpus/`](rulebase/corpus), [`rules/content.yaml`](rulebase/rules/content.yaml) |
-| to change how often something appears | the `weight:` fields in [`rulebase/rules/`](rulebase/rules) |
-| to change how a page is drawn | `generators/<renderer>/render.py` |
-| to make pages look old or scanned | [`degradation/`](degradation/README.md) |
-| to run a long job | [`pipeline.yaml`](pipeline.yaml) and `make run` |
-| to run anything at all | `make help` — the tasks are there, not in a directory |
-| why a version is pinned | [`docs/python-versions.md`](docs/python-versions.md) |
-| to run it on Windows | [`docs/windows.md`](docs/windows.md) |
-| how a renderer works, function by function | [`docs/huong-dan-va-giai-thich.md`](docs/huong-dan-va-giai-thich.md) (Vietnamese) |
+| Bộ | Nội dung |
+| :--- | :--- |
+| [`data/dataset60/`](data/dataset60) | 60 ảnh đã làm cũ, 14 bố cục, ba renderer (paired) |
+| [`data/dataset60_clean/`](data/dataset60_clean) | cùng seed, `augmentation=pristine` — dùng làm **trần** |
+| [`data/invoices54/`](data/invoices54) | 54 hoá đơn thương mại vẽ bằng tờ CSS |
+| [`data/forms16/`](data/forms16) | hai chứng từ **không phải hoá đơn**: bảng kê viện phí, giấy uỷ quyền |
+| [`data/hand12/`](data/hand12) | 12 tờ mẫu **điền tay** bằng nguồn `font`: 159 ô, **không ô nào còn in máy** |
+| [`data/tables60/`](data/tables60) | ảnh bảng, nhãn theo cấu trúc PubTabNet — dạy **bố cục, không dạy đọc** |
+| [`data/profile/`](data/profile) | thời gian từng giai đoạn và mô hình chi phí |
 
 ---
 
-## Requirements
+## ⚠️ 12. Giới Hạn & Vấn Đề Đã Biết
+
+### Giới hạn
+
+- **Chứng từ Việt Nam**, cộng một loại hoá đơn tiếng Anh. Một hệ quy ước giấy tờ.
+- **Không có code huấn luyện hay suy luận.** Kho này sinh dữ liệu; Tesseract chỉ
+  chạy như một phép kiểm.
+- **Chỉ đường lưới ký tự cũ (đã nghỉ) cho hộp xoay.** Renderer hiện tại vẽ trang
+  phẳng, nên hộp thẳng trục.
+- **Ảnh bảng dạy bố cục, không dạy ngôn ngữ**, và chưa có phép kiểm OCR: chỉ số
+  đúng cho cấu trúc bảng là TEDS, kho chưa cài.
+- **Chưa chọn giấy phép.**
+
+### Vấn đề đã biết
 
 | | |
-| --- | --- |
-| **Python** | 3.8 – 3.11 for the glyph renderer (hard cap, enforced); 3.9+ for the other two. The task runner itself uses only the standard library. |
-| **Disk** | one virtualenv per renderer — measured here: synthdog 624 MB, html 450 MB, genalog 397 MB |
-| **System — html** | a Chromium build. Containers with one under `/opt/pw-browsers` or `/usr/bin/chromium` are found automatically; elsewhere Playwright downloads its own. |
-| **System — genalog** | GTK (Pango, cairo) for WeasyPrint. Present on most Linux distributions; a manual install on Windows. |
-| **System — `make proof`** | Tesseract 5 with the `vie` language pack. Optional. |
-
-There is no installable package and no shared virtualenv: synthtiger pins
-`pillow<10` while WeasyPrint needs a modern one, so the three cannot share an
-interpreter. [`pyproject.toml`](pyproject.toml) exists only to configure ruff
-and pytest.
-
-## Installation
-
-```bash
-make setup             # the renderer: playwright + a headless browser
-make setup-writevit    # optional: handwriting, clones WriteViT beside the repo
-
-# retired backends -- only to re-read a dataset half they drew:
-make setup-synthdog    # synthtiger        (Python 3.8-3.11)
-make setup-genalog     # WeasyPrint + PyMuPDF
-```
-
-`setup-synthdog` refuses to run on Python 3.12+ and names the interpreter to use
-instead; the reason is measured in
-[`docs/python-versions.md`](docs/python-versions.md).
-
-## Tasks
-
-`make help` (or `python tasks.py` with no argument) lists them. Both spellings
-are equivalent — `make dataset N=5 DATASET=/tmp/x` is
-`python tasks.py dataset -n 5 -o /tmp/x`.
-
-| group | tasks |
-| --- | --- |
-| **setup** | `setup`, `setup-synthdog`, `setup-html`, `setup-genalog`, `textures` |
-| **samples** | `templates`, `ornaments`, `handwriting`, `signatures` |
-| **generate** | `dataset`, `dataset-clean`, `run`, `tables`, `receipts`, `preview`, `preview-grid` |
-| **check** | `preflight`, `check-rules`, `check-corpus`, `check-boxes`, `proof`, `baseline-write`, `baseline-verify` |
-| **inspect** | `distribution`, `monitor`, `list-degradations`, `showcase`, `profile` |
-| **quality** | `check`, `lint`, `format`, `clean` |
-
-## Usage
-
-### Renderer CLIs
-
-All three take the same flags, so a page can be pinned identically whichever
-engine draws it:
-
-```bash
-cd generators/synthdog          # run from its own directory: config paths are relative
-./.venv/bin/python render.py -o outputs -c 10 --seed 2026 --layout invoice_vat_form
-
-generators/html/.venv/bin/python generators/html/render.py \
-    -o outputs -c 10 --seed 2026 --force augmentation=pristine
-
-generators/genalog/.venv/bin/python generators/genalog/render.py \
-    -o outputs -c 10 --seed 2026 --dpi 150
-```
-
-| flag | meaning |
-| --- | --- |
-| `-o, --out` · `-c, --count` · `--seed` | where, how many, base seed (image *i* uses `seed + i`) |
-| `--layout ID` | pin the layout — shorthand for `--force layout=ID` |
-| `--force ATTR=ID` | pin any attribute, repeatable |
-| `--clean` | glyph backend: no curl, no perspective, no camera |
-| `--template [LAYOUT]` | both HTML backends: lay the page out with CSS instead of the grid ([`sheets/`](generators/html/sheets)). Bare, the sheet follows the layout the recipe drew; a layout id forces one particular dress |
-| `--handwriting [SOURCE]` | html + `--template`: fill the fields a person fills in with ink instead of type. `model` is the WriteViT checkpoint, `font` a licensed handwriting typeface ([`handwriting.py`](generators/html/handwriting.py)) |
-| `--signature [SOURCE]` | html + `--template`: draw a signature over each signature block, unlabelled on purpose. `font` (the default) stretches outlines from `fonts/hand/`; `model` traces WriteViT's own thin joined-up ink and falls back to the font per block for the capital runs it cannot write ([`signature.py`](generators/html/signature.py)) |
-| `--scale` · `--dpi` | html device scale factor · genalog rasterisation dpi |
-| `--profile JSON` | time every stage and write the breakdown there. Off by default, and off costs nothing ([`profiling.py`](profiling.py)) |
-| `--jobs JSON` | draw several layouts in one process — a list of `{layout, seed, count, force}`. Overrides the three flags above it; see [`worklist.py`](worklist.py) |
-
-A pinned value must still satisfy its own `requires`/`excludes`; if it cannot,
-the sampler names the tags at fault rather than drawing something else.
-
-### Python API
-
-```python
-import rulebase
-
-recipe, receipt, grid = rulebase.make(seed=7)
-
-recipe.layout.id                      # which layout was drawn
-recipe.get("visual", "font_size")     # any attribute's params
-receipt.ground_truth()                # CORD-style nested label
-grid.cells[0], grid.marks             # text, and everything that is not text
-```
-
-```python
-from degradation.pipeline import apply_recipe
-aged = apply_recipe(image_bgr, recipe, seed=recipe.seed)   # same dimensions out
-```
+| :--- | :--- |
+| **`make baseline-verify` phụ thuộc môi trường** | file vàng lưu hash ảnh chính xác từng byte và ghi lại luật/bố cục/corpus nó được chụp dưới, **nhưng không ghi phiên bản thư viện**. Một venv dựng tại chỗ có thể raster khác một trang và bị báo là hồi quy. |
+| **Hai renderer đã nghỉ vẫn nằm trên đĩa** | `generators/synthdog/` và `generators/genalog/` không còn sinh dataset nhưng vẫn import sạch, vì **phía đọc giữ nguyên cả ba**: một công cụ đọc mà quên một renderer sẽ làm mù phần dữ liệu đã công bố chứ không làm sạch nó. Xem [`docs/renderers.md`](docs/renderers.md). |
 
 ---
 
-## Quality gates
+## 📖 Tài Liệu Chi Tiết
 
-Each catches a different class of failure, and most failures here are *silent* —
-a typo'd tag does not raise, it makes one value undrawable and generation
-carries on.
-
-| command | what it catches |
-| --- | --- |
-| `make preflight` | unreachable rule values, missing layouts and papers, unknown degradations, corpus gaps, and **glyph coverage over every character the rules can print** — wider than the corpus, because uppercase Vietnamese uses different codepoints |
-| `python -m pytest` | the content layer: sampling, layout, text, the pipeline plan, drift, invariants |
-| `make check-rules` / `check-corpus` | the rules and corpus, on their own |
-| `make check-boxes` | the boxes still describe the pixels: coverage, inside the frame, ink underneath |
-| `make baseline-verify` | the generator still produces exactly what it produced, image hash by image hash |
-| `make proof` | an OCR engine can actually read the images, scored order-free against the labels |
-| `make distribution` / `make monitor` | what the rules really draw, which is not what the weights say |
-| `make check` / `make lint` | every tracked file parses; ruff on the first-party code |
-
-A preflight check that could not *run* — a missing library rather than a broken
-rule — is prefixed `unchecked:` and still fails, because a job that starts
-without knowing is what preflight exists to prevent.
-
-Verified in this environment (Python 3.11.15, 4 cores, all three venvs built):
-
-| command | result |
-| --- | --- |
-| `python -m pytest` | 417 passed, 1 xfailed, 59 s |
-| `python tasks.py check` | all 64 python files compile |
-| `python tasks.py lint` | ruff: all checks passed |
-| `python tasks.py preflight` | clean, ~15 s (glyph coverage over 16 layouts' strings) |
-| `python tasks.py check-rules` / `check-corpus` | valid — vi 12 corpus files, en 5 |
-| `python tasks.py distribution` | 2000 / 2000 draws succeeded, over 16 layouts in 6 families |
-| `python tasks.py check-boxes` on both committed sets | 1330 boxes per renderer, all match |
-| `python tools/generate_dataset.py -n 14 --workers 3` | 42 images, all 14 layouts, 3 shards |
-| `python pipeline/run.py` (6 shards, 3 workers) | 18 images; a second run reported 0 unfinished and did nothing — resume works |
-| `python tasks.py tables -n 3` | 3 tables, no chromedriver and no fourth environment |
-| `python tools/degradation_showcase.py` | 10 degradation models |
-| `python tasks.py monitor` | the whole rule space, no run needed |
-| `generators/html/render.py --template` (120 pages) | the CSS sheets, all 14 layouts, 8512 boxes, 0 invariant failures, 0 overlapping pairs |
-| `generators/genalog/render.py --template` (100 pages) | the same sheets through WeasyPrint, 7206 boxes, 0 invariant failures, 0 overlapping pairs |
-
-One gate did **not** pass here; it is recorded under
-[Known issues](#known-issues).
+| Tài liệu | Nội dung |
+| :--- | :--- |
+| [`rulebase/README.md`](rulebase/README.md) | luật sinh đầy đủ: thuộc tính, họ, ngữ pháp file bố cục, cách thêm một bố cục |
+| [`degradation/README.md`](degradation/README.md) | từng mô hình làm cũ và file DocCreator nó chuyển thể từ đó |
+| [`data/README.md`](data/README.md) | các bộ dữ liệu và schema nhãn |
+| [`docs/renderers.md`](docs/renderers.md) | vì sao ba renderer còn một, và cái giá phải trả |
+| [`docs/handwriting-html.md`](docs/handwriting-html.md) · [`docs/writevit.md`](docs/writevit.md) | nối chữ viết tay vào engine HTML, và mô hình đứng sau |
+| [`docs/chu-ky.md`](docs/chu-ky.md) | khảo sát mẫu chữ ký — giám định, bút tướng, thư pháp, hướng dẫn tiếng Việt — engine kéo giãn từng phát hiện thành tham số, và hai nguồn mực nó vẽ bằng |
+| [`docs/huong-dan-va-giai-thich.md`](docs/huong-dan-va-giai-thich.md) | giải thích từng dòng của renderer, kèm Q&A |
+| [`docs/python-versions.md`](docs/python-versions.md) · [`docs/windows.md`](docs/windows.md) | vì sao có mốc chặn phiên bản; cài trên Windows |
+| [`fonts/README.md`](fonts/README.md) | font nào, giấy phép nào, vì sao phải kiểm độ phủ |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | môi trường nào cho việc gì, và các kiểm tra phải chạy trước khi push |
 
 ---
 
-## Datasets
+## 👥 Repository & Licence
 
-Two labelled sets and one table set are committed, so the output can be
-inspected without building anything. Their contents, the label schema and how
-to rebuild an image exactly are in **[`data/README.md`](data/README.md)**.
+- **Repository:** [LinhPhuong14/vlm-ocr-synthetic](https://github.com/LinhPhuong14/vlm-ocr-synthetic)
+- **Giấy phép:** **chưa chọn — cần chọn trước khi công bố.** Phần đi kèm mang
+  giấy phép riêng: [`generators/genalog/`](generators/genalog/LICENSE) theo MIT;
+  mô hình bảng trong [`generators/html/tables.py`](generators/html/tables.py)
+  dẫn xuất từ TIES_DataGeneration qua PaddleOCR (Apache-2.0) và ghi rõ trong
+  file; font trong [`fonts/`](fonts/README.md) theo OFL 1.1 / Apache 2.0 /
+  Bitstream Vera.
 
-| set | |
-| --- | --- |
-| [`data/dataset60/`](data/dataset60) | aged — a degradation chain drawn from the rules |
-| [`data/dataset60_clean/`](data/dataset60_clean) | the same seeds with `augmentation=pristine` |
-| [`data/invoices54/`](data/invoices54) | the nine commercial invoice layouts drawn as CSS sheets, by both HTML backends |
-| [`data/forms16/`](data/forms16) | a hospital cost statement and an authorisation to collect — the two documents here that are not a sale |
-| [`data/tables60/`](data/tables60) | table-structure images, a different task and a different label |
-| [`data/hand12/`](data/hand12) | the first pages here whose values are **handwritten** rather than typed — real ink from WriteViT, filled into printed form fields. `samples/handwriting/` puts one of those beside the same form filled from a handwriting typeface, which covers every field |
+### Tham Chiếu Học Thuật
 
-`make proof` reads a set back with Tesseract 5 (`vie`) and scores it order-free
-— Tesseract reads a two-column page in whatever order its layout analysis
-picks, so comparing its output to the label as one string would measure reading
-order rather than recognition. The scores live with the sets, in
-[`data/dataset60/proof/README.md`](data/dataset60/proof/README.md).
-
-Table images come from [`generators/html/tables.py`](generators/html/tables.py),
-on the browser the html backend already launches. The label is PubTabNet-style
-— the `<td>` token sequence, the spans, a box per cell — so anything that reads
-PubTabNet or PP-Structure reads this. It teaches **structure, not reading**;
-use the document sets for anything about text.
-
----
-
-## Troubleshooting
-
-| symptom | cause and fix |
-| --- | --- |
-| `synthdog needs Python 3.8-3.11, this is 3.12…` | the cap is real, not caution: `py -3.11 tasks.py setup-synthdog`. Measurements in [`docs/python-versions.md`](docs/python-versions.md). |
-| `ModuleNotFoundError: No module named 'cairocffi'` from a genalog render | the vendored `genalog/generation/document.py` imports it at module scope. It is in `generators/genalog/requirements.txt`; rebuild with `make setup-genalog`. |
-| `could not launch Chromium` | install one *only if* the machine has none: `generators/html/.venv/bin/python -m playwright install chromium`. Do **not** run that in a container that already ships one under `/opt/pw-browsers`. |
-| WeasyPrint fails on a cairo/Pango import | GTK is missing. Linux: the distribution's GTK/Pango packages. Windows: [`docs/windows.md`](docs/windows.md). |
-| `CERTIFICATE_VERIFY_FAILED` during `make setup` | an inspecting proxy, not a repository problem. The task prints the fix; alternatives are in [`docs/windows.md`](docs/windows.md). |
-| `no interpreter at …/.venv/bin/python` | that renderer's environment was never built: `make setup-<renderer>`. |
-| a rule value never appears in the output | almost always a typo'd tag, which is silent. `make check-rules`, then `make distribution`. |
-| `unchecked: fontTools is not installed` from preflight | glyph coverage could not be verified. `pip install fonttools` — "I could not look" is not "it is fine". |
-| a font prints empty boxes | missing Vietnamese glyphs. `generators/synthdog/.venv/bin/python generators/synthdog/tools/check_fonts.py fonts/mono`. |
-| a shard is redone instead of resumed | it has no `DONE` file, so it was incomplete. That is the design: appending to a half-written `metadata.jsonl` duplicates records. |
-| `make baseline-write` refuses to run | it needs `REASON="..."`. A recapture is a claim that the old pixels were wrong and the new ones are right; the reason is kept in the golden file. |
-| `CÙNG KẾ HOẠCH, KHÁC PIXEL` from `baseline-verify` | the plan's inputs did not move but the images did — a regression until shown otherwise. Diff before reaching for `baseline-write`. |
-
-## Limitations
-
-- **Vietnamese documents, plus one English invoice kind.** One corpus family,
-  one country's paper conventions.
-- **No training or inference code.** The repository produces data; Tesseract is
-  run only as a check.
-- **Only the glyph renderer produces rotated boxes.** A detector trained on the
-  two flat backends alone has never seen a non-axis-aligned quad.
-- **`text_sequence` is a canonical order**, not the order an eye or an OCR
-  engine follows on a two-column page — which is why the proof scores
-  order-free.
-- **Table images teach layout, not language**, and have no OCR proof: the right
-  metric for table structure is TEDS, which is not implemented here.
-- **No licence is chosen yet.**
-
-## Known issues
-
-| | |
-| --- | --- |
-| **`make baseline-verify` reports one differing image here** | `CÙNG KẾ HOẠCH, KHÁC PIXEL: 1 — n14: genalog/genalog_005.jpg differs`. Same plan, same rule hashes, and the metadata line for that image matches — only its pixels differ, 1 of 42, in the print backend alone, and byte-identical across repeated runs here. The golden file records the rules, layouts and corpus it was taken under but not the library versions, and `weasyprint` is unpinned (`>=60`), so a locally built venv can rasterise one page differently. The tool classifies any pixel difference as a regression, which is the right default — it does mean the gate cannot be read as green outside the environment the baseline was captured in. |
-| **genalog needs an undeclared dependency** | the vendored `genalog/generation/document.py` imports `cairocffi` at module scope for `render_png()` — a function `render.py` deliberately replaced with `render_pdf()` + PyMuPDF — and WeasyPrint dropped its own cairocffi dependency at version 53. A freshly built environment therefore failed every genalog render, while `setup-genalog`'s smoke test passed because importing `genalog/__init__.py` never reaches that module. **Fixed** by listing the dependency in `generators/genalog/requirements.txt`. |
-
-## Contributing
-
-[CONTRIBUTING.md](CONTRIBUTING.md) covers which environment to build for which
-renderer, the checks to run before pushing, and the constraints that are
-deliberate. In short: `make check && make lint && make preflight` before
-pushing, plus `make preview-grid` and a small `make dataset` if you touched
-anything a renderer draws.
-
-Vendored code — the upstream subdirectories of `generators/genalog/` — is
-excluded from linting and byte-compiling; the list lives in
-[`pyproject.toml`](pyproject.toml) and [`tools/paths.py`](tools/paths.py), and
-the two must stay in step.
-
-## Further documentation
-
-| | |
-| --- | --- |
-| [`rulebase/README.md`](rulebase/README.md) | the rule-base in full: attributes, families, the grammar of a layout file, adding one |
-| [`degradation/README.md`](degradation/README.md) | each model and the DocCreator file it came from |
-| [`data/README.md`](data/README.md) | the datasets and the label schema |
-| [`samples/README.md`](samples/README.md) | reading the degradation showcase |
-| [`samples/invoice-templates/README.md`](samples/invoice-templates/README.md) | the five reference sheets, and why they are not layouts |
-| [`docs/hoa-tiet-de-xuat.md`](docs/hoa-tiet-de-xuat.md) | ornaments surveyed and not built, with the reason each was left |
-| [`docs/khao-sat-sinh-chu-viet-tay.md`](docs/khao-sat-sinh-chu-viet-tay.md) | eight handwriting-synthesis repositories ranked on breadth of data and on realism, for the `handwriting_fill` gap (Vietnamese) |
-| [`docs/writevit.md`](docs/writevit.md) | standing up WriteViT for Vietnamese handwriting, and what it measurably cannot write (Vietnamese) |
-| [`docs/renderers.md`](docs/renderers.md) | why `html` is the only renderer that generates, what "retired" means for `synthdog` and `genalog`, and what the cross-renderer comparison cost (Vietnamese) |
-| [`docs/handwriting-html.md`](docs/handwriting-html.md) | wiring that handwriting into the HTML engine, and how much of a form it can actually fill — 14.6%, with the rest measured (Vietnamese) |
-| [`docs/chu-ky.md`](docs/chu-ky.md) | the signature-pattern survey — forensic, graphological, calligraphic and Vietnamese sources — the stretch engine each finding turned into, and the two inks it draws with (Vietnamese) |
-| [`docs/brief-engine-html.md`](docs/brief-engine-html.md) | the three HTML render paths, what merged cells do and do not do in each, and what a fix has to preserve |
-| [`docs/python-versions.md`](docs/python-versions.md) | why the glyph renderer stops below Python 3.12, measured |
-| [`docs/windows.md`](docs/windows.md) | Windows setup: Python 3.11, GTK, Tesseract, proxies (Vietnamese) |
-| [`docs/huong-dan-va-giai-thich.md`](docs/huong-dan-va-giai-thich.md) | line-by-line walkthrough of all three renderers, with a Q&A (Vietnamese) |
-| [`fonts/README.md`](fonts/README.md) | which fonts, which licences, and why coverage is checked — including the two handwriting faces in `fonts/hand/` and the one that failed the Vietnamese check |
-
-## Licence
-
-**Not yet chosen — add one before publishing.** Bundled material carries its
-own terms: `generators/genalog/` ships [genalog's MIT
-licence](generators/genalog/LICENSE); the table model in
-[`generators/html/tables.py`](generators/html/tables.py) derives from
-TIES_DataGeneration by way of PaddleOCR (Apache-2.0) and says so in the file;
-the fonts in `fonts/` are OFL 1.1, Apache 2.0 or Bitstream Vera — see
-[`fonts/README.md`](fonts/README.md).
-
-## References
-
-- **SynthDoG / Donut** — Kim et al., *OCR-free Document Understanding
-  Transformer*, ECCV 2022. <https://github.com/clovaai/donut>
-- **synthtiger** — the layer/effect engine the glyph renderer builds on.
-  <https://github.com/clovaai/synthtiger>
-- **genalog** — Microsoft's synthetic document generator, vendored under
-  `generators/genalog/genalog/`. <https://github.com/microsoft/genalog>
-- **DocCreator** — Journet, Mansencal, Kieu et al., LaBRI Bordeaux; the
-  degradation models are ported from it.
-  <https://github.com/DocCreator/DocCreator>
-- **Gradient-domain stains** — Seuret, Chen, Eichenberger, Liwicki & Ingold,
-  ICDAR 2015.
-- **TIES_DataGeneration** — the table model.
-  <https://github.com/hassan-mahmood/TIES_DataGeneration>
-- **CORD** — the receipt-parsing label schema `ground_truth` follows.
-  <https://github.com/clovaai/cord>
+| Nguồn | Dùng ở đâu |
+| :--- | :--- |
+| **DocCreator** — Journet, Mansencal, Kieu và cs., LaBRI Bordeaux | các mô hình làm cũ trong [`degradation/`](degradation) |
+| **Seuret, Chen, Eichenberger, Liwicki & Ingold**, ICDAR 2015 | vết bẩn ghép theo gradient domain |
+| **Donut / SynthDoG** — Kim và cs., ECCV 2022 | dạng nhãn CORD lồng nhau |
+| **WriteViT** | sinh nét chữ viết tay tiếng Việt |
+| **TIES_DataGeneration** (qua PaddleOCR) | mô hình bảng và nhãn cấu trúc |
+| **CORD** — clovaai | schema nhãn `extracted` đi theo |

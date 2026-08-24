@@ -1,8 +1,11 @@
 # handwriting — hai tờ điền tay, hai nguồn mực
 
 Hai tờ để nhìn, không phải một bộ dữ liệu — bộ dữ liệu là
-[`data/hand12/`](../../data/hand12). Chúng khác nhau ở đúng một thứ: **mực đến
-từ đâu**, và đó là toàn bộ sự đánh đổi.
+[`data/hand12/`](../../data/hand12), dựng bằng nguồn `font`. Chúng khác nhau ở
+đúng một thứ: **mực đến từ đâu**, và đó là toàn bộ sự đánh đổi.
+
+`hand-filled-folio.jpg` cũng là **trang mực-mô-hình duy nhất còn lại trong
+kho**: không tập dữ liệu nào dùng nguồn `model` nữa.
 
 | | `hand-filled-form.jpg` | `hand-filled-folio.jpg` |
 | --- | --- | --- |
@@ -23,7 +26,7 @@ generators/html/render.py --template auto --handwriting model \
     --force augmentation=pristine --seed 24
 ```
 
-`*.json` bên cạnh là bản ghi `metadata.jsonl` của chính tờ ấy: hộp, nhãn, và
+`*.json` bên cạnh là record của chính tờ ấy: hộp, nhãn, và
 khối `handwriting` nói nguồn mực, ô nào là mực, ô nào vẫn in và vì sao. Cả hai
 tắt làm cũ để nhìn rõ nét bút; bản có làm cũ ở `data/hand12/`.
 
