@@ -59,7 +59,7 @@ dataset-clean:   ## The same dataset with no ageing and no distortion at all
 	$(TASKS) dataset-clean -o $(DATASET) -n $(N)
 tables:          ## Table-structure images, from the html backend (TABLES=60)
 	$(TASKS) tables -o data/tables60 -n $(TABLES)
-handwriting:     ## Regenerate data/hand12: form fields filled in with real ink
+handwriting:     ## Regenerate data/hand12: every form field filled in with ink
 	$(TASKS) handwriting
 run:             ## Run pipeline.yaml: preflight, shards in parallel, assemble
 	$(TASKS) run
