@@ -18,7 +18,7 @@ LAYOUT  ?=
 
 .DEFAULT_GOAL := help
 .PHONY: help setup setup-synthdog setup-html setup-genalog setup-writevit \
-        textures patterns handwriting \
+        textures patterns handwriting signatures \
         receipts preview preview-grid dataset dataset-clean proof showcase \
         ornaments templates \
         preflight check-rules check-corpus check-boxes migrate-metadata \
@@ -49,6 +49,8 @@ ornaments:       ## Regenerate the seals and flourishes in textures/ornament
 	$(TASKS) ornaments
 templates:       ## Print the reference sheets in samples/*-templates
 	$(TASKS) templates
+signatures:      ## Regenerate samples/signatures: the style grid and two signed sheets
+	$(TASKS) signatures
 
 # ------------------------------------------------------------ generation
 
