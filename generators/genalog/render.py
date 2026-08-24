@@ -37,7 +37,6 @@ from __future__ import annotations
 
 import argparse
 import io
-import json
 import random
 import sys
 import unicodedata
@@ -762,8 +761,7 @@ def main() -> int:
     # carries every box on the page. Written in page order, which is the order
     # the caller listed the jobs in -- `pipeline/worker.py` walks the runs in
     # that order to name the files.
-    with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as metadata, \
-            synthesis.Writer(synthesis.beside(args.out), "genalog") as notes:
+    with synthesis.Writer(synthesis.beside(args.out), "genalog") as notes:
         for index, job, seed in worklist.pages(jobs):
             recipe, receipt, _grid, image, boxes, structure, hand_report = (
                 renderer.render(seed, forces[job]))
@@ -786,8 +784,7 @@ def main() -> int:
                     extracted=receipt.ground_truth(),
                     seed=seed, layout=recipe.layout.id)
             with profiling.stage("export"):
-                json.dump(item, metadata, ensure_ascii=False)
-                metadata.write("\n")
+                record.write_one(item, args.out, strict=False)
                 notes.add(name, job_id=item["job_id"], layout=recipe.layout.id,
                           recipe=recipe.to_dict(),
                           text_sequence=receipt.text_sequence(), extra=extra)

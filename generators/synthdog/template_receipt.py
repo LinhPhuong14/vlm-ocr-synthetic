@@ -259,9 +259,7 @@ class SynthVNReceipt(templates.Template):
             height=data["image"].shape[0], parser="synthdog",
             boxes=data["boxes"], extracted=gt_parse, seed=data["recipe"].get("seed"),
             layout=drawn)
-        with open(os.path.join(output_dirpath, "metadata.jsonl"), "a", encoding="utf-8") as fp:
-            json.dump(metadata, fp, ensure_ascii=False)
-            fp.write("\n")
+        record.write_one(metadata, output_dirpath, strict=False)
         # synthtiger owns the loop here, so there is no place to hold a writer
         # open across pages: the provenance is appended a page at a time and
         # `end_save` folds it into one `synthesis.json`.

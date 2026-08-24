@@ -8,21 +8,21 @@ there is not, whatever is in the directory is **deleted** and the shard is
 rendered from the start.
 
 That deletion is the part worth arguing about, and it is not an optimisation
-choice. Appending to a half-written `metadata.jsonl` produces duplicate records
-for the images that were already there, and duplicates in a training set are
-invisible: the file parses, the count is plausible, and a model sees some pages
-twice. Redoing a few images is cheap; finding that later is not.
+choice. A half-finished shard left in place is a directory whose images and
+records do not agree about what it holds, and that is invisible: every file
+parses, the count is plausible, and a model trains on a set that is not the one
+the plan describes. Redoing a few images is cheap; finding that later is not.
 
 Three details decide whether the resume story is true rather than approximate:
 
 * **`DONE` is written last, and atomically.** A temporary file renamed into
-  place, after the metadata is flushed and fsynced. If `DONE` could appear
-  before the last line was on disk, resume would skip a shard that is short, and
-  the run would quietly produce fewer images than it claims.
-* **Metadata is streamed.** Lines are appended as each record arrives rather
-  than collected and written at the end, so a shard's memory does not grow with
-  its size. The renderer streams its own file the same way, which matters now
-  that one invocation draws a whole shard rather than one layout.
+  place, after every record is fsynced. If `DONE` could appear before the last
+  record was on disk, resume would skip a shard that is short, and the run would
+  quietly produce fewer images than it claims.
+* **Records are written as they arrive**, one file per image, rather than
+  collected and written at the end -- so a shard's memory does not grow with its
+  size. The renderer writes its own the same way, which matters now that one
+  invocation draws a whole shard rather than one layout.
 * **One log per worker.** Eight workers interleaved on one stdout is unreadable
   exactly when it matters.
 
@@ -65,11 +65,11 @@ from pipeline.plan import image_name  # noqa: E402
 
 DONE = "DONE"
 
-# What each shard writes down about its own content, beside its metadata.
-# Separate from `metadata.jsonl` because that file is hashed by the golden
-# baseline: a measurement added to it would make every W1 verification fail for
-# a reason that has nothing to do with what W1 verifies. `drift.json` sits
-# beside it for the same reason.
+# What each shard writes down about its own content, beside its records.
+# Separate from them because they are hashed by the golden baseline: a
+# measurement added to a record would make every W1 verification fail for a
+# reason that has nothing to do with what W1 verifies. `drift.json` sits beside
+# it for the same reason.
 INVARIANTS = invariants.INVARIANTS_NAME
 
 # name -> (script, working directory). The interpreter is resolved at call time
@@ -188,13 +188,12 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
     tally = invariants.Tally(invariants.attribute_names())
 
     written = 0
-    metadata_path = directory / "metadata.jsonl"
     staging = Path(tempfile.mkdtemp(prefix="shard-", dir=str(directory)))
-    # Two files, written together. `metadata.jsonl` is what a converted page
-    # looks like; `synthesis.json` is how this one was made, which no converter
-    # could return and which nothing can redraw a committed image without.
-    with open(metadata_path, "w", encoding="utf-8") as metadata, \
-            synthesis.Writer(synthesis.beside(directory), backend) as notes:
+    # A record per image, written beside it, and one `synthesis.json` for the
+    # shard. The first is what a converted page looks like; the second is how
+    # these ones were made, which no converter could return and which nothing
+    # can redraw a committed image without.
+    with synthesis.Writer(synthesis.beside(directory), backend) as notes:
         try:
             # One renderer process for the whole shard. The runs are handed
             # over as a job list in the order the plan put them, and the
@@ -230,7 +229,7 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
                 raise ShardError(
                     f"shard {shard['index']} {backend} failed ({how}):\n" + tail)
 
-            produced = record.read(staging / "metadata.jsonl")
+            produced = record.read(staging)
             expected_total = sum(run["count"] for run in shard["runs"])
             if len(produced) != expected_total:
                 raise ShardError(
@@ -288,8 +287,10 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
                         raise ShardError(
                             f"shard {shard['index']} {backend}/{run['layout']}: "
                             f"{error}") from error
-                    json.dump(item, metadata, ensure_ascii=False)
-                    metadata.write("\n")
+                    # fsynced as it is written: the `DONE` below must not
+                    # appear in front of a record that is not yet on disk, or
+                    # resume would skip a shard that is short.
+                    record.write_one(item, directory, fsync=True)
                     notes.add(target, job_id=item["job_id"], layout=run["layout"],
                               recipe=recipe,
                               text_sequence=str(page.pop("text_sequence", "")),
@@ -299,14 +300,11 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
                     written += 1
         finally:
             shutil.rmtree(staging, ignore_errors=True)
-        # Flushed and fsynced before DONE can exist: a DONE in front of an
-        # unwritten last line is a shard that resume would skip while short.
-        # `notes` is closed by its context manager immediately after, and its
-        # last write is what makes `synthesis.json` parse at all -- so a shard
+        # Every record is on disk by here -- `record.write_one(fsync=True)` --
+        # and `notes` is closed by its context manager immediately after. Its
+        # last write is what makes `synthesis.json` parse at all, so a shard
         # killed here leaves a file that fails to load rather than one that
         # loads and is short.
-        metadata.flush()
-        os.fsync(metadata.fileno())
 
     expected = sum(run["count"] for run in shard["runs"])
     if written != expected:

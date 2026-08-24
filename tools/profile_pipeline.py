@@ -146,8 +146,11 @@ def time_validation(images: Path) -> dict:
     """
     from pipeline import invariants, record, synthesis
 
-    metadata = images / "metadata.jsonl"
-    if not metadata.exists():
+    try:
+        records = record.read(images)
+    except record.RecordError:
+        records = []
+    if not records:
         return {"calls": 0, "inclusive": 0.0, "exclusive": 0.0}
 
     tally = invariants.Tally(invariants.attribute_names())
@@ -155,7 +158,7 @@ def time_validation(images: Path) -> dict:
     if not was:
         profiling.enable()
     drew = synthesis.read_if_there(images)
-    for item in record.read(metadata):
+    for item in records:
         name = record.file_name(item)
         tally.inspect(item, recipe=drew.recipe(name) if name in drew else {},
                       layout=drew.layout(name) if name in drew else "?",

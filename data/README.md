@@ -97,7 +97,7 @@ dataset60/
 ├── dataset.json            images per renderer, and the split by layout
 ├── synthdog/
 │   ├── synthdog_000.jpg …  20 images
-│   ├── metadata.jsonl      one line per image — the converter's schema
+│   ├── synthdog_000.json … one record per image — the converter's schema
 │   └── synthesis.json      how those images were made — seed, attributes, tags
 ├── html/       …
 ├── genalog/    …
@@ -107,18 +107,18 @@ dataset60/
     └── proof_*.jpg         the image with a box round every word Tesseract read
 ```
 
-## Two files per backend directory
+## A record per image, and one file for the set
 
-`metadata.jsonl` is the document converter's schema, so a drawn page and a
-converted one load the same way. Its keys are fixed by
+`<image>.json` beside each image is the document converter's schema, so a drawn
+page and a converted one load the same way. Its keys are fixed by
 [`pipeline/record.py`](../pipeline/record.py), and a key that is not in that
 schema is as much an error as one that is missing.
 
-`synthesis.json` beside it is how those pages were made — the half no converter
+`synthesis.json` in the same directory is how those pages were made — the half no converter
 could return, and the half nothing can redraw a committed image without. See
 [below](#synthesisjson).
 
-### One line of `metadata.jsonl`
+### One record — `synthdog_000.json`
 
 ```json
 {

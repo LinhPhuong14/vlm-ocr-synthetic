@@ -30,7 +30,7 @@ make check-boxes                 # the boxes still describe the pixels
 Or look at the committed output first, with nothing built:
 
 ```bash
-head -1 data/dataset60/html/metadata.jsonl
+cat data/dataset60/html/html_000.json
 ```
 
 No `make` — on Windows, or anywhere — call the task runner directly. Every task
@@ -68,7 +68,7 @@ match the pixels ([`tools/ocr_proof.py`](tools/ocr_proof.py)).
 ```mermaid
 flowchart LR
     author["Dataset author<br/>adds YAML, runs tasks"]
-    consumer["Training / eval code<br/>reads metadata.jsonl"]
+    consumer["Training / eval code<br/>reads a record per image"]
 
     subgraph repo["vlm-ocr-synthetic"]
         rb["rule-base<br/>what the page says"]
@@ -117,7 +117,7 @@ flowchart TD
     end
 
     D["degradation/<br/>DocCreator models"]
-    O[("metadata.jsonl + .jpg")]
+    O[(".jpg + .json per page")]
 
     S --> C --> L
     L --> R1 & R2 & R3
@@ -151,7 +151,7 @@ flowchart TD
     F1 --> G["7 · downscale<br/>boxes scaled with the pixels"]
     F2 --> G
     G --> H["8 · validate + write<br/>record.validate, invariants"]
-    H --> O[("jpg + metadata.jsonl")]
+    H --> O[("jpg + json per page")]
 ```
 
 Stage 6 is the only structural divergence: the glyph backend curls the sheet,
@@ -463,16 +463,24 @@ and eight still produce byte-identical output.
 
 ## What comes out
 
-**Two files per backend directory**, and they are two files on purpose:
+**One record per image**, and one file for the set:
 
 ```
 data/dataset60/html/
-    html_000.jpg …       the images
-    metadata.jsonl       one line per image — what a converted page looks like
-    synthesis.json       how those images were made — what no converter could say
+    html_000.jpg  html_000.json    the page, and what a converted page looks like
+    html_001.jpg  html_001.json
+    …
+    synthesis.json                 how those images were made — what no converter could say
 ```
 
-`metadata.jsonl` is the **document converter's schema and nothing else**:
+A page's record has the image's name with a `.json` suffix and sits next to it,
+because a converted page comes back as one document about one file. The images
+are therefore the listing: nothing has to be told which files in a directory are
+records, an image with no record beside it is an error `record.read` raises
+rather than skips, and one page can be handed to somebody without shipping the
+index of a set they do not have.
+
+That record is the **document converter's schema and nothing else**:
 `schema_version`, `job_id`, `task`, `parser`, `filename`, `source_files`,
 `settings`, `documents`, `pages`, `blocks`, `markdown`, `html`, `extracted`.
 Training and evaluation code reads one shape whether the page was drawn here or
@@ -514,12 +522,12 @@ are written **once**, and a page names ids:
 `recipe.to_dict()` the rule-base produced — so everything that redraws a page is
 handed what it always was.
 
-One `metadata.jsonl` line, field by field:
+One record, field by field:
 
 | field | |
 | --- | --- |
 | `schema_version` | `8` — the converter schema this line follows |
-| `job_id` | uuid5 of `parser\|layout\|seed\|filename`. **Not** random: `metadata.jsonl` is hashed by the golden baseline, so the same page must get the same id twice |
+| `job_id` | uuid5 of `parser\|layout\|seed\|filename`. **Not** random: every record is hashed by the golden baseline, so the same page must get the same id twice |
 | `task` | `convert` for a document page, `table_structure` for a table image |
 | `parser` | which renderer drew it — `synthdog`, `html` or `genalog` |
 | `filename`, `source_files` | the image, relative to the backend's directory |
@@ -549,7 +557,7 @@ flowchart LR
     G --> PX["pixels"]
     G --> BX["blocks"]
     BX --> MD["markdown + html"]
-    GT & PX & BX & MD --> J[("metadata.jsonl + .jpg")]
+    GT & PX & BX & MD --> J[("html_000.jpg + html_000.json")]
     R & TS --> S[("synthesis.json")]
 ```
 
@@ -573,7 +581,7 @@ tags it sets, so everything drawn afterwards diverges. Pin all six back:
 ```python
 from pipeline import record, synthesis
 
-drew = synthesis.read("data/dataset60/html")          # or the metadata.jsonl
+drew = synthesis.read("data/dataset60/html")          # or any page in it
 recipe = drew.recipe(record.file_name(item))          # the rule-base's own dict
 force = {name: value["id"] for name, value in recipe["attributes"].items()}
 recipe, receipt, grid = rulebase.make(seed=recipe["seed"], force=force)
@@ -634,7 +642,7 @@ camera are off, so the sheet fills the frame with no background at all.
 
 Green for text fields, orange for amounts.
 
-![Per-field quads from metadata.jsonl drawn on one image per renderer](docs/figures/boxes.jpg)
+![Per-field quads from each record drawn on one image per renderer](docs/figures/boxes.jpg)
 
 The quads follow the paper curl on the left and are axis-aligned in the middle
 and on the right — but the schema and the `kind` vocabulary are identical, so
@@ -913,7 +921,7 @@ use the document sets for anything about text.
 | a rule value never appears in the output | almost always a typo'd tag, which is silent. `make check-rules`, then `make distribution`. |
 | `unchecked: fontTools is not installed` from preflight | glyph coverage could not be verified. `pip install fonttools` — "I could not look" is not "it is fine". |
 | a font prints empty boxes | missing Vietnamese glyphs. `generators/synthdog/.venv/bin/python generators/synthdog/tools/check_fonts.py fonts/mono`. |
-| a shard is redone instead of resumed | it has no `DONE` file, so it was incomplete. That is the design: appending to a half-written `metadata.jsonl` duplicates records. |
+| a shard is redone instead of resumed | it has no `DONE` file, so it was incomplete. That is the design: a half-finished shard is a directory whose images and records do not agree about what it holds. |
 | `make baseline-write` refuses to run | it needs `REASON="..."`. A recapture is a claim that the old pixels were wrong and the new ones are right; the reason is kept in the golden file. |
 | `CÙNG KẾ HOẠCH, KHÁC PIXEL` from `baseline-verify` | the plan's inputs did not move but the images did — a regression until shown otherwise. Diff before reaching for `baseline-write`. |
 

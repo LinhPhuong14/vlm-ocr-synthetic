@@ -190,7 +190,7 @@ def shard_vector(directory: Path, shard: dict, *,
                  ink_sample: int = INK_SAMPLE) -> dict[str, Any]:
     """What one shard drew, as numbers. A deterministic function of the shard.
 
-    Reads `metadata.jsonl` and `invariants.json`, and decodes at most
+    Reads every page's record, `invariants.json`, and decodes at most
     `ink_sample` images. Nothing here is allowed to vary between two runs of the
     same plan -- that is what makes the vector comparable, and it is the same
     rule that keeps durations out of `manifest.json`.
@@ -198,16 +198,23 @@ def shard_vector(directory: Path, shard: dict, *,
     directory = Path(directory)
     unchecked: list[str] = []
 
-    metadata = directory / "metadata.jsonl"
-    if not metadata.exists():
+    try:
+        records = record.read(directory)
+    except record.RecordError as error:
         return {
             "backend": shard.get("backend", "?"),
             "images": 0,
-            "unchecked": [f"{UNCHECKED} shard {shard.get('index')} has no metadata, "
+            "unchecked": [f"{UNCHECKED} shard {shard.get('index')}: {error}, "
                           f"so no quality vector was computed"],
         }
-    records = record.read(metadata)
-    # How each page was made, from beside the index. `read_if_there` rather than
+    if not records:
+        return {
+            "backend": shard.get("backend", "?"),
+            "images": 0,
+            "unchecked": [f"{UNCHECKED} shard {shard.get('index')} has no records, "
+                          f"so no quality vector was computed"],
+        }
+    # How each page was made, from the file beside them. `read_if_there` rather than
     # `read`: a shard with no provenance is a thing to report on the vector, not
     # a thing to stop the run over -- the attribute axes come out empty and
     # `unchecked` says why.

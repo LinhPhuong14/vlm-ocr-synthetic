@@ -60,9 +60,7 @@ def build_shard(directory: Path, made, *, index=0, backend="html",
                 sources[position % len(sources)]
         shutil.copy2(images[position % len(images)],
                      directory / record.file_name(item))
-    (directory / "metadata.jsonl").write_text(
-        "\n".join(json.dumps(item, ensure_ascii=False) for item in records) + "\n",
-        encoding="utf-8")
+    record.write(records, directory)
     synthesis.write(synthesis.beside(directory), backend, provenance)
     (directory / invariants.INVARIANTS_NAME).write_text(
         json.dumps({"images": len(records), "notes": notes or {},

@@ -799,7 +799,7 @@ màu đen) thì dataset đã commit được sinh lại — nếu không, recipe
 một ảnh mà code hiện tại không tạo ra nữa.
 
 **H: Nhãn có format gì? Dùng train được luôn không?**
-Mỗi dòng `metadata.jsonl` mang **đúng** schema của bộ chuyển đổi tài liệu
+Mỗi ảnh có một file `.json` riêng bên cạnh, mang **đúng** schema của bộ chuyển đổi tài liệu
 (`schema_version` 8) và không mang gì khác: `blocks`, `markdown`, `html`,
 `extracted` — nên một trang vẽ ra ở đây và một trang quét về đọc bằng cùng một
 loader. `extracted` là nhãn CORD lồng nhau, dạng **object**;

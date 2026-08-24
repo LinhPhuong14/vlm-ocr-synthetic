@@ -1,23 +1,27 @@
-"""Split an old `metadata.jsonl` into the index and the provenance beside it.
+"""Turn an old `metadata.jsonl` into a record per image and one `synthesis.json`.
 
     python tools/migrate_metadata.py data/dataset60          # in place
     python tools/migrate_metadata.py data --check            # say what would change
 
-The records committed under `data/` were written before `pipeline/record.py`
-followed the converter's schema and before how a page was made moved out of it.
-They are output, not source, but they are also the first thing the README tells
-a reader to look at -- `head -1 data/dataset60/html/metadata.jsonl` -- so
-leaving half the repository in the old shape would make the documented format
-and the committed format disagree.
+The datasets committed under `data/` were written before `pipeline/record.py`
+followed the converter's schema, before how a page was made moved out of it, and
+while an index held every page at once. They are output, not source, but they
+are also the first thing the README tells a reader to look at, so leaving half
+the repository in the old shape would make the documented format and the
+committed format disagree.
 
 Each old line becomes two things:
 
-* a `metadata.jsonl` line in the converter's schema and nothing else;
-* an entry in `synthesis.json` beside it -- the seed, which option the page drew
-  for each attribute, its tags, its reading order, and whatever extras it
-  carried (`handwriting`, `cells`, `structure`). The params behind those option
-  ids are written once for the whole file rather than once per page, which is
-  most of why the old records were as large as they were.
+* `<image>.json` beside the image it describes, in the converter's schema and
+  nothing else;
+* an entry in `synthesis.json` for the directory -- the seed, which option the
+  page drew for each attribute, its tags, its reading order, and whatever extras
+  it carried (`handwriting`, `cells`, `structure`). The params behind those
+  option ids are written once for the whole set rather than once per page, which
+  is most of why the old records were as large as they were.
+
+The `metadata.jsonl` is removed once both are written: leaving it would leave
+two answers to the same question, and the stale one parses.
 
 Nothing here re-renders. Every value written is already in the old record, with
 two exceptions, and both are read rather than invented:
@@ -193,47 +197,62 @@ def convert(item: dict, directory: Path) -> tuple[dict, dict]:
 
 
 def convert_file(path: Path, *, write: bool = True) -> tuple[int, int]:
-    """Convert one `metadata.jsonl` and the file beside it.
+    """Convert one `metadata.jsonl` into a record per image and a `synthesis.json`.
 
-    Returns (lines, lines that changed). Already-converted input is recognised
-    by the line carrying a `schema_version`, and is left exactly as it is --
-    including its provenance, which is read back and written out again so the
-    two files never fall out of step.
+    Returns (lines, lines that changed).
     """
+    directory = path.parent
     lines = [line for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
     if not lines:
         return 0, 0
 
-    first = json.loads(lines[0])
-    if (first.get("schema_version") == record.SCHEMA_VERSION
-            and "synthesis" not in first and synthesis.beside(path).exists()):
-        return len(lines), 0            # already split; run it twice
+    # An index whose lines are already the converter's schema, with the
+    # provenance already written beside it: only the *shape of the set* is out
+    # of date, so the lines are exploded into a file each and nothing is
+    # rebuilt. `synthesis.json` is left exactly as it is.
+    split_only = (json.loads(lines[0]).get("schema_version") == record.SCHEMA_VERSION
+                  and "synthesis" not in json.loads(lines[0])
+                  and synthesis.beside(directory).exists())
 
-    converted: list[str] = []
+    converted: list[dict] = []
     entries: list[tuple[str, dict]] = []
-    changed = 0
     framework = ""
     for line in lines:
         item = json.loads(line)
-        if (item.get("schema_version") == record.SCHEMA_VERSION
+        if split_only:
+            built, entry = item, None
+        elif (item.get("schema_version") == record.SCHEMA_VERSION
                 and "synthesis" not in item):
             raise SystemExit(
                 f"{path}: the index is already in the converter's schema but "
                 f"carries no provenance, and there is no {synthesis.NAME} beside "
                 f"it -- so how these {len(lines)} pages were made is gone and "
                 f"cannot be rebuilt from here")
-        new, entry = convert(item, path.parent)
-        record.check(new, where=f"{path}:{record.file_name(new)}")
-        text = json.dumps(new, ensure_ascii=False)
-        changed += text != line
-        converted.append(text)
-        entries.append((record.file_name(new), entry))
-        framework = framework or new["parser"]
+        else:
+            built, entry = convert(item, directory)
+        name = record.file_name(built)
+        record.check(built, where=f"{path}:{name}")
+        converted.append(built)
+        if entry is not None:
+            entries.append((name, entry))
+        framework = framework or built["parser"]
 
-    if write and changed:
-        path.write_text("\n".join(converted) + "\n", encoding="utf-8")
-        synthesis.write(synthesis.beside(path), framework, entries)
-    return len(lines), changed
+    if write:
+        for built in converted:
+            record.write_one(built, directory)
+        if entries:
+            synthesis.write(synthesis.beside(directory), framework, entries)
+        # Both halves are on disk, so the index is now a second answer to the
+        # same question -- and the stale one would still parse.
+        path.unlink()
+    return len(lines), len(lines)
+
+
+def already_split(directory: Path) -> bool:
+    """Every image has a record beside it, and the provenance is there too."""
+    pages = record.images(directory)
+    return bool(pages) and synthesis.beside(directory).exists() and all(
+        record.beside(page).exists() for page in pages)
 
 
 
@@ -249,7 +268,16 @@ def main() -> int:
     files = sorted({path for root in args.roots
                     for path in ([root] if root.is_file()
                                  else root.rglob("metadata.jsonl"))})
+    directories = sorted({path.parent for path in files} | {
+        parent for root in args.roots
+        for parent in ({d for d in root.rglob("*") if d.is_dir()} | {root})
+        if record.images(parent)})
+
     if not files:
+        done = [d for d in directories if already_split(d)]
+        if done:
+            print(f"{len(done)} director(ies) already split; nothing to do")
+            return 0
         print("no metadata.jsonl found", file=sys.stderr)
         return 1
 

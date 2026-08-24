@@ -1,4 +1,17 @@
-"""The shape of one `metadata.jsonl` line, checked where it is written.
+"""The shape of one page's record, checked where it is written.
+
+    data/dataset60/html/
+        html_000.jpg     html_000.json
+        html_001.jpg     html_001.json
+        …                synthesis.json
+
+**One file per image, not one index for the set.** A converted page comes back
+as one document about one file, so that is what is written here: the record has
+the image's name with a `.json` suffix and sits next to it. The images are
+therefore the listing -- nothing has to be told which files in a directory are
+records, an image with no record beside it is an error `read` raises rather than
+skips, and a single page can be handed to somebody without shipping the index of
+a set they do not have.
 
 Each renderer builds its own dict, so a key can drift in one of the three and
 nothing says so until somebody loads the dataset and finds a field missing for a
@@ -28,9 +41,10 @@ so a line carries what a converted line carries and nothing else:
 and their params, the flat reading order: none of that is something a converter
 could return, and most of it is the same text on every page of a run --
 `ornament` and `augmentation` describe a *background*, and twenty pages sharing
-one chain wrote that chain out twenty times. It lives in `synthesis.json` beside
-the index instead, params written once per option id, joined back to a line by
-its `job_id` or its file name. `pipeline/synthesis.py` is that file, and
+one chain wrote that chain out twenty times. It lives in `synthesis.json` in the same
+directory instead, params written once per option id, joined back to a page by
+its `job_id` or its file name -- one file for the set, because it is a statement
+about the set. `pipeline/synthesis.py` is that file, and
 `Synthesis.recipe()` hands back exactly the `recipe.to_dict()` the rule-base
 produced.
 
@@ -49,6 +63,7 @@ written: `label`/`bbox`/`content` for a converter-shaped consumer, and
 from __future__ import annotations
 
 import json
+import os
 import uuid
 from pathlib import Path
 from typing import Any, Iterable
@@ -498,26 +513,92 @@ def check(record: dict[str, Any], *, strict: bool = True, where: str = "") -> di
     return record
 
 
-def write(records: Iterable[dict[str, Any]], path: Path, *, strict: bool = True) -> int:
-    """Write `metadata.jsonl`, validating on the way out.
+# ------------------------------------------------- one file, beside its image
 
-    Streamed, not accumulated: a run of 100k images must not need all of them in
-    memory at once, which is what the sequential driver did.
+# What a picture is, for the purpose of finding the record next to it. The
+# generator writes JPEG; the other two are here because a dataset that arrives
+# with PNGs should be readable rather than silently empty.
+IMAGES = (".jpg", ".jpeg", ".png")
+SUFFIX = ".json"
+
+
+def beside(image: Path | str) -> Path:
+    """The record for one image: the same path, `.json`.
+
+    Not an index and not a subdirectory. A converted page comes back as one
+    document about one file, so that is what is written -- `html_000.jpg` and
+    `html_000.json`, side by side. It also means the *images* are the listing:
+    nothing has to be told which files in a directory are records, and a file
+    like `synthesis.json`, which no image is named after, is never mistaken for
+    one.
     """
+    return Path(image).with_suffix(SUFFIX)
+
+
+def images(directory: Path | str) -> list[Path]:
+    """Every image under a dataset directory, in name order.
+
+    Recursive, because `generators/html/tables.py` keeps its pages in `img/`.
+    """
+    directory = Path(directory)
+    found = [path for path in directory.rglob("*")
+             if path.suffix.lower() in IMAGES and path.is_file()]
+    return sorted(found, key=lambda path: path.relative_to(directory).as_posix())
+
+
+def write_one(record: dict[str, Any], directory: Path | str, *,
+              strict: bool = True, fsync: bool = False) -> Path:
+    """Write one record beside its image, validating on the way out.
+
+    `fsync` is for the shard, which must not write its `DONE` in front of a
+    record that is not yet on disk: resume would skip a shard that is short.
+    """
+    directory = Path(directory)
+    name = str(record.get("filename", ""))
+    check(record, strict=strict, where=name or "?")
+    path = beside(directory / name)
     path.parent.mkdir(parents=True, exist_ok=True)
-    written = 0
     with open(path, "w", encoding="utf-8") as handle:
-        for record in records:
-            check(record, strict=strict, where=str(record.get("filename", "?")))
-            json.dump(record, handle, ensure_ascii=False)
-            handle.write("\n")
-            written += 1
+        json.dump(record, handle, ensure_ascii=False)
+        handle.write("\n")
+        if fsync:
+            handle.flush()
+            os.fsync(handle.fileno())
+    return path
+
+
+def write(records: Iterable[dict[str, Any]], directory: Path | str, *,
+          strict: bool = True) -> int:
+    """Write a record per image. Streamed: nothing is held but the one in hand."""
+    written = 0
+    for record in records:
+        write_one(record, directory, strict=strict)
+        written += 1
     return written
 
 
-def read(path: Path) -> list[dict[str, Any]]:
-    return [json.loads(line) for line in
-            path.read_text(encoding="utf-8").splitlines() if line.strip()]
+def read_one(path: Path | str) -> dict[str, Any]:
+    """One record, given its own path or its image's."""
+    return json.loads(beside(path).read_text(encoding="utf-8"))
+
+
+def read(directory: Path | str) -> list[dict[str, Any]]:
+    """Every record under a directory, in the order of the images they describe.
+
+    An image with no record beside it stops this rather than being skipped: a
+    dataset that is quietly short is the failure the whole shard contract exists
+    to prevent, and a loader that shrugs at it moves that failure downstream.
+    """
+    directory = Path(directory)
+    out: list[dict[str, Any]] = []
+    for image in images(directory):
+        path = beside(image)
+        if not path.exists():
+            raise RecordError(
+                f"{image.relative_to(directory).as_posix()} has no "
+                f"{path.name} beside it")
+        out.append(json.loads(path.read_text(encoding="utf-8")))
+    return out
 
 
 # ------------------------------------------------------------------ accessors
@@ -569,11 +650,14 @@ __all__ = [
     "ORDER",
     "PAGE_LABELS",
     "REQUIRED",
+    "IMAGES",
     "SCHEMA_VERSION",
+    "SUFFIX",
     "TASK_CONVERT",
     "TASK_TABLE",
     "RecordError",
     "bbox_of",
+    "beside",
     "blocks_from_boxes",
     "block_content",
     "boxes",
@@ -585,13 +669,16 @@ __all__ = [
     "framework",
     "ground_truth",
     "html_of",
+    "images",
     "job_id",
     "label_for",
     "markdown_of",
     "page_size",
     "read",
+    "read_one",
     "stamp",
     "rows",
     "validate",
     "write",
+    "write_one",
 ]
