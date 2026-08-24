@@ -108,11 +108,11 @@ lại một vòng vắt lên; còn lại là một cái bướu. Vì thế nét 
 và nét lượn thay cho "ọc" là **hai nét khác nhau**, chứ không phải một cái
 ngoằng dùng chung.
 
-Đo trên engine hiện tại, 300 hạt giống × 5 tên: **222 tan thành nét lượn, 39 là
-chữ lồng toàn chữ hoa** (loại này *cố ý* đọc được — ba chữ cái đầu là để đọc),
-**39 giữ nguyên mọi chữ** (một phần mười số người ký). Có test giữ đúng phân bố
-ấy, vì một lần chỉnh tham số vô tình kéo nó về phía đọc được sẽ không làm hỏng
-bất kỳ test nào khác trong tệp.
+Bao nhiêu phần tan ra thì đo ở mục "Giới hạn" bên dưới, cho **cả hai nguồn
+mực** — con số ấy khác nhau giữa `font` và `model`, và có một lượt tài liệu này
+đưa số của `font` ra như thể là số chung. Có test giữ đúng phân bố ấy, vì một
+lần chỉnh tham số vô tình kéo nó về phía đọc được sẽ không làm hỏng bất kỳ test
+nào khác trong tệp.
 
 Hai chi tiết nữa cũng chỉ lộ ra khi nhìn ảnh, cùng lượt: nét lượn phải **mảnh
 hơn và thưa hơn nét chữ** (vẽ dày và dày nhịp thì các bướu dính vào nhau thành
@@ -152,7 +152,7 @@ Cái giá phải nói thẳng: **một bộ ký bằng mực model không có ch
 kiểu hẹp lại thật, chỉ còn `given` và `full`. Đó là một sự thu hẹp có thật, và
 nó khác hẳn với việc vẽ chữ ký bằng mực sai.
 
-![7 chữ ký từ mực WriteViT](../samples/signatures/styles-model.jpg)
+![18 chữ ký từ mực WriteViT](../samples/signatures/styles-model.jpg)
 
 ### `trace`: chỗ raster lọt được vào engine vector
 
@@ -348,10 +348,10 @@ thì phải dựng xương và biên dạng bề rộng rồi vẽ lại nét, c
 
 **Bao nhiêu phần tan ra**, đo trên 600 hạt giống × kho tên:
 
-| | tan thành nét lượn | đọc nguyên vẹn |
-| --- | --- | --- |
-| `font` | 74 % | 15 % |
-| `model` | 67 % | 10 % |
+| | tan thành nét lượn | chữ lồng (cố ý đọc được) | đọc nguyên vẹn |
+| --- | --- | --- | --- |
+| `font` | 74 % | 18 % | 8 % |
+| `model` | 67 % | — | 10 % |
 
 Con số của `model` từng là **56 % đọc nguyên vẹn** — vì `given` là một từ, mà
 phần đầu cắt theo ranh giới từ thì nuốt trọn cả từ và `_scrawl` không bao giờ

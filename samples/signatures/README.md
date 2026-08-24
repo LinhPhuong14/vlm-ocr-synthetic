@@ -36,20 +36,19 @@ Một chữ ký không chứng minh được gì; lưới thì có. Ba thứ đ�
 - **chữ cái đầu phóng to** và **nét cuối hất lên** — hai đặc điểm nhất quán
   nhất trong khảo sát, thấy rõ ở `4`, `8`, `15`.
 
-Sáu ô vẫn đọc được, vì hai lý do khác nhau. `2`, `10`, `12`, `13`, `17` là
+Tám ô vẫn đọc được, vì hai lý do khác nhau. `2`, `10`, `12`, `13`, `17` là
 **chữ lồng toàn chữ hoa**, mà chữ hoa thì không bao giờ tan — ba chữ cái đầu là
-để đọc, đó là toàn bộ công dụng của chữ lồng. `9`, `14`, `18` thì là một phần
-mười số người ký **hình thành hết mọi chữ**, và đó cũng là chữ ký thật. Đo trên
-300 hạt giống: 74 % tan thành nét lượn, 13 % là chữ lồng, 13 % giữ nguyên mọi
-chữ.
+để đọc, đó là toàn bộ công dụng của chữ lồng. `9`, `14`, `18` thì là số ít người
+ký **hình thành hết mọi chữ**, và đó cũng là chữ ký thật. Đo trên 600 hạt giống
+× kho tên: 74 % tan thành nét lượn, 18 % là chữ lồng, 8 % giữ nguyên mọi chữ.
 
-Tỷ lệ khung rơi vào khoảng 0,98–3,05. Dải các bộ dữ liệu chữ ký offline thu mẫu
+Tỷ lệ khung rơi vào khoảng 1,08–3,18. Dải các bộ dữ liệu chữ ký offline thu mẫu
 là 1,8–3,0; ở đây **không ép** vào dải ấy, chỉ báo cáo — xem `in_capture_box`
 trong `signatures.json`.
 
 ## Mực mô hình
 
-![7 chữ ký từ WriteViT](styles-model.jpg)
+![18 chữ ký từ WriteViT](styles-model.jpg)
 
 Đây là nét mà mặt chữ không cho được: **mỏng, nối liền, mỗi lần một khác**, vì
 nó do checkpoint sinh ra chứ không phải glyph dựng sẵn. `trace` biến ảnh ấy
