@@ -7,7 +7,7 @@ trước, rồi mới dựng engine.
 | tệp | nguồn | là gì |
 | --- | --- | --- |
 | `styles.jpg` | `font` | 18 hạt giống, 5 tên: lưới để nhìn **dải tham số** |
-| `styles-model.jpg` | `model` | 7 dấu ký từ mực WriteViT — **nét mỏng, nối liền** |
+| `styles-model.jpg` | `model` | cùng 18 hạt giống ấy, mực WriteViT — **nét mỏng, nối liền** |
 | `signed-folio.jpg` | `font` | tờ **có in tên** — chữ ký đè lên tên |
 | `signed-form.jpg` | `font` | tờ **để trắng** — đa số bố cục là loại này |
 | `signed-model.jpg` | `model` | cùng loại tờ ấy, ký bằng mực mô hình |
@@ -57,11 +57,14 @@ thành contour, rồi mọi phép biến đổi của engine áp lên y như áp
 xem `5` và `11`: phần đầu là chữ model viết, phần đuôi là nét lượn engine vẽ,
 và hai thứ ăn khớp vì cùng bề dày nét.
 
-Chỉ có **7 trên 18** hạt giống ở đây, và đó không phải lỗi: 11 cái còn lại là
-`monogram`/`initials` — chuỗi chữ hoa liền nhau, thứ checkpoint không viết được
-(`docs/writevit.md` đo việc này). Trên một trang thật, `fill` **lùi về font theo
-từng khối**, nên tờ vẫn được ký; ở đây thì liệt kê ra để thấy giới hạn thay vì
-lặng lẽ thay mực.
+Cả **18 trên 18** đều là mực model, không ô nào phải lùi về mặt chữ. Không phải
+vì checkpoint viết được nhiều hơn — nó vẫn không viết nổi `LQĐ` — mà vì kiểu
+chữ ký giờ được bốc **từ những kiểu nguồn mực vẽ được**, thay vì bốc trước rồi
+bị từ chối sau.
+
+Cái giá nằm ở chỗ khác và phải nói thẳng: **lưới này không có chữ lồng nào.**
+So với `styles.jpg`, dải kiểu hẹp lại còn `given` và `full` — vì `monogram` và
+`initials` là chuỗi chữ hoa theo định nghĩa.
 
 ## Nhìn cái gì ở hai tờ
 

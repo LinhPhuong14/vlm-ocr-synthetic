@@ -129,15 +129,26 @@ một trong hai chỗ, đúng hai chỗ mà `handwriting.py` đã có:
 | nét | của một mặt chữ, dù kéo giãn thế nào | **mỏng, nối liền, do mô hình sinh** |
 | khác nhau mỗi lần | không — mọi chữ `a` giống hệt nhau | có, 106 kiểu người viết |
 | chữ số, IN HOA | viết được | **không** — xem `writevit.md` |
-| chuỗi chữ hoa liền (`LQĐ`) | viết được | **không**, và đó là lý do có đường lùi |
+| chuỗi chữ hoa liền (`LQĐ`) | viết được | **không** — nên không bao giờ được hỏi |
 | cần gì | không gì cả | clone 1,7 GB, ~7 giây mỗi từ trên CPU |
 | mặc định | ✔ | |
 
 Không phải một cái hơn cái kia. `model` viết một cái tên rất đẹp và **không**
-viết nổi `LQĐ`; `font` viết được mọi thứ nhưng lần nào cũng y hệt lần nào. Nên
-`fill` **lùi theo từng khối, không phải theo cả lượt chạy**: khối nào model
-viết được thì model viết, khối nào không thì font, và nhãn ghi lại từng dấu ký
-thực sự bằng mực nào.
+viết nổi `LQĐ`; `font` viết được mọi thứ nhưng lần nào cũng y hệt lần nào.
+
+Chỗ khác biệt ấy rơi vào **kiểu chữ ký, không rơi vào mực**. Nguồn mực khai báo
+nó vẽ được kiểu nào trong bốn kiểu khảo sát nêu, và `Style` bốc từ đúng những
+kiểu ấy — nên model **không bao giờ bị đưa cho một chữ lồng để rồi từ chối**.
+
+Thứ tự trước đây ngược lại, và nó tốn 11 trên 18 hạt giống mẫu: bốc kiểu trước,
+model từ chối, dấu ký quay về mực mặt chữ. Một lượt chạy xin mực model mà nhận
+về phần lớn là mặt chữ thì cờ ấy không có nghĩa gì. `fill` vẫn còn đường lùi
+theo từng khối, nhưng là **lưới an toàn chứ không phải đường đi chính** — đo
+trên toàn bộ kho tên × 2000 hạt giống: **0 lần lùi**.
+
+Cái giá phải nói thẳng: **một bộ ký bằng mực model không có chữ lồng nào**. Dải
+kiểu hẹp lại thật, chỉ còn `given` và `full`. Đó là một sự thu hẹp có thật, và
+nó khác hẳn với việc vẽ chữ ký bằng mực sai.
 
 ![7 chữ ký từ mực WriteViT](../samples/signatures/styles-model.jpg)
 
@@ -315,11 +326,16 @@ không phải sơ suất.
 một chữ lồng — và một chữ lồng đã tan thì chỉ còn là cái ngoằng không nhận ra
 được ai. Khoảng 13 % số dấu ký là loại này.
 
-**`model` bỏ mất một phần ba số kiểu.** Chuỗi chữ hoa liền nhau là thứ
-checkpoint không viết được, mà `monogram` và `initials` theo định nghĩa là chuỗi
-chữ hoa. Trong lưới 18 hạt giống, model vẽ được 7 và 11 cái còn lại lùi về font
-— nên một bộ dựng bằng `--signature model` vẫn có mực mặt chữ trên khoảng một
-phần ba số khối. Nhãn ghi rõ từng cái, `skipped` ghi rõ lý do.
+**`model` mất hẳn hai trong bốn kiểu.** `monogram` và `initials` theo định
+nghĩa là chuỗi chữ hoa, mà chuỗi chữ hoa là thứ checkpoint không viết được. Nên
+một bộ ký bằng mực model **không có chữ lồng nào** — dải kiểu hẹp lại còn
+`given` và `full`. Đổi lại, nó không lẫn mực: đo trên toàn bộ kho tên × 2000
+hạt giống, không lần nào phải lùi về mặt chữ.
+
+**Phần đầu phải đủ dài.** Model viết một mẩu ngắn rất tệ: `N` đứng một mình ra
+nét nguệch trong khi `Nguyen` ra một nét viết liền, và `Lê` theo sau là mười ô
+sóng thì đọc như một dấu ký rỗng. `HEAD_LETTERS = 3` — đọc ra từ ảnh chứ không
+từ khảo sát — nên một từ đầu quá ngắn sẽ lấy thêm từ kế tiếp.
 
 **Tỷ lệ khung không bị ép.** `ASPECT` chỉ để báo cáo: `Mark.report()` trả về
 `in_capture_box`, và với tên ngắn thì dấu ký hay rơi ra ngoài dải 1,8–3,0. Ép

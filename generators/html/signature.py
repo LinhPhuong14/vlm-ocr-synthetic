@@ -37,8 +37,15 @@ drawn rather than set.
 
 They are not a hierarchy with a winner. `model` writes a name beautifully and
 cannot write `LQĐ` at all; `font` writes anything and writes it the same way
-twice. `fill` therefore falls back **per block** rather than per run, and the
-label records which ink each mark is actually in.
+twice.
+
+Where that difference lands is **in the style, not in the ink**. A source
+declares which of the survey's legibility styles it can draw, and `Style`
+picks from those -- so the model is never handed a monogram it will refuse.
+The order used to be the other way round, and it cost eleven of eighteen
+sample seeds: a style was drawn, the model refused it, and the mark came back
+in typeface. `fill` still falls back per block, but as a safety net rather
+than as the normal case, and the label records which ink each mark is in.
 
 The seam that lets a raster into a vector engine is `trace`, and it is the
 whole trick: once the model's pixels are contours, every warp in this file
@@ -80,9 +87,11 @@ faces, not 106 writers. Same trade as `FontHand`, written down the same way.
 **With `model`**, the strokes are generated rather than set, and that limit
 lifts: the ink is a hand's, it is thin and joined up, and 106 writer styles
 are not two. What replaces it is narrower and is `docs/writevit.md`'s subject
--- no digits, no ALL-CAPS, no punctuation, so a monogram falls back to the
-font -- plus the cost, which is a 1.7 GB clone and seconds a word. Still not a
-corpus for signature verification: one seed is still one mark.
+-- no digits, no ALL-CAPS, no punctuation -- and it shows up here as a
+**narrower style range**: a signature in model ink is a name or a given name,
+never a monogram, because a monogram is a run of capitals. Plus the cost,
+which is a 1.7 GB clone and seconds a word. Still not a corpus for signature
+verification: one seed is still one mark.
 
 ## What the survey established
 
@@ -460,6 +469,12 @@ class Ink:
 
     # A print capital is stretched into a signature initial; see `_letters`.
     stretches_initial = True
+    # A typeface draws every style in the survey; nothing to restrict.
+    legibility = None
+
+    def normalise(self, text: str) -> str:
+        """A face draws whatever it has a glyph for; `units` skips the rest."""
+        return text
 
     def units(self, text: str):
         """`(path, advance, char)` per drawable unit -- for a font, per letter.
@@ -625,6 +640,12 @@ class ModelInk:
     source = "model"
     # A unit is a word, so the head has to be one too -- see `head_and_tail`.
     writes_words = True
+    # The two of the survey's four legibility styles this ink can draw. The
+    # other two -- `monogram`, `initials` -- are runs of capitals by
+    # definition, and `docs/writevit.md` measures that a run of capitals is
+    # exactly what the checkpoint cannot write. Declared here so `Style` picks
+    # from what is drawable rather than being refused afterwards.
+    legibility = ("given", "full")
     # The model's capitals are already cursive signature capitals. Stretching
     # one vertically turns a whole word into a blade -- which is what the first
     # version of this did, having also lost the initial to an empty trace.
@@ -664,6 +685,28 @@ class ModelInk:
         import handwriting  # noqa: PLC0415
 
         return char in handwriting.ALPHABET_SET
+
+    def normalise(self, text: str) -> str:
+        """Punctuation dropped rather than the whole name refused.
+
+        `O'Donnell` is one name in the corpus and the apostrophe is outside the
+        checkpoint's alphabet, so the mark used to fall back to the typeface
+        over one character. Nobody writes the apostrophe when they sign
+        `O'Donnell` anyway -- a signature is a gesture, not a spelling -- so
+        the character goes and the name stays. What was actually drawn is in
+        `Mark.drawn`, beside the name it came from, so the label still says.
+
+        It becomes a **space**, not nothing. Deleted, `O'Donnell` closes up
+        into `ODonnell`, whose `OD` is a run of capitals the checkpoint cannot
+        write either -- a refusal manufactured by the repair. The apostrophe
+        was a break in the name and it stays one.
+        """
+        import handwriting  # noqa: PLC0415
+
+        kept = "".join(char if char in handwriting.ALPHABET_SET or char.isspace()
+                       else " " for char in text)
+        kept = " ".join(kept.split())
+        return kept if kept.strip() else text
 
     def writable(self, text: str) -> bool:
         """What the checkpoint can actually write, not merely spell.
@@ -893,6 +936,11 @@ SCRAWL_SLOTS = 6                 # most humps a hand will actually put down
 SCRAWL_STEP = (0.54, 0.95)       # x-heights of travel per slot
 SCRAWL_DECAY = (0.15, 0.55)      # how far the wave has shrunk by the end
 
+# The fewest letters a word-writing source is asked for. Read off the output,
+# not off the survey: below three the model's tile is a fragment rather than a
+# hand, and the mark reads as a wave with a smudge in front of it.
+HEAD_LETTERS = 3
+
 # The terminal. `reach` is how far past the last letter it travels and `rise`
 # how far it lifts, both in x-heights. This is the "nét kết thúc được nâng
 # lên" of the Vietnamese guides and the "emphasising line after signatures" of
@@ -985,6 +1033,33 @@ class Style:
         raise AttributeError(
             "Style draws everything in __init__ on purpose -- see `wobble`. "
             "Add a field there rather than a draw at sign time.")
+
+    def restrict(self, allowed) -> None:
+        """Re-pick the legibility from what the ink can actually draw.
+
+        The order used to be the wrong way round: a style was drawn, and only
+        then was the ink asked whether it could write it. With the model that
+        refused eleven of eighteen seeds -- `monogram` and `initials` build
+        runs of capitals, and the checkpoint has none -- so most marks came
+        back in the other ink and a run asking for model ink got mostly
+        typeface.
+
+        Choosing from what the source can draw is not the same as hiding the
+        limit, and the limit is not smaller for being moved: **the model
+        cannot make a monogram at all**, so a set signed with it has no
+        monograms in it. That is a real narrowing of the style range and
+        `docs/chu-ky.md` says so. What it is not is a signature drawn in the
+        wrong ink.
+
+        Drawn from its own stream off the seed, so restricting disturbs no
+        other field and a signer is still a pure function of `(seed, source)`.
+        """
+        if not allowed or self.legibility in allowed:
+            return
+        table = [(name, weight) for name, weight in LEGIBILITY if name in allowed]
+        if not table:
+            return
+        self.legibility = _weighted(random.Random(self.seed ^ 0x4C454749), table)
 
     def report(self) -> dict:
         """What a dataset's label should carry about this mark."""
@@ -1104,8 +1179,19 @@ def head_and_tail(text: str, style: "Style", whole_words: bool = False) -> tuple
     if not style.scrawl:
         return text, ""
     if whole_words:
-        first, space, rest = text.partition(" ")
-        return first, (space + rest) if rest else ""
+        # Words are taken until the head is at least `HEAD_LETTERS` long. The
+        # model writes a short fragment badly -- `N` on its own comes back a
+        # scribble where `Nguyen` comes back a hand -- and a two-letter head
+        # is nearly as thin: `Lê` followed by ten slots of wave read as an
+        # empty mark. So a short first word reaches for the next one instead of
+        # handing the model its weakest case.
+        words = text.split(" ")
+        take = 1
+        while (take < len(words)
+               and len("".join(words[:take]).strip()) < HEAD_LETTERS):
+            take += 1
+        head, rest = " ".join(words[:take]), words[take:]
+        return head, (" " + " ".join(rest)) if rest else ""
     kept = 0
     for index, char in enumerate(text):
         if index < style.survives or char.isupper() or char.isspace():
@@ -1194,6 +1280,7 @@ class Signer:
         else:
             raise KeyError(f"no ink source {source!r}; have font, model")
         self.source = getattr(self.ink, "source", "font")
+        self.style.restrict(getattr(self.ink, "legibility", None))
         self._opened = ink is None
 
     def __enter__(self) -> "Signer":
@@ -1230,7 +1317,11 @@ class Signer:
         the terminal sweep would read as two marks rather than one.
         """
         style = self.style
-        text = letters_of(name, style)
+        # The ink gets a say in the letters before the letters are placed. It
+        # is the last chance to keep a name rather than refuse it, and it is
+        # cheaper than a fallback: one character the checkpoint cannot write
+        # used to cost a whole mark.
+        text = self.ink.normalise(letters_of(name, style))
         if not text.strip():
             raise ValueError(f"nothing to sign in {name!r}")
         head, tail = head_and_tail(
@@ -1753,16 +1844,14 @@ def fill(markup: str, *, seed: int = 0, names=(), colour: str = "",
     learn to leave alone: on the page, absent from the boxes, and absent from
     `labelled_runs`, so inking a sheet cannot change what the sheet says.
 
-    `source` is `font` or `model`, and **`model` falls back to `font` per
-    block** rather than per run. WriteViT has no ALL-CAPS, so a signer whose
-    style came out as a three-capital monogram is a signer the checkpoint
-    cannot write for -- about a third of them. Refusing those pages outright
-    would throw away the model's ink on the other two thirds; refusing those
-    blocks and printing nothing would leave a form unsigned for a reason that
-    has nothing to do with the form. So the block falls back, and the report
-    says which ink each mark is actually in. That is the same bargain
-    `docs/handwriting-html.md` strikes for field values, made per block instead
-    of per field.
+    `source` is `font` or `model`. The model is only ever asked for styles it
+    can draw -- `Style.restrict` sees to that -- so the fallback below is a
+    safety net for a name nobody anticipated rather than the normal path; it
+    fires on none of the corpus. When it does fire it falls back **per block**,
+    because refusing a whole page would throw away the model's ink on the other
+    block and printing nothing would leave a form unsigned for a reason that
+    has nothing to do with the form. The report says which ink each mark is
+    actually in either way.
     """
     from handwriting import PENS  # noqa: PLC0415 -- one table, not two
 
@@ -1867,7 +1956,8 @@ SOURCES = ("font", "model")
 
 __all__ = [
     "ASPECT", "BASELINE", "CAP_STRETCH", "CSS", "FACES", "LEAD", "LEGIBILITY",
-    "OVERLAP", "PARAPH", "PEN", "SCRAWL", "SLANT", "SOURCES", "SURVIVES",
+    "HEAD_LETTERS", "OVERLAP", "PARAPH", "PEN", "SCRAWL", "SLANT",
+    "SOURCES", "SURVIVES",
     "TRACE_ZOOM", "WHO", "ModelInk", "trace",
     "Ink", "Mark", "Signer",
     "Style", "affine", "at", "bounds", "bow", "d", "fade", "fill",

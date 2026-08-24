@@ -465,9 +465,10 @@ def main() -> int:
              "an enlarged initial, a body that degenerates into a scrawl, a "
              "lifted terminal and a paraph. `font` (the default) stretches "
              "outlines from fonts/hand/; `model` traces WriteViT's own ink, "
-             "which is thin and joined-up and different every time, and falls "
-             "back to the font per block for the capital runs the checkpoint "
-             "cannot write. Unlabelled on purpose, so a reader has to learn to "
+             "which is thin and joined-up and different every time, and draws "
+             "only the styles the checkpoint can write, so a name signs as a "
+             "name rather than as a monogram it would have to refuse. "
+             "Unlabelled on purpose, so a reader has to learn to "
              "leave it alone. Only with --template. See "
              "generators/html/signature.py",
     )
