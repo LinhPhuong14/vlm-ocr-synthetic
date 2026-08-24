@@ -642,7 +642,19 @@ def test_the_head_is_cut_at_a_word_when_the_source_writes_words():
     style.scrawl, style.survives = True, 1
     assert signature.head_and_tail("Nguyen Thi Ngoc", style, whole_words=True) == (
         "Nguyen", " Thi Ngoc")
-    assert signature.head_and_tail("Ngoc", style, whole_words=True) == ("Ngoc", "")
+
+
+def test_a_lone_word_is_still_cut_inside_so_it_can_degenerate():
+    """`whole_words` avoids mid-word cuts because the model writes a SHORT
+    fragment badly -- not because a fragment is wrong. Refusing to cut a
+    one-word name left a majority of model marks fully legible with the scrawl
+    unreachable; `Ngoc` is four letters and three of them is enough to write.
+    """
+    style = signature.Style(1)
+    style.scrawl, style.survives = True, 1
+    assert signature.head_and_tail("Ngoc", style, whole_words=True) == ("Ngo", "c")
+    assert signature.head_and_tail("Dao", style, whole_words=True) == ("Dao", ""), (
+        "three letters is the floor; there is nothing to cut off it")
 
 
 class _Refuses:
@@ -866,3 +878,20 @@ def test_every_signature_block_in_the_rule_space_gets_a_mark(layout):
     _filled, report = signature.fill(markup, seed=11, names=("Vũ Thị Lan",))
     assert len(report["marks"]) == blocks
     assert not report["skipped"]
+
+
+def test_a_dau_nang_is_not_traced_away_as_a_speck():
+    """The area floor exists to drop the stray specks the model leaves between
+    letters -- a speck inside a signature reads as a comma. It must not take a
+    real mark with it, and the dấu nặng is the smallest one there is."""
+    pytest.importorskip("cv2", reason="tracing needs OpenCV")
+    from PIL import Image, ImageDraw
+
+    tile = Image.new("L", (240, 240), 255)
+    draw = ImageDraw.Draw(tile)
+    draw.ellipse((40, 40, 200, 160), outline=0, width=14)   # the letter
+    draw.ellipse((112, 196, 130, 214), fill=0)              # the dấu nặng
+    draw.point((20, 230), fill=0)                           # a speck
+    contours = signature.trace(tile)
+    assert len(contours) == 3, "outline, counter and the mark -- not the speck"
+
