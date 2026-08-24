@@ -164,9 +164,17 @@ def pages(out: Path, model: bool) -> list:
              "-c", "1", "-o", str(work)],
             check=True)
         (work / "html_000.jpg").replace(out / f"{name}.jpg")
-        record = json.loads((work / "metadata.jsonl").read_text(encoding="utf-8"))
+        # The signature report rides in the page's `extra`, which `render.py`
+        # streams into the set's one `synthesis.json` -- not into the old
+        # `metadata.jsonl`, which the record migration replaced with one
+        # document per image plus this file. `synthesis.beside` is the one
+        # answer to where it is, whichever of the three things you have.
+        from pipeline import synthesis  # noqa: PLC0415
+
+        pages = synthesis.read(synthesis.beside(work)).pages
+        page = pages.get("html_000.jpg", {})
         drawn.append({"file": f"{name}.jpg", "layout": layout, "seed": seed,
-                      "source": source, "signature": record.get("signature")})
+                      "source": source, "signature": page.get("signature")})
         for leftover in sorted(work.iterdir()):
             leftover.unlink()
         work.rmdir()

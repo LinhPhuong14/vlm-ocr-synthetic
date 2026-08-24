@@ -205,17 +205,20 @@ def tables(args) -> None:
          "-o", args.out, "-n", str(args.count)])
 
 
-@task("handwriting", "regenerate data/hand12: the fields a person fills in, in ink")
+@task("handwriting", "regenerate data/hand12: every field a person fills in, in ink")
 def handwriting(args) -> None:
     # The html backend's own interpreter, and a job list rather than -n: which
-    # layouts are in the set is the measurement, not a quota. `setup-writevit`
-    # has to have run -- there is no fallback that draws letters, so a missing
-    # checkpoint stops the run rather than typing the values and calling them
-    # handwriting. See docs/handwriting-html.md.
+    # layouts are in the set is the measurement, not a quota.
+    #
+    # `--handwriting font` fills every field. The `model` source is WriteViT and
+    # is the real thing, but it cannot write digits and leaves 129 of these 159
+    # fields typed; the trade is set out in data/hand12/README.md. `font` needs
+    # nothing installed -- the two faces are in fonts/hand/ -- so this task no
+    # longer depends on `setup-writevit`.
     out = Path(args.out if args.out != str(Path("data") / "dataset60")
                else Path("data") / "hand12")
     run([venv_python(VENVS["html"]), REPO_ROOT / "generators" / "html" / "render.py",
-         "--template", "auto", "--handwriting",
+         "--template", "auto", "--handwriting", "font",
          "--jobs", REPO_ROOT / "data" / "hand12" / "jobs.json",
          "-o", out / "html"])
 

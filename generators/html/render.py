@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import argparse
 import html
-import json
 import random
 import sys
 from pathlib import Path
@@ -47,6 +46,7 @@ import profiling  # noqa: E402
 import rulebase  # noqa: E402
 import worklist  # noqa: E402
 from degradation.pipeline import apply_recipe  # noqa: E402
+from pipeline import record, synthesis  # noqa: E402
 
 
 def _sheet_css(grid, line_px: float, padding_px: float) -> str:
@@ -526,7 +526,7 @@ def main() -> int:
         # carries every box on the page. Written in page order, which is the
         # order the caller listed the jobs in -- `pipeline/worker.py` walks the
         # runs in that order to name the files.
-        with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as metadata:
+        with synthesis.Writer(synthesis.beside(args.out), "html") as notes:
             for index, job, seed in worklist.pages(jobs):
                 recipe, receipt, _grid, image, boxes, cells, hand_report, sign_report = (
                     renderer.render(seed, forces[job]))
@@ -535,38 +535,42 @@ def main() -> int:
                     cv2.imwrite(str(args.out / name), image,
                                 [cv2.IMWRITE_JPEG_QUALITY, 90])
                 with profiling.stage("annotation"):
-                    record = {
-                        "file_name": name,
-                        "ground_truth": json.dumps({"gt_parse": receipt.ground_truth()},
-                                                   ensure_ascii=False),
-                        "text_sequence": receipt.text_sequence(),
-                        "recipe": recipe.to_dict(),
-                        "boxes": boxes,
-                    }
+                    extra = {}
                     if hand_report is not None:
                         # What was written and what refused, per page. A sheet
                         # that asked for handwriting and got two inked fields
                         # is a fact about the checkpoint, and it belongs in the
-                        # record beside the boxes rather than in a log nobody
+                        # record beside the blocks rather than in a log nobody
                         # keeps -- see docs/handwriting-html.md.
-                        record["handwriting"] = hand_report
+                        extra["handwriting"] = hand_report
                     if sign_report is not None:
                         # The style of every mark on the page, and every block
                         # that went unsigned. A signature carries no box and no
                         # text, so this record is the only place it exists in
                         # the label at all -- and a set that wanted signatures
                         # and drew none should say so here.
-                        record["signature"] = sign_report
+                        extra["signature"] = sign_report
                     if cells:
                         # Additive, and only for a template render: the
                         # structure half of the label, so a merged cell is
-                        # recoverable. `boxes` is untouched, so every existing
-                        # loader keeps working.
-                        record["cells"] = cells
-                        record["structure"] = structure_from_cells(cells)
+                        # recoverable. The blocks are untouched, so every
+                        # existing loader keeps working.
+                        extra["cells"] = cells
+                        extra["structure"] = structure_from_cells(cells)
+                    item = record.build(
+                        filename=name, width=image.shape[1], height=image.shape[0],
+                        parser="html", boxes=boxes,
+                        extracted=receipt.ground_truth(),
+                        seed=seed, layout=recipe.layout.id)
                 with profiling.stage("export"):
-                    json.dump(record, metadata, ensure_ascii=False)
-                    metadata.write("\n")
+                    # The record beside its image, and the provenance streamed
+                    # into the one file for the set -- so a shard's memory does
+                    # not grow with its size and the two stay in step page for
+                    # page.
+                    record.write_one(item, args.out, strict=False)
+                    notes.add(name, job_id=item["job_id"], layout=recipe.layout.id,
+                              recipe=recipe.to_dict(),
+                              text_sequence=receipt.text_sequence(), extra=extra)
                 inked = len(hand_report["inked"]) if hand_report else 0
                 signed = len(sign_report["marks"]) if sign_report else 0
                 print(f"[ok] {name}  {image.shape[1]}x{image.shape[0]}  "

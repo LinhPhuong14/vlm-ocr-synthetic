@@ -252,13 +252,9 @@ def test_structure_tokens_survive_inking():
 # ------------------------------------------------------------- the font source
 
 def _font():
-    # `FontHand.cmap` reads the face with fontTools, which `.github/ci.yml`
-    # deliberately does not install -- the data-layer job is pytest and PyYAML
-    # and nothing else. Skipped rather than failed, for the same reason the
-    # two pixel tests below skip without numpy: "I could not look" is not the
-    # same as "it is broken", and a red job for a missing renderer dependency
-    # trains people to ignore the red.
-    pytest.importorskip("fontTools", reason="reading a cmap needs fontTools")
+    # `FontHand.writable` reads the face's cmap, which is fontTools -- absent in
+    # the dependency-free CI job, where this test has nothing to say.
+    pytest.importorskip("fontTools")
     hand = handwriting.FontHand()
     if not hand.faces:
         pytest.skip("no handwriting faces in fonts/hand/")
@@ -367,6 +363,25 @@ def test_ink_png_makes_the_paper_transparent():
     assert list(rgba[1, 0, :3]) == [10, 20, 30]
 
 
+def test_ink_gamma_darkens_without_inventing():
+    """Below 1 it deepens partial coverage; the two endpoints must not move.
+
+    Paper unwritten-on has to stay fully transparent and a saturated stroke
+    fully opaque whatever the gamma, or the field's dotted rule is either
+    erased or shows through the ink.
+    """
+    np = pytest.importorskip("numpy")
+    image = pytest.importorskip("PIL.Image")
+    import io
+
+    assert 0.5 < handwriting.INK_GAMMA <= 1.0
+    tile = image.fromarray(np.array([[255, 128, 0]], dtype="uint8"), mode="L")
+    rgba = np.asarray(image.open(io.BytesIO(handwriting.ink_png(tile, (0, 0, 0)))))
+    assert rgba[0, 0, 3] == 0, "unwritten paper must stay transparent"
+    assert rgba[0, 2, 3] == 255, "a saturated stroke must stay opaque"
+    assert rgba[0, 1, 3] > 127, "a half-covered pixel is darker than half paint"
+
+
 def test_compose_puts_the_words_on_one_baseline():
     np = pytest.importorskip("numpy")
     image = pytest.importorskip("PIL.Image")
@@ -378,10 +393,14 @@ def test_compose_puts_the_words_on_one_baseline():
     # After composing, the tall word must start at the top and the short one
     # must be pushed down by its missing ascender -- that offset is the fix.
     line = handwriting.compose([("Tiền", tile(64)), ("mưa", tile(48))])
-    unit = 32 / (handwriting.ABOVE_TALL + handwriting.X_HEIGHT
-                 + handwriting.BELOW_TAIL)
-    assert line.height == round((handwriting.ABOVE_TALL
-                                 + handwriting.X_HEIGHT) * unit)
+    # The band the two words share: "Tiền" reaches an ascender above the
+    # x-height, neither drops below it.
+    # "mưa" is the tightest tile -- it fills its whole band -- so it is what
+    # sets the scale, and no tile is downscaled.
+    unit = 32 / handwriting.X_HEIGHT
+    assert line.height == round(
+        (handwriting.ABOVE_TALL + handwriting.X_HEIGHT) * unit)
+
     ink = np.asarray(line) < 128
     columns = np.where(ink.any(axis=0))[0]
     assert columns.size, "the composed line has no ink at all"
@@ -390,3 +409,32 @@ def test_compose_puts_the_words_on_one_baseline():
     short_rows = np.where(ink[:, columns[-1]])[0]
     assert short_rows[0] > tall_rows[0]
     assert short_rows[-1] == tall_rows[-1]      # one baseline
+
+
+def test_compose_never_downscales_a_tile():
+    """A downscale here is paid for twice: the browser scales the ink back up.
+
+    The first version sized the line so a word using the FULL band kept the
+    generator's 32 px -- and most words do not use the full band, so most lines
+    were shrunk and then enlarged again. Measured on one field, the mean stroke
+    value went from 91 in the generator's output to 133 on the page.
+    """
+    np = pytest.importorskip("numpy")
+    image = pytest.importorskip("PIL.Image")
+
+    def tile(width):
+        return image.fromarray(np.zeros((32, width), dtype="uint8"), mode="L")
+
+    for words in (["Chu", "Văn", "Lâm"],          # nothing below the baseline
+                  ["mưa"],                        # nothing above it either
+                  ["Ngô", "Thị", "Hồng", "Nhung"]):  # a mix
+        pairs = [(word, tile(16 * len(word))) for word in words]
+        line = handwriting.compose(pairs)
+        for word, source in pairs:
+            above, below = handwriting.extent(word)
+            band = above + handwriting.X_HEIGHT + below
+            drawn = line.height * band / (
+                max(handwriting.extent(w)[0] for w, _ in pairs)
+                + handwriting.X_HEIGHT
+                + max(handwriting.extent(w)[1] for w, _ in pairs))
+            assert drawn >= source.height - 1, (words, word, drawn, source.height)
