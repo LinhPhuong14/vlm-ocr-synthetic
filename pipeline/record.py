@@ -143,9 +143,10 @@ HTML_TAG = {"Title": "h1", "Section-header": "h2", "Page-header": "p",
 # The converter's job options, given the values that are true of a drawn page.
 # Spelled out rather than left empty because a consumer that reads `settings`
 # reads it on every record, and a missing key there is the same bug as a missing
-# key anywhere else. `max_pixels` and `extract_fields` are filled in per page by
-# `build`; the rest are constants and each one is a statement about the
-# generator:
+# key anywhere else. `convert_mode` and `extract_fields` are filled in per page
+# by `build` -- they name the renderer that drew it and the label it carries, and
+# both differ page to page. The rest are constants and each one is a statement
+# about the generator:
 #
 #   end2end             False -- the label comes from the rule-base, not a model
 #   skip_preprocess     True  -- there is nothing to deskew, the page is drawn
@@ -171,6 +172,11 @@ BASE_SETTINGS: dict[str, Any] = {
     "translate_source": "synthetic",
     "extract_fields": [],
 }
+
+# The two above that `build` fills in per page. Naming them once means `validate`
+# and `refresh` cannot disagree about which options are allowed to differ between
+# two records of the same set.
+PER_PAGE_SETTINGS = ("convert_mode", "extract_fields")
 
 # Top level, in the order the converter writes them. `json.dump` keeps insertion
 # order, so a record built here reads down the page the way the sample does.
@@ -473,6 +479,38 @@ def validate(record: dict[str, Any], *, strict: bool = True) -> list[str]:
     if not record.get("parser"):
         problems.append("parser is empty; nothing said which renderer drew it")
 
+    # `settings` was described as exact and never checked, which is how
+    # `max_pixels` drifted: it held the page's own pixel count until `dabf19f`
+    # made it null -- it is a *cap*, none was applied, and the size is already
+    # in `pages[0]` -- and 295 already-written records kept the old value. The
+    # data then described a cap the generator had stopped applying, and nothing
+    # said so. Checked here rather than described in a comment, so the next
+    # option to move takes the records with it or fails loudly.
+    settings = record.get("settings")
+    if settings is not None:
+        if not isinstance(settings, dict):
+            problems.append("settings must be an object")
+        else:
+            for key in sorted(set(BASE_SETTINGS) - set(settings)):
+                problems.append(f"settings is missing {key!r}")
+            for key in sorted(set(settings) - set(BASE_SETTINGS)):
+                problems.append(f"settings.{key} is not one of the converter's "
+                                f"job options")
+            for key, value in BASE_SETTINGS.items():
+                if key in PER_PAGE_SETTINGS or key not in settings:
+                    continue
+                # Type as well as value: `False` and `0` compare equal in
+                # Python, and a record that said `end2end: 0` would be a record
+                # written by something that did not know it was a flag.
+                if settings[key] != value or type(settings[key]) is not type(value):
+                    problems.append(f"settings.{key} must be {value!r}, "
+                                    f"got {settings[key]!r}")
+            if "convert_mode" in settings:
+                mode, drew = settings["convert_mode"], record.get("parser")
+                if mode != drew:
+                    problems.append(f"settings.convert_mode must be the parser "
+                                    f"{drew!r}, got {mode!r}")
+
     # A drawn document page carries a nested label; a table image does not, and
     # `generators/html/tables.py` says so with its own `task`. Asking a table
     # for a `total` it has no notion of is how a shared envelope turns into a
@@ -684,11 +722,46 @@ def convert(item: dict, directory: Path) -> tuple[dict, dict]:
     return convert_page(item, directory)
 
 
-def migrate(directory: Path | str, *, write: bool = True) -> tuple[int, int]:
-    """Old index -> a record per image plus `synthesis.json`. Returns (pages, sets).
+def refresh(record: dict[str, Any]) -> bool:
+    """Reset one record's constant job options to the current definition.
 
-    Idempotent: a directory with no `metadata.jsonl` is already forward and
-    reports zero, which is what makes running it over a whole tree safe.
+    Only the constants: `convert_mode` names the renderer and `extract_fields`
+    names the label, and `build` already fills both in per page. Returns whether
+    anything moved, so a caller can leave a file it would rewrite byte for byte
+    alone.
+
+    A record does not have to be re-rendered to be brought forward when an
+    option changes meaning -- `max_pixels` went from the page's own pixel count
+    to null and the pixels never moved, only what the record claimed about them.
+    That is the whole difference between this and re-drawing the set.
+    """
+    settings = record.get("settings")
+    if not isinstance(settings, dict):
+        return False
+    moved = False
+    for key, value in BASE_SETTINGS.items():
+        if key in PER_PAGE_SETTINGS:
+            continue
+        if (key not in settings or settings[key] != value
+                or type(settings[key]) is not type(value)):
+            settings[key] = value
+            moved = True
+    return moved
+
+
+def migrate(directory: Path | str, *, write: bool = True) -> tuple[int, int]:
+    """An older set, brought forward. Returns (pages, sets).
+
+    Two things can be out of date, and a set can have either or both:
+
+    * **the shape** -- one `metadata.jsonl` for a set instead of one record per
+      image, with how the page was made mixed into the same line;
+    * **a value** -- a record already in the converter's schema, but written
+      when one of the constant job options meant something else.
+
+    Neither re-renders anything. Idempotent, which is what makes running it over
+    a whole tree safe: a directory with no index and no stale option reports
+    zero.
     """
     from pipeline import synthesis  # noqa: PLC0415 -- avoids a cycle
 
@@ -721,6 +794,7 @@ def migrate(directory: Path | str, *, write: bool = True) -> tuple[int, int]:
                     f"pages were made is gone and cannot be rebuilt from here")
             else:
                 built, entry = convert(item, here)
+            refresh(built)
             name = file_name(built)
             check(built, where=f"{index}:{name}")
             built_all.append(built)
@@ -737,6 +811,38 @@ def migrate(directory: Path | str, *, write: bool = True) -> tuple[int, int]:
             index.unlink()
         pages += len(built_all)
         sets += 1
+
+    # Second pass: sets that are already one record per image, but were written
+    # when a constant option meant something else. The first pass cannot see
+    # them -- it looks for an index, and these have none -- and they are the
+    # common case now that every committed set is exploded. A record the first
+    # pass just wrote is read back here, does not move, and is not counted.
+    touched: set[Path] = set()
+    for image in images(directory):
+        path = beside(image)
+        if not path.exists():
+            continue
+        try:
+            item = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as error:
+            raise RecordError(f"{path}: not readable as JSON -- {error}") from error
+        if not refresh(item):
+            continue
+        check(item, where=str(path))
+        if write:
+            # `write_one` resolves the record's own `filename` against the
+            # directory it is handed, and that name is not always a bare one:
+            # `generators/html/tables.py` keeps its pages in `img/` and says so
+            # in the record. Handing it `image.parent` would write
+            # `img/img/border_0001.json`, so the directory the name is relative
+            # *to* is walked back out of the image's path instead.
+            depth = len(Path(str(item.get("filename", ""))).parts)
+            write_one(item, image.parents[depth - 1])
+        pages += 1
+        touched.add(image.parent)
+    # No double count: a set the first pass handled was written through `build`,
+    # so `refresh` finds nothing to move in it and it never reaches `touched`.
+    sets += len(touched)
     return pages, sets
 
 
@@ -876,6 +982,7 @@ __all__ = [
     "LABELS",
     "ORDER",
     "PAGE_LABELS",
+    "PER_PAGE_SETTINGS",
     "REQUIRED",
     "IMAGES",
     "SCHEMA_VERSION",
@@ -900,9 +1007,11 @@ __all__ = [
     "job_id",
     "label_for",
     "markdown_of",
+    "migrate",
     "page_size",
     "read",
     "read_one",
+    "refresh",
     "stamp",
     "rows",
     "validate",
