@@ -516,20 +516,31 @@ class Ink:
     # capital" applied the monogram interlock to whole words.
 
     def stem(self) -> float:
-        """The face's stroke width in x-heights, measured off its own `l`.
+        """The face's stroke width in x-heights, measured off its own letters.
 
-        A connector or a flourish drawn at some invented width reads as a
-        second pen; drawn at the face's own it reads as the same one. `l` is a
-        bare stem in both shipped faces, so the width of its ink is the width
-        of its stroke.
+        The **narrowest** ink among the characters that are a single stroke,
+        not the first one that passes a sanity check. That was the bug: the
+        candidates were tried in order and `l` came first, but PatrickHand's
+        `l` carries a curl and its box is 0.495 x-heights wide where
+        IndieFlower's is 0.190 -- two faces of the same source disagreeing by
+        2.6x, and the wider one three times any pen that ever drew a letter.
+
+        Everything that is not a letter is drawn relative to this -- ligature,
+        scrawl, terminal, paraph -- so on one face they were all three times
+        too heavy, which is exactly the fat brush wedge a reader sees beside
+        letters it dwarfs. A bar or a dotted `i` is a stroke and nothing else;
+        among the candidates the narrowest is the one carrying no flourish.
         """
-        for candidate in ("l", "i", "t"):
+        widths = []
+        for candidate in ("|", "l", "i", "I"):
+            if not self.has(candidate):
+                continue
             outline, _advance = self.outline(candidate)
             if outline:
                 x0, _y0, x1, _y1 = bounds(outline)
                 if 0.02 < x1 - x0 < 0.5:
-                    return x1 - x0
-        return 0.11
+                    widths.append(x1 - x0)
+        return min(widths) if widths else 0.11
 
 
 def _ContourPen(glyphset):

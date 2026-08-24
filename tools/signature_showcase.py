@@ -77,8 +77,9 @@ def grid(out: Path, stem: str, source: str = "font",
             try:
                 marks.append((seed, signer.sign(NAMES[index % len(NAMES)])))
             except (ValueError, RuntimeError) as error:
-                # The checkpoint has no ALL-CAPS, so about a third of the
-                # styles are monograms it cannot write. On a page `fill` falls
+                # `Style.restrict` keeps the model off the styles it cannot
+                # write, so this should not fire at all -- it did on eleven of
+                # eighteen seeds before that landed. On a page `fill` falls
                 # back to the font; on a catalogue of THIS source's ink, saying
                 # so is more useful than quietly substituting the other one.
                 print(f"     seed {seed}: {str(error)[:60]}")
