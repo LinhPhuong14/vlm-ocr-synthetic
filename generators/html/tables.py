@@ -369,10 +369,10 @@ def metadata_record(label: dict, width: int, height: int, seed: int = 0,
     """The same label in this repository's index shape.
 
     The *envelope* is the one every other page is written in -- the converter's
-    schema, built by `pipeline/record.py` -- and the `task` is what says this
-    one is not a document: `table_structure`, not `convert`. So one loader finds
-    both, which is what the index is for, and neither label pretends to be the
-    other.
+    schema, built by `pipeline/record.py`, in one file beside the image -- and
+    the `task` is what says this one is not a document: `table_structure`, not
+    `convert`. So one loader reads both kinds, and neither label pretends to be
+    the other.
 
     Inside that envelope a table's label is still its own thing. A document's
     `extracted` is a parsed receipt; a table has no fields to extract and the
@@ -511,10 +511,8 @@ def generate(out: Path, count: int, seed: int, *, box_type: str = "cell",
         for label in labels:
             json.dump(label, handle, ensure_ascii=False)
             handle.write("\n")
-    with open(out / "metadata.jsonl", "w", encoding="utf-8") as handle:
-        for item in records:
-            json.dump(item, handle, ensure_ascii=False)
-            handle.write("\n")
+    for item in records:
+        record.write_one(item, out)
     synthesis.write(synthesis.beside(out), "html", notes)
     return len(records)
 

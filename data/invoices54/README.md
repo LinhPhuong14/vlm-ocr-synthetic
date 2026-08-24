@@ -73,7 +73,8 @@ invoices54/
 ├── dataset.json        số ảnh mỗi renderer, chia theo bố cục, và `template`
 ├── html/
 │   ├── html_000.jpg …  27 ảnh
-│   └── metadata.jsonl  một dòng một ảnh
+│   ├── html_000.json … một record mỗi ảnh
+│   └── synthesis.json  trang ấy được sinh ra thế nào
 └── genalog/            27 ảnh, cùng 27 hoá đơn ấy
 ```
 
@@ -82,7 +83,7 @@ chạy, `.gitignore` bỏ chúng như với mọi bộ khác — seed của từ
 `seed` trong `synthesis.json` của chính trang ấy, nên dựng lại một ảnh không cần
 tới chúng.
 
-Một dòng `metadata.jsonl` như mọi bộ khác:
+Một record (`html_004.json`) như mọi bộ khác:
 
 ```json
 {"schema_version": 8,

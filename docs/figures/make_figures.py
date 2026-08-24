@@ -5,7 +5,7 @@
 
 Not part of the generation pipeline. Nothing here renders a page or ages one:
 every pixel comes from a dataset that already exists on disk, and every box
-comes from the `metadata.jsonl` a renderer wrote beside it. The script only
+comes from the record a renderer wrote beside it. The script only
 crops, scales, labels and tiles, so a figure cannot show anything the generator
 did not produce.
 
@@ -34,7 +34,6 @@ PyYAML`).
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
@@ -75,13 +74,18 @@ def families() -> dict[str, str]:
 
 
 def records(root: Path, framework: str) -> list[dict]:
-    path = root / framework / "metadata.jsonl"
-    if not path.exists():
+    directory = root / framework
+    try:
+        found = record.read(directory)
+    except record.RecordError as error:
+        raise SystemExit(f"{directory}: {error}") from error
+    if not found:
         raise SystemExit(
-            f"missing {path} -- this script draws from a dataset that already "
-            f"exists; build one with `make dataset` or point --dataset elsewhere"
+            f"no pages in {directory} -- this script draws from a dataset that "
+            f"already exists; build one with `make dataset` or point --dataset "
+            f"elsewhere"
         )
-    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+    return found
 
 
 def read(root: Path, framework: str, name: str) -> np.ndarray:
@@ -196,7 +200,7 @@ def figure_ageing(aged: Path, clean: Path, out: Path, index: int = 0) -> None:
 
 
 def figure_boxes(aged: Path, out: Path, index: int = 0) -> None:
-    """The `blocks` of metadata.jsonl, drawn on the image they describe."""
+    """The `blocks` of each record, drawn on the image they describe."""
     panels = []
     for framework in FRAMEWORKS:
         row = records(aged, framework)[index]

@@ -4,7 +4,7 @@
 
 Box coverage is the kind of thing that breaks silently. The first version of
 the genalog extractor lost every field after the first separator row -- the
-images were fine, the labels were fine, `metadata.jsonl` was well-formed, and
+images were fine, the labels were fine, every record was well-formed, and
 coverage was 82% instead of 100%. Nothing but counting the cells would have
 said so.
 
@@ -199,16 +199,20 @@ def main() -> int:
     total_problems = 0
     for framework in FRAMEWORKS:
         directory = args.dataset / framework
-        metadata = directory / "metadata.jsonl"
-        if not metadata.exists():
-            print(f"[skip] {framework}: no metadata.jsonl")
+        if not directory.is_dir() or not schema.images(directory):
+            print(f"[skip] {framework}: no images")
             continue
 
-        records = schema.read(metadata)
-        # The recipe is what this file rebuilds a page from, and it is beside
-        # the index rather than in it. Without it there is nothing to check the
-        # boxes *against*, so a missing file is reported and the framework
-        # skipped -- not quietly scored as clean.
+        try:
+            records = schema.read(directory)
+        except schema.RecordError as error:
+            print(f"[PROBLEM] {framework}: {error}")
+            total_problems += 1
+            continue
+        # The recipe is what this file rebuilds a page from, and it is in the
+        # file beside the pages rather than in each one. Without it there is
+        # nothing to check the boxes *against*, so a missing file is reported
+        # and the framework skipped -- not quietly scored as clean.
         try:
             drew = synthesis.read(directory)
         except synthesis.SynthesisError as error:

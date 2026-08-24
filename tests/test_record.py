@@ -120,8 +120,8 @@ def test_every_kind_in_every_committed_dataset_is_mapped():
     """
     unmapped: dict[str, str] = {}
     seen = 0
-    for path in sorted(DATA.rglob("metadata.jsonl")):
-        for item in R.read(path):
+    for directory in page_directories():
+        for item in R.read(directory):
             for block in R.boxes(item):
                 kind = str(block.get("kind", ""))
                 seen += 1
@@ -129,7 +129,7 @@ def test_every_kind_in_every_committed_dataset_is_mapped():
                     # `Text` is a real answer for some kinds; only a kind that
                     # matches no prefix at all is a hole.
                     if not any(kind == p or kind.startswith(p) for p in R.LABELS):
-                        unmapped[kind] = str(path.relative_to(REPO_ROOT))
+                        unmapped[kind] = str(directory.relative_to(REPO_ROOT))
     assert seen, "no committed dataset to check against"
     assert unmapped == {}
 
@@ -264,31 +264,64 @@ def test_a_record_that_would_break_a_loader_is_named(break_it, expected):
     assert any(expected in problem for problem in problems), problems
 
 
-def test_a_good_record_survives_a_round_trip(tmp_path):
-    path = tmp_path / "metadata.jsonl"
-    assert R.write([a_record(), a_record(filename="html_001.jpg")], path) == 2
-    back = R.read(path)
+def test_a_record_is_written_beside_its_image_and_named_after_it(tmp_path):
+    """One file per page, so the images are the listing and nothing else is."""
+    for name in ("html_000.jpg", "html_001.jpg"):
+        (tmp_path / name).write_bytes(b"pretend jpeg")
+    assert R.write([a_record(), a_record(filename="html_001.jpg")], tmp_path) == 2
+
+    assert (tmp_path / "html_000.json").exists()
+    assert (tmp_path / "html_001.json").exists()
+    assert R.read_one(tmp_path / "html_000.jpg") == a_record()
+
+    back = R.read(tmp_path)
     assert [R.file_name(item) for item in back] == ["html_000.jpg", "html_001.jpg"]
-    assert back[0] == a_record()
+
+    # A file nothing is named after is not a record, however much it looks like
+    # one -- which is what lets `synthesis.json` share the directory.
+    (tmp_path / "synthesis.json").write_text("{}", encoding="utf-8")
+    assert len(R.read(tmp_path)) == 2
+
+
+def test_an_image_with_no_record_stops_a_read_rather_than_being_skipped(tmp_path):
+    """A dataset that is quietly short is the failure the shard exists to stop."""
+    (tmp_path / "html_000.jpg").write_bytes(b"pretend jpeg")
+    R.write_one(a_record(), tmp_path)
+    (tmp_path / "html_001.jpg").write_bytes(b"pretend jpeg")
+
+    with pytest.raises(R.RecordError, match="html_001.jpg has no html_001.json"):
+        R.read(tmp_path)
 
 
 def test_writing_a_bad_record_raises_rather_than_writing_it(tmp_path):
-    path = tmp_path / "metadata.jsonl"
     with pytest.raises(R.RecordError):
-        R.write([a_record(extracted=None)], path)
+        R.write([a_record(extracted=None)], tmp_path)
+    assert not list(tmp_path.glob("*.json"))
 
 
 # --------------------------------------------------------- what is committed
 
 
-def test_every_committed_dataset_is_in_the_shape_this_file_defines():
-    """`head -1 data/dataset60/html/metadata.jsonl` is the README's first example."""
-    files = sorted(DATA.rglob("metadata.jsonl"))
-    assert files, "no committed dataset to check"
-    for path in files:
-        for line in path.read_text(encoding="utf-8").splitlines():
-            if not line.strip():
-                continue
-            item = json.loads(line)
-            where = f"{path.relative_to(REPO_ROOT)}:{item.get('filename')}"
-            assert R.validate(item) == [], where
+def page_directories():
+    """Every committed directory of drawn pages.
+
+    A directory of pages is one with a `synthesis.json` in it -- which is what
+    tells `data/dataset60/html/` apart from `data/dataset60/proof/`, whose
+    images are Tesseract's working, not the generator's output.
+    """
+    return sorted(path.parent for path in DATA.rglob("synthesis.json"))
+
+
+def test_every_committed_page_has_a_record_in_the_shape_this_file_defines():
+    """`cat data/dataset60/html/html_000.json` is the README's first example."""
+    directories = page_directories()
+    assert directories, "no committed dataset to check"
+    seen = 0
+    for directory in directories:
+        for image in R.images(directory):
+            path = R.beside(image)
+            where = str(image.relative_to(REPO_ROOT))
+            assert path.exists(), f"{where} has no record beside it"
+            assert R.validate(json.loads(path.read_text(encoding="utf-8"))) == [], where
+            seen += 1
+    assert seen == 307, seen

@@ -68,8 +68,7 @@ if os.environ.get("SHARD_TEST_REVERSE"):
     pages = [(index, job, seed) for index, (_i, job, seed)
              in enumerate(reversed(pages))]
 
-with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as handle, \\
-        synthesis.Writer(synthesis.beside(args.out), "html") as notes:
+with synthesis.Writer(synthesis.beside(args.out), "html") as notes:
     for index, job, seed in pages:
         recipe, receipt, grid = rulebase.make(seed=seed, force={"layout": job.layout})
         name = f"html_{index:03d}.jpg"
@@ -80,8 +79,7 @@ with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as handle, \\
                     "quad": [[0, 0], [10, 0], [10, 10], [0, 10]]}
                    for cell in grid.cells if cell.text.strip() and cell.role != "sep"],
             extracted=receipt.ground_truth(), seed=seed, layout=grid.layout_id)
-        json.dump(item, handle, ensure_ascii=False)
-        handle.write("\\n")
+        record.write_one(item, args.out, strict=False)
         notes.add(name, job_id=item["job_id"], layout=grid.layout_id,
                   recipe=recipe.to_dict(), text_sequence=receipt.text_sequence())
 '''
@@ -109,7 +107,7 @@ def rendered(shard, tmp_path, **plan):
     out = tmp_path / "run"
     result = worker.render_shard(shard, out, {"clean": False, "force": [], **plan})
     directory = worker.shard_dir(out, shard["index"])
-    return result, directory, record.read(directory / "metadata.jsonl")
+    return result, directory, record.read(directory)
 
 
 def provenance(directory):
@@ -122,6 +120,10 @@ def test_a_shard_comes_out_in_the_shape_record_defines(shard, tmp_path):
     assert result["images"] == 3
     assert worker.is_done(directory)
     assert len(items) == 3
+    # One record per image, named after it, and no index left behind.
+    assert not (directory / "metadata.jsonl").exists()
+    for item in items:
+        assert record.beside(directory / record.file_name(item)).exists()
     for item in items:
         assert record.validate(item) == [], record.file_name(item)
         assert item["schema_version"] == record.SCHEMA_VERSION
@@ -203,8 +205,9 @@ def test_a_renderer_that_returns_its_pages_in_another_order_is_caught(
 
 def test_a_shard_that_is_already_done_is_left_alone(shard, tmp_path):
     _result, directory, items = rendered(shard, tmp_path)
-    stamp = (directory / "metadata.jsonl").stat().st_mtime_ns
+    first = record.beside(directory / record.file_name(items[0]))
+    stamp = first.stat().st_mtime_ns
 
     again = worker.render_shard(shard, tmp_path / "run", {"clean": False, "force": []})
     assert again["skipped"] and again["images"] == 0
-    assert (directory / "metadata.jsonl").stat().st_mtime_ns == stamp
+    assert first.stat().st_mtime_ns == stamp

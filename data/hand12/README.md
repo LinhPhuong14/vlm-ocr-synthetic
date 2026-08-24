@@ -73,7 +73,7 @@ và đều để trắng, vì tài liệu ấy không bật `signature_names`.
 | `tests/test_handwriting.py::…does_not_change_what_the_page_says` | `labelled_runs` trước và sau khi điền bằng nhau, 6 họ tờ giấy |
 | `generators/html/overlap.py` | **0** cặp hộp chữ chồng nhau >30 % |
 | `pipeline/invariants.py` | **0** lỗi / 12 ảnh |
-| sinh lại từ `jobs.json` | `metadata.jsonl` **trùng từng byte** — chọn người viết, màu mực, cỡ chữ đều rút từ hạt giống của trang |
+| sinh lại từ `jobs.json` | mọi record **trùng từng byte** — chọn người viết, màu mực, cỡ chữ đều rút từ hạt giống của trang |
 
 Phép đo thứ hai là phép đo đáng giá nhất ở đây. Mực **thay cách vẽ một giá trị,
 không thay giá trị** — nếu nó đổi nhãn thì `check_boxes` sẽ báo mọi ảnh mất

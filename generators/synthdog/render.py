@@ -8,7 +8,7 @@ seed can be chosen per image and a bố cục pinned. That is what the dataset
 driver needs and what the synthtiger CLI, which owns its own loop and its own
 train/validation/test split, does not offer.
 
-Writes the same `metadata.jsonl` shape as `generators/html/render.py` and
+Writes the same per-image record shape as `generators/html/render.py` and
 `generators/genalog/render.py`, so the three are directly comparable.
 
 Run it from `generators/synthdog/`: the paths in `config_vi_receipt.yaml` are
@@ -18,7 +18,6 @@ relative to that directory.
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
@@ -112,8 +111,7 @@ def main() -> int:
     # carries every box on the page. Written in page order, which is the order
     # the caller listed the jobs in -- `pipeline/worker.py` walks the runs in
     # that order to name the files.
-    with open(args.out / "metadata.jsonl", "w", encoding="utf-8") as metadata, \
-            synthesis.Writer(synthesis.beside(args.out), "synthdog") as notes:
+    with synthesis.Writer(synthesis.beside(args.out), "synthdog") as notes:
         for index, job, seed in worklist.pages(jobs):
             # ALL THREE global generators, not just numpy's.
             #
@@ -157,8 +155,7 @@ def main() -> int:
                     boxes=data["boxes"], extracted=data["gt_parse"],
                     seed=seed, layout=drawn)
             with profiling.stage("export"):
-                json.dump(item, metadata, ensure_ascii=False)
-                metadata.write("\n")
+                record.write_one(item, args.out, strict=False)
                 notes.add(name, job_id=item["job_id"], layout=drawn,
                           recipe=data["recipe"],
                           text_sequence=data["text_sequence"])
