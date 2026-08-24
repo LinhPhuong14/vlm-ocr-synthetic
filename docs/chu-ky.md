@@ -60,6 +60,8 @@ dạng dùng làm chuẩn.
 | Người Việt thường ký **tên** (từ cuối), kéo dài chữ cái đầu của nó | hướng dẫn chữ ký VN | `parts_of` + `legibility="given"` |
 | Nét xuống dày, nét lên mảnh; nét vào và nét ra thon lại thành mũi | thư pháp | `ribbon(w0, w1, bulge)` |
 | Ô thu mẫu chuẩn: GPDS 5×1,8 cm và 4,5×2,5 cm; CEDAR 50×50 mm | bộ dữ liệu offline | `ASPECT` = 1,8–3,0, **chỉ để báo cáo** |
+| Chữ ký lệch khỏi dòng kẻ của tờ giấy, và mỗi người ký một cỡ | giám định (kích cỡ là đặc điểm cá nhân) | `SIZE`, `TILT`, `DRIFT` — **dải là phán đoán** |
+| Viết nhanh thì rụng dấu phụ | giám định (giản lược) | `MARKS` = 0,34 — **tỷ lệ là phán đoán**, không phải số đo |
 
 Hai điều đáng nói về bảng này.
 
@@ -336,6 +338,26 @@ hạt giống, không lần nào phải lùi về mặt chữ.
 nét nguệch trong khi `Nguyen` ra một nét viết liền, và `Lê` theo sau là mười ô
 sóng thì đọc như một dấu ký rỗng. `HEAD_LETTERS = 3` — đọc ra từ ảnh chứ không
 từ khảo sát — nên một từ đầu quá ngắn sẽ lấy thêm từ kế tiếp.
+
+**Trace không lấy lại được phần thon của nét.** Ngưỡng cứng luôn cắt cụt đuôi
+nét: chỗ bút nhấc mảnh hơn mọi ngưỡng, nên nó thành đầu tù. Đã quét thử
+70/100/140 trên chính ảnh gốc — ngưỡng thấp **không** trả lại phần thon, nó chỉ
+làm béo toàn bộ nét và rời xa cây bút của mô hình hơn. Muốn có phần thon thật
+thì phải dựng xương và biên dạng bề rộng rồi vẽ lại nét, chứ không phải trace
+đường viền. Chưa làm, và ghi ra đây thay vì vờ như đã làm.
+
+**Bao nhiêu phần tan ra**, đo trên 600 hạt giống × kho tên:
+
+| | tan thành nét lượn | đọc nguyên vẹn |
+| --- | --- | --- |
+| `font` | 74 % | 15 % |
+| `model` | 67 % | 10 % |
+
+Con số của `model` từng là **56 % đọc nguyên vẹn** — vì `given` là một từ, mà
+phần đầu cắt theo ranh giới từ thì nuốt trọn cả từ và `_scrawl` không bao giờ
+với tới được. Cắt trong từ được cho phép khi phần đầu chỉ có một từ và dài hơn
+`HEAD_LETTERS`; `Ngọc` thành `Ngo` + một ô sóng, còn `Đạo` ba chữ thì giữ
+nguyên vì không có gì để cắt.
 
 **Tỷ lệ khung không bị ép.** `ASPECT` chỉ để báo cáo: `Mark.report()` trả về
 `in_capture_box`, và với tên ngắn thì dấu ký hay rơi ra ngoài dải 1,8–3,0. Ép

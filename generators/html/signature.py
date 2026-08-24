@@ -219,6 +219,24 @@ def affine(sx: float = 1.0, sy: float = 1.0, shear: float = 0.0,
     return fn
 
 
+def rotate(degrees: float, pivot=(0.0, 0.0)):
+    """A rotation about `pivot`, which `affine` deliberately cannot express.
+
+    `affine` is scale-then-shear-then-translate, which is what a slant is. A
+    signature also sits a degree or two off the paper's ruling, and that is a
+    rotation: every mark on a page shearing but never turning is one of the
+    tells that says synthetic before anything about the strokes does.
+    """
+    angle = math.radians(degrees)
+    cos, sin = math.cos(angle), math.sin(angle)
+    px, py = pivot
+
+    def fn(point):
+        x, y = point[0] - px, point[1] - py
+        return (px + x * cos - y * sin, py + x * sin + y * cos)
+    return fn
+
+
 def at(seg, t: float):
     """A point on one cubic segment `(p0, c1, c2, p1)`."""
     (x0, y0), (x1, y1), (x2, y2), (x3, y3) = seg
@@ -491,6 +509,12 @@ class Ink:
                 path, advance = self.outline(char)
                 yield (path, advance, char)
 
+    # `units` yields the unit's own text, not just its first character, so
+    # `_letters` and `_connectors` can tell a lone capital from a word that
+    # merely starts with one. For a font a unit is one character and the two
+    # are the same; for the model they are not, and treating `Trần` as "a
+    # capital" applied the monogram interlock to whole words.
+
     def stem(self) -> float:
         """The face's stroke width in x-heights, measured off its own `l`.
 
@@ -536,10 +560,19 @@ def _ContourPen(glyphset):
 # `--scale 4`, which is black-on-white, anti-aliased, and thin: a wider blur or
 # a lower level closes the counter of a `g` into a blob, which is exactly what
 # the first attempt did.
-TRACE_BLUR = 0.6                 # sigma, in source pixels: kills the pixel grid
+TRACE_BLUR = 0.6                 # sigma, in the pixels handed to `trace`
 TRACE_LEVEL = 140                # of 255, on the inverted image
 TRACE_SMOOTH = 2                 # moving-average half-width over the outline
-TRACE_MIN_AREA = 4.0             # source px^2; below this it is a stray speck
+TRACE_MIN_AREA = 36.0            # px^2 of the ZOOMED tile; below this, a speck
+
+# All four are in the units `trace` is CALLED in, which is the zoomed tile --
+# `TRACE_ZOOM` below is applied first. Read as source pixels the blur is 0.1
+# and the area floor is 1, which is what the numbers used to claim and is not
+# what they do. The area floor matters most: a dấu nặng at this zoom traces to
+# a few hundred px^2 and survives, while the stray specks the model leaves
+# between letters do not -- and a speck inside a signature reads as a comma,
+# which is the one kind of ink this whole module exists to keep out of a
+# reader's way.
 
 # What the tile is enlarged by before it is traced, and it is not optional.
 # `Hand._ask` hands back the model's **native 32 px**, where a stroke is one or
@@ -566,6 +599,13 @@ def trace(image, *, blur: float = TRACE_BLUR, level: int = TRACE_LEVEL,
     * **Blur before threshold, and only a little.** The raster is anti-aliased,
       so a bare threshold leaves a pixel staircase on every stroke edge. 0.6
       sigma smooths that; 1.2 fattens the ink and seals the loop of a `g`.
+    * **The level sets the stroke weight, and lower is not better.** Swept over
+      70/100/140 against the reference: 70 fattens every stroke well past the
+      model's own pen, 140 matches it. What a lower level does NOT do is
+      recover the pen-lift tapers -- a taper's tip is below any threshold, so a
+      hard cut always ends a stroke bluntly. Recovering that needs a skeleton
+      and a width profile rather than an outline trace, and this does not do
+      it; `docs/chu-ky.md` says so rather than pretending otherwise.
     * **Winding by signed area, not by the library's convention.** An outer
       contour and its holes must wind opposite ways or `fill-rule:nonzero`
       fills the counter of an `o` solid -- which is what happened when this
@@ -753,7 +793,7 @@ class ModelInk:
             path, advance = self._normalise(word, tile)
             if index:
                 advance += 0.28              # a word gap, in x-heights
-            yield (path, advance, word[0])
+            yield (path, advance, word)
 
     def _tiles(self, words: list):
         wanted = [word for word in words if word not in self._cache]
@@ -962,6 +1002,16 @@ LEAD = 0.45
 TALL_LETTERS = frozenset("bdhklt")
 TAIL_LETTERS = frozenset("gjpqy")
 
+# How a hand varies from the space it is given. `SIZE` multiplies the height a
+# sheet asks for; `TILT` turns the whole mark off the paper's ruling, in
+# degrees; `DRIFT` slides it off the centre of its block, in its own widths.
+# Ranges are a judgement -- the survey says signatures vary in size and sit off
+# the ruling, not by how much -- but zero was measurably wrong.
+MARKS = 0.34                     # of signers keep the dấu; see `Style.marks`
+SIZE = (0.82, 1.26)
+TILT = (-2.6, 2.4)
+DRIFT = (-0.10, 0.10)
+
 # The capture aspect the reference corpora use -- GPDS boxes 5x1.8 cm and
 # 4.5x2.5 cm, so 1.8:1 to 2.8:1 -- rounded out to 3. Nothing is forced into it;
 # `Mark.aspect` reports where the mark landed so a caller can see when the
@@ -1001,9 +1051,13 @@ class Style:
         # Marks (dấu) survive or are dropped. The survey's simplification
         # finding covers "the diacritic is the first thing a fast hand loses";
         # THE SPLIT IS A JUDGEMENT, not a count.
-        # Marks are dropped far more often than they are kept: a hand moving
-        # fast enough to abandon the letters is not going back for the dấu.
-        self.marks = rng.random() < 0.20
+        # Whether the dấu survive. A hand moving fast enough to abandon the
+        # letters is not going back for them, so they are dropped more often
+        # than kept -- but at one in five, four names in five signed a
+        # Vietnamese form with no Vietnamese in them, which is the wrong
+        # default for a set whose hard part IS the dấu. THE RATE IS A
+        # JUDGEMENT: the survey says simplification drops them, not how often.
+        self.marks = rng.random() < MARKS
         self.scrawl = rng.random() < SCRAWL
         self.survives = rng.randint(*SURVIVES)
         self.step = rng.uniform(*SCRAWL_STEP)
@@ -1020,6 +1074,14 @@ class Style:
         # two names would advance it and the second underline would sag
         # differently from the first for no reason a dataset could explain.
         self.wobble = tuple(rng.uniform(-1.0, 1.0) for _ in range(6))
+        # How big this hand signs, how far off the paper's ruling, and how far
+        # from the middle of the space it was given. All three were fixed, and
+        # all three showed: two marks on one page began at the same y to the
+        # pixel, sat centred on their captions to within 3 px, and had baselines
+        # exactly parallel to the printed text. Nobody signs like that.
+        self.size = rng.uniform(*SIZE)
+        self.tilt = rng.uniform(*TILT)
+        self.drift = rng.uniform(*DRIFT)
         # Which of WriteViT's 106 writer styles signs, when the ink comes from
         # the model. Drawn **last**, and the position is load-bearing: every
         # draw above it has to keep the stream position it already had, or
@@ -1063,11 +1125,10 @@ class Style:
 
     def report(self) -> dict:
         """What a dataset's label should carry about this mark."""
-        return {"face": self.face, "legibility": self.legibility,
+        return {"legibility": self.legibility,
                 "baseline": self.baseline, "paraph": self.paraph,
                 "connected": self.connected, "flourish": self.flourish,
                 "lead": self.lead, "scrawl": self.scrawl,
-                "writer": self.writer,
                 "slant_deg": round(math.degrees(math.atan(self.slant)), 1),
                 "marks": self.marks}
 
@@ -1104,6 +1165,37 @@ def _bow(rng: random.Random, baseline: str) -> tuple:
     if baseline == "wavy":
         return (rng.uniform(-0.08, 0.14), rng.uniform(0.12, 0.34))
     return (rng.uniform(-0.03, 0.05), rng.uniform(0.0, 0.05))
+
+
+def _middle(path: list):
+    """The centre of a path's box -- what a mark turns about.
+
+    About its own middle rather than its origin, so a tilt turns the signature
+    where it sits instead of swinging it off the line it was placed on.
+    """
+    x0, y0, x1, y1 = bounds(path)
+    return ((x0 + x1) / 2.0, (y0 + y1) / 2.0)
+
+
+def _leaving(path: list):
+    """A point the ink is actually drawn through, to the right and low.
+
+    `_entry`'s mirror, and it exists for the same reason: a stroke aimed at
+    the corner of a bounding box starts on blank paper. The terminal used to
+    leave from `(x1, y0 + 0.12h)` and was a **separate connected component
+    from the letters in sixteen of eighteen** marks -- a swoosh lying next to
+    a signature rather than leaving it.
+
+    Low, because that is where a pen is when it finishes a letter, and
+    rightmost among those, because that is where it finishes the mark.
+    """
+    x0, y0, x1, y1 = bounds(path)
+    cut = y0 + (y1 - y0) * 0.55
+    on_curve = [contour[index]
+                for contour in path
+                for index in range(0, len(contour) - 1, 3)]
+    low = [point for point in on_curve if point[1] <= cut]
+    return max(low or on_curve or [(x1, y0)], key=lambda point: point[0])
 
 
 def _weighted(rng: random.Random, table) -> str:
@@ -1191,6 +1283,19 @@ def head_and_tail(text: str, style: "Style", whole_words: bool = False) -> tuple
                and len("".join(words[:take]).strip()) < HEAD_LETTERS):
             take += 1
         head, rest = " ".join(words[:take]), words[take:]
+        if not rest and " " not in head and len(head) > HEAD_LETTERS:
+            # One long word and nothing after it: the hand still lets go part
+            # way through. Cutting inside a word is what `whole_words` exists
+            # to avoid, but only because the model writes a SHORT fragment
+            # badly -- a fragment of `HEAD_LETTERS` or more it writes fine, and
+            # refusing to cut here is what left a majority of model marks fully
+            # legible with the scrawl unreachable. A three-letter given name
+            # still survives whole -- there is nothing to cut off it -- and a
+            # head that is already several words is left alone: it got that way
+            # by reaching for a second word, and cutting it again would undo
+            # the reaching.
+            cut = max(style.survives, HEAD_LETTERS)
+            return head[:cut], head[cut:]
         return head, (" " + " ".join(rest)) if rest else ""
     kept = 0
     for index, char in enumerate(text):
@@ -1240,6 +1345,14 @@ class Mark:
 
     def report(self) -> dict:
         report = self.style.report()
+        # The face belongs to the mark rather than to the style, because only
+        # one of the two inks has one: every model mark used to record
+        # `PatrickHand-Regular.ttf` beside `"source": "model"`, which is a
+        # label naming a typeface for ink a neural net drew.
+        if self.source == "font":
+            report["face"] = self.style.face
+        else:
+            report["writer"] = self.style.writer
         report.update({"source": self.source, "name": self.name, "drawn": self.text,
                        "legible": self.head, "degenerated": self.tail,
                        "aspect": round(self.aspect, 2),
@@ -1355,7 +1468,9 @@ class Signer:
         if style.flourish:
             path += self._terminal(path)
         path += self._paraph(path)
-        return Mark(mapped(path, affine(shear=style.slant)), style, text, name,
+        slanted = mapped(path, affine(shear=style.slant))
+        turned = mapped(slanted, rotate(style.tilt, _middle(slanted)))
+        return Mark(turned, style, text, name,
                     head=head, tail=tail, source=self.source)
 
     def _letters(self, text: str) -> list:
@@ -1383,7 +1498,7 @@ class Signer:
         # it is, and it is the source's call.
         stretch = getattr(ink, "stretches_initial", True)
         drawn, pen = [], 0.0
-        for path, advance, char in ink.units(text):
+        for path, advance, unit in ink.units(text):
             if not path:
                 pen += advance
                 continue
@@ -1392,13 +1507,25 @@ class Signer:
             sy = style.cap if initial and stretch else 1.0
             x0 = bounds(path)[0]
             placed = mapped(path, affine(sx, sy, dx=pen - x0 * sx))
-            drawn.append((bounds(placed), placed, char))
+            drawn.append((bounds(placed), placed, unit))
             # Capitals are pulled together harder than lowercase. `_connectors`
             # refuses to join two of them -- a print face gives them no exit
             # stroke -- so overlap is the only thing that can make a monogram
             # read as one mark instead of three letters set side by side.
-            close = style.overlap * (1.35 if char.isupper() and not initial else 1.0)
-            pen += advance * sx - (0.0 if initial else min(close, 0.38) * advance)
+            # The 1.35 is for a MONOGRAM -- two lone capitals that a print
+            # face gives no exit stroke to join with. A whole word that merely
+            # begins with a capital is not that, and applying it there laid
+            # each following word on top of the one before: `Trần Văn Hùng`
+            # came out `TrầnVănHùng`.
+            lone = len(unit) == 1 and unit.isupper()
+            close = style.overlap * (1.35 if lone and not initial else 1.0)
+            # Taken off the width the unit was actually SET at, not off its
+            # unsqueezed advance. Off the raw advance the two scales fight:
+            # the net factor is `squeeze - close`, which fell to 0.106 at one
+            # seed, and a word-writing source laid every following word on top
+            # of 40-72% of the one before -- `Trần Văn Hùng` came out as
+            # `TrầnVănHùng` with no word gaps in it at all.
+            pen += advance * sx * (1.0 if initial else 1.0 - min(close, 0.38))
         return drawn
 
     def _scrawl(self, tail: str, start: tuple) -> list:
@@ -1429,12 +1556,17 @@ class Signer:
                      for index in range(SCRAWL_SLOTS)]
 
         width = self.ink.stem()
-        x, foot = start
-        spine = [(x, foot)]
+        x, base = start
+        spine = [(x, base)]
         for index, char in enumerate(slots):
             # Amplitude decays along the wave: the hand is running down, which
             # is the same finding `fade` applies to the letters.
-            scale = 1.0 - style.decay * (index / max(len(slots) - 1, 1))
+            run = index / max(len(slots) - 1, 1)
+            # Decay with a surge on top of it, not a straight ramp. A running
+            # tail dies away and picks up again; a monotone `1 - decay*u` only
+            # ever shrinks, which is a tell at a glance.
+            scale = (1.0 - style.decay * run) * (
+                1.0 + 0.26 * math.sin(math.pi * (run * 2.2 + style.pulse[0])))
             # Two independent draws: one for how far this slot travels, one for
             # how high it reaches. Sharing one number made width and height
             # rise and fall together, and a wave whose humps all grow at once
@@ -1442,6 +1574,10 @@ class Signer:
             wide = style.pulse[(index * 2) % len(style.pulse)]
             jog = style.pulse[(index * 2 + 1) % len(style.pulse)]
             step = style.step * (0.62 + 0.78 * wide)
+            # The line the wave runs on is not a ruler. Every slot used to
+            # start at the same `foot` and end 0.03 above it, so the humps
+            # stood on a dead-level baseline no hand draws.
+            foot = base + (wide - 0.5) * 0.16 * scale
             plain = undiacritic(char).lower()
             if plain in TAIL_LETTERS:
                 spine += self._slot_down(x, foot, step, scale, jog)
@@ -1457,7 +1593,7 @@ class Signer:
         # that has stopped forming letters has stopped pressing too, and a
         # steep wave stroked at full width closes its own gaps into a wedge --
         # which is exactly what the first attempt at this drew.
-        return [ribbon(spine, width * 0.58, width * 0.36, samples=12)]
+        return [ribbon(spine, width * 0.88, width * 0.60, samples=12)]
 
     @staticmethod
     def _slot_hump(x: float, foot: float, step: float, scale: float,
@@ -1468,8 +1604,12 @@ class Signer:
         lowercase letters are once the detail that told them apart is gone.
         """
         rise = (0.38 + 0.52 * jog) * scale
-        return [(x + step * 0.08, foot + rise * 0.92),
-                (x + step * 0.92, foot + rise),
+        # Controls at a THIRD and two thirds of the step, lifted above the peak
+        # so the curve reaches it: that is an arch. The first version put them
+        # at 8% and 92% at the peak's own height, which is a plateau with
+        # near-vertical sides -- a row of battlements, and it read as one.
+        return [(x + step * 0.30, foot + rise * 1.36),
+                (x + step * 0.70, foot + rise * 1.36),
                 (x + step, foot + 0.03 * scale)]
 
     @staticmethod
@@ -1543,8 +1683,8 @@ class Signer:
         """
         width = self.ink.stem() * 0.85
         out = []
-        for (left, _a, left_char), (right, _b, right_char) in zip(glyphs, glyphs[1:]):
-            if left_char.isupper() and right_char.isupper():
+        for (left, _a, before), (right, _b, after) in zip(glyphs, glyphs[1:]):
+            if all(len(u) == 1 and u.isupper() for u in (before, after)):
                 continue
             gap = right[0] - left[2]
             if gap < -0.30 or gap > 1.20:    # already crossing, or a word apart
@@ -1557,7 +1697,7 @@ class Signer:
                      (start[0] + span * 0.35, sag),
                      (end[0] - span * 0.35, sag),
                      end)
-            out.append(ribbon(spine, width * 0.5, width * 0.5, bulge=width * 0.12))
+            out.append(ribbon(spine, width * 0.72, width * 0.72, bulge=width * 0.12))
         return out
 
     def _warp(self, path: list, letters: int) -> list:
@@ -1592,9 +1732,8 @@ class Signer:
         is what the forensic sources say a terminal is for.
         """
         style = self.style
-        x0, y0, x1, y1 = bounds(path)
         width = self.ink.stem()
-        start = (x1 - width * 0.4, y0 + (y1 - y0) * 0.12)
+        start = _leaving(path)
         reach, rise = style.reach, style.rise
         spine = (start,
                  (start[0] + reach * 0.35, start[1] - 0.28),
@@ -1624,18 +1763,22 @@ class Signer:
                      (x1 - span * 0.25, under - 0.30),
                      (x0 + span * 0.20, under + 0.24),
                      (x0 - span * 0.08, under - 0.06))
-            return [ribbon(spine, width * 0.85, width * 0.10, bulge=width * 0.15)]
+            return [ribbon(spine, width * 1.15, width * 0.14, bulge=width * 0.15)]
 
         if style.paraph == "loop":
             spine = ((x0 - span * 0.10, under + 0.30),
                      (x0 + span * 0.30, under - 0.62),
                      (x1 - span * 0.10, under + 0.48),
                      (x1 + span * 0.10, under - 0.02))
-            return [ribbon(spine, width * 0.55, width * 0.75, bulge=width * 0.25)]
+            return [ribbon(spine, width * 0.85, width * 1.00, bulge=width * 0.25)]
 
-        rules = [(under, width * 0.62, width * 0.16)]
+        # At the letters' weight, not below it. The survey describes the
+        # paraph as the emphatic element of a mark; drawn at 0.62 of the pen it
+        # carried 35-45% less ink than the name above it and read as a printed
+        # rule on the form rather than as somebody's ink.
+        rules = [(under, width * 1.05, width * 0.30)]
         if style.paraph == "double":
-            rules.append((under - 0.24, width * 0.42, width * 0.12))
+            rules.append((under - 0.24, width * 0.70, width * 0.20))
         out = []
         for index, (y, w0, w1) in enumerate(rules):
             sag = -0.03 + wobble[index * 3] * 0.07
@@ -1643,14 +1786,14 @@ class Signer:
                      (x0 + span * 0.30, y + sag),
                      (x1 - span * 0.25, y + sag),
                      (x1 + span * 0.10, y + 0.08 + wobble[index * 3 + 2] * 0.08))
-            out.append(ribbon(spine, w0, w1, bulge=width * 0.06))
+            out.append(ribbon(spine, w0, w1, bulge=width * 0.10))
         return out
 
 
 # ------------------------------------------------------------------ output
 
 
-def view(mark: Mark, pad: float = 0.08):
+def view(mark: Mark, pad: float = 0.08, drift: float = 0.0):
     """`(d, width, height)` -- the mark flipped into SVG space, with a margin.
 
     Both writers of SVG go through this, and they have to: `mark_span` used to
@@ -1659,12 +1802,22 @@ def view(mark: Mark, pad: float = 0.08):
     frame that was supposed to hold it. One function, one frame, one answer to
     where the origin is.
 
+    `drift` slides the ink off the middle of its own frame, in frame widths.
+    It is done as **asymmetric padding rather than as CSS**: the block that
+    holds a mark is centred with `margin:auto`, and the two ways to move it
+    from there -- `position:relative` and `transform` -- both make a stacking
+    context, which is the exact mechanism `handwriting.ink_span` documents as
+    having desynchronised a whole page's text layer under WeasyPrint. Padding
+    is geometry, and geometry cannot do that.
+
     The y flip lives here and only here: the geometry above is y-up because
     fonts and baselines are, and SVG's y points down.
     """
     x0, y0, x1, y1 = mark.box
     margin = pad * max(y1 - y0, 1e-6)
     x0, y0, x1, y1 = x0 - margin, y0 - margin, x1 + margin, y1 + margin
+    room = abs(drift) * (x1 - x0)
+    x0, x1 = x0 - (room if drift < 0 else 0.0), x1 + (room if drift > 0 else 0.0)
     flipped = mapped(mark.path, lambda point: (point[0] - x0, y1 - point[1]))
     return d(flipped), x1 - x0, y1 - y0
 
@@ -1734,7 +1887,7 @@ def seed_label(mark: Mark, seed: int) -> str:
             f"{style.paraph[:4]} {mark.aspect:.1f}")
 
 
-def mark_span(mark: Mark, *, colour: str = PEN, height_em: float = 3.4,
+def mark_span(mark: Mark, *, colour: str = PEN, height_em: float = 4.4,
               overlap_em: float = 0.30, classes: str = "sig") -> str:
     """The markup a sheet drops above a printed name.
 
@@ -1751,7 +1904,8 @@ def mark_span(mark: Mark, *, colour: str = PEN, height_em: float = 3.4,
     printed under it, and one that stopped politely short of it reads as a
     picture of a signature rather than as ink on a form.
     """
-    body, w, h = view(mark)
+    body, w, h = view(mark, drift=mark.style.drift)
+    height_em *= mark.style.size
     width_em = height_em * w / max(h, 1e-6)
     return (f'<span class="{html.escape(classes)}" aria-hidden="true" '
             f'style="width:{width_em:.2f}em;height:{height_em:.2f}em;'
@@ -1812,7 +1966,7 @@ def _signer(seed: int, source: str, directory: Path, hand) -> "Signer":
 
 
 def fill(markup: str, *, seed: int = 0, names=(), colour: str = "",
-         directory: Path = HAND_FONT_DIR, height_em: float = 3.4,
+         directory: Path = HAND_FONT_DIR, height_em: float = 4.4,
          source: str = "font", hand=None):
     """Sign the sheet: a mark above every printed name in a signature block.
 
@@ -1855,15 +2009,18 @@ def fill(markup: str, *, seed: int = 0, names=(), colour: str = "",
     """
     from handwriting import PENS  # noqa: PLC0415 -- one table, not two
 
-    # The pen is drawn here rather than taken from `handwriting.Page`, and the
-    # two therefore differ on a page that is both filled and signed. That is
-    # the right way round: the clerk who fills a form in and the customer who
-    # signs it are not holding the same pen. A caller who wants them to match
-    # passes `colour=`.
-    rng = random.Random(seed ^ 0x50454E53)
-    pen = colour or "#%02x%02x%02x" % rng.choices(
-        [rgb for rgb, _ in PENS], [weight for _, weight in PENS])[0]
-    report = {"pen": pen, "source": source, "marks": [], "skipped": {}}
+    # A pen PER BLOCK, not per page. The clerk who fills a form in and the
+    # customer who signs it are not holding the same pen, and neither are the
+    # buyer and the seller -- one page came back with both signatures in the
+    # identical hex. `colour=` still forces one for a caller that wants it.
+    def ink_colour(index: int) -> str:
+        if colour:
+            return colour
+        rng = random.Random(seed ^ 0x50454E53 ^ (index * 0x9E3779B1))
+        return "#%02x%02x%02x" % rng.choices(
+            [rgb for rgb, _ in PENS], [weight for _, weight in PENS])[0]
+
+    report = {"source": source, "marks": [], "skipped": {}}
     column = [0]
     signers: dict = {}
     shared = hand
@@ -1898,8 +2055,10 @@ def fill(markup: str, *, seed: int = 0, names=(), colour: str = "",
                 report["skipped"][reason] = report["skipped"].get(reason, 0) + 1
         if mark is None:
             return match.group(0)
+        pen = ink_colour(index)
         entry = mark.report()
         entry["printed"] = bool(escaped)
+        entry["pen"] = pen
         report["marks"].append(entry)
         drawn = mark_span(mark, colour=pen, height_em=height_em)
         return f'<div class="who">{drawn}{inner}</div>' 
@@ -1956,14 +2115,17 @@ SOURCES = ("font", "model")
 
 __all__ = [
     "ASPECT", "BASELINE", "CAP_STRETCH", "CSS", "FACES", "LEAD", "LEGIBILITY",
-    "HEAD_LETTERS", "OVERLAP", "PARAPH", "PEN", "SCRAWL", "SLANT",
+    "DRIFT", "HEAD_LETTERS", "MARKS", "OVERLAP", "PARAPH", "PEN", "SCRAWL",
+    "SIZE",
+    "SLANT",
     "SOURCES", "SURVIVES",
     "TRACE_ZOOM", "WHO", "ModelInk", "trace",
     "Ink", "Mark", "Signer",
     "Style", "affine", "at", "bounds", "bow", "d", "fade", "fill",
     "head_and_tail", "letters_of", "line_controls", "mapped", "mark_span",
     "parts_of",
-    "polyline", "ribbon", "sheet", "subdivided", "svg", "swell", "tangent",
+    "TILT", "polyline", "ribbon", "rotate", "sheet", "subdivided", "svg",
+    "swell", "tangent",
     "undiacritic", "view",
 ]
 

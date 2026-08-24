@@ -66,6 +66,12 @@ Cái giá nằm ở chỗ khác và phải nói thẳng: **lưới này không c
 So với `styles.jpg`, dải kiểu hẹp lại còn `given` và `full` — vì `monogram` và
 `initials` là chuỗi chữ hoa theo định nghĩa.
 
+Hai giới hạn nữa, nhìn thấy được ở đây: **đầu nét bị tù** — ngưỡng trace luôn
+cắt mất phần thon chỗ bút nhấc, và hạ ngưỡng chỉ làm béo nét chứ không lấy lại
+được (xem `docs/chu-ky.md`); và **tỷ lệ khung rộng hơn `font`** — trung vị 3,3
+so với dải 1,8–3,0 các bộ chữ ký offline thu mẫu, vì model viết cả từ liền
+mạch nên dấu ký trải dài.
+
 ## Nhìn cái gì ở hai tờ
 
 `signed-folio.jpg` là `invoice_hotel_stay`, bố cục duy nhất trong bộ mẫu này có
