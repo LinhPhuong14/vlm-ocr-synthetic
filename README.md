@@ -52,6 +52,7 @@ giấy *quét vào* đọc lên giống hệt nhau.
 | **Degradation** — [`degradation/`](degradation/README.md) | 14 mô hình xuống cấp chuyển thể từ **DocCreator** (LaBRI Bordeaux): vân giấy, mực mòn, thấm mặt sau, nhoè vùng, rách, bóng gáy, lưới halftone, sọc quét. | **Bắt buộc (Required)** |
 | **Pipeline** — [`pipeline/`](pipeline) | Một lượt chạy được **khai báo, chia shard, chạy song song và resume được**, kèm bất biến từng ảnh và đo trôi phân phối. | **Bắt buộc (Required)** |
 | **Chữ viết tay** — [`generators/html/handwriting.py`](generators/html/handwriting.py), [`docs/handwriting-html.md`](docs/handwriting-html.md) | Điền ô trống của biểu mẫu bằng **nét bút chứ không phải font in bị rung**. Hai nguồn mực, **không thay thế nhau**: `font` phủ hết mọi ô nhưng một trang chỉ một nét chữ; `model` là [WriteViT](docs/writevit.md) ([`tools/writevit/`](tools/writevit)), nét mỗi lần một khác nhưng không viết được chữ số. | *Mở rộng (Handwriting)* |
+| **Chữ ký** — [`generators/html/signature.py`](generators/html/signature.py), [`docs/chu-ky.md`](docs/chu-ky.md) | Ký vào khối chữ ký — ô trống cuối cùng của tờ mẫu. Lấy chữ thật (từ `fonts/hand/` hoặc từ WriteViT, **trace thành contour**) rồi kéo giãn thành dấu ký: chữ đầu phóng to, phần thân tan thành nét lượn, nét cuối hất lên, paraph. Mực **không mang nhãn** — nó phải nằm trên trang và nằm ngoài nhãn. | *Mở rộng (Signature)* |
 | **Tesseract 5 (`vie`)** — [`tools/ocr_proof.py`](tools/ocr_proof.py) | Đọc ngược dataset và chấm điểm **không phụ thuộc thứ tự đọc**, để chứng minh ảnh đọc được và nhãn khớp pixel. | *Mở rộng (Kiểm chứng)* |
 | **synthtiger / WeasyPrint** — [`docs/renderers.md`](docs/renderers.md) | Hai renderer cũ. **Đã nghỉ phần sinh**, giữ nguyên phần đọc: các bộ chúng đã vẽ vẫn được commit và vẫn kiểm tra được. | *Nghỉ (Retired)* |
 
@@ -380,6 +381,7 @@ vlm-ocr-synthetic/
 │   ├── render.py                   # đường lưới ký tự (giấy cuộn nhiệt)
 │   ├── sheets/                     # một tờ CSS cho mỗi HỌ bố cục (A4)
 │   ├── handwriting.py              # điền tay: WriteViT, hoặc font viết tay
+│   ├── signature.py                # chữ ký: chữ thật kéo giãn thành dấu ký
 │   ├── tables.py                   # ảnh bảng, nhãn theo cấu trúc PubTabNet
 │   ├── overlap.py                  # phát hiện chữ chồng lên nhau
 │   └── page.py                     # dùng chung: trình duyệt, font nhúng, đọc hộp
@@ -561,6 +563,7 @@ từng bộ và schema nhãn nằm trong **[`data/README.md`](data/README.md)**.
 | [`data/README.md`](data/README.md) | các bộ dữ liệu và schema nhãn |
 | [`docs/renderers.md`](docs/renderers.md) | vì sao ba renderer còn một, và cái giá phải trả |
 | [`docs/handwriting-html.md`](docs/handwriting-html.md) · [`docs/writevit.md`](docs/writevit.md) | nối chữ viết tay vào engine HTML, và mô hình đứng sau |
+| [`docs/chu-ky.md`](docs/chu-ky.md) | khảo sát mẫu chữ ký — giám định, bút tướng, thư pháp, hướng dẫn tiếng Việt — engine kéo giãn từng phát hiện thành tham số, và hai nguồn mực nó vẽ bằng |
 | [`docs/huong-dan-va-giai-thich.md`](docs/huong-dan-va-giai-thich.md) | giải thích từng dòng của renderer, kèm Q&A |
 | [`docs/python-versions.md`](docs/python-versions.md) · [`docs/windows.md`](docs/windows.md) | vì sao có mốc chặn phiên bản; cài trên Windows |
 | [`fonts/README.md`](fonts/README.md) | font nào, giấy phép nào, vì sao phải kiểm độ phủ |
