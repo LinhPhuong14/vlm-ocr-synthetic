@@ -8,16 +8,16 @@ path gives the same result as the sequential one" is only checkable against a
 record of what the sequential one gave, taken *before* it was touched -- so this
 is captured first and everything after has to reproduce it.
 
-The fingerprint is sha256 of every image, of every metadata line, and of the
-`synthesis.json` beside each index -- all normalised. Not a count, not a spot
+The fingerprint is sha256 of every image, of every page's record, and of the
+`synthesis.json` beside them -- all normalised. Not a count, not a spot
 check: a driver that quietly drops one image or renumbers two of them passes a
 count, and one that writes the right pixels from the wrong recipe passes on
 pixels alone.
 
-**What normalisation does, exactly.** Each metadata line is parsed and re-dumped
-with `sort_keys=True` and `ensure_ascii=False`, so key order and float spelling
+**What normalisation does, exactly.** Each record is parsed and re-dumped with
+`sort_keys=True` and `ensure_ascii=False`, so key order and float spelling
 cannot make an identical record hash differently. Nothing else is touched -- no
-field is excluded. If a path or a timestamp ever enters `metadata.jsonl` this
+field is excluded. If a path or a timestamp ever enters a record this
 verification starts failing on every machine, which is the correct outcome: both
 belong in `timings.json`, not in a label.
 
@@ -239,12 +239,14 @@ def fingerprint(root: Path) -> dict:
         for image in sorted(backend_dir.glob("*.jpg")):
             images[f"{backend}/{image.name}"] = _sha(image.read_bytes())
 
-        index = backend_dir / "metadata.jsonl"
-        if not index.exists():
+        pages = [path for path in record.images(backend_dir)
+                 if record.beside(path).exists()]
+        if not pages:
             continue
-        lines = [line for line in index.read_text(encoding="utf-8").splitlines() if line.strip()]
-        metadata[backend] = [_sha(_normalise(line).encode("utf-8")) for line in lines]
-        by_backend[backend] = len(lines)
+        metadata[backend] = [
+            _sha(_normalise(record.beside(path).read_text(encoding="utf-8"))
+                 .encode("utf-8")) for path in pages]
+        by_backend[backend] = len(pages)
 
         # The other half of the dataset. A run that produced the same pixels
         # and the same labels from a different recipe would pass on images and
@@ -255,8 +257,8 @@ def fingerprint(root: Path) -> dict:
             provenance[backend] = _sha(
                 _normalise(beside.read_text(encoding="utf-8")).encode("utf-8"))
         drew = synthesis.read_if_there(backend_dir)
-        for line in lines:
-            layout = drew.layout(record.file_name(json.loads(line)))
+        for path in pages:
+            layout = drew.layout(path.relative_to(backend_dir).as_posix())
             by_layout[layout] = by_layout.get(layout, 0) + 1
 
     summary = root / "dataset.json"
@@ -301,7 +303,7 @@ def capture(driver: list[str]) -> dict:
     return {
         "plans": captured,
         "normalisation": (
-            "each metadata line is json.loads then json.dumps(sort_keys=True, "
+            "each record is json.loads then json.dumps(sort_keys=True, "
             "ensure_ascii=False); no field is excluded"
         ),
     }

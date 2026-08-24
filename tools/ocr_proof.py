@@ -327,7 +327,7 @@ def mean(values: list[float]) -> float:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("dataset", type=Path, help="directory holding <framework>/metadata.jsonl")
+    parser.add_argument("dataset", type=Path, help="directory holding <framework>/ image and record pairs")
     parser.add_argument("-o", "--out", type=Path, default=None)
     parser.add_argument("--lang", default="vie")
     parser.add_argument("--psm", type=int, default=4, help="4 = one column of variable-size text")
@@ -352,12 +352,12 @@ def main() -> int:
     per_image: list[dict] = []
 
     for framework in FRAMEWORKS:
-        metadata = args.dataset / framework / "metadata.jsonl"
-        if not metadata.exists():
-            print(f"[skip] {framework}: no metadata.jsonl")
+        directory = args.dataset / framework
+        if not directory.is_dir() or not schema.images(directory):
+            print(f"[skip] {framework}: no images")
             continue
 
-        records = schema.read(metadata)
+        records = schema.read(directory)
         drew = synthesis.read_if_there(args.dataset / framework)
         results = []
         for index, record in enumerate(records):

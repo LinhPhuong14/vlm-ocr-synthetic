@@ -59,14 +59,14 @@ anything that reads PubTabNet or PP-Structure reads this. What is different:
 ```
 tables60/
 ├── img/*.jpg           the rendered tables
+├── img/*.json          the same labels in this repository's shape, one per image
 ├── html/*.html         the page each was screenshotted from
 ├── gt.txt              the PP-Structure label file, as that format defines it
-├── metadata.jsonl      the same labels in this repository's shape
 ├── synthesis.json      how each image was made: its seed and its border style
 └── README.md
 ```
 
-One line of `metadata.jsonl`:
+One record — `img/border_0002.json`:
 
 ```json
 {

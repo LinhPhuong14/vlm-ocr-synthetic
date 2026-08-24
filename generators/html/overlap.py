@@ -1,6 +1,6 @@
 """Do any two text boxes on a page sit on top of each other?
 
-    python3 overlap.py /tmp/sweep/metadata.jsonl
+    python3 overlap.py /tmp/sweep
 
 Measured from the boxes the renderer itself wrote, so it checks what the engine
 drew rather than what a reader thought they saw. Separators and column-number
@@ -15,7 +15,6 @@ edge -- and is printed only as context.
 
 from __future__ import annotations
 
-import json
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -48,8 +47,7 @@ def main(path: Path, threshold: float = 0.30) -> int:
     touching: dict[str, int] = defaultdict(int)
     pages = 0
     drew = synthesis.read_if_there(path)
-    for line in path.read_text(encoding="utf-8").splitlines():
-        item = json.loads(line)
+    for item in record.read(path):
         pages += 1
         layout = drew.layout(record.file_name(item))
         boxes = [box for box in record.boxes(item)
