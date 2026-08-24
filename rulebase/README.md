@@ -129,7 +129,7 @@ The node is **not decoration**. `tags`, `requires` and `excludes` written on it
 are merged into every value beneath it, so a constraint that holds for the whole
 family is written once — and the next layout added to that family cannot forget
 it. `Option.group` records which node a value came from, and it is stored next
-to the image in `metadata.jsonl`, which is what lets a finished dataset be
+to the image in `synthesis.json`, which is what lets a finished dataset be
 filtered by document family.
 
 A file uses `options:` **or** `groups:`, never both: two places to add a value
@@ -563,7 +563,7 @@ Twenty-three ornaments were surveyed and not built — those four among them.
 Each is written down with the reason it was left, in
 [docs/hoa-tiet-de-xuat.md](../docs/hoa-tiet-de-xuat.md).
 
-> **Not yet drawn.** The attribute is sampled and recorded in `metadata.jsonl`,
+> **Not yet drawn.** The attribute is sampled and recorded in `synthesis.json`,
 > and every asset it names exists. No renderer composites it onto the page yet —
 > that is the next piece of work, and it is why `make baseline-verify` needs a
 > recapture after this change.
@@ -657,5 +657,6 @@ Weighed goods (`weight`) print a quantity of **1** and a unit price that is
 — which is what a real till prints. The label records what was printed, and
 carries the true weight in its own field.
 
-The glyph renderer also emits `boxes`: a polygon per cell, still correct after
-the sheet has been curled.
+Every renderer also emits `blocks`: one per drawn cell, carrying both a
+converter-shaped `bbox` and the polygon it was squared off from — still correct
+after the glyph backend has curled the sheet.

@@ -4,7 +4,7 @@
 
 Box coverage is the kind of thing that breaks silently. The first version of
 the genalog extractor lost every field after the first separator row -- the
-images were fine, the labels were fine, `metadata.jsonl` was well-formed, and
+images were fine, the labels were fine, every record was well-formed, and
 coverage was 82% instead of 100%. Nothing but counting the cells would have
 said so.
 
@@ -40,13 +40,18 @@ sys.path.insert(0, str(REPO_ROOT))
 
 import rulebase  # noqa: E402
 
+# `record` is the name of a metadata line all over this file, so the module that
+# defines their shape comes in under a name that cannot shadow one.
+from pipeline import record as schema  # noqa: E402
+from pipeline import synthesis  # noqa: E402
+
 # Frameworks that emit boxes. The table generator writes per-cell bboxes in a
 # different schema and against a different task, so `data/tables60/` is checked
 # by `tests/test_tables.py` and by its own generator rather than here.
 FRAMEWORKS = ("synthdog", "html", "genalog")
 
 
-def expected_fields(record: dict, template: str = "") -> list[tuple[str, str]] | None:
+def expected_fields(recipe: dict, template: str = "") -> list[tuple[str, str]] | None:
     """The (role, text) pairs this image should have a box for.
 
     Rebuilt from the recipe rather than trusted from the record, which is the
@@ -64,9 +69,8 @@ def expected_fields(record: dict, template: str = "") -> list[tuple[str, str]] |
     changed since the dataset was generated, which is reported rather than
     quietly passed.
     """
-    recipe = record.get("recipe") or {}
-    seed = recipe.get("seed")
-    attributes = recipe.get("attributes") or {}
+    seed = (recipe or {}).get("seed")
+    attributes = (recipe or {}).get("attributes") or {}
     if seed is None or not attributes:
         return None
 
@@ -92,6 +96,11 @@ def expected_fields(record: dict, template: str = "") -> list[tuple[str, str]] |
         return None
     return [(cell.role, cell.text) for cell in grid.cells
             if cell.text.strip() and cell.role != "sep"]
+
+
+def _squeeze(text: str) -> str:
+    """`text` with every space taken out -- see the note in `check_image`."""
+    return "".join(str(text).split())
 
 
 def _has_ink(image: np.ndarray, quad, margin: int = 25) -> bool:
@@ -122,14 +131,15 @@ def _has_ink(image: np.ndarray, quad, margin: int = 25) -> bool:
     return max(middle - float(patch.min()), float(patch.max()) - middle) > margin
 
 
-def check_image(directory: Path, record: dict, template: str = "") -> list[str]:
+def check_image(directory: Path, item: dict, recipe: dict,
+                template: str = "") -> list[str]:
     problems: list[str] = []
-    name = record["file_name"]
-    boxes = record.get("boxes")
+    name = schema.file_name(item)
+    boxes = schema.boxes(item)
     if not boxes:
         return [f"{name}: no boxes at all"]
 
-    fields = expected_fields(record, template)
+    fields = expected_fields(recipe, template)
     if fields is None:
         problems.append(f"{name}: recipe does not rebuild; coverage unchecked")
     elif template:
@@ -138,12 +148,26 @@ def check_image(directory: Path, record: dict, template: str = "") -> list[str]:
         # between two ragged ends. So the run is looked for in the boxes of its
         # own kind joined together, not as one box. Joining per kind rather than
         # over the page is what stops an unrelated field matching by accident.
+        #
+        # The spaces come out of both sides rather than being normalised,
+        # because **a line break does not always eat one**. Broken at a space,
+        # the space is gone and the two boxes have to be rejoined with one;
+        # broken after a hyphen, nothing was consumed and rejoining with a space
+        # invents a character the page does not have. `MEN'S LONG-SLEEVE SHIRT`
+        # split after `LONG-` reported itself missing for exactly that reason,
+        # on a page where the box was squarely on the word. Nothing here can
+        # tell the two cases apart: a box carries its `kind` and its text, not
+        # which run it came from, so where a line was split is not a question
+        # this tool can ask. What it *can* ask -- are the run's characters on
+        # the page, in order, in boxes of its own kind -- is the coverage
+        # question anyway. The cost is that two adjacent fields of one kind can
+        # now abut into a match; joining per kind already allowed that with a
+        # space between them.
         joined: dict[str, str] = {}
         for box in boxes:
-            joined[box["kind"]] = " ".join(
-                (joined.get(box["kind"], "") + " " + box.get("text", "")).split())
+            joined[box["kind"]] = joined.get(box["kind"], "") + _squeeze(box.get("text", ""))
         for role, text in fields:
-            wanted = " ".join(text.split())
+            wanted = _squeeze(text)
             if wanted and wanted not in joined.get(role, ""):
                 problems.append(f"{name}: no box for {role} {text[:30]!r}")
     else:
@@ -194,18 +218,32 @@ def main() -> int:
     total_problems = 0
     for framework in FRAMEWORKS:
         directory = args.dataset / framework
-        metadata = directory / "metadata.jsonl"
-        if not metadata.exists():
-            print(f"[skip] {framework}: no metadata.jsonl")
+        if not directory.is_dir() or not schema.images(directory):
+            print(f"[skip] {framework}: no images")
             continue
 
-        records = [json.loads(line) for line in
-                   metadata.read_text(encoding="utf-8").splitlines() if line.strip()]
+        try:
+            records = schema.read(directory)
+        except schema.RecordError as error:
+            print(f"[PROBLEM] {framework}: {error}")
+            total_problems += 1
+            continue
+        # The recipe is what this file rebuilds a page from, and it is in the
+        # file beside the pages rather than in each one. Without it there is
+        # nothing to check the boxes *against*, so a missing file is reported
+        # and the framework skipped -- not quietly scored as clean.
+        try:
+            drew = synthesis.read(directory)
+        except synthesis.SynthesisError as error:
+            print(f"[PROBLEM] {framework}: {error}")
+            total_problems += 1
+            continue
         problems: list[str] = []
         boxes = 0
-        for record in records:
-            boxes += len(record.get("boxes") or [])
-            problems += check_image(directory, record, template)
+        for item in records:
+            boxes += len(schema.boxes(item))
+            problems += check_image(directory, item,
+                                    drew.recipe(schema.file_name(item)), template)
 
         total_problems += len(problems)
         state = "ok" if not problems else "PROBLEM"
