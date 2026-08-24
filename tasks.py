@@ -263,6 +263,12 @@ def check_boxes(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "check_boxes.py", args.dataset])
 
 
+@task("migrate-metadata", "bring an older dataset's metadata.jsonl into the current schema")
+def migrate_metadata(args) -> None:
+    run([first_available_python(), REPO_ROOT / "tools" / "migrate_metadata.py",
+         args.dataset])
+
+
 @task("showcase", "one before/after image per degradation model")
 def showcase(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "degradation_showcase.py"])

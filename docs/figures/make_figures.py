@@ -5,7 +5,7 @@
 
 Not part of the generation pipeline. Nothing here renders a page or ages one:
 every pixel comes from a dataset that already exists on disk, and every box
-comes from the `metadata.jsonl` a renderer wrote beside it. The script only
+comes from the record a renderer wrote beside it. The script only
 crops, scales, labels and tiles, so a figure cannot show anything the generator
 did not produce.
 
@@ -34,7 +34,7 @@ PyYAML`).
 from __future__ import annotations
 
 import argparse
-import json
+import sys
 from pathlib import Path
 
 import cv2
@@ -42,6 +42,11 @@ import numpy as np
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from pipeline import record, synthesis  # noqa: E402
+
 AGED = REPO_ROOT / "data" / "dataset60"
 CLEAN = REPO_ROOT / "data" / "dataset60_clean"
 LAYOUT_RULES = REPO_ROOT / "rulebase" / "rules" / "layout.yaml"
@@ -69,13 +74,18 @@ def families() -> dict[str, str]:
 
 
 def records(root: Path, framework: str) -> list[dict]:
-    path = root / framework / "metadata.jsonl"
-    if not path.exists():
+    directory = root / framework
+    try:
+        found = record.read(directory)
+    except record.RecordError as error:
+        raise SystemExit(f"{directory}: {error}") from error
+    if not found:
         raise SystemExit(
-            f"missing {path} -- this script draws from a dataset that already "
-            f"exists; build one with `make dataset` or point --dataset elsewhere"
+            f"no pages in {directory} -- this script draws from a dataset that "
+            f"already exists; build one with `make dataset` or point --dataset "
+            f"elsewhere"
         )
-    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+    return found
 
 
 def read(root: Path, framework: str, name: str) -> np.ndarray:
@@ -133,15 +143,17 @@ def figure_families(source: Path, out: Path, framework: str = "html") -> None:
     """One page per layout family — the shape of the space, not a sample of it."""
     by_family: dict[str, dict] = {}
     mapping = families()
+    drew = synthesis.read(source / framework)
     for row in records(source, framework):
-        family = mapping.get(row.get("layout"), "")
+        family = mapping.get(drew.layout(record.file_name(row)), "")
         by_family.setdefault(family, row)
     if len(by_family) < 2:
         print(f"[skip] families.jpg: {source} covers {len(by_family)} family; "
               f"see this file's docstring for how to build a set that covers more")
         return
     panels = [
-        caption(read(source, framework, row["file_name"]), f"{family}  |  {row['layout']}")
+        caption(read(source, framework, record.file_name(row)),
+                f"{family}  |  {drew.layout(record.file_name(row))}")
         for family, row in sorted(by_family.items())
     ]
     save(tile(panels), out / "families.jpg")
@@ -152,8 +164,10 @@ def figure_renderers(aged: Path, out: Path, index: int = 0) -> None:
     panels = []
     for framework in FRAMEWORKS:
         row = records(aged, framework)[index]
-        image = read(aged, framework, row["file_name"])
-        panels.append(caption(image, f"{framework}  {row['layout']}  "
+        name = record.file_name(row)
+        image = read(aged, framework, name)
+        layout = synthesis.read(aged / framework).layout(name)
+        panels.append(caption(image, f"{framework}  {layout}  "
                                      f"{image.shape[1]}x{image.shape[0]}"))
     save(tile(panels), out / "renderers.jpg")
 
@@ -164,8 +178,10 @@ def figure_ageing(aged: Path, clean: Path, out: Path, index: int = 0) -> None:
     for framework in FRAMEWORKS:
         clean_row = records(clean, framework)[index]
         aged_row = records(aged, framework)[index]
-        clean_ids = {k: v["id"] for k, v in clean_row["recipe"]["attributes"].items()}
-        aged_ids = {k: v["id"] for k, v in aged_row["recipe"]["attributes"].items()}
+        clean_ids = dict(synthesis.read(clean / framework)
+                         .entry(record.file_name(clean_row))["attributes"])
+        aged_ids = dict(synthesis.read(aged / framework)
+                        .entry(record.file_name(aged_row))["attributes"])
         differing = {k for k in aged_ids if aged_ids[k] != clean_ids.get(k)}
         # The whole claim of this figure. If the two sets ever stop differing in
         # exactly the augmentation, it is not a before/after any more.
@@ -175,28 +191,29 @@ def figure_ageing(aged: Path, clean: Path, out: Path, index: int = 0) -> None:
                 f"not in augmentation alone -- this pair is not a before/after"
             )
         rows.append(tile([
-            caption(read(clean, framework, clean_row["file_name"]),
+            caption(read(clean, framework, record.file_name(clean_row)),
                     f"{framework}  augmentation=pristine"),
-            caption(read(aged, framework, aged_row["file_name"]),
+            caption(read(aged, framework, record.file_name(aged_row)),
                     f"{framework}  augmentation={aged_ids['augmentation']}"),
         ]))
     save(stack(rows), out / "ageing.jpg")
 
 
 def figure_boxes(aged: Path, out: Path, index: int = 0) -> None:
-    """The `boxes` field of metadata.jsonl, drawn on the image it describes."""
+    """The `blocks` of each record, drawn on the image they describe."""
     panels = []
     for framework in FRAMEWORKS:
         row = records(aged, framework)[index]
-        image = read(aged, framework, row["file_name"])
-        for box in row["boxes"]:
+        image = read(aged, framework, record.file_name(row))
+        blocks = record.boxes(row)
+        for box in blocks:
             quad = np.array(box["quad"], dtype=np.int32).reshape(-1, 1, 2)
             # Amounts in a different colour: they are the fields the OCR proof
             # scores separately, and the ones a wrong scale factor moves first.
             money = box["kind"].startswith("total") or box["kind"].endswith("price")
             cv2.polylines(image, [quad], True, (0, 140, 255) if money else (0, 190, 0),
                           2, cv2.LINE_AA)
-        panels.append(caption(image, f"{framework}  {len(row['boxes'])} boxes"))
+        panels.append(caption(image, f"{framework}  {len(blocks)} boxes"))
     save(tile(panels), out / "boxes.jpg")
 
 
