@@ -261,6 +261,14 @@ class Cell:
     all) and an explicit `None` value mean different things here. Only
     top/right/bottom/left are valid keys: `inner_h`/`inner_v` describe the
     table, not one cell, and are rejected.
+
+    `cls` is a plain CSS class, carried onto the `<td>`/`<th>` alongside
+    everything above rather than instead of it -- the escape hatch for a page
+    that already has a stylesheet targeting `.tlabel` or `.grand` and wants
+    the geometry (spans, labels, computed borders) from this module without
+    giving up a rule it already has. The two do not fight over borders: an
+    unset side here is *omitted* from the inline style, not forced to `none`
+    (see `Border`), so an external `border-bottom` on that class still shows.
     """
 
     content: CellContent = ""
@@ -275,6 +283,7 @@ class Cell:
     color: str | None = None
     scale: float = 1.0
     kind: str = ""                              # data-cell label; "" is a valid, unlabelled cell
+    cls: str = ""                                # a CSS class, in ADDITION to the inline style
     html: bool = False
     border: dict[str, Line | None] | None = None
     pad: tuple[float, float] | None = None       # (vertical, horizontal), table's unit
@@ -302,24 +311,31 @@ class Row:
     instead of `<tbody>`, and marks it as part of the header band that
     `zebra` skips and `TableSpec.header_divider` draws its rule under (the
     *last* row of a leading run of header rows, if there is more than one).
+
+    `cls` is a CSS class on the `<tr>`, same escape hatch as `Cell.cls`.
     """
 
     cells: list[Cell] = field(default_factory=list)
     bg: str | None = None
     header: bool = False
     min_height: float | None = None    # table's unit
+    cls: str = ""
 
     @classmethod
-    def of(cls, *cells: "str | Cell", header: bool = False, **kwargs) -> "Row":
+    def of(klass, *cells: "str | Cell", header: bool = False, **kwargs) -> "Row":
         """A row from plain strings (wrapped as `Cell(text)`) or ready-made cells.
 
         `Row.of("Mặt hàng", "Số lượng", "Thành tiền", header=True)` -- the
         common case needs no `Cell(...)` boilerplate at all; mix in a real
         `Cell` wherever one entry needs a colspan or a colour the rest don't.
+        Extra keywords (`cls=`, `bg=`, ...) pass straight through to `Row` --
+        named `klass` rather than the usual `cls` here so that `cls=` can mean
+        the CSS class on the resulting row, not collide with the classmethod's
+        own first argument.
         """
         made = [Cell(c, bold=True if header else None) if isinstance(c, str) else c
                 for c in cells]
-        return cls(made, header=header, **kwargs)
+        return klass(made, header=header, **kwargs)
 
 
 def blank_row(ncols: int, *, min_height: float | None = None, bg: str | None = None) -> Row:
@@ -432,8 +448,19 @@ def _resolve_widths(columns: list[Column]) -> list[float | None]:
     return widths
 
 
-def _edge(line: Line | None, unit: str) -> str:
-    return line.css(unit) if line else "none"
+def _edge(line: Line | None, unit: str) -> str | None:
+    """The inline `border-<side>` value for one edge, or `None` to say nothing.
+
+    Saying nothing -- not `border-top:none` -- is what lets `Cell.cls`/
+    `Row.cls` share a side with an external stylesheet: an inline `none`
+    would win over any CSS rule on that class regardless of what drew it,
+    because an inline style always outranks a selector. A `Border` with a
+    genuinely absent line (`Border.none()`, an edge dropped by `.without()`)
+    and a table with no surrounding stylesheet at all render identically
+    either way -- the difference only matters, and only helps, when there
+    *is* a class-based rule waiting to be deferred to.
+    """
+    return line.css(unit) if line else None
 
 
 def _computed_border(border: Border, r: int, r1: int, c0: int, c1: int,
@@ -455,11 +482,11 @@ def _computed_border(border: Border, r: int, r1: int, c0: int, c1: int,
 
 def _style(*, top, right, bottom, left, unit, align, valign, bold, italic,
            nowrap, bg, color, scale, pad) -> str:
-    parts = [
-        f"border-top:{_edge(top, unit)}", f"border-right:{_edge(right, unit)}",
-        f"border-bottom:{_edge(bottom, unit)}", f"border-left:{_edge(left, unit)}",
-        f"text-align:{align}", f"vertical-align:{valign}",
-    ]
+    parts = [f"text-align:{align}", f"vertical-align:{valign}"]
+    for side, line in (("top", top), ("right", right), ("bottom", bottom), ("left", left)):
+        value = _edge(line, unit)
+        if value is not None:
+            parts.append(f"border-{side}:{value}")
     if bold:
         parts.append("font-weight:bold")
     if italic:
@@ -559,8 +586,9 @@ def render_table(table: TableSpec, *, rows: RowCounter | None = None,
                 label_cells=label_cells))
 
         tr_style = f' style="height:{row.min_height:g}{table.unit}"' if row.min_height else ""
+        tr_cls = f' class="{escape(row.cls)}"' if row.cls else ""
         (thead_html if r < header_band else tbody_html).append(
-            f"<tr{tr_style}>{''.join(td_html)}</tr>")
+            f"<tr{tr_cls}{tr_style}>{''.join(td_html)}</tr>")
 
     colgroup = ""
     if any(w is not None for w in widths):
@@ -622,6 +650,8 @@ def _render_cell(table: TableSpec, row: Row, cell_spec: Cell, *, r: int, c0: int
     inner = _content_html(cell_spec.content, cell_spec.html)
     tag = "th" if row.header else "td"
     attrs = [f'style="{style}"']
+    if cell_spec.cls:
+        attrs.append(f'class="{escape(cell_spec.cls)}"')
     if label_cells:
         attrs.append(f'data-cell="{escape(cell_spec.kind)}"')
         attrs.append(f'data-row="{row_number}"')
