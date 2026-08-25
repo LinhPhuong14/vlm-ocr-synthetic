@@ -71,15 +71,29 @@ def _masthead_corner(receipt, parse: dict, spec: dict) -> str:
     separately. The box's rows are `strip`'s own pairs -- `party_fields.strip`
     on the document -- so a layout using this mode names no separate `strip`
     in `sections:`, the same way `split` folds the title into itself instead
-    of leaving a `doctitle` to print it again. See `invoice_header_table.yaml`.
+    of leaving a `doctitle` to print it again. `header.logo: true` adds a
+    generic round mark beside the name -- an initial on a house-coloured
+    disc, not any real business's mark, since nothing in this rule-base draws
+    from actual logo artwork. See `invoice_header_table.yaml`.
     """
+    header = {**(spec.get("header") or {}), **(spec.get("letterhead") or {})}
+    store = parse.get("store") or {}
     brand = _masthead(parse, spec)
+    badge = ""
+    if header.get("logo"):
+        # Plain text, not `span()`: the letter is a decoration derived from
+        # the name, not a field of its own -- the name itself is already a
+        # box, in `brand`. Same reasoning as `page.marker` in
+        # `invoice_multipage.yaml`.
+        initial = ((store.get("name") or "").strip()[:1] or "•").upper()
+        badge = f'<div class="logo">{base.esc(initial)}</div>'
     pairs = base.party_pairs(receipt, parse, "strip")
     rows = "".join(
         f'<div>{span("invoice.field.label", label, "k")} {span("invoice.field", value, "v")}</div>'
         for label, value in pairs)
     meta = f'<div class="cornermeta">{rows}</div>' if rows else ""
-    return f'<div class="mast-corner"><div class="mc-l">{brand}</div><div class="mc-r">{meta}</div></div>'
+    return (f'<div class="mast-corner"><div class="mc-l"><div class="mc-l-inner">{badge}{brand}</div></div>'
+            f'<div class="mc-r">{meta}</div></div>')
 
 
 def _doctitle(parse: dict, meta: bool = True, keys: tuple = (
@@ -141,17 +155,25 @@ def _customer(receipt, parse: dict, spec: dict) -> str:
                 f'<div class="pright2">{right_cap}{rows_of(right_pairs)}</div></div>')
 
     pairs = left_pairs + right_pairs
-    if not pairs:
-        return ""
 
     if settings.get("columns") == "stacked":
         # One full-width column, no decorative left gutter. The bakery
         # reference this family is named for always has a left column --
         # its own title, if nothing else -- but a standard VAT-invoice
         # buyer block does not, and a `.pleft` cell with nothing in it
-        # still claims `split` of the row's width. See
+        # still claims `split` of the row's width. `parties.seller: true`
+        # prints the seller's own fields first, in the same box -- see
+        # `_seller_rows` -- because the reference sheet's border runs
+        # around both blocks together, not just the buyer's. See
         # `invoice_header_table.yaml`.
-        return f'<div class="parties stacked{boxed}">{rows_of(pairs)}</div>'
+        seller = _seller_rows(parse) if settings.get("seller") else ""
+        body = seller + rows_of(pairs)
+        if not body:
+            return ""
+        return f'<div class="parties stacked{boxed}">{body}</div>'
+
+    if not pairs:
+        return ""
 
     # The left column stays empty unless the layout gave the block a title. On
     # the reference sheet that space holds a line of the shop's own design, and
@@ -161,6 +183,36 @@ def _customer(receipt, parse: dict, spec: dict) -> str:
     return (f'<div class="parties{boxed}"><div class="pleft" style="width:{split * 100:.0f}%">'
             f'{span("parties.title", title)}</div>'
             f'<div class="pright">{rows_of(pairs)}</div></div>')
+
+
+def _seller_rows(parse: dict) -> str:
+    """The seller's own registration block, labelled like the buyer's below it.
+
+    Leads with the trading name again under its own "Đơn vị bán hàng:" label
+    -- the reference sheet does, even though the same string is already the
+    masthead's big heading above; the two are different roles (`store.name`
+    on two boxes is not a problem `ground_truth()` cares about, only whether
+    each string is on *some* box). The rest are the same keys and fallback
+    labels as `statutory.py`'s letterhead lines. `parties.seller: true` turns
+    this on; a layout using it is expected to turn the masthead's own contact
+    lines off (`header.address/phone/tax_code/account/website: false`) so
+    each store field draws exactly once. See `invoice_header_table.yaml` and
+    `_customer`.
+    """
+    store = parse.get("store") or {}
+    fields = (
+        ("name", "store.name", "Đơn vị bán hàng:"),
+        ("address", "store.address", "Địa chỉ:"),
+        ("address2", "store.address2", ""),
+        ("tax_code", "store.tax_code", "Mã số thuế:"),
+        ("phone", "store.phone", "Điện thoại:"),
+        ("account", "store.account", "Số tài khoản:"),
+        ("website", "store.website", ""),
+    )
+    return "".join(
+        f'<div class="crow">{span(f"{kind}.label", label, "k")} '
+        f'{span(kind, store[key], "v")}</div>'
+        for key, kind, label in fields if store.get(key))
 
 
 def _notes(receipt, spec: dict) -> str:
@@ -264,9 +316,11 @@ def build(recipe, receipt, spec: dict, parse: dict) -> str:
     header_spec = {**(spec.get("header") or {}), **(spec.get("letterhead") or {})}
     header_mode = header_spec.get("align") or "center"
     page = spec.get("page") or {}
-    compact = bool((spec.get("table") or {}).get("compact"))
+    table_settings = spec.get("table") or {}
+    compact = bool(table_settings.get("compact"))
+    grid = bool(table_settings.get("grid"))
 
-    table = base.items_table(spec, receipt, parse, rows)
+    table = base.items_table(spec, receipt, parse, rows, cls="items grid" if grid else "items")
 
     if page.get("style") == "sidebar":
         # A full-height coloured column instead of one flow down the page --
@@ -298,8 +352,35 @@ def build(recipe, receipt, spec: dict, parse: dict) -> str:
         # page the renderer has no way to actually turn to.
         body += f'<div class="pagemark">{base.esc(marker)}</div>'
 
+    if page.get("watermark"):
+        # A faint, once-only diagonal repeat of the seller's own name --
+        # plain text, not `span()`, for the same reason as `marker` above:
+        # it is a second, decorative appearance of a string that already has
+        # its own box in the seller block, not a field of its own. The tax
+        # code rather than the name -- short and close to fixed-width, so it
+        # sits inside the page at any house colour's font size instead of
+        # running off the edge the way a forty-character trading name would.
+        # Kept very light on purpose -- this is training data for reading
+        # text, and a watermark strong enough to compete with the content it
+        # sits behind would work against the one thing the page is for.
+        wm_store = parse.get("store") or {}
+        wm_text = wm_store.get("tax_code") or wm_store.get("name", "")
+        if wm_text:
+            body = f'<div class="wm">{base.esc(wm_text)}</div>' + body
+
     compact_css = (".items tbody td{padding:1.1mm 1.4mm;}"
                    ".items thead th{padding:1.3mm 1.4mm;}") if compact else ""
+    # `table.grid: true` -- a full ruled grid (outer frame and every column
+    # divider), the shape a printed VAT-invoice form's table has, in place of
+    # the family's usual ruled-above-and-below-the-header look. Scoped to
+    # `.grid` so the two pre-existing modern layouts, and the nine other new
+    # ones, keep their own table untouched. See `invoice_header_table.yaml`.
+    grid_css = (f"""
+table.items.grid{{border-collapse:collapse;}}
+table.items.grid th,table.items.grid td{{border:.2mm solid #b7b7b7;}}
+table.items.grid thead th{{border-top:.4mm solid {house};border-bottom:.4mm solid {house};}}
+table.items.grid tbody tr:last-child td{{border-bottom:.4mm solid {house};}}
+""") if grid else ""
     css = f"""
 .brand{{text-align:center;padding-bottom:6mm;}}
 .brand .h1{{display:block;color:{house};font-size:15pt;font-weight:bold;letter-spacing:1.4pt;}}
@@ -315,7 +396,7 @@ def build(recipe, receipt, spec: dict, parse: dict) -> str:
 .pleft,.pright{{display:table-cell;vertical-align:top;}}
 .pleft{{font-weight:bold;font-size:7pt;line-height:1.6;color:{house};}}
 .crow{{margin-bottom:.8mm;}}
-.crow .k{{color:#4a4a4a;}}
+.crow .k{{color:#3a3a3a;font-weight:bold;}}
 table.items thead th{{font-weight:normal;color:#4a4a4a;font-size:6.8pt;text-align:left;
    padding:2mm 1.5mm;border-top:.4mm solid {house};border-bottom:.4mm solid {house};}}
 table.items th.r{{text-align:right;}} table.items th.c{{text-align:center;}}
@@ -341,6 +422,7 @@ table.items tbody tr:last-child td{{border-bottom:.4mm solid {house};}}
 .words .wl{{margin-right:1.5mm;color:{house};}}
 .foot{{margin-top:10mm;text-align:center;font-size:6.6pt;font-style:italic;color:#444;}}
 {compact_css}
+{grid_css}
 .mast-split{{display:table;width:100%;margin-bottom:6mm;}}
 .mast-l{{display:table-cell;vertical-align:middle;text-align:left;}}
 .mast-l .brand{{text-align:left;padding-bottom:0;}}
@@ -348,11 +430,16 @@ table.items tbody tr:last-child td{{border-bottom:.4mm solid {house};}}
 .mast-r .doc{{margin:0;text-align:right;}}
 .mast-corner{{display:table;width:100%;margin-bottom:2mm;}}
 .mc-l{{display:table-cell;vertical-align:top;text-align:left;}}
+.mc-l-inner{{display:flex;align-items:center;gap:3mm;}}
 .mc-l .brand{{text-align:left;padding-bottom:0;}}
+.logo{{flex:none;width:10mm;height:10mm;border-radius:50%;background:{house};color:#fff;
+   font-weight:bold;font-size:11pt;text-align:center;line-height:10mm;}}
 .mc-r{{display:table-cell;vertical-align:top;text-align:right;width:34%;}}
 .cornermeta{{font-size:6.6pt;color:#4a4a4a;}}
 .cornermeta div{{margin-bottom:.6mm;}}
 .cornermeta .k{{margin-right:1mm;}}
+.wm{{position:fixed;top:46%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);
+   font-size:46pt;font-weight:bold;color:{house};opacity:.05;white-space:nowrap;}}
 .capl{{display:block;font-weight:bold;font-size:6.6pt;letter-spacing:1pt;color:{house};margin-bottom:1.6mm;}}
 .parties.two{{display:table;width:100%;margin-bottom:7mm;}}
 .pleft2,.pright2{{display:table-cell;vertical-align:top;padding-right:6mm;}}
