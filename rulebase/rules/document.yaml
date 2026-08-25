@@ -184,3 +184,42 @@ groups:
     - id: authorisation_letter
       weight: 1
       tags: [doc_invoice, doc_authorisation, doc_service]
+
+    # ------------------------------------------------------------------------
+    # Root 3 (Form / Application) — tám tài liệu cho mười layout ở
+    # `rules/layout.yaml` (nhóm `form_document`). `bare_kv`/`symmetric`/
+    # `activity`/`checklist`/`checklist_table`/`sectioned`/`roster`/`dense`:
+    # mỗi tag khớp ĐÚNG MỘT layout hoặc một cặp layout cùng hình dạng nội
+    # dung — cùng cơ chế requires/excludes root 1 dùng cho invoice_plain/
+    # invoice_detailed. Xem `docs/root-document-taxonomy.md` § 3.3.
+    - id: form_brief
+      weight: 2
+      tags: [doc_invoice, doc_form, bare_kv]
+
+    - id: form_symmetric
+      weight: 1
+      tags: [doc_invoice, doc_form, symmetric]
+
+    - id: form_activity
+      weight: 1
+      tags: [doc_invoice, doc_form, activity]
+
+    - id: form_checklist
+      weight: 1
+      tags: [doc_invoice, doc_form, checklist]
+
+    - id: form_checklist_table
+      weight: 1
+      tags: [doc_invoice, doc_form, checklist_table]
+
+    - id: form_sectioned
+      weight: 1
+      tags: [doc_invoice, doc_form, sectioned]
+
+    - id: form_roster
+      weight: 1
+      tags: [doc_invoice, doc_form, roster]
+
+    - id: form_dense
+      weight: 2
+      tags: [doc_invoice, doc_form, dense_registry]
