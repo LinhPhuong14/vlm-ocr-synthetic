@@ -10,6 +10,7 @@ belongs; this is where a claim about markup does.
 
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -30,16 +31,23 @@ def cells(html: str, tag: str = "td") -> list[str]:
     -- see `test_a_nested_table_does_not_leak_data_row_labels`) that a parser
     would only add a dependency for no real precision gained.
     """
-    import re
-
     return re.findall(rf"<{tag}\b.*?</{tag}>", html, flags=re.DOTALL)
 
 
 def attr(cell_html: str, name: str) -> str | None:
-    import re
-
     match = re.search(rf'{name}="([^"]*)"', cell_html)
     return match.group(1) if match else None
+
+
+def no_edge(style: str, side: str) -> bool:
+    """True when `style` says nothing at all about `border-<side>`.
+
+    Not "`border-<side>:none`" -- since the fix for `Cell.cls`/`Row.cls`
+    coexisting with an external stylesheet, an absent edge is *omitted* from
+    the inline style rather than forced to `none` (see `_edge` in
+    `components/table.py`), so the property must not appear at all.
+    """
+    return f"border-{side}:" not in style
 
 
 # --------------------------------------------------------------------- Line
@@ -210,10 +218,10 @@ def test_borderless_table_draws_no_line_on_any_cell():
     html = T.render_table(spec)
     for cell_html in cells(html):
         style = attr(cell_html, "style")
-        assert "border-top:none" in style
-        assert "border-right:none" in style
-        assert "border-bottom:none" in style
-        assert "border-left:none" in style
+        assert no_edge(style, "top")
+        assert no_edge(style, "right")
+        assert no_edge(style, "bottom")
+        assert no_edge(style, "left")
 
 
 def test_no_vertical_borders_means_no_side_ever_carries_a_line():
@@ -222,8 +230,9 @@ def test_no_vertical_borders_means_no_side_ever_carries_a_line():
                         rows=[T.Row.of("a", "b", "c"), T.Row.of("d", "e", "f")])
     html = T.render_table(spec)
     for cell_html in cells(html):
-        assert "border-left:none" in attr(cell_html, "style")
-        assert "border-right:none" in attr(cell_html, "style")
+        style = attr(cell_html, "style")
+        assert no_edge(style, "left")
+        assert no_edge(style, "right")
     # but a horizontal rule genuinely appears between the two rows
     first_row_cell, second_row_cell = cells(html)[0], cells(html)[3]
     assert "border-bottom:0.4mm solid #000" in attr(first_row_cell, "style")
@@ -235,8 +244,9 @@ def test_no_horizontal_borders_means_no_row_boundary_is_ever_ruled():
                         rows=[T.Row.of("a", "b"), T.Row.of("c", "d")])
     html = T.render_table(spec)
     for cell_html in cells(html):
-        assert "border-top:none" in attr(cell_html, "style")
-        assert "border-bottom:none" in attr(cell_html, "style")
+        style = attr(cell_html, "style")
+        assert no_edge(style, "top")
+        assert no_edge(style, "bottom")
     left_cell, right_cell = cells(html)[0], cells(html)[1]
     assert "border-right:0.4mm solid #000" in attr(left_cell, "style")
     assert "border-left:0.4mm solid #000" in attr(right_cell, "style")
@@ -250,9 +260,9 @@ def test_no_side_borders_bleeds_to_the_margin_but_keeps_everything_else():
     left_col = [cells(html)[0], cells(html)[2]]
     right_col = [cells(html)[1], cells(html)[3]]
     for cell_html in left_col:
-        assert "border-left:none" in attr(cell_html, "style")
+        assert no_edge(attr(cell_html, "style"), "left")
     for cell_html in right_col:
-        assert "border-right:none" in attr(cell_html, "style")
+        assert no_edge(attr(cell_html, "style"), "right")
     # top/bottom and the inner rules are untouched
     assert "border-top:0.3mm solid #000" in attr(cells(html)[0], "style")
     assert "border-right:0.3mm solid #000" in attr(cells(html)[0], "style")  # inner_v, not the edge
@@ -264,8 +274,8 @@ def test_no_top_bottom_borders_opens_the_table_vertically():
                         rows=[T.Row.of("a"), T.Row.of("b")])
     html = T.render_table(spec)
     top_row, bottom_row = cells(html)
-    assert "border-top:none" in attr(top_row, "style")
-    assert "border-bottom:none" in attr(bottom_row, "style")
+    assert no_edge(attr(top_row, "style"), "top")
+    assert no_edge(attr(bottom_row, "style"), "bottom")
 
 
 def test_outer_frame_can_be_heavier_than_the_inner_rules():
@@ -288,7 +298,7 @@ def test_a_cell_border_override_wins_over_the_table_shape():
     )
     style = attr(cells(T.render_table(spec))[0], "style")
     assert "border-top:0.8mm solid #000" in style
-    assert "border-left:none" in style       # untouched sides stay at the table's shape
+    assert no_edge(style, "left")            # untouched sides stay at the table's shape
 
 
 def test_header_divider_draws_once_under_the_last_header_row_only():
@@ -302,11 +312,45 @@ def test_header_divider_draws_once_under_the_last_header_row_only():
     row0, row1 = cells(html, "th")[0:2], cells(html, "th")[2:4]
     body = cells(html, "td")
     for c in row0:
-        assert "border-bottom:none" in attr(c, "style")
+        assert no_edge(attr(c, "style"), "bottom")
     for c in row1:
         assert "border-bottom:0.5mm solid #333" in attr(c, "style")
     for c in body:
-        assert "border-top:none" in attr(c, "style")   # the divider is a bottom, not a shared line
+        assert no_edge(attr(c, "style"), "top")   # the divider is a bottom, not a shared line
+
+
+# ------------------------------------------------------ class passthrough
+#
+# The escape hatch a family with its own stylesheet uses: geometry and labels
+# from this module, visual styling from a `.grand`/`.tlabel`-style class the
+# page already defines.
+
+
+def test_cell_cls_is_emitted_alongside_the_inline_style():
+    spec = T.TableSpec(rows=[T.Row([T.Cell("total", cls="tlabel", align="right")])])
+    cell_html = cells(T.render_table(spec))[0]
+    assert attr(cell_html, "class") == "tlabel"
+    assert attr(cell_html, "style")            # geometry/label styling is still there
+
+
+def test_row_cls_is_emitted_on_the_tr():
+    spec = T.TableSpec(rows=[T.Row.of("a", "b", cls="grand")])
+    html = T.render_table(spec)
+    tr = re.search(r"<tr[^>]*>", html).group(0)
+    assert 'class="grand"' in tr
+
+
+def test_a_cell_with_no_border_says_nothing_about_border_at_all():
+    """The fact that makes `cls` safe: an unset side is omitted, not `none`.
+
+    A `none` inline border would outrank ANY external rule on `.grand`/
+    `.tlabel` regardless of specificity; omitting the property lets that
+    external rule -- if the page defines one -- be the only thing that draws.
+    """
+    spec = T.TableSpec(border=T.Border.none(),
+                        rows=[T.Row([T.Cell("x", cls="tlabel")])])
+    style = attr(cells(T.render_table(spec))[0], "style")
+    assert "border" not in style
 
 
 # --------------------------------------------------------------- colour
