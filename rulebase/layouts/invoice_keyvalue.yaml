@@ -1,0 +1,64 @@
+# INV-06 — Header rồi một khối khoá–giá trị đóng khung, rồi mới tới bảng.
+#
+# Khác `invoice_remittance` ở HAI chỗ: `parties` đứng TRƯỚC `strip` (nhấn
+# khối khách hàng lên trước dải số/ngày), và `parties.boxed: true` — cờ mới
+# `generators/html/sheets/modern.py` đọc — đóng khung/tô nền khối đó để đọc
+# rõ là MỘT khối riêng, không phải một dòng chảy vào bảng.
+id: invoice_keyvalue
+name: Header, then a boxed key-value block, then the table
+source: "khảo sát mẫu hoá đơn bán hàng tự thiết kế phổ biến — khối thông tin khách hàng đóng khung riêng"
+
+width: [78, 92]
+gutter: 2
+rule_char: "-"
+sheet: a4
+rules: marks
+
+sections: [header, parties, strip, table, totals, notes, words, signatures, footer]
+
+header:
+  name_scale: [1.30, 1.50]
+  name_bold: true
+  title: true
+
+parties:
+  boxed: true
+  split: 0.38
+
+strip:
+  rule_after: false
+
+columns:
+  - {key: stt,        title: "STT",                   width: 4,  align: center, title_align: center}
+  - {key: name,       title: "Tên hàng hoá, dịch vụ",  width: 0,  align: left,   title_align: left}
+  - {key: unit,       title: "ĐVT",                    width: 8,  align: center, title_align: center}
+  - {key: qty,        title: "Số lượng",               width: 8,  align: right,  title_align: right}
+  - {key: unit_price, title: "Đơn giá",                width: 13, align: right,  title_align: right}
+  - {key: amount,     title: "Thành tiền",             width: 15, align: right,  title_align: right}
+
+table:
+  frame: false
+  shade: 0.10
+  header_rules: true
+
+item:
+  wrap_name: true
+  rows:
+    - - {col: stt, from: stt}
+      - {col: name, from: name}
+      - {col: unit, from: unit}
+      - {col: qty, from: qty}
+      - {col: unit_price, from: unit_price}
+      - {col: amount, from: amount}
+
+totals:
+  frame: false
+  indent: 0.40
+  emphasise_grand: true
+  grand_scale: [1.15, 1.35]
+
+notes:
+  style: two_column
+  split: 0.52
+
+signatures: {}
