@@ -226,17 +226,30 @@ class Column:
     column unset (the default) leaves column widths to the browser entirely,
     which is the right choice for a small key/value table where a forced
     50/50 split would look wrong.
+
+    `align` always resolves to something and is always written inline --
+    every column's text-alignment is a real decision (money runs right, a
+    name runs left) and never a thing to leave ambient, the same way
+    `sheets.base.align_class` always picked a class before this module
+    existed. `valign` is different: unlike alignment, "top" is this
+    component's own opinion about what looks right, not a fact about the
+    data, and a page with its own idea (a stylesheet already setting
+    `vertical-align` on the class in `Cell.cls`/`Row.cls`, or wanting the
+    browser's ordinary middle-of-the-cell default) needs a way to say so.
+    Passed explicitly as `None`, it is *omitted* from the inline style
+    -- the same "say nothing" `Border` uses -- rather than defaulting to
+    `"top"` the way leaving it unset does.
     """
 
     width: float | None = None
     align: str = "left"
-    valign: str = "top"
+    valign: str | None = "top"
     nowrap: bool = False
 
     def __post_init__(self) -> None:
         if self.align not in _ALIGN:
             raise ValueError(f"unknown align {self.align!r}; have {sorted(_ALIGN)}")
-        if self.valign not in _VALIGN:
+        if self.valign is not None and self.valign not in _VALIGN:
             raise ValueError(f"unknown valign {self.valign!r}; have {sorted(_VALIGN)}")
 
 
@@ -482,7 +495,9 @@ def _computed_border(border: Border, r: int, r1: int, c0: int, c1: int,
 
 def _style(*, top, right, bottom, left, unit, align, valign, bold, italic,
            nowrap, bg, color, scale, pad) -> str:
-    parts = [f"text-align:{align}", f"vertical-align:{valign}"]
+    parts = [f"text-align:{align}"]
+    if valign is not None:
+        parts.append(f"vertical-align:{valign}")
     for side, line in (("top", top), ("right", right), ("bottom", bottom), ("left", left)):
         value = _edge(line, unit)
         if value is not None:
