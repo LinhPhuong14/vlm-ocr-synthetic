@@ -1,0 +1,65 @@
+# INV-10 — Có hẳn một khối thanh toán/chuyển khoản đóng khung ở cuối trang.
+#
+# Bố cục "đầy đủ" mặc định (strip rồi parties, như phần lớn họ modern) —
+# điểm nhấn riêng là `notes.boxed: true`, cờ mới `generators/html/sheets/
+# modern.py` đọc để đóng khung/tô nền khối `notes` (thông tin chuyển khoản +
+# liên hệ), đọc rõ là một khối "remittance" tách khỏi phần còn lại của
+# trang thay vì hai cột chữ nhỏ ở chân trang.
+id: invoice_remittance
+name: Header, parties, table, totals, then a boxed remittance/payment block
+source: "khảo sát mẫu hoá đơn bán hàng tự thiết kế phổ biến — khối chuyển khoản đóng khung riêng cuối trang"
+
+width: [78, 92]
+gutter: 2
+rule_char: "-"
+sheet: a4
+rules: marks
+
+sections: [header, strip, parties, table, totals, notes, words, signatures, footer]
+
+header:
+  name_scale: [1.30, 1.50]
+  name_bold: true
+  title: true
+
+strip:
+  rule_after: false
+
+parties:
+  split: 0.38
+
+columns:
+  - {key: stt,        title: "STT",                   width: 4,  align: center, title_align: center}
+  - {key: name,       title: "Tên hàng hoá, dịch vụ",  width: 0,  align: left,   title_align: left}
+  - {key: unit,       title: "ĐVT",                    width: 8,  align: center, title_align: center}
+  - {key: qty,        title: "Số lượng",               width: 8,  align: right,  title_align: right}
+  - {key: unit_price, title: "Đơn giá",                width: 13, align: right,  title_align: right}
+  - {key: amount,     title: "Thành tiền",             width: 15, align: right,  title_align: right}
+
+table:
+  frame: false
+  shade: 0.10
+  header_rules: true
+
+item:
+  wrap_name: true
+  rows:
+    - - {col: stt, from: stt}
+      - {col: name, from: name}
+      - {col: unit, from: unit}
+      - {col: qty, from: qty}
+      - {col: unit_price, from: unit_price}
+      - {col: amount, from: amount}
+
+totals:
+  frame: false
+  indent: 0.40
+  emphasise_grand: true
+  grand_scale: [1.15, 1.35]
+
+notes:
+  boxed: true
+  style: two_column
+  split: 0.52
+
+signatures: {}

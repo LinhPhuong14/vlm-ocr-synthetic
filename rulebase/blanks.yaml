@@ -98,6 +98,61 @@ blanks:
     layout: medical_statement
     sheet: samples/form-templates/medical_statement.html
 
+  # ------------------------------------------------------------------
+  # Mười phôi của root "Invoice / Billing" (docs/root-document-taxonomy.md
+  # §3.1) — không đo từ MỘT ảnh cụ thể như các phôi trên, mà từ khảo sát
+  # nhiều mẫu hoá đơn bán hàng tự thiết kế phổ biến cho từng kiểu bố cục;
+  # `source:` ở đây khớp nguyên văn `source:` trong file bố cục của nó.
+  invoice_header_table:
+    source: "hoá đơn giá trị gia tăng điện tử Viettel S-Invoice (bản thể hiện) — khối bán/mua đầy đủ trước MỘT bảng hàng full-width"
+    layout: invoice_header_table
+    sheet: null
+
+  invoice_logo_center:
+    source: "khảo sát mẫu hoá đơn bán hàng tự thiết kế phổ biến — khối liên hệ canh giữa dưới tên hiệu"
+    layout: invoice_logo_center
+    sheet: null
+
+  invoice_dense_table:
+    source: "khảo sát mẫu hoá đơn bán hàng tự thiết kế phổ biến — bảng nhiều dòng, cột thuế suất riêng"
+    layout: invoice_dense_table
+    sheet: null
+
+  invoice_minimalist:
+    source: "khảo sát mẫu hoá đơn bán hàng tự thiết kế phổ biến — bản tối giản, chỉ chữ đen trên nền trắng"
+    layout: invoice_minimalist
+    sheet: null
+
+  invoice_multipage:
+    source: "khảo sát mẫu hoá đơn PDF nhiều trang thật — trang 1 luôn có dòng 'còn tiếp' ở chân"
+    layout: invoice_multipage
+    sheet: null
+
+  invoice_logo_split:
+    source: "khảo sát mẫu hoá đơn bán hàng tự thiết kế phổ biến — logo/tên trái, tiêu đề+số phải"
+    layout: invoice_logo_split
+    sheet: null
+
+  invoice_two_column:
+    source: "khảo sát mẫu hoá đơn bán hàng tự thiết kế phổ biến — bên mua/bên nhận hàng hai cột song song"
+    layout: invoice_two_column
+    sheet: null
+
+  invoice_sidebar:
+    source: "khảo sát mẫu hoá đơn Excel/thiết kế 'split panel' — dải màu chứa tên hiệu và bên mua"
+    layout: invoice_sidebar
+    sheet: null
+
+  invoice_keyvalue:
+    source: "khảo sát mẫu hoá đơn bán hàng tự thiết kế phổ biến — khối thông tin khách hàng đóng khung riêng"
+    layout: invoice_keyvalue
+    sheet: null
+
+  invoice_remittance:
+    source: "khảo sát mẫu hoá đơn bán hàng tự thiết kế phổ biến — khối chuyển khoản đóng khung riêng cuối trang"
+    layout: invoice_remittance
+    sheet: null
+
 # Phôi mà mỗi document được phép dựng từ. Thứ tự không quan trọng.
 documents:
   pub_eatery: [eatery_indexed, eatery_ascii]
@@ -117,3 +172,9 @@ documents:
   bakery_order: [invoice_brand]
   hospital_bill: [medical_statement]
   authorisation_letter: [authorisation_letter]
+  invoice_plain:
+    [invoice_logo_center, invoice_dense_table,
+     invoice_minimalist, invoice_multipage]
+  invoice_detailed:
+    [invoice_header_table, invoice_logo_split, invoice_two_column, invoice_sidebar,
+     invoice_keyvalue, invoice_remittance]
