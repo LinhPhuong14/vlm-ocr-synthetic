@@ -1,14 +1,23 @@
 """A general-purpose ruled table, driven entirely by attributes.
 
-Every family in `sheets/` hand-writes its own table CSS today: `statutory.py`
-carries `table.items th,table.items td{border:.3mm solid ...}` baked into an
-f-string, `lodging.py` and `medical.py` each carry their own version of the
-same idea. Adding a table with a different border shape means writing CSS,
+Every family in `sheets/` used to hand-write its own table CSS: `statutory.py`
+carried `table.items th,table.items td{border:.3mm solid ...}` baked into an
+f-string, `lodging.py` and `medical.py` each carried their own version of the
+same idea. Adding a table with a different border shape meant writing CSS,
 not setting a field -- and "no vertical rules, thick outer frame, zebra body
-rows" is not a shape any of them happen to draw. This module is that missing
-piece: a table is a `TableSpec`, `render_table` turns it into a self-contained
-`<table>` (inline styles, no external stylesheet to keep in sync), and every
-shape below is a constructor call, not a CSS rule.
+rows" was not a shape any of them happened to draw. This module is what
+replaced the geometry half of that: a table is a `TableSpec`, `render_table`
+turns it into a self-contained `<table>` (inline styles for its own layout
+decisions -- spans, labels, whatever `Border`/`zebra`/colour it is given --
+no external stylesheet needed to make sense of the markup on its own), and
+every shape below is a constructor call, not a CSS rule.
+
+`sheets/base.py`'s `items_table()` and `sheets/statutory.py`'s
+`_summary_table()` -- the two real `<table>`s the html-CSS renderer draws,
+reached by every one of its five document families -- are built on this
+module today: see the "Compatibility, not a dependency" note below for how a
+family keeps its own visual identity (borders, header shading, zebra rows)
+while handing this module the geometry.
 
     from components.table import Border, Cell, Column, Row, TableSpec, render_table
 
@@ -58,18 +67,29 @@ under the same names and accepts any counter object with a `.take() -> int`
 method -- so a `sheets.base.Rows()` instance drops straight into `rows=`
 -- without importing anything from `sheets`, so it stays usable standalone
 (a preview page, a future non-A4 renderer, `tables.py`'s structure generator)
-and a family module can adopt it without a new dependency edge.
+too. The other half of the same seam is `Cell.cls`/`Row.cls`: a plain CSS
+class alongside the inline style, not instead of it, and an edge this
+module was not asked to draw is *omitted* from that style rather than
+forced to `none` -- an inline `none` would always outrank a page's own
+`.grand`/`.tlabel`-style rule regardless of specificity, and omitting the
+property is what lets that rule keep drawing the border. This is exactly
+how `items_table()`/`_summary_table()` use it: `border=Border.none()`, and
+every visual choice -- the frame, the header shading, zebra striping, all
+of it -- still comes from each family's own `<style>` block, reached
+through the classes this module was asked to carry rather than replaced by
+it. A layout with no such stylesheet to defer to can just set `Border.grid()`
+(or any other shape) directly and skip `cls` entirely.
 
-**What this module deliberately does not do.** No existing `sheets/*.py`
-family was rewired to use it -- each is backed by exact-pixel golden hashes
-(`make baseline-verify`) and hundreds of passing tests, and swapping their
-table CSS for this renderer's inline styles would move pixels for no
-functional gain. This is the primitive a *new* layout reaches for, and the
-one an existing family can migrate to deliberately, on its own diff, with a
-baseline recapture. Rounded corners are also left out: CSS `border-radius`
-on a collapsed table is unreliable across engines, and every reference form
-in `samples/` is square-cornered anyway -- a real gap would be a `Border`
-field, a fake one would be a feature nobody's paper has.
+**What this module deliberately does not do.** Rounded corners are left out:
+CSS `border-radius` on a collapsed table is unreliable across engines, and
+every reference form in `samples/` is square-cornered anyway -- a real gap
+would be a `Border` field, a fake one would be a feature nobody's paper has.
+And adopting this module is still each family's own decision made on its own
+diff: `items_table()` and `_summary_table()` are the two call sites that have
+migrated (both needed only `border=Border.none()` plus `cls=`/`kind=`
+passthrough to come out pixel-identical -- confirmed against
+`tools/baseline.py`'s golden hashes at the time); a third table drawn by hand
+somewhere in `sheets/` is not thereby broken, just not yet asked to move.
 """
 
 from __future__ import annotations
