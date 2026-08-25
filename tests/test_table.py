@@ -18,7 +18,7 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "generators" / "html"))
 
-import table as T  # noqa: E402
+from components import table as T  # noqa: E402
 
 
 def cells(html: str, tag: str = "td") -> list[str]:
