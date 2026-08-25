@@ -49,7 +49,7 @@ Three fixed plans, because one is not enough:
 
 * `n3` is the plan the W1 brief names, on three named layouts.
 * `n5` is every thermal layout -- the till-roll half of the rule-base.
-* `n26` is every layout, one image each per backend.
+* `n36` is every layout, one image each per backend.
 
 Adding a fifteenth layout leaves all three green, which is the point: a
 regression baseline must not move when someone adds unrelated content.
@@ -96,12 +96,17 @@ INVOICE = ["invoice_brand", "invoice_dense_table", "invoice_export",
            "invoice_remittance", "invoice_sidebar", "invoice_tax_en",
            "invoice_two_column", "invoice_vat_form", "invoice_vat_summary",
            "invoice_water"]
-# Documents that are not a sale: a hospital's statement of treatment costs, and
-# an authorisation to collect money on somebody's behalf. Cut sheets like the
-# invoices, and drawn by the same three backends, but neither is an invoice and
-# neither is named like one -- which is why they are their own list rather than
-# an entry in the one above.
-FORM = ["authorisation_letter", "medical_statement"]
+# Documents that are not a sale: a hospital's statement of treatment costs, an
+# authorisation to collect money on somebody's behalf, and the ten root-3
+# (Form / Application) layouts -- a questionnaire, a timesheet, a checkbox
+# form, a government application, and so on. Cut sheets like the invoices, and
+# drawn by the same three backends, but none of them is an invoice and none is
+# named like one -- which is why they are their own list rather than an entry
+# in the one above.
+FORM = ["authorisation_letter", "form_activity_signature", "form_checkbox_heavy",
+        "form_dense_registration", "form_government_app", "form_multi_section",
+        "form_project_kv", "form_questionnaire", "form_table_based",
+        "form_timesheet_grid", "form_two_column", "medical_statement"]
 
 PLANS: dict[str, dict] = {
     # The plan the W1 brief names, on the three layouts it named.
@@ -115,9 +120,10 @@ PLANS: dict[str, dict] = {
     # and `make baseline-verify` says so, which is the correct report: the
     # generator grew, and the fingerprint has to be recaptured on a machine with
     # all three renderer environments. (Golden is still filed under `n14` from
-    # this plan's *previous* growth to sixteen -- that recapture was never
-    # hand-run either. Both are one `make baseline-write REASON="..."` away.)
-    "n26": {"per_backend": 26, "seed": 2026,
+    # this plan's growth to sixteen, and again to twenty-six -- neither
+    # recapture was ever hand-run. All three are one `make baseline-write
+    # REASON="..."` away.)
+    "n36": {"per_backend": 36, "seed": 2026,
             "layouts": sorted(THERMAL + INVOICE + FORM)},
 }
 
