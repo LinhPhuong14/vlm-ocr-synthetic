@@ -197,6 +197,23 @@ def test_repeat_header_false_sets_table_row_group_inline():
     assert '<thead style="display:table-row-group">' in html
 
 
+def test_valign_defaults_to_top_when_left_unset():
+    spec = T.TableSpec(rows=[T.Row.of("a")])
+    assert "vertical-align:top" in attr(cells(T.render_table(spec))[0], "style")
+
+
+def test_valign_omitted_when_explicitly_none():
+    """Unlike align, valign is this component's opinion, not the data's --
+
+    passing `None` explicitly says "no opinion, defer to whatever CSS the
+    page already has" rather than falling back to the "top" default.
+    """
+    spec = T.TableSpec(columns=[T.Column(valign=None)], rows=[T.Row.of("a")])
+    style = attr(cells(T.render_table(spec))[0], "style")
+    assert "vertical-align" not in style
+    assert "text-align:left" in style   # align, unlike valign, is never omitted
+
+
 def test_escaping_and_newlines():
     spec = T.TableSpec(rows=[T.Row.of("<b>&\nsecond line")])
     html = T.render_table(spec)
