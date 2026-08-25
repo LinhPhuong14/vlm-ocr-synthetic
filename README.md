@@ -362,6 +362,21 @@ cái gì.
 
 ![Bảng ghép: từng mô hình làm cũ áp riêng lên một trang](samples/degradation/showcase-contact.jpg)
 
+### 7.7 Một component bảng, mười hai cách viền — và bảng kê viện phí thật nó dựng ra
+
+[`generators/html/components/table.py`](generators/html/components/table.py) là
+nơi `sheets/base.py` (`items_table()`, dùng chung cả 5 family) và
+`sheets/statutory.py` (`_summary_table()`) dựng mọi bảng có viền trong bộ
+sinh — khai bằng `TableSpec`/`Border`/`Row`/`Cell`, không còn CSS viết tay
+cho từng family. Chi tiết và mười hai bố cục mẫu ở
+[`samples/table-component/`](samples/table-component/README.md).
+
+Bảng kê viện phí (`medical_statement`) là ca khó nhất bộ sinh có — mười hai
+cột, tiêu đề hai băng với `rowspan`/`colspan`, dòng theo nhóm — dựng qua
+đúng component đó:
+
+![Bảng kê viện phí 12 cột, tiêu đề hai băng, dựng qua components/table.py](samples/table-component/pipeline-medical_statement.jpg)
+
 ---
 
 ## 📁 8. Cấu Trúc Thư Mục
@@ -379,10 +394,13 @@ vlm-ocr-synthetic/
 │
 ├── generators/html/                # RENDERER — Chromium qua Playwright
 │   ├── render.py                   # đường lưới ký tự (giấy cuộn nhiệt)
-│   ├── sheets/                     # một tờ CSS cho mỗi HỌ bố cục (A4)
+│   ├── sheets/                     # một tờ CSS cho mỗi HỌ bố cục (A4) — bảng của cả 5 family
+│   │                                 dựng qua components/table.py, viền/màu vẫn của riêng sheets/
+│   ├── components/                 # khối dựng dùng chung, không thuộc riêng family nào
+│   │   └── table.py                # component bảng — viền/màu/gộp/lồng qua attribute, không CSS
 │   ├── handwriting.py              # điền tay: WriteViT, hoặc font viết tay
 │   ├── signature.py                # chữ ký: chữ thật kéo giãn thành dấu ký
-│   ├── tables.py                   # ảnh bảng, nhãn theo cấu trúc PubTabNet
+│   ├── tables.py                   # ảnh bảng ĐỘC LẬP, nhãn theo cấu trúc PubTabNet (khác components/table.py)
 │   ├── overlap.py                  # phát hiện chữ chồng lên nhau
 │   └── page.py                     # dùng chung: trình duyệt, font nhúng, đọc hộp
 │
@@ -565,6 +583,7 @@ từng bộ và schema nhãn nằm trong **[`data/README.md`](data/README.md)**.
 | [`docs/handwriting-html.md`](docs/handwriting-html.md) · [`docs/writevit.md`](docs/writevit.md) | nối chữ viết tay vào engine HTML, và mô hình đứng sau |
 | [`docs/chu-ky.md`](docs/chu-ky.md) | khảo sát mẫu chữ ký — giám định, bút tướng, thư pháp, hướng dẫn tiếng Việt — engine kéo giãn từng phát hiện thành tham số, và hai nguồn mực nó vẽ bằng |
 | [`docs/huong-dan-va-giai-thich.md`](docs/huong-dan-va-giai-thich.md) | giải thích từng dòng của renderer, kèm Q&A |
+| [`docs/khao-sat-root-document-ocr.md`](docs/khao-sat-root-document-ocr.md) | khảo sát 6 root document phổ biến cho OCR/eKYC ngoài phạm vi hiện tại (CCCD/CMND, hộ chiếu, GPLX, sao kê ngân hàng, CV, hợp đồng) — mỗi root kèm từ khoá và 10 bố cục có link ảnh mẫu |
 | [`docs/python-versions.md`](docs/python-versions.md) · [`docs/windows.md`](docs/windows.md) | vì sao có mốc chặn phiên bản; cài trên Windows |
 | [`fonts/README.md`](fonts/README.md) | font nào, giấy phép nào, vì sao phải kiểm độ phủ |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | môi trường nào cho việc gì, và các kiểm tra phải chạy trước khi push |
