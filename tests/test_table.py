@@ -191,6 +191,38 @@ def test_header_rows_land_in_thead_and_body_rows_in_tbody():
     assert "a" in tbody and "b" in tbody
 
 
+def test_in_thead_places_a_plain_row_in_thead_without_making_it_a_header():
+    """The column-number row a VAT form prints under its titles: <td>, not
+
+    bold, but still has to repeat with the header it sits under.
+    """
+    spec = T.TableSpec(rows=[
+        T.Row.of("A", "B", header=True),
+        T.Row([T.Cell("1"), T.Cell("2")], in_thead=True),
+        T.Row.of("x", "y"),
+    ])
+    html = T.render_table(spec)
+    thead, _, tbody = html.partition("</thead>")
+    assert "1" in thead and "2" in thead      # placed in thead...
+    colnum_cell = cells(thead, "td")[0]       # ...but as <td>, not <th>
+    assert "font-weight:bold" not in attr(colnum_cell, "style")
+    assert "x" in tbody and "y" in tbody
+
+
+def test_in_thead_row_is_exempt_from_zebra():
+    spec = T.TableSpec(
+        zebra=("#fff", "#eee"),
+        rows=[T.Row.of("H", header=True), T.Row([T.Cell("1")], in_thead=True),
+              T.Row.of("a"), T.Row.of("b")],
+    )
+    html = T.render_table(spec)
+    colnum_cell = cells(html.partition("</thead>")[0], "td")[0]
+    assert "background" not in attr(colnum_cell, "style")
+    first_body, second_body = cells(html.partition("<tbody>")[2])
+    assert "background:#fff" in attr(first_body, "style")   # zebra restarts at 0 in tbody
+    assert "background:#eee" in attr(second_body, "style")
+
+
 def test_repeat_header_false_sets_table_row_group_inline():
     spec = T.TableSpec(rows=[T.Row.of("H", header=True)], repeat_header=False)
     html = T.render_table(spec)

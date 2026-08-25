@@ -320,10 +320,24 @@ class Cell:
 class Row:
     """One `<tr>`.
 
-    `header=True` makes every cell bold by default, puts it in `<thead>`
-    instead of `<tbody>`, and marks it as part of the header band that
-    `zebra` skips and `TableSpec.header_divider` draws its rule under (the
-    *last* row of a leading run of header rows, if there is more than one).
+    `header=True` makes every cell bold `<th>` by default, puts the row in
+    `<thead>` instead of `<tbody>`, and marks it as part of the header band
+    that `zebra` skips and `TableSpec.header_divider` draws its rule under
+    (the *last* row of a leading run of header rows, if there is more than
+    one).
+
+    `in_thead` decouples *where a row lands* from *what its cells look
+    like*, for the row `header=True` cannot express: a printed form's
+    header band sometimes carries a row that is plain `<td>`, unbolded, and
+    still has to sit in `<thead>` so it repeats with the titles above it --
+    the "1 2 3 ... = 4x6" column-number row under a VAT form's headings, for
+    one. Leave it `None` (the default) to follow `header`; set it to `True`
+    or `False` to place the row regardless. A row placed in `<thead>` this
+    way must still be *authored* immediately after the rows it belongs
+    with: `<thead>` always precedes `<tbody>` in the DOM no matter what
+    order `TableSpec.rows` lists them in, so a mistimed `in_thead=True`
+    visually moves a row to the top of the table rather than leaving it
+    where it was written.
 
     `cls` is a CSS class on the `<tr>`, same escape hatch as `Cell.cls`.
     """
@@ -333,6 +347,7 @@ class Row:
     header: bool = False
     min_height: float | None = None    # table's unit
     cls: str = ""
+    in_thead: bool | None = None
 
     @classmethod
     def of(klass, *cells: "str | Cell", header: bool = False, **kwargs) -> "Row":
@@ -569,8 +584,13 @@ def render_table(table: TableSpec, *, rows: RowCounter | None = None,
         col = 0
         td_html: list[str] = []
         row_number = counter.take()
+        in_thead = row.in_thead if row.in_thead is not None else (r < header_band)
+        # Zebra follows where a row LANDS, not `header`: `in_thead=True` can
+        # put a plain, unbolded row in the header band (a column-number row),
+        # and that row is no more a body row for striping purposes than an
+        # actual `<th>` is.
         zebra_index = None
-        if not row.header:
+        if not in_thead:
             zebra_index = body_index
             body_index += 1
 
@@ -602,7 +622,7 @@ def render_table(table: TableSpec, *, rows: RowCounter | None = None,
 
         tr_style = f' style="height:{row.min_height:g}{table.unit}"' if row.min_height else ""
         tr_cls = f' class="{escape(row.cls)}"' if row.cls else ""
-        (thead_html if r < header_band else tbody_html).append(
+        (thead_html if in_thead else tbody_html).append(
             f"<tr{tr_cls}{tr_style}>{''.join(td_html)}</tr>")
 
     colgroup = ""
