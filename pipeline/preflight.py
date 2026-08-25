@@ -39,7 +39,7 @@ import yaml  # noqa: E402
 
 import rulebase  # noqa: E402
 from rulebase import corpus  # noqa: E402
-from rulebase.layout import load_layout  # noqa: E402
+from rulebase.layout import SECTIONS, load_layout  # noqa: E402
 from rulebase.spec import RuleError, load_rules  # noqa: E402
 from rulebase.text import ascii_fold  # noqa: E402
 
@@ -254,7 +254,20 @@ def sheet_overflow(seeds: int = SHEET_SEEDS) -> list[str]:
         # Read the declaration before building anything: five of the fourteen
         # layouts are on a roll and have nothing to overflow, and building two
         # dozen pages to discover that is most of this check's cost.
-        if not load_layout(layout_id).get("sheet"):
+        spec = load_layout(layout_id)
+        if not spec.get("sheet"):
+            continue
+        # This measures `build_grid`'s own page-fitting math, so it only
+        # applies to a layout `build_grid` can actually draw. A layout whose
+        # `sections:` are all names from a CSS-sheet-only family (`form.py`'s
+        # "fields"/"checklist"/"sectioned"/"grid", none of them in the
+        # character grid's own `SECTIONS`) was never going to be measured this
+        # way -- and does not need to be: `sheets/base.py::document`'s
+        # `min-height` grows the page instead of cropping it, so that family
+        # has no fixed ceiling to overflow in the first place. Skipping here
+        # is the same reasoning as the truthy-`sheet` skip just above, not a
+        # weaker version of the check.
+        if any(name not in SECTIONS for name in (spec.get("sections") or [])):
             continue
         worst = 0.0
         worst_seed = 0
