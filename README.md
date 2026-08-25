@@ -60,38 +60,38 @@ giấy *quét vào* đọc lên giống hệt nhau.
 
 ## 🧠 3. Kiến Trúc Pipeline
 
-Tám giai đoạn, từ một hạt giống ngẫu nhiên tới một ảnh kèm bản ghi. Sơ đồ vẽ
-giai đoạn 1 rồi đi thẳng sang phần dựng pixel; giai đoạn 2 (`build_receipt` —
-điền trường, dựng nhãn CORD) và 3 (`build_grid` — dàn thành ô chữ và nét vẽ)
-nằm gọn trong `rulebase/` và có ngữ pháp riêng, xem
-[`rulebase/README.md`](rulebase/README.md).
+Bảy bước, từ một hạt giống ngẫu nhiên tới một ảnh kèm bản ghi.
 
-Ba giai đoạn đầu **thuần nội dung**, không cần thư viện ảnh nào — đó là lý do CI
-kiểm được chúng chỉ với `pytest` và `pyyaml`.
+Bước 1 gộp cả ba việc `rulebase.make()` làm — bốc công thức, điền trường, dàn
+thành ô chữ và nét vẽ. Cả ba **thuần nội dung**, không cần thư viện ảnh nào, và
+đó là lý do CI kiểm được chúng chỉ với `pytest` và `pyyaml`; ngữ pháp của chúng
+nằm trong [`rulebase/README.md`](rulebase/README.md).
+
+Bước 2 vẽ **tờ CSS** — đường mà các bộ hoá đơn và biểu mẫu đã công bố dùng.
+Còn một đường thứ hai, lưới ký tự cho giấy cuộn nhiệt, không vẽ ở đây mà ở mục
+[Hai đường dựng trang](#hai-đường-dựng-trang-và-cái-nối-chúng) ngay dưới.
 
 ```mermaid
 flowchart TD
     seed(["seed + tuỳ chọn --force ATTR=ID"]) --> A
 
-    subgraph S1 ["Giai đoạn 1: Nội dung — rulebase/"]
-        A["1 · sample_recipe<br/>bốc 7 thuộc tính theo trọng số + ràng buộc thẻ"]
+    subgraph S1 ["Bước 1: Nội dung — rulebase/"]
+        A["1 · rulebase.make<br/>bốc 7 thuộc tính, điền trường, dàn ô chữ + nét vẽ"]
     end
 
-    subgraph S2 ["Giai đoạn 4: Dựng pixel — generators/html/"]
-        A --> D1["4a · lưới ký tự<br/>render.py — giấy cuộn nhiệt"]
-        A --> D2["4b · tờ CSS<br/>sheets/ — A4 có khung, bảng, chữ ký"]
-        D2 --> D3["4c · điền tay (tuỳ chọn)<br/>handwriting.py — nguồn font hoặc WriteViT"]
+    subgraph S2 ["Bước 2-3: Dựng pixel — generators/html/"]
+        A --> D2["2 · tờ CSS<br/>sheets/ — A4 có khung, bảng, chữ ký"]
+        D2 --> D3["3 · điền tay (tuỳ chọn)<br/>handwriting.py — nguồn font hoặc WriteViT"]
     end
 
-    subgraph S3 ["Giai đoạn 5-7: Làm cũ & hình học"]
-        D1 --> E["5 · chuỗi làm cũ<br/>apply_recipe — KHÔNG đổi kích thước"]
-        D3 --> E
-        E --> F["6 · hoạ tiết & con dấu<br/>thuộc tính ornament"]
-        F --> G["7 · thu nhỏ<br/>hộp co theo pixel"]
+    subgraph S3 ["Bước 4-6: Làm cũ & hình học"]
+        D3 --> E["4 · chuỗi làm cũ<br/>apply_recipe — KHÔNG đổi kích thước"]
+        E --> F["5 · hoạ tiết & con dấu<br/>thuộc tính ornament"]
+        F --> G["6 · thu nhỏ<br/>hộp co theo pixel"]
     end
 
-    subgraph S4 ["Giai đoạn 8: Kiểm & ghi"]
-        G --> H["8 · record.validate + invariants<br/>số học tiền, hộp trong khung, không ô trống"]
+    subgraph S4 ["Bước 7: Kiểm & ghi"]
+        G --> H["7 · record.validate + invariants<br/>số học tiền, hộp trong khung, không ô trống"]
         H --> O[("ảnh .jpg<br/>+ .json từng ảnh<br/>+ synthesis.json")]
     end
 ```
