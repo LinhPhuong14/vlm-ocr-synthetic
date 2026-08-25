@@ -60,23 +60,26 @@ giấy *quét vào* đọc lên giống hệt nhau.
 
 ## 🧠 3. Kiến Trúc Pipeline
 
-Tám giai đoạn, từ một hạt giống ngẫu nhiên tới một ảnh kèm bản ghi. Ba giai
-đoạn đầu **thuần nội dung**, không cần thư viện ảnh nào — đó là lý do CI kiểm
-được chúng chỉ với `pytest` và `pyyaml`.
+Tám giai đoạn, từ một hạt giống ngẫu nhiên tới một ảnh kèm bản ghi. Sơ đồ vẽ
+giai đoạn 1 rồi đi thẳng sang phần dựng pixel; giai đoạn 2 (`build_receipt` —
+điền trường, dựng nhãn CORD) và 3 (`build_grid` — dàn thành ô chữ và nét vẽ)
+nằm gọn trong `rulebase/` và có ngữ pháp riêng, xem
+[`rulebase/README.md`](rulebase/README.md).
+
+Ba giai đoạn đầu **thuần nội dung**, không cần thư viện ảnh nào — đó là lý do CI
+kiểm được chúng chỉ với `pytest` và `pyyaml`.
 
 ```mermaid
 flowchart TD
     seed(["seed + tuỳ chọn --force ATTR=ID"]) --> A
 
-    subgraph S1 ["Giai đoạn 1-3: Nội dung — rulebase/"]
+    subgraph S1 ["Giai đoạn 1: Nội dung — rulebase/"]
         A["1 · sample_recipe<br/>bốc 7 thuộc tính theo trọng số + ràng buộc thẻ"]
-        A --> B["2 · build_receipt<br/>đơn vị phát hành, dòng hàng, tổng tiền, nhãn CORD"]
-        B --> C["3 · build_grid<br/>sections → ô chữ (Cell) và nét vẽ (Mark)"]
     end
 
     subgraph S2 ["Giai đoạn 4: Dựng pixel — generators/html/"]
-        C --> D1["4a · lưới ký tự<br/>render.py — giấy cuộn nhiệt"]
-        C --> D2["4b · tờ CSS<br/>sheets/ — A4 có khung, bảng, chữ ký"]
+        A --> D1["4a · lưới ký tự<br/>render.py — giấy cuộn nhiệt"]
+        A --> D2["4b · tờ CSS<br/>sheets/ — A4 có khung, bảng, chữ ký"]
         D2 --> D3["4c · điền tay (tuỳ chọn)<br/>handwriting.py — nguồn font hoặc WriteViT"]
     end
 
