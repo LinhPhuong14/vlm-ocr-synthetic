@@ -303,6 +303,75 @@ def _section_html(name: str, receipt, spec: dict, parse: dict, sections: list,
     return ""
 
 
+def _grid_items_table(spec: dict, receipt, parse: dict, rows) -> str:
+    """The item table for INV-01, on the shared `table` component.
+
+    The reference sheet's table is one ruled grid running straight into its
+    totals -- three more rows of the same table, not a second block
+    underneath it with its own edges to keep lined up by hand. `table.
+    component: true` in the layout file asks for this instead of
+    `base.items_table`'s own ruled-above-and-below-the-header look (and the
+    lighter `table.grid` CSS-only version of a full grid); every other
+    modern layout is untouched -- see `generators/html/table.py`'s own
+    docstring for why nothing already shipping was rewired onto it.
+
+    Column titles carry an optional English subtitle (`columns: [{title_en:
+    ...}]` in the layout file) as a second, sibling `span()` -- `span()` is
+    text-only by contract (see its docstring: a nested element would become
+    the measured box instead of the run), so the two languages are two
+    boxes joined by a literal `<br>`, never one span holding markup.
+    """
+    from table import Border, Cell, Column, Row, TableSpec, render_table
+    from rulebase.layout import item_values
+
+    columns = base.columns_of(spec, base.ncols_of(spec))
+    if not columns:
+        return ""
+    plan = base.item_rows(spec)
+    template = plan[0] if plan else [{"col": c["key"], "from": c["key"]} for c in columns]
+    by_col = {entry["col"]: entry["from"] for entry in template}
+    ncols = len(columns)
+
+    def header_cell(column: dict) -> Cell:
+        title = span("colhdr", column.get("title", ""))
+        title_en = column.get("title_en")
+        if title_en:
+            title += f'<br>{span("colhdr", f"({title_en})", "hen")}'
+        return Cell(title, html=True, align=column.get("title_align", "center"))
+
+    table_rows = [Row([header_cell(c) for c in columns], header=True, bg="#f4f4f4")]
+
+    for item in receipt.items:
+        values = item_values(item, receipt)
+        cells = []
+        for column in columns:
+            source = by_col.get(column["key"], column["key"])
+            text = values.get(source, "")
+            cells.append(Cell(span(f"menu.{source}", text), html=True,
+                               align=column.get("align", "left")))
+        table_rows.append(Row(cells))
+
+    # Merged into the same grid, not a block below it: three rows whose
+    # label spans every column but the last, exactly the shape the
+    # reference sheet's own table ends on.
+    total_pairs = list((parse.get("total") or {}).items())
+    for index, (label, value) in enumerate(total_pairs):
+        grand = index == len(total_pairs) - 1
+        kind = "total.grand" if grand else "total.line"
+        table_rows.append(Row([
+            Cell(span(f"{kind}.label", label), html=True, colspan=ncols - 1,
+                 align="right", bold=grand),
+            Cell(span(kind, value), html=True, align="right", bold=grand),
+        ]))
+
+    table_spec = TableSpec(
+        rows=table_rows,
+        columns=[Column(width=c["pct"], align=c.get("align", "left")) for c in columns],
+        border=Border.grid(0.22, color="#b7b7b7"),
+    )
+    return render_table(table_spec, rows=rows)
+
+
 def build(recipe, receipt, spec: dict, parse: dict) -> str:
     rng = random.Random(recipe.seed ^ 0x5A4D)
     minimal = bool(spec.get("minimal"))
@@ -320,7 +389,12 @@ def build(recipe, receipt, spec: dict, parse: dict) -> str:
     compact = bool(table_settings.get("compact"))
     grid = bool(table_settings.get("grid"))
 
-    table = base.items_table(spec, receipt, parse, rows, cls="items grid" if grid else "items")
+    if table_settings.get("component"):
+        # The `table` component (`generators/html/table.py`), totals merged
+        # in as its last three rows -- see `_grid_items_table`.
+        table = _grid_items_table(spec, receipt, parse, rows)
+    else:
+        table = base.items_table(spec, receipt, parse, rows, cls="items grid" if grid else "items")
 
     if page.get("style") == "sidebar":
         # A full-height coloured column instead of one flow down the page --
@@ -455,12 +529,18 @@ table.items tbody tr:last-child td{{border-bottom:.4mm solid {house};}}
 .pagemark{{margin-top:10mm;text-align:right;font-size:6.6pt;color:#888;font-style:italic;
    border-top:.2mm dashed #ccc;padding-top:2mm;}}
 """
+    # `font: serif` -- a printed VAT-invoice form's own face, not the sheet
+    # this family is named for and otherwise always sets sans. `base.SERIF`
+    # already ships (statutory.py's own default), so this is a font this
+    # renderer already embeds and every other family already exercises, not
+    # a new one to source and test.
+    font = base.SERIF if spec.get("font") == "serif" else base.SANS
     if narrow:
         return base.document(body, css, paper="A5", padding="12mm 11mm 10mm",
-                             font=base.SANS, size="7.4pt", colour="#1c1c1c",
+                             font=font, size="7.4pt", colour="#1c1c1c",
                              line_height="1.45")
     return base.document(body, css, paper="A4", padding="16mm 15mm",
-                         font=base.SANS, size="8.4pt", colour="#1c1c1c",
+                         font=font, size="8.4pt", colour="#1c1c1c",
                          line_height="1.45")
 
 
