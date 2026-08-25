@@ -59,6 +59,18 @@ FAMILIES = {
     "medical_statement": medical,
     "authorisation_letter": statement,
     "invoice_tax_en": modern,
+    # Mười bố cục root "Invoice / Billing" — cùng họ modern, khác nhau ở
+    # `sections:`/cờ trong file bố cục của chúng, không phải template.
+    "invoice_header_table": modern,
+    "invoice_logo_split": modern,
+    "invoice_logo_center": modern,
+    "invoice_two_column": modern,
+    "invoice_sidebar": modern,
+    "invoice_keyvalue": modern,
+    "invoice_dense_table": modern,
+    "invoice_minimalist": modern,
+    "invoice_multipage": modern,
+    "invoice_remittance": modern,
     "eatery_indexed": till,
     "eatery_ascii": till,
     "market_barcode": till,

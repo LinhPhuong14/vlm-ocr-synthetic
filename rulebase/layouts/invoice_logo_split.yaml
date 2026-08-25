@@ -1,0 +1,66 @@
+# INV-02 — Logo/tên hiệu trái, tiêu đề phải, cùng một hàng.
+#
+# `header.align: split` là cờ mới `generators/html/sheets/modern.py` đọc:
+# thay vì tên hiệu canh giữa rồi tiêu đề canh giữa bên dưới (mặc định), cả
+# hai vào CHUNG một hàng — tên hiệu bên trái, tiêu đề bên phải. Số/ngày/hạn
+# thanh toán không lặp lại ở đây (`_doctitle` chỉ in tiêu đề khi ở chế độ
+# split — xem code) mà xuống dải `strip` ngay dưới, nên `doctitle` được liệt
+# tường minh trong `sections:` để không bị chèn tự động lần hai.
+id: invoice_logo_split
+name: Trading name left, title right, on one row
+source: "khảo sát mẫu hoá đơn bán hàng tự thiết kế phổ biến — logo/tên trái, tiêu đề+số phải"
+
+width: [78, 92]
+gutter: 2
+rule_char: "-"
+sheet: a4
+rules: marks
+
+sections: [header, doctitle, strip, parties, table, totals, notes, words, signatures, footer]
+
+header:
+  align: split
+  name_scale: [1.30, 1.50]
+  name_bold: true
+  title: true
+
+strip:
+  rule_after: true
+
+parties:
+  split: 0.38
+
+columns:
+  - {key: stt,        title: "STT",                   width: 4,  align: center, title_align: center}
+  - {key: name,       title: "Tên hàng hoá, dịch vụ",  width: 0,  align: left,   title_align: left}
+  - {key: unit,       title: "ĐVT",                    width: 8,  align: center, title_align: center}
+  - {key: qty,        title: "Số lượng",               width: 8,  align: right,  title_align: right}
+  - {key: unit_price, title: "Đơn giá",                width: 13, align: right,  title_align: right}
+  - {key: amount,     title: "Thành tiền",             width: 15, align: right,  title_align: right}
+
+table:
+  frame: false
+  shade: 0.10
+  header_rules: true
+
+item:
+  wrap_name: true
+  rows:
+    - - {col: stt, from: stt}
+      - {col: name, from: name}
+      - {col: unit, from: unit}
+      - {col: qty, from: qty}
+      - {col: unit_price, from: unit_price}
+      - {col: amount, from: amount}
+
+totals:
+  frame: false
+  indent: 0.40
+  emphasise_grand: true
+  grand_scale: [1.15, 1.35]
+
+notes:
+  style: two_column
+  split: 0.52
+
+signatures: {}

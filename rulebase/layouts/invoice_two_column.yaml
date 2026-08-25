@@ -1,0 +1,70 @@
+# INV-04 — Hai cột thật: bên mua trái, bên nhận hàng phải.
+#
+# `parties.columns: billing_shipping` là cờ mới `generators/html/sheets/
+# modern.py` đọc: chế độ mặc định của `_customer()` dồn CẢ HAI khối vào một
+# cột phải (cột trái chỉ có một dòng chữ trang trí, xem docstring
+# `_customer`); chế độ này in `invoice.left` bên trái và `invoice.right`
+# bên phải — hai cột DỮ LIỆU thật, không cột nào là trang trí. `left_label`/
+# `right_label` là chữ tiêu đề tĩnh của mỗi cột (không phải nhãn dữ liệu,
+# không nằm trong `ground_truth()` — cùng loại "furniture" như tiêu đề chữ
+# ký).
+id: invoice_two_column
+name: Two REAL columns — buyer left, ship-to right
+source: "khảo sát mẫu hoá đơn bán hàng tự thiết kế phổ biến — bên mua/bên nhận hàng hai cột song song"
+
+width: [78, 92]
+gutter: 2
+rule_char: "-"
+sheet: a4
+rules: marks
+
+sections: [header, strip, parties, table, totals, notes, words, signatures, footer]
+
+header:
+  name_scale: [1.35, 1.55]
+  name_bold: true
+  title: true
+
+strip:
+  rule_after: false
+
+parties:
+  columns: billing_shipping
+  left_label: "BÊN MUA HÀNG"
+  right_label: "GIAO ĐẾN"
+  split: 0.5
+
+columns:
+  - {key: stt,        title: "STT",                   width: 4,  align: center, title_align: center}
+  - {key: name,       title: "Tên hàng hoá, dịch vụ",  width: 0,  align: left,   title_align: left}
+  - {key: unit,       title: "ĐVT",                    width: 8,  align: center, title_align: center}
+  - {key: qty,        title: "Số lượng",               width: 8,  align: right,  title_align: right}
+  - {key: unit_price, title: "Đơn giá",                width: 13, align: right,  title_align: right}
+  - {key: amount,     title: "Thành tiền",             width: 15, align: right,  title_align: right}
+
+table:
+  frame: false
+  shade: 0.10
+  header_rules: true
+
+item:
+  wrap_name: true
+  rows:
+    - - {col: stt, from: stt}
+      - {col: name, from: name}
+      - {col: unit, from: unit}
+      - {col: qty, from: qty}
+      - {col: unit_price, from: unit_price}
+      - {col: amount, from: amount}
+
+totals:
+  frame: false
+  indent: 0.40
+  emphasise_grand: true
+  grand_scale: [1.15, 1.35]
+
+notes:
+  style: two_column
+  split: 0.52
+
+signatures: {}

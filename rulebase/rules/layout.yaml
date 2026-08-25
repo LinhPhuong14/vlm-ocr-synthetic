@@ -145,6 +145,55 @@ groups:
         requires: [doc_brand]
         tags: [key_strip, footer_columns]
 
+      # ----------------------------------------------------------------
+      # MƯỜI BỐ CỤC ROOT "Invoice / Billing" — xem docs/root-document-
+      # taxonomy.md §3.1. Chia hai nhóm theo đúng những gì mỗi file liệt
+      # trong `sections:` của nó, khớp với tài liệu nó `requires`:
+      # `bare_fields` (invoice_plain, không khối khách hàng/ghi chú/chữ ký)
+      # hay `rich_fields` (invoice_detailed, đủ cả) — xem đầu hai file
+      # `rulebase/documents/invoice_plain.yaml` và `invoice_detailed.yaml`.
+      # Trộn lẫn hai nhóm là đúng thứ `pipeline/invariants.py` bắt lỗi:
+      # một trường tài liệu đã điền mà không bố cục nào vẽ nó.
+      - id: invoice_header_table
+        weight: 2
+        requires: [rich_fields]
+
+      - id: invoice_logo_split
+        weight: 2
+        requires: [rich_fields]
+
+      - id: invoice_logo_center
+        weight: 2
+        requires: [bare_fields]
+
+      - id: invoice_two_column
+        weight: 2
+        requires: [rich_fields]
+
+      - id: invoice_sidebar
+        weight: 2
+        requires: [rich_fields]
+
+      - id: invoice_keyvalue
+        weight: 2
+        requires: [rich_fields]
+
+      - id: invoice_dense_table
+        weight: 2
+        requires: [bare_fields]
+
+      - id: invoice_minimalist
+        weight: 2
+        requires: [bare_fields]
+
+      - id: invoice_multipage
+        weight: 1
+        requires: [bare_fields]
+
+      - id: invoice_remittance
+        weight: 2
+        requires: [rich_fields]
+
   # ------------------------------------------------------------------------
   - id: administrative_form
     label: "Chứng từ hành chính — không phải hoá đơn, nhưng vẫn là giấy tờ có nhãn"

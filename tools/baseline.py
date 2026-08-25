@@ -49,7 +49,7 @@ Three fixed plans, because one is not enough:
 
 * `n3` is the plan the W1 brief names, on three named layouts.
 * `n5` is every thermal layout -- the till-roll half of the rule-base.
-* `n16` is every layout, one image each per backend.
+* `n26` is every layout, one image each per backend.
 
 Adding a fifteenth layout leaves all three green, which is the point: a
 regression baseline must not move when someone adds unrelated content.
@@ -89,9 +89,13 @@ GOLDEN = REPO_ROOT / "tests" / "golden" / "baseline.json"
 # Adding a plan is fine. Editing one means recapturing.
 THERMAL = ["eatery_ascii", "eatery_indexed", "market_barcode",
            "market_compact", "market_vat"]
-INVOICE = ["invoice_brand", "invoice_export", "invoice_hotel_compact",
-           "invoice_hotel_stay", "invoice_power", "invoice_tax_en",
-           "invoice_vat_form", "invoice_vat_summary", "invoice_water"]
+INVOICE = ["invoice_brand", "invoice_dense_table", "invoice_export",
+           "invoice_header_table", "invoice_hotel_compact", "invoice_hotel_stay",
+           "invoice_keyvalue", "invoice_logo_center", "invoice_logo_split",
+           "invoice_minimalist", "invoice_multipage", "invoice_power",
+           "invoice_remittance", "invoice_sidebar", "invoice_tax_en",
+           "invoice_two_column", "invoice_vat_form", "invoice_vat_summary",
+           "invoice_water"]
 # Documents that are not a sale: a hospital's statement of treatment costs, and
 # an authorisation to collect money on somebody's behalf. Cut sheets like the
 # invoices, and drawn by the same three backends, but neither is an invoice and
@@ -110,8 +114,10 @@ PLANS: dict[str, dict] = {
     # reading it. A rename means the golden file has no entry under the new key
     # and `make baseline-verify` says so, which is the correct report: the
     # generator grew, and the fingerprint has to be recaptured on a machine with
-    # all three renderer environments.
-    "n16": {"per_backend": 16, "seed": 2026,
+    # all three renderer environments. (Golden is still filed under `n14` from
+    # this plan's *previous* growth to sixteen -- that recapture was never
+    # hand-run either. Both are one `make baseline-write REASON="..."` away.)
+    "n26": {"per_backend": 26, "seed": 2026,
             "layouts": sorted(THERMAL + INVOICE + FORM)},
 }
 

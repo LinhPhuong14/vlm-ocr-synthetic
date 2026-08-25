@@ -1,0 +1,65 @@
+# INV-01 — Header rồi một bảng hàng chạy hết bề ngang.
+#
+# Đối chiếu trực tiếp với ảnh tham chiếu của chính layout này trong gallery
+# (`docs/root-document-taxonomy.md` § 3.1, INV-01): một hoá đơn GTGT điện tử
+# Viettel S-Invoice thật — tên/logo bên bán ở đỉnh, tiêu đề canh giữa, rồi
+# khối "Đơn vị bán hàng" VÀ khối "Người mua hàng" (mỗi khối vài dòng
+# label: value, KHÔNG chia hai cột), sau đó một bảng hàng full-width đúng
+# sáu cột (STT/Tên hàng hoá dịch vụ/ĐVT/Số lượng/Đơn giá/Thành tiền — khớp ảnh
+# 1:1), tổng cộng, số tiền bằng chữ, hai ô chữ ký, ghi chú chân trang nhỏ.
+# Bản trước dùng `invoice_plain` (bỏ hẳn khối khách hàng) là bố cục quá trần
+# so với ảnh tham chiếu của chính nó — đổi sang `invoice_detailed` (§ xem
+# `rulebase/documents/invoice_detailed.yaml`) và bật đủ các khối trên để bám
+# sát ảnh gốc; `parties.columns: stacked` (mới, xem
+# `generators/html/sheets/modern.py::_customer`) in khối người mua thành MỘT
+# cột chạy hết bề ngang thay vì cột trái bỏ trống + cột phải hẹp — đúng dáng
+# một biểu mẫu VAT invoice, không phải sheet tự thiết kế của họ modern gốc.
+id: invoice_header_table
+name: Header, then seller/buyer blocks, then one full-width item table
+source: "hoá đơn giá trị gia tăng điện tử Viettel S-Invoice (bản thể hiện) — khối bán/mua đầy đủ trước MỘT bảng hàng full-width"
+
+width: [78, 92]
+gutter: 2
+rule_char: "-"
+sheet: a4
+rules: marks
+
+sections: [header, strip, parties, table, totals, words, signatures, footer]
+
+header:
+  name_scale: [1.30, 1.55]
+  name_bold: true
+  title: true
+  title_scale: [1.20, 1.40]
+
+parties:
+  columns: stacked
+
+columns:
+  - {key: stt,        title: "STT",                   width: 4,  align: center, title_align: center}
+  - {key: name,       title: "Tên hàng hoá, dịch vụ",  width: 0,  align: left,   title_align: left}
+  - {key: unit,       title: "ĐVT",                    width: 8,  align: center, title_align: center}
+  - {key: qty,        title: "Số lượng",               width: 8,  align: right,  title_align: right}
+  - {key: unit_price, title: "Đơn giá",                width: 13, align: right,  title_align: right}
+  - {key: amount,     title: "Thành tiền",             width: 15, align: right,  title_align: right}
+
+table:
+  frame: false
+  shade: 0.10
+  header_rules: true
+
+item:
+  wrap_name: true
+  rows:
+    - - {col: stt, from: stt}
+      - {col: name, from: name}
+      - {col: unit, from: unit}
+      - {col: qty, from: qty}
+      - {col: unit_price, from: unit_price}
+      - {col: amount, from: amount}
+
+totals:
+  frame: false
+  indent: 0.42
+  emphasise_grand: true
+  grand_scale: [1.15, 1.35]

@@ -1,0 +1,55 @@
+# INV-08 — Tối giản: không màu, không tô nền, không đậm.
+#
+# `minimal: true` là cờ mới `generators/html/sheets/modern.py` đọc ở gốc
+# spec (không phải trong một khối con) để thay `house` — màu ngẫu nhiên
+# chọn từ `LIVERIES` cho mọi bố cục khác — bằng một xám trung tính cố định.
+# `table.shade: 0` tắt dải tô dưới tiêu đề cột (đã có sẵn trong ngữ pháp,
+# không cần sửa code). Vẫn `invoice_plain`.
+id: invoice_minimalist
+name: No colour, no shading, no bold — plain black on white
+source: "khảo sát mẫu hoá đơn bán hàng tự thiết kế phổ biến — bản tối giản, chỉ chữ đen trên nền trắng"
+
+width: [78, 92]
+gutter: 2
+rule_char: "-"
+sheet: a4
+rules: marks
+
+minimal: true
+
+sections: [header, table, totals, footer]
+
+header:
+  name_scale: [1.15, 1.30]
+  name_bold: false
+  title: true
+  title_scale: [1.05, 1.15]
+
+columns:
+  - {key: stt,        title: "STT",                   width: 4,  align: center, title_align: center}
+  - {key: name,       title: "Tên hàng hoá, dịch vụ",  width: 0,  align: left,   title_align: left}
+  - {key: unit,       title: "ĐVT",                    width: 7,  align: center, title_align: center}
+  - {key: qty,        title: "SL",                     width: 7,  align: right,  title_align: right}
+  - {key: unit_price, title: "Đơn giá",                width: 13, align: right,  title_align: right}
+  - {key: amount,     title: "Thành tiền",             width: 15, align: right,  title_align: right}
+
+table:
+  frame: false
+  shade: 0
+  header_rules: true
+
+item:
+  wrap_name: true
+  rows:
+    - - {col: stt, from: stt}
+      - {col: name, from: name}
+      - {col: unit, from: unit}
+      - {col: qty, from: qty}
+      - {col: unit_price, from: unit_price}
+      - {col: amount, from: amount}
+
+totals:
+  frame: false
+  indent: 0.42
+  emphasise_grand: false
+  grand_scale: [1.0, 1.0]

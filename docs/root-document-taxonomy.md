@@ -23,7 +23,7 @@ kiểu layout, 28 loại block-level + 4 loại span-level).
 
 | # | Root | Ưu tiên | Đặc trưng OCR chính | Kho này hiện có gì |
 | :-: | :--- | :--- | :--- | :--- |
-| 1 | Invoice / Billing | 🔴 Rất cao | key-value + table + totals | **Có** — 4 họ document, là trọng tâm hiện tại |
+| 1 | Invoice / Billing | 🔴 Rất cao | key-value + table + totals | **Có** — 4 họ document; cả 10/10 layout đề xuất bên dưới nay đã có trong rulebase (§ 3.1) |
 | 2 | Receipt | 🔴 Rất cao | narrow layout + line items | **Có** — họ `till_receipt`, 5 layout |
 | 3 | Forms / Applications | 🔴 Rất cao | fields + checkbox + K-V | **Một phần** — chỉ 2 chứng từ (`hospital_bill`, `authorisation_letter`), chưa có checkbox/chữ ký/đơn chính phủ |
 | 4 | Identity Documents | 🔴 Rất cao | photo + K-V + MRZ + security | **Chưa có** |
@@ -93,18 +93,29 @@ câu truy vấn). Ảnh tương ứng từng dòng xem trong gallery ở đầu 
 ### 3.1 · Invoice / Billing — *key-value + table + totals*
 Dataset trích dẫn: **FATURA** (10.000 hoá đơn tổng hợp, 50 layout khác nhau) · **MIDD** (4 layout) · **DocILE**
 
-| ID | Layout | Keyword |
-| :--- | :--- | :--- |
-| INV-01 | Header + full-width table | invoice header full width line item table |
-| INV-02 | Logo trái + metadata phải | invoice logo left metadata right |
-| INV-03 | Logo giữa + company info | centered invoice header |
-| INV-04 | 2-column billing/shipping | invoice billing shipping two column |
-| INV-05 | Sidebar + main table | invoice sidebar layout |
-| INV-06 | Header + key-value blocks + table | invoice key value layout line items |
-| INV-07 | Dense table invoice | dense invoice table layout |
-| INV-08 | Minimalist invoice | minimal invoice layout |
-| INV-09 | Multi-page invoice | multi page invoice layout |
-| INV-10 | Invoice + payment/remittance section | invoice remittance payment section |
+Cả 10 layout dưới đây nay đã là layout thật trong rulebase (`rulebase/layouts/`,
+họ `modern` — xem `generators/html/sheets/modern.py`), sinh được qua
+`tools/generate_dataset.py --template auto`, không phải ảnh minh hoạ suông.
+Mỗi layout ghép với một trong hai document mới — `invoice_plain` (chỉ
+header + bảng + tổng, không khối khách hàng) hoặc `invoice_detailed` (đủ
+khối bên mua/bên nhận, ghi chú chuyển khoản, số tiền bằng chữ, hai chữ ký) —
+xem `rulebase/documents/invoice_plain.yaml` và `invoice_detailed.yaml`.
+INV-01 bám sát ảnh tham chiếu thật của chính nó (hoá đơn Viettel S-Invoice ở
+gallery đầu tài liệu) nên dùng `invoice_detailed`; các layout "tự thiết kế
+tối giản" khác (03/07/08/09) dùng `invoice_plain`.
+
+| ID | Layout | Keyword | Rulebase layout id |
+| :--- | :--- | :--- | :--- |
+| INV-01 | Header + full-width table | invoice header full width line item table | `invoice_header_table` |
+| INV-02 | Logo trái + metadata phải | invoice logo left metadata right | `invoice_logo_split` |
+| INV-03 | Logo giữa + company info | centered invoice header | `invoice_logo_center` |
+| INV-04 | 2-column billing/shipping | invoice billing shipping two column | `invoice_two_column` |
+| INV-05 | Sidebar + main table | invoice sidebar layout | `invoice_sidebar` |
+| INV-06 | Header + key-value blocks + table | invoice key value layout line items | `invoice_keyvalue` |
+| INV-07 | Dense table invoice | dense invoice table layout | `invoice_dense_table` |
+| INV-08 | Minimalist invoice | minimal invoice layout | `invoice_minimalist` |
+| INV-09 | Multi-page invoice | multi page invoice layout | `invoice_multipage` |
+| INV-10 | Invoice + payment/remittance section | invoice remittance payment section | `invoice_remittance` |
 
 ### 3.2 · Receipt — *narrow layout + line items*
 Dataset trích dẫn: **SROIE** · **CORD** (1.000 biên lai thật) · **WildReceipt**
