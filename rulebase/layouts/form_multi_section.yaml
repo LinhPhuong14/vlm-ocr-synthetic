@@ -1,0 +1,41 @@
+# FORM-05 — Nhiều mục có nhãn A/B: mục A trường thông tin, mục B một bảng
+# nhỏ.
+#
+# Dùng `form_sectioned` (§ xem tài liệu). `sections:` liệt "parties" và
+# "table" — cả hai tên NẰM TRONG từ vựng khối chữ ký tự
+# (`rulebase.layout.SECTIONS`), vì `build_grid` (preflight, test_layout.py)
+# raise trên tên lạ; `sectioned:` bên dưới là một khoá spec riêng của họ
+# form (không phải tên section) đọc trong `_section_html` của form.py để
+# bọc CHÍNH HAI section đó thành "A. Thông tin dự án" / "B. Số liệu" — xem
+# docstring `_section_html`. Cột "Chỉ tiêu" (width 0) là cột co giãn — để
+# `columns_of()` tính đúng % còn lại cho các cột cố định khác. Cột "Giá
+# trị" đọc `amount` — cùng con số `receipt.ground_truth()` gọi là
+# `menu.price`, khác tên chứ không khác giá trị (xem
+# `rulebase/content.py:299`) — thiếu cột này thì đúng field đó "in trong
+# nhãn mà không có ô nào vẽ". "totals" bắt buộc có mặt — một total không
+# in luôn là lỗi, không được phép nằm trong SUPPRESSED (xem
+# `pipeline/invariants.py`).
+id: form_multi_section
+name: Multi-section form — lettered sections, a small table in the second
+source: "FUNSD (Project Status Report) — mục A thông tin dự án, mục B bảng 5 cột theo năm"
+
+width: [85, 95]
+gutter: 2
+rule_char: "-"
+sheet: a4
+rules: marks
+
+sections: [header, parties, table, totals, signatures, footer]
+
+header:
+  title: true
+
+sectioned:
+  titles: ["Thông tin dự án", "Số liệu"]
+
+columns:
+  - {key: stt,    title: "STT",      width: 5,  align: center, title_align: center}
+  - {key: name,   title: "Chỉ tiêu", width: 0,  align: left,   title_align: left}
+  - {key: qty,    title: "Số lượng", width: 10, align: right,  title_align: right}
+  - {key: unit,   title: "Đơn vị",   width: 10, align: center, title_align: center}
+  - {key: amount, title: "Giá trị",  width: 14, align: right,  title_align: right}

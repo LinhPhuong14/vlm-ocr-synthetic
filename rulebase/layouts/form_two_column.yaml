@@ -1,0 +1,25 @@
+# FORM-04 — Hai cột song song: Bên nữ / Bên nam, mỗi bên cùng hình dạng
+# trường, lời cam đoan, hai chữ ký đối xứng.
+#
+# Dùng `form_symmetric` (§ xem tài liệu) — `fields.columns: two` đọc
+# `party_fields.left`/`right` CỦA TÀI LIỆU thành hai cột thật qua
+# `_fields_two` trong form.py, chú thích mỗi cột lấy từ `left_title`/
+# `right_title` (đặt trong `party_fields:` của tài liệu, không phải ở
+# đây).
+id: form_two_column
+name: Two-column form — matching fields side by side, dual signature
+source: "LuatVietnam.vn (tờ khai đăng ký kết hôn) — hai cột song song 'Bên nữ'/'Bên nam', lời cam đoan, hai khối chữ ký đối xứng"
+
+width: [90, 100]
+gutter: 2
+rule_char: "-"
+sheet: a4
+rules: marks
+
+sections: [header, parties, notes, signatures, footer]
+
+header:
+  title: true
+
+fields:
+  columns: two

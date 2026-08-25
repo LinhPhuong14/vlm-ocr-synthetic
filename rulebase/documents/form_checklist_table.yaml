@@ -1,0 +1,31 @@
+# THAM SỐ NỘI DUNG — form_checklist_table
+#
+# Root 3: một bảng thông số (viền đủ) CỘNG danh sách checkbox CỘNG một
+# chữ ký. Dùng cho FORM-08 (table-based form) — khác `form_checklist`
+# (FORM-06) đúng một điểm: có bảng, vì tài liệu ấy có `num_items` còn
+# `form_checklist` có `no_items: true`. Tách file thay vì thêm cờ vào
+# `form_checklist` để mỗi layout dùng ĐÚNG những gì tài liệu của nó luôn
+# in — một layout không bảng mà tài liệu lại luôn sinh dòng hàng là đúng
+# lỗi `pipeline/invariants.py` bắt: giá trị có mà không ô nào vẽ.
+
+profile: invoice
+invoice: true
+num_items: [3, 5]
+price_step: 1
+show_vat: false
+show_subtotal: false
+show_payment: false
+show_amount_words: false
+show_number: false
+show_seller_tax_code: false
+show_seller_website: false
+titles: ["BIÊN BẢN THÔNG SỐ KỸ THUẬT"]
+serial_format: "TS{n}"
+units: ["mm", "kg", "°C", "V", "A", "%"]
+notes:
+  - "Đã kiểm tra, đối chiếu đúng thông số kỹ thuật"
+  - "Đạt yêu cầu chất lượng đầu ra"
+  - "Đã hiệu chuẩn thiết bị đo trước khi ghi nhận"
+  - "Có sai lệch cần xử lý thêm"
+signature_labels:
+  - ["Người ghi nhận", "(Ký, ghi rõ họ tên)"]

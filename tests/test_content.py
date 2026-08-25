@@ -96,7 +96,16 @@ def test_discounts_never_exceed_the_line():
 
 def test_there_is_always_something_on_the_receipt():
     for seed, receipt, _grid in receipts():
-        assert receipt.items, f"seed={seed}: no items"
+        if not receipt.items:
+            # A form that states one fact in its field block rather than a
+            # basket of lines -- an authorisation letter, a marriage
+            # declaration -- has no items by design (`no_items` in
+            # rulebase/content.py: "An empty line list is the honest
+            # model"). What such a page always has instead is its field
+            # block and its declaration text.
+            inv = receipt.invoice
+            assert inv is not None and (inv.left or inv.right), f"seed={seed}: no field block"
+            assert inv.notes, f"seed={seed}: no declaration text"
         assert receipt.totals, f"seed={seed}: no totals"
         assert receipt.store.name, f"seed={seed}: no shop name"
 
@@ -248,7 +257,9 @@ def test_ground_truth_has_the_shape_donut_expects():
         label = receipt.ground_truth()
         assert set(label) >= {"doc_type", "title", "store", "menu", "total", "footer"}, seed
         assert label["doc_type"].startswith("receipt_"), seed
-        assert isinstance(label["menu"], list) and label["menu"], seed
+        assert isinstance(label["menu"], list), seed
+        if receipt.items:
+            assert label["menu"], seed
         for entry in label["menu"]:
             assert "nm" in entry and "price" in entry, f"seed={seed}: {entry}"
 

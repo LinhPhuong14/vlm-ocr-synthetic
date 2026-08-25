@@ -1,0 +1,31 @@
+# FORM-07 — Bảng "quá trình hoạt động" nhỏ, hai đoạn nhãn (khen thưởng/kỷ
+# luật), lời cam đoan, hai chữ ký (thủ trưởng xác nhận / người khai).
+#
+# Dùng `form_activity` (§ xem tài liệu). Cột "Nội dung hoạt động" (width
+# 0) co giãn. Cột "Phụ cấp" đọc `amount` — cùng con số `ground_truth()`
+# gọi là `menu.price` (xem `form_multi_section.yaml`). "totals" in tổng
+# phụ cấp — `total` không được phép nằm trong SUPPRESSED (xem
+# `pipeline/invariants.py`: một total không in luôn là lỗi, không phải
+# ngân sách được phép bỏ qua).
+id: form_activity_signature
+name: Form + signature — a small record table, then a declaration
+source: "Cục QLLĐ ngoài nước — Bộ Nội vụ (Sơ yếu lý lịch tự thuật, trang cuối) — bảng 4 cột, khen thưởng/kỷ luật, lời cam đoan, chữ ký kép"
+
+width: [85, 95]
+gutter: 2
+rule_char: "-"
+sheet: a4
+rules: marks
+
+sections: [header, table, totals, notes, signatures, footer]
+
+header:
+  title: true
+
+columns:
+  - {key: stt,    title: "STT",                 width: 5,  align: center, title_align: center}
+  - {key: date,   title: "Thời gian",            width: 15, align: center, title_align: center}
+  - {key: name,   title: "Nội dung hoạt động",   width: 0,  align: left,   title_align: left}
+  - {key: unit,   title: "ĐVT",                  width: 8,  align: center, title_align: center}
+  - {key: note,   title: "Ghi chú",              width: 14, align: left,   title_align: left}
+  - {key: amount, title: "Phụ cấp",              width: 12, align: right,  title_align: right}

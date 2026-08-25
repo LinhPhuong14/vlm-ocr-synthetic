@@ -150,6 +150,26 @@ SUPPRESSED: dict[str, frozenset[str]] = {
         "store.branch",              # 100%
     }),
     "eatery_indexed": frozenset(),   # prints everything it is given
+
+    # Root 3 (Form / Application): none of these four rule a distinct "đơn
+    # giá" column at all -- an activity record, a technical-parameter table,
+    # a project data table and a timesheet's allowance column each print one
+    # money value per row (`amount`), not two. `menu.unitprice` is a real
+    # leaf on every item regardless (the rule-base's item model is shared
+    # with every invoice), so it is suppressed here on purpose rather than
+    # by omission -- see `rulebase/layouts/form_multi_section.yaml`'s own
+    # comment on why `amount` is the column these tables print instead.
+    # `total` is deliberately NOT suppressed anywhere -- an unprinted total
+    # is always a bug (see `test_an_unprinted_total_is_an_error_not_a_budget_
+    # line` in `tests/test_invariants.py`), and `menu.unit`/`menu.unitprice`
+    # are the only leaves not in `BUDGETS` a `SUPPRESSED` entry may name (see
+    # `test_every_suppressed_pair_names_a_field_that_has_a_budget`); these
+    # four layouts print their own `totals` section and a "Đơn vị" column
+    # instead of suppressing either.
+    "form_activity_signature": frozenset({"menu.unitprice"}),   # 100%
+    "form_multi_section": frozenset({"menu.unitprice"}),        # 100%
+    "form_table_based": frozenset({"menu.unitprice"}),          # 100%
+    "form_timesheet_grid": frozenset({"menu.unitprice"}),       # 100%
 }
 
 # A budget is only consulted once this many values of that field failed to

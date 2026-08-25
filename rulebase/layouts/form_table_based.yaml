@@ -1,0 +1,34 @@
+# FORM-08 — Bảng thông số kỹ thuật viền đủ, cộng danh sách checkbox, cộng
+# một chữ ký.
+#
+# Dùng `form_checklist_table` (§ xem tài liệu — có `num_items`, khác
+# `form_checklist` của FORM-06 đúng điểm đó). `checklist:` (khoá spec,
+# không phải tên section) làm "notes" đọc `invoice.notes` thành ô vuông
+# thay vì đoạn văn, y hệt FORM-06 — xem `_section_html` trong form.py. Cột
+# "Hạng mục kiểm tra" (width 0) co giãn. Cột "Chi phí" đọc `amount` — cùng
+# con số `ground_truth()` gọi là `menu.price` (xem
+# `form_multi_section.yaml`). "totals" bắt buộc có mặt (xem file đó).
+id: form_table_based
+name: Table-based form — a ruled parameter table, checklist, one signature
+source: "FUNSD (Compound Physical Parameters) — bảng viền rõ ràng, ô checkbox, chữ ký cuối trang"
+
+width: [85, 95]
+gutter: 2
+rule_char: "-"
+sheet: a4
+rules: marks
+
+sections: [header, table, totals, notes, signatures, footer]
+
+header:
+  title: true
+
+checklist:
+  checked_rate: 0.6
+
+columns:
+  - {key: stt,        title: "STT",                width: 5,  align: center, title_align: center}
+  - {key: name,       title: "Hạng mục kiểm tra",   width: 0,  align: left,   title_align: left}
+  - {key: qty,        title: "Giá trị đo được",     width: 13, align: right,  title_align: right}
+  - {key: unit,       title: "Đơn vị",              width: 10, align: center, title_align: center}
+  - {key: amount,     title: "Chi phí",             width: 14, align: right,  title_align: right}

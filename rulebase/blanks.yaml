@@ -23,6 +23,56 @@ blanks:
     layout: authorisation_letter
     sheet: samples/form-templates/authorisation_letter.html
 
+  form_questionnaire:
+    source: "FUNSD (R&D Quality Improvement Suggestion Form) — trường tên/ngày/quản lý, đoạn mô tả, câu hỏi Có/Không"
+    layout: form_questionnaire
+    sheet: null
+
+  form_timesheet_grid:
+    source: "LuatVietnam.vn (mẫu bảng chấm công) — lưới ngày 1-31 × nhân viên, cột Tổng cộng, ba dòng ký tên"
+    layout: form_timesheet_grid
+    sheet: null
+
+  form_project_kv:
+    source: "FUNSD (Project Initiation Form) — cặp nhãn-giá trị rõ ràng, chữ ký phê duyệt viết tay"
+    layout: form_project_kv
+    sheet: null
+
+  form_two_column:
+    source: "LuatVietnam.vn (tờ khai đăng ký kết hôn) — hai cột song song Bên nữ/Bên nam, lời cam đoan, chữ ký kép"
+    layout: form_two_column
+    sheet: null
+
+  form_multi_section:
+    source: "FUNSD (Project Status Report) — mục A/B, mục B có bảng 5 cột theo năm"
+    layout: form_multi_section
+    sheet: null
+
+  form_checkbox_heavy:
+    source: "FUNSD (Capital Budget Project) — bảy ô đánh dấu mục đích dự án + ô trạng thái Proposed/Approved"
+    layout: form_checkbox_heavy
+    sheet: null
+
+  form_activity_signature:
+    source: "Cục QLLĐ ngoài nước — Bộ Nội vụ (Sơ yếu lý lịch tự thuật, trang cuối) — bảng 4 cột, khen thưởng/kỷ luật, chữ ký kép"
+    layout: form_activity_signature
+    sheet: null
+
+  form_table_based:
+    source: "FUNSD (Compound Physical Parameters) — bảng viền rõ ràng, ô checkbox, chữ ký cuối trang"
+    layout: form_table_based
+    sheet: null
+
+  form_government_app:
+    source: "LuatVietnam.vn (mẫu giấy khai sinh) — quốc hiệu, khung CHXHCNVN, dày trường hộ tịch"
+    layout: form_government_app
+    sheet: null
+
+  form_dense_registration:
+    source: "Cục QLLĐ ngoài nước — Bộ Nội vụ (Sơ yếu lý lịch tự thuật, trang đầu) — khung dán ảnh, gần 20 trường, mục Hoàn cảnh gia đình"
+    layout: form_dense_registration
+    sheet: null
+
   eatery_ascii:
     source: "photo QUAN AN THIEN TAN, TPHCM 2011"
     layout: eatery_ascii
@@ -172,6 +222,14 @@ documents:
   bakery_order: [invoice_brand]
   hospital_bill: [medical_statement]
   authorisation_letter: [authorisation_letter]
+  form_brief: [form_questionnaire, form_project_kv]
+  form_symmetric: [form_two_column]
+  form_activity: [form_activity_signature]
+  form_checklist: [form_checkbox_heavy]
+  form_checklist_table: [form_table_based]
+  form_sectioned: [form_multi_section]
+  form_roster: [form_timesheet_grid]
+  form_dense: [form_government_app, form_dense_registration]
   invoice_plain:
     [invoice_logo_center, invoice_dense_table,
      invoice_minimalist, invoice_multipage]

@@ -41,7 +41,7 @@ from __future__ import annotations
 
 from html.parser import HTMLParser
 
-from . import lodging, medical, modern, statement, statutory, till
+from . import form, lodging, medical, modern, statement, statutory, till
 from .base import structure_tokens
 
 # Layout id -> the module that dresses it. A layout missing from here is a
@@ -76,6 +76,18 @@ FAMILIES = {
     "market_barcode": till,
     "market_compact": till,
     "market_vat": till,
+    # Mười bố cục root "Form / Application" — họ mới `form` (fields trong
+    # một khối, không phải hai bên một bảng). Xem `form.py`.
+    "form_questionnaire": form,
+    "form_timesheet_grid": form,
+    "form_project_kv": form,
+    "form_two_column": form,
+    "form_multi_section": form,
+    "form_checkbox_heavy": form,
+    "form_activity_signature": form,
+    "form_table_based": form,
+    "form_government_app": form,
+    "form_dense_registration": form,
 }
 
 

@@ -1,0 +1,41 @@
+# THAM SỐ NỘI DUNG — form_checklist
+#
+# Root 3, tầng "dày checkbox": không bảng, không trường dày — chỉ vài
+# trường ngắn cộng một danh sách hạng mục, mỗi hạng mục MỘT checkbox. Dùng
+# cho FORM-06 (checkbox-heavy layout).
+#
+# Danh sách hạng mục nằm trong `notes:` — cùng cơ chế `invoice.notes` mọi
+# family khác đã đọc, layout của form family đọc nó thành ô vuông + chữ
+# thay vì đoạn văn (xem `_checklist` trong `generators/html/sheets/
+# form.py`). Trạng thái đã đánh dấu/chưa đánh dấu bốc ngẫu nhiên lúc vẽ,
+# không lưu vào ground truth — cùng lý do `page.marker` không `span()`
+# trong modern.py: đó là furniture, chữ trên mỗi dòng mới là dữ liệu.
+
+profile: invoice
+invoice: true
+no_items: true
+form_fields: true
+show_vat: false
+show_subtotal: false
+show_payment: false
+show_amount_words: false
+show_number: false
+show_seller_tax_code: false
+show_seller_website: false
+titles: ["PHIẾU ĐỀ NGHỊ NGÂN SÁCH DỰ ÁN"]
+serial_format: "NS{n}"
+party_fields:
+  left:
+    - [applicant_name, "Người đề nghị:"]
+    - [buyer_company, "Đơn vị:"]
+    - [date, "Ngày:"]
+notes:
+  - "Mở rộng nhà xưởng, cơ sở vật chất"
+  - "Mua sắm máy móc, thiết bị"
+  - "Đào tạo, phát triển nhân sự"
+  - "Nghiên cứu và phát triển sản phẩm"
+  - "Nâng cấp hệ thống công nghệ thông tin"
+  - "Chi phí marketing, mở rộng thị trường"
+  - "Khoản mục khác"
+signature_labels:
+  - ["Người phê duyệt", "(Ký, ghi rõ họ tên)"]

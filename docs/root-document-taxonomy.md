@@ -136,18 +136,29 @@ Dataset trích dẫn: **SROIE** · **CORD** (1.000 biên lai thật) · **WildRe
 ### 3.3 · Form / Application — *fields + checkbox + K-V*
 Dataset trích dẫn: **FUNSD** (199 scanned forms, nhãn semantic entities + relations) · **XFUND** (mở rộng 7 ngôn ngữ) · **RVL-CDIP** (lớp questionnaire/form)
 
-| ID | Layout | Keyword |
-| :--- | :--- | :--- |
-| FORM-01 | Simple questionnaire | questionnaire form layout |
-| FORM-02 | Grid form | grid form layout |
-| FORM-03 | Label-value form | key value form layout |
-| FORM-04 | Two-column form | two column application form |
-| FORM-05 | Multi-section form | multi section form layout |
-| FORM-06 | Checkbox-heavy | checkbox form layout |
-| FORM-07 | Form + signature | form signature field layout |
-| FORM-08 | Table-based form | table form layout |
-| FORM-09 | Government application | government application form layout |
-| FORM-10 | Dense registration form | registration form dense layout |
+Cả 10 layout dưới đây nay đã là layout thật trong rulebase (`rulebase/layouts/`,
+họ `form` — xem `generators/html/sheets/form.py`), sinh được qua
+`tools/generate_dataset.py --template auto`, không phải ảnh minh hoạ suông.
+Mỗi layout ghép với một trong 8 document mới (`rulebase/documents/form_*.yaml`)
+tái dùng từ vựng nội dung sẵn có của rulebase (đăng ký kết hôn, sơ yếu lý lịch,
+báo cáo dự án, chấm công, uỷ quyền, ...) cộng một khối trường hồ sơ cá nhân mới
+(`form_fields: true`, xem `rulebase/content.py`: họ tên/ngày sinh/dân tộc/quê
+quán/nghề nghiệp/...). FORM-02/05/07/08 in một bảng dòng thật qua component
+dùng chung `generators/html/table.py`, với cột "Phụ cấp"/"Giá trị"/"Chi phí"
+đọc đúng `item.amount` — con số `ground_truth()` gọi là `menu.price`.
+
+| ID | Layout | Keyword | Rulebase layout id |
+| :--- | :--- | :--- | :--- |
+| FORM-01 | Simple questionnaire | questionnaire form layout | `form_questionnaire` |
+| FORM-02 | Grid form | grid form layout | `form_timesheet_grid` |
+| FORM-03 | Label-value form | key value form layout | `form_project_kv` |
+| FORM-04 | Two-column form | two column application form | `form_two_column` |
+| FORM-05 | Multi-section form | multi section form layout | `form_multi_section` |
+| FORM-06 | Checkbox-heavy | checkbox form layout | `form_checkbox_heavy` |
+| FORM-07 | Form + signature | form signature field layout | `form_activity_signature` |
+| FORM-08 | Table-based form | table form layout | `form_table_based` |
+| FORM-09 | Government application | government application form layout | `form_government_app` |
+| FORM-10 | Dense registration form | registration form dense layout | `form_dense_registration` |
 
 ### 3.4 · Identity Document — *photo + K-V + MRZ + security*
 Dataset trích dẫn: **MIDV-500** (500 video clip, 50 loại giấy tờ tuỳ thân **mẫu**)

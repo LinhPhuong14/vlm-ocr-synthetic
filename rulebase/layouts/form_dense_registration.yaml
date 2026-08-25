@@ -1,0 +1,24 @@
+# FORM-10 — Đăng ký dày đặc: khung dán ảnh góc trang, rồi các trường dân
+# sự liên tiếp.
+#
+# Dùng `form_dense` (§ xem tài liệu, chung với FORM-09) — cùng nội dung,
+# khác cách trình bày: `page.photobox: true` thay cho `header.masthead:
+# govt` (xem file đó) — đúng dáng một mẫu sơ yếu lý lịch tự khai (không có
+# quốc hiệu ở đầu) so với một đơn hành chính nhà nước chính thức.
+id: form_dense_registration
+name: Dense registration form — photo box, then field after field
+source: "Cục QLLĐ ngoài nước — Bộ Nội vụ (Sơ yếu lý lịch tự thuật, trang đầu) — khung dán ảnh, gần 20 trường nhãn-giá trị, mục 'Hoàn cảnh gia đình'"
+
+width: [85, 95]
+gutter: 2
+rule_char: "-"
+sheet: a4
+rules: marks
+
+sections: [header, parties, notes, signatures, footer]
+
+page:
+  photobox: true
+
+header:
+  title: true

@@ -1,0 +1,34 @@
+# FORM-02 — Bảng chấm công: lưới/ma trận, mỗi dòng một người.
+#
+# Dùng `form_roster` (§ xem tài liệu). `columns:` năm cột thật (STT, Họ
+# và tên, ĐVT, Tổng công, Phụ cấp) — `grid.days` (khoá spec riêng của
+# form.py, không phải tên section) thêm bảy cột ngày trang trí phía sau,
+# đọc trong `_roster_table`, không phải từ `columns:` này. Cột "Phụ cấp"
+# đọc `amount` — cùng con số `ground_truth()` gọi là `menu.price` (xem
+# `form_multi_section.yaml`); đặt tên "Phụ cấp" thay vì ép vào "Tổng công"
+# vì tổng công phải là một số công nhỏ, không phải một số tiền định dạng
+# dấu chấm. "totals" bắt buộc có mặt (xem file đó).
+id: form_timesheet_grid
+name: Grid form — one row per person, a day column each
+source: "LuatVietnam.vn (mẫu bảng chấm công) — cột dọc là ngày 1-31, hàng ngang là nhân viên, cột Tổng cộng, ba dòng ký tên"
+
+width: [90, 100]
+gutter: 1
+rule_char: "-"
+sheet: a4
+rules: marks
+
+sections: [header, table, totals, signatures, footer]
+
+header:
+  title: true
+
+grid:
+  days: ["T2", "T3", "T4", "T5", "T6", "T7", "CN"]
+
+columns:
+  - {key: stt,    title: "STT",           width: 5,  align: center, title_align: center}
+  - {key: name,   title: "Họ và tên",     width: 15, align: left,   title_align: left}
+  - {key: unit,   title: "ĐVT",           width: 6,  align: center, title_align: center}
+  - {key: qty,    title: "Tổng công",     width: 7,  align: center, title_align: center}
+  - {key: amount, title: "Phụ cấp",       width: 10, align: right,  title_align: right}
