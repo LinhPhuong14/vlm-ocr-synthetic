@@ -61,18 +61,44 @@ def _masthead_split(parse: dict, spec: dict) -> str:
             f'<div class="mast-r">{title}</div></div>')
 
 
-def _doctitle(parse: dict, meta: bool = True) -> str:
+def _masthead_corner(receipt, parse: dict, spec: dict) -> str:
+    """Trading name top-left, a small numbered-stationery box top-right.
+
+    `header.align: corner` asks for this instead of the centred default --
+    the shape a standard VAT-invoice form's masthead actually has (logo one
+    corner, "Mẫu số / Ký hiệu / Số" box the other), with the title still
+    printed centred and full width below it via `_doctitle`, called
+    separately. The box's rows are `strip`'s own pairs -- `party_fields.strip`
+    on the document -- so a layout using this mode names no separate `strip`
+    in `sections:`, the same way `split` folds the title into itself instead
+    of leaving a `doctitle` to print it again. See `invoice_header_table.yaml`.
+    """
+    brand = _masthead(parse, spec)
+    pairs = base.party_pairs(receipt, parse, "strip")
+    rows = "".join(
+        f'<div>{span("invoice.field.label", label, "k")} {span("invoice.field", value, "v")}</div>'
+        for label, value in pairs)
+    meta = f'<div class="cornermeta">{rows}</div>' if rows else ""
+    return f'<div class="mast-corner"><div class="mc-l">{brand}</div><div class="mc-r">{meta}</div></div>'
+
+
+def _doctitle(parse: dict, meta: bool = True, keys: tuple = (
+        "form_no", "serial", "number", "subtitle", "period")) -> str:
     """The document's name, and the serial block a numbered invoice carries.
 
     A self-designed invoice still has a number, a date and often a form code.
     The bakery's sheet puts them in a strip under the title; an English tax
     invoice has no `strip` in its `sections:` at all, and without this block its
     serial, its number and its date would be in the label and on no box.
+
+    `keys` narrows which of those a caller still wants printed here -- the
+    `corner` header mode draws form/serial/number itself, in its own box, and
+    would double-print them given the full default tuple. See `_section_html`.
     """
     invoice = parse.get("invoice") or {} if meta else {}
     rows = "".join(
         f'<div>{span(f"invoice.{key}", invoice[key])}</div>'
-        for key in ("form_no", "serial", "number", "subtitle", "period")
+        for key in keys
         if invoice.get(key))
     block = f'<div class="docmeta">{rows}</div>' if rows else ""
     return f'{span("title", parse.get("title", ""), "doc")}{block}'
@@ -178,23 +204,33 @@ def _notes(receipt, spec: dict) -> str:
 
 
 def _section_html(name: str, receipt, spec: dict, parse: dict, sections: list,
-                  table: str, split_header: bool) -> str:
+                  table: str, header_mode: str) -> str:
     """One named block of `sections:`, the same dispatch for every page shape.
 
     Pulled out of `build()` so the plain top-to-bottom flow and the sidebar
     split (`page.style: sidebar`) can both ask for "the html of block X" and
     route it wherever their own layout puts it, rather than the dispatch
-    being duplicated once per shape.
+    being duplicated once per shape. `header_mode` is `header.align` off the
+    spec, defaulted to `"center"` -- `"split"` and `"corner"` are the two
+    alternatives, see `_masthead_split` and `_masthead_corner`.
     """
     if name in ("header", "letterhead"):
-        return _masthead_split(parse, spec) if split_header else _masthead(parse, spec)
+        if header_mode == "split":
+            return _masthead_split(parse, spec)
+        if header_mode == "corner":
+            return _masthead_corner(receipt, parse, spec)
+        return _masthead(parse, spec)
     if name == "doctitle":
-        if split_header:
+        if header_mode == "split":
             # Already folded into the split header's right-hand side.
             return ""
         # A layout with a `strip` already prints the number and the date in
-        # it; repeating them here would put one string in two boxes.
-        return _doctitle(parse, meta="strip" not in sections)
+        # it; repeating them here would put one string in two boxes. Corner
+        # mode is the same idea for form/serial/number specifically -- its
+        # own box already drew them.
+        keys = (("subtitle", "period") if header_mode == "corner" else
+                ("form_no", "serial", "number", "subtitle", "period"))
+        return _doctitle(parse, meta="strip" not in sections, keys=keys)
     if name == "strip":
         return base.key_strip(base.party_pairs(receipt, parse, "strip"))
     if name == "parties":
@@ -226,7 +262,7 @@ def build(recipe, receipt, spec: dict, parse: dict) -> str:
     narrow = "footer_columns" in recipe.layout.tags
     rows = Rows()
     header_spec = {**(spec.get("header") or {}), **(spec.get("letterhead") or {})}
-    split_header = header_spec.get("align") == "split"
+    header_mode = header_spec.get("align") or "center"
     page = spec.get("page") or {}
     compact = bool((spec.get("table") or {}).get("compact"))
 
@@ -239,19 +275,19 @@ def build(recipe, receipt, spec: dict, parse: dict) -> str:
         side_names = set(page.get("sidebar_sections") or ["header", "strip"])
         side_blocks, main_blocks = [], []
         for name in sections:
-            piece = _section_html(name, receipt, spec, parse, sections, table, split_header)
+            piece = _section_html(name, receipt, spec, parse, sections, table, header_mode)
             if not piece:
                 continue
             (side_blocks if name in side_names else main_blocks).append(piece)
         body = (f'<div class="sidebar-wrap"><div class="side">{"".join(side_blocks)}</div>'
                 f'<div class="main">{"".join(main_blocks)}</div></div>')
     else:
-        blocks = [_section_html(name, receipt, spec, parse, sections, table, split_header)
+        blocks = [_section_html(name, receipt, spec, parse, sections, table, header_mode)
                   for name in sections]
         if "doctitle" not in sections:
             # A layout that names no `doctitle` still has a title, and the
             # reference sheet prints it right under the shop's name.
-            blocks.insert(1, _doctitle(parse, meta="strip" not in sections))
+            blocks.insert(1, _section_html("doctitle", receipt, spec, parse, sections, table, header_mode))
         body = "".join(block for block in blocks if block)
 
     marker = page.get("marker")
@@ -310,6 +346,13 @@ table.items tbody tr:last-child td{{border-bottom:.4mm solid {house};}}
 .mast-l .brand{{text-align:left;padding-bottom:0;}}
 .mast-r{{display:table-cell;vertical-align:middle;text-align:right;width:44%;}}
 .mast-r .doc{{margin:0;text-align:right;}}
+.mast-corner{{display:table;width:100%;margin-bottom:2mm;}}
+.mc-l{{display:table-cell;vertical-align:top;text-align:left;}}
+.mc-l .brand{{text-align:left;padding-bottom:0;}}
+.mc-r{{display:table-cell;vertical-align:top;text-align:right;width:34%;}}
+.cornermeta{{font-size:6.6pt;color:#4a4a4a;}}
+.cornermeta div{{margin-bottom:.6mm;}}
+.cornermeta .k{{margin-right:1mm;}}
 .capl{{display:block;font-weight:bold;font-size:6.6pt;letter-spacing:1pt;color:{house};margin-bottom:1.6mm;}}
 .parties.two{{display:table;width:100%;margin-bottom:7mm;}}
 .pleft2,.pright2{{display:table-cell;vertical-align:top;padding-right:6mm;}}
