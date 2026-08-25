@@ -383,6 +383,7 @@ vlm-ocr-synthetic/
 │   ├── handwriting.py              # điền tay: WriteViT, hoặc font viết tay
 │   ├── signature.py                # chữ ký: chữ thật kéo giãn thành dấu ký
 │   ├── tables.py                   # ảnh bảng, nhãn theo cấu trúc PubTabNet
+│   ├── table.py                    # component bảng dùng chung — viền/màu/gộp/lồng qua attribute
 │   ├── overlap.py                  # phát hiện chữ chồng lên nhau
 │   └── page.py                     # dùng chung: trình duyệt, font nhúng, đọc hộp
 │
