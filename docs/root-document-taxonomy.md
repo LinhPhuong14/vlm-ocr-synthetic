@@ -42,29 +42,42 @@ trống hoàn toàn.
 
 Cột "keyword" trong đề xuất gốc được viết để dùng trực tiếp làm câu truy vấn
 tìm ảnh — nên với mỗi trong 80 layout, một agent tìm một ảnh **thật** (không
-tự vẽ) khớp với keyword đó, ưu tiên đúng dataset học thuật được trích dẫn cho
-root ấy, tiếp theo là Hugging Face `datasets-server`, Wikimedia Commons, hoặc
-trang mẫu/template mở. Kết quả: **80/80 layout đều tìm được ảnh**, nguồn theo
-từng root:
+tự vẽ) khớp với keyword đó. Việc này chạy **hai vòng**:
 
-| Root | Nguồn ảnh đã dùng |
-| :--- | :--- |
-| Invoice | FATURA2-invoices qua Hugging Face (6/10) · mẫu Invoice Ninja, Uniform Software, Invoicer.ai (3/10) · PDF mẫu chính thức Canada Post cho layout nhiều trang (1/10) |
-| Receipt | CORD-v2 qua Hugging Face (6/10) · SROIE qua Hugging Face (3/10) · Wikimedia Commons (1/10) |
-| Form | FUNSD, qua mirror `nielsr/funsd-layoutlmv3` trên Hugging Face (9/10) · Wikimedia Commons — mẫu DS-160 của Bộ Ngoại giao Mỹ (1/10) |
-| Identity Document | **100% Wikimedia Commons, toàn bộ là mẫu "SPECIMEN/SAMPLE/MUSTER/FACSIMILE" chính thức do cơ quan nhà nước công bố** — không dùng giấy tờ thật của bất kỳ ai (xem lưu ý bên dưới) |
-| Academic/Scientific | PDF thật render trực tiếp từ arXiv, JMLR, CVPR (thecvf.com), ACL Anthology, trang tác giả, Internet Archive (CACM) — 10/10 |
-| Report/Business | DocLayNet v1.2 qua Hugging Face (8/10) · Wikimedia Commons (2/10) |
-| Newspaper/Magazine | **100% Wikimedia Commons** — báo/tạp chí lịch sử public domain |
-| Handwritten/Historical | **100% Wikimedia Commons** (một phần qua NARA) |
+1. **Vòng 1 — cơ sở quốc tế.** Ưu tiên đúng dataset học thuật được trích dẫn
+   cho root ấy, tiếp theo là Hugging Face `datasets-server`, Wikimedia
+   Commons, hoặc trang mẫu/template mở. Kết quả: 80/80 layout có ảnh.
+2. **Vòng 2 — thay bằng chứng từ tiếng Việt.** Vì đây là dự án OCR **chứng từ
+   tiếng Việt**, vòng hai rà lại cả 80 ảnh, tìm ảnh **tiếng Việt thật** (chữ
+   Việt có dấu đọc được rõ) để thay — chỉ thay khi ảnh tìm được đủ tốt, layout
+   không tìm ra bản tiếng Việt phù hợp thì giữ nguyên ảnh quốc tế của vòng 1.
+   Kết quả: **54/80 ảnh nay là chứng từ tiếng Việt** (đánh dấu 🇻🇳 trong
+   gallery, có thể bật nút "Chỉ ảnh tiếng Việt" để lọc riêng).
 
-**Về quyền riêng tư (root Identity Document):** mọi ảnh đều là mẫu trưng bày
-chính thức (tên giả định kiểu "Mustermann Erika", "Suzy Q. Sample", watermark
-"SPECIMEN" phủ chéo…), không phải giấy tờ của một cá nhân có thật. MIDV-500 —
-dataset học thuật được trích dẫn cho root này — được xây đúng theo tinh thần
-đó (500 clip quay giấy tờ **mẫu**, không phải giấy tờ thật), nhưng kho ảnh của
-nó không có sẵn ảnh đơn lẻ tải trực tiếp được nên các ảnh dùng ở đây lấy từ
-Commons thay thế, cùng tinh thần "specimen" như MIDV-500 nêu.
+| Root | 🇻🇳 VN / tổng | Nguồn tiếng Việt đã thay | Phần còn lại (quốc tế, giữ nguyên vòng 1) |
+| :--- | :-: | :--- | :--- |
+| Invoice | 6/10 | Viettel S-Invoice, mẫu in sẵn "In Việt Long", hoá đơn tiền điện EVN (CMIS), mẫu 01GTKT (EasyInvoice) | FATURA2, Invoice Ninja, Uniform Software, Canada Post |
+| Receipt | 2/10 | Phiếu tính tiền BigC Vinh (báo Dân Trí), hoá đơn nhà hàng Sầm Sơn (Kenh14) | CORD-v2, SROIE (Hugging Face) |
+| Form | 5/10 | Bảng chấm công, tờ khai đăng ký kết hôn, sơ yếu lý lịch tự thuật ×2, giấy khai sinh mẫu (LuatVietnam.vn, Bộ Nội vụ) | FUNSD (mirror `nielsr/funsd-layoutlmv3`) |
+| Identity Document | 4/10 | Thẻ Căn cước 2024, CCCD gắn chip, hộ chiếu gắn chip, giấy phép lái xe mới — **toàn bộ là mẫu/specimen để trống**, từ chinhphu.vn và Bộ Công an (qua Wikimedia, Public Domain) | Specimen Trung Quốc, Mỹ, Đức, Ý, Serbia (Wikimedia Commons) |
+| Academic/Scientific | 9/10 | Tạp chí Khoa học ĐH Cần Thơ, Tạp chí KH Nông nghiệp VN, VJOL, hướng dẫn luận văn ĐH Cần Thơ | 1 bài CACM (bố cục ba cột — không tìm được báo khoa học tiếng Việt nào dùng bố cục này) |
+| Report/Business | 10/10 | Báo cáo thường niên Hoà Phát, Vinamilk, Vietcombank; tài liệu đặc tả phần mềm (SRS); mẫu hợp đồng lao động | — |
+| Newspaper/Magazine | 10/10 | Đông-Pháp Thời-Báo, Hải-Phòng Nhật-Báo, Trung-Bắc Chủ-Nhật, Đông-Dương Tạp-Chí, Nam Phong, Trung-Bắc Tân-Văn, Nông-Cổ Mín-Đàm, Việt-Nam Độc-Lập — báo/tạp chí Quốc ngữ 1866–1945, số hoá bởi Thư viện Quốc gia VN | — |
+| Handwritten/Historical | 8/10 | Châu bản triều Nguyễn (2 ảnh), giấy khai sinh chữ Nôm 1938, bằng cấp thời Bảo Đại 1939, di chúc viết tay Hồ Chí Minh, Gia Định Báo 1866, Kim Vân Kiều bản khắc Nôm, bản tấu Phan Huy Thực 1840 | sổ tay thực địa, phiếu điều tra dân số Mỹ 1940 (Wikimedia Commons) |
+| **Tổng** | **54/80** | | |
+
+**Về quyền riêng tư (root Identity Document):** mọi ảnh — cả tiếng Việt lẫn
+quốc tế — đều là mẫu trưng bày chính thức (tên giả định kiểu "Mustermann
+Erika", watermark "SPECIMEN"/"MẪU" phủ chéo, hoặc trường thông tin để trống…),
+không phải giấy tờ của một cá nhân có thật. Vòng 2 khi tìm ảnh CCCD/hộ chiếu/
+bằng lái Việt Nam đã **loại bỏ một ảnh** giữa chừng: một file Wikimedia gắn
+nhãn "template" nhưng khi xem lại đúng byte tải về hoá ra là ảnh chụp một thẻ
+vật lý thật (dấu mực ướt, một phần MRZ/vân tay bị làm mờ có chủ đích — ngụ ý
+phần còn lại có thể là dữ liệu thật); ảnh đó bị huỷ ngay, không đưa vào
+gallery. MIDV-500 — dataset học thuật được trích dẫn cho root này — được xây
+đúng theo tinh thần đó (500 clip quay giấy tờ **mẫu**, không phải giấy tờ
+thật), nhưng kho ảnh của nó không có sẵn ảnh đơn lẻ tải trực tiếp được nên các
+ảnh mẫu Việt Nam ở đây lấy trực tiếp từ chinhphu.vn/Bộ Công an thay vì MIDV-500.
 
 Ảnh trong gallery dùng để **hình dung layout**, không khẳng định đây là mẫu
 chính thức duy nhất của layout đó — mỗi ảnh trong trang đều kèm nguồn, bấm vào
