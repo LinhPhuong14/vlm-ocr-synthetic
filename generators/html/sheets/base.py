@@ -41,6 +41,8 @@ import unicodedata
 from pathlib import Path
 from typing import Any, Sequence
 
+from components.table import Border, Cell, Column, Row, TableSpec, render_table
+
 REPO_ROOT = Path(__file__).resolve().parents[3]
 ORNAMENT_DIR = REPO_ROOT / "textures" / "ornament"
 
@@ -254,6 +256,20 @@ def align_class(align: str) -> str:
     return {"right": "r", "center": "c"}.get(align, "")
 
 
+def safe_align(align: str) -> str:
+    """A layout's `align:`/`title_align:`, normalised the way `align_class` already is.
+
+    A layout's align string only ever had to survive being *compared* --
+    `align_class` has always mapped anything unrecognised to plain left
+    rather than rejecting it. `components.table.Cell`/`Column` are stricter
+    on purpose (an unrecognised `align` raises, for a value a *caller of the
+    component* chose deliberately), so this is the seam: normalise once,
+    here, to the same three buckets `align_class` already sorts into, rather
+    than let a stray value from a layout file crash table rendering outright.
+    """
+    return {"right": "right", "center": "center"}.get(align, "left")
+
+
 # --------------------------------------------------------------------------
 # the blocks every family draws the same way
 
@@ -330,6 +346,17 @@ def items_table(spec: dict, receipt, parse: dict, rows: Rows, *,
 
     `totals` entries are `{label, value, grand, lead}`; `lead` is an optional
     `(kind, text, colspan)` cell placed to the left of the label in that row.
+
+    Built as a `components.table.TableSpec` and handed to `render_table` --
+    but `border=Border.none()`, deliberately: every family still styles
+    `.items`/`.grand`/`.tlabel`/etc. in its own `<style>` block exactly as
+    before, reached through `cls`/`Cell.cls` on every element this function
+    writes, and an inline border would silently outrank those rules rather
+    than cooperate with them (see `Cell.cls` in `components/table.py`). What
+    moved here is the geometry: column resolution, colspan/rowspan occupancy,
+    the `data-cell`/`data-row`/`data-col` labels and the `<thead>`/`<tbody>`
+    split now come from one tested primitive instead of being hand-rolled in
+    this function and four private ones beside it.
     """
     from rulebase.layout import item_values
 
@@ -343,16 +370,20 @@ def items_table(spec: dict, receipt, parse: dict, rows: Rows, *,
     if not columns:
         return ""
     keys = [column["key"] for column in columns]
+    table_columns = [
+        Column(width=column["pct"], align=safe_align(column.get("align", "left")),
+              valign=None)                     # None: defer to `table.items td{...}`
+        for column in columns
+    ]
 
-    head = _header_rows(columns, spec, rows)
+    table_rows = _header_rows(columns, spec)
     if column_numbers:
-        row = rows.take()
-        head.append('<tr class="colnum">' + "".join(
-            cell("td", row, index, span("colnum", column.get("number", "")),
-                 kind="colnum", cls="c")
-            for index, column in enumerate(columns)) + "</tr>")
+        table_rows.append(Row([
+            Cell(span("colnum", column.get("number", "")), html=True,
+                kind="colnum", cls="c", align="center")
+            for column in columns
+        ], cls="colnum", in_thead=True))
 
-    body: list[str] = []
     plan = [_placements(row, keys) for row in item_rows(spec)]
     first = plan[0] if plan else []
     # A continuation row that names one column, and a column the first row
@@ -378,24 +409,21 @@ def items_table(spec: dict, receipt, parse: dict, rows: Rows, *,
             # carries the block's column sums. Its name runs across the columns
             # that describe a line -- unit, quantity, the two unit prices --
             # because a heading has none of those.
-            body.append(_group_row(rows.take(), columns, keys, values, spec, item))
+            table_rows.append(_group_row(columns, keys, values, spec, item))
             continue
-        body.append(_item_row(rows.take(), columns, first, values, extra))
+        table_rows.append(_item_row(columns, first, values, extra))
         for row in stacked:
             if any(values.get(place[2]) for place in row):
-                body.append(_item_row(rows.take(), columns, row, values, {}))
-        body.extend(_item_extras(spec, item, receipt, values, columns, rows))
+                table_rows.append(_item_row(columns, row, values, {}))
+        table_rows.extend(_item_extras(spec, item, receipt, values, columns))
 
     for _ in range(blank_rows):
-        row = rows.take()
-        body.append('<tr class="blank">' + "".join(
-            cell("td", row, index, "") for index in range(len(columns))) + "</tr>")
+        table_rows.append(Row([Cell() for _ in columns], cls="blank"))
 
     for entry in totals or []:
         grand = bool(entry.get("grand"))
         kind = "total.grand" if grand else "total.line"
-        row = rows.take()
-        cells = []
+        total_cells: list[Cell] = []
         used = 0
         # An export invoice puts the exchange rate in the same row as the total,
         # in its own merged cell: `Tỉ giá (Rate)` over three columns, then the
@@ -404,20 +432,18 @@ def items_table(spec: dict, receipt, parse: dict, rows: Rows, *,
         lead = entry.get("lead")
         if lead:
             lead_kind, lead_text, lead_span = lead
-            cells.append(cell("td", row, 0, span(lead_kind, lead_text),
-                              kind=lead_kind, cls="tlead", colspan=lead_span))
+            total_cells.append(Cell(span(lead_kind, lead_text), html=True,
+                                    kind=lead_kind, cls="tlead", colspan=lead_span))
             used = lead_span
         width = totals_label_span if totals_label_span else len(columns) - 1 - used
         width = max(1, min(width, len(columns) - 1 - used))
-        cells.append(cell("td", row, used, span(f"{kind}.label", entry.get("label", "")),
-                          kind=f"{kind}.label", cls="tlabel", colspan=width))
+        total_cells.append(Cell(span(f"{kind}.label", entry.get("label", "")), html=True,
+                                kind=f"{kind}.label", cls="tlabel", colspan=width))
         used += width
-        cells.extend(cell("td", row, used + offset, "")
-                     for offset in range(len(columns) - used - 1))
-        cells.append(cell("td", row, len(columns) - 1,
-                          span(kind, entry.get("value", "")), kind=kind, cls="r"))
-        body.append(f'<tr class="{"grand" if grand else "total"}">'
-                    + "".join(cells) + "</tr>")
+        total_cells.extend(Cell() for _ in range(len(columns) - used - 1))
+        total_cells.append(Cell(span(kind, entry.get("value", "")), html=True,
+                                kind=kind, cls="r", align="right"))
+        table_rows.append(Row(total_cells, cls="grand" if grand else "total"))
 
     # A print engine repeats `<thead>` on every page a table runs onto, and
     # that is usually right. It is wrong for a form whose paper says otherwise:
@@ -425,14 +451,14 @@ def items_table(spec: dict, receipt, parse: dict, rows: Rows, *,
     # all, and the repeat also puts a hundred glyphs of column titles into the
     # PDF's character stream that the markup lists once -- which is exactly the
     # noise `match_runs` has to step over to find the next field.
-    repeat = (spec.get("table") or {}).get("repeat_header", True)
-    thead = "<thead>" if repeat else '<thead class="once">'
-    return (f'<table class="{cls}">{thead}{"".join(head)}</thead>'
-            f'<tbody>{"".join(body)}</tbody></table>')
+    repeat = bool((spec.get("table") or {}).get("repeat_header", True))
+    table = TableSpec(rows=table_rows, columns=table_columns, border=Border.none(),
+                      cls=cls, repeat_header=repeat)
+    return render_table(table, rows=rows)
 
 
 def _item_extras(spec: dict, item, receipt, values: dict[str, str],
-                 columns: list[dict], rows: Rows) -> list[str]:
+                 columns: list[dict]) -> list[Row]:
     """The rows a layout hangs under an item: its name, its old price, a discount.
 
     Three of them, and each is a full-width row, which is where `colspan` earns
@@ -443,14 +469,11 @@ def _item_extras(spec: dict, item, receipt, values: dict[str, str],
     """
     settings = spec.get("item") or {}
     width = len(columns)
-    out = []
+    out: list[Row] = []
 
-    def full(kind: str, text: str, cls: str = "") -> str:
-        row = rows.take()
-        return ('<tr class="extra">'
-                + cell("td", row, 0, span(kind, text), kind=kind, cls=cls,
-                       colspan=width)
-                + "</tr>")
+    def full(kind: str, text: str, css_cls: str = "") -> Row:
+        return Row([Cell(span(kind, text), html=True, kind=kind, cls=css_cls,
+                         colspan=width)], cls="extra")
 
     if item.note and settings.get("note_row"):
         out.append(full("menu.note", item.note, "indent"))
@@ -460,75 +483,73 @@ def _item_extras(spec: dict, item, receipt, values: dict[str, str],
                         f"{label} {receipt.cash(item.original_price)}", "indent"))
     if item.discount:
         label = (settings.get("discount_row") or {}).get("label", "KM")
-        row = rows.take()
         left = max(1, width - 1)
-        out.append('<tr class="extra">'
-                   + cell("td", row, 0, span("menu.discount.label", label),
-                          kind="menu.discount.label", colspan=left)
-                   + cell("td", row, left,
-                          span("menu.discountprice", receipt.cash(-abs(item.discount))),
-                          kind="menu.discountprice", cls="r")
-                   + "</tr>")
+        out.append(Row([
+            Cell(span("menu.discount.label", label), html=True,
+                kind="menu.discount.label", colspan=left),
+            Cell(span("menu.discountprice", receipt.cash(-abs(item.discount))), html=True,
+                kind="menu.discountprice", cls="r", align="right"),
+        ], cls="extra"))
     return out
 
 
-def _header_rows(columns: list[dict], spec: dict, rows: Rows) -> list[str]:
+def _header_rows(columns: list[dict], spec: dict) -> list[Row]:
     """The column titles, in one band or two.
 
     `header_groups:` in a layout file names a run of columns that share a
     heading -- "Nguồn thanh toán (đồng)" over the four columns a hospital bill
     splits its money into. The columns outside every group then have to reach
-    down through both bands, which is `rowspan="2"`, and the browser works the
-    edges out. There is no arithmetic here and that is the point: the same
-    statement drawn on a character grid would be a wide cell that happens to
+    down through both bands, which is `rowspan=2`, and `components.table`
+    works the edges out. There is no arithmetic here and that is the point: the
+    same statement drawn on a character grid would be a wide cell that happens to
     have no rule under half of it.
     """
     groups = (spec.get("table") or {}).get("header_groups") or []
     keys = [column["key"] for column in columns]
-    spans: list[tuple[int, int, str]] = []
+    resolved_spans: list[tuple[int, int, str]] = []
     for entry in groups:
         first, last = str(entry.get("from", "")), str(entry.get("to", ""))
         if first not in keys or last not in keys:
             continue
-        spans.append((keys.index(first), keys.index(last), str(entry.get("title", ""))))
-    spans.sort()
+        resolved_spans.append(
+            (keys.index(first), keys.index(last), str(entry.get("title", ""))))
+    resolved_spans.sort()
 
-    row = rows.take()
-    if not spans:
-        return ["<tr>" + "".join(
-            cell("th", row, index, span("colhdr", column.get("title", "")),
-                 kind="colhdr", cls=align_class(column.get("title_align", "center")),
-                 style=f"width:{column['pct']:.2f}%")
-            for index, column in enumerate(columns)) + "</tr>"]
+    if not resolved_spans:
+        return [Row([
+            Cell(span("colhdr", column.get("title", "")), html=True, kind="colhdr",
+                align=safe_align(column.get("title_align", "center")),
+                cls=align_class(column.get("title_align", "center")))
+            for column in columns
+        ], header=True)]
 
-    grouped = {index for start, end, _ in spans for index in range(start, end + 1)}
-    top, index = [], 0
+    grouped = {index for start, end, _ in resolved_spans for index in range(start, end + 1)}
+    top: list[Cell] = []
+    index = 0
     while index < len(columns):
-        here = next((s for s in spans if s[0] == index), None)
+        here = next((s for s in resolved_spans if s[0] == index), None)
         if here:
             start, end, title = here
-            top.append(cell("th", row, start, span("colhdr", title), kind="colhdr",
-                            cls="c", colspan=end - start + 1))
+            top.append(Cell(span("colhdr", title), html=True, kind="colhdr",
+                            cls="c", align="center", colspan=end - start + 1))
             index = end + 1
             continue
         column = columns[index]
-        top.append(cell("th", row, index, span("colhdr", column.get("title", "")),
-                        kind="colhdr", rowspan=2,
-                        cls=align_class(column.get("title_align", "center")),
-                        style=f"width:{column['pct']:.2f}%"))
+        top.append(Cell(span("colhdr", column.get("title", "")), html=True, kind="colhdr",
+                        rowspan=2, align=safe_align(column.get("title_align", "center")),
+                        cls=align_class(column.get("title_align", "center"))))
         index += 1
-    second = rows.take()
     lower = [
-        cell("th", second, index, span("colhdr", columns[index].get("title", "")),
-             kind="colhdr", cls=align_class(columns[index].get("title_align", "center")),
-             style=f"width:{columns[index]['pct']:.2f}%")
+        Cell(span("colhdr", columns[index].get("title", "")), html=True, kind="colhdr",
+            align=safe_align(columns[index].get("title_align", "center")),
+            cls=align_class(columns[index].get("title_align", "center")))
         for index in sorted(grouped)
     ]
-    return ["<tr>" + "".join(top) + "</tr>", "<tr>" + "".join(lower) + "</tr>"]
+    return [Row(top, header=True), Row(lower, header=True)]
 
 
-def _group_row(row: int, columns: list[dict], keys: list[str], values: dict[str, str],
-               spec: dict, item) -> str:
+def _group_row(columns: list[dict], keys: list[str], values: dict[str, str],
+              spec: dict, item) -> Row:
     """A block heading: its name over the descriptive columns, then its sums."""
     width = int((spec.get("table") or {}).get("group_span") or 0)
     if width < 1:
@@ -537,14 +558,14 @@ def _group_row(row: int, columns: list[dict], keys: list[str], values: dict[str,
         width = next((index for index, key in enumerate(keys) if values.get(key)), 1)
         width = max(width, 1)
     width = min(width, len(columns))
-    cells = [cell("td", row, 0, span("menu.name", values.get("name", "")),
-                  kind="menu.name", cls="gname", colspan=width)]
+    cells = [Cell(span("menu.name", values.get("name", "")), html=True,
+                 kind="menu.name", cls="gname", colspan=width)]
     for index in range(width, len(columns)):
         key = keys[index]
-        cells.append(cell("td", row, index, span(f"menu.{key}", values.get(key, "")),
+        cells.append(Cell(span(f"menu.{key}", values.get(key, "")), html=True,
                           kind=f"menu.{key}",
                           cls=align_class(columns[index].get("align", "left"))))
-    return '<tr class="grouprow">' + "".join(cells) + "</tr>"
+    return Row(cells, cls="grouprow")
 
 
 def _placements(row: list[dict], keys: list[str]) -> list[tuple[int, int, str, str]]:
@@ -574,30 +595,36 @@ def _placements(row: list[dict], keys: list[str]) -> list[tuple[int, int, str, s
     return sorted(out)
 
 
-def _item_row(row: int, columns: list[dict], places: list[tuple[int, int, str, str]],
-              values: dict[str, str], extra: dict[int, list[tuple[str, str]]]) -> str:
-    """One `<tr>`: the placed cells, and an empty cell for every column between."""
-    cells = []
+def _item_row(columns: list[dict], places: list[tuple[int, int, str, str]],
+              values: dict[str, str], extra: dict[int, list[tuple[str, str]]]) -> Row:
+    """One row: the placed cells, and an empty cell for every column between.
+
+    A gap cell's `align` is left unset rather than restated: it carries no
+    text, and an unset `Cell.align`/`Cell.valign` already inherits the
+    column's own default (see `components.table._render_cell`) -- the same
+    outcome `cls=align_class(...)` alone produced before, one fewer thing
+    computed twice.
+    """
+    cells: list[Cell] = []
     column = 0
     for start, end, source, align in places:
         while column < start:
-            cells.append(cell("td", row, column, "",
-                              cls=align_class(columns[column].get("align", "left"))))
+            cells.append(Cell(cls=align_class(columns[column].get("align", "left"))))
             column += 1
         if column > end:
             continue                  # two entries claimed the same column
         inner = span(f"menu.{source}", values.get(source, ""))
         for kind, text in extra.get(start, []):
             inner += f'<div class="sub">{span(kind, text)}</div>'
-        cells.append(cell("td", row, start, inner, kind=f"menu.{source}",
-                          colspan=end - start + 1,
+        resolved_align = safe_align(align or columns[start].get("align", "left"))
+        cells.append(Cell(inner, html=True, kind=f"menu.{source}",
+                          colspan=end - start + 1, align=resolved_align,
                           cls=align_class(align or columns[start].get("align", "left"))))
         column = end + 1
     while column < len(columns):
-        cells.append(cell("td", row, column, "",
-                          cls=align_class(columns[column].get("align", "left"))))
+        cells.append(Cell(cls=align_class(columns[column].get("align", "left"))))
         column += 1
-    return "<tr>" + "".join(cells) + "</tr>"
+    return Row(cells)
 
 
 def totals_block(parse: dict, *, indent: float = 0.4, grand: int = -1) -> str:
@@ -723,6 +750,7 @@ __all__ = [
     "MONO", "ORNAMENT_DIR", "PAPERS", "REPO_ROOT", "SANS", "SERIF", "Rows",
     "align_class", "cell", "columns_of", "document", "esc", "field_line",
     "footer_block", "initials", "item_rows", "items_table", "key_strip",
-    "ncols_of", "ornament_url", "party_rows", "qr_svg", "signature_block",
-    "signed_lines", "span", "structure_tokens", "totals_block", "words_block",
+    "ncols_of", "ornament_url", "party_rows", "qr_svg", "safe_align",
+    "signature_block", "signed_lines", "span", "structure_tokens",
+    "totals_block", "words_block",
 ]
