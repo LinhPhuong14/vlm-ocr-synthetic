@@ -3,23 +3,32 @@
 # Đối chiếu trực tiếp với ảnh tham chiếu của chính layout này trong gallery
 # (`docs/root-document-taxonomy.md` § 3.1, INV-01): một hoá đơn GTGT điện tử
 # Viettel S-Invoice thật — tên/logo bên bán góc TRÁI, hộp "Mẫu số / Ký hiệu /
-# Số" nhỏ góc PHẢI cùng hàng, tiêu đề canh giữa full-width ngay dưới, rồi
-# khối "Đơn vị bán hàng" VÀ khối "Người mua hàng" (mỗi khối vài dòng
-# label: value, KHÔNG chia hai cột), sau đó một bảng hàng full-width đúng
-# sáu cột (STT/Tên hàng hoá dịch vụ/ĐVT/Số lượng/Đơn giá/Thành tiền — khớp ảnh
-# 1:1), tổng cộng, số tiền bằng chữ, hai ô chữ ký, ghi chú chân trang nhỏ.
-# Bản trước dùng `invoice_plain` (bỏ hẳn khối khách hàng) là bố cục quá trần
-# so với ảnh tham chiếu của chính nó — đổi sang `invoice_detailed` (xem
-# `rulebase/documents/invoice_detailed.yaml`) và bật đủ các khối trên để bám
-# sát ảnh gốc; `parties.columns: stacked` in khối người mua thành MỘT cột
-# chạy hết bề ngang thay vì cột trái bỏ trống + cột phải hẹp; `header.align:
-# corner` (mới, xem `generators/html/sheets/modern.py::_masthead_corner`)
-# thay khối tên hiệu-canh-giữa-to của sheet tự thiết kế modern gốc bằng đúng
-# dáng góc trái/góc phải của một biểu mẫu VAT invoice — hộp góc phải đã vẽ
+# Số" nhỏ góc PHẢI cùng hàng, tiêu đề canh giữa full-width ngay dưới, rồi MỘT
+# khối viền bao quanh cả "Đơn vị bán hàng" (nhãn IN ĐẬM) VÀ "Người mua hàng"
+# nối tiếp nhau (không tách hai hộp, không chia hai cột), sau đó một bảng
+# hàng full-width đúng sáu cột, có viền đủ bốn cạnh MỖI Ô (không phải chỉ kẻ
+# trên/dưới tiêu đề cột) — khớp ảnh 1:1 — rồi tổng cộng, số tiền bằng chữ,
+# hai ô chữ ký, ghi chú chân trang nhỏ.
+#
+# Ba lượt sửa trên cùng layout này: (1) bản đầu dùng `invoice_plain`, bỏ hẳn
+# khối khách hàng; (2) đổi sang `invoice_detailed` + `header.align: corner`
+# để có đủ khối và đúng dáng góc trái/góc phải; (3) lượt này — soát lại ảnh
+# gốc kỹ hơn, thêm viền hộp (`parties.boxed`), bảng full viền (`table.grid`),
+# nhãn field in đậm (CSS `.crow .k`, không cần cờ riêng), khối "Đơn vị bán
+# hàng" (`parties.seller`, xem `_seller_rows` trong modern.py) — trước layout
+# này chỉ in địa chỉ/SĐT/MST/STK bên bán KHÔNG NHÃN, lẫn trong masthead; giờ
+# masthead chỉ còn tên hiệu (`header.address/phone/tax_code/account/website:
+# false` tắt hẳn các dòng đó ở đó), khối "Đơn vị bán hàng" đứng đầu bên trong
+# CHÍNH hộp viền của khối người mua — đúng dáng ảnh gốc, một khối chứ không
+# phải hai; và hai điểm trang trí `header.logo`/`page.watermark` (mới) — một
+# huy hiệu tròn chữ cái đầu tên hiệu cạnh masthead, một dòng tên hiệu chéo mờ
+# phía sau trang — CẢ HAI đều chữ thường (không `span()`), không phải logo/dấu
+# chìm THẬT của Viettel trong ảnh tham chiếu (tránh mạo danh thương hiệu),
+# chỉ đứng vào đúng CHỖ hai chi tiết đó chiếm trên trang. Hộp góc phải đã vẽ
 # số/ngày của `strip` nên KHÔNG liệt `strip` riêng trong `sections:` nữa,
-# giống cách `align: split` tự gộp tiêu đề vào chính nó.
+# giống cách `align: split` tự gộp tiêu đề.
 id: invoice_header_table
-name: Corner masthead, seller/buyer blocks, then one full-width item table
+name: Corner masthead, one boxed seller+buyer block, full-grid item table
 source: "hoá đơn giá trị gia tăng điện tử Viettel S-Invoice (bản thể hiện) — khối bán/mua đầy đủ trước MỘT bảng hàng full-width"
 
 width: [78, 92]
@@ -30,15 +39,29 @@ rules: marks
 
 sections: [header, parties, table, totals, words, signatures, footer]
 
+page:
+  watermark: true
+
 header:
   align: corner
+  logo: true
   name_scale: [1.30, 1.55]
   name_bold: true
   title: true
   title_scale: [1.20, 1.40]
+  # Moved into the boxed seller block below (`parties.seller`) instead --
+  # labelled there, unlike these lines, which never carried a label.
+  address: false
+  address2: false
+  phone: false
+  tax_code: false
+  account: false
+  website: false
 
 parties:
   columns: stacked
+  seller: true
+  boxed: true
 
 columns:
   - {key: stt,        title: "STT",                   width: 4,  align: center, title_align: center}
@@ -52,6 +75,7 @@ table:
   frame: false
   shade: 0.10
   header_rules: true
+  grid: true
 
 item:
   wrap_name: true
