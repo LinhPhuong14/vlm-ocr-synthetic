@@ -106,6 +106,22 @@ groups:
       weight: 2
       tags: [doc_invoice, doc_export]
 
+    # --------------------------------------------------------------------
+    # HAI TÀI LIỆU CHO HỌ "MODERN" — 10 bố cục root Invoice/Billing.
+    #
+    # `bare_fields` / `rich_fields` là chỗ nối với `rules/layout.yaml`: mười
+    # bố cục mới chia làm hai nhóm theo đúng những gì chúng liệt trong
+    # `sections:`, và mỗi tài liệu chỉ điền đúng phần mà nhóm layout của nó
+    # in ra — xem đầu `documents/invoice_plain.yaml` và
+    # `documents/invoice_detailed.yaml`.
+    - id: invoice_plain
+      weight: 2
+      tags: [doc_invoice, has_vat, bare_fields]
+
+    - id: invoice_detailed
+      weight: 2
+      tags: [doc_invoice, has_vat, rich_fields]
+
   # ------------------------------------------------------------------------
   - id: service_invoice
     label: "Hoá đơn dịch vụ — lưu trú, ăn uống có thương hiệu"
