@@ -256,7 +256,7 @@ def align_class(align: str) -> str:
     return {"right": "r", "center": "c"}.get(align, "")
 
 
-def _safe_align(align: str) -> str:
+def safe_align(align: str) -> str:
     """A layout's `align:`/`title_align:`, normalised the way `align_class` already is.
 
     A layout's align string only ever had to survive being *compared* --
@@ -371,7 +371,7 @@ def items_table(spec: dict, receipt, parse: dict, rows: Rows, *,
         return ""
     keys = [column["key"] for column in columns]
     table_columns = [
-        Column(width=column["pct"], align=_safe_align(column.get("align", "left")),
+        Column(width=column["pct"], align=safe_align(column.get("align", "left")),
               valign=None)                     # None: defer to `table.items td{...}`
         for column in columns
     ]
@@ -518,7 +518,7 @@ def _header_rows(columns: list[dict], spec: dict) -> list[Row]:
     if not resolved_spans:
         return [Row([
             Cell(span("colhdr", column.get("title", "")), html=True, kind="colhdr",
-                align=_safe_align(column.get("title_align", "center")),
+                align=safe_align(column.get("title_align", "center")),
                 cls=align_class(column.get("title_align", "center")))
             for column in columns
         ], header=True)]
@@ -536,12 +536,12 @@ def _header_rows(columns: list[dict], spec: dict) -> list[Row]:
             continue
         column = columns[index]
         top.append(Cell(span("colhdr", column.get("title", "")), html=True, kind="colhdr",
-                        rowspan=2, align=_safe_align(column.get("title_align", "center")),
+                        rowspan=2, align=safe_align(column.get("title_align", "center")),
                         cls=align_class(column.get("title_align", "center"))))
         index += 1
     lower = [
         Cell(span("colhdr", columns[index].get("title", "")), html=True, kind="colhdr",
-            align=_safe_align(columns[index].get("title_align", "center")),
+            align=safe_align(columns[index].get("title_align", "center")),
             cls=align_class(columns[index].get("title_align", "center")))
         for index in sorted(grouped)
     ]
@@ -616,7 +616,7 @@ def _item_row(columns: list[dict], places: list[tuple[int, int, str, str]],
         inner = span(f"menu.{source}", values.get(source, ""))
         for kind, text in extra.get(start, []):
             inner += f'<div class="sub">{span(kind, text)}</div>'
-        resolved_align = _safe_align(align or columns[start].get("align", "left"))
+        resolved_align = safe_align(align or columns[start].get("align", "left"))
         cells.append(Cell(inner, html=True, kind=f"menu.{source}",
                           colspan=end - start + 1, align=resolved_align,
                           cls=align_class(align or columns[start].get("align", "left"))))
@@ -750,6 +750,7 @@ __all__ = [
     "MONO", "ORNAMENT_DIR", "PAPERS", "REPO_ROOT", "SANS", "SERIF", "Rows",
     "align_class", "cell", "columns_of", "document", "esc", "field_line",
     "footer_block", "initials", "item_rows", "items_table", "key_strip",
-    "ncols_of", "ornament_url", "party_rows", "qr_svg", "signature_block",
-    "signed_lines", "span", "structure_tokens", "totals_block", "words_block",
+    "ncols_of", "ornament_url", "party_rows", "qr_svg", "safe_align",
+    "signature_block", "signed_lines", "span", "structure_tokens",
+    "totals_block", "words_block",
 ]
