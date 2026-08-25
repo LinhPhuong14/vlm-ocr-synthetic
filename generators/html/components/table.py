@@ -10,7 +10,7 @@ piece: a table is a `TableSpec`, `render_table` turns it into a self-contained
 `<table>` (inline styles, no external stylesheet to keep in sync), and every
 shape below is a constructor call, not a CSS rule.
 
-    from table import Border, Cell, Column, Row, TableSpec, render_table
+    from components.table import Border, Cell, Column, Row, TableSpec, render_table
 
     spec = TableSpec(
         columns=[Column(30), Column(), Column(25, align="right")],
