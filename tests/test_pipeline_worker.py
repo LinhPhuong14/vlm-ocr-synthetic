@@ -79,10 +79,18 @@ def test_renderer_command_carries_the_pins_and_the_page_model(tmp_path, monkeypa
     assert "--template" in command
     assert command[command.index("--template") + 1] == "auto"
     assert "--force" in command
-    assert f"augmentation={worker.CLEAN_AUGMENTATION}" in command
+    # Every chain-bearing attribute, not just `augmentation`. A clean run that
+    # pinned one of the four would let `toner`, `drum` or `rollers` draw a mark
+    # onto the set that every ageing number is measured against.
+    for attribute, value in worker.CLEAN_FORCES.items():
+        assert f"{attribute}={value}" in command, f"a clean run left {attribute} free"
     assert "--clean" not in command, (
         "`--clean` switched off the glyph backend's own geometry; no drawable "
-        "backend has any, so a clean run is augmentation=pristine and nothing else")
+        "backend has any, so a clean run is the empty value of every "
+        "chain-bearing attribute and nothing else")
+    # An explicit --force still wins over the clean pin.
+    assert "visual=laser_invoice" in command
+    assert sum(1 for item in command if item.startswith("visual=")) == 1
 
     grid = worker.renderer_command(
         "html", tmp_path / "out", tmp_path / "jobs.json", clean=False, force=[])

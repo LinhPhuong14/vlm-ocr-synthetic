@@ -1,8 +1,9 @@
 # The order the attributes are drawn in, and the only place it is written down.
 #
 # Causal, not alphabetical: each attribute sees the tags of the ones before it,
-# so `document` is the widest choice and `augmentation` the narrowest. A shop
-# decides what it prints long before the paper decides how it will crease.
+# so `document` is the widest choice and the machine at the end the narrowest.
+# A shop decides what it prints long before the paper decides how it will
+# crease, and long before anyone photocopies the result.
 # Reordering this file changes which constraints can be expressed at all -- a
 # value can only `require` a tag an EARLIER attribute sets.
 #
@@ -20,3 +21,13 @@ order:
   - color
   - ornament
   - augmentation
+  # Cái máy đã in hoặc đã sao tờ này, tách làm ba bộ phận hỏng độc lập với
+  # nhau. Đứng SAU `augmentation` vì chúng là thứ xảy ra SAU CÙNG: tờ giấy đã
+  # in, đã cũ đi, rồi mới đi qua cái máy sinh ra tệp ảnh này.
+  #
+  # `toner` trước hai cái kia, và không phải chuyện thẩm mỹ: nó đặt thẻ
+  # `worn_machine`, mà mức nặng nhất của `drum` và `rollers` đều `requires` thẻ
+  # ấy. Đảo lại thì hai giá trị ấy không bao giờ bốc được.
+  - toner
+  - drum
+  - rollers
