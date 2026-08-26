@@ -1,0 +1,32 @@
+# Trang nhất nhật báo khổ rộng — tin đinh + hộp tin nhanh + dải box + hàng
+# tin cuối trang.
+#
+# Family `periodical` (không phải `statutory`/`form`/...): trang này không ghi
+# lại một lần mua bán, không có bảng hàng, không có bên mua/bên bán — nó có
+# một BÀI VIẾT chính, một dải tin ngắn, một hộp box bên cạnh, một hàng tin
+# phụ cuối trang. Xem `rulebase/periodical.py` cho mô hình nội dung và
+# `generators/html/sheets/periodical.py` cho CSS thật vẽ ra pixel.
+#
+# `sections` ở đây KHÔNG mô tả cột chữ thật của trang (đó là việc của
+# `composition:` + CSS) -- bốn mục header/parties/notes/footer chỉ để lưới ký
+# tự (`rulebase/layout.py::build_grid`) có cái để dựng cho hai nơi vẫn còn đi
+# qua nó dù `--template auto` không dùng: `tests/test_layout.py` và
+# `pipeline/preflight.py::sheet_overflow()`. Cả hai chỉ cần lưới không vỡ và
+# không tràn khổ A4 khai ở `sheet:` dưới đây -- không nơi nào trong hai chỗ đó
+# đọc `.ground_truth()` từ lưới này. `rulebase.periodical.ArticlePage.
+# as_grid_receipt()` dựng phần đó.
+id: newspaper_front_broadsheet
+name: Newspaper front page — lead story, sidebar box, teaser strip, bottom strip
+source: "samples/periodical-templates/newspaper_front_broadsheet.html (N-01)"
+family: periodical
+composition: lead_sidebar
+
+width: [92, 104]
+gutter: 2
+rule_char: "-"
+
+sheet: a4
+
+rules: marks
+
+sections: [header, parties, notes, footer]

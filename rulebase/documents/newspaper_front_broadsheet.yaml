@@ -1,0 +1,29 @@
+# THAM SỐ NỘI DUNG — newspaper_front_broadsheet
+#
+# Nửa còn lại của loại document này. Không gian lấy mẫu (weight, tags, họ)
+# nằm ở `rules/document.yaml`; những gì `rulebase.periodical.build` đọc thì
+# nằm đây. Đây là bộ nhận diện CỐ ĐỊNH của tờ báo "Minh Hoạ" -- giống
+# `authorisation_letter.yaml`'s `notes:`, không đổi giữa các lần bốc; cái đổi
+# là bài viết (`rulebase/corpus/vi/periodical_article.yaml`, bốc mới mỗi lần)
+# và số báo/năm thứ (bốc trong `_build_lead_sidebar`).
+#
+# `masthead`/`slogan`/`price`/`website`/`hotline`/`footer_line` chép nguyên
+# văn từ `samples/periodical-templates/newspaper_front_broadsheet.html`.
+# `newspaper_classifieds.yaml` dùng lại đúng tên "Minh Hoạ" -- hai trang của
+# cùng một tờ báo.
+
+kind: periodical
+composition: lead_sidebar
+
+masthead: "Minh Hoạ"
+slogan: "Nhật báo"
+price: "Giá 8.000 đ"
+website: "minhhoa.example.vn"
+hotline: "Đường dây nóng 1900 0000"
+footer_line: "Toà soạn: Số 1 Đường Mẫu, Quận Trung Tâm · Điện thoại 024 0000 0000"
+
+# Khớp đúng mockup N-01: 3 tin dải trên, 1 bài phụ ở cột bên (ngoài hộp box),
+# 2 tin dải dưới.
+teaser_count: 3
+secondary_rail: true
+bottom_count: 2

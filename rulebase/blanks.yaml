@@ -203,6 +203,31 @@ blanks:
     layout: invoice_remittance
     sheet: null
 
+  # ------------------------------------------------------------------
+  # Bốn phôi đầu tiên của root "Newspaper/Magazine"
+  # (docs/root-document-taxonomy.md §3.7) — khớp bốn trong mười mockup lưu ở
+  # `samples/periodical-templates/`; sáu mockup còn lại (N-02/03/04/05/07/08)
+  # là việc còn nợ, xem README trong thư mục đó.
+  newspaper_front_broadsheet:
+    source: "samples/periodical-templates/newspaper_front_broadsheet.html (N-01)"
+    layout: newspaper_front_broadsheet
+    sheet: samples/periodical-templates/newspaper_front_broadsheet.html
+
+  newspaper_classifieds:
+    source: "samples/periodical-templates/newspaper_classifieds.html (N-10)"
+    layout: newspaper_classifieds
+    sheet: samples/periodical-templates/newspaper_classifieds.html
+
+  magazine_contents:
+    source: "samples/periodical-templates/magazine_contents.html (N-06)"
+    layout: magazine_contents
+    sheet: samples/periodical-templates/magazine_contents.html
+
+  magazine_qa_interview:
+    source: "samples/periodical-templates/magazine_qa_interview.html (N-09)"
+    layout: magazine_qa_interview
+    sheet: samples/periodical-templates/magazine_qa_interview.html
+
 # Phôi mà mỗi document được phép dựng từ. Thứ tự không quan trọng.
 documents:
   pub_eatery: [eatery_indexed, eatery_ascii]
@@ -236,3 +261,7 @@ documents:
   invoice_detailed:
     [invoice_header_table, invoice_logo_split, invoice_two_column, invoice_sidebar,
      invoice_keyvalue, invoice_remittance]
+  newspaper_front_broadsheet: [newspaper_front_broadsheet]
+  newspaper_classifieds: [newspaper_classifieds]
+  magazine_contents: [magazine_contents]
+  magazine_qa_interview: [magazine_qa_interview]

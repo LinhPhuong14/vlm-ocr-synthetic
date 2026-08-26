@@ -270,3 +270,37 @@ groups:
         weight: 1
         requires: [dense_registry]
         tags: [field_form]
+
+  # ------------------------------------------------------------------------
+  - id: periodical_page
+    label: "Báo/tạp chí — trang biên tập, không phải hoá đơn"
+    # Root 4 (Newspaper/Magazine) -- bốn layout đầu tiên khớp bốn mockup ở
+    # `docs/root-document-taxonomy.md` § 3.7 (N-01, N-06, N-09, N-10). Một
+    # trang báo/tạp chí không ghi lại một lần mua bán: không bên mua/bán,
+    # không bảng hàng, không tổng tiền -- `excludes: [doc_invoice]` ở đây
+    # giống hệt `retail_receipt` ở trên, không phải một ngoại lệ mới. Vẽ qua
+    # họ `periodical` mới, `generators/html/sheets/periodical.py`; mô hình
+    # nội dung ở `rulebase/periodical.py` (bốn dataclass, không kế thừa
+    # `Receipt`/`Invoice`) chứ không phải một `document:` mới trên mô hình cũ.
+    excludes: [doc_invoice]
+    tags: [periodical, wide_paper]
+    options:
+      - id: newspaper_front_broadsheet
+        weight: 2
+        requires: [periodical_lead_sidebar]
+        tags: [lead_sidebar, multi_column_body]
+
+      - id: newspaper_classifieds
+        weight: 2
+        requires: [periodical_classifieds]
+        tags: [classified_ads, six_column]
+
+      - id: magazine_contents
+        weight: 2
+        requires: [periodical_toc]
+        tags: [toc_listing, two_column]
+
+      - id: magazine_qa_interview
+        weight: 2
+        requires: [periodical_qa]
+        tags: [qa_transcript, two_column, full_bleed_photo]
