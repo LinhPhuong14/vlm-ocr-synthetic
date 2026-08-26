@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>N-05 · Bìa tạp chí A4 – ảnh tràn lề, coverlines hai bên</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#5d6158;font-family:"Segoe UI",Arial,Helvetica,sans-serif;color:#fff}
+  @page{size:A4 portrait;margin:0}
+  .sheet{width:210mm;height:297mm;background:#1a1a18;margin:10mm auto;position:relative;overflow:hidden;
+         box-shadow:0 3mm 12mm rgba(0,0,0,.45)}
+
+  /* ảnh bìa tràn lề (full bleed) */
+  .cover{position:absolute;inset:0;background:
+      radial-gradient(circle at 50% 50%, rgba(0,0,0,.35) 0 .22mm, transparent .23mm) 0 0/.8mm .8mm,
+      radial-gradient(ellipse at 52% 34%, #c4b9a4 0%, #8d8474 34%, #4a463e 68%, #22201c 100%)}
+  .cover::after{content:"VÙNG ẢNH BÌA · FULL BLEED";position:absolute;left:50%;top:50%;
+      transform:translate(-50%,-50%);font-size:3mm;letter-spacing:2.4mm;color:rgba(255,255,255,.28)}
+  .vig{position:absolute;inset:0;background:
+      linear-gradient(180deg,rgba(0,0,0,.55) 0%,rgba(0,0,0,0) 26%,rgba(0,0,0,0) 52%,rgba(0,0,0,.72) 100%)}
+
+  /* ---- logo tạp chí, chữ chồng lên ảnh ---- */
+  .logo{position:absolute;left:12mm;right:12mm;top:9mm;text-align:center}
+  .logo h1{font-family:Georgia,"Times New Roman",serif;font-size:34mm;font-weight:700;line-height:.82;
+           letter-spacing:-1.8mm;text-transform:uppercase;
+           text-shadow:0 .8mm 2.4mm rgba(0,0,0,.45)}
+  .logo .tag{font-size:2.8mm;letter-spacing:5mm;text-transform:uppercase;margin-top:2.5mm;
+             color:rgba(255,255,255,.85)}
+
+  /* ---- dải kỳ phát hành ---- */
+  .issue{position:absolute;left:0;right:0;top:47mm;display:flex;justify-content:space-between;
+         padding:0 12mm;font-size:2.7mm;letter-spacing:1.4mm;text-transform:uppercase;
+         color:rgba(255,255,255,.9)}
+  .issue::before,.issue::after{content:"";position:absolute;left:12mm;right:12mm;height:.3mm;
+         background:rgba(255,255,255,.45)}
+  .issue::before{top:-3mm} .issue::after{top:5mm}
+
+  /* ---- coverline chính ---- */
+  .main{position:absolute;left:12mm;bottom:44mm;max-width:126mm}
+  .main .kick{display:inline-block;background:#d4482f;font-size:2.9mm;font-weight:700;letter-spacing:1.6mm;
+              text-transform:uppercase;padding:1.4mm 3.2mm;margin-bottom:4mm}
+  .main h2{font-family:Georgia,serif;font-size:17mm;font-weight:700;line-height:1.0;letter-spacing:-.5mm;
+           text-shadow:0 .5mm 2mm rgba(0,0,0,.5)}
+  .main h2 em{font-style:italic;color:#f0c96a}
+  .main p{font-size:3.6mm;line-height:1.45;margin-top:4mm;color:rgba(255,255,255,.9);max-width:104mm}
+
+  /* ---- coverlines phụ xếp dọc bên phải ---- */
+  .side{position:absolute;right:12mm;top:64mm;width:56mm;text-align:right}
+  .side .cl{margin-bottom:7mm}
+  .side .cl .n{font-size:2.4mm;letter-spacing:1.4mm;text-transform:uppercase;color:#f0c96a;margin-bottom:1.2mm}
+  .side .cl h3{font-family:Georgia,serif;font-size:6.2mm;line-height:1.14;font-weight:700;
+               text-shadow:0 .4mm 1.6mm rgba(0,0,0,.5)}
+  .side .cl p{font-size:2.8mm;line-height:1.4;color:rgba(255,255,255,.82);margin-top:1.2mm}
+
+  /* ---- chân bìa: giá, mã vạch ---- */
+  .foot{position:absolute;left:12mm;right:12mm;bottom:10mm;display:flex;justify-content:space-between;
+        align-items:flex-end;gap:8mm}
+  .foot .price{font-size:3mm;letter-spacing:1.2mm;text-transform:uppercase;line-height:1.7;
+               color:rgba(255,255,255,.9)}
+  .foot .price b{display:block;font-family:Georgia,serif;font-size:6mm;letter-spacing:0}
+  .barcode{background:#fff;padding:1.6mm 2mm 1mm;display:flex;flex-direction:column;align-items:center;gap:.8mm}
+  .barcode .bars{display:flex;align-items:flex-end;height:11mm}
+  .barcode i{display:block;width:.32mm;height:100%;background:#111;margin-right:.22mm}
+  .barcode i:nth-child(3n){width:.72mm}
+  .barcode i:nth-child(4n){height:82%}
+  .barcode i:nth-child(7n){width:1mm}
+  .barcode span{font-family:"Courier New",monospace;font-size:2.2mm;color:#111;letter-spacing:.4mm}
+  @media print{html,body{background:#fff}.sheet{margin:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="cover"></div>
+  <div class="vig"></div>
+
+  <div class="logo">
+    <h1>Bến</h1>
+    <div class="tag">Tạp chí đời sống &amp; văn hoá</div>
+  </div>
+
+  <div class="issue">
+    <span>Số 84 · Tháng 9 · 2026</span>
+    <span>ben.example.vn</span>
+  </div>
+
+  <div class="main">
+    <div class="kick">Hồ sơ</div>
+    <h2>Ba mươi năm<br>một cây cầu<br>và <em>một lời hứa</em></h2>
+    <p>Mười bảy hộ dân, ba thế hệ và một quyển sổ ghi chép dày lên theo từng mùa nước.
+      Câu chuyện về thứ mà người ta gọi là kiên nhẫn.</p>
+  </div>
+
+  <div class="side">
+    <div class="cl">
+      <div class="n">Chân dung</div>
+      <h3>Người vẽ lại bản đồ làng gốm</h3>
+      <p>Bà thợ cả 68 tuổi và lớp học không thu học phí</p>
+    </div>
+    <div class="cl">
+      <div class="n">Ẩm thực</div>
+      <h3>Mười hai món ăn của mùa nước nổi</h3>
+    </div>
+    <div class="cl">
+      <div class="n">Kiến trúc</div>
+      <h3>Nhà nổi: sống chung với lũ, kiểu mới</h3>
+    </div>
+    <div class="cl">
+      <div class="n">Đọc chậm</div>
+      <h3>Vì sao chúng ta thích nghe kể chuyện dài</h3>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="price">
+      Giá
+      <b>65.000 đ</b>
+    </div>
+    <div class="barcode">
+      <div class="bars">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
+      <span>8 930000 000842</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>N-10 · Trang rao vặt &amp; thông báo (280 × 430 mm, 6 cột hẹp)</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#5d6158;font-family:Arial,Helvetica,sans-serif;color:#111}
+  @page{size:280mm 430mm;margin:0}
+  .sheet{width:280mm;height:430mm;background:#f6f3ea;margin:10mm auto;position:relative;overflow:hidden;
+         box-shadow:0 3mm 12mm rgba(0,0,0,.4);padding:10mm 10mm 8mm;display:flex;flex-direction:column}
+
+  .running{display:flex;justify-content:space-between;align-items:baseline;
+           border-bottom:1.2mm solid #111;padding-bottom:1.6mm}
+  .running .sec{font-size:5.6mm;font-weight:700;letter-spacing:2.6mm;text-transform:uppercase}
+  .running .meta{font-size:2.6mm;color:#444}
+  .rate{border:.4mm solid #111;font-size:2.5mm;padding:1.6mm 2.4mm;margin:3mm 0;display:flex;
+        justify-content:space-between;gap:6mm;background:#eae5d8}
+  .rate b{text-transform:uppercase;letter-spacing:.8mm}
+
+  /* ---- 6 cột hẹp, chữ nhỏ, ngắt cột tự do ---- */
+  /* min-height:0 -- không phải thiết kế, mà là sửa một hành vi mặc định của
+     flex: một flex item không co xuống dưới chiều cao NỘI DUNG của nó trừ khi
+     được nói rõ min-height:0. Với `column-fill:auto`, thiếu dòng này khiến
+     Chromium tính chiều cao cột dựa trên toàn bộ nội dung thay vì phần còn
+     lại của trang, nên mọi thứ dồn vào cột 1 và năm cột sau bỏ trống -- xem
+     README.md, mục "Một dòng CSS được thêm vào bốn file". */
+  .cols{flex:1;min-height:0;column-count:6;column-gap:4mm;column-rule:.2mm solid #b5b0a2;column-fill:auto;
+        font-family:Arial,Helvetica,sans-serif}
+  .cat{break-inside:avoid;break-after:avoid;background:#111;color:#fff;font-size:2.7mm;font-weight:700;
+       letter-spacing:1mm;text-transform:uppercase;padding:1.2mm 1.8mm;margin:0 0 1.8mm}
+  .cat.first{margin-top:0}
+  .cols .cat:not(.first){margin-top:3.5mm}
+  .ad{break-inside:avoid;font-size:2.55mm;line-height:1.36;padding:1.4mm 0;border-bottom:.2mm dotted #a9a496;
+      text-align:justify}
+  .ad b{text-transform:uppercase;letter-spacing:.2mm}
+  .ad .tel{display:block;font-weight:700;margin-top:.5mm}
+
+  /* mẩu rao có khung – loại trả thêm phí */
+  .ad.boxed{border:.4mm solid #111;padding:1.8mm;background:#fff;border-bottom-width:.4mm;margin:1.4mm 0}
+  .ad.boxed .h{font-size:3.2mm;font-weight:700;text-transform:uppercase;letter-spacing:.3mm;margin-bottom:1mm;
+               border-bottom:.25mm solid #111;padding-bottom:.8mm}
+
+  /* thông báo pháp lý – khung đôi */
+  .notice{break-inside:avoid;border:.35mm double #111;padding:2.2mm;margin:2mm 0;font-size:2.5mm;
+          line-height:1.4;background:#fff}
+  .notice .t{text-align:center;font-weight:700;text-transform:uppercase;letter-spacing:.7mm;font-size:2.8mm;
+             margin-bottom:1.4mm}
+  .notice p{text-align:justify;margin-bottom:1mm}
+  .notice .sg{text-align:right;font-style:italic}
+
+  /* cáo phó */
+  .obit{break-inside:avoid;border:1mm solid #111;padding:2.6mm;margin:2mm 0;background:#fff;text-align:center}
+  .obit .t{font-size:3mm;font-weight:700;letter-spacing:1.4mm;text-transform:uppercase;margin-bottom:1.6mm}
+  .obit .nm{font-family:Georgia,serif;font-size:4.6mm;font-weight:700;line-height:1.2}
+  .obit p{font-size:2.5mm;line-height:1.4;margin-top:1.4mm;text-align:center}
+
+  .foot{border-top:.3mm solid #111;padding-top:2mm;display:flex;justify-content:space-between;
+        font-size:2.5mm;color:#444;margin-top:3mm}
+  @media print{html,body{background:#fff}.sheet{margin:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="running">
+    <div class="sec">Rao vặt · Thông báo</div>
+    <div class="meta">Thứ Tư 26 · 8 · 2026 &nbsp;·&nbsp; Nhật báo Minh Hoạ &nbsp;·&nbsp; Trang 18</div>
+  </div>
+
+  <div class="rate">
+    <span><b>Giá đăng:</b> 45.000 đ/dòng · khung viền 180.000 đ/mẩu · thông báo pháp lý 350.000 đ/mẩu</span>
+    <span><b>Nhận đăng:</b> 024 0000 0000 · raovat@example.vn · trước 16 giờ ngày hôm trước</span>
+  </div>
+
+  <div class="cols">
+
+    <div class="cat first">Nhà đất · cho thuê</div>
+    <div class="ad"><b>Cho thuê</b> nhà nguyên căn 3 tầng, 4 phòng ngủ, hẻm xe hơi, gần chợ Mẫu. Có sân để xe.<span class="tel">090 000 0001</span></div>
+    <div class="ad"><b>Cho thuê</b> mặt bằng 60 m² mặt tiền Đường Mẫu, thích hợp quán cà phê, đã có sẵn hệ thống điện nước.<span class="tel">090 000 0002</span></div>
+    <div class="ad"><b>Cần thuê</b> kho 200–300 m² khu vực ven sông, ưu tiên có bãi đậu xe tải.<span class="tel">090 000 0003</span></div>
+    <div class="ad boxed">
+      <div class="h">Căn hộ Mẫu Riverside</div>
+      Còn 14 căn cuối, 2 phòng ngủ, bàn giao hoàn thiện. Hỗ trợ vay 70%, ân hạn gốc 24 tháng. Xem nhà mẫu hằng ngày.
+      <span class="tel">1900 0000</span>
+    </div>
+    <div class="ad"><b>Bán</b> đất thổ cư 5×20 m, sổ riêng, đường bê tông 4 m, cách trường tiểu học 300 m.<span class="tel">090 000 0004</span></div>
+    <div class="ad"><b>Cho thuê</b> phòng trọ khép kín, có gác lửng, giờ giấc tự do, ưu tiên nữ.<span class="tel">090 000 0005</span></div>
+
+    <div class="cat">Việc làm</div>
+    <div class="ad"><b>Tuyển</b> 10 công nhân sơ chế thuỷ sản, làm ca, có xe đưa đón, bao cơm trưa.<span class="tel">028 0000 0011</span></div>
+    <div class="ad"><b>Tuyển</b> kế toán tổng hợp, kinh nghiệm 2 năm, thành thạo phần mềm kê khai thuế.<span class="tel">024 0000 0012</span></div>
+    <div class="ad"><b>Tuyển</b> thợ hàn bậc 3/7, làm tại công trường ven sông, lương thoả thuận theo tay nghề.<span class="tel">090 000 0013</span></div>
+    <div class="ad"><b>Tuyển gấp</b> tài xế xe tải 3,5 tấn, bằng C, có kinh nghiệm chạy tuyến liên tỉnh.<span class="tel">090 000 0014</span></div>
+    <div class="ad boxed">
+      <div class="h">Xưởng gốm Mẫu tuyển thợ</div>
+      Nhận cả người chưa biết nghề, được đào tạo 6 tháng có hỗ trợ sinh hoạt phí. Ưu tiên người địa phương.
+      <span class="tel">090 000 0015</span>
+    </div>
+    <div class="ad"><b>Tìm việc</b> nam 34 tuổi, có bằng lái B2, nhận chạy xe cho công ty hoặc gia đình.<span class="tel">090 000 0016</span></div>
+
+    <div class="cat">Dịch vụ</div>
+    <div class="ad"><b>Sửa chữa</b> điện nước, chống thấm, sơn nhà. Có mặt trong 60 phút nội thành.<span class="tel">090 000 0021</span></div>
+    <div class="ad"><b>Nhận</b> đóng mới và sửa ghe xuồng, đóng theo mẫu, bảo hành 12 tháng.<span class="tel">090 000 0022</span></div>
+    <div class="ad"><b>Gia sư</b> toán lý hoá lớp 9–12, giáo viên đang giảng dạy, dạy tại nhà.<span class="tel">090 000 0023</span></div>
+    <div class="ad"><b>Dọn nhà</b> theo giờ, nhận cả dọn sau ngập, có máy hút nước công nghiệp.<span class="tel">090 000 0024</span></div>
+    <div class="ad"><b>Vận chuyển</b> hàng hoá nội tỉnh, xe 1–5 tấn, nhận hàng trong ngày.<span class="tel">090 000 0025</span></div>
+
+    <div class="cat">Mua bán</div>
+    <div class="ad"><b>Bán</b> máy cày mini đã qua sử dụng, còn tốt, kèm 2 bộ lưỡi.<span class="tel">090 000 0031</span></div>
+    <div class="ad"><b>Bán</b> 200 bao lúa giống vụ mới, giao tận nơi trong bán kính 20 km.<span class="tel">090 000 0032</span></div>
+    <div class="ad"><b>Cần mua</b> tủ đông cũ dung tích từ 300 lít, còn chạy tốt.<span class="tel">090 000 0033</span></div>
+    <div class="ad"><b>Thanh lý</b> toàn bộ bàn ghế quán ăn, 24 bộ, còn mới 80%.<span class="tel">090 000 0034</span></div>
+
+    <div class="cat">Thông báo</div>
+    <div class="notice">
+      <div class="t">Thông báo mất giấy tờ</div>
+      <p>Tôi là Nguyễn Văn A, có làm mất Giấy chứng nhận quyền sử dụng đất số CX 000000, thửa số 42,
+        tờ bản đồ số 7, xã Mẫu Thượng, cấp ngày 12/5/2015.</p>
+      <p>Ai nhặt được xin liên hệ số 090 000 0041. Sau 30 ngày kể từ ngày đăng, tôi sẽ làm thủ tục
+        đề nghị cấp lại theo quy định.</p>
+      <div class="sg">Nguyễn Văn A</div>
+    </div>
+    <div class="notice">
+      <div class="t">Thông báo họp cổ đông</div>
+      <p>Hội đồng quản trị Công ty Cổ phần Thương mại Mẫu trân trọng thông báo họp Đại hội đồng cổ đông
+        bất thường năm 2026.</p>
+      <p>Thời gian: 8 giờ 30 ngày 20/9/2026. Địa điểm: Hội trường Công ty, số 88 Đường Mẫu.
+        Tài liệu họp đăng tải tại website công ty từ ngày 5/9/2026.</p>
+      <div class="sg">TM. Hội đồng quản trị</div>
+    </div>
+    <div class="notice">
+      <div class="t">Thông báo thay đổi trụ sở</div>
+      <p>Công ty TNHH Dịch vụ Mẫu Hai thông báo chuyển trụ sở chính từ ngày 1/9/2026 về địa chỉ mới:
+        số 5 Đường Mẫu Hai, Quận Ven Đô. Các thông tin liên hệ khác không thay đổi.</p>
+      <div class="sg">Giám đốc</div>
+    </div>
+
+    <div class="cat">Cáo phó · Cảm tạ</div>
+    <div class="obit">
+      <div class="t">Cáo phó</div>
+      <div class="nm">Cụ ông Trần Văn Bảy</div>
+      <p>Sinh năm 1938, từ trần ngày 24/8/2026, hưởng thọ 88 tuổi.</p>
+      <p>Lễ viếng từ 7 giờ ngày 27/8/2026 tại tư gia, xã Mẫu Đông.<br>
+        Lễ di quan lúc 6 giờ ngày 28/8/2026.</p>
+      <p><i>Gia đình đồng kính báo</i></p>
+    </div>
+    <div class="ad"><b>Cảm tạ.</b> Gia đình chúng tôi xin chân thành cảm tạ họ hàng, bà con lối xóm và các cơ quan
+      đã đến chia buồn, phúng viếng trong lễ tang bà Lê Thị Chín. Trong lúc tang gia bối rối, có điều gì sơ suất,
+      kính mong quý vị lượng thứ.</div>
+
+  </div>
+
+  <div class="foot">
+    <span>Nội dung rao vặt do người đăng chịu trách nhiệm. Toà soạn không xác minh từng mẩu tin.</span>
+    <span>Trang 18</span>
+  </div>
+</div>
+</body>
+</html>
