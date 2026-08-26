@@ -351,6 +351,18 @@ def monitor(args) -> None:
     run(command)
 
 
+@task("legibility", "does a chain age the text out of its own label boxes?")
+def legibility(args) -> None:
+    """The check `docs/lam-cu-de-xuat.md` ranks first, ahead of any new model.
+
+    A box says there is text there. A chain that ages the text away while the
+    label still claims it is not hard data, it is poisoned data -- and until
+    this existed nothing in the repository measured it. Exit 1 if any chain
+    loses 5% or more of its boxes.
+    """
+    run([first_available_python(), REPO_ROOT / "tools" / "legibility.py"])
+
+
 @task("list-degradations", "names usable in an augmentation chain")
 def list_degradations(args) -> None:
     run([first_available_python(), "-c",
