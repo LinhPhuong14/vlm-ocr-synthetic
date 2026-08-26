@@ -20,6 +20,8 @@ sys.path.insert(0, str(REPO_ROOT / "generators" / "html"))
 
 import tables as T  # noqa: E402
 
+from pipeline import record as R  # noqa: E402
+
 SHAPE = dict(min_row=3, max_row=12, min_col=3, max_col=7,
              max_span_row=3, max_span_col=3, max_span=10, colour_prob=0.3)
 SEEDS = list(range(40))
@@ -80,19 +82,49 @@ def test_the_rebuilt_html_carries_every_cell_text(seed):
     # Upstream's nesting, kept deliberately: `bbox` holds the quad, it is not
     # the quad. Tools that read PP-Structure labels expect it that way.
     assert label["html"]["cells"][0]["bbox"] == [cells[0]["quad"]]
-    assert T.metadata_record(label)["n_cells"] == len(cells)
+    assert len(T.metadata_record(label, 800, 600)["blocks"]) == len(cells)
     assert table.rows >= 3
 
 
 def test_the_index_record_is_not_the_receipts_schema():
-    """Two tasks, two labels. Flattening one into the other would lie."""
+    """One envelope, two tasks. Flattening the labels into each other would lie.
+
+    The converter's shape is shared, so one loader finds both; what is inside it
+    is not. A table has no fields to extract and no recipe that redraws it, and
+    a receipt's markdown has no meaning for a grid of merged cells -- so
+    `extracted` is null, `html` is the structure itself, and `markdown` is empty
+    rather than invented.
+    """
     _table, _markup, tokens = built(3)
     cells = [{"text": "x", "quad": [[0, 0], [1, 0], [1, 1], [0, 1]]}
              for _ in range(cell_slots(tokens))]
-    record = T.metadata_record(T.ppstructure_label("img/x.jpg", tokens, cells))
-    assert record["task"] == "table_structure"
-    assert set(record) == {"file_name", "task", "ground_truth",
-                           "structure_tokens", "cells", "n_cells"}
+    label = T.ppstructure_label("img/x.jpg", tokens, cells)
+    item = T.metadata_record(label, 800, 600, seed=7, border="no_border")
+
+    assert item["task"] == "table_structure"
+    assert item["schema_version"] == R.SCHEMA_VERSION
+    assert item["extracted"] is None
+    assert item["markdown"] == ""
+    assert item["html"] == label["gt"]
+    assert len(item["blocks"]) == len(cells)
+    assert {block["label"] for block in item["blocks"]} == {"Table"}
+    # ...and nothing a receipt carries that a table cannot answer for.
+    assert not R.validate(item, strict=False)
+
+
+def test_the_pp_structure_label_is_still_upstreams():
+    """The border style reaches the record as an argument, not through `gt.txt`.
+
+    `gt.txt` is the one file in this repository written to somebody else's
+    format, and its whole value is that other tools already read it. A key added
+    for this repository's convenience would be a key those tools did not ask
+    for.
+    """
+    _table, _markup, tokens = built(4)
+    cells = [{"text": "x", "quad": [[0, 0], [1, 0], [1, 1], [0, 1]]}
+             for _ in range(cell_slots(tokens))]
+    label = T.ppstructure_label("img/x.jpg", tokens, cells)
+    assert set(label) == {"filename", "html", "gt"}
 
 
 # ------------------------------------------------------------- the content

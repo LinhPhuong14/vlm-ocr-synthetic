@@ -8,21 +8,21 @@ there is not, whatever is in the directory is **deleted** and the shard is
 rendered from the start.
 
 That deletion is the part worth arguing about, and it is not an optimisation
-choice. Appending to a half-written `metadata.jsonl` produces duplicate records
-for the images that were already there, and duplicates in a training set are
-invisible: the file parses, the count is plausible, and a model sees some pages
-twice. Redoing a few images is cheap; finding that later is not.
+choice. A half-finished shard left in place is a directory whose images and
+records do not agree about what it holds, and that is invisible: every file
+parses, the count is plausible, and a model trains on a set that is not the one
+the plan describes. Redoing a few images is cheap; finding that later is not.
 
 Three details decide whether the resume story is true rather than approximate:
 
 * **`DONE` is written last, and atomically.** A temporary file renamed into
-  place, after the metadata is flushed and fsynced. If `DONE` could appear
-  before the last line was on disk, resume would skip a shard that is short, and
-  the run would quietly produce fewer images than it claims.
-* **Metadata is streamed.** Lines are appended as each record arrives rather
-  than collected and written at the end, so a shard's memory does not grow with
-  its size. The renderer streams its own file the same way, which matters now
-  that one invocation draws a whole shard rather than one layout.
+  place, after every record is fsynced. If `DONE` could appear before the last
+  record was on disk, resume would skip a shard that is short, and the run would
+  quietly produce fewer images than it claims.
+* **Records are written as they arrive**, one file per image, rather than
+  collected and written at the end -- so a shard's memory does not grow with its
+  size. The renderer writes its own the same way, which matters now that one
+  invocation draws a whole shard rather than one layout.
 * **One log per worker.** Eight workers interleaved on one stdout is unreadable
   exactly when it matters.
 
@@ -59,28 +59,31 @@ for extra in (REPO_ROOT, REPO_ROOT / "tools"):
 from paths import VENVS, venv_python  # noqa: E402
 
 import worklist  # noqa: E402
-from pipeline import drift, invariants, record  # noqa: E402
+from pipeline import drift, invariants, record, synthesis  # noqa: E402
 from pipeline.config import RULES_ENV  # noqa: E402
 from pipeline.plan import image_name  # noqa: E402
 
 DONE = "DONE"
 
-# What each shard writes down about its own content, beside its metadata.
-# Separate from `metadata.jsonl` because that file is hashed by the golden
-# baseline: a measurement added to it would make every W1 verification fail for
-# a reason that has nothing to do with what W1 verifies. `drift.json` sits
-# beside it for the same reason.
+# What each shard writes down about its own content, beside its records.
+# Separate from them because they are hashed by the golden baseline: a
+# measurement added to a record would make every W1 verification fail for a
+# reason that has nothing to do with what W1 verifies. `drift.json` sits beside
+# it for the same reason.
 INVARIANTS = invariants.INVARIANTS_NAME
 
 # name -> (script, working directory). The interpreter is resolved at call time
 # through `venv_python`, which knows that a virtualenv keeps it in `bin/` on
 # POSIX and `Scripts\` on Windows -- hardcoding either is how this breaks on the
 # other platform.
+#
+# `html` only. The glyph and WeasyPrint backends were removed from this table
+# rather than left in it unused: a registry is what turns a name in a plan into
+# a process, so a name still in here is a backend that still runs. Why each was
+# retired is in `pipeline/config.RETIRED_BACKENDS`, which refuses them earlier
+# and louder; this is the backstop for a plan that reached dispatch anyway.
 BACKENDS = {
-    "synthdog": (REPO_ROOT / "generators" / "synthdog" / "render.py",
-                 REPO_ROOT / "generators" / "synthdog"),
     "html": (REPO_ROOT / "generators" / "html" / "render.py", REPO_ROOT),
-    "genalog": (REPO_ROOT / "generators" / "genalog" / "render.py", REPO_ROOT),
 }
 
 CLEAN_AUGMENTATION = invariants.CLEAN_AUGMENTATION
@@ -115,14 +118,20 @@ def renderer_command(backend: str, staging: Path, jobs: Path,
     A shard used to be rendered by one process per run, and a run is one
     layout: twenty images over fourteen layouts meant fourteen processes of
     about one and a half images each, each paying interpreter and backend
-    start-up in full. Measured in `data/profile/README.md`, that was 23% of a
-    synthdog run, 29% of an html one and 44% of a genalog one -- the largest
-    single cost in the generator, and in none of the renderers.
+    start-up in full. Measured in `data/profile/README.md`, that was 29% of an
+    html run -- the largest single cost in the generator, and in none of the
+    renderers. (The same measurement put the two retired backends at 23% and
+    44%; the numbers stay because they are what the fix was judged against.)
 
     `--jobs` takes the whole list instead, so the cost is paid once. Nothing
     about a page changes: see `worklist.py`, and the byte comparison in
     `tests/test_worklist.py`.
     """
+    if backend not in BACKENDS:
+        raise ShardError(
+            f"{backend!r} is not a backend this repository draws with; "
+            f"have {sorted(BACKENDS)}. See pipeline/config.RETIRED_BACKENDS."
+        )
     interpreter = venv_python(VENVS[backend])
     if not interpreter.exists():
         raise ShardError(
@@ -140,13 +149,11 @@ def renderer_command(backend: str, staging: Path, jobs: Path,
         forced.append(f"augmentation={CLEAN_AUGMENTATION}")
     for item in forced:
         command += ["--force", item]
-    # Only the glyph backend has geometry of its own to switch off.
-    if clean and backend == "synthdog":
-        command.append("--clean")
-    # ...and only the two HTML backends have a second page model. `Config`
-    # refuses a run that asks for one and includes the glyph backend, so
-    # reaching here with both is a bug rather than a fall-through.
-    if template and backend != "synthdog":
+    # `--clean` used to ride along here as well: it switched off the glyph
+    # backend's own geometry -- the paper curl and the re-photograph -- which
+    # the ageing chain does not own. No drawable backend has geometry of that
+    # kind, so a clean run is now exactly `augmentation=pristine`.
+    if template:
         command += ["--template", template]
     return command
 
@@ -181,9 +188,12 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
     tally = invariants.Tally(invariants.attribute_names())
 
     written = 0
-    metadata_path = directory / "metadata.jsonl"
     staging = Path(tempfile.mkdtemp(prefix="shard-", dir=str(directory)))
-    with open(metadata_path, "w", encoding="utf-8") as metadata:
+    # A record per image, written beside it, and one `synthesis.json` for the
+    # shard. The first is what a converted page looks like; the second is how
+    # these ones were made, which no converter could return and which nothing
+    # can redraw a committed image without.
+    with synthesis.Writer(synthesis.beside(directory), backend) as notes:
         try:
             # One renderer process for the whole shard. The runs are handed
             # over as a job list in the order the plan put them, and the
@@ -219,12 +229,26 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
                 raise ShardError(
                     f"shard {shard['index']} {backend} failed ({how}):\n" + tail)
 
-            produced = record.read(staging / "metadata.jsonl")
+            produced = record.read(staging)
             expected_total = sum(run["count"] for run in shard["runs"])
             if len(produced) != expected_total:
                 raise ShardError(
                     f"shard {shard['index']} {backend}: asked for "
                     f"{expected_total} images, got {len(produced)}")
+
+            # The renderer's own provenance, read back whole: it is small (one
+            # entry per page plus one params block per option the rule-base
+            # offers) and it is needed per page below, by the invariants and by
+            # the rename.
+            try:
+                drew = synthesis.read(staging)
+            except synthesis.SynthesisError as error:
+                raise ShardError(
+                    f"shard {shard['index']} {backend}: {error}") from error
+            gaps = drew.problems(record.file_name(item) for item in produced)
+            if gaps:
+                raise ShardError(
+                    f"shard {shard['index']} {backend}: " + "; ".join(gaps))
 
             cursor = 0
             for run in shard["runs"]:
@@ -232,39 +256,55 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
                     item = produced[cursor]
                     cursor += 1
                     target = image_name(backend, run["first_index"] + offset)
-                    # The renderer's own record says which layout it drew.
+                    drawn_name = record.file_name(item)
+                    # The renderer's own provenance says which layout it drew.
                     # Checked against the job it was meant to be, because
                     # walking one list against another by position is exactly
                     # the arrangement where an off-by-one mislabels every image
                     # after it and nothing downstream notices.
-                    drawn = ((item.get("recipe") or {}).get("attributes", {})
-                             .get("layout", {}).get("id"))
+                    drawn = drew.drawn_layout(drawn_name)
                     if drawn and drawn != run["layout"]:
                         raise ShardError(
                             f"shard {shard['index']} {backend}: record {cursor - 1} "
                             f"is {drawn!r} where the plan asked for "
                             f"{run['layout']!r}; the renderer returned its pages "
                             f"in a different order from the job list")
-                    shutil.move(str(staging / item["file_name"]), str(directory / target))
-                    item["file_name"] = target
-                    item["framework"] = backend
-                    item["layout"] = run["layout"]
+                    shutil.move(str(staging / drawn_name), str(directory / target))
+
+                    page = dict(drew.entry(drawn_name))
+                    recipe = drew.recipe(drawn_name)
+                    # Four fields follow the dataset's own name for the page,
+                    # and the `job_id` is a function of all four. The layout is
+                    # the plan's here, not the renderer's: they were checked
+                    # against each other a moment ago.
+                    record.stamp(item, parser=backend, layout=run["layout"],
+                                 seed=recipe.get("seed"), filename=target)
                     record.check(item, where=target)
                     try:
-                        tally.inspect(item, image=directory / target, where=target)
+                        tally.inspect(item, recipe=recipe, layout=run["layout"],
+                                      image=directory / target, where=target)
                     except invariants.InvariantError as error:
                         raise ShardError(
                             f"shard {shard['index']} {backend}/{run['layout']}: "
                             f"{error}") from error
-                    json.dump(item, metadata, ensure_ascii=False)
-                    metadata.write("\n")
+                    # fsynced as it is written: the `DONE` below must not
+                    # appear in front of a record that is not yet on disk, or
+                    # resume would skip a shard that is short.
+                    record.write_one(item, directory, fsync=True)
+                    notes.add(target, job_id=item["job_id"], layout=run["layout"],
+                              recipe=recipe,
+                              text_sequence=str(page.pop("text_sequence", "")),
+                              extra={key: value for key, value in page.items()
+                                     if key not in ("job_id", "seed", "layout",
+                                                    "attributes", "tags")})
                     written += 1
         finally:
             shutil.rmtree(staging, ignore_errors=True)
-        # Flushed and fsynced before DONE can exist: a DONE in front of an
-        # unwritten last line is a shard that resume would skip while short.
-        metadata.flush()
-        os.fsync(metadata.fileno())
+        # Every record is on disk by here -- `record.write_one(fsync=True)` --
+        # and `notes` is closed by its context manager immediately after. Its
+        # last write is what makes `synthesis.json` parse at all, so a shard
+        # killed here leaves a file that fails to load rather than one that
+        # loads and is short.
 
     expected = sum(run["count"] for run in shard["runs"])
     if written != expected:
