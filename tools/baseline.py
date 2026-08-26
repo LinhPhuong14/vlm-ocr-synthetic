@@ -49,10 +49,11 @@ Three fixed plans, because one is not enough:
 
 * `n3` is the plan the W1 brief names, on three named layouts.
 * `n5` is every thermal layout -- the till-roll half of the rule-base.
-* `n16` is every layout, one image each per backend.
+* `n17` is every layout, one image each per backend.
 
-Adding a fifteenth layout leaves all three green, which is the point: a
-regression baseline must not move when someone adds unrelated content.
+Adding a layout leaves `n3` and `n5` green, which is the point: a regression
+baseline must not move when someone adds unrelated content. The widest plan is
+the one that is *meant* to move, because its job is to cover everything.
 
 This needs all three renderer virtualenvs, so it is a hand-run command and not
 part of the `tests` CI job. Keeping that job down to pytest and pyyaml is what
@@ -88,7 +89,7 @@ GOLDEN = REPO_ROOT / "tests" / "golden" / "baseline.json"
 #
 # Adding a plan is fine. Editing one means recapturing.
 THERMAL = ["eatery_ascii", "eatery_indexed", "market_barcode",
-           "market_compact", "market_vat"]
+           "market_compact", "market_vat", "notebook_ledger"]
 INVOICE = ["invoice_brand", "invoice_export", "invoice_hotel_compact",
            "invoice_hotel_stay", "invoice_power", "invoice_tax_en",
            "invoice_vat_form", "invoice_vat_summary", "invoice_water"]
@@ -111,7 +112,10 @@ PLANS: dict[str, dict] = {
     # and `make baseline-verify` says so, which is the correct report: the
     # generator grew, and the fingerprint has to be recaptured on a machine with
     # all three renderer environments.
-    "n16": {"per_backend": 16, "seed": 2026,
+    # Every layout, one image each. The name is the count and the count moves
+    # when a layout ships -- which is the point: a plan that silently stopped
+    # covering the newest layout would be a baseline with a hole in it.
+    "n17": {"per_backend": 17, "seed": 2026,
             "layouts": sorted(THERMAL + INVOICE + FORM)},
 }
 
