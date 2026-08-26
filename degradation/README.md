@@ -232,3 +232,134 @@ asserted not to resize the page, so the dataset has every kind of dirt and no
 sheet that is skewed, curled or photographed at an angle. Fixing that means a
 geometric model returning its transform so `apply_recipe` can carry the label
 boxes through it.
+
+---
+
+# Augraphy's models, and putting one on a box instead of a page
+
+[Augraphy](https://github.com/sparkfish/augraphy) is the second source. Its
+pipeline runs in three phases — `ink → paper → post` — which is the same idea
+as `paper_texture` going first here. Twelve of its models are ported, on the
+same terms as DocCreator's: not vendored, rewritten per model, each naming what
+it came from.
+
+| here | file | what it models |
+| --- | --- | --- |
+| `bad_photocopy` | [`copier.py`](copier.py) | a worn copier: toner dust in blotches, burnt-out patches, grey crushed to black and white |
+| `dirty_drum` | [`copier.py`](copier.py) | streaks **along the feed direction** — one mark on the drum, printed once per revolution, so the streak is continuous |
+| `dirty_rollers` | [`copier.py`](copier.py) | roller bands across the feed. Unlike `scan_banding` these are aperiodic and ridged, which is how you tell the two apart on a real scan |
+| `letterpress` | [`printing.py`](printing.py) | ink that did not transfer: clusters of paper showing through the middle of strokes |
+| `hollow` | [`printing.py`](printing.py) | a dry ribbon — only the outline of each stroke survives |
+| `dot_matrix` | [`printing.py`](printing.py) | an impact printer's pin grid, with **dead pins** and ribbon wear |
+| `markup` | [`marks.py`](marks.py) | a person's pen: highlight, underline, strikethrough, circle, crossed off |
+| `scribbles` | [`marks.py`](marks.py) | a squiggle in the margin |
+| `voronoi_tessellation` | [`tessellation.py`](tessellation.py) | cell patterns — recycled fibre, security backgrounds |
+| `delaunay_tessellation` | [`tessellation.py`](tessellation.py) | the triangular dual of the same seed points; reads as printed decoration rather than as fibre |
+| `color_shift` | [`channel.py`](channel.py) | channels out of register — a misaligned press plate, or a lens's chromatic aberration |
+| `glitch_effect` | [`channel.py`](channel.py) | bands of scanlines slid sideways |
+
+Three things these add that nothing here had:
+
+1. **Ink that failed at printing time**, as opposed to ink that decayed
+   afterwards. `ink_degradation` is DocCreator's model of a page that was
+   printed properly and then aged; `letterpress`, `hollow` and `dot_matrix` are
+   pages that were never printed properly at all. On Vietnamese paperwork the
+   second is the commoner case.
+2. **Colour.** Every model that predates them changes brightness only, so a
+   model trained on this set met its first colour fringe on real data.
+3. **Marks a person made.** Not damage: somebody highlighted a line.
+
+## `dot_matrix` is not `halftone_screen`
+
+They look adjacent and are not. A copier's screen varies the *size* of a dot
+with local darkness (AM screening). An impact printer has one dot size — the
+pin — and each grid cell either fires or does not. So dot-matrix text breaks up
+on an even lattice and photocopied text breaks up in clumps. Both patterns are
+learnable, and only if the data has both.
+
+`dead_pins` is the part worth having. A broken pin leaves a white line running
+through every character on the page at the same height. That is **structured**
+noise — regular, repeatable, learnable — and it is on a great many Vietnamese
+delivery notes and till receipts.
+
+## `by_box` — an effect on part of the page
+
+Every model above ages the whole sheet. Almost nothing on a real page does. A
+highlighter covers one line. A dead pin cuts one stripe. Somebody circles the
+totals row and nothing else.
+
+`by_box` is the entry in `DEGRADATIONS` that is not a model. It wraps any other
+name, takes the page's label boxes, picks some of them, and lets the model act
+only there:
+
+```yaml
+- [by_box, {effect: markup,
+            params: {style: highlight},
+            select: {policy: run, fraction: 0.08}}]
+```
+
+Six policies, and they differ in **shape**, not in how many boxes they take:
+
+| policy | shape | for |
+| --- | --- | --- |
+| `scatter` | any boxes, anywhere | blots, a stray pen mark |
+| `run` | consecutive boxes in reading order | a highlighter swipe; nobody highlights every other line |
+| `band` | every box a horizontal stripe crosses | a dead pin, a roller mark, a fold |
+| `column` | every box a vertical stripe crosses | a drum streak, a spine shadow |
+| `kind` | boxes by role, matched on the dotted prefix | somebody circles `total`, not a random cell |
+| `all` | every text box | still not the whole page: margins and gaps stay clean |
+
+Two ways of acting, chosen automatically:
+
+* **`mask`** — run the effect over a copy of the **whole page**, then blend it
+  back through a soft mask of the chosen boxes. Sounds roundabout, and is the
+  only correct way for anything with structure that runs across the sheet: a
+  drum streak crossing two boxes has to be *one* streak. Cropping each box and
+  running the model on the pieces gives you two streaks that do not line up.
+* **`place`** — call the model once per box with the box's coordinates, for
+  things that are *drawn* rather than filtered. An underline has to sit under
+  that line of text. A model that takes a `regions` argument gets this route.
+
+The mask is padded, roughened with low-frequency noise and feathered before
+use, all in units of box height rather than pixels — a rectangle with clean
+corners is the fastest way to make a synthetic page look synthetic, and a
+figure in pixels stops being right the moment the font size changes.
+
+**With no boxes, `by_box` raises.** Quietly falling back to the whole page
+would make a chain that says `by_box` do the one thing it says it does not.
+For an image with no labels — a directory of finished renders, a real scan —
+`regions.boxes_from_ink()` finds text clusters by thresholding. That is
+detection, not labels, and it is named so you can tell.
+
+## Does a chain age the text out of its own labels?
+
+```bash
+make legibility          # every chain in rules/augmentation.yaml, on a probe page
+```
+
+A box asserts there is text at those coordinates. A chain that erases the text
+while the label still claims it is not hard data — it is **poisoned** data, and
+a model trained on it learns to see text in blank paper.
+
+[`tools/legibility.py`](../tools/legibility.py) measures ink-versus-paper
+contrast inside every box, before and after, and reports the share of boxes
+that fall below a readability floor. It found two things while the Augraphy
+models were being tuned: `letterpress` was scattering its clusters uniformly
+over a page that is 97% paper, so it changed almost nothing; and `dot_matrix`
+was flattening the paper grain it printed over.
+
+`docs/lam-cu-de-xuat.md` ranks this check first, ahead of adding any model —
+diacritics are a few pixels each, `mà` and `mã` differ by one of them, and
+until this existed nothing here measured whether a chain had eaten one.
+
+## A model with no chain is a model that has never been used
+
+`tools/rules_report.py` — which is what `make preflight` and `make check-rules`
+run — now compares the registry with `rules/augmentation.yaml` **in both
+directions**. Naming a model that does not exist was always an error. Now so is
+the reverse: a model no chain names, `by_box`'s `effect:` included.
+
+That is the whole subject of `docs/lam-cu-de-xuat.md`, turned into a check.
+Before it, `holes` could take a `below` image and nothing used it, `textures/stain/`
+was read by code and absent from the tree, and `ink_degradation` had never been
+run above level 4 — none of which anything reported.

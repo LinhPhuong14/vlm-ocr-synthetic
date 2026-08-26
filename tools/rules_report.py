@@ -47,19 +47,51 @@ def check() -> list[str]:
     # The blank registry: intention against what the tags actually resolve to.
     problems += blanks.problems(rules)
 
-    # Chains may only name degradations that exist.
+    # Chains and the registry, checked BOTH ways.
+    #
+    # One way is obvious: a chain may not name a model that does not exist.
+    # The other way is the one that kept catching this repository out --
+    # `docs/lam-cu-de-xuat.md` is a whole document about capability that was
+    # built, paid for and then never reached by any chain. A model no chain
+    # names is a model that has never been in a dataset, however good it is.
+    #
+    # `by_box` is the wrapper, so what IT names counts as reached too:
+    # `[by_box, {effect: markup, ...}]` is what puts `markup` on a page.
     try:
         from degradation import names as degradation_names
 
         known = set(degradation_names())
+        drawn: set[str] = set()
         for option in rules["augmentation"]:
             for entry in option.params.get("chain", []) or []:
-                name = entry[0] if isinstance(entry, (list, tuple)) else entry
+                is_pair = isinstance(entry, (list, tuple))
+                name = entry[0] if is_pair else entry
+                drawn.add(name)
                 if name not in known:
                     problems.append(
                         f"augmentation/{option.id}: unknown degradation {name!r}; "
                         f"have {', '.join(sorted(known))}"
                     )
+                    continue
+                if name != "by_box":
+                    continue
+                wrapped = (entry[1] or {}).get("effect") if is_pair and len(entry) > 1 else None
+                if not wrapped:
+                    problems.append(
+                        f"augmentation/{option.id}: by_box without `effect`; it wraps a "
+                        f"model and has nothing to run")
+                elif wrapped == "by_box":
+                    problems.append(f"augmentation/{option.id}: by_box wraps itself")
+                elif wrapped not in known:
+                    problems.append(
+                        f"augmentation/{option.id}: by_box names unknown effect "
+                        f"{wrapped!r}; have {', '.join(sorted(known))}")
+                else:
+                    drawn.add(wrapped)
+        for unused in sorted(known - drawn):
+            problems.append(
+                f"degradation/{unused}: registered but no chain in rules/augmentation.yaml "
+                f"names it, so it never reaches a dataset")
     except ImportError:
         problems.append("degradation not importable (needs numpy and opencv); chains unchecked")
 

@@ -153,7 +153,12 @@ class SynthVNReceipt(templates.Template):
         # ----- 2. chuỗi làm cũ của recipe (giấy thật nằm trong đây) -----
         # degradation làm việc trên BGR của OpenCV
         with profiling.stage("degradation"):
-            aged = apply_recipe(rgb[..., ::-1], recipe, seed=seed)[..., ::-1]
+            # `quads` go in too, for `by_box`. They are already origin-corrected
+            # and the curl has not run yet, so they describe `rgb` exactly. This
+            # renderer is retired, but a chain that works on one backend and
+            # silently does something else on another is the failure this file
+            # spent a wave getting rid of.
+            aged = apply_recipe(rgb[..., ::-1], recipe, seed=seed, boxes=quads)[..., ::-1]
         with profiling.stage("render"):
             doc_image = (
                 np.concatenate([aged.astype(np.float32), alpha], axis=2)

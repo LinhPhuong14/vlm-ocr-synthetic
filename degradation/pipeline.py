@@ -7,7 +7,12 @@ function is the difference between comparing three renderers and comparing
 three ageing implementations that happen to share a name.
 
     from degradation.pipeline import apply_recipe
-    aged = apply_recipe(image, recipe, seed=recipe.seed)
+    aged = apply_recipe(image, recipe, seed=recipe.seed, boxes=boxes)
+
+`boxes` is the page's label quads, and it is optional only because callers
+without labels exist -- `tools/augment_samples.py` runs over directories of
+finished images. A chain that asks for `by_box` and gets no boxes fails loudly
+rather than quietly ageing the whole sheet; see `degradation/regions.py`.
 """
 
 from __future__ import annotations
@@ -39,12 +44,17 @@ def chain_of(recipe) -> list[tuple[str, dict[str, Any]]]:
     return chain
 
 
-def apply_recipe(image: np.ndarray, recipe, seed: int | None = None) -> np.ndarray:
+def apply_recipe(
+    image: np.ndarray, recipe, seed: int | None = None, boxes=None
+) -> np.ndarray:
     """Age `image` per `recipe`, filling in the paper the visual attribute chose.
 
     `paper_texture` in the chain never names a sheet; the sheet comes from
     `visual.paper`, so the same recipe puts the same paper under a glyph render
     and an HTML render. A chain entry may still override it explicitly.
+
+    `boxes` are the page's label quads, passed straight through to `by_box` --
+    the only chain entry that acts on part of the page rather than all of it.
     """
     rng = random.Random(recipe.seed if seed is None else seed)
     paper = recipe.get("visual", "paper", "auto")
@@ -76,7 +86,7 @@ def apply_recipe(image: np.ndarray, recipe, seed: int | None = None) -> np.ndarr
         # Timed one model at a time: the chain's cost is not evenly spread, and
         # which model dominates is exactly the thing a suspect list gets wrong.
         with profiling.stage(name):
-            out = apply_one(out, name, options, rng)
+            out = apply_one(out, name, options, rng, boxes)
     return out
 
 
