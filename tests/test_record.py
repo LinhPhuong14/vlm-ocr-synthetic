@@ -333,7 +333,12 @@ def test_every_committed_page_has_a_record_in_the_shape_this_file_defines():
             assert path.exists(), f"{where} has no record beside it"
             assert R.validate(json.loads(path.read_text(encoding="utf-8"))) == [], where
             seen += 1
-    assert seen == 307, seen
+    # A census, so it moves whenever a committed set is rebuilt -- and it is
+    # meant to: a set that quietly lost half its pages would otherwise look
+    # like a passing test. 294 = 307 before `data/dataset_test` was rebuilt on
+    # the CSS sheets, which took it from 30 images over two renderers to 16,
+    # one per layout, on the only backend the pipeline still drives.
+    assert seen == 294, seen
 
 
 # ------------------------------------------------------- the shape before this
