@@ -512,6 +512,21 @@ def inspect(item: dict[str, Any], *, order: tuple[str, ...] | list[str],
         wanted = " ".join(value.split())
         if wanted in page or any(wanted in text for text in by_kind.values()):
             continue
+        # A run that wraps across two visual lines at a HYPHEN, not a space
+        # (a long "[Thu tiền chênh lệch giá] SOLI-MEDON 40" item name, found
+        # by measuring a real render -- CELL_RECTS_JS in page.py splits it
+        # into "...SOLI-" and "MEDON 40"), has no space at the break either.
+        # `by_kind` above always joins same-kind boxes with one, which is
+        # right for a break at a space and wrong for a break at a hyphen; it
+        # then reconstructs "SOLI- MEDON 40", one character short of the
+        # value it is being checked against. Falling back to a whitespace-
+        # blind comparison only ever makes this check MORE lenient than the
+        # one above -- it cannot turn a genuinely missing value into a match,
+        # only recognise the same text the space-joined form already found,
+        # written without the line-wrap's phantom space.
+        squeezed = re.sub(r"\s+", "", wanted)
+        if any(squeezed in re.sub(r"\s+", "", text) for text in by_kind.values()):
+            continue
         if name in BUDGETS:
             out.unprinted[name] = out.unprinted.get(name, 0) + 1
         else:
