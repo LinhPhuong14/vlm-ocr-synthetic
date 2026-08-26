@@ -46,6 +46,17 @@ from components.table import Border, Cell, Column, Row, TableSpec, render_table
 REPO_ROOT = Path(__file__).resolve().parents[3]
 ORNAMENT_DIR = REPO_ROOT / "textures" / "ornament"
 
+# What a family sets its own `HAND_KINDS` to when a pen reaches the whole page
+# rather than the fields of a printed form. Only `notebook` does: a school
+# exercise book has no press run, so there is no printed furniture for the
+# writing to sit inside.
+#
+# It is the same string as `handwriting.ALL_KINDS`, and `tests/test_sheets.py`
+# asserts they are, because the two modules must not be made to import each
+# other -- `handwriting` is renderer machinery and knows nothing about which
+# families exist, and a family knows nothing about ink.
+EVERY_RUN = "*"
+
 # Paper, in the units a print engine thinks in. `@page` gets the name and the
 # sheet gets the millimetres, so the browser -- which has no `@page` -- lays out
 # the same box the PDF does.
@@ -747,6 +758,7 @@ td.c,th.c,.c{{text-align:center;}}
 
 
 __all__ = [
+    "EVERY_RUN",
     "MONO", "ORNAMENT_DIR", "PAPERS", "REPO_ROOT", "SANS", "SERIF", "Rows",
     "align_class", "cell", "columns_of", "document", "esc", "field_line",
     "footer_block", "initials", "item_rows", "items_table", "key_strip",
