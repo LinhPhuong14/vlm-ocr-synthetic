@@ -1,0 +1,32 @@
+{
+ "per_framework": 17,
+ "layouts": [
+  "authorisation_letter",
+  "eatery_ascii",
+  "eatery_indexed",
+  "invoice_brand",
+  "invoice_export",
+  "invoice_hotel_compact",
+  "invoice_hotel_stay",
+  "invoice_power",
+  "invoice_tax_en",
+  "invoice_vat_form",
+  "invoice_vat_summary",
+  "invoice_water",
+  "market_barcode",
+  "market_compact",
+  "market_vat",
+  "medical_statement",
+  "notebook_ledger"
+ ],
+ "pairing": "unpaired",
+ "clean": false,
+ "force": {},
+ "template": "auto",
+ "handwriting": "model",
+ "frameworks": {
+  "html": {
+   "images": 17
+  }
+ }
+}

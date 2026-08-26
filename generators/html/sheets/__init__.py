@@ -30,6 +30,7 @@ not a sixth template here.
     medical            hospital bill: 12 columns, grouped       docs/mau/bang_ke_kcb.html
     statement          a form of fields, no table at all        docs/mau/giay_uy_quyen.html
     till               the thermal roll, so the flag is total  -- (grid is the model)
+    notebook           a ruled exercise book, nothing printed  -- (no press run at all)
 
 The box contract is unchanged and is `base.py`'s to keep: every labelled run is
 a `<span data-kind="...">`, every `<td>` carries `data-cell`/`data-row`/
@@ -42,7 +43,7 @@ from __future__ import annotations
 from html.parser import HTMLParser
 
 from . import lodging, medical, modern, notebook, statement, statutory, till
-from .base import structure_tokens
+from .base import EVERY_RUN, structure_tokens
 
 # Layout id -> the module that dresses it. A layout missing from here is a
 # failure with a list, not a silent fall-through to a VAT invoice: drawing a
@@ -133,6 +134,19 @@ def family_of(layout_id: str):
             f"no CSS sheet for layout {layout_id!r}; have {', '.join(names())}. "
             "Add it to sheets.FAMILIES beside the family it belongs to."
         ) from None
+
+
+def hand_kinds(layout_id: str, default=None):
+    """Which labelled runs a pen reaches on this layout, or `default`.
+
+    A printed form is filled in, so only the fields a person writes into are
+    ink and the rest was printed before they arrived -- that is
+    `handwriting.HAND_KINDS` and it is the default here, passed in by the
+    caller rather than imported so this package keeps knowing nothing about
+    ink. A family that is *not* a printed form says so by carrying its own
+    `HAND_KINDS`; `notebook` returns `EVERY_RUN` and is the only one.
+    """
+    return getattr(family_of(layout_id), "HAND_KINDS", default)
 
 
 def build(recipe, receipt, template: str | None = None) -> str:
@@ -257,6 +271,7 @@ def cells_from_markup(markup: str) -> list[dict]:
 
 
 __all__ = [
-    "FAMILIES", "build", "cells_from_markup", "family_of", "labelled_runs",
-    "names", "structure_from_markup", "structure_tokens",
+    "EVERY_RUN", "FAMILIES", "build", "cells_from_markup", "family_of",
+    "hand_kinds", "labelled_runs", "names", "structure_from_markup",
+    "structure_tokens",
 ]

@@ -720,10 +720,11 @@ def main() -> int:
         choices=["font"], metavar="SOURCE",
         help="fill the fields a person fills in with handwriting instead of "
              "type, from a licensed handwriting typeface (fonts/hand/). Only "
-             "with --template. The WriteViT `model` source the browser backend "
-             "also offers is NOT available here: it pastes an image of ink, "
-             "which puts no glyphs in the PDF, and match_runs recovers boxes by "
-             "walking the runs beside that glyph layer",
+             "with --template. The browser backend's other two sources -- "
+             "`model` and `both` -- are NOT available here, and for one "
+             "reason: both paste an image of ink, which puts no glyphs in the "
+             "PDF, and match_runs recovers boxes by walking the runs beside "
+             "that glyph layer",
     )
     parser.add_argument(
         "--profile", metavar="JSON",
