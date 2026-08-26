@@ -396,7 +396,47 @@ def test_order_manifest_drives_the_attribute_list():
 
     assert tuple(ATTRIBUTES) == attribute_order()
     assert ATTRIBUTES[0] == "document", "document must be drawn first"
-    assert ATTRIBUTES[-1] == "augmentation", "augmentation must be drawn last"
+
+
+def test_the_ageing_attributes_are_drawn_after_everything_on_the_paper():
+    """Ageing comes last, and `augmentation` is no longer the only one of it.
+
+    This used to read `ATTRIBUTES[-1] == "augmentation"`, which was a name
+    standing in for a rule. The rule is that an attribute carrying a `chain`
+    describes what happened to a page AFTER it was printed, so all of them come
+    after every attribute that decides what is printed. Splitting the copier
+    into `toner`, `drum` and `rollers` is what made the difference visible.
+    """
+    from rulebase import load_rules
+
+    rules = load_rules()
+    ageing = [name for name in ATTRIBUTES
+              if any(option.params.get("chain") for option in rules[name])]
+    assert ageing, "something has to carry the ageing chain"
+    first_ageing = ATTRIBUTES.index(ageing[0])
+    assert [name for name in ATTRIBUTES[first_ageing:]] == ageing, (
+        "an attribute that does not age a page is drawn after one that does; "
+        "the ageing chain runs in draw order, so that step would land on a "
+        "sheet whose own appearance had not been decided yet")
+
+
+def test_toner_is_drawn_before_the_parts_that_require_its_tag():
+    """`drum_scored` and `rollers_worn` require `worn_machine`, which `toner` sets.
+
+    A value can only require a tag an EARLIER attribute sets, so reordering
+    these three in `_order.yaml` does not fail loudly -- it makes two values
+    undrawable, which is the exact silent failure `_order.yaml` exists to stop.
+    """
+    from rulebase import load_rules
+
+    rules = load_rules()
+    setters = {name for name in ATTRIBUTES
+               for option in rules[name] if "worn_machine" in option.tags}
+    needers = {name for name in ATTRIBUTES
+               for option in rules[name] if "worn_machine" in option.requires}
+    assert setters and needers, "the tag that ties the machine together is gone"
+    assert max(ATTRIBUTES.index(name) for name in setters) < \
+        min(ATTRIBUTES.index(name) for name in needers)
 
 
 def test_a_rules_file_the_manifest_forgets_is_an_error(tmp_path):
