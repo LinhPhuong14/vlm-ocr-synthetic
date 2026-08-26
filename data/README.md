@@ -7,16 +7,23 @@
 | [`invoices54/`](invoices54) | 54 | the nine **commercial invoice** layouts drawn as **CSS sheets** rather than as a character grid, by the two HTML backends — see its own [README](invoices54/README.md) |
 | [`forms16/`](forms16) | 16 | the two documents that are **not a sale**: a hospital's statement of treatment costs and an authorisation to collect money — see its own [README](forms16/README.md) |
 | [`hand12/`](hand12) | 12 | **điền tay** — the first pages here whose values are real handwriting rather than type, filled into printed form fields by WriteViT; see its own [README](hand12/README.md) and [`docs/handwriting-html.md`](../docs/handwriting-html.md) |
-| [`dataset_test/`](dataset_test) | 45 | a **scratch set for looking at**, one image per working layout per renderer. Regenerated whenever the ageing is retuned, and not a fixed comparison point — see below |
+| [`dataset_test/`](dataset_test) | 30 | a **scratch set for looking at**, one image per working layout per renderer, on the CSS sheets. Regenerated whenever the ageing is retuned, and not a fixed comparison point — see below |
 
 20 images per renderer (synthdog / html / genalog) in each `dataset60*` set,
 spread evenly over the layouts. `invoices54/` is a different shape and says so
 in its own README: two renderers, nine layouts, and a different page model.
 
-**Which page model drew a set is in its `dataset.json`**, under `template`.
-Absent or empty is the character grid — what every set built before
-`generators/html/sheets/` existed was drawn from. Do not infer it from the
-pixels; a ruled invoice looks much the same either way until you measure it.
+**Which page model drew a set is in its `dataset.json`**, under `template`, and
+now also on **every line of `metadata.jsonl`**, under `page_model`. At set level
+it could not say whether a set was mixed; per image it can. `grid` is the
+character grid — what every set built before `generators/html/sheets/` existed
+was drawn from — and `auto` is the CSS sheet for the layout.
+
+The two are not a matter of taste. Measured over the sixteen layouts at one
+seed each: **0.24%** of pixels carry colour on the grid against **4.32%** on
+the sheets. The grid draws a monospace transcript of an invoice; the sheet
+draws the invoice. Read the field rather than the pixels — a ruled invoice
+looks much the same either way in a thumbnail.
 
 Both sets span the **fourteen layouts that existed when they were built**: five thermal receipts on a continuous
 roll and nine commercial invoices on A4. `dataset.json` in each set records the
@@ -49,7 +56,14 @@ make proof DATASET=data/dataset60         # read it back with Tesseract and scor
 
 ## `dataset_test/` — what it is for, and what it is not
 
-Fifteen layouts, one image each, three renderers: a spread wide enough to see
+Fifteen layouts, one image each, **two** renderers — html and genalog, on
+`template: auto`. synthdog is absent for a reason that is not an oversight: the
+glyph backend composites individual glyphs and cannot draw a table rule, so a
+run that asks for the CSS sheets is refused if it is in the list. A
+sheet-quality set is the two HTML backends; a three-renderer comparison is the
+character grid. That trade is why `dataset60` looks plainer than this set.
+
+A spread wide enough to see
 what a change to the ageing did, small enough to regenerate in about two
 minutes. It exists to be **looked at** after tuning something visual — most
 recently `DENSITY` in `degradation/ink_degradation.py`, which decides how much

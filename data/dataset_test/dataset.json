@@ -20,30 +20,8 @@
   "pairing": "paired",
   "clean": false,
   "force": [],
-  "template": "",
+  "template": "auto",
   "frameworks": {
-    "synthdog": {
-      "images": 15,
-      "distinct_seeds": 15,
-      "distinct_labels": 15,
-      "by_layout": {
-        "eatery_ascii": 1,
-        "eatery_indexed": 1,
-        "invoice_brand": 1,
-        "invoice_export": 1,
-        "invoice_hotel_compact": 1,
-        "invoice_hotel_stay": 1,
-        "invoice_power": 1,
-        "invoice_tax_en": 1,
-        "invoice_vat_form": 1,
-        "invoice_vat_summary": 1,
-        "invoice_water": 1,
-        "market_barcode": 1,
-        "market_compact": 1,
-        "market_vat": 1,
-        "medical_statement": 1
-      }
-    },
     "html": {
       "images": 15,
       "distinct_seeds": 15,

@@ -20,6 +20,19 @@ run:
   # written into manifest.json for the same reason.
   pairing: paired
 
+  # Which page model draws the pages: `grid` (the character grid) or `auto`
+  # (the CSS sheet for each layout, in generators/html/sheets/). Stated rather
+  # than defaulted, because it decides what the whole page looks like and a run
+  # built on the wrong one only shows up when someone puts it beside an older
+  # set.
+  #
+  # `grid` here for one reason: `backends` includes synthdog, and the glyph
+  # backend composites individual glyphs and cannot draw a table rule, so
+  # `Config` refuses `auto` while it is in the list. A sheet-quality run is
+  # html + genalog only -- that is the trade, and it is the reason `dataset60`
+  # looks plainer than `invoices54`.
+  template: grid
+
   # Which layouts to draw from, by name. Empty (the default) means every file in
   # `rulebase/layouts/`, which is what a dataset wants. A *fixed comparison*
   # should name them: the quota walks the list in order, so a run that took the
