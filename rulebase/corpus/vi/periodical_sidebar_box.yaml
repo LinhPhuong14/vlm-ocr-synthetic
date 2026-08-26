@@ -1,0 +1,67 @@
+# PERIODICAL_SIDEBAR_BOX — sáu hộp tin ngắn / hộp con số, dùng cho cột phụ
+# ("rail") của trang nhất. Hai kiểu trộn lẫn trong cùng một danh sách vì cả
+# hai đều là {label, text} -- kiểu "Tin vắn" (label là tên chuyên mục, text
+# là một câu tin ngắn) và kiểu "Con số" (label là một con số, text giải
+# thích con số đó) dùng chung một khuôn.
+
+- title: "Tin vắn"
+  items:
+    - label: "Giao thông"
+      text: "Tuyến đường tránh phía nam thông xe kỹ thuật sớm hơn kế hoạch hai tuần."
+    - label: "Y tế"
+      text: "Đợt khám sức khoẻ miễn phí cho người cao tuổi bắt đầu tại 40 trạm y tế xã."
+    - label: "Giáo dục"
+      text: "Hơn 800 phòng học được sửa chữa xong trước ngày khai giảng."
+    - label: "Thời tiết"
+      text: "Áp thấp nhiệt đới trên biển có khả năng mạnh lên trong 24 giờ tới."
+    - label: "Thị trường"
+      text: "Giá thu mua lúa vụ mới tăng nhẹ ba ngày liên tiếp."
+
+- title: "Con số"
+  items:
+    - label: "14"
+      text: "xã trong huyện chưa có trạm y tế đạt chuẩn quốc gia."
+    - label: "230"
+      text: "hộ dân được hỗ trợ vay vốn chuyển đổi cây trồng trong quý vừa qua."
+    - label: "62%"
+      text: "hộ nông dân cho biết đã ứng dụng ít nhất một công cụ số vào sản xuất."
+
+- title: "Đáng chú ý"
+  items:
+    - label: "Nông nghiệp"
+      text: "Diện tích trồng rau theo tiêu chuẩn VietGAP tăng gấp đôi so với năm trước."
+    - label: "Lao động"
+      text: "Nhu cầu tuyển dụng thời vụ tăng mạnh trước vụ thu hoạch chính."
+    - label: "Xã hội"
+      text: "Quỹ khuyến học xã huy động được hơn 200 triệu đồng trong một tuần."
+    - label: "Môi trường"
+      text: "Chiến dịch thu gom rác thải nhựa ven sông thu hút hơn 300 tình nguyện viên."
+
+- title: "Con số trong tuần"
+  items:
+    - label: "5"
+      text: "cây cầu dân sinh được khởi công xây mới trong tháng."
+    - label: "18"
+      text: "ngày liên tiếp không có ca sốt xuất huyết mới được ghi nhận."
+    - label: "1.200"
+      text: "lượt khám bệnh miễn phí trong đợt ra quân y tế cộng đồng."
+
+- title: "Tin ngắn"
+  items:
+    - label: "Nội chính"
+      text: "Kỳ họp hội đồng nhân dân huyện dự kiến khai mạc đầu tháng tới."
+    - label: "Kinh tế"
+      text: "Ba doanh nghiệp chế biến nông sản được chấp thuận chủ trương đầu tư mở rộng."
+    - label: "Văn hoá"
+      text: "Lễ hội làng nghề truyền thống trở lại sau hai năm tạm dừng."
+    - label: "Thể thao"
+      text: "Đội tuyển học sinh huyện giành ba huy chương tại giải điền kinh tỉnh."
+
+- title: "Ghi nhận"
+  items:
+    - label: "Dân số"
+      text: "Tỷ lệ trẻ em dưới năm tuổi được tiêm chủng đầy đủ đạt hơn 95%."
+    - label: "Hạ tầng"
+      text: "Tuyến kênh mương nội đồng dài 12 km hoàn thành kiên cố hoá."
+    - label: "An sinh"
+      text: "150 hộ nghèo được hỗ trợ sửa chữa nhà ở trước mùa mưa bão."

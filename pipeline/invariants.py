@@ -498,7 +498,7 @@ def inspect(item: dict[str, Any], *, order: tuple[str, ...] | list[str],
     # --- the label against what was drawn
     gt: dict[str, Any] = record.extracted(item)
     for name, value in leaves(gt):
-        if not value.strip() or value.startswith("receipt_"):
+        if not value.strip() or name == "doc_type":
             continue          # doc_type is a class, not text on the page
         out.values += 1
         if REPLACEMENT in value or MISSING_GLYPH in value:

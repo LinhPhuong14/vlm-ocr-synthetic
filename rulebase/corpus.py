@@ -16,6 +16,8 @@ from __future__ import annotations
 import functools
 from pathlib import Path
 
+import yaml
+
 CORPUS_ROOT = Path(__file__).resolve().parent / "corpus"
 DEFAULT_LANG = "vi"
 
@@ -113,6 +115,31 @@ def payments(lang: str = DEFAULT_LANG) -> list[tuple[str, str]]:
     return [tuple(row) for row in _columns(_dir(lang) / "payments.txt", 2)]  # type: ignore[misc]
 
 
+@functools.lru_cache(maxsize=None)
+def periodical(kind: str, lang: str = DEFAULT_LANG) -> list[dict]:
+    """A pool of fixed, hand-authored units for one periodical composition.
+
+    A newspaper article or a Q&A transcript is a nested shape -- a headline
+    plus a list of paragraphs, a list of question/answer pairs -- not a row
+    of tab-separated columns, so this reads YAML rather than `.txt`. Variety
+    works the same way it does everywhere else in this corpus: the sampler
+    draws one fixed unit from the pool rather than generating new sentences
+    (see `rulebase/documents/authorisation_letter.yaml`'s `notes:` for the
+    same pattern applied to one document's declaration text).
+
+    Named `periodical_<kind>.yaml` rather than `items_periodical.txt` on
+    purpose: `check()`'s profile discovery globs `items_*.txt` and then
+    demands a matching `shops_*`/`footers_*` pair for whatever it finds,
+    which makes no sense for a newspaper page that has neither.
+    """
+    path = _dir(lang) / f"periodical_{kind}.yaml"
+    with open(path, "r", encoding="utf-8") as fp:
+        rows = yaml.safe_load(fp)
+    if not isinstance(rows, list):
+        raise ValueError(f"{path}: expected a YAML list of entries")
+    return rows
+
+
 # Which files a language directory has to carry, and how to read each one. The
 # profiles are discovered from the filenames rather than listed, so a new
 # `items_x.txt` + `shops_x.txt` + `footers_x.txt` is checked without an edit
@@ -151,6 +178,20 @@ def check(root: Path | str = CORPUS_ROOT) -> list[str]:
                     )
                 elif not load(profile, lang):
                     problems.append(f"{lang}/{path.name}: no usable rows (check the tab count)")
+
+        kinds = sorted(path.stem[len("periodical_"):]
+                       for path in directory.glob("periodical_*.yaml"))
+        for kind in kinds:
+            path = directory / f"periodical_{kind}.yaml"
+            try:
+                rows = periodical(kind, lang)
+            except ValueError as error:
+                problems.append(str(error))
+                continue
+            if not rows:
+                problems.append(f"{lang}/{path.name}: no usable rows")
+            elif not all(isinstance(row, dict) and row for row in rows):
+                problems.append(f"{lang}/{path.name}: every entry must be a non-empty mapping")
     return problems
 
 
@@ -164,6 +205,7 @@ __all__ = [
     "languages",
     "payments",
     "people",
+    "periodical",
     "shops",
     "streets",
     "wards",
