@@ -60,7 +60,12 @@ def font_faces() -> str:
     matches none of these and falls straight through to the system.
     """
     faces = []
-    for group in ("mono", "sans", "serif"):
+    # `hand` belongs here for the same reason as the other three: a sheet that
+    # asks for a handwriting face and does not get it falls through to whatever
+    # the machine has, and the page still renders -- in type, while its label
+    # says handwriting. That is the substitution this function exists to stop,
+    # and leaving the group out made it certain rather than possible.
+    for group in ("mono", "sans", "serif", "hand"):
         directory = FONT_ROOT / group
         if not directory.is_dir():
             continue
