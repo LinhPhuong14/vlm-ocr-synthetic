@@ -317,8 +317,15 @@ def page_directories():
     A directory of pages is one with a `synthesis.json` in it -- which is what
     tells `data/dataset60/html/` apart from `data/dataset60/proof/`, whose
     images are Tesseract's working, not the generator's output.
+
+    **Committed**, so a path under a dot-directory is skipped. `data/*/.shards/`
+    is a run's own working state and is gitignored; counting it made the census
+    below depend on whether anyone had run the pipeline in this checkout, which
+    is a red test on one machine and a green one on another for no difference in
+    what is actually committed.
     """
-    return sorted(path.parent for path in DATA.rglob("synthesis.json"))
+    return sorted(path.parent for path in DATA.rglob("synthesis.json")
+                  if not any(part.startswith(".") for part in path.parts))
 
 
 def test_every_committed_page_has_a_record_in_the_shape_this_file_defines():
@@ -335,12 +342,20 @@ def test_every_committed_page_has_a_record_in_the_shape_this_file_defines():
             seen += 1
     # A census, so it moves whenever a committed set is rebuilt -- and it is
     # meant to: a set that quietly lost half its pages would otherwise look
-    # like a passing test. 311 = 294 + `data/hand17_model`, one page per layout
-    # drawn with `--handwriting model`. 294 was itself 307 before
-    # `data/dataset_test` was rebuilt on the CSS sheets, which took it from 30
-    # images over two renderers to 16, one per layout, on the only backend the
-    # pipeline still drives.
-    assert seen == 311, seen
+    # like a passing test. The chain, newest first:
+    #
+    #   295 = 278 plus `data/hand17_model/`, one page per layout drawn with
+    #         `--handwriting model` -- a measurement of what that source
+    #         actually covers, nine of whose pages carry no ink at all.
+    #   278 = 294 minus `data/dataset_test/synthdog/`, the last 16 images of a
+    #         retired backend still sitting in a committed set. Deleted by "Stop
+    #         defaulting the page model, and check every layout has a sheet",
+    #         which left this number behind -- the test was red on master until
+    #         it was updated here.
+    #   294 = 307 before `data/dataset_test` was rebuilt on the CSS sheets,
+    #         which took it from 30 images over two renderers to 16, one per
+    #         layout, on the only backend the pipeline still drives.
+    assert seen == 295, seen
 
 
 # ------------------------------------------------------- the shape before this
