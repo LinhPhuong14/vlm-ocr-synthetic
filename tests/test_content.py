@@ -20,10 +20,21 @@ _RECEIPTS: list | None = None
 
 
 def receipts():
-    """(seed, receipt, grid) for a fixed sweep. Built once -- see test_layout."""
+    """(seed, receipt, grid) for a fixed sweep. Built once -- see test_layout.
+
+    Filtered to `Receipt` instances. This sweep is unforced -- 40 real
+    weighted draws -- and every test in this file is written against the
+    receipt/invoice model's own fields (`.items`, `.invoice`, `.totals`,
+    `.store`). A periodical page (`rulebase/periodical.py`) is deliberately
+    a different shape with no basket, no totals and no invoice parties at
+    all; it has its own equivalent measurements in `tests/test_periodical.py`
+    rather than being forced to fit these.
+    """
     global _RECEIPTS
     if _RECEIPTS is None:
-        _RECEIPTS = [(seed,) + rulebase.make(seed=seed)[1:] for seed in SEEDS]
+        drawn = (rulebase.make(seed=seed) for seed in SEEDS)
+        _RECEIPTS = [(recipe.seed, receipt, grid) for recipe, receipt, grid in drawn
+                     if isinstance(receipt, rulebase.Receipt)]
     return _RECEIPTS
 
 
