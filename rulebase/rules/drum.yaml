@@ -1,0 +1,40 @@
+# THUỘC TÍNH 9/10 — TRỐNG MỰC
+#
+# Sọc DỌC theo hướng giấy đi. Một vết xước hoặc một chỗ bám mực trên chu vi
+# trống in lại vào đúng một vị trí ngang mỗi vòng quay, nên nó ra **sọc liền
+# suốt chiều dài tờ giấy** chứ không ra vệt đứt quãng. Giữ đúng hình dạng ấy là
+# việc chính của mô hình: một sọc đứt quãng ngẫu nhiên là nhiễu, một sọc liền
+# là cái trống.
+#
+# Đọc `toner.yaml` trước — nó giải thích vì sao ba bộ phận của cái máy là ba
+# thuộc tính, và vì sao `no_drum` nặng ký.
+
+options:
+  - id: no_drum
+    weight: 17
+    tags: [drum_clean]
+
+  - id: drum_faint
+    weight: 1
+    excludes: [thermal]   # máy in nhiệt không có trống mực
+    params:
+      chain:
+        - [dirty_drum, {lines: 3, direction: vertical, intensity: 0.3, line_width: 2}]
+
+  - id: drum_streaked
+    weight: 1
+    excludes: [thermal]
+    params:
+      chain:
+        - [dirty_drum, {lines: 5, direction: vertical, intensity: 0.55, line_width: 3}]
+
+  # Trống xước nát chỉ có ở cái máy vốn đã bẩn: `requires` thẻ mà `toner.yaml`
+  # đặt. Đây là chỗ duy nhất ba thuộc tính không độc lập với nhau, và nó có mặt
+  # vì bốc độc lập hoàn toàn sẽ cho ra "trống nát mà mực mới tinh".
+  - id: drum_scored
+    weight: 1
+    requires: [worn_machine]
+    excludes: [thermal]
+    params:
+      chain:
+        - [dirty_drum, {lines: 8, direction: vertical, intensity: 0.7, line_width: 4}]

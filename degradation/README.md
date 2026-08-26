@@ -245,9 +245,9 @@ it came from.
 
 | here | file | what it models |
 | --- | --- | --- |
-| `bad_photocopy` | [`copier.py`](copier.py) | a worn copier: toner dust in blotches, burnt-out patches, grey crushed to black and white |
-| `dirty_drum` | [`copier.py`](copier.py) | streaks **along the feed direction** — one mark on the drum, printed once per revolution, so the streak is continuous |
-| `dirty_rollers` | [`copier.py`](copier.py) | roller bands across the feed. Unlike `scan_banding` these are aperiodic and ridged, which is how you tell the two apart on a real scan |
+| `bad_photocopy` | [`bad_photocopy.py`](bad_photocopy.py) | a worn copier: toner dust in blotches, burnt-out patches, grey crushed to black and white |
+| `dirty_drum` | [`dirty_drum.py`](dirty_drum.py) | streaks **along the feed direction** — one mark on the drum, printed once per revolution, so the streak is continuous |
+| `dirty_rollers` | [`dirty_rollers.py`](dirty_rollers.py) | roller bands across the feed. Unlike `scan_banding` these are aperiodic and ridged, which is how you tell the two apart on a real scan |
 | `letterpress` | [`printing.py`](printing.py) | ink that did not transfer: clusters of paper showing through the middle of strokes |
 | `hollow` | [`printing.py`](printing.py) | a dry ribbon — only the outline of each stroke survives |
 | `dot_matrix` | [`printing.py`](printing.py) | an impact printer's pin grid, with **dead pins** and ribbon wear |
@@ -268,6 +268,41 @@ Three things these add that nothing here had:
 2. **Colour.** Every model that predates them changes brightness only, so a
    model trained on this set met its first colour fringe on real data.
 3. **Marks a person made.** Not damage: somebody highlighted a line.
+
+## The machine is three attributes, not one scenario
+
+The first three models above are the only ones here that are not reached from
+`rules/augmentation.yaml`. They have a rule-base **attribute each** —
+[`toner.yaml`](../rulebase/rules/toner.yaml),
+[`drum.yaml`](../rulebase/rules/drum.yaml),
+[`rollers.yaml`](../rulebase/rules/rollers.yaml) — and a file each, for the same
+reason: they are three parts of one machine, and the parts fail independently.
+A copier can score its drum while its cartridge is fine.
+
+Bundled into one `augmentation` value, every combination of the three would be
+a scenario somebody had to write, and the number to write is the product rather
+than the sum. As attributes they compose for free: a page draws one value from
+each, `chain_of` concatenates them in draw order, and the marks land after the
+sheet has been aged rather than under it.
+
+They are not quite independent, and one tag says so. `toner`'s worn values set
+`worn_machine`; `drum_scored` and `rollers_worn` require it, so the severe
+grades only appear on a machine that is already dirty. Drawing all three freely
+would produce pages with a shredded drum and a brand-new cartridge — possible,
+but not at the rate independence would give.
+
+Measured over 3,000 draws: **25.2%** of pages carry at least one machine mark.
+
+Two consequences worth knowing:
+
+* **`--clean` pins all four.** `pipeline.invariants.CLEAN_FORCES` names the
+  empty value of every chain-bearing attribute. A clean run that pinned only
+  `augmentation` would have gone on calling itself clean with a drum streak
+  drawn across it — and the clean set is the ceiling every ageing number is
+  measured against, so that moves the baseline silently.
+* **`make preflight` checks that dict against the rules both ways**: every
+  chain-bearing attribute must be named in it, and every value it names must
+  have an empty chain. Rename a value in the YAML and preflight fails.
 
 ## `dot_matrix` is not `halftone_screen`
 
@@ -340,6 +375,13 @@ make legibility          # every chain in rules/augmentation.yaml, on a probe pa
 A box asserts there is text at those coordinates. A chain that erases the text
 while the label still claims it is not hard data — it is **poisoned** data, and
 a model trained on it learns to see text in blank paper.
+
+`--sample N` is the mode that matters now that four attributes contribute
+steps. The per-value table measures one value at a time; a real page draws one
+of each, and the product of 24 x 4 x 4 x 4 is not a table anyone reads. So it
+draws real recipes at their real weights and reports the compositions that
+actually occur. Sixty draws: median 0.86 of contrast kept, worst 0.51, none
+losing a box.
 
 [`tools/legibility.py`](../tools/legibility.py) measures ink-versus-paper
 contrast inside every box, before and after, and reports the share of boxes
