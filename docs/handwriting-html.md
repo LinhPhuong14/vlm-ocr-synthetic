@@ -28,14 +28,17 @@ generators/html/.venv/bin/python generators/html/render.py \
 có "chỗ trống" nào để điền. Không có WriteViT thì lệnh **dừng**, không có đường
 lùi nào vẽ chữ thay — xem phần "Không có đường lùi" bên dưới.
 
-`--handwriting` nhận tên nguồn mực: `model` (mặc định, WriteViT) hoặc `font`.
-[`data/hand12/`](../data/hand12) là đợt thử, dựng bằng **`font`**: 12 trang, 6
-bố cục, **159 ô điền tay, 0 ô in máy**. Cùng 12 trang ấy chạy bằng `model` chỉ
-được **30 ô**, 129 ô còn lại vẫn in máy — chênh lệch ấy là toàn bộ nội dung của
-tài liệu này.
+`--handwriting` nhận tên nguồn mực: `model` (mặc định, WriteViT), `font`, hoặc
+`both`. [`data/hand12/`](../data/hand12) là đợt thử, dựng bằng **`font`**: 12
+trang, 6 bố cục, **159 ô điền tay, 0 ô in máy**. Cùng 12 trang ấy chạy bằng
+`model` chỉ được **30 ô**, 129 ô còn lại vẫn in máy — chênh lệch ấy là toàn bộ
+nội dung của tài liệu này.
 
-Sau đợt sinh lại ấy **không tập dữ liệu nào còn mang mực của mô hình**; trang
-mực-mô-hình duy nhất là `samples/handwriting/hand-filled-folio.jpg`.
+Mực của mô hình có tập riêng để **đo** chứ không phải để huấn luyện:
+[`data/hand17_model/`](../data/hand17_model), 17 bố cục × 1 trang bằng
+`--handwriting model`. **25/197 run có mực (13 %)**, và **9/17 trang không có
+một nét mực nào** — vì hai lý do khác hẳn nhau mà README của nó tách ra. Ngoài
+ra còn `samples/handwriting/hand-filled-folio.jpg`, một tờ để nhìn.
 
 ## Ba nguồn mực
 
