@@ -1,0 +1,74 @@
+# THUỘC TÍNH 8/10 — HỘP MỰC
+#
+# Cái máy đã in hoặc đã sao tờ này để lại ba loại vết, do ba bộ phận khác nhau
+# gây ra, và ba bộ phận ấy hỏng độc lập với nhau:
+#
+#   toner    (file này)   hộp mực   -> bụi mực bám mảng, mảng cháy trắng
+#   drum     drum.yaml    trống mực -> sọc DỌC theo hướng giấy đi
+#   rollers  rollers.yaml trục lăn  -> dải NGANG, vuông góc hướng giấy
+#
+# Ba thuộc tính chứ không phải ba bước của một kịch bản, vì đó mới đúng cách
+# chúng hỏng: một cái máy có thể sọc trống mà mực vẫn đủ, hoặc ngược lại. Gói
+# cả ba vào một giá trị `augmentation` thì mỗi tổ hợp phải viết tay một kịch
+# bản, và số kịch bản phải viết là tích chứ không phải tổng.
+#
+# --------------------------------------------------------------------------
+# VÌ SAO `no_toner` NẶNG KÝ THẾ
+#
+# Ba thuộc tính nhân với nhau. Nếu mỗi cái có 2/3 khả năng để lại vết thì chỉ
+# 1/27 số trang sạch máy — mà phần lớn hoá đơn tới tay người đọc không mang vết
+# máy nào.
+#
+# Trọng số 17/1/1/1 cho P(không vết) = 0,85 nếu chỉ nhìn trọng số. Đo thật trên
+# 3 000 lượt bốc thì ra **89,6 %** (`toner`), 91,6 % (`drum`), 89,8 %
+# (`rollers`), và **25,2 % số trang mang ít nhất một vết máy**. Cao hơn con số
+# trọng số vì `excludes: [thermal]` gạt hai thuộc tính đầu khỏi mọi tờ giấy
+# nhiệt, và trọng số ấy dồn về `no_*`.
+#
+# Ghi số ĐO chứ không ghi số suy ra, vì chênh lệch giữa hai con số ấy chính là
+# thứ `make distribution` sinh ra để bắt. Đổi trọng số ở đây là đổi tỉ lệ chung
+# của cả ba file, không phải của riêng file này.
+#
+# --------------------------------------------------------------------------
+# `worn_machine` là thẻ nối ba thuộc tính lại
+#
+# Hỏng độc lập, nhưng KHÔNG hoàn toàn: một cái máy đã bẩn tới mức đổ bụi mực
+# thì thường cũng đã mòn trống và mòn trục. Bốc độc lập hoàn toàn sẽ cho ra
+# những tờ "trống xước nát mà mực mới tinh", có thật nhưng hiếm.
+#
+# Thuộc tính này bốc TRƯỚC hai cái kia (xem `_order.yaml`), nên nó đặt thẻ và
+# hai cái kia đọc được: mức nặng nhất của `drum` và của `rollers` đều
+# `requires: [worn_machine]`. Mức nhẹ thì không — trống nào cũng có thể có một
+# vết xước.
+
+options:
+  - id: no_toner
+    weight: 17
+    tags: [toner_clean]
+
+  - id: toner_dust
+    weight: 1
+    excludes: [thermal]   # giấy nhiệt không có mực bột, và không ai photo nó
+    tags: [worn_machine]
+    params:
+      chain:
+        # `contrast: 0` ở mức này. Đẩy tương phản là thứ ăn dấu thanh trước
+        # tiên — dấu là nét mảnh nên xám hơn thân chữ — nên nó chỉ xuất hiện ở
+        # mức nặng nhất, chỗ mà việc mất nét là điều đang cố ý dựng ra.
+        - [bad_photocopy, {blotch: 0.3, wash: 0.12, contrast: 0.0}]
+
+  - id: toner_blotched
+    weight: 1
+    excludes: [thermal]
+    tags: [worn_machine]
+    params:
+      chain:
+        - [bad_photocopy, {blotch: 0.5, wash: 0.25, contrast: 0.12, cell: 40}]
+
+  - id: toner_burnt
+    weight: 1
+    excludes: [thermal]
+    tags: [worn_machine]
+    params:
+      chain:
+        - [bad_photocopy, {blotch: 0.55, wash: 0.32, contrast: 0.28, cell: 56}]
