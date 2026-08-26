@@ -173,7 +173,8 @@ def ornaments(args) -> None:
 
 @task("templates", "print the reference sheets in samples/")
 def templates(args) -> None:
-    for directory in ("invoice-templates", "form-templates", "insurance-templates"):
+    for directory in ("invoice-templates", "form-templates", "insurance-templates",
+                      "periodical-templates"):
         run([first_available_python(),
              REPO_ROOT / "samples" / directory / "render.py"])
 
