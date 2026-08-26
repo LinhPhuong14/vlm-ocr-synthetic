@@ -223,3 +223,30 @@ groups:
     - id: form_dense
       weight: 2
       tags: [doc_invoice, doc_form, dense_registry]
+
+  # ------------------------------------------------------------------------
+  - id: periodical
+    label: "Báo/tạp chí — trang biên tập"
+    # Root 4 (Newspaper/Magazine). Không giống mọi document phía trên, các
+    # option dưới đây KHÔNG mang tag `doc_invoice` -- một trang báo/tạp chí
+    # không ghi lại một lần mua bán, cùng lý do `till_receipt` ở đầu file này
+    # cũng không mang tag đó. `params:` của bốn document này (masthead, tên
+    # ấn phẩm, ...) không nằm ở đây mà ở `rulebase/documents/<id>.yaml`, như
+    # mọi document khác -- xem `rulebase/spec.py::PARAMS_DIRS`.
+    options:
+
+    - id: newspaper_front_broadsheet
+      weight: 2
+      tags: [doc_periodical, periodical_lead_sidebar]
+
+    - id: newspaper_classifieds
+      weight: 2
+      tags: [doc_periodical, periodical_classifieds]
+
+    - id: magazine_contents
+      weight: 2
+      tags: [doc_periodical, periodical_toc]
+
+    - id: magazine_qa_interview
+      weight: 2
+      tags: [doc_periodical, periodical_qa]

@@ -41,7 +41,7 @@ from __future__ import annotations
 
 from html.parser import HTMLParser
 
-from . import form, lodging, medical, modern, statement, statutory, till
+from . import form, lodging, medical, modern, periodical, statement, statutory, till
 from .base import structure_tokens
 
 # Module name (as it appears in a layout file's own `family:` key) -> the
@@ -54,6 +54,7 @@ _MODULES = {
     "lodging": lodging,
     "medical": medical,
     "modern": modern,
+    "periodical": periodical,
     "statement": statement,
     "statutory": statutory,
     "till": till,
