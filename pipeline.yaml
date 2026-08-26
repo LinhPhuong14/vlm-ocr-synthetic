@@ -28,6 +28,13 @@ run:
   # `tools/baseline.py`, whose plans all name theirs.
   layouts: []
 
+  # Every shipped layout already has a real entry in
+  # generators/html/sheets/FAMILIES, so this draws through the CSS-sheet
+  # family each layout was actually designed against, not the character-grid
+  # fallback (`build_grid`) that only tests/test_layout.py's geometry suite
+  # and pipeline/preflight.py's page-overflow estimate still need directly.
+  template: auto
+
 # `html` is the renderer. `genalog` and `synthdog` are retired from dataset
 # generation and naming either here is an error with the reason attached --
 # see pipeline/config.py and docs/renderers.md.
