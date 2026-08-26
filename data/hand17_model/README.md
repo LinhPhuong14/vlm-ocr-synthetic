@@ -13,7 +13,7 @@ Mực đến từ checkpoint WriteViT chứ không phải mặt chữ: `--handwr
 | nguồn mực | **`model`** — WriteViT VNDB, 106 người viết, chạy CPU |
 | ô có mực | **25 / 197 run được mời viết = 13 %** |
 | trang không có một nét mực nào | **9 / 17** |
-| làm cũ | có, rút từ luật — 10 kiểu khác nhau trên 17 trang |
+| làm cũ | có, rút từ luật — 13 kiểu `augmentation` khác nhau trên 17 trang, cộng `toner`/`drum`/`rollers` |
 | box | 1 489 |
 
 ## Sinh lại
@@ -35,24 +35,34 @@ từ `jobs.json` ra **trùng từng byte**.
 
 | bố cục | mực | từ chối | tỉ lệ | làm cũ |
 | --- | ---: | ---: | ---: | --- |
-| `invoice_hotel_stay` | 5 | 10 | **33 %** | heavy |
-| `invoice_vat_form` | 3 | 6 | **33 %** | heavy |
-| `invoice_tax_en` | 2 | 5 | 29 % | torn_edges |
+| `invoice_hotel_stay` | 5 | 10 | **33 %** | stains |
+| `invoice_vat_form` | 3 | 6 | **33 %** | ghost_text |
+| `invoice_tax_en` | 2 | 5 | 29 % | flatbed_scan |
 | `invoice_hotel_compact` | 4 | 11 | 27 % | pristine |
-| `invoice_brand` | 1 | 4 | 20 % | torn_edges |
-| `invoice_power` | 2 | 9 | 18 % | photocopy_stamped |
-| `notebook_ledger` | 5 | 41 | 11 % | stains |
+| `invoice_brand` | 1 | 4 | 20 % | flatbed_scan |
+| `invoice_power` | 2 | 9 | 18 % | annotated |
+| `notebook_ledger` | 5 | 41 | 11 % | photocopy |
 | `invoice_export` | 2 | 23 | 8 % | real_paper |
-| `authorisation_letter` | 1 | 14 | 7 % | photocopy |
+| `authorisation_letter` | 1 | 14 | 7 % | photocopy_screened |
 | `invoice_vat_summary` | 0 | 13 | **0 %** | light |
-| `invoice_water` | 0 | 12 | **0 %** | flatbed_scan |
-| `medical_statement` | 0 | 24 | **0 %** | forwarded_photo |
-| `eatery_ascii` | 0 | 0 | **—** | light |
-| `eatery_indexed` | 0 | 0 | **—** | forwarded_photo |
-| `market_barcode` | 0 | 0 | **—** | photocopy |
-| `market_compact` | 0 | 0 | **—** | pristine |
-| `market_vat` | 0 | 0 | **—** | stains |
+| `invoice_water` | 0 | 12 | **0 %** | security_guilloche |
+| `medical_statement` | 0 | 24 | **0 %** | screen_photo |
+| `eatery_ascii` | 0 | 0 | **—** | medium |
+| `eatery_indexed` | 0 | 0 | **—** | scribbled |
+| `market_barcode` | 0 | 0 | **—** | photocopy_screened |
+| `market_compact` | 0 | 0 | **—** | real_paper |
+| `market_vat` | 0 | 0 | **—** | photocopy |
 | | **25** | **172** | **13 %** | |
+
+Cột làm cũ chỉ ghi thuộc tính `augmentation`; ba bộ phận của cái máy sao —
+`toner`, `drum`, `rollers` — được bốc riêng và nằm trong `synthesis.json`. Tập
+này dựng **sau** khi ba thuộc tính ấy vào kho, nên `attributes` của mỗi trang
+có đủ mười.
+
+Đáng nói: đổi từ bảy thuộc tính sang mười **không đổi một con số phủ nào** —
+25/172, cùng lý do từ chối, cùng từng bố cục. Ba thuộc tính mới được bốc **sau**
+`augmentation` nên chúng không xê dịch những lượt bốc trước, và mực thì phụ
+thuộc vào chữ chứ không phụ thuộc vào cách làm cũ.
 
 Lý do từ chối, cộng cả tập: `digit` 139, `allcaps` 27, `alphabet` 6. Chữ số là
 82 % — đúng con số [`docs/handwriting-html.md`](../../docs/handwriting-html.md)
