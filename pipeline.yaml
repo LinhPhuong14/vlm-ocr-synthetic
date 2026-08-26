@@ -26,12 +26,13 @@ run:
   # built on the wrong one only shows up when someone puts it beside an older
   # set.
   #
-  # `grid` here for one reason: `backends` includes synthdog, and the glyph
-  # backend composites individual glyphs and cannot draw a table rule, so
-  # `Config` refuses `auto` while it is in the list. A sheet-quality run is
-  # html + genalog only -- that is the trade, and it is the reason `dataset60`
-  # looks plainer than `invoices54`.
-  template: grid
+  # `auto`. It used to be the grid, for a reason that has since gone: the glyph
+  # backend could not draw a table rule, and while it was in `backends` a run
+  # asking for the sheets was refused. `backends` is now `[html]`, so nothing
+  # stands in the way of the model that actually draws an invoice -- 4.32% of
+  # pixels carrying colour against 0.24%, measured over the sixteen layouts.
+  # `dataset60` looks plainer than `invoices54` because it predates this line.
+  template: auto
 
   # Which layouts to draw from, by name. Empty (the default) means every file in
   # `rulebase/layouts/`, which is what a dataset wants. A *fixed comparison*

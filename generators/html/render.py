@@ -34,6 +34,7 @@ sys.path.insert(0, str(REPO_ROOT))
 # The browser, the fonts and the two box-reading snippets live in `page.py`:
 # two producers sit on this backend now -- receipts here, tables in
 # `tables.py` -- and both need all four.
+import sheets  # noqa: E402
 from page import (  # noqa: E402
     CELL_RECTS_JS,
     CELL_REGIONS_JS,
@@ -442,10 +443,8 @@ def main() -> int:
     )
     parser.add_argument("--scale", type=float, default=2.0)
     parser.add_argument(
-        "--template", metavar="LAYOUT", nargs="?", const="auto", default=None,
-        help="lay the page out with CSS instead of the character grid; see "
-             "sheets/. Bare, the sheet follows the layout the recipe drew; give "
-             "a layout id to force one particular dress",
+        "--template", metavar="MODEL", nargs="?", const="auto", default="auto",
+        help="which page model to draw: `grid` is the character grid, `auto` is the CSS sheet for this recipe's layout, or name a layout id to force its dress. Defaults to `auto` -- every layout has a sheet, and the grid is now the thing you ask for. See generators/html/sheets/",
     )
     parser.add_argument(
         "--handwriting", nargs="?", const="model", default=None,
@@ -483,6 +482,14 @@ def main() -> int:
     profile = Path(args.profile) if args.profile else profiling.enable_from_env()
     if args.profile:
         profiling.enable()
+
+    # Resolved once, here: `grid` becomes None so every `if self.template:`
+    # below keeps meaning "draw a sheet", and an unknown value stops the run
+    # instead of quietly drawing the grid.
+    try:
+        args.template = sheets.resolve(args.template)
+    except KeyError as error:
+        parser.error(str(error))
 
     if args.handwriting and not args.template:
         parser.error(
@@ -535,7 +542,11 @@ def main() -> int:
                     cv2.imwrite(str(args.out / name), image,
                                 [cv2.IMWRITE_JPEG_QUALITY, 90])
                 with profiling.stage("annotation"):
-                    extra = {}
+                    # Which page model drew THIS image. At set level in
+                    # `dataset.json` it could not say whether a set was mixed;
+                    # per image it can, and a reader no longer has to infer it
+                    # from the pixels.
+                    extra = {"page_model": args.template or sheets.GRID}
                     if hand_report is not None:
                         # What was written and what refused, per page. A sheet
                         # that asked for handwriting and got two inked fields
