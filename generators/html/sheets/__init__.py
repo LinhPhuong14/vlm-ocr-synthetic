@@ -67,6 +67,59 @@ FAMILIES = {
 }
 
 
+# The page-model vocabulary, in one place because three entry points and a
+# config file all have to mean the same thing by it.
+#
+#   grid          the character grid -- the model that predates this package
+#   auto          the sheet this recipe's layout belongs to
+#   <layout id>   that layout's sheet, whatever the recipe drew
+#
+# There is deliberately no fourth spelling for "unset". A page model decides
+# what the whole page looks like -- 0.24% coloured pixels against 4.32%,
+# measured over the sixteen layouts -- and inheriting it from a default nobody
+# wrote down is how a set gets built on the wrong one and nobody notices until
+# they put it beside an older set. Every entry point names it.
+GRID = "grid"
+AUTO = "auto"
+CHOICES = "grid | auto | <layout id>"
+
+
+def is_grid(value: str | None) -> bool:
+    """Whether this `--template` value asks for the character grid.
+
+    `None` and `""` are accepted as the grid for the callers that predate the
+    vocabulary, so old scripts keep working; what they do not get is silence --
+    the value is resolved and then *recorded*, per image, by both backends.
+    """
+    return value in (None, "", GRID)
+
+
+def resolve(value: str | None) -> str | None:
+    """The sheet spec, or `None` for the grid.
+
+    Every backend keeps its internal `template` in this normalised form, so
+    `if self.template:` continues to mean "draw a sheet" and no call site has
+    to learn the vocabulary.
+    """
+    if is_grid(value):
+        return None
+    if value != AUTO and value not in FAMILIES:
+        raise KeyError(
+            f"unknown page model {value!r}; expected {CHOICES}. "
+            f"Layouts with a sheet: {', '.join(names())}")
+    return value
+
+
+def uncovered(layout_ids) -> list[str]:
+    """Layouts with no CSS sheet. Empty is the healthy answer.
+
+    `family_of` already refuses one at draw time, but only when a sheet was
+    asked for; while the grid was the default, a layout added without a sheet
+    was invisible. `pipeline/preflight.py` calls this so it is not.
+    """
+    return sorted(set(layout_ids) - set(FAMILIES))
+
+
 def names() -> list[str]:
     return sorted(FAMILIES)
 
