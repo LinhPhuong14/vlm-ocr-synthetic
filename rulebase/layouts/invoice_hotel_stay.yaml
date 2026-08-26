@@ -12,6 +12,7 @@
 id: invoice_hotel_stay
 name: Resort folio — key strip, booking block, one row per night
 source: "ảnh hoá đơn một khu nghỉ dưỡng, số INV001421, đặt qua kênh trực tuyến"
+family: lodging
 
 width: [88, 100]
 gutter: 2
