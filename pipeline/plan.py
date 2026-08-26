@@ -95,10 +95,32 @@ def split_by_layout(count: int, layouts: list[str]) -> list[tuple[str, int]]:
     Lifted from `tools/generate_dataset.py::plan` on purpose: it already
     distributes the remainder the way the committed datasets were built, and
     re-deriving it would silently renumber everything.
+
+    A quota of zero is arithmetic, not policy, and it is left in the result so
+    `uncovered` below can name exactly which layouts got nothing. `build_plan`
+    is what refuses the run.
     """
     base, extra = divmod(count, len(layouts))
     return [(layout, base + (1 if index < extra else 0))
             for index, layout in enumerate(layouts)]
+
+
+def uncovered(count: int, layouts: list[str]) -> list[str]:
+    """The layouts this run would draw ZERO images of.
+
+    The split walks the list in order and hands the remainder to the front, so
+    `per_backend` below the layout count does not spread thin -- it drops the
+    tail of the list entirely, and says nothing. Seventeen layouts at
+    `per_backend: 10` draws ten of them and no more; the other seven are absent
+    from the dataset while `dataset.json` still lists them under `layouts`,
+    because that field records what the run was pointed at rather than what
+    came out.
+
+    Which is the failure this exists to stop: a set that claims a spread it
+    does not have is worse than a run that refuses to start.
+    """
+    return [layout for layout, quota in split_by_layout(count, layouts)
+            if quota == 0]
 
 
 def backend_offset(backend_index: int, pairing: str) -> int:
@@ -235,6 +257,19 @@ def build_plan(config, layouts: list[str]) -> dict[str, Any]:
                 f"have {', '.join(sorted(layouts))}"
             )
         layouts = [pinned]
+
+    # Every layout in the run draws at least one page, or the run does not
+    # start. See `uncovered`: the alternative is a dataset silently missing the
+    # tail of the layout list while its manifest still names them.
+    missing = uncovered(config.per_backend, layouts)
+    if missing:
+        raise ValueError(
+            f"per_backend={config.per_backend} cannot cover {len(layouts)} layouts: "
+            f"{', '.join(missing)} would get no images at all.\n"
+            f"Raise run.per_backend to at least {len(layouts)} per backend, or name "
+            "a shorter run.layouts."
+        )
+
     runs_by_backend: dict[str, list[Run]] = {}
     for backend_index, backend in enumerate(config.backends):
         runs_by_backend[backend] = backend_runs(
@@ -259,6 +294,19 @@ def build_plan(config, layouts: list[str]) -> dict[str, Any]:
         "per_backend": config.per_backend,
         "backends": list(config.backends),
         "layouts": list(layouts),
+        # WHERE that list came from, which the list itself cannot say.
+        #
+        #   all       every file in rulebase/layouts/ at the time of the run
+        #   named     run.layouts spelled them out -- a fixed comparison
+        #   forced    --force layout=X narrowed it to one
+        #
+        # `all` is the right answer for a dataset and the wrong one for a fixed
+        # comparison: the day someone adds a layout, an `all` run draws a
+        # different set and the two plans are not comparable. A reader of
+        # `plan.json` can now tell which kind of run they are holding instead
+        # of guessing from a list that looks the same either way.
+        "layout_source": ("forced" if pinned is not None
+                          else "named" if getattr(config, "layouts", ()) else "all"),
         "shard_size": config.shard_size,
         "clean": config.clean,
         "force": list(config.force),
@@ -294,5 +342,6 @@ __all__ = [
     "image_name",
     "shard_runs",
     "split_by_layout",
+    "uncovered",
     "write_plan",
 ]
