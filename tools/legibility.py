@@ -49,9 +49,10 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
 from degradation import apply_chain  # noqa: E402
+from degradation.pipeline import apply_recipe  # noqa: E402
 from degradation.regions import normalise_boxes  # noqa: E402
 
-RULES = REPO_ROOT / "rulebase" / "rules" / "augmentation.yaml"
+RULES_DIR = REPO_ROOT / "rulebase" / "rules"
 
 
 def probe_page(width: int = 900, height: int = 1200):
@@ -121,23 +122,79 @@ def measure(base, boxes, chain, seed: int, floor: float) -> dict:
 
 
 def chains_from_rules(only) -> list[tuple[str, list]]:
-    rules = yaml.safe_load(RULES.read_text(encoding="utf-8"))
+    """Every value that carries an ageing chain, from every attribute.
+
+    Not just `augmentation`: `toner`, `drum` and `rollers` carry chains too,
+    and a page draws one of each, so measuring only the scenarios would score a
+    page that no run ever produces. Each is measured on its own -- what the
+    combinations do is the product of these, and a table of 24 x 4 x 4 x 4 rows
+    is a table nobody reads.
+    """
+    order = yaml.safe_load((RULES_DIR / "_order.yaml").read_text(encoding="utf-8"))["order"]
     out = []
-    for option in rules["options"]:
-        if only and option["id"] not in only:
-            continue
-        chain = []
-        for entry in option["params"].get("chain") or []:
-            name = entry[0]
-            options = dict(entry[1]) if len(entry) > 1 and entry[1] else {}
-            if name == "paper_texture":
-                # `apply_recipe` fills this in from `visual.paper`; here there is
-                # no recipe, so name a sheet or the model picks a different one
-                # per run and the numbers stop being comparable.
-                options.setdefault("paper", "office_a5")
-            chain.append((name, options))
-        out.append((option["id"], chain))
+    for attribute in order:
+        rules = yaml.safe_load((RULES_DIR / f"{attribute}.yaml").read_text(encoding="utf-8"))
+        options = rules.get("options") or [
+            option for group in (rules.get("groups") or []) for option in group["options"]]
+        for option in options:
+            chain_raw = (option.get("params") or {}).get("chain")
+            if not chain_raw:
+                continue
+            label = option["id"] if attribute == "augmentation" \
+                else f"{attribute}/{option['id']}"
+            if only and option["id"] not in only and label not in only:
+                continue
+            chain = []
+            for entry in chain_raw:
+                name = entry[0]
+                params = dict(entry[1]) if len(entry) > 1 and entry[1] else {}
+                if name == "paper_texture":
+                    # `apply_recipe` fills this in from `visual.paper`; here there
+                    # is no recipe, so name a sheet or the model picks a different
+                    # one per run and the numbers stop being comparable.
+                    params.setdefault("paper", "office_a5")
+                chain.append((name, params))
+            # A machine attribute's chain has no `paper_texture` of its own -- it
+            # runs on a sheet the augmentation chain already made. Measured bare,
+            # its numbers would be against flat grey, so give it the same sheet
+            # every other row is measured on.
+            if attribute != "augmentation":
+                chain.insert(0, ("paper_texture",
+                                 {"paper": "office_a5", "alpha": 0.28, "grain": 0.4}))
+            out.append((label, chain))
     return out
+
+
+def sampled(base, boxes, count: int, seed: int, floor: float):
+    """Measure what the rule-base ACTUALLY draws, chain by composed chain.
+
+    The per-value table above measures one value at a time. A real page draws
+    one value from every attribute that carries a chain -- since the copier
+    split, that is `augmentation` plus `toner`, `drum` and `rollers` -- and the
+    composition is what reaches a dataset. `impact_ribbon` keeps 0.53 of its
+    contrast on its own and `toner_burnt` more than 1.0 on its own; what the
+    two do together is a question neither row answers.
+
+    Enumerating the product is 24 x 4 x 4 x 4 rows, which nobody reads. So this
+    draws real recipes at their real weights and reports the worst ones: the
+    combinations that actually happen, in the proportion they happen.
+    """
+    import rulebase
+
+    before = contrasts(base, boxes)
+    live = before >= floor
+    rows = []
+    for index in range(count):
+        recipe = rulebase.sample_recipe(seed=seed + index)
+        aged = apply_recipe(base.copy(), recipe, seed=seed + index, boxes=boxes)
+        after = contrasts(aged, boxes)
+        kept = after[live] / np.maximum(before[live], 1e-6)
+        rows.append({
+            "ids": recipe.ids(),
+            "kept": float(kept.mean()),
+            "lost": 100.0 * float((after[live] < floor).mean()),
+        })
+    return rows
 
 
 def main() -> int:
@@ -146,11 +203,13 @@ def main() -> int:
     parser.add_argument("--source", type=Path, help="a rendered page; default is a probe page")
     parser.add_argument("--boxes", type=Path, help="JSON with a `boxes` list, for --source")
     parser.add_argument("--chain", action="append", default=[],
-                        help="only these chain ids (repeatable)")
+                        help="only these ids (repeatable); `drum/drum_scored` or `heavy`")
     parser.add_argument("--seed", type=int, default=17)
     parser.add_argument("--floor", type=float, default=28.0,
                         help="grey levels below which a box counts as unreadable")
     parser.add_argument("--out", type=Path, help="write each aged page here")
+    parser.add_argument("--sample", type=int, default=0, metavar="N",
+                        help="also draw N real recipes and measure the composed chains")
     args = parser.parse_args()
 
     if args.source:
@@ -171,7 +230,7 @@ def main() -> int:
         args.out.mkdir(parents=True, exist_ok=True)
 
     print(f"{len(boxes)} boxes, floor {args.floor:.0f} grey levels, seed {args.seed}\n")
-    print(f"{'chain':22} {'boxes':>5} {'kept':>6} {'worst':>6} {'lost %':>7}")
+    print(f"{'chain':28} {'boxes':>5} {'kept':>6} {'worst':>6} {'lost %':>7}")
     worst = []
     for name, chain in chains:
         result = measure(base, boxes, chain, args.seed, args.floor)
@@ -181,16 +240,32 @@ def main() -> int:
             worst.append((name, result["lost"]))
         elif result["lost"] > 0:
             flag = "  <-- some"
-        print(f"{name:22} {result['boxes']:5} {result['kept']:6.2f} "
+        print(f"{name:28} {result['boxes']:5} {result['kept']:6.2f} "
               f"{result['worst']:6.2f} {result['lost']:7.1f}{flag}")
         if args.out and "image" in result:
-            cv2.imwrite(str(args.out / f"legibility-{name}.jpg"), result["image"],
+            cv2.imwrite(str(args.out / f"legibility-{name.replace(chr(47), chr(45))}.jpg"), result["image"],
                         [cv2.IMWRITE_JPEG_QUALITY, 88])
+
+    if args.sample:
+        print(f"\n{args.sample} recipes drawn at their real weights, composed chains:")
+        rows = sampled(base, boxes, args.sample, args.seed, args.floor)
+        bad = sorted((row for row in rows if row["lost"] >= 5.0),
+                     key=lambda row: -row["lost"])
+        share = 100.0 * len(bad) / len(rows)
+        keeps = sorted(row["kept"] for row in rows)
+        print(f"  kept: median {keeps[len(keeps) // 2]:.2f}, worst {keeps[0]:.2f}")
+        print(f"  recipes losing 5%+ of their boxes: {len(bad)}/{len(rows)} ({share:.0f}%)")
+        for row in bad[:8]:
+            named = " ".join(f"{key}={value}" for key, value in row["ids"].items()
+                             if key in ("augmentation", "toner", "drum", "rollers"))
+            print(f"    {row['lost']:5.1f}%  {named}")
+        if bad:
+            worst.append(("sampled recipes", share))
 
     if worst:
         print("\nChains losing 5% or more of their boxes to the ageing:")
         for name, lost in sorted(worst, key=lambda pair: -pair[1]):
-            print(f"  {name:22} {lost:5.1f}%")
+            print(f"  {name:28} {lost:5.1f}%")
         return 1
     print("\nEvery chain keeps every box above the floor.")
     return 0

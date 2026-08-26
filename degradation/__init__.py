@@ -38,11 +38,13 @@ from typing import Any, Callable, Iterable
 
 import numpy as np
 
+from .bad_photocopy import bad_photocopy
 from .bleed_through import bleed_through
 from .blur_zones import blur, blur_zones
 from .capture import halftone_screen, jpeg_blocks, scan_banding
 from .channel import color_shift, glitch_effect
-from .copier import bad_photocopy, dirty_drum, dirty_rollers
+from .dirty_drum import dirty_drum
+from .dirty_rollers import dirty_rollers
 from .holes import holes
 from .ink_degradation import InkDegradationConfig, ink_degradation, seed_mix
 from .marks import markup, scribbles
@@ -88,7 +90,10 @@ DEGRADATIONS: dict[str, tuple[Callable[..., np.ndarray], bool, bool]] = {
     "halftone_screen": (halftone_screen, True, False),
     "scan_banding": (scan_banding, True, False),
     "jpeg_blocks": (jpeg_blocks, True, False),
-    # Augraphy: what the transport leaves behind (degradation/copier.py)
+    # Augraphy: the three parts of the machine that made this copy. A file
+    # each, and a rule-base ATTRIBUTE each -- `rules/toner.yaml`,
+    # `rules/drum.yaml`, `rules/rollers.yaml` -- so a page draws them
+    # independently instead of getting all three or none from one scenario.
     "bad_photocopy": (bad_photocopy, True, False),
     "dirty_drum": (dirty_drum, True, False),
     "dirty_rollers": (dirty_rollers, True, False),

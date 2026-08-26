@@ -27,11 +27,6 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
-# The augmentation value whose chain is empty. Named here rather than inlined
-# so renaming it in rules/augmentation.yaml fails loudly instead of silently
-# producing an aged "clean" set.
-CLEAN_AUGMENTATION = "pristine"
-
 # The backends this driver may run. `html` only: see pipeline/config.py, which
 # holds the same decision for a `pipeline.yaml` run and the reason with it.
 BACKENDS = ("html",)

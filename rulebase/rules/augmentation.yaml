@@ -1,4 +1,4 @@
-# THUỘC TÍNH 6/6 — Augmented
+# THUỘC TÍNH 7/10 — LÀM CŨ
 #
 # Ba cái cuối là hiệu ứng texture của DocCreator:
 #   paper_texture      dán trang giấy lên texture giấy thật
@@ -93,12 +93,6 @@ options:
         - [paper_texture, {alpha: 0.25, grain: 0.35}]
         - [ink_degradation, {level: 3}]
         - [phantom_character, {frequency: rare}]
-        # Bụi mực bám thành mảng. Chuỗi này dựng dáng bản photo bằng những gì
-        # có sẵn TRƯỚC khi có mô hình máy photo hỏng; `bad_photocopy` chính là
-        # thứ nó vẫn xấp xỉ bằng tay. Liều để nhẹ và KHÔNG bật `contrast`:
-        # `ink_degradation` với `blur` ở đây đã lo phần mực bệt rồi, chồng
-        # thêm một lần đẩy tương phản nữa thì dấu thanh là thứ mất trước.
-        - [bad_photocopy, {blotch: 0.3, wash: 0.15, contrast: 0.0}]
         - [blur, {radius: 0.8}]
         - [shadow_binding, {border: top, distance_ratio: 0.08, intensity: 0.3}]
         - [paper_overlay, {alpha: 0.22, lighten: 0.4}]
@@ -217,7 +211,7 @@ options:
         - [jpeg_blocks, {quality: 30, passes: 3}]
 
   # --------------------------------------------------------------------
-  # CHUYỂN THỂ TỪ AUGRAPHY — mười hai mô hình, chín kịch bản
+  # CHUYỂN THỂ TỪ AUGRAPHY — chín mô hình ở đây, ba mô hình thành thuộc tính riêng
   #
   # Nguồn: https://github.com/sparkfish/augraphy. Mã của họ không được vendor;
   # từng mô hình viết lại trong `degradation/` và ghi rõ chuyển thể từ file nào
@@ -228,6 +222,13 @@ options:
   #   * mực HỎNG LÚC IN, không phải mòn theo thời gian — `letterpress`,
   #     `hollow`, `dot_matrix`. `ink_degradation` của DocCreator tả tờ giấy in
   #     xong rồi mục đi; ba cái này tả tờ giấy chưa bao giờ được in cho tử tế.
+  #
+  # Ba mô hình còn lại của đợt ấy — `bad_photocopy`, `dirty_drum`,
+  # `dirty_rollers` — KHÔNG có mặt trong file này. Chúng là ba bộ phận của cái
+  # máy đã sao tờ giấy, hỏng độc lập với nhau, nên mỗi cái thành một thuộc tính
+  # riêng: `toner.yaml`, `drum.yaml`, `rollers.yaml`. Gói chúng vào một giá trị
+  # ở đây thì mỗi tổ hợp phải viết tay một kịch bản, và số kịch bản phải viết
+  # là TÍCH chứ không phải tổng.
   #   * nhiễu MÀU. Mười sáu mô hình trước đó đều chỉ đổi độ sáng, nên một mô
   #     hình OCR học trên bộ này gặp viền màu lần đầu ở ảnh thật.
   #   * nét NGƯỜI THÊM VÀO — bút dạ quang, khoanh tròn, gạch xoá, nguệch ngoạc.
@@ -255,21 +256,6 @@ options:
   # `kinds: [total]` trúng cả `total.grand` lẫn `total.line`; xem `_kind_matches`
   # trong `degradation/regions.py`. Bốc ra rỗng KHÔNG phải lỗi — một tờ không có
   # ô tổng cộng thì đi qua nguyên vẹn.
-
-  - id: drum_streaks
-    weight: 2
-    excludes: [thermal]
-    tags: [textured, scanned]
-    params:
-      chain:
-        - [paper_texture, {alpha: 0.24, grain: 0.35}]
-        - [ink_degradation, {level: 2}]
-        # Sọc DỌC của trống mực và dải NGANG của trục lăn là hai hỏng khác
-        # nhau, vuông góc nhau, và một tờ đi qua máy hỏng thì mang cả hai.
-        - [dirty_drum, {lines: 5, direction: vertical, intensity: 0.55, line_width: 3}]
-        - [dirty_rollers, {intensity: 0.3, period: 80}]
-        - [scan_banding, {period: 36, amplitude: 0.05}]
-        - [jpeg_blocks, {quality: 45, passes: 1}]
 
   - id: impact_ribbon
     weight: 2

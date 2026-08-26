@@ -28,6 +28,12 @@ Việt**, và — chỗ này mới đáng giá — **nó có làm hỏng nhãn k
 >   `dot_matrix`, `glitch_effect`, `letterpress`, `markup`,
 >   `voronoi_tessellation`, `hollow`, `scribbles`. Registry lên **26 mô hình**,
 >   và chín kịch bản mới trong `rules/augmentation.yaml` bốc tới cả mười hai.
+> * **Ba mô hình của cái máy thành ba THUỘC TÍNH riêng.** `bad_photocopy`,
+>   `dirty_drum` và `dirty_rollers` mỗi cái một file và mỗi cái một thuộc tính
+>   rule-base (`toner`, `drum`, `rollers`), vì chúng là ba bộ phận hỏng độc lập
+>   của một cái máy. Rule-base đi từ 7 lên **10 thuộc tính**, và `chain_of` giờ
+>   ghép chuỗi của MỌI thuộc tính theo thứ tự bốc — vốn đã là hình dạng của mã
+>   từ đầu, chỉ chưa ai dùng tới.
 > * **`tools/rules_report.py` giờ đối chiếu HAI CHIỀU.** Chiều cũ: chuỗi không
 >   được gọi tên mô hình không tồn tại. Chiều mới — chiều mà cả mục B của tài
 >   liệu này nói tới — **mô hình nào không chuỗi nào gọi tên thì báo lỗi**. Từ
