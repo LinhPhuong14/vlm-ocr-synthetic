@@ -51,6 +51,8 @@ ORNAMENT_DIR = REPO_ROOT / "textures" / "ornament"
 PAPERS: dict[str, tuple[str, str]] = {
     "A4": ("210mm", "297mm"),
     "A5": ("148mm", "210mm"),
+    "BROADSHEET": ("375mm", "597mm"),
+    "TABLOID": ("280mm", "430mm"),
 }
 
 # Font families as `page.font_faces()` names them: the file stem, so a stack
@@ -730,8 +732,17 @@ def document(body: str, css: str, *, paper: str = "A4", padding: str = "10mm",
     does not have, and the two renderers would disagree about where the paper
     ends. `min-height` is a floor, not a height -- a page whose content grew
     past its paper stays visible rather than being cropped into looking fine.
+
+    `paper` must be a `PAPERS` key. It used to fall back to A4 silently on
+    a miss -- harmless while every caller only ever passed "A4"/"A5"
+    (confirmed: every `sheets/*.py` call site did, at the time this was
+    tightened), but a real risk once a family needs several non-A4 sizes
+    (`periodical.py` uses four): a typo would render a wrong-sized page
+    with no error at all.
     """
-    width, height = PAPERS.get(paper, PAPERS["A4"])
+    if paper not in PAPERS:
+        raise KeyError(f"paper={paper!r} is not one of {', '.join(sorted(PAPERS))}")
+    width, height = PAPERS[paper]
     return f"""<!doctype html><html lang="vi"><head><meta charset="utf-8"><style>
 {{FONT_FACES}}
 @page{{size:{paper} portrait;margin:0;}}
