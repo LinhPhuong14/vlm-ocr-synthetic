@@ -704,10 +704,8 @@ def main() -> int:
     )
     parser.add_argument("--dpi", type=int, default=150)
     parser.add_argument(
-        "--template", metavar="LAYOUT", nargs="?", const="auto", default=None,
-        help="print the CSS sheet for this recipe's layout instead of the "
-             "character grid; see generators/html/sheets/. Bare, the sheet "
-             "follows the layout the recipe drew; give a layout id to force one",
+        "--template", metavar="MODEL", nargs="?", const="auto", default="auto",
+        help="which page model to draw: `grid` is the character grid, `auto` is the CSS sheet for this recipe's layout, or name a layout id to force its dress. Defaults to `auto` -- every layout has a sheet, and the grid is now the thing you ask for. See generators/html/sheets/",
     )
     parser.add_argument(
         "--handwriting", nargs="?", const="font", default=None,
@@ -726,6 +724,14 @@ def main() -> int:
     )
     worklist.add_argument(parser)
     args = parser.parse_args()
+
+    # Resolved once, here: `grid` becomes None so every `if self.template:`
+    # below keeps meaning "draw a sheet", and an unknown value stops the run
+    # instead of quietly drawing the grid.
+    try:
+        args.template = sheets.resolve(args.template)
+    except KeyError as error:
+        parser.error(str(error))
 
     if args.handwriting and not args.template:
         parser.error(
