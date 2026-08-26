@@ -335,10 +335,12 @@ def test_every_committed_page_has_a_record_in_the_shape_this_file_defines():
             seen += 1
     # A census, so it moves whenever a committed set is rebuilt -- and it is
     # meant to: a set that quietly lost half its pages would otherwise look
-    # like a passing test. 294 = 307 before `data/dataset_test` was rebuilt on
-    # the CSS sheets, which took it from 30 images over two renderers to 16,
-    # one per layout, on the only backend the pipeline still drives.
-    assert seen == 294, seen
+    # like a passing test. 311 = 294 + `data/hand17_model`, one page per layout
+    # drawn with `--handwriting model`. 294 was itself 307 before
+    # `data/dataset_test` was rebuilt on the CSS sheets, which took it from 30
+    # images over two renderers to 16, one per layout, on the only backend the
+    # pipeline still drives.
+    assert seen == 311, seen
 
 
 # ------------------------------------------------------- the shape before this
