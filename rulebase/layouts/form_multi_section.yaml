@@ -18,6 +18,7 @@
 id: form_multi_section
 name: Multi-section form — lettered sections, a small table in the second
 source: "FUNSD (Project Status Report) — mục A thông tin dự án, mục B bảng 5 cột theo năm"
+family: form
 
 width: [85, 95]
 gutter: 2

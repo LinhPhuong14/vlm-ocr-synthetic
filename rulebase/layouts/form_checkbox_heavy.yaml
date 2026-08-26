@@ -8,6 +8,7 @@
 id: form_checkbox_heavy
 name: Checkbox-heavy form — a field strip, then a list of ticked items
 source: "FUNSD (Capital Budget Project) — bảy ô đánh dấu mục đích dự án, thêm ô trạng thái Proposed/Approved"
+family: form
 
 width: [78, 88]
 gutter: 2

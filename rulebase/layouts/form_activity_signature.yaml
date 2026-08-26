@@ -22,6 +22,7 @@
 id: form_activity_signature
 name: Form + signature — a small record table, then a declaration
 source: "Cục QLLĐ ngoài nước — Bộ Nội vụ (Sơ yếu lý lịch tự thuật, trang cuối) — bảng 4 cột, khen thưởng/kỷ luật, lời cam đoan, chữ ký kép"
+family: form
 
 width: [85, 95]
 gutter: 2

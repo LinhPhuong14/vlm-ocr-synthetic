@@ -15,7 +15,7 @@
         "schema": 8,
         "rules": {
           "rulebase/rules": "ad2cb50f9432601d648350b9b41358ec3c33bc7400ace5ba6824539f82eb0ae5",
-          "rulebase/layouts": "46a8103433dcca0508de72d588abc366c73a28399e0bcd99fc2822c0f7e75ed7",
+          "rulebase/layouts": "e9fcfd206171322569c319029fc247a6fb83113cec718bbfb201a48416a5c807",
           "rulebase/corpus": "512b218801b3d52b2e9d70764d9ddf4700ebf8f1a55ee8a00e35e4eab6848cb1"
         }
       },
@@ -70,7 +70,7 @@
         "schema": 8,
         "rules": {
           "rulebase/rules": "860ab7e1df8ccce2f0df8ed4b6f2978c0e3cf97db10ee5d11e8ee5726cd516c1",
-          "rulebase/layouts": "b3d3ae57d0ff0ca317d186d8ed9a4647c9c868bf55d192ca5995832348f7719e",
+          "rulebase/layouts": "f7aa389f9775031f61ba010711fa35137cd18d264411c8eddcc978a3d36abde4",
           "rulebase/corpus": "512b218801b3d52b2e9d70764d9ddf4700ebf8f1a55ee8a00e35e4eab6848cb1"
         }
       },
@@ -164,7 +164,7 @@
         "schema": 8,
         "rules": {
           "rulebase/rules": "9ad7a40ee3cae40249b5545782256f0de26c178884ca7b60b072c6272d43951a",
-          "rulebase/layouts": "cd7c66dffc1e25bcaf0a1d3bf71e47ee1abd92d37b5987bbcc725da6b4c58090",
+          "rulebase/layouts": "46b1aacc576389672927a1b3f12469c0182774aadb96469b83a334ea3d1bdb74",
           "rulebase/corpus": "512b218801b3d52b2e9d70764d9ddf4700ebf8f1a55ee8a00e35e4eab6848cb1"
         }
       },
@@ -336,6 +336,6 @@
     }
   },
   "normalisation": "each record is json.loads then json.dumps(sort_keys=True, ensure_ascii=False); no field is excluded",
-  "reason": "catch up n14->n36 and move the golden fingerprint onto the CSS-sheet render path (--template auto), since every shipped layout already has a real FAMILIES entry and the grid path was found to be missing several ground-truth fields for layouts it was never actually designed to serve",
-  "replaced": "ink_degradation now draws a quarter of DocCreator's blot count (DENSITY=0.25): the dose was derived from the ink component count, and a dotted leader line makes every full stop its own component, so invoice layouts got eight times the speckle of a receipt at the same level"
+  "reason": "Step 2 of the layout core-engine refactor: FAMILIES is now derived from each layout's own new family: YAML key instead of a hand-written dict -- adding that key changes rulebase/layouts/*.yaml's own bytes (the rules fingerprint), not any rendered pixel; recapture only to re-fingerprint, verified below to be byte-identical image-for-image",
+  "replaced": "catch up n14->n36 and move the golden fingerprint onto the CSS-sheet render path (--template auto), since every shipped layout already has a real FAMILIES entry and the grid path was found to be missing several ground-truth fields for layouts it was never actually designed to serve"
 }

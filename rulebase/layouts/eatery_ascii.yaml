@@ -5,6 +5,7 @@
 id: eatery_ascii
 name: Eatery — legacy thermal printer, no diacritics
 source: "photo QUAN AN THIEN TAN, TPHCM 2011"
+family: till
 
 width: [32, 40]
 rule_char: "*"

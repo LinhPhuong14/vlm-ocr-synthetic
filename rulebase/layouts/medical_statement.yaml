@@ -11,6 +11,7 @@
 id: medical_statement
 name: Hospital cost statement — twelve columns, grouped, four payment sources
 source: "ảnh bảng kê 01/KBCB của một bệnh viện đa khoa, 3 trang, có dấu SAO Y BẢN CHÍNH"
+family: medical
 
 width: [182, 196]
 gutter: 1

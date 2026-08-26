@@ -6,6 +6,7 @@
 id: market_barcode
 name: Supermarket — barcode first, item name underneath
 source: "photo VinCommerce / VM Royal City, Hà Nội"
+family: till
 
 width: [42, 50]
 rule_char: "-"

@@ -7,6 +7,7 @@
 id: invoice_dense_table
 name: Dense item table — many rows, tighter row padding
 source: "khảo sát mẫu hoá đơn bán hàng tự thiết kế phổ biến — bảng nhiều dòng hàng, không thừa khoảng trắng"
+family: modern
 
 width: [88, 100]
 gutter: 1

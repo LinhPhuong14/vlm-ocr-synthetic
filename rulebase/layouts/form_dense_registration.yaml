@@ -8,6 +8,7 @@
 id: form_dense_registration
 name: Dense registration form — photo box, then field after field
 source: "Cục QLLĐ ngoài nước — Bộ Nội vụ (Sơ yếu lý lịch tự thuật, trang đầu) — khung dán ảnh, gần 20 trường nhãn-giá trị, mục 'Hoàn cảnh gia đình'"
+family: form
 
 width: [85, 95]
 gutter: 2
