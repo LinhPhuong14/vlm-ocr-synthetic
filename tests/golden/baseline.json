@@ -116,7 +116,7 @@
       },
       "dataset_json": "91e11c3c26039664cfde5a257a37b9545515a994c784afc78097cd8c0f88f74e"
     },
-    "n36": {
+    "all": {
       "inputs": {
         "layouts": [
           "authorisation_letter",
@@ -336,6 +336,6 @@
     }
   },
   "normalisation": "each record is json.loads then json.dumps(sort_keys=True, ensure_ascii=False); no field is excluded",
-  "reason": "Step 2 of the layout core-engine refactor: FAMILIES is now derived from each layout's own new family: YAML key instead of a hand-written dict -- adding that key changes rulebase/layouts/*.yaml's own bytes (the rules fingerprint), not any rendered pixel; recapture only to re-fingerprint, verified below to be byte-identical image-for-image",
-  "replaced": "catch up n14->n36 and move the golden fingerprint onto the CSS-sheet render path (--template auto), since every shipped layout already has a real FAMILIES entry and the grid path was found to be missing several ground-truth fields for layouts it was never actually designed to serve"
+  "reason": "Step 3: replace the hand-maintained THERMAL/INVOICE/FORM lists and the n36 rename ritual with a single 'all' plan computed from available_layouts() directly, so it can never itself drift out of sync with what ships",
+  "replaced": "Step 2 of the layout core-engine refactor: FAMILIES is now derived from each layout's own new family: YAML key instead of a hand-written dict -- adding that key changes rulebase/layouts/*.yaml's own bytes (the rules fingerprint), not any rendered pixel; recapture only to re-fingerprint, verified below to be byte-identical image-for-image"
 }

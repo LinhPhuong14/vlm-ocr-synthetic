@@ -49,10 +49,15 @@ Three fixed plans, because one is not enough:
 
 * `n3` is the plan the W1 brief names, on three named layouts.
 * `n5` is every thermal layout -- the till-roll half of the rule-base.
-* `n36` is every layout, one image each per backend.
+* `all` is every layout that ships, one image each per backend, computed
+  from `available_layouts()` rather than a maintained id list -- see its
+  own comment in `PLANS` below.
 
-Adding a fifteenth layout leaves all three green, which is the point: a
-regression baseline must not move when someone adds unrelated content.
+Adding a layout leaves `n3`/`n5` green, which is the point: a regression
+baseline must not move when someone adds unrelated content. `all` legitimately
+grows and needs a recapture when that happens -- it is *defined* as
+everything that ships -- but no longer needs a rename or a hand-maintained
+list edit first.
 
 This needs all three renderer virtualenvs, so it is a hand-run command and not
 part of the `tests` CI job. Keeping that job down to pytest and pyyaml is what
@@ -75,6 +80,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from pipeline import record, synthesis  # noqa: E402
+from rulebase import available_layouts  # noqa: E402
 
 GOLDEN = REPO_ROOT / "tests" / "golden" / "baseline.json"
 
@@ -89,42 +95,26 @@ GOLDEN = REPO_ROOT / "tests" / "golden" / "baseline.json"
 # Adding a plan is fine. Editing one means recapturing.
 THERMAL = ["eatery_ascii", "eatery_indexed", "market_barcode",
            "market_compact", "market_vat"]
-INVOICE = ["invoice_brand", "invoice_dense_table", "invoice_export",
-           "invoice_header_table", "invoice_hotel_compact", "invoice_hotel_stay",
-           "invoice_keyvalue", "invoice_logo_center", "invoice_logo_split",
-           "invoice_minimalist", "invoice_multipage", "invoice_power",
-           "invoice_remittance", "invoice_sidebar", "invoice_tax_en",
-           "invoice_two_column", "invoice_vat_form", "invoice_vat_summary",
-           "invoice_water"]
-# Documents that are not a sale: a hospital's statement of treatment costs, an
-# authorisation to collect money on somebody's behalf, and the ten root-3
-# (Form / Application) layouts -- a questionnaire, a timesheet, a checkbox
-# form, a government application, and so on. Cut sheets like the invoices, and
-# drawn by the same three backends, but none of them is an invoice and none is
-# named like one -- which is why they are their own list rather than an entry
-# in the one above.
-FORM = ["authorisation_letter", "form_activity_signature", "form_checkbox_heavy",
-        "form_dense_registration", "form_government_app", "form_multi_section",
-        "form_project_kv", "form_questionnaire", "form_table_based",
-        "form_timesheet_grid", "form_two_column", "medical_statement"]
 
 PLANS: dict[str, dict] = {
     # The plan the W1 brief names, on the three layouts it named.
     "n3": {"per_backend": 3, "seed": 2026, "layouts": THERMAL[:3]},
     # Every thermal layout: the till-roll half of the rule-base.
     "n5": {"per_backend": 5, "seed": 2026, "layouts": THERMAL},
-    # Every layout, one image each per backend, so nothing is outside the net.
-    # The name states the count, so it changes when the count does -- a plan
-    # called `n14` that draws sixteen layouts is a plan nobody can check by
-    # reading it. A rename means the golden file has no entry under the new key
-    # and `make baseline-verify` says so, which is the correct report: the
-    # generator grew, and the fingerprint has to be recaptured on a machine with
-    # all three renderer environments. (Golden is still filed under `n14` from
-    # this plan's growth to sixteen, and again to twenty-six -- neither
-    # recapture was ever hand-run. All three are one `make baseline-write
-    # REASON="..."` away.)
-    "n36": {"per_backend": 36, "seed": 2026,
-            "layouts": sorted(THERMAL + INVOICE + FORM)},
+    # Every layout that ships, one image each per backend, so nothing is
+    # outside the net. Used to be a fixed id list (INVOICE + FORM) concatenated
+    # by hand and a plan name that had to be renamed every time the count grew
+    # -- n14, then n16, then n26, then n36, each rename a recapture nobody
+    # actually ran (see git history if curious). Naming it "all" and computing
+    # its layouts from `available_layouts()` directly removes the rename
+    # forever: this plan is *defined* as everything that ships, so it can
+    # never itself drift out of sync with what ships -- `tests/test_baseline.
+    # py::test_the_widest_plan_covers_every_layout_that_ships` is therefore
+    # tautologically true for this plan by construction, not by upkeep.
+    # A per-layout content change (not a count change) still means recapturing,
+    # same as ever -- that is what `rules_fingerprint` is for.
+    "all": {"per_backend": len(available_layouts()), "seed": 2026,
+            "layouts": sorted(available_layouts())},
 }
 
 # What a plan's images are a function of, beyond the plan itself. A change to one
