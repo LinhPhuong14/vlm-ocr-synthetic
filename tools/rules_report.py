@@ -218,6 +218,9 @@ def main() -> int:
                 for path in sorted((corpus.CORPUS_ROOT / lang).glob("items_*.txt")):
                     profile = path.stem[len("items_"):]
                     counts[profile] = len(corpus.items(profile, lang))
+                for path in sorted((corpus.CORPUS_ROOT / lang).glob("periodical_*.yaml")):
+                    kind = path.stem[len("periodical_"):]
+                    counts[f"periodical_{kind}"] = len(corpus.periodical(kind, lang))
                 shared = {
                     "streets": len(corpus.streets(lang)),
                     "wards": len(corpus.wards(lang)),
