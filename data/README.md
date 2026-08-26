@@ -7,6 +7,7 @@
 | [`invoices54/`](invoices54) | 54 | the nine **commercial invoice** layouts drawn as **CSS sheets** rather than as a character grid, by the two HTML backends — see its own [README](invoices54/README.md) |
 | [`forms16/`](forms16) | 16 | the two documents that are **not a sale**: a hospital's statement of treatment costs and an authorisation to collect money — see its own [README](forms16/README.md) |
 | [`hand12/`](hand12) | 12 | **điền tay** — every value a person fills in is handwriting rather than type, 159 fields and none left printed, from the licensed faces in `fonts/hand/`; see its own [README](hand12/README.md) and [`docs/handwriting-html.md`](../docs/handwriting-html.md) |
+| [`hand17_model/`](hand17_model) | 17 | **mực của mô hình, đo trên mọi bố cục** — one page per layout with `--handwriting model`. A measurement, not a training set: 25 of 197 runs inked (13 %) and **nine pages with no ink at all**, for two different reasons its README separates — see its own [README](hand17_model/README.md) |
 | [`dataset_test/`](dataset_test) | 45 | a **scratch set for looking at**, one image per working layout per renderer. Regenerated whenever the ageing is retuned, and not a fixed comparison point — see below |
 
 20 images per renderer (synthdog / html / genalog) in each `dataset60*` set,
