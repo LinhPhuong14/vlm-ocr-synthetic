@@ -146,21 +146,15 @@ def _checklist(receipt, spec: dict, rng: random.Random) -> str:
 def _notes_block(receipt, spec: dict) -> str:
     """Declaration-style paragraphs -- `invoice.notes`, split on blank lines.
 
-    Same convention `modern.py::_notes` reads: a blank entry in the list is
-    the break between blocks, and a line ending in ":" opens one as its
-    heading.
+    `base.notes_blocks` does the splitting (shared with `modern.py::_notes`);
+    turning a block into `<p>` tags, and a line ending in ":" into a heading,
+    is this family's own.
     """
     invoice = getattr(receipt, "invoice", None)
     lines = list(getattr(invoice, "notes", []) or [])
     if not lines:
         return ""
-    blocks: list[list[str]] = [[]]
-    for line in lines:
-        if line.strip():
-            blocks[-1].append(line)
-        else:
-            blocks.append([])
-    blocks = [block for block in blocks if block]
+    blocks = base.notes_blocks(lines)
     out = []
     for block in blocks:
         for value in block:
@@ -327,7 +321,7 @@ def _section_html(name: str, receipt, spec: dict, parse: dict, sections: list,
 
 
 def build(recipe, receipt, spec: dict, parse: dict) -> str:
-    rng = random.Random(recipe.seed ^ 0x46524D)  # "FRM"
+    rng = base.rng_for(recipe, 0x46524D)  # "FRM"
     ink = LIVERIES[rng.randrange(len(LIVERIES))]
     sections = spec.get("sections") or []
     rows = Rows()
