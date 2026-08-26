@@ -387,7 +387,13 @@ class HtmlReceiptRenderer:
         # box without changing anything visible about the image.
         before = image.shape[:2]
         with profiling.stage("degradation"):
-            aged = apply_recipe(image, recipe, seed=seed)
+            # The boxes go in as well as the image: `by_box` puts a model on a
+            # few text boxes rather than on the whole sheet, and the boxes are
+            # the only thing that says where those are. Computed just above, so
+            # they describe THIS page rather than the one before ageing shifted
+            # anything -- which is also why nothing in the chain may move a
+            # pixel. See degradation/regions.py.
+            aged = apply_recipe(image, recipe, seed=seed, boxes=boxes)
         if aged.shape[:2] != before:
             raise RuntimeError(
                 f"a degradation resized the page ({before} -> {aged.shape[:2]}); "
