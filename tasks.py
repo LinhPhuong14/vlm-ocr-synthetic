@@ -186,14 +186,18 @@ def blanks(args) -> None:
 
 @task("dataset", "labelled dataset with the html renderer (-n images)")
 def dataset(args) -> None:
+    # `--template auto`: every shipped layout already has a real entry in
+    # generators/html/sheets/FAMILIES, so this draws through the CSS-sheet
+    # family every layout was actually designed against, not the
+    # character-grid fallback. See tools/baseline.py::arguments()'s docstring.
     run([first_available_python(), REPO_ROOT / "tools" / "generate_dataset.py",
-         "-o", args.out, "-n", str(args.count)])
+         "-o", args.out, "-n", str(args.count), "--template", "auto"])
 
 
 @task("dataset-clean", "the same dataset with no ageing and no distortion")
 def dataset_clean(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "generate_dataset.py",
-         "-o", f"{args.out}_clean", "-n", str(args.count), "--clean"])
+         "-o", f"{args.out}_clean", "-n", str(args.count), "--clean", "--template", "auto"])
 
 
 @task("tables", "table-structure images, from the html backend")
