@@ -5,6 +5,7 @@
 id: eatery_indexed
 name: Eatery — index column, quantity, price, amount
 source: "photo QUÁN NHẬU BÌNH DÂN 129, Đà Nẵng"
+family: till
 
 # Bề rộng giấy tính bằng ký tự (giấy nhiệt 80mm ≈ 42-48 ký tự).
 width: [40, 48]

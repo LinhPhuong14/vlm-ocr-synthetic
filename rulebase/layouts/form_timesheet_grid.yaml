@@ -11,6 +11,7 @@
 id: form_timesheet_grid
 name: Grid form — one row per person, a day column each
 source: "LuatVietnam.vn (mẫu bảng chấm công) — cột dọc là ngày 1-31, hàng ngang là nhân viên, cột Tổng cộng, ba dòng ký tên"
+family: form
 
 width: [90, 100]
 gutter: 1

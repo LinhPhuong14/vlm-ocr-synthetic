@@ -10,6 +10,7 @@
 id: invoice_power
 name: Electricity utility — one row per tariff band, totals under the frame
 source: "ảnh hoá đơn Tổng công ty Điện lực TP HCM, Điện lực Tân Thuận, 01/2021"
+family: statutory
 
 width: [84, 92]
 gutter: 3

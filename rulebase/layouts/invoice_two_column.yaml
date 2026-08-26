@@ -11,6 +11,7 @@
 id: invoice_two_column
 name: Two REAL columns — buyer left, ship-to right
 source: "khảo sát mẫu hoá đơn bán hàng tự thiết kế phổ biến — bên mua/bên nhận hàng hai cột song song"
+family: modern
 
 width: [78, 92]
 gutter: 2

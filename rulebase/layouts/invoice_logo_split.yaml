@@ -9,6 +9,7 @@
 id: invoice_logo_split
 name: Trading name left, title right, on one row
 source: "khảo sát mẫu hoá đơn bán hàng tự thiết kế phổ biến — logo/tên trái, tiêu đề+số phải"
+family: modern
 
 width: [78, 92]
 gutter: 2

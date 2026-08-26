@@ -44,64 +44,80 @@ from html.parser import HTMLParser
 from . import form, lodging, medical, modern, statement, statutory, till
 from .base import structure_tokens
 
-# Layout id -> the module that dresses it. A layout missing from here is a
-# failure with a list, not a silent fall-through to a VAT invoice: drawing a
-# hotel folio as a tax form is exactly the defect this package exists to fix.
-FAMILIES = {
-    "invoice_vat_form": statutory,
-    "invoice_vat_summary": statutory,
-    "invoice_export": statutory,
-    "invoice_water": statutory,
-    "invoice_power": statutory,
-    "invoice_hotel_stay": lodging,
-    "invoice_hotel_compact": lodging,
-    "invoice_brand": modern,
-    "medical_statement": medical,
-    "authorisation_letter": statement,
-    "invoice_tax_en": modern,
-    # Mười bố cục root "Invoice / Billing" — cùng họ modern, khác nhau ở
-    # `sections:`/cờ trong file bố cục của chúng, không phải template.
-    "invoice_header_table": modern,
-    "invoice_logo_split": modern,
-    "invoice_logo_center": modern,
-    "invoice_two_column": modern,
-    "invoice_sidebar": modern,
-    "invoice_keyvalue": modern,
-    "invoice_dense_table": modern,
-    "invoice_minimalist": modern,
-    "invoice_multipage": modern,
-    "invoice_remittance": modern,
-    "eatery_indexed": till,
-    "eatery_ascii": till,
-    "market_barcode": till,
-    "market_compact": till,
-    "market_vat": till,
-    # Mười bố cục root "Form / Application" — họ mới `form` (fields trong
-    # một khối, không phải hai bên một bảng). Xem `form.py`.
-    "form_questionnaire": form,
-    "form_timesheet_grid": form,
-    "form_project_kv": form,
-    "form_two_column": form,
-    "form_multi_section": form,
-    "form_checkbox_heavy": form,
-    "form_activity_signature": form,
-    "form_table_based": form,
-    "form_government_app": form,
-    "form_dense_registration": form,
+# Module name (as it appears in a layout file's own `family:` key) -> the
+# module that dresses it. A brand-new family still needs one line here --
+# Python has to import the module regardless -- but that is the only
+# per-family registration step left; a layout that reuses an existing family
+# needs nothing beyond its own `family: <name>` line in `rulebase/layouts/`.
+_MODULES = {
+    "form": form,
+    "lodging": lodging,
+    "medical": medical,
+    "modern": modern,
+    "statement": statement,
+    "statutory": statutory,
+    "till": till,
 }
+
+_families_cache: dict | None = None
+
+
+def _families() -> dict:
+    """Layout id -> the module that dresses it, read from each layout's own
+    `family:` key and cached.
+
+    Used to be a hand-written dict here, one line per layout -- the exact
+    kind of registration this package's own docstring above says a new
+    layout should never need. A layout missing a family (an unset or
+    unrecognised `family:` key) is still a failure with a list, not a silent
+    fall-through to a VAT invoice: drawing a hotel folio as a tax form is
+    exactly the defect this package exists to fix.
+
+    Lazy and cached rather than built at import time: `import sheets` should
+    not pay for a scan of every file in `rulebase/layouts/` before anyone has
+    asked to render a page, and the layout files do not change mid-process.
+    """
+    global _families_cache
+    if _families_cache is None:
+        from rulebase import available_layouts, load_layout
+
+        out = {}
+        for layout_id in available_layouts():
+            name = load_layout(layout_id).get("family")
+            if name not in _MODULES:
+                raise KeyError(
+                    f"{layout_id}: family {name!r} is not one of "
+                    f"{', '.join(sorted(_MODULES))}. Set `family:` in "
+                    f"rulebase/layouts/{layout_id}.yaml to the module that "
+                    "should dress it, adding a new one to sheets._MODULES "
+                    "first if it is a genuinely new family."
+                )
+            out[layout_id] = _MODULES[name]
+        _families_cache = out
+    return _families_cache
+
+
+def __getattr__(name: str):
+    # PEP 562: makes `sheets.FAMILIES` keep working as a plain dict lookup
+    # (`layout in sheets.FAMILIES`, `sheets.FAMILIES[layout]`) for every
+    # existing caller and test, without eagerly building it at import time.
+    if name == "FAMILIES":
+        return _families()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def names() -> list[str]:
-    return sorted(FAMILIES)
+    return sorted(_families())
 
 
 def family_of(layout_id: str):
     try:
-        return FAMILIES[layout_id]
+        return _families()[layout_id]
     except KeyError:
         raise KeyError(
             f"no CSS sheet for layout {layout_id!r}; have {', '.join(names())}. "
-            "Add it to sheets.FAMILIES beside the family it belongs to."
+            f"Set `family:` in rulebase/layouts/{layout_id}.yaml to the "
+            "family it belongs to."
         ) from None
 
 

@@ -6,6 +6,7 @@
 id: market_compact
 name: Convenience store — item, price, quantity, amount
 source: "photo WinMart, PHIẾU TÍNH TIỀN 2025"
+family: till
 
 width: [40, 46]
 rule_char: "-"

@@ -10,6 +10,7 @@
 id: form_government_app
 name: Government application — national masthead, dense civil fields
 source: "LuatVietnam.vn (mẫu giấy khai sinh) — quốc hiệu, khung CHXHCNVN, dày trường hộ tịch (họ tên, ngày sinh, dân tộc, quốc tịch, nơi sinh, quê quán, số định danh, cha/mẹ...)"
+family: form
 
 width: [85, 95]
 gutter: 2
