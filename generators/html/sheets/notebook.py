@@ -29,10 +29,15 @@ Three things make it read as a notebook rather than as a font choice:
 
 The label contract is the shared one: the values are `span()`s with the same
 `kind` they carry on a printed sheet, so a reader of the boxes cannot tell the
-difference and does not have to. What it *cannot* do is claim a second writer
-per page -- one face is one hand, the same `a` every time. `Hand` in
-`generators/html/handwriting.py` is the answer to that and costs a model call
-per field; this family is the cheap end of the trade and says so.
+difference and does not have to.
+
+Drawn on its own this family sets the page in a handwriting **typeface**, which
+is the cheap end of the trade and repeats: one face is one hand, the same `a`
+every time. `--handwriting both` is the expensive end -- `HAND_KINDS` below
+tells `handwriting.fill` that every run here is a person's to write, and the
+WriteViT checkpoint then takes whatever it can of them. On a sales book that is
+about 8 %, because a ledger is amounts and dates; the rest stays typeface. See
+`docs/handwriting-html.md` for what that costs and what it does not buy.
 """
 
 from __future__ import annotations
@@ -40,7 +45,16 @@ from __future__ import annotations
 import random
 
 from . import base
-from .base import Rows, span
+from .base import EVERY_RUN, Rows, span
+
+# Which runs a pen reaches on this page: all of them.
+#
+# Every other family here leaves `handwriting.HAND_KINDS` alone, and that is
+# the right answer for a printed form -- a letterhead and a column title were
+# printed before anybody picked up a pen. This page has no press run at all, so
+# a heading left in type would be a heading nobody typed. `sheets.hand_kinds`
+# reads this and `handwriting.fill` honours it.
+HAND_KINDS = EVERY_RUN
 
 # The faces in `fonts/hand/`, by the family name `page.font_faces` gives them
 # (the file stem, minus `-Regular`). Listed rather than globbed so a face
@@ -213,5 +227,5 @@ def build(recipe, receipt, spec: dict, parse: dict) -> str:
         size="11pt", colour=ink, line_height=f"{RULE_MM}mm")
 
 
-__all__ = ["HANDS", "INKS", "MARGIN_COLOUR", "PAPERS", "RULE_COLOUR", "RULE_MM",
-           "build"]
+__all__ = ["HANDS", "HAND_KINDS", "INKS", "MARGIN_COLOUR", "PAPERS",
+           "RULE_COLOUR", "RULE_MM", "build"]

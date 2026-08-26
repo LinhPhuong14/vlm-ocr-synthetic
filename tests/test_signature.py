@@ -741,6 +741,10 @@ def test_tracing_an_empty_tile_gives_nothing_rather_than_a_speck():
 def test_the_model_writes_a_signature_end_to_end():
     """The slow one, and the only proof that the seam holds: real generated
     ink, traced, stretched, warped and finished with a paraph."""
+    # The model source traces its ink, and tracing is OpenCV's. `_writevit`
+    # cannot guard this for every caller -- some of them only ask the policy a
+    # question -- so the tests that reach the tracer say so themselves.
+    pytest.importorskip("cv2", reason="tracing needs OpenCV")
     _writevit()
     ink = signature.ModelInk(writer=3, seed=5).open()
     try:
@@ -758,6 +762,7 @@ def test_the_model_puts_its_words_on_one_baseline():
     """There is no baseline in a WriteViT tile -- it crops tight -- so it is
     worked out from the letters, exactly as `handwriting.compose` does. A word
     with a descender must hang below one without."""
+    pytest.importorskip("cv2", reason="tracing needs OpenCV")
     _writevit()
     ink = signature.ModelInk(writer=3, seed=5).open()
     try:
