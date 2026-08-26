@@ -214,6 +214,35 @@ def test_wrapped_text_is_still_printed():
     assert errors_of(item) == []
 
 
+def test_wrapped_text_is_still_printed_across_a_hyphen():
+    """Same wrap, but at a HYPHEN -- which leaves no space to rejoin on.
+
+    Not hypothetical: a real hospital-bill item name, "[Thu tiền chênh lệch
+    giá] SOLI-MEDON 40", wraps across two rows as "...SOLI-" then "MEDON 40"
+    -- measured off an actual Chromium render, `page.py`'s `CELL_RECTS_JS`
+    splits a wrapped run at the character, not the word, and a hyphen has no
+    space either side of it. `by_kind`'s space-joined reconstruction in
+    `invariants.py` used to read "SOLI- MEDON 40", one character short of the
+    label. None of this file's five seeds happens to draw a hyphenated dish
+    name on its own, so this rewrites one in place rather than skip the case
+    the bug actually lives in.
+    """
+    item = a_record()
+    gt = item.item["extracted"]
+    name = gt["menu"][0]["nm"]
+    hyphenated = f"{name}-MEDON 40"
+    gt["menu"][0]["nm"] = hyphenated
+    head, sep, tail = hyphenated.rpartition("-")
+    for position, box in enumerate(item.item["blocks"]):
+        if box["text"] == name:
+            box["text"] = head + sep       # "...SOLI-", no trailing space
+            item.item["blocks"].insert(
+                position + 1,
+                {"kind": box["kind"], "text": tail, "quad": box["quad"]})
+            break
+    assert errors_of(item) == []
+
+
 # ----------------------------------------------------------- the arithmetic
 
 
