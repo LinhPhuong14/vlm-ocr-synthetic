@@ -581,6 +581,7 @@ từng bộ và schema nhãn nằm trong **[`data/README.md`](data/README.md)**.
 | :--- | :--- |
 | [`rulebase/README.md`](rulebase/README.md) | luật sinh đầy đủ: thuộc tính, họ, ngữ pháp file bố cục, cách thêm một bố cục |
 | [`degradation/README.md`](degradation/README.md) | từng mô hình làm cũ và file DocCreator nó chuyển thể từ đó |
+| [`docs/lam-cu-de-xuat.md`](docs/lam-cu-de-xuat.md) | kiểm kê nhiễu: 14 mô hình đang dùng, phần đã dựng mà chưa bốc tới được, và danh mục đề xuất từ thư viện ngoài, kỹ thuật đồ hoạ và chỗ trống riêng của chứng từ Việt Nam |
 | [`data/README.md`](data/README.md) | các bộ dữ liệu và schema nhãn |
 | [`docs/renderers.md`](docs/renderers.md) | vì sao ba renderer còn một, và cái giá phải trả |
 | [`docs/handwriting-html.md`](docs/handwriting-html.md) · [`docs/writevit.md`](docs/writevit.md) | nối chữ viết tay vào engine HTML, và mô hình đứng sau |
