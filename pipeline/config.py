@@ -161,7 +161,19 @@ class Config:
         if isinstance(layouts, str) or not isinstance(layouts, (list, tuple)):
             raise ConfigError("run.layouts: must be a list of layout names")
 
-        template = str(run.get("template") or "")
+        # `grid` is a value, not an absence. It used to arrive as "", which
+        # meant a config that never mentioned a page model produced the older
+        # one and said so nowhere -- and the page model is the single largest
+        # visual decision in a run (0.24% coloured pixels against 4.32%,
+        # measured over the sixteen layouts). Written down, it can be argued
+        # with; defaulted, it cannot.
+        template = str(run.get("template") or "grid")
+        if template == "grid":
+            template = ""                      # what the backends call the grid
+        elif template != "auto" and not template.replace("_", "").isalnum():
+            raise ConfigError(
+                f"run.template: expected 'grid', 'auto' or a layout id, got "
+                f"{template!r}")
         if template and "synthdog" in [str(name) for name in backends]:
             # Said plainly rather than dropped silently: the glyph backend
             # composites individual glyphs onto a canvas and cannot draw a table
