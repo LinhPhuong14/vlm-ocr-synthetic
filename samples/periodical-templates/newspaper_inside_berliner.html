@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>N-03 · Trang trong tin tức khổ Berliner (315 × 470 mm, 5 cột + quảng cáo)</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#5d6158;font-family:Georgia,"Times New Roman",serif;color:#111}
+  @page{size:315mm 470mm;margin:0}
+  .sheet{width:315mm;height:470mm;background:#f8f6ef;margin:10mm auto;position:relative;overflow:hidden;
+         box-shadow:0 3mm 12mm rgba(0,0,0,.4);padding:11mm 12mm 9mm;display:flex;flex-direction:column}
+
+  .ph{position:relative;background:
+      radial-gradient(circle at 50% 50%, rgba(0,0,0,.6) 0 .3mm, transparent .31mm) 0 0/1.05mm 1.05mm,
+      linear-gradient(150deg,#ccc9bf 0%,#8a8780 50%,#5a5852 100%);border:.25mm solid #333}
+  .ph::after{content:"ẢNH";position:absolute;right:1.6mm;bottom:1.2mm;font-family:Arial,sans-serif;
+      font-size:2.3mm;letter-spacing:.8mm;color:rgba(255,255,255,.85)}
+  .cap{font-family:Arial,Helvetica,sans-serif;font-size:2.5mm;line-height:1.4;color:#3a3a3a;
+       padding-top:1.1mm;border-top:.2mm solid #999;margin-top:1.3mm}
+
+  /* ---- đầu trang chuyên mục ---- */
+  .running{display:flex;justify-content:space-between;align-items:baseline;
+           border-bottom:1.2mm solid #14472e;padding-bottom:1.8mm}
+  .running .sec{font-family:Arial,sans-serif;font-size:6.4mm;font-weight:700;letter-spacing:3mm;
+                text-transform:uppercase;color:#14472e}
+  .running .meta{font-family:Arial,sans-serif;font-size:2.8mm;color:#444;letter-spacing:.3mm}
+
+  /* ---- lưới 5 cột ---- */
+  .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:0 5mm;padding-top:4mm;flex:1;align-content:start}
+  .a{grid-column:1 / 4;padding-right:4mm;border-right:.25mm solid #aaa}
+  .b{grid-column:4 / 6}
+
+  .kick{font-family:Arial,sans-serif;font-size:2.8mm;letter-spacing:1.4mm;text-transform:uppercase;color:#14472e}
+  h2{font-size:12.5mm;line-height:1.02;letter-spacing:-.4mm;margin:2mm 0 2.5mm}
+  .deck{font-size:4.2mm;line-height:1.38;font-style:italic;color:#333;margin-bottom:3mm}
+  .byline{font-family:Arial,sans-serif;font-size:2.7mm;letter-spacing:.6mm;text-transform:uppercase;
+          padding:1.2mm 0;border-top:.25mm solid #111;border-bottom:.25mm solid #111;margin-bottom:3mm}
+  .a .ph{height:62mm}
+  .cols3{column-count:3;column-gap:5mm;column-rule:.2mm solid #ccc;margin-top:3mm}
+  .cols2{column-count:2;column-gap:5mm;column-rule:.2mm solid #ccc;margin-top:2.5mm}
+  p.t{font-size:3.2mm;line-height:1.46;text-align:justify;margin-bottom:1.5mm}
+  p.t:first-child::first-letter{float:left;font-size:11mm;line-height:.85;font-weight:700;padding:.8mm 1.3mm 0 0;color:#14472e}
+
+  /* ---- hộp dữ liệu chèn trong bài ---- */
+  .databox{border-top:.9mm solid #14472e;border-bottom:.9mm solid #14472e;padding:2.5mm 0;margin:3mm 0;
+           break-inside:avoid}
+  .databox h3{font-family:Arial,sans-serif;font-size:3.2mm;letter-spacing:1.2mm;text-transform:uppercase;
+              color:#14472e;margin-bottom:2mm}
+  .databox table{width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:2.8mm}
+  .databox td{padding:1.2mm 0;border-bottom:.2mm dotted #999}
+  .databox td:last-child{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+  .databox tr:last-child td{border-bottom:0}
+  .databox .src{font-family:Arial,sans-serif;font-size:2.3mm;font-style:italic;color:#666;margin-top:1.5mm}
+
+  .b h3.s{font-size:7.4mm;line-height:1.08;margin-bottom:2mm}
+  .b .ph{height:40mm}
+  .b .rulehead{font-family:Arial,sans-serif;font-size:3mm;letter-spacing:1.2mm;text-transform:uppercase;
+               border-bottom:.35mm solid #111;padding-bottom:1.2mm;margin:4mm 0 2mm;color:#14472e}
+  .b li{list-style:none;font-size:3mm;line-height:1.38;padding:1.6mm 0;border-bottom:.2mm dotted #aaa}
+  .b li b{display:block;font-family:Arial,sans-serif;font-size:2.4mm;letter-spacing:.5mm;
+          text-transform:uppercase;color:#8a0d14;margin-bottom:.5mm}
+
+  /* ---- quảng cáo chân trang: mô-đun 5 cột × 60 mm ---- */
+  .ad{margin-top:5mm;border:.7mm solid #111;height:62mm;display:grid;grid-template-columns:1fr 88mm;
+      align-items:center;gap:8mm;padding:6mm 8mm;background:#fff}
+  .ad .mark{font-family:Arial,sans-serif;font-size:2.5mm;letter-spacing:2mm;text-transform:uppercase;
+            color:#777;position:absolute;margin-top:-52mm}
+  .ad h4{font-family:Arial,sans-serif;font-size:13mm;font-weight:900;line-height:.98;letter-spacing:-.5mm;
+         text-transform:uppercase}
+  .ad p{font-family:Arial,sans-serif;font-size:3.4mm;line-height:1.4;color:#333;margin-top:3mm;max-width:120mm}
+  .ad .cta{display:inline-block;margin-top:4mm;background:#111;color:#fff;font-family:Arial,sans-serif;
+           font-size:3mm;letter-spacing:1mm;text-transform:uppercase;padding:2mm 5mm}
+  .ad .ph{height:100%;border:0}
+
+  .foot{margin-top:auto;padding-top:2.5mm;border-top:.25mm solid #111;display:flex;justify-content:space-between;
+        font-family:Arial,sans-serif;font-size:2.5mm;color:#444}
+  @media print{html,body{background:#fff}.sheet{margin:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="running">
+    <div class="sec">Kinh tế</div>
+    <div class="meta">Thứ Tư 26 · 8 · 2026 &nbsp;·&nbsp; Nhật báo Minh Hoạ &nbsp;·&nbsp; Trang 5</div>
+  </div>
+
+  <div class="grid">
+    <div class="a">
+      <div class="kick">Thị trường nông sản</div>
+      <h2>Sau vụ được giá, nông dân dè dặt mở rộng diện tích</h2>
+      <div class="deck">Giá thu mua tăng liên tiếp bốn tháng nhưng phần lớn hộ trồng vẫn giữ nguyên diện tích.
+        Ký ức về hai vụ rớt giá trước đó vẫn còn quá gần.</div>
+      <div class="byline">Minh Khuê · Ghi tại vùng nguyên liệu phía tây</div>
+
+      <div class="ph"></div>
+      <div class="cap">Điểm thu mua đầu vụ tại xã Mẫu Đông, nơi giá thu mua tăng thêm 2.400 đồng mỗi kilôgam so với đầu năm.</div>
+
+      <div class="cols3">
+        <p class="t">Chị Hạnh có bốn công đất. Vụ này chị bán được giá cao nhất trong ba năm, nhưng khi được hỏi
+          có mở rộng thêm không, chị lắc đầu.</p>
+        <p class="t">“Năm kia cũng được giá như vầy. Tôi thuê thêm hai công, tới lúc thu thì giá rớt còn một
+          nửa”, chị nói. Khoản lỗ năm đó chị trả xong cách đây bốn tháng.</p>
+        <p class="t">Tâm lý ấy khá phổ biến. Khảo sát nhanh của hội nông dân xã trên 120 hộ cho thấy chỉ 18 hộ
+          dự định tăng diện tích trong vụ tới.</p>
+        <p class="t">Doanh nghiệp thu mua thì lo ngược lại. Đại diện một nhà máy chế biến cho biết công suất
+          hiện chỉ chạy được khoảng bảy mươi phần trăm vì thiếu nguyên liệu ổn định.</p>
+        <p class="t">Giải pháp được nhắc tới nhiều nhất là hợp đồng bao tiêu có giá sàn. Nhưng ở vùng này, mô
+          hình đó mới phủ được chừng một phần năm diện tích.</p>
+        <p class="t">“Ký hợp đồng thì yên tâm, nhưng lúc giá lên cao hơn giá sàn, bà con lại tiếc”, cán bộ
+          khuyến nông xã nhận xét.</p>
+      </div>
+
+      <div class="databox">
+        <h3>Giá thu mua bình quân tại vùng nguyên liệu</h3>
+        <table>
+          <tr><td>Tháng 4 · 2026</td><td>9.800 đ/kg</td></tr>
+          <tr><td>Tháng 5 · 2026</td><td>10.600 đ/kg</td></tr>
+          <tr><td>Tháng 6 · 2026</td><td>11.400 đ/kg</td></tr>
+          <tr><td>Tháng 7 · 2026</td><td>12.200 đ/kg</td></tr>
+          <tr><td>Cùng kỳ 2025</td><td>8.100 đ/kg</td></tr>
+        </table>
+        <div class="src">Nguồn: Tổng hợp từ báo cáo của ba điểm thu mua lớn nhất trong vùng.</div>
+      </div>
+
+      <div class="cols3">
+        <p class="t">Về phía ngân hàng, dư nợ cho vay nông nghiệp tại địa bàn tăng 14% so với đầu năm, chủ yếu
+          ở nhóm vay ngắn hạn dưới sáu tháng.</p>
+        <p class="t">Điều này cho thấy nông dân vẫn ưu tiên xoay vòng vốn nhanh thay vì đầu tư dài hạn cho việc
+          mở rộng sản xuất.</p>
+        <p class="t">Sở nông nghiệp cho biết đang xây dựng đề án hỗ trợ lãi suất cho các hộ tham gia liên kết
+          bao tiêu, dự kiến trình trong quý bốn.</p>
+      </div>
+    </div>
+
+    <div class="b">
+      <h3 class="s">Nhà máy chạy bảy mươi phần trăm công suất</h3>
+      <div class="ph"></div>
+      <div class="cap">Dây chuyền sơ chế tại một nhà máy trong khu công nghiệp phía tây.</div>
+      <div class="cols2">
+        <p class="t">Ba nhà máy chế biến trong vùng đều chưa chạy hết công suất thiết kế. Nguyên nhân chính là
+          nguồn nguyên liệu không đều giữa các tháng.</p>
+        <p class="t">Một doanh nghiệp cho biết đã phải nhập nguyên liệu từ tỉnh lân cận với chi phí vận chuyển
+          cao hơn khoảng mười tám phần trăm.</p>
+      </div>
+
+      <div class="rulehead">Tin kinh tế trong ngày</div>
+      <ul>
+        <li><b>Xuất khẩu</b>Kim ngạch bảy tháng đạt 4,1 tỷ USD, tăng 8,6% so với cùng kỳ.</li>
+        <li><b>Bán lẻ</b>Tổng mức bán lẻ tháng 7 tăng 5,1%, chậm lại so với tháng trước.</li>
+        <li><b>Tín dụng</b>Dư nợ cho vay nông nghiệp tăng 14% so với đầu năm.</li>
+        <li><b>Đầu tư</b>Hai dự án chế biến sâu được chấp thuận chủ trương trong tháng.</li>
+        <li><b>Lao động</b>Nhu cầu tuyển dụng thời vụ tăng mạnh trước vụ thu hoạch.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="ad">
+    <div class="mark">Thông tin quảng cáo</div>
+    <div>
+      <h4>Vốn lưu động<br>cho mùa vụ mới</h4>
+      <p>Gói tín dụng ngắn hạn dành cho hộ sản xuất nông nghiệp. Giải ngân trong 48 giờ,
+        không yêu cầu tài sản bảo đảm với hạn mức đến 200 triệu đồng.</p>
+      <span class="cta">Ngân hàng Mẫu · 1900 0000</span>
+    </div>
+    <div class="ph"></div>
+  </div>
+
+  <div class="foot">
+    <span>Nhật báo Minh Hoạ · minhhoa.example.vn</span>
+    <span>Kinh tế · Trang 5</span>
+  </div>
+</div>
+</body>
+</html>
