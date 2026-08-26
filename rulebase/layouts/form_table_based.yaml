@@ -11,6 +11,7 @@
 id: form_table_based
 name: Table-based form — a ruled parameter table, checklist, one signature
 source: "FUNSD (Compound Physical Parameters) — bảng viền rõ ràng, ô checkbox, chữ ký cuối trang"
+family: form
 
 width: [85, 95]
 gutter: 2

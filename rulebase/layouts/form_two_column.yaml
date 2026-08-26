@@ -9,6 +9,7 @@
 id: form_two_column
 name: Two-column form — matching fields side by side, dual signature
 source: "LuatVietnam.vn (tờ khai đăng ký kết hôn) — hai cột song song 'Bên nữ'/'Bên nam', lời cam đoan, hai khối chữ ký đối xứng"
+family: form
 
 width: [90, 100]
 gutter: 2

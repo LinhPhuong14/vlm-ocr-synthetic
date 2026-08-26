@@ -6,6 +6,7 @@
 id: market_vat
 name: Supermarket — a VAT rate on every item row
 source: "photo Saigon Co.op, PHIẾU TÍNH TIỀN 2022"
+family: till
 
 width: [42, 48]
 rule_char: "-"
