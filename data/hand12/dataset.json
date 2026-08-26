@@ -12,6 +12,10 @@
   "clean": false,
   "force": {},
   "template": "auto",
-  "handwriting": true,
-  "frameworks": {"html": {"images": 12}}
+  "handwriting": "font",
+  "frameworks": {
+    "html": {
+      "images": 12
+    }
+  }
 }

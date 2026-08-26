@@ -9,10 +9,13 @@ recovers correctly or silently produces duplicates.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pytest
 
 from pipeline.worker import DONE, is_done, mark_done, shard_dir
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_shard_directories_are_zero_padded_and_ordered(tmp_path):
@@ -77,25 +80,54 @@ def test_renderer_command_carries_the_pins_and_the_page_model(tmp_path, monkeypa
     assert command[command.index("--template") + 1] == "auto"
     assert "--force" in command
     assert f"augmentation={worker.CLEAN_AUGMENTATION}" in command
-    assert "--clean" not in command, "only the glyph backend has geometry to switch off"
+    assert "--clean" not in command, (
+        "`--clean` switched off the glyph backend's own geometry; no drawable "
+        "backend has any, so a clean run is augmentation=pristine and nothing else")
 
     grid = worker.renderer_command(
-        "genalog", tmp_path / "out", tmp_path / "jobs.json", clean=False, force=[])
+        "html", tmp_path / "out", tmp_path / "jobs.json", clean=False, force=[])
     assert "--template" not in grid, "no template means the character grid"
 
-    glyphs = worker.renderer_command(
-        "synthdog", tmp_path / "out", tmp_path / "jobs.json",
-        clean=True, force=[], template="auto")
-    assert "--clean" in glyphs
-    assert "--template" not in glyphs, "the glyph backend has no CSS"
+
+def test_a_name_that_is_not_a_backend_cannot_be_dispatched(tmp_path):
+    """The registry turns a name into a process, so it is the backstop.
+
+    A retired backend is refused earlier by `Config`, with the reason; a typo
+    has no earlier check at all, because the seed arithmetic is N-backend and
+    `Config` deliberately does not police names it merely does not recognise.
+    Both stop here.
+    """
+    from pipeline import worker
+    from pipeline.worker import ShardError
+
+    for name in ("synthdog", "genalog", "crayon"):
+        with pytest.raises(ShardError, match="not a backend"):
+            worker.renderer_command(
+                name, tmp_path / "out", tmp_path / "jobs.json",
+                clean=False, force=[])
 
 
-def test_a_sheet_run_may_not_include_the_glyph_backend():
-    """Refused at the config, not silently mixed at the renderer."""
+def test_a_retired_backend_is_refused_by_name_with_the_reason():
+    """Refused at the config, not silently mixed at the renderer.
+
+    This used to be narrower -- a *sheet* run could not include the glyph
+    backend, because it draws a character grid and would have produced a third
+    of the images from a different page model. `synthdog` and `genalog` are now
+    off for dataset generation altogether, so the refusal is unconditional and
+    carries the reason rather than leaving a reader to find it.
+    """
     from pipeline.config import Config, ConfigError
 
-    with pytest.raises(ConfigError, match="template"):
-        Config.from_dict({
-            "run": {"out": "/tmp/x", "per_backend": 2, "template": "auto"},
-            "backends": ["synthdog", "html"],
-        })
+    for retired in ("synthdog", "genalog"):
+        with pytest.raises(ConfigError, match=retired):
+            Config.from_dict({
+                "run": {"out": "/tmp/x", "per_backend": 2},
+                "backends": [retired, "html"],
+            })
+
+
+def test_the_shipped_config_names_only_drawable_backends():
+    from pipeline.config import ACTIVE_BACKENDS, Config
+
+    config = Config.load(REPO_ROOT / "pipeline.yaml")
+    assert set(config.backends) <= set(ACTIVE_BACKENDS)

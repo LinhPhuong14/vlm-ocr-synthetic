@@ -18,10 +18,11 @@ LAYOUT  ?=
 
 .DEFAULT_GOAL := help
 .PHONY: help setup setup-synthdog setup-html setup-genalog setup-writevit \
-        textures handwriting \
+        textures patterns handwriting signatures \
         receipts preview preview-grid dataset dataset-clean proof showcase \
         ornaments templates \
-        preflight check-rules check-corpus check-boxes distribution monitor \
+        preflight check-rules check-corpus check-boxes migrate-metadata \
+        distribution monitor \
         list-degradations \
         lint format check clean
 
@@ -30,34 +31,38 @@ help:  ## Show this help
 
 # ---------------------------------------------------------------- setup
 
-setup:           ## Build all three renderer environments
+setup:           ## Build the renderer environment (html)
 	$(TASKS) setup
-setup-synthdog:  ## glyph renderer: synthtiger (needs Python 3.8-3.11)
-	$(TASKS) setup-synthdog
 setup-html:      ## HTML renderer: playwright + a headless browser
 	$(TASKS) setup-html
-setup-genalog:   ## genalog renderer: WeasyPrint + PyMuPDF
-	$(TASKS) setup-genalog
 setup-writevit:  ## handwriting: clone WriteViT beside the repo, fetch its weights
 	$(TASKS) setup-writevit
+setup-synthdog:  ## patterns: synthtiger (retired as a document backend)
+	$(TASKS) setup-synthdog
+setup-genalog:   ## WeasyPrint + PyMuPDF (retired; only to re-read old sets)
+	$(TASKS) setup-genalog
+patterns:        ## Regenerate every shared pattern: paper, backgrounds, ornaments
+	$(TASKS) patterns
 textures:        ## Regenerate the shared paper and background textures
 	$(TASKS) textures
 ornaments:       ## Regenerate the seals and flourishes in textures/ornament
 	$(TASKS) ornaments
 templates:       ## Print the reference sheets in samples/*-templates
 	$(TASKS) templates
+signatures:      ## Regenerate samples/signatures: the style grid and two signed sheets
+	$(TASKS) signatures
 
 # ------------------------------------------------------------ generation
 
 receipts:        ## 100 receipts with the glyph renderer, via the synthtiger CLI
 	$(TASKS) receipts
-dataset:         ## Build a labelled dataset with all three renderers (N=20 each)
+dataset:         ## Build a labelled dataset with the html renderer (N=20)
 	$(TASKS) dataset -o $(DATASET) -n $(N)
 dataset-clean:   ## The same dataset with no ageing and no distortion at all
 	$(TASKS) dataset-clean -o $(DATASET) -n $(N)
 tables:          ## Table-structure images, from the html backend (TABLES=60)
 	$(TASKS) tables -o data/tables60 -n $(TABLES)
-handwriting:     ## Regenerate data/hand12: form fields filled in with real ink
+handwriting:     ## Regenerate data/hand12: every form field filled in with ink
 	$(TASKS) handwriting
 run:             ## Run pipeline.yaml: preflight, shards in parallel, assemble
 	$(TASKS) run
@@ -71,6 +76,8 @@ profile:         ## Time every stage of every renderer into $(PROFILE)
 	$(TASKS) profile --count $(PROFILE_N) --out $(PROFILE)
 check-boxes:     ## Verify every renderer's boxes still land on its text
 	$(TASKS) check-boxes --dataset $(DATASET)
+migrate-metadata: ## Bring $(DATASET)'s metadata.jsonl into the current schema
+	$(TASKS) migrate-metadata --dataset $(DATASET)
 showcase:        ## One before/after image per degradation into samples/degradation/
 	$(TASKS) showcase
 preview:         ## Render a grid of sample receipts to eyeball the config

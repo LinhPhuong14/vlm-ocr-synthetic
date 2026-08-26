@@ -66,6 +66,36 @@ TOP_KEYS = {"run", "backends", "shard", "overrides", "quality"}
 PAIRINGS = ("paired", "independent")
 DEFAULT_PAIRING = "paired"
 
+# Which backends a run may draw with, and which have been taken out of that job.
+#
+# The repository was built around three renderers drawing one receipt three
+# ways, and `pairing: paired` exists to make that comparison mean something.
+# That is no longer what it is for: **`html` is the renderer**, and the other
+# two have been retired from dataset generation for reasons that belong next to
+# the list rather than in a commit message nobody re-reads.
+#
+# Retiring is not deleting. `generators/genalog/` and `generators/synthdog/` are
+# still on disk, still import cleanly, and the halves of `data/dataset60/`,
+# `data/invoices54/`, `data/forms16/` and `data/dataset_test/` they drew are
+# still committed -- so every tool that READS a dataset (`tools/check_boxes.py`,
+# `tools/ocr_proof.py`, `tools/monitor.py`, `pipeline/drift.py`) still handles
+# their records, and must keep doing so. What is off is the producing: no run,
+# no `make dataset`, no plan can dispatch them.
+ACTIVE_BACKENDS = ("html",)
+RETIRED_BACKENDS = {
+    "genalog": (
+        "retired. WeasyPrint recovers a box by walking the labelled runs beside "
+        "the PDF's own glyph layer, which cost a second implementation of the "
+        "page geometry for every feature the browser backend gained"
+    ),
+    "synthdog": (
+        "no longer a document backend -- it draws a character grid, not a CSS "
+        "sheet, so it cannot print any layout added since generators/html/sheets/. "
+        "Its remaining job is pattern and texture generation; see "
+        "docs/renderers.md"
+    ),
+}
+
 
 class ConfigError(ValueError):
     """The run declaration is wrong, and running it would not mean what it says."""
@@ -135,6 +165,19 @@ class Config:
             raise ConfigError("backends: at least one is required")
         if not isinstance(backends, list):
             raise ConfigError("backends: must be a list")
+        # A retired backend is refused here, by name and with the reason, so a
+        # config that would draw a third of its images from a renderer nobody
+        # maintains fails before any work is done. A name that is merely
+        # UNKNOWN is not refused here: the seed arithmetic in `pipeline/plan.py`
+        # is genuinely N-backend and its tests need to name more than one, and
+        # `pipeline/worker.BACKENDS` is what actually has to resolve a name to a
+        # script -- that is where a typo stops.
+        for name in map(str, backends):
+            if name in RETIRED_BACKENDS:
+                raise ConfigError(
+                    f"backends: {name!r} is {RETIRED_BACKENDS[name]}. "
+                    f"Drawable backends are {list(ACTIVE_BACKENDS)}."
+                )
 
         out = run.get("out")
         if not out:
@@ -161,28 +204,7 @@ class Config:
         if isinstance(layouts, str) or not isinstance(layouts, (list, tuple)):
             raise ConfigError("run.layouts: must be a list of layout names")
 
-        # `grid` is a value, not an absence. It used to arrive as "", which
-        # meant a config that never mentioned a page model produced the older
-        # one and said so nowhere -- and the page model is the single largest
-        # visual decision in a run (0.24% coloured pixels against 4.32%,
-        # measured over the sixteen layouts). Written down, it can be argued
-        # with; defaulted, it cannot.
-        template = str(run.get("template") or "grid")
-        if template == "grid":
-            template = ""                      # what the backends call the grid
-        elif template != "auto" and not template.replace("_", "").isalnum():
-            raise ConfigError(
-                f"run.template: expected 'grid', 'auto' or a layout id, got "
-                f"{template!r}")
-        if template and "synthdog" in [str(name) for name in backends]:
-            # Said plainly rather than dropped silently: the glyph backend
-            # composites individual glyphs onto a canvas and cannot draw a table
-            # rule, so a "CSS sheet" run including it would quietly produce a
-            # third of its images from a different page model.
-            raise ConfigError(
-                "run.template draws the CSS sheets, which only the two HTML "
-                "backends can print; drop 'synthdog' from backends or drop "
-                "run.template")
+        template = str(run.get("template") or "")
 
         return cls(
             # Absolute here, at the edge, once. A relative output path handed to

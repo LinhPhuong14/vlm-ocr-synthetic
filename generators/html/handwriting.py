@@ -168,6 +168,14 @@ INK_HEIGHT_EM = (1.95, 2.25)   # per page: nobody writes the printed size
 SIT_EM = 0.55
 SIT_JITTER_EM = 0.07   # per field: nobody writes exactly on the rule either
 WORD_GAP = 14          # source px between words, on a 32 px body
+# How sharply partial coverage becomes opaque -- see `ink_png`. Swept at 1.0,
+# 0.8, 0.65 and 0.5 and read off the pixels: mean stroke value falls 128 -> 118
+# monotonically, but so does fidelity. At 0.5 the ink covers 19.2 % of the field
+# against the generator's own 15.9 %, which is no longer compositing the model's
+# stroke but thickening it. 0.8 lands at 16.5 % and buys about three points of
+# contrast, which is the most that can be taken without inventing.
+INK_GAMMA = 0.8
+
 
 # `base.span()` is text-only by contract -- `CELL_RECTS_JS` measures
 # `firstElementChild` and a nested element would silently become the box -- so a
@@ -563,9 +571,25 @@ def compose(pairs: list) -> "object":
     metrics = [extent(word) for word, _ in pairs]
     top = max(above for above, _ in metrics)
     drop = max(below for _, below in metrics)
-    # One tile's own height, in px, is the reference: a word using the full
-    # band keeps the generator's native 32 px and nothing is upscaled beyond it.
-    unit = max(tile.height for _, tile in pairs) / (ABOVE_TALL + X_HEIGHT + BELOW_TAIL)
+    # No tile may be DOWNSCALED, and that is the whole of this line.
+    #
+    # The obvious reference -- "a word using the full band keeps the native
+    # 32 px" -- is wrong, because most words do not use the full band. `Chu Văn
+    # Lâm` has no descender at all, so under that rule the whole line came out
+    # 25 px, and the browser then scaled it back up to the ~35 px the field
+    # gives it: a downscale followed by an upscale, which is where the ink lost
+    # its edge. Measured on one field, mean stroke value went from 91 in the
+    # generator's own output to 133 on the page.
+    #
+    # Taking the maximum of `height / extent` instead means the word that would
+    # have shrunk most keeps its pixels and every other tile is upscaled. A
+    # Composing ABOVE the display size and letting the browser scale down was
+    # tried too, on the theory that downscaling keeps a harder edge. Measured at
+    # 1x, 2x, 3x and 4x it moved the mean stroke value by 7 points with no
+    # ordering -- noise, not signal, because the source is 32 px and the field
+    # gives it 35. It is not here.
+    unit = max(tile.height / max(above + X_HEIGHT + below, 0.01)
+               for (_, tile), (above, below) in zip(pairs, metrics))
 
     scaled = []
     for (_, tile), (above, below) in zip(pairs, metrics):
@@ -573,16 +597,19 @@ def compose(pairs: list) -> "object":
         width = max(int(round(tile.width * height / tile.height)), 1)
         scaled.append((tile.resize((width, height), Image.LANCZOS), above))
 
+    # `WORD_GAP` is quoted on the generator's own 32 px body, so it follows the
+    # scale rather than staying 14 px of a now-much-taller line.
+    gap = max(int(round(WORD_GAP * unit * (ABOVE_TALL + X_HEIGHT + BELOW_TAIL) / 32)), 1)
     canvas = Image.new(
         "L",
-        (sum(tile.width for tile, _ in scaled) + WORD_GAP * (len(scaled) - 1),
+        (sum(tile.width for tile, _ in scaled) + gap * (len(scaled) - 1),
          max(int(round((top + X_HEIGHT + drop) * unit)), 1)),
         255,
     )
     x = 0
     for tile, above in scaled:
         canvas.paste(tile, (x, int(round((top - above) * unit))))
-        x += tile.width + WORD_GAP
+        x += tile.width + gap
     return canvas
 
 
@@ -598,7 +625,12 @@ def ink_png(line, pen: tuple[int, int, int]) -> bytes:
     from PIL import Image
 
     grey = np.asarray(line, dtype=np.uint8)
-    alpha = 255 - grey
+    # Ink saturates paper: a fibre half-covered by a ballpoint is darker than
+    # half-covered paint. `INK_GAMMA` below 1 bends partial coverage towards
+    # opaque, which is what keeps a 32 px stroke reading as a stroke once the
+    # browser has resampled it into a 35 px field.
+    alpha = 255.0 * np.power((255.0 - grey) / 255.0, INK_GAMMA)
+    alpha = alpha.astype(np.uint8)
     rgba = np.zeros(grey.shape + (4,), dtype=np.uint8)
     rgba[..., 0], rgba[..., 1], rgba[..., 2] = pen
     rgba[..., 3] = alpha

@@ -37,6 +37,11 @@ if str(REPO_ROOT) not in sys.path:
 
 import profiling  # noqa: E402
 from degradation.pipeline import apply_recipe  # noqa: E402
+from pipeline import record, synthesis  # noqa: E402
+
+# Where `save` appends a page's provenance, and `end_save` reads it back.
+# Removed once `synthesis.json` is written, so a finished run does not carry it.
+PARTIAL = ".synthesis.partial.jsonl"
 
 
 def _warm_imgaug() -> None:
@@ -244,17 +249,47 @@ class SynthVNReceipt(templates.Template):
         else:
             gt_parse = data["gt_parse"]
 
-        metadata = {
-            "file_name": image_filename,
-            "ground_truth": json.dumps({"gt_parse": gt_parse}, ensure_ascii=False),
-            # Donut bỏ qua các khoá lạ trong ground_truth, nên box và recipe
-            # để riêng ở đây
-            "boxes": data["boxes"],
-            "recipe": data["recipe"],
-        }
-        with open(os.path.join(output_dirpath, "metadata.jsonl"), "a", encoding="utf-8") as fp:
-            json.dump(metadata, fp, ensure_ascii=False)
+        # Cùng một shape với `render.py` và hai renderer còn lại: dựng ở
+        # `pipeline/record.py` chứ không viết tay ở đây, nếu không thì đường
+        # synthtiger CLI và đường dataset sẽ trôi khỏi nhau mà không ai biết.
+        drawn = str(((data["recipe"].get("attributes") or {})
+                     .get("layout") or {}).get("id", ""))
+        metadata = record.build(
+            filename=image_filename, width=data["image"].shape[1],
+            height=data["image"].shape[0], parser="synthdog",
+            boxes=data["boxes"], extracted=gt_parse, seed=data["recipe"].get("seed"),
+            layout=drawn)
+        record.write_one(metadata, output_dirpath, strict=False)
+        # synthtiger owns the loop here, so there is no place to hold a writer
+        # open across pages: the provenance is appended a page at a time and
+        # `end_save` folds it into one `synthesis.json`.
+        with open(os.path.join(output_dirpath, PARTIAL), "a", encoding="utf-8") as fp:
+            json.dump({"filename": image_filename, "job_id": metadata["job_id"],
+                       "layout": drawn, "recipe": data["recipe"],
+                       "text_sequence": data["text_sequence"]}, fp, ensure_ascii=False)
             fp.write("\n")
 
     def end_save(self, root):
-        pass
+        """Turn each split's appended provenance into its `synthesis.json`.
+
+        `save` cannot stream into one file because synthtiger calls it once per
+        page with no hook that owns the run, so the pages are appended to a
+        scratch file and folded here -- where every page of every split is
+        known, which is also the only point at which the deduplicated
+        `attributes` block can be complete.
+        """
+        for split in self.splits:
+            directory = os.path.join(root, split)
+            partial = os.path.join(directory, PARTIAL)
+            if not os.path.exists(partial):
+                continue
+            with open(partial, encoding="utf-8") as fp:
+                pages = [json.loads(line) for line in fp if line.strip()]
+            synthesis.write(
+                synthesis.beside(Path(directory)), "synthdog",
+                ((page["filename"], {"job_id": page["job_id"],
+                                     "layout": page["layout"],
+                                     "recipe": page["recipe"],
+                                     "text_sequence": page["text_sequence"]})
+                 for page in pages))
+            os.remove(partial)

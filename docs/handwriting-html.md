@@ -12,7 +12,9 @@ giấy phép. Đoạn dây chạy được, ảnh ra đúng, nhãn không xê d�
 nhưng mô hình để lại bảy phần tám số ô vẫn in máy, và **82 % số ô bị từ chối là
 vì có chữ số**. Có hai nguồn mực vì thế, và chúng **không thay thế nhau**.
 
-![Điền tay: chỗ chạy được và bức tường chữ số](figures/handwriting-html.jpg)
+![Hai nguồn mực trên cùng một kiểu tờ: mặt chữ lấp hết, mô hình dừng ở chữ số](figures/handwriting-html.jpg)
+
+*Dựng lại bằng `generators/html/.venv/bin/python docs/figures/make_handwriting_figure.py`, từ hai ảnh trong `samples/handwriting/`.*
 
 ## Chạy thử
 
@@ -27,8 +29,13 @@ có "chỗ trống" nào để điền. Không có WriteViT thì lệnh **dừng
 lùi nào vẽ chữ thay — xem phần "Không có đường lùi" bên dưới.
 
 `--handwriting` nhận tên nguồn mực: `model` (mặc định, WriteViT) hoặc `font`.
-`data/hand12/` là đợt thử với `model`: 12 trang, 6 bố cục, 30 ô viết tay. Cùng
-12 trang ấy chạy lại với `font` cho **159 ô, 0 ô in máy**.
+[`data/hand12/`](../data/hand12) là đợt thử, dựng bằng **`font`**: 12 trang, 6
+bố cục, **159 ô điền tay, 0 ô in máy**. Cùng 12 trang ấy chạy bằng `model` chỉ
+được **30 ô**, 129 ô còn lại vẫn in máy — chênh lệch ấy là toàn bộ nội dung của
+tài liệu này.
+
+Sau đợt sinh lại ấy **không tập dữ liệu nào còn mang mực của mô hình**; trang
+mực-mô-hình duy nhất là `samples/handwriting/hand-filled-folio.jpg`.
 
 ## Hai nguồn mực
 
@@ -250,7 +257,7 @@ làm đổi tờ giấy nói gì** — có test riêng trên sáu họ tờ gi�
 lệch, `check_boxes` sẽ báo mọi ảnh viết tay là mất trường; nếu nó lệch **im
 lặng**, nhãn sẽ mô tả một tờ giấy chưa từng được vẽ.
 
-Đo trên `data/hand12/`: **1.262 hộp, 12 ảnh, `check_boxes` sạch** — mọi hộp nằm
+Đo trên `data/hand12/`: **1.219 hộp, 12 ảnh, `check_boxes` sạch** — mọi hộp nằm
 trong khung và mọi hộp đè lên mực.
 
 ## Ghép mực lên giấy
@@ -260,6 +267,29 @@ Ba việc nhỏ, mỗi việc có một lý do đo được.
 **Nền phải trong suốt.** WriteViT sinh chữ đen trên nền trắng. Dán đè thì dòng
 kẻ chấm dưới ô bị xoá trắng. `alpha = 255 - giá trị điểm ảnh`, đúng như
 `writevit.md` dặn, rồi tô màu bút — xanh mực là chính, đen ít hơn.
+
+**Không được thu nhỏ ảnh mực.** Bản đầu của `compose` chọn tỉ lệ sao cho một từ
+dùng **hết** dải chữ giữ nguyên 32 px của bộ sinh. Nhưng phần lớn từ không dùng
+hết dải: `Chu Văn Lâm` không có nét nào thõng xuống, nên cả dòng ra 25 px, rồi
+trình duyệt phóng ngược lên ~35 px mà ô trường dành cho nó — **thu rồi phóng**,
+và nét mất cạnh. Đo trên một ô: trung bình nét đi từ 91 (đầu ra của mô hình) lên
+133 trên trang. Lấy `max(chiều cao / dải)` thay vì `max(chiều cao) / dải trọn`
+thì từ nào lẽ ra bị co nhiều nhất sẽ giữ nguyên điểm ảnh, mọi ảnh còn lại được
+phóng lên — không ảnh nào bị thu. Trung bình nét về 122.
+
+Có thử **ghép ở độ phân giải cao hơn** rồi để trình duyệt thu xuống, theo lập
+luận thu thì giữ cạnh tốt hơn phóng. Đo ở 1×, 2×, 3×, 4×: lệch 7 điểm và
+**không đơn điệu** — nhiễu, không phải tín hiệu, vì nguồn có 32 px mà ô cho 35.
+Không đưa vào.
+
+**Phần lớn chỗ nhạt còn lại là màu bút, không phải phép lấy mẫu.** Ghép alpha
+lên giấy trắng cho `giá trị = bút·a + 255·(1−a)`, nên với bút `#1a1a20` (độ sáng
+27) thì nét đậm nhất **không bao giờ** xuống dưới 27, và trung bình 91 của mô
+hình thành 108. Đó là chủ ý — bút bi không đen tuyệt đối — nhưng nó là yếu tố
+lớn nhất, và nói ra thì hơn để người đọc tự đoán. `INK_GAMMA = 0.8` bẻ phần phủ
+một phần về phía đục, lấy lại chừng ba điểm tương phản; quét tới 0,5 thì nét phủ
+19,2 % ô trong khi bản gốc phủ 15,9 % — lúc ấy không còn là ghép nét của mô hình
+mà là làm dày nó, nên dừng ở 0,8.
 
 **Các từ phải chung một dòng kẻ chân.** Đây là chỗ đáng kể nhất. WriteViT cắt
 sát từng từ rồi kéo về 32 px, nên `Tiền` và `mặt` trả về **cùng chiều cao** dù
