@@ -23,7 +23,7 @@ LAYOUT  ?=
         ornaments templates \
         preflight check-rules check-corpus check-boxes migrate-metadata \
         distribution monitor \
-        list-degradations \
+        list-degradations legibility \
         lint format check clean
 
 help:  ## Show this help
@@ -101,6 +101,8 @@ monitor:         ## Rule space; add RUN=data/run01 to watch a run instead
 	@$(TASKS) monitor $(if $(RUN),--run $(RUN),)
 list-degradations:  ## Names usable in an augmentation chain
 	@$(TASKS) list-degradations
+legibility:      ## does an ageing chain age the text out of its own label boxes?
+	$(TASKS) legibility
 
 # -------------------------------------------------------------- quality
 
