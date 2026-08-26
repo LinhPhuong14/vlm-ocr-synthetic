@@ -93,6 +93,12 @@ options:
         - [paper_texture, {alpha: 0.25, grain: 0.35}]
         - [ink_degradation, {level: 3}]
         - [phantom_character, {frequency: rare}]
+        # Bụi mực bám thành mảng. Chuỗi này dựng dáng bản photo bằng những gì
+        # có sẵn TRƯỚC khi có mô hình máy photo hỏng; `bad_photocopy` chính là
+        # thứ nó vẫn xấp xỉ bằng tay. Liều để nhẹ và KHÔNG bật `contrast`:
+        # `ink_degradation` với `blur` ở đây đã lo phần mực bệt rồi, chồng
+        # thêm một lần đẩy tương phản nữa thì dấu thanh là thứ mất trước.
+        - [bad_photocopy, {blotch: 0.3, wash: 0.15, contrast: 0.0}]
         - [blur, {radius: 0.8}]
         - [shadow_binding, {border: top, distance_ratio: 0.08, intensity: 0.3}]
         - [paper_overlay, {alpha: 0.22, lighten: 0.4}]
@@ -209,3 +215,187 @@ options:
         # Ảnh chụp điện thoại rồi chuyển tiếp mấy chặng: mỗi chặng nén lại một
         # lần, sai số dồn lên lưới 8×8 chứ không chỉ làm ảnh mờ đi.
         - [jpeg_blocks, {quality: 30, passes: 3}]
+
+  # --------------------------------------------------------------------
+  # CHUYỂN THỂ TỪ AUGRAPHY — mười hai mô hình, chín kịch bản
+  #
+  # Nguồn: https://github.com/sparkfish/augraphy. Mã của họ không được vendor;
+  # từng mô hình viết lại trong `degradation/` và ghi rõ chuyển thể từ file nào
+  # (`copier.py`, `printing.py`, `marks.py`, `tessellation.py`, `channel.py`).
+  #
+  # Chín kịch bản dưới đây lấp ba chỗ trống mà `docs/lam-cu-de-xuat.md` đã đếm:
+  #
+  #   * mực HỎNG LÚC IN, không phải mòn theo thời gian — `letterpress`,
+  #     `hollow`, `dot_matrix`. `ink_degradation` của DocCreator tả tờ giấy in
+  #     xong rồi mục đi; ba cái này tả tờ giấy chưa bao giờ được in cho tử tế.
+  #   * nhiễu MÀU. Mười sáu mô hình trước đó đều chỉ đổi độ sáng, nên một mô
+  #     hình OCR học trên bộ này gặp viền màu lần đầu ở ảnh thật.
+  #   * nét NGƯỜI THÊM VÀO — bút dạ quang, khoanh tròn, gạch xoá, nguệch ngoạc.
+  #
+  # ------------------------------------------------------------------
+  # `by_box` LÀ CHỖ ĐÁNG ĐỌC NHẤT TRONG KHỐI NÀY.
+  #
+  # Mọi mô hình phía trên file này áp ĐỀU khắp mặt giấy. Trên ảnh thật thì gần
+  # như không hỏng nào như thế: cây bút chỉ tô một dòng, cái kim gãy chỉ ăn một
+  # dải ngang, người ta chỉ khoanh tròn ô "Tổng cộng". `by_box` bọc một mô hình
+  # bất kỳ và chỉ cho nó ăn vào vài ô chữ:
+  #
+  #   - [by_box, {effect: <tên mô hình>,
+  #               params: {<tham số của mô hình ấy>},
+  #               select: {policy: <lối bốc>, <tham số của lối bốc>}}]
+  #
+  # Sáu lối bốc, và khác nhau ở HÌNH DẠNG chứ không ở số lượng:
+  #   scatter  rải rác, không quan tâm ô nào cạnh ô nào  (`fraction` | `count`)
+  #   run      một đoạn LIỀN NHAU theo thứ tự đọc       (`fraction` | `length`)
+  #   band     mọi ô cắt qua một dải NGANG              (`thickness`, `count`)
+  #   column   mọi ô cắt qua một dải DỌC                (`thickness`, `count`)
+  #   kind     bốc theo VAI TRÒ ô, khớp theo tiền tố    (`kinds`, `fraction`)
+  #   all      mọi ô có chữ — vẫn khác cả trang: lề và khoảng trống không dính
+  #
+  # `kinds: [total]` trúng cả `total.grand` lẫn `total.line`; xem `_kind_matches`
+  # trong `degradation/regions.py`. Bốc ra rỗng KHÔNG phải lỗi — một tờ không có
+  # ô tổng cộng thì đi qua nguyên vẹn.
+
+  - id: drum_streaks
+    weight: 2
+    excludes: [thermal]
+    tags: [textured, scanned]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.24, grain: 0.35}]
+        - [ink_degradation, {level: 2}]
+        # Sọc DỌC của trống mực và dải NGANG của trục lăn là hai hỏng khác
+        # nhau, vuông góc nhau, và một tờ đi qua máy hỏng thì mang cả hai.
+        - [dirty_drum, {lines: 5, direction: vertical, intensity: 0.55, line_width: 3}]
+        - [dirty_rollers, {intensity: 0.3, period: 80}]
+        - [scan_banding, {period: 36, amplitude: 0.05}]
+        - [jpeg_blocks, {quality: 45, passes: 1}]
+
+  - id: impact_ribbon
+    weight: 2
+    requires: [impact]        # chỉ máy in kim mới in ra lưới chấm này
+    tags: [textured, dot_printed]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.32, grain: 0.5}]
+        # Hai kim gãy: mỗi cái để lại một vạch trắng ngang chạy suốt mọi dòng,
+        # đúng một độ cao trong mỗi ký tự. Nhiễu CÓ CẤU TRÚC, nên mô hình học
+        # được nó — khác hẳn nhiễu rắc ngẫu nhiên.
+        - [dot_matrix, {cell: 2.8, shape: circle, coverage: 0.78,
+                        strength: 0.8, dead_pins: 2, ribbon: 0.25}]
+        - [blur, {radius: 0.5}]
+        - [scan_banding, {period: 42, amplitude: 0.04}]
+
+  - id: worn_plate
+    weight: 2
+    tags: [textured, hollowed]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.3, grain: 0.45}]
+        # Bản in ăn mực kém: nét rỗ hoa khắp trang...
+        - [letterpress, {clusters: 260, spread: 5.0, dots: 14, strength: 0.65}]
+        # ...còn rỗng ruột thì chỉ ở VÀI DÒNG. Ruy băng khô không khô đều cả
+        # trang; nó khô ở đoạn nó nằm lâu nhất. Đây là chỗ `by_box` kiếm được
+        # tiền: cùng một mô hình, áp cả trang thì ra tờ giấy không ai in nổi.
+        - [by_box, {effect: hollow, params: {strength: 0.8},
+                    select: {policy: run, fraction: 0.18}}]
+        - [blur_zones, {radius: 1.0, zones: 2, coverage: 0.14}]
+
+  - id: annotated
+    weight: 2
+    tags: [textured, annotated]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.28, grain: 0.4}]
+        - [ink_degradation, {level: 2}]
+        # Người đọc tô mấy dòng LIỀN NHAU, không tô ba dòng cách quãng.
+        - [by_box, {effect: markup, params: {style: highlight, opacity: 0.7},
+                    select: {policy: run, fraction: 0.08}}]
+        # Và khoanh tròn đúng ô tiền. `kinds: [total]` trúng cả `total.grand`
+        # lẫn `total.line`; tờ nào không có ô tổng cộng thì bước này không làm
+        # gì, chứ không hỏng.
+        - [by_box, {effect: markup, params: {style: circle, colour: red},
+                    select: {policy: kind, kinds: [total], fraction: 0.6}}]
+        - [blur_zones, {radius: 1.0, zones: 1, coverage: 0.12}]
+        - [paper_overlay, {alpha: 0.26, lighten: 0.32}]
+
+  - id: scribbled
+    weight: 3
+    tags: [textured, annotated, dirty]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.34, grain: 0.5}]
+        - [ink_degradation, {level: 3}]
+        # Gạch xoá một dòng ghi sai. `crossed_off` là mô hình DUY NHẤT ở đây
+        # được phép che chữ — và một ô bị gạch xoá vẫn mang nhãn khai đủ chữ,
+        # nên `count: 1` chứ không phải một phần trăm của trang.
+        - [by_box, {effect: markup, params: {style: crossed_off, colour: blue},
+                    select: {policy: scatter, count: 1}}]
+        - [by_box, {effect: scribbles, params: {turns: 8, opacity: 0.75},
+                    select: {policy: scatter, count: 2}}]
+        - [blur_zones, {radius: 1.2, zones: 2, coverage: 0.16}]
+
+  - id: security_paper
+    weight: 1
+    requires: [doc_invoice]   # hoá đơn đặt in mới có nền bảo an
+    tags: [textured, patterned]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.22, grain: 0.3}]
+        # Nền chia ô in chìm. `alpha` để thấp vì đây là nền BẢO AN, không phải
+        # vết bẩn: nó phải thấy được mà không lấn chữ. Trên 0.3 thì mô hình OCR
+        # bắt đầu nhận hoạ tiết nền thành ký tự, tức là đang dạy điều ngược lại
+        # với điều muốn dạy.
+        - [voronoi_tessellation, {scale: 30, alpha: 0.15, contrast: 0.6, edges: 0.08}]
+        - [ink_degradation, {level: 2}]
+        - [blur_zones, {radius: 1.0, zones: 2, coverage: 0.14}]
+
+  - id: security_guilloche
+    weight: 1
+    requires: [doc_invoice]
+    tags: [textured, patterned]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.22, grain: 0.3}]
+        # Delaunay là đối ngẫu của Voronoi trên cùng tập điểm sinh, nhưng phủ
+        # lên trang thì đọc ra khác hẳn: mảng tam giác nhọn giống nền in trang
+        # trí, ô Voronoi giống thớ giấy. Giữ cả hai để một lượt chạy so được.
+        - [delaunay_tessellation, {scale: 42, alpha: 0.13, contrast: 0.5}]
+        - [ink_degradation, {level: 2}]
+        - [paper_overlay, {alpha: 0.24, lighten: 0.34}]
+
+  # Ảnh chụp LẠI MÀN HÌNH. Hoá đơn điện tử mở trên máy tính rồi chụp bằng điện
+  # thoại — loại ảnh đang tăng nhanh nhất, và trước đợt này không mô hình nào
+  # trong repo sinh ra nổi. Ba dấu vết cùng lúc: viền màu của subpixel RGB, dải
+  # xé của màn hình đang quét, và nén lại khi gửi đi.
+  - id: screen_photo
+    weight: 2
+    excludes: [thermal]
+    tags: [textured, recompressed, misregistered]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.18, grain: 0.25}]
+        - [color_shift, {shift: 1.3, blur: 0.4}]
+        # `max_shift` để rất nhỏ, và đó là một quyết định về NHÃN chứ không về
+        # thẩm mỹ: `glitch_effect` là mô hình duy nhất trong repo làm pixel đổi
+        # chỗ, nên chữ trong dải bị dịch lệch khỏi hộp nhãn của nó. 0.003 bề
+        # rộng trang là dưới nửa bề rộng một ký tự — hộp vẫn phủ gần hết nét.
+        # Đọc docstring của nó trước khi nâng con số này.
+        - [glitch_effect, {bands: 4, max_shift: 0.003, separation: 0.6}]
+        - [scan_banding, {period: 22, amplitude: 0.05}]
+        - [jpeg_blocks, {quality: 34, passes: 2}]
+
+  - id: misregistered
+    weight: 1
+    excludes: [thermal]       # giấy nhiệt in một màu, không có bản để lệch
+    tags: [textured, misregistered]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.3, grain: 0.45}]
+        # `radial: 1` là quang sai ống kính — lệch tăng dần theo bán kính, giữa
+        # ảnh chồng khít còn bốn góc lệch nhất. `radial: 0` là lệch bản in, đều
+        # khắp tờ. Hai cơ chế khác nhau, và đây là cái của ống kính.
+        - [color_shift, {shift: 2.0, radial: 1.0, blur: 0.5}]
+        - [ink_degradation, {level: 2}]
+        - [blur_zones, {radius: 1.2, zones: 2, coverage: 0.16}]
+        - [paper_overlay, {alpha: 0.28, lighten: 0.3}]
