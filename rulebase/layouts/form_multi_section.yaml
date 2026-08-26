@@ -39,3 +39,16 @@ columns:
   - {key: qty,    title: "Số lượng", width: 10, align: right,  title_align: right}
   - {key: unit,   title: "Đơn vị",   width: 10, align: center, title_align: center}
   - {key: amount, title: "Giá trị",  width: 14, align: right,  title_align: right}
+
+# Đọc RIÊNG với `columns:` bởi renderer lưới ký tự (`_emit_item_rows` trong
+# `rulebase/layout.py`) — thiếu khối này, mặc định của nó chỉ in mỗi cột
+# "name" và bỏ qua mọi cột khác dù `sheets/form.py` (đường CSS, qua
+# `base.item_rows`) đã in đủ. Danh sách khớp đúng thứ tự `columns:` ở trên.
+item:
+  wrap_name: true
+  rows:
+    - - {col: stt,    from: stt}
+      - {col: name,   from: name}
+      - {col: qty,    from: qty}
+      - {col: unit,   from: unit}
+      - {col: amount, from: amount}

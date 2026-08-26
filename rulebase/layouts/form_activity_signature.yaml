@@ -6,7 +6,19 @@
 # gọi là `menu.price` (xem `form_multi_section.yaml`). "totals" in tổng
 # phụ cấp — `total` không được phép nằm trong SUPPRESSED (xem
 # `pipeline/invariants.py`: một total không in luôn là lỗi, không phải
-# ngân sách được phép bỏ qua).
+# ngân sách được phép bỏ qua). Cột "Số lần" đọc `qty` — `menu.cnt` là một
+# field luôn có mặt trên mọi item (không có cờ bật/tắt như `unit`), không
+# nằm trong BUDGETS nên cũng không được phép suppress.
+#
+# `item:` bên dưới là khoá renderer LƯỚI KÝ TỰ (`rulebase/layout.py::
+# _emit_item_rows`) đọc RIÊNG với `columns:` — thiếu nó, mặc định của
+# `_emit_item_rows` chỉ in mỗi cột "name" (`[[{"col": "name", "from":
+# "name"}]]`, xem layout.py) và bỏ qua toàn bộ cột khác trong `columns:`,
+# dù `sheets/form.py` (đường CSS, đọc `columns:` trực tiếp qua
+# `base.item_rows`) đã in đủ. Đây là lỗi CHỈ xảy ra trên đường lưới ký tự
+# (không dùng `--template`) — phát hiện qua `tools/baseline.py --write`,
+# không qua các lần generate `--template auto` trước đó. Danh sách dưới
+# đây phải khớp đúng thứ tự/khoá `columns:` ở trên.
 id: form_activity_signature
 name: Form + signature — a small record table, then a declaration
 source: "Cục QLLĐ ngoài nước — Bộ Nội vụ (Sơ yếu lý lịch tự thuật, trang cuối) — bảng 4 cột, khen thưởng/kỷ luật, lời cam đoan, chữ ký kép"
@@ -26,6 +38,18 @@ columns:
   - {key: stt,    title: "STT",                 width: 5,  align: center, title_align: center}
   - {key: date,   title: "Thời gian",            width: 15, align: center, title_align: center}
   - {key: name,   title: "Nội dung hoạt động",   width: 0,  align: left,   title_align: left}
+  - {key: qty,    title: "Số lần",               width: 8,  align: center, title_align: center}
   - {key: unit,   title: "ĐVT",                  width: 8,  align: center, title_align: center}
-  - {key: note,   title: "Ghi chú",              width: 14, align: left,   title_align: left}
-  - {key: amount, title: "Phụ cấp",              width: 12, align: right,  title_align: right}
+  - {key: note,   title: "Ghi chú",              width: 12, align: left,   title_align: left}
+  - {key: amount, title: "Phụ cấp",              width: 16, align: right,  title_align: right}
+
+item:
+  wrap_name: true
+  rows:
+    - - {col: stt,    from: stt}
+      - {col: date,   from: date}
+      - {col: name,   from: name}
+      - {col: qty,    from: qty}
+      - {col: unit,   from: unit}
+      - {col: note,   from: note}
+      - {col: amount, from: amount}
