@@ -37,17 +37,17 @@ tài liệu này.
 Sau đợt sinh lại ấy **không tập dữ liệu nào còn mang mực của mô hình**; trang
 mực-mô-hình duy nhất là `samples/handwriting/hand-filled-folio.jpg`.
 
-## Hai nguồn mực
+## Ba nguồn mực
 
-| | `model` | `font` |
-| --- | --- | --- |
-| là gì | checkpoint WriteViT, sinh từng từ | mặt chữ viết tay trong `fonts/hand/` |
-| đưa lên trang thế nào | ảnh PNG mực trong một `<img>` | **chữ thật**, trình duyệt dựng |
-| phủ được | 14,6 % (tốt nhất một trang: 42 %) | **mọi ô** |
-| chữ số, IN HOA, dấu câu | không | có |
-| nét chữ | mỗi lần một khác, 106 người viết | một mặt chữ; mọi `a` giống hệt nhau |
-| xuống dòng | không — ảnh không ngắt dòng được | có, và hộp cắt theo từng dòng |
-| chạy trên WeasyPrint | **không** — xem dưới | có |
+| | `model` | `font` | `both` |
+| --- | --- | --- | --- |
+| là gì | checkpoint WriteViT, sinh từng từ | mặt chữ viết tay trong `fonts/hand/` | model viết phần nó viết được, mặt chữ viết phần còn lại |
+| đưa lên trang thế nào | ảnh PNG mực trong một `<img>` | **chữ thật**, trình duyệt dựng | cả hai, mỗi run một kiểu |
+| phủ được | 14,6 % (tốt nhất một trang: 42 %) | **mọi ô** | **mọi ô** |
+| chữ số, IN HOA, dấu câu | không | có | có (do mặt chữ gánh) |
+| nét chữ | mỗi lần một khác, 106 người viết | một mặt chữ; mọi `a` giống hệt nhau | **hai nét chữ trên cùng một trang** |
+| xuống dòng | không — ảnh không ngắt dòng được | có, và hộp cắt theo từng dòng | chỉ phần mặt chữ |
+| chạy trên WeasyPrint | **không** — xem dưới | có | **không** — cùng lý do với `model` |
 
 Cả hai đường đều là đường `hoa-tiet-de-xuat.md` nêu là hợp lệ: **dữ liệu nét
 thật, hoặc một mặt chữ viết tay có giấy phép cho phép phát hành lại.** Cái bị
@@ -95,6 +95,79 @@ GTGT ra **16 hộp thay vì 97**, không một dòng lỗi nào. Nhích bằng
 `check_fonts.py`. Việc kiểm tra ấy không phải thủ tục: **Caveat — lựa chọn hiển
 nhiên cho nét chữ thường — thiếu 80 ký tự tiếng Việt** và sẽ vẽ ra ô vuông rỗng
 trong khi nhãn vẫn khai là đã viết. Xem [`fonts/README.md`](../fonts/README.md).
+
+## `both` — và cái giá của nó, đo chứ không giấu
+
+`both` sinh ra vì một họ tờ giấy: [`notebook_ledger`](../generators/html/sheets/notebook.py),
+quyển vở kẻ ngang mà **không một chữ nào được in ra trước**. Trên tờ in sẵn,
+một run bị bỏ lại thành chữ in vẫn đúng — nó vốn được in sẵn. Trên quyển vở thì
+sai: đó là một dòng tiêu đề không ai đánh máy cả.
+
+Mà một mình checkpoint thì không gánh nổi quyển vở. Đo trên 5 hạt giống của
+`notebook_ledger`: **17/226 run (8 %)** và **256/2 755 ký tự (9 %)** là viết
+được; lý do từ chối là `{digit: 152, allcaps: 44, alphabet: 13}` — sổ bán hàng
+là tiền, ngày và số lượng. Một trang do model viết một mình là chín phần đánh
+máy.
+
+Nên `both` ghép hai nguồn theo từng run: cái nào model viết được thì model
+viết, còn lại mặt chữ viết. **Không run nào còn là chữ in.** Đo lại trên hai
+trang vừa dựng (`--seed 4100 --layout notebook_ledger`):
+
+| | trang 1 | trang 2 |
+| --- | --- | --- |
+| run đã viết | 50/50 | 43/43 |
+| `by_source` | `{font: 50}` | `{font: 40, model: 3}` |
+| còn là chữ in | 0 | 0 |
+
+`record["handwriting"]["by_source"]` khai đúng con số ấy cho từng trang, và
+`kinds` khai trang này được mời viết những run nào (`"all"` với quyển vở, danh
+sách `HAND_KINDS` với tờ in sẵn) — không có nó thì "3 viết, 40 in" không phân
+biệt được với "40 run kia vốn không phải phần người ta viết".
+
+**Hai nét chữ trên một trang là một cái giá thật.** Không có bản phát hành nào
+vừa điều kiện được nét chữ vừa viết được chữ số:
+[VATr++](https://github.com/EDM-Research/VATr-pp),
+[One-DM](https://github.com/dailenson/One-DM) và
+[DiffusionPen](https://github.com/koninik/DiffusionPen) đều điều kiện được nét
+chữ nhưng đều huấn luyện trên ảnh cắt từ IAM — tài liệu của chính DiffusionPen
+nói "punctuation and digits are not rendered natively because DiffusionPen's
+training crops do not contain them".
+[pytorch-handwriting-synthesis-toolkit](https://github.com/X-rayLaser/pytorch-handwriting-synthesis-toolkit)
+(Graves LSTM, MIT, chạy CPU) **có** chữ số và dấu câu nhưng **không điều kiện
+được nét chữ**, nên ghép nó vào cũng vẫn là hai nét chữ. Việc đó là ngõ cụt
+chứ không phải việc chưa làm.
+
+### Một thứ đã sửa được: hai nét chữ, nhưng một cỡ chữ
+
+Bản đầu ghép xong thì phần model **to hơn hẳn** phần mặt chữ — đọc ra như hai
+người viết chứ không phải một người. Nguyên do là `INK_HEIGHT_EM` và hệ số cỡ
+chữ của từng mặt chữ được chuẩn **riêng lẻ**, mỗi cái so với ô của một tờ in
+sẵn, và chưa bao giờ có gì bắt chúng khớp nhau; đo trên trang đã dựng, chiều
+cao chữ x của model gấp khoảng **1,5 lần** của mặt chữ.
+
+`BothHands._matched_height` sửa đúng chỗ đó: ô mực phủ `above + 1 + below` lần
+chiều cao chữ x, nên đặt chiều cao ô bằng `x_height × (above + 1 + below)` là
+đặt chữ x của model trùng chữ x của mặt chữ. `x_height` đọc từ bảng `OS/2` của
+chính mặt chữ, không đoán. `tests/test_handwriting.py` kiểm tỉ lệ ấy bằng 1.
+
+### Một thứ chưa sửa được, và không nên đoán
+
+Checkpoint viết **rõ ràng** những từ tiếng Việt và viết **nát** những tên
+thương hiệu không phải tiếng Việt. Cùng một người viết (writer 30), cùng một
+hạt giống:
+
+```
+WinMart  Pulppy  Zealand  Emart   ->  kirWlart  Duegpy  Dcalana  Smart
+Khăn giấy  Gừng ta  Gạo túi       ->  đọc được hết
+```
+
+Nhãn vẫn khai `WinMart`, còn ảnh thì không phải chữ ấy — nên đây là lỗi thật,
+và nó có từ trước `both` chứ không phải do `both` (nguồn `model` một mình cũng
+thế). Cái bẫy là **giả thuyết dễ nhất lại sai**: không phải "từ ngoài từ điển".
+`Nguyễn` không có trong 10 131 từ của `vn_words.txt` mà vẫn viết ra đọc được,
+nên một guard theo từ điển sẽ từ chối đúng những cái tên mà tính năng này sinh
+ra để viết. Ranh giới thật gần với "có phải chính tả tiếng Việt không", và chưa
+có số đo nào đủ để dựng luật ấy. Ghi lại ở đây thay vì đoán một luật.
 
 ## Đoạn dây gồm ba mảnh
 
