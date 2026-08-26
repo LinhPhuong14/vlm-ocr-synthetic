@@ -16,8 +16,6 @@ software house is the same kind of document, printed on A4.
 
 from __future__ import annotations
 
-import random
-
 from . import base
 from .base import Rows, span
 
@@ -219,10 +217,11 @@ def _notes(receipt, spec: dict) -> str:
     """Where to send the money, and how to reach the shop.
 
     The lines are `invoice.notes` -- the same list the character grid prints --
-    and a blank line inside it is the break between the two blocks, exactly as
-    `_emit_notes` in `rulebase/layout.py` reads it. Roles are per column, not one
-    for both: cells are read in row order, so a single role would interleave the
-    two and an address wrapped over two lines could never be put back together.
+    and `base.notes_blocks` splits them exactly as `_emit_notes` in
+    `rulebase/layout.py` does, at most two blocks (`limit=2`: this masthead has
+    room for two columns, not more). Roles are per column, not one for both:
+    cells are read in row order, so a single role would interleave the two and
+    an address wrapped over two lines could never be put back together.
     """
     invoice = getattr(receipt, "invoice", None)
     notes = list(getattr(invoice, "notes", []) or [])
@@ -230,13 +229,7 @@ def _notes(receipt, spec: dict) -> str:
         return ""
     settings = spec.get("notes") or {}
     boxed = " boxed" if settings.get("boxed") else ""
-    blocks: list[list[str]] = [[]]
-    for line in notes:
-        if line.strip():
-            blocks[-1].append(line)
-        else:
-            blocks.append([])
-    blocks = [block for block in blocks if block][:2]
+    blocks = base.notes_blocks(notes, limit=2)
     if not blocks:
         return ""
 
@@ -373,7 +366,7 @@ def _grid_items_table(spec: dict, receipt, parse: dict, rows) -> str:
 
 
 def build(recipe, receipt, spec: dict, parse: dict) -> str:
-    rng = random.Random(recipe.seed ^ 0x5A4D)
+    rng = base.rng_for(recipe)
     minimal = bool(spec.get("minimal"))
     # A minimalist sheet drops the house colour for a fixed neutral grey --
     # the point of `invoice_minimalist.yaml` is that nothing about the page
