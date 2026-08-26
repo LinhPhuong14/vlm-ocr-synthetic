@@ -32,3 +32,14 @@ columns:
   - {key: qty,        title: "Giá trị đo được",     width: 13, align: right,  title_align: right}
   - {key: unit,       title: "Đơn vị",              width: 10, align: center, title_align: center}
   - {key: amount,     title: "Chi phí",             width: 14, align: right,  title_align: right}
+
+# Đọc RIÊNG với `columns:` bởi renderer lưới ký tự (xem chú thích trong
+# `form_multi_section.yaml`) — thiếu khối này thì chỉ cột "name" được in.
+item:
+  wrap_name: true
+  rows:
+    - - {col: stt,    from: stt}
+      - {col: name,   from: name}
+      - {col: qty,    from: qty}
+      - {col: unit,   from: unit}
+      - {col: amount, from: amount}

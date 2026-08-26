@@ -228,6 +228,10 @@ def plan_inputs(plan: dict) -> dict:
         "per_backend": plan["per_backend"],
         "pairing": plan.get("pairing", "paired"),
         "clean": bool(plan.get("clean", False)),
+        # `arguments()` always passes this now (see its own docstring); pinned
+        # here too so a *future* change to which template a plan draws through
+        # shows up as a named condition instead of an unexplained pixel diff.
+        "template": plan.get("template", "auto"),
         # The shape of a metadata line is a *condition*, not an output. Half
         # this fingerprint is metadata hashes, so a schema change makes every
         # line differ while not a pixel moved -- and a check that called that a
@@ -287,9 +291,18 @@ def fingerprint(root: Path) -> dict:
 
 
 def arguments(plan: dict) -> list[str]:
-    """One plan as the driver's command line."""
+    """One plan as the driver's command line.
+
+    `--template auto` -- every shipped layout already has a real entry in
+    `generators/html/sheets/FAMILIES`, so the CSS-sheet family is what a real
+    run draws; the golden fingerprint should be captured against that, not
+    against the character-grid fallback (`build_grid`) that only
+    `tests/test_layout.py`'s geometry suite and `preflight.sheet_overflow()`
+    still exercise directly. Must come before `--layouts`: that flag is
+    `nargs="+"` and greedy, so anything after it is swallowed as a layout name.
+    """
     return ["-n", str(plan["per_backend"]), "--seed", str(plan["seed"]),
-            "--layouts", *plan["layouts"]]
+            "--template", "auto", "--layouts", *plan["layouts"]]
 
 
 def generate(plan: dict, out: Path, driver: list[str]) -> None:
@@ -337,7 +350,7 @@ def input_changes(want: dict, have: dict) -> list[str]:
             f"-{', -'.join(gone)}" if gone else "",
         ])) or "reordered"
         changes.append(f"layouts {len(a['layouts'])} -> {len(b['layouts'])} ({detail})")
-    for key in ("seed", "per_backend", "pairing", "clean"):
+    for key in ("seed", "per_backend", "pairing", "clean", "template"):
         if a.get(key) != b.get(key):
             changes.append(f"{key} {a.get(key)!r} -> {b.get(key)!r}")
     if a.get("schema") != b.get("schema"):

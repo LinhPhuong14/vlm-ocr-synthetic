@@ -32,3 +32,16 @@ columns:
   - {key: unit,   title: "ĐVT",           width: 6,  align: center, title_align: center}
   - {key: qty,    title: "Tổng công",     width: 7,  align: center, title_align: center}
   - {key: amount, title: "Phụ cấp",       width: 10, align: right,  title_align: right}
+
+# Đọc RIÊNG với `columns:` bởi renderer lưới ký tự (xem chú thích trong
+# `form_multi_section.yaml`) — thiếu khối này thì chỉ cột "name" được in.
+# Bảy cột ngày (`grid.days`) là trang trí thuần, không có ground truth nên
+# renderer lưới ký tự không cần (và không thể) vẽ lại chúng.
+item:
+  wrap_name: true
+  rows:
+    - - {col: stt,    from: stt}
+      - {col: name,   from: name}
+      - {col: unit,   from: unit}
+      - {col: qty,    from: qty}
+      - {col: amount, from: amount}
