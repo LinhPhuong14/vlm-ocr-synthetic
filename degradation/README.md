@@ -212,3 +212,23 @@ ink residue look nothing alike, and a chain hides that.
 
 `tools/augment_samples.py` is the other driver — it applies a per-source chain
 to directories of rendered pages, for judging a chain rather than a model.
+
+## What is not here
+
+Fourteen models are registered and every one of them is reached by at least one
+chain in `rulebase/rules/augmentation.yaml`. What is *not* reached is a good
+deal larger: parameters no chain passes (`blur_zones.feather`,
+`shadow_binding.angle`, `bleed_through.verso`, `holes.below`), valid values
+never drawn (`ink_degradation` levels 5–10, `fill: paper`, `border: right`),
+and two resource directories the code reads but the tree does not have
+(`textures/stain/`, real hole masks).
+
+The inventory — what is used, what is dead, and what is worth adding from
+Augraphy, straug, ocrodeg, graphic-design practice and the Vietnamese paper
+trail — is in [`docs/lam-cu-de-xuat.md`](../docs/lam-cu-de-xuat.md).
+
+The biggest gap it names: **not one model here moves a pixel.** The chain is
+asserted not to resize the page, so the dataset has every kind of dirt and no
+sheet that is skewed, curled or photographed at an angle. Fixing that means a
+geometric model returning its transform so `apply_recipe` can carry the label
+boxes through it.
