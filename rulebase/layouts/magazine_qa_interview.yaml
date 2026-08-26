@@ -1,0 +1,24 @@
+# Trang phỏng vấn hỏi-đáp — ảnh chân dung tràn lề trên cùng, sapo + ê-kíp thực
+# hiện, rồi hai cột hỏi/đáp xen kẽ với một câu trích nổi bật và một bảng tiểu
+# sử nhỏ chen giữa.
+#
+# Family `periodical`, composition `qa_pairs` -- không có bảng hàng, không có
+# bên mua/bán, chỉ có các cặp hỏi-đáp. Xem `rulebase/periodical.py::QaPage`.
+#
+# `sections` chỉ phục vụ lưới ký tự cho `test_layout.py`/`preflight`, không
+# phải cột chữ thật -- xem chú thích trong `newspaper_front_broadsheet.yaml`.
+id: magazine_qa_interview
+name: Magazine Q&A interview — full-bleed portrait, alternating question/answer
+source: "samples/periodical-templates/magazine_qa_interview.html (N-09)"
+family: periodical
+composition: qa_pairs
+
+width: [92, 104]
+gutter: 2
+rule_char: "-"
+
+sheet: a4
+
+rules: marks
+
+sections: [header, parties, notes, footer]
