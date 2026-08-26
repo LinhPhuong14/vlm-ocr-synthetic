@@ -93,6 +93,11 @@ blanks:
     layout: market_vat
     sheet: null
 
+  notebook_ledger:
+    source: "sổ ghi bán hàng chép tay, tiệm tạp hoá — không có bản in nào để chụp"
+    layout: notebook_ledger
+    sheet: null
+
   medical_statement:
     source: "ảnh bảng kê 01/KBCB của một bệnh viện đa khoa, 3 trang, có dấu SAO Y BẢN CHÍNH"
     layout: medical_statement
@@ -104,7 +109,7 @@ documents:
   street_eatery: [eatery_indexed, eatery_ascii]
   restaurant_vat: [eatery_indexed]
   supermarket: [market_barcode, market_compact]
-  convenience_store: [market_compact]
+  convenience_store: [market_compact, notebook_ledger]
   supermarket_vat: [market_barcode, market_vat]
   vat_invoice_form: [invoice_vat_form]
   utility_water: [invoice_water]

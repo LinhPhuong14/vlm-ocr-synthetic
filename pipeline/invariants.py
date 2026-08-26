@@ -165,6 +165,16 @@ SUPPRESSED: dict[str, frozenset[str]] = {
         "menu.weight",               # 100%
         "store.branch",              # 100%
     }),
+    "notebook_ledger": frozenset({
+        # A book kept by hand carries what a person writes, and nobody copies
+        # a thirteen-digit barcode into a ledger. Everything else the content
+        # model produces IS written -- the weight, the price per kilo, the
+        # quantity -- because those are the numbers somebody works the line out
+        # from. Suppressed rather than excluded by tag: the barcode is attached
+        # to a market item by `rulebase/content.py` whatever the document's
+        # tags say, so a tag rule would not have removed it.
+        "menu.barcode",
+    }),
     "eatery_indexed": frozenset(),   # prints everything it is given
 }
 
