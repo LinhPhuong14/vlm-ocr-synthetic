@@ -19,6 +19,28 @@ Tài liệu này chia làm ba phần:
 Mỗi mục ghi: **nó là gì**, **dựng bằng gì**, **vì sao đáng làm cho OCR tiếng
 Việt**, và — chỗ này mới đáng giá — **nó có làm hỏng nhãn không**.
 
+> ### ✅ Đã làm kể từ bản đầu của tài liệu này
+>
+> Bản đầu là một bản kiểm kê thuần. Từ đó tới nay:
+>
+> * **Mười hai mô hình của Augraphy đã chuyển thể** (mục D1) — `bad_photocopy`,
+>   `color_shift`, `delaunay_tessellation`, `dirty_drum`, `dirty_rollers`,
+>   `dot_matrix`, `glitch_effect`, `letterpress`, `markup`,
+>   `voronoi_tessellation`, `hollow`, `scribbles`. Registry lên **26 mô hình**,
+>   và chín kịch bản mới trong `rules/augmentation.yaml` bốc tới cả mười hai.
+> * **`tools/rules_report.py` giờ đối chiếu HAI CHIỀU.** Chiều cũ: chuỗi không
+>   được gọi tên mô hình không tồn tại. Chiều mới — chiều mà cả mục B của tài
+>   liệu này nói tới — **mô hình nào không chuỗi nào gọi tên thì báo lỗi**. Từ
+>   nay một năng lực dựng xong rồi bỏ quên không lọt qua được `make preflight`.
+> * **`by_box`** — bọc một mô hình bất kỳ để nó chỉ ăn vào vài ô chữ thay vì cả
+>   trang, theo sáu lối bốc. Đây là câu trả lời cho câu hỏi mà bản đầu chưa đặt
+>   ra: mọi mô hình ở đây áp ĐỀU khắp mặt giấy, mà hỏng thật thì có chỗ.
+> * **Việc số 1 của bảng ưu tiên (mục G) đã làm**: `make legibility` đo độ
+>   tương phản mực/giấy trong từng hộp nhãn trước và sau khi làm cũ.
+>
+> Ba mục còn lại của mục G — ánh sáng không đều, `carbon_copy`, mở khoá hình
+> học — vẫn còn nguyên. Bảng ở mục G đã cập nhật theo.
+
 > **Ranh giới hai tầng.** Đừng lẫn hai thứ:
 > **primitive** là một hàm trong [`degradation/`](../degradation), ghi tên trong
 > registry `DEGRADATIONS`; **kịch bản** là một `id` trong
@@ -164,8 +186,13 @@ tưởng mình đang đổi dữ liệu thì sẽ không thấy gì thay đổi.
 
 ## C · Lỗ hổng lớn nhất: đường đang chạy không có một biến dạng hình học nào
 
-Mười bốn primitive ở phần A **đều là lọc hoặc ghép tại chỗ**. Không cái nào
-dịch một pixel — và điều đó được assert:
+Mọi primitive ở phần A **đều là lọc hoặc ghép tại chỗ**, và sau đợt chuyển thể
+Augraphy thì còn **đúng một ngoại lệ**: `glitch_effect` dịch cả một dải dòng
+ảnh sang ngang. Nó không đổi kích thước trang nên đi qua được assert dưới đây,
+nhưng chữ trong dải bị dịch thì lệch khỏi hộp nhãn của nó — docstring của nó
+nói thẳng điều ấy, và kịch bản `screen_photo` để `max_shift` ở 0.004 bề rộng
+trang, dưới nửa bề rộng một ký tự, chính vì lý do ấy. Ngoài nó ra, không mô
+hình nào dịch một pixel — và điều đó được assert:
 
 ```python
 if aged.shape[:2] != before:
@@ -202,27 +229,32 @@ lại, kèm **những gì repo này chưa có**.
 ### D1 · Augraphy — sát đề bài nhất
 
 Thư viện Python chuyên **document image augmentation**, chia ba pha
-`ink → paper → post` đúng như lối `paper_texture` chạy đầu chuỗi ở đây. Nhiều
-mô hình trùng với những gì đã port, nhưng những cái **chưa có**:
+`ink → paper → post` đúng như lối `paper_texture` chạy đầu chuỗi ở đây.
 
-* `Letterpress` — mực in typo: nét đậm ở rìa, nhạt ở giữa vì áp lực bản in.
-* `LowInkPeriodicLines` / `LowInkRandomLines` — **máy in kim hoặc laser sắp hết
+**✅ Mười hai mô hình đánh dấu ✅ dưới đây đã chuyển thể xong** — xem
+[`degradation/README.md`](../degradation/README.md) và năm file
+`copier.py` · `printing.py` · `marks.py` · `tessellation.py` · `channel.py`.
+Mã của Augraphy không vendor: mỗi mô hình viết lại, ghi rõ chuyển thể từ đâu,
+đúng lối đã làm với DocCreator. Những mục còn lại vẫn là đề xuất:
+
+* ✅ `Letterpress` — mực in typo: nét đậm ở rìa, nhạt ở giữa vì áp lực bản in.
+* `LowInkPeriodicLines` / `LowInkRandomLines` (một nửa: `dot_matrix.dead_pins` đã làm đúng hình dạng ấy cho máy in kim) — **máy in kim hoặc laser sắp hết
   mực: những vạch trắng ngang cắt qua chữ**. Xem thêm E-VN-1.
 * `Dithering` (Floyd–Steinberg / Bayer) — khác `halftone_screen` ở chỗ khuếch
   tán sai số chứ không ngưỡng theo lưới; đây là thứ máy fax và ảnh 1-bit thật
   cho ra.
-* `DirtyDrum`, `DirtyRollers` — trống mực bẩn để lại vệt **dọc theo hướng giấy
+* ✅ `DirtyDrum`, `DirtyRollers` — trống mực bẩn để lại vệt **dọc theo hướng giấy
   chạy**, khác `scan_banding` (vuông góc).
-* `BadPhotoCopy` — mảng đen loang và vùng cháy sáng của máy photo cũ.
+* ✅ `BadPhotoCopy` — mảng đen loang và vùng cháy sáng của máy photo cũ.
 * `Folding` — nếp gấp có **bóng đổ hai bên** chứ không chỉ đổi độ sáng.
 * `BookBinding`, `BindingsAndFasteners` — gáy sách cong, ghim, kẹp, lò xo.
-* `Markup`, `Scribbles` — bút dạ quang, gạch chân, khoanh tròn, chữ viết đè.
+* ✅ `Markup`, `Scribbles` — bút dạ quang, gạch chân, khoanh tròn, chữ viết đè.
 * `WaterMark` — chữ chìm.
 * `LightingGradient`, `ShadowCast`, `ReflectedLight` — **ánh sáng không đều và
   vệt loá**; xem E3.
 * `Moire` — vân moiré khi chụp lại một bản đã có lưới tram, hoặc chụp màn hình.
-* `InkShifter`, `ColorShift`, `GlitchEffect` — lệch kênh màu; xem E1.
-* `VoronoiTessellation`, `DelaunayTessellation` — sinh hoạ tiết nền.
+* ✅ `ColorShift`, `GlitchEffect` (còn `InkShifter`) — lệch kênh màu; xem E1.
+* ✅ `VoronoiTessellation`, `DelaunayTessellation` — sinh hoạ tiết nền.
 * `SubtleNoise`, `NoiseTexturize`, `BrightnessTexturize` — nhiễu biên độ nhỏ.
 * `Squish`, `Geometric`, `Rescale` — biến dạng hình học (đụng mục C).
 
@@ -445,6 +477,12 @@ nửa dưới.
 đầu in*. Và nhiễu này **có cấu trúc** (đều đặn, cùng độ cao) chứ không ngẫu
 nhiên — mô hình OCR học được nó, nên nó là dữ liệu tốt.
 Gần với `LowInkPeriodicLines` của Augraphy (D1).
+
+**✅ Đã làm.** `dot_matrix` trong [`degradation/printing.py`](../degradation/printing.py)
+dựng lưới chấm của đầu kim, `dead_pins` là số kim gãy, `ribbon` là độ mòn ruy
+băng. Kịch bản `impact_ribbon` (`requires: [impact]`) bốc tới nó. Chưa làm nốt:
+**mực ngả tím của giấy than** — đó là E-VN-1 dưới đây, và hai thứ hay đi cùng
+nhau trên cùng một tờ.
 
 ### E-VN-3 · `thermal_patch_fade` — giấy nhiệt phai theo mảng
 Giấy nhiệt để trong ví hoặc gần nguồn nhiệt phai **không đều**: chỗ tiếp xúc
