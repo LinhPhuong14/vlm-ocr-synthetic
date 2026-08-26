@@ -7,6 +7,7 @@ Viewable straight away, with no environment to build.
 | [`degradation/`](degradation) | every ageing model applied on its own to **the same page**, plus a contact sheet | `make showcase` |
 | [`invoice-templates/`](invoice-templates) | five reference sheets, hand-built from photographs, printed with WeasyPrint | `make templates` |
 | [`form-templates/`](form-templates) | two administrative forms — an authorisation letter and a three-page medical statement — hand-built from scans | `make templates` |
+| [`insurance-templates/`](insurance-templates) | ten insurance documents — liability certificates, a life-policy schedule, an application form, a health-insurance ID card, and more — reference only, no engine yet | `make templates` |
 | [`ornaments/`](ornaments) | every seal and flourish in `textures/ornament/`, on one white page | `make ornaments` |
 | [`handwriting/`](handwriting) | two **hand-filled** forms, one per ink source: a typeface fills every field, the model fills 5 of 12 and the seven it leaves are all digits | see its README |
 | [`signatures/`](signatures) | synthesised **signatures** from both ink sources — a grid each, plus three signed sheets — with the name printed under the caption, with the line left blank, and in the model's own thin joined-up ink | `make signatures` |

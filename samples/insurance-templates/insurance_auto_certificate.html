@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LO-02 · Giấy chứng nhận bảo hiểm bắt buộc TNDS – Ô tô (A5 ngang, dạng bảng)</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#6d716a;font-family:Arial,Helvetica,sans-serif}
+  @page{size:A5 landscape;margin:0}
+  .sheet{width:210mm;height:148mm;background:#fff;position:relative;overflow:hidden;
+         margin:10mm auto;box-shadow:0 2mm 8mm rgba(0,0,0,.35);padding:7mm 8mm}
+  /* Bản gốc (upload) có thêm một `.sheet::before` (lưới chéo bảo an) và một
+     lớp `.wm` in mờ "BẢN MẪU" chính giữa trang -- cả hai là hiệu ứng nền, không
+     phải nội dung tờ giấy. Bỏ khỏi bản lưu này theo yêu cầu: hiệu ứng dạng đó
+     là việc của chuỗi augmentation dùng chung
+     (`rulebase/rules/augmentation.yaml`: `paper_texture`, `gradient_domain`,
+     `real_paper`, ...) áp lên MỌI layout, không phải CSS riêng của một layout. */
+
+  header{display:grid;grid-template-columns:auto 1fr auto;gap:4mm;align-items:center;
+         border-bottom:.8mm solid #0a5b9c;padding-bottom:2mm;position:relative}
+  .mark{width:15mm;height:15mm;background:#0a5b9c;color:#fff;display:flex;align-items:center;
+        justify-content:center;font-size:6mm;font-weight:800;border-radius:1mm;letter-spacing:-.4mm}
+  .org .n{font-size:4mm;font-weight:800;color:#0a3f78;text-transform:uppercase}
+  .org .e{font-size:2.6mm;color:#5a6570;letter-spacing:.3mm;text-transform:uppercase}
+  .org .a{font-size:2.5mm;color:#333;margin-top:.6mm}
+  .lien{text-align:right;font-size:2.6mm;color:#444}
+  .lien b{display:block;font-size:3mm;color:#c8102e;text-transform:uppercase}
+  .lien .code{font-family:"Courier New",monospace;font-size:4.6mm;font-weight:700;color:#111;margin-top:.8mm}
+
+  h1{text-align:center;font-size:5mm;font-weight:800;color:#0a3f78;text-transform:uppercase;
+     margin:4mm 0 .8mm;line-height:1.2;position:relative}
+  .sub{text-align:center;font-size:2.9mm;color:#5a6570;margin-bottom:3.5mm;position:relative;
+       font-style:italic}
+
+  table{width:100%;border-collapse:collapse;position:relative;font-size:2.9mm}
+  td,th{border:.25mm solid #97a6b3;padding:1.5mm 2mm;vertical-align:top}
+  th{background:#e8f0f7;text-align:left;font-weight:700;color:#0a3f78;width:38mm;font-size:2.75mm}
+  td{font-weight:700;color:#12233a}
+  td.plain{font-weight:400;color:#222}
+  .idx{width:7mm;text-align:center;background:#f4f7fa;color:#5a6570;font-weight:700}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:0}
+
+  .bottom{display:grid;grid-template-columns:1fr 46mm 52mm;gap:5mm;align-items:end;margin-top:4mm;position:relative}
+  .hot{border:.4mm solid #c8102e;border-radius:1.5mm;padding:2mm 2.5mm;font-size:2.5mm;color:#222;line-height:1.4}
+  .hot b{color:#c8102e;text-transform:uppercase;display:block;font-size:2.7mm;margin-bottom:.6mm}
+  .qr{width:20mm;height:20mm;background:
+      linear-gradient(90deg,#111 0 2mm,transparent 2mm 4mm,#111 4mm 5mm,transparent 5mm 7mm,#111 7mm 9mm,transparent 9mm 11mm,#111 11mm 12mm,transparent 12mm 14mm,#111 14mm 16mm,transparent 16mm 18mm,#111 18mm 20mm),
+      linear-gradient(0deg,#111 0 2mm,transparent 2mm 3mm,#111 3mm 5mm,transparent 5mm 8mm,#111 8mm 10mm,transparent 10mm 12mm,#111 12mm 13mm,transparent 13mm 16mm,#111 16mm 18mm,transparent 18mm 20mm);
+      background-blend-mode:multiply;border:1mm solid #fff;outline:.3mm solid #111}
+  .bc{display:flex;flex-direction:column;align-items:center;gap:.6mm}
+  .bc .bars{display:flex;align-items:flex-end;height:9mm}
+  .bc i{display:block;width:.3mm;height:100%;background:#111;margin-right:.2mm}
+  .bc i:nth-child(3n){width:.7mm}.bc i:nth-child(5n){height:78%}
+  .bc span{font-family:"Courier New",monospace;font-size:2.2mm;letter-spacing:.4mm}
+  .sig{text-align:center;position:relative}
+  .sig .d{font-size:2.6mm;font-style:italic;color:#333;font-family:"Times New Roman",serif}
+  .sig .r{font-size:2.9mm;font-weight:800;text-transform:uppercase;color:#111;margin-top:.5mm}
+  .sig .h{height:14mm}
+  .sig .nm{font-size:2.8mm;font-weight:700}
+  .stamp{position:absolute;left:2mm;top:5mm;width:24mm;height:24mm;border:.6mm solid #c8102e;border-radius:50%;
+         transform:rotate(-16deg);opacity:.7;display:flex;align-items:center;justify-content:center;text-align:center}
+  .stamp::before{content:"";position:absolute;inset:2mm;border:.25mm solid #c8102e;border-radius:50%}
+  .stamp span{font-size:2mm;color:#c8102e;font-weight:800;line-height:1.15}
+
+  @media print{html,body{background:#fff}.sheet{margin:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header>
+    <div class="mark">MH</div>
+    <div class="org">
+      <div class="n">Tổng công ty Bảo hiểm Minh Hoạ</div>
+      <div class="e">Minh Hoa Insurance Corporation</div>
+      <div class="a">Số 1 Đường Mẫu, Quận Trung Tâm, Hà Nội · www.example.vn</div>
+    </div>
+    <div class="lien">
+      <b>Liên 1 – Giao chủ xe</b>
+      Số Giấy chứng nhận
+      <div class="code">OT-2026-004821</div>
+    </div>
+  </header>
+
+  <h1>Giấy chứng nhận bảo hiểm bắt buộc trách nhiệm dân sự của chủ xe cơ giới</h1>
+  <div class="sub">Áp dụng cho xe ô tô · Ban hành theo Nghị định số 67/2023/NĐ-CP</div>
+
+  <table>
+    <tr><td class="idx">1</td><th>Chủ xe cơ giới</th><td colspan="4">CÔNG TY TNHH THƯƠNG MẠI MẪU</td></tr>
+    <tr><td class="idx">2</td><th>Địa chỉ · Điện thoại</th><td colspan="4" class="plain">Lô A1, Khu công nghiệp Mẫu, TP. Hồ Chí Minh · 028 0000 0000</td></tr>
+    <tr>
+      <td class="idx">3</td><th>Biển số xe</th><td>51K-999.99</td>
+      <th style="width:26mm">Số khung</th><td>RL4XXXXXXXXXXXX01</td>
+    </tr>
+    <tr>
+      <td class="idx">4</td><th>Loại xe · Số chỗ · Trọng tải</th><td>Ô tô con · 07 chỗ · —</td>
+      <th>Số máy</th><td>G4FCXXXXXXX</td>
+    </tr>
+    <tr><td class="idx">5</td><th>Mục đích sử dụng</th><td colspan="4" class="plain">Không kinh doanh vận tải</td></tr>
+    <tr><td class="idx">6</td><th>Giới hạn trách nhiệm<br>đối với người thứ ba</th>
+        <td colspan="4" class="plain">
+          Thiệt hại về sức khoẻ, tính mạng: <b>150.000.000 đồng</b>/người/vụ<br>
+          Thiệt hại về tài sản: <b>100.000.000 đồng</b>/vụ
+        </td></tr>
+    <tr><td class="idx">7</td><th>Thời hạn bảo hiểm</th>
+        <td colspan="4">Từ 00 giờ 00 ngày 15/01/2026 đến 00 giờ 00 ngày 15/01/2027</td></tr>
+    <tr><td class="idx">8</td><th>Phí bảo hiểm · Thời hạn thanh toán</th>
+        <td colspan="4">960.500 đồng (đã bao gồm VAT) · Thanh toán một lần trước khi cấp Giấy chứng nhận</td></tr>
+    <tr><td class="idx">9</td><th>Ngày cấp</th><td colspan="4" class="plain">Ngày 14 tháng 01 năm 2026</td></tr>
+  </table>
+
+  <div class="bottom">
+    <div class="hot">
+      <b>Trách nhiệm khi xảy ra tai nạn</b>
+      Chủ xe, người lái xe phải thông báo ngay cho doanh nghiệp bảo hiểm theo đường dây nóng
+      <b style="display:inline">1900 0000</b> (24/7), giữ nguyên hiện trường, tích cực cứu chữa
+      và hạn chế thiệt hại phát sinh.
+    </div>
+    <div class="bc">
+      <div class="qr"></div>
+      <span>MH·NĐ67·OT</span>
+    </div>
+    <div class="sig">
+      <div class="stamp"><span>MINH HOẠ<br>INSURANCE<br>CORP.</span></div>
+      <div class="d">TP. Hồ Chí Minh, ngày 14 tháng 01 năm 2026</div>
+      <div class="r">Doanh nghiệp bảo hiểm</div>
+      <div class="h"></div>
+      <div class="nm">Trần Thị B</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

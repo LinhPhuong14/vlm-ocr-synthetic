@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LO-09 · Giấy chứng nhận bảo hiểm du lịch quốc tế – A4 ngang, dạng vé song ngữ</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#6d716a;font-family:"Segoe UI",Arial,Helvetica,sans-serif;color:#152233}
+  @page{size:A4 landscape;margin:0}
+  .sheet{width:297mm;height:210mm;background:#fff;margin:10mm auto;position:relative;overflow:hidden;
+         box-shadow:0 2mm 8mm rgba(0,0,0,.35);padding:12mm 14mm}
+  .sheet::before{content:"";position:absolute;left:0;right:0;top:0;height:4mm;
+    background:repeating-linear-gradient(90deg,#1d4e89 0 12mm,#f2a900 12mm 16mm)}
+
+  header{display:flex;justify-content:space-between;align-items:flex-start;gap:8mm;margin-top:3mm}
+  .brand{display:flex;align-items:center;gap:3mm}
+  .mk{width:14mm;height:14mm;border-radius:2mm;background:#1d4e89;color:#fff;display:flex;align-items:center;
+      justify-content:center;font-weight:800;font-size:5mm}
+  .brand .n{font-size:4.4mm;font-weight:800;color:#1d4e89;text-transform:uppercase;line-height:1.2}
+  .brand .n small{display:block;font-size:2.5mm;font-weight:400;color:#5d6b7a;text-transform:none;font-style:italic}
+  .certno{text-align:right;font-size:2.7mm;color:#5d6b7a}
+  .certno b{display:block;font-family:"Courier New",monospace;font-size:5mm;color:#111;letter-spacing:.4mm;margin-top:.6mm}
+  .certno .plan{display:inline-block;margin-top:1.5mm;background:#f2a900;color:#3d2c00;font-weight:800;
+                font-size:2.7mm;padding:1mm 3mm;border-radius:1mm;text-transform:uppercase;letter-spacing:.4mm}
+
+  h1{margin:6mm 0 1mm;font-size:6.4mm;font-weight:800;color:#0f3358;text-transform:uppercase;letter-spacing:.2mm}
+  h1 em{display:block;font-size:3.2mm;font-weight:400;font-style:italic;color:#5d6b7a;text-transform:none;
+        letter-spacing:0;margin-top:.8mm}
+
+  .grid{display:grid;grid-template-columns:1fr 4mm 1.15fr;gap:0;margin-top:6mm;height:118mm}
+
+  /* đường răng cưa – mô típ vé */
+  .perf{position:relative}
+  .perf::before{content:"";position:absolute;left:50%;top:0;bottom:0;border-left:.4mm dashed #b9c4cf}
+  .perf::after{content:"";position:absolute;left:50%;transform:translateX(-50%);top:-4mm;width:8mm;height:8mm;
+    border-radius:50%;background:#e9ecea;box-shadow:0 126mm 0 #e9ecea}
+
+  .left{padding-right:8mm}
+  .right{padding-left:8mm}
+  h2{font-size:2.8mm;font-weight:800;text-transform:uppercase;letter-spacing:.7mm;color:#1d4e89;
+     margin-bottom:2.5mm;display:flex;align-items:center;gap:2.5mm}
+  h2::after{content:"";flex:1;height:.35mm;background:#d5dde5}
+
+  .kv{display:grid;grid-template-columns:44mm 1fr;gap:1.8mm 4mm;font-size:3mm;margin-bottom:6mm}
+  .kv .k{color:#5d6b7a}
+  .kv .k em{display:block;font-size:2.4mm;font-style:italic;opacity:.75}
+  .kv .v{font-weight:700;color:#0f3358}
+
+  table{width:100%;border-collapse:collapse;font-size:2.85mm}
+  thead th{text-align:left;background:#0f3358;color:#fff;padding:1.8mm 2.5mm;font-size:2.6mm;
+           text-transform:uppercase;letter-spacing:.35mm}
+  tbody td{padding:1.8mm 2.5mm;border-bottom:.2mm solid #e2e8ee;vertical-align:top}
+  tbody tr:nth-child(odd) td{background:#f7fafc}
+  td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;color:#0f3358}
+  td em{display:block;font-size:2.35mm;font-style:italic;color:#7b8896}
+
+  .sos{margin-top:5mm;border:.5mm solid #c8102e;border-radius:2mm;padding:3mm 3.5mm;display:flex;gap:4mm;align-items:center}
+  .sos .big{font-size:5mm;font-weight:800;color:#c8102e;white-space:nowrap;line-height:1.1}
+  .sos .big small{display:block;font-size:2.4mm;font-weight:700;letter-spacing:.5mm;text-transform:uppercase}
+  .sos p{font-size:2.6mm;line-height:1.5;color:#43505d}
+
+  .note{margin-top:4mm;font-size:2.5mm;color:#6b7885;line-height:1.5;font-style:italic}
+
+  .sig{position:absolute;right:14mm;bottom:12mm;width:58mm;text-align:center}
+  .sig .r{font-size:2.7mm;font-weight:800;text-transform:uppercase;color:#0f3358}
+  .sig .sp{height:18mm;position:relative}
+  .sig .nm{border-top:.2mm solid #9aa8b5;padding-top:1.2mm;font-size:2.7mm;font-weight:700}
+  .stamp{position:absolute;left:50%;top:0;transform:translateX(-50%) rotate(-12deg);width:27mm;height:27mm;
+         border:.6mm solid #c8102e;border-radius:50%;opacity:.62;display:flex;align-items:center;justify-content:center;text-align:center}
+  .stamp::before{content:"";position:absolute;inset:2.2mm;border:.26mm solid #c8102e;border-radius:50%}
+  .stamp span{color:#c8102e;font-weight:800;font-size:2.1mm;line-height:1.2}
+  @media print{html,body{background:#fff}.sheet{margin:0;box-shadow:none}.perf::after{box-shadow:none;background:#fff}}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header>
+    <div class="brand">
+      <div class="mk">MH</div>
+      <div class="n">Minh Hoạ Travel<small>Tổng công ty Bảo hiểm Minh Hoạ · Minh Hoa Insurance Corporation</small></div>
+    </div>
+    <div class="certno">
+      Certificate No. / <em>Số giấy chứng nhận</em>
+      <b>TRV-2026-118240</b>
+      <span class="plan">Chương trình Toàn Cầu · Global Plan</span>
+    </div>
+  </header>
+
+  <h1>Giấy chứng nhận bảo hiểm du lịch quốc tế<em>International Travel Insurance Certificate</em></h1>
+
+  <div class="grid">
+    <div class="left">
+      <h2>Người được bảo hiểm · The Insured</h2>
+      <div class="kv">
+        <div class="k">Họ và tên<em>Full name</em></div><div class="v">NGUYEN VAN A</div>
+        <div class="k">Ngày sinh<em>Date of birth</em></div><div class="v">12/05/1988</div>
+        <div class="k">Số hộ chiếu<em>Passport no.</em></div><div class="v">C1234567</div>
+        <div class="k">Quốc tịch<em>Nationality</em></div><div class="v">Việt Nam</div>
+      </div>
+
+      <h2>Hành trình · Trip details</h2>
+      <div class="kv" style="margin-bottom:0">
+        <div class="k">Phạm vi lãnh thổ<em>Area of cover</em></div><div class="v">Toàn cầu, gồm khối Schengen</div>
+        <div class="k">Nơi đến<em>Destination</em></div><div class="v">Pháp – Ý – Thuỵ Sĩ</div>
+        <div class="k">Thời hạn bảo hiểm<em>Period of insurance</em></div><div class="v">10/04/2026 – 24/04/2026 (15 ngày)</div>
+        <div class="k">Phí bảo hiểm<em>Premium</em></div><div class="v">1.245.000 đ</div>
+        <div class="k">Ngày cấp<em>Date of issue</em></div><div class="v">28/03/2026</div>
+      </div>
+
+      <div class="note">
+        Giấy chứng nhận có hiệu lực từ thời điểm Người được bảo hiểm rời khỏi nơi cư trú để bắt đầu
+        chuyến đi và kết thúc khi trở về, nhưng không vượt quá thời hạn ghi ở trên.
+      </div>
+    </div>
+
+    <div class="perf"></div>
+
+    <div class="right">
+      <h2>Quyền lợi bảo hiểm · Schedule of benefits</h2>
+      <table>
+        <thead><tr><th>Quyền lợi · Benefit</th><th class="r" style="width:44mm">Số tiền bảo hiểm (EUR)</th></tr></thead>
+        <tbody>
+          <tr><td>Chi phí y tế và nằm viện do ốm đau, tai nạn<em>Medical &amp; hospitalisation expenses</em></td><td class="r">50.000</td></tr>
+          <tr><td>Vận chuyển cấp cứu và hồi hương y tế<em>Emergency evacuation &amp; repatriation</em></td><td class="r">Theo chi phí thực tế</td></tr>
+          <tr><td>Tử vong, thương tật vĩnh viễn do tai nạn<em>Accidental death &amp; permanent disability</em></td><td class="r">30.000</td></tr>
+          <tr><td>Huỷ, rút ngắn hoặc gián đoạn chuyến đi<em>Trip cancellation &amp; curtailment</em></td><td class="r">2.000</td></tr>
+          <tr><td>Trì hoãn chuyến bay (sau mỗi 6 giờ)<em>Flight delay, per 6 hours</em></td><td class="r">50 / tối đa 300</td></tr>
+          <tr><td>Mất, thất lạc hoặc hư hỏng hành lý<em>Loss of or damage to baggage</em></td><td class="r">1.000</td></tr>
+          <tr><td>Mất giấy tờ thông hành<em>Loss of travel documents</em></td><td class="r">500</td></tr>
+          <tr><td>Trách nhiệm cá nhân đối với bên thứ ba<em>Personal liability</em></td><td class="r">20.000</td></tr>
+        </tbody>
+      </table>
+
+      <div class="sos">
+        <div class="big">+84 24 0000 0000<small>Hỗ trợ khẩn cấp 24/7</small></div>
+        <p>Gọi ngay trước khi nhập viện hoặc phát sinh chi phí lớn để được bảo lãnh thanh toán.
+           Vui lòng cung cấp số giấy chứng nhận và số hộ chiếu khi liên hệ.<br>
+           <em>Call before admission to arrange direct billing.</em></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="sig">
+    <div class="r">Doanh nghiệp bảo hiểm</div>
+    <div class="sp"><div class="stamp"><span>MINH HOẠ<br>TRAVEL</span></div></div>
+    <div class="nm">Người được uỷ quyền</div>
+  </div>
+</div>
+</body>
+</html>
