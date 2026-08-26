@@ -1,0 +1,47 @@
+# Sổ tay bán hàng, viết tay toàn bộ. Không có máy nào in trang này: người bán
+# mua quyển vở đã kẻ sẵn dòng rồi tự ghi.
+#
+# Đây là bố cục DUY NHẤT mà toàn bộ chữ trên trang là chữ tay. Các bố cục khác
+# in sẵn rồi để người điền vào chỗ trống, nên chữ tay chỉ chiếm vài ô; ở đây
+# tiêu đề, nhãn, số và dòng tổng đều cùng một nét.
+#
+# `width` vẫn cần cho mô hình lưới ký tự — mọi bố cục phải vẽ được bằng cả hai
+# mô hình trang, và preflight bắt bố cục nào thiếu sheet. Trên lưới nó ra một
+# phiếu hẹp bình thường; cái làm nó thành quyển vở nằm ở
+# `generators/html/sheets/notebook.py`.
+id: notebook_ledger
+name: Hand-kept sales book — ruled exercise paper, no printing
+source: "sổ ghi bán hàng chép tay, tiệm tạp hoá"
+
+width: [34, 42]
+rule_char: "-"
+
+header:
+  name_scale: [1.0, 1.3]
+  name_bold: false
+  title: true
+  address: true
+  phone: true
+
+meta:
+  style: two_column
+  rule_after: true
+
+column_header: false
+columns:
+  - {key: name,   width: 0,  align: left}
+  - {key: amount, width: 12, align: right}
+
+item:
+  wrap_name: false
+  rows:
+    - - {col: name, from: name}
+      - {col: amount, from: amount}
+
+totals:
+  emphasise_grand: true
+  grand_scale: [1.2, 1.5]
+  grand_two_lines: false
+
+footer:
+  rule_before: true

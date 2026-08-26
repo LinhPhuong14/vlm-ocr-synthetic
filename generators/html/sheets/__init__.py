@@ -41,7 +41,7 @@ from __future__ import annotations
 
 from html.parser import HTMLParser
 
-from . import lodging, medical, modern, statement, statutory, till
+from . import lodging, medical, modern, notebook, statement, statutory, till
 from .base import structure_tokens
 
 # Layout id -> the module that dresses it. A layout missing from here is a
@@ -64,6 +64,7 @@ FAMILIES = {
     "market_barcode": till,
     "market_compact": till,
     "market_vat": till,
+    "notebook_ledger": notebook,
 }
 
 
