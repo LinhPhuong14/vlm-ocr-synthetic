@@ -355,13 +355,13 @@ ra là đằng kia.
 | :--- | :--- | :--- |
 | `font` — mặt chữ viết tay có giấy phép trong [`fonts/hand/`](fonts/hand) | **mọi ô**, vì một mặt chữ có đủ mười chữ số và mọi dấu | **lặp**: một trang là một nét chữ, và có hai mặt chữ chứ không phải 106 người viết |
 | `model` — [WriteViT](docs/writevit.md), nét sinh ra thật, 106 người viết | **14,6 %** số ô; quét cả không gian luật thì trang nhiều mực nhất đạt **42 %** | **không viết được chữ số** — mà chữ số là số hoá đơn, ngày, mã số thuế, số tài khoản |
+| `both` — model viết phần nó viết được, mặt chữ viết phần còn lại | **mọi ô** | **hai nét chữ trên một trang**; nhãn khai `by_source` để đếm được từng nửa |
 
-Không có đường thứ ba: làm lệch từng ký tự của một mặt chữ **in** để giả nét tay
+Không có đường thứ tư: làm lệch từng ký tự của một mặt chữ **in** để giả nét tay
 chính là thứ `ff9a9f0` đã gỡ. Vì thế [`data/hand12/`](data/hand12) dùng `font` —
-đổi 106 người viết lấy việc không còn ô nào in máy — và trang mực-mô-hình duy
-nhất còn lại trong kho là
-[`samples/handwriting/hand-filled-folio.jpg`](samples/handwriting), giữ để nhìn
-thấy đúng cái trần ấy.
+đổi 106 người viết lấy việc không còn ô nào in máy — còn nguồn `model` được đo
+riêng trên cả 17 bố cục ở [`data/hand17_model/`](data/hand17_model): 25/197 run
+có mực, chín trang không có nét nào.
 
 Chi tiết cách nối và **lý do từng ô bị từ chối** nằm trong
 [`docs/handwriting-html.md`](docs/handwriting-html.md); khảo sát mô hình trong
@@ -559,6 +559,7 @@ từng bộ và schema nhãn nằm trong **[`data/README.md`](data/README.md)**.
 | [`data/invoices54/`](data/invoices54) | 54 hoá đơn thương mại vẽ bằng tờ CSS |
 | [`data/forms16/`](data/forms16) | hai chứng từ **không phải hoá đơn**: bảng kê viện phí, giấy uỷ quyền |
 | [`data/hand12/`](data/hand12) | 12 tờ mẫu **điền tay** bằng nguồn `font`: 159 ô, **không ô nào còn in máy** |
+| [`data/hand17_model/`](data/hand17_model) | 17 bố cục × 1 trang bằng nguồn `model` — một **phép đo**, không phải tập huấn luyện: 25/197 run có mực, 9 trang không có nét nào |
 | [`data/tables60/`](data/tables60) | ảnh bảng, nhãn theo cấu trúc PubTabNet — dạy **bố cục, không dạy đọc** |
 | [`data/profile/`](data/profile) | thời gian từng giai đoạn và mô hình chi phí |
 

@@ -315,6 +315,7 @@ class HtmlReceiptRenderer:
                     # requires: `handwriting.fill` can replace a `sign.name`
                     # run with an `<img>` of ink, and `signature.WHO` will not
                     # match a run containing markup. See `signature.fill`.
+                    import handwriting
                     import signature
 
                     markup, sign_report = signature.fill(
@@ -322,9 +323,10 @@ class HtmlReceiptRenderer:
                         source=self.sign,
                         # The same worker `--handwriting model` already keeps
                         # alive, when both are on: one checkpoint load a run,
-                        # not one per signature block.
-                        hand=self.hand if getattr(
-                            self.hand, "source", "") == "model" else None)
+                        # not one per signature block. `model_of` reaches
+                        # through `--handwriting both`, which keeps its worker
+                        # a layer down.
+                        hand=handwriting.model_of(self.hand))
                 if self.hand is not None:
                     # After the sheet is built and before a pixel is drawn:
                     # the form is printed first and filled in second, which is
@@ -332,8 +334,16 @@ class HtmlReceiptRenderer:
                     # hand-filled without one of them knowing about ink.
                     import handwriting
 
+                    # Which runs the pen reaches is the LAYOUT's answer, not
+                    # this renderer's: a printed form is filled in, and a
+                    # school exercise book was never printed at all. The
+                    # default is the printed-form answer, passed in rather
+                    # than imported so `sheets/` keeps knowing nothing of ink.
                     markup, hand_report = handwriting.fill(
-                        markup, self.hand, seed=seed)
+                        markup, self.hand, seed=seed,
+                        kinds=sheets.hand_kinds(
+                            override or recipe.layout.id,
+                            handwriting.HAND_KINDS))
                 markup = markup.replace("{FONT_FACES}", font_faces())
             else:
                 markup = build_html(grid, recipe, receipt)
@@ -454,14 +464,17 @@ def main() -> int:
     )
     parser.add_argument(
         "--handwriting", nargs="?", const="model", default=None,
-        choices=["model", "font"], metavar="SOURCE",
+        choices=["model", "font", "both"], metavar="SOURCE",
         help="fill the fields a person fills in with handwriting instead of "
              "type. `model` (the default) is the WriteViT checkpoint -- real "
              "generated ink, but it cannot write digits or ALL-CAPS and so "
              "reaches 42%% of the fields at best. `font` is a licensed "
              "handwriting typeface from fonts/hand/, which fills every field "
-             "but repeats: one hand per face, every `a` the same `a`. Only "
-             "with --template. See generators/html/handwriting.py",
+             "but repeats: one hand per face, every `a` the same `a`. `both` "
+             "gives the model what it can write and the typeface the rest, so "
+             "no run is left in type -- at the cost of two hands on one page, "
+             "counted in the record. Only with --template. "
+             "See generators/html/handwriting.py",
     )
     parser.add_argument(
         "--signature", nargs="?", const="font", default=None,

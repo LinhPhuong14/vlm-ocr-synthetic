@@ -342,8 +342,215 @@ def test_the_font_source_is_not_relatively_positioned():
 def test_source_by_name():
     assert isinstance(handwriting.source("font"), handwriting.FontHand)
     assert isinstance(handwriting.source("model"), handwriting.Hand)
+    assert isinstance(handwriting.source("both"), handwriting.BothHands)
     with pytest.raises(KeyError):
         handwriting.source("crayon")
+
+
+def test_both_builds_its_own_pair_so_the_renderer_needs_no_special_case():
+    """`source("both")` has to be the same one call as `source("model")`."""
+    both = handwriting.source("both")
+    assert isinstance(both.primary, handwriting.Hand)
+    assert isinstance(both.fallback, handwriting.FontHand)
+
+
+# ------------------------------------------------------------- the two hands
+
+class FakeFont:
+    """A source that writes anything with a character in it. Stands in for the
+    typeface half, whose real refusal is a missing glyph and needs fontTools."""
+
+    source = "font"
+    device = "browser"
+
+    def __init__(self):
+        self.asked: list[str] = []
+
+    def open(self):
+        return self
+
+    def close(self):
+        pass
+
+    def writable(self, text, page):
+        return bool(text.strip())
+
+    def refusal(self, text, page):
+        return "empty"
+
+    def span(self, kind, classes, text, page):
+        self.asked.append(text)
+        return f'<span data-kind="{kind}" class="hand hand-font">{text}</span>'
+
+    def css(self, page):
+        return "/*font*/"
+
+
+# One run the checkpoint can write, three it cannot: a date, an amount and a
+# name in capitals. That ratio is the point of the class -- on the measured
+# `notebook_ledger` pages the model reached 8 % of the runs.
+MIXED = ('<style></style>'
+         '<span data-kind="menu.name">Nước mắm Nam Ngư</span>'
+         '<span data-kind="menu.amount">27.000</span>'
+         '<span data-kind="meta.value">15/06/2018</span>'
+         '<span data-kind="store.name">TẠP HOÁ BÌNH MINH</span>')
+
+
+def _both(refuse=None):
+    return handwriting.BothHands(FakeHand(refuse=refuse), FakeFont())
+
+
+def test_both_leaves_no_run_in_type():
+    """The whole reason the class exists: a ledger written 8 % by the model and
+    92 % in type is not a ledger."""
+    hand = _both()
+    filled, report = handwriting.fill(MIXED, hand, kinds=handwriting.ALL_KINDS)
+    assert report["printed"] == {}
+    assert len(report["inked"]) == 4
+    assert "<style>" in filled  # the runs were rewritten, not the page dropped
+
+
+def test_both_records_which_half_of_the_page_came_from_where():
+    """The two hands do not match. That is a cost, and a cost in the label is
+    a cost a reader can find; one nowhere is a cost that gets forgotten."""
+    hand = _both()
+    # Keyed on each source's own name -- here the double's, `fake`.
+    assert (hand.primary.source, hand.fallback.source) == ("fake", "font")
+    _, report = handwriting.fill(MIXED, hand, kinds=handwriting.ALL_KINDS)
+    assert report["by_source"] == {"fake": 1, "font": 3}
+    assert hand.primary.asked == ["Nước mắm Nam Ngư"]
+    assert hand.fallback.asked == ["27.000", "15/06/2018", "TẠP HOÁ BÌNH MINH"]
+
+
+def test_a_single_source_does_not_claim_a_split():
+    """Two numbers for one fact is two numbers that can disagree."""
+    _, report = _fill(MIXED, kinds=handwriting.ALL_KINDS)
+    assert "by_source" not in report
+
+
+def test_both_keeps_the_run_when_the_model_refuses_one_its_policy_allowed():
+    """The disagreement `fill` records as `worker:` for a single source. With a
+    fallback there is no reason to lose the run over it -- it is counted as a
+    fallback like any other."""
+    hand = _both(refuse={"Nước mắm Nam Ngư"})
+    _, report = handwriting.fill(MIXED, hand, kinds=handwriting.ALL_KINDS)
+    assert report["printed"] == {}
+    assert report["by_source"] == {"font": 4}
+    assert len(report["inked"]) == 4
+
+
+def test_both_refuses_only_what_both_refuse():
+    page = handwriting.Page(7)
+    hand = _both()
+    assert hand.writable("15/06/2018", page)          # model no, font yes
+    assert hand.writable("Chuyển khoản", page)        # both yes
+    assert not hand.writable("   ", page)             # neither
+    assert hand.refusal("   ", page) == "empty"
+
+
+def test_the_font_half_is_scoped_so_it_cannot_resize_the_model_ink():
+    """A real defect, not a style preference.
+
+    `FontHand.css` sets `font-size` on the runs it matches, and `ink_span`
+    states the model's image width in `em`. One rule reaching both would scale
+    the model's ink by the typeface's size factor -- so the two sources must
+    not share a selector.
+    """
+    hand = handwriting.FontHand(mark=handwriting.BothHands.FONT_MARK)
+    if not hand.faces:
+        pytest.skip("no handwriting faces in fonts/hand/")
+    css = hand.open().css(handwriting.Page(7))
+    assert "#sheet span.hand-font{" in css
+    assert "#sheet span.hand{" not in css
+    # and the run still carries `hand`, which is what CSS keys `white-space`
+    # and the `<img>` rules off for both sources.
+    drawn = hand.span("menu.amount", "", "27.000", handwriting.Page(7))
+    assert 'class="hand hand-font"' in drawn
+
+
+def test_line_extent_is_the_maximum_over_the_words():
+    """The same maxima `compose` takes, available before any ink exists."""
+    assert handwriting.line_extent("kem") == (handwriting.ABOVE_TALL, 0.0)
+    assert handwriting.line_extent("gao") == (0.0, handwriting.BELOW_TAIL)
+    assert handwriting.line_extent("kem gao") == (handwriting.ABOVE_TALL,
+                                                  handwriting.BELOW_TAIL)
+    assert handwriting.line_extent("") == (0.0, 0.0)
+
+
+def test_the_two_hands_are_one_size_even_though_they_are_two_styles():
+    """Measured, not asserted by eye, and it was wrong before this.
+
+    `INK_HEIGHT_EM` and `FontHand`'s per-face factor were each calibrated
+    against a printed field on their own, so nothing made them agree: on a
+    rendered `notebook_ledger` page the model's x-height came out about 1.5x
+    the typeface's and read as a second, larger hand. The matched height puts
+    the model's x-height on the face's, so the ratio here is 1.
+    """
+    font = handwriting.FontHand(mark=handwriting.BothHands.FONT_MARK)
+    if not font.faces:
+        pytest.skip("no handwriting faces in fonts/hand/")
+    pytest.importorskip("fontTools")
+    both = handwriting.BothHands(FakeHand(), font.open())
+    page = handwriting.Page(7)
+
+    for text in ("Nước mắm Nam Ngư", "kem", "gao", "Chuyển khoản"):
+        above, below = handwriting.line_extent(text)
+        tile = both._matched_height(text, page)
+        # A tile covers `above + 1 + below` x-heights, so dividing gives the
+        # model's x-height in em -- which must be the face's.
+        model_x = tile / (above + handwriting.X_HEIGHT + below)
+        assert model_x == pytest.approx(font.x_height_em(page), rel=1e-9), text
+
+
+def test_a_fallback_that_cannot_state_an_x_height_leaves_the_model_alone():
+    """`None`, not a guessed number: a guess would mis-size one half of every
+    page and look exactly like a calibration nobody wrote down."""
+    assert _both()._matched_height("Chuyển khoản", handwriting.Page(7)) is None
+
+
+def test_model_of_reaches_through_the_pair():
+    """`--signature model` borrows the worker rather than loading a second
+    checkpoint: 11 s and 294 MB, twice, for one model."""
+    both = handwriting.BothHands(handwriting.Hand(), FakeFont())
+    assert handwriting.model_of(both) is both.primary
+    assert handwriting.model_of(handwriting.Hand()).source == "model"
+    assert handwriting.model_of(handwriting.FontHand()) is None
+    assert handwriting.model_of(_both()) is None      # the double is not one
+    assert handwriting.model_of(None) is None
+
+
+# -------------------------------------------------- which runs a pen reaches
+
+def test_the_sentinel_is_the_same_string_on_both_sides():
+    """`handwriting` and `sheets` must not import each other, so the one value
+    they share is restated -- and pinned here rather than hoped for."""
+    assert handwriting.ALL_KINDS == sheets.EVERY_RUN
+
+
+def test_all_kinds_writes_runs_a_printed_form_would_leave_alone():
+    hand = FakeHand()
+    markup = ('<style></style>'
+              '<span data-kind="store.name">Tạp hoá Bình Minh</span>'
+              '<span data-kind="menu.name">Nước mắm</span>')
+    _fill(markup, hand, kinds=handwriting.ALL_KINDS)
+    assert hand.asked == ["Tạp hoá Bình Minh", "Nước mắm"]
+    # ... and the default still leaves them printed.
+    other = FakeHand()
+    _fill(markup, other)
+    assert other.asked == []
+
+
+def test_only_the_notebook_is_written_end_to_end():
+    """Every other family is a printed form: a letterhead and a column title
+    were printed before anybody picked up a pen, and inking them would be
+    claiming a press run that did not happen."""
+    default = handwriting.HAND_KINDS
+    written = [layout for layout in sheets.names()
+               if sheets.hand_kinds(layout, default) == sheets.EVERY_RUN]
+    assert written == ["notebook_ledger"]
+    for layout in sheets.names():
+        if layout not in written:
+            assert sheets.hand_kinds(layout, default) is default
 
 
 # ------------------------------------------------------------- the pixel half
