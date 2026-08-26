@@ -37,6 +37,7 @@ because it is not in the label and never was.
 from __future__ import annotations
 
 import html
+import random
 import unicodedata
 from pathlib import Path
 from typing import Any, Sequence
@@ -58,6 +59,21 @@ PAPERS: dict[str, tuple[str, str]] = {
 SERIF = "'LiberationSerif','DejaVu Serif',serif"
 SANS = "'DejaVuSans','LiberationSans','DejaVu Sans',sans-serif"
 MONO = "'LiberationMono','Cousine',monospace"
+
+
+def rng_for(recipe, tag: int = 0x5A4D) -> random.Random:
+    """The family's own independent random stream, seeded off the recipe.
+
+    `tag` keeps one family's coin flips (a livery, a watermark, a checkbox
+    mark) from ever landing in step with another's, even when both draw from
+    the same `recipe.seed` for the same page. `0x5A4D` is not a magic
+    constant chosen here -- it is the one five families (`lodging`,
+    `medical`, `modern`, `statement`, `statutory`) already happened to XOR
+    with, unnamed, before this helper existed; keeping it as the default
+    reproduces every one of them bit-for-bit. A family with its own tag
+    (`form.py` uses `0x46524D`, "FRM") passes it explicitly.
+    """
+    return random.Random(recipe.seed ^ tag)
 
 
 def esc(value: Any) -> str:
@@ -654,13 +670,30 @@ def signature_block(receipt, parse: dict, *, stamp: str = "") -> str:
     return f'<div class="signs">{"".join(columns)}</div>'
 
 
-def signed_lines(parse: dict) -> str:
-    """"Được ký bởi ..." / "Ngày ký ...", the digital signature's own caption."""
-    invoice = parse.get("invoice") or {}
-    parts = [span("sign.signedby", invoice.get("signed_by", "")),
-             span("sign.signedat", invoice.get("signed_at", ""))]
-    parts = [part for part in parts if part]
-    return "".join(f'<div class="sline">{part}</div>' for part in parts)
+def notes_blocks(lines: Sequence[str], *, limit: int | None = None) -> list[list[str]]:
+    """`invoice.notes` split into blocks on blank lines.
+
+    The same convention `_emit_notes` in `rulebase/layout.py` reads: a blank
+    entry ends a block, so one document can print a "who to pay" block and a
+    "how to reach us" block from the same flat list without either family
+    inventing its own key for the second one. `modern.py::_notes` and
+    `form.py::_notes_block` used to each parse this by hand, identically down
+    to the loop -- `limit` is the one place they differed (`modern.py` shows
+    at most two blocks side by side; `form.py` prints as many as the document
+    gives it), so it is the one parameter here rather than two functions.
+
+    Returns the *lines*, not markup: each family still turns a block into its
+    own shape (columns, boxes, `<p>` tags, an "h" class on a heading line),
+    which is the part that is genuinely different between them.
+    """
+    blocks: list[list[str]] = [[]]
+    for line in lines:
+        if line.strip():
+            blocks[-1].append(line)
+        else:
+            blocks.append([])
+    blocks = [block for block in blocks if block]
+    return blocks[:limit] if limit else blocks
 
 
 def footer_block(parse: dict) -> str:
@@ -723,6 +756,7 @@ __all__ = [
     "MONO", "ORNAMENT_DIR", "PAPERS", "REPO_ROOT", "SANS", "SERIF", "Rows",
     "align_class", "cell", "columns_of", "document", "esc", "field_line",
     "footer_block", "initials", "item_rows", "items_table", "key_strip",
-    "ncols_of", "ornament_url", "party_rows", "qr_svg", "signature_block",
-    "signed_lines", "span", "structure_tokens", "totals_block", "words_block",
+    "ncols_of", "notes_blocks", "ornament_url", "party_pairs", "party_rows",
+    "qr_svg", "rng_for", "signature_block", "span", "structure_tokens",
+    "totals_block", "words_block",
 ]
