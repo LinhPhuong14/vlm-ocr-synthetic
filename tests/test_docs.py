@@ -64,6 +64,32 @@ def test_every_link_in_a_document_resolves(document: Path):
         + "\n  ".join(missing))
 
 
+def test_every_committed_figure_is_embedded_by_some_document():
+    """The other direction: a figure nobody embeds is a figure nobody sees.
+
+    Written after the headline figure of `co-che-sinh-con-dau.md` lost its
+    embed during a rewrite of the section around it. The file stayed on disk,
+    stayed in git, and stopped being referenced by anything — so neither the
+    link test nor the tracking test above had anything to say about it.
+    """
+    root = REPO_ROOT / "docs" / "figures"
+    embedded = {
+        (document.parent / target).resolve()
+        for document in _documents()
+        for _is_image, target in _targets(document)
+        if target
+    }
+    orphans = sorted(
+        path.relative_to(REPO_ROOT).as_posix()
+        for path in root.rglob("*")
+        if path.suffix.lower() in IMAGE_SUFFIXES
+        and path.relative_to(REPO_ROOT).as_posix() in _tracked()
+        and path.resolve() not in embedded)
+    assert orphans == [], (
+        "these figures are committed but no document embeds them, so they are "
+        "carried and never read:\n  " + "\n  ".join(orphans))
+
+
 @pytest.mark.parametrize("document", _documents(), ids=lambda p: p.name)
 def test_every_image_a_document_embeds_is_tracked_by_git(document: Path):
     """On disk is not enough. `.gitignore` ignores images by default.
