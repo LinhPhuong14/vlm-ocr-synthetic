@@ -100,7 +100,20 @@ PLANS: dict[str, dict] = {
     # The plan the W1 brief names, on the three layouts it named.
     "n3": {"per_backend": 3, "seed": 2026, "layouts": THERMAL[:3]},
     # Every thermal layout: the till-roll half of the rule-base.
-    "n5": {"per_backend": 5, "seed": 2026, "layouts": THERMAL},
+    #
+    # It was `n5`, and it had a hole in it for a whole wave without anybody
+    # noticing. The quota walks the layout list in order and hands the
+    # remainder to the FRONT, so a `per_backend` below the layout count does
+    # not spread thin -- it drops the tail. `notebook_ledger` joined THERMAL,
+    # the count went to six, this line stayed at five, and the plan went on
+    # drawing five of six under a name that said five. The golden file
+    # recorded a fingerprint for a plan that was not covering what it claimed.
+    #
+    # `pipeline/plan.py::uncovered` is what found it, and it now refuses a
+    # plan like this outright rather than quietly drawing the front of the
+    # list. The count is in the name for exactly this reason -- so keep them
+    # equal, and let the rename be the thing that tells everyone.
+    "n6": {"per_backend": 6, "seed": 2026, "layouts": THERMAL},
     # Every layout that ships, one image each per backend, so nothing is
     # outside the net. Used to be a fixed id list (INVOICE + FORM) concatenated
     # by hand and a plan name that had to be renamed every time the count grew
@@ -110,7 +123,10 @@ PLANS: dict[str, dict] = {
     # forever: this plan is *defined* as everything that ships, so it can
     # never itself drift out of sync with what ships -- `tests/test_baseline.
     # py::test_the_widest_plan_covers_every_layout_that_ships` is therefore
-    # tautologically true for this plan by construction, not by upkeep.
+    # tautologically true for this plan by construction, not by upkeep. It is
+    # also immune to the `n5` hole above by construction: `per_backend` is
+    # `len(available_layouts())`, so there is never a quota below the layout
+    # count for `uncovered` to catch.
     # A per-layout content change (not a count change) still means recapturing,
     # same as ever -- that is what `rules_fingerprint` is for.
     "all": {"per_backend": len(available_layouts()), "seed": 2026,

@@ -53,7 +53,7 @@
       },
       "dataset_json": "973b3998806bde19606a863125934a3084ef34f1a1653562e1e44d9784b01205"
     },
-    "n5": {
+    "n6": {
       "inputs": {
         "layouts": [
           "eatery_ascii",
@@ -64,7 +64,7 @@
           "notebook_ledger"
         ],
         "seed": 2026,
-        "per_backend": 5,
+        "per_backend": 6,
         "pairing": "paired",
         "clean": false,
         "template": "auto",
@@ -80,7 +80,8 @@
         "html/html_001.jpg": "73c403ff7c9a5cd6c56bbac306bd6e07a0c26980efb9957ae2ba11e6e09eeb13",
         "html/html_002.jpg": "c4554888f27af7b4d19b023e8b20156326ea962e3435ccb870e2747e8384e29e",
         "html/html_003.jpg": "28e355949213711eede00e1f79d79bf1b8536a4c3e75d3b78692e4cbb374b78a",
-        "html/html_004.jpg": "c77429a963a104a030d5e8fc211118a730ef4f11921e3ab7e052ae7d8020b3f9"
+        "html/html_004.jpg": "c77429a963a104a030d5e8fc211118a730ef4f11921e3ab7e052ae7d8020b3f9",
+        "html/html_005.jpg": "d7e59339ce3257dc9f0fe239efcc0ed1003670626abf5308ddfcfbaa82a9469e"
       },
       "metadata": {
         ".shards": [
@@ -88,34 +89,37 @@
           "3d052a66ac944bf9f3a8faac5bfb3fa92df50feb71edb4b28c2209708de4cb1c",
           "e3f4e61675932a0174c615b1c8796c76770c4994cf70e4ed82ea8e3f035a727d",
           "22faa4b573ef19c5db6f9d1e27e2bb4c32ca29a50b499e0a45835875ea79e501",
-          "1cff227aebad6f3563fe8760ec71656d4cf678f84011c8d7969e6749944c74ce"
+          "1cff227aebad6f3563fe8760ec71656d4cf678f84011c8d7969e6749944c74ce",
+          "a752208872da8ee4cd4cc82234f887e0410bd58d6144ffb23761ffe73dd1b0b2"
         ],
         "html": [
           "833b9dabcad5cbeffd2cd27a1e5935c5bf2084ec53f27398bf6a00864713131e",
           "3d052a66ac944bf9f3a8faac5bfb3fa92df50feb71edb4b28c2209708de4cb1c",
           "e3f4e61675932a0174c615b1c8796c76770c4994cf70e4ed82ea8e3f035a727d",
           "22faa4b573ef19c5db6f9d1e27e2bb4c32ca29a50b499e0a45835875ea79e501",
-          "1cff227aebad6f3563fe8760ec71656d4cf678f84011c8d7969e6749944c74ce"
+          "1cff227aebad6f3563fe8760ec71656d4cf678f84011c8d7969e6749944c74ce",
+          "a752208872da8ee4cd4cc82234f887e0410bd58d6144ffb23761ffe73dd1b0b2"
         ]
       },
       "provenance": {
-        "html": "abdba103b86cd387a64efd94870482128be7c3ced4444a9d515ed9727e219ded"
+        "html": "c91b2f7542cf1fd364adc65374cb3459bde4cbd56e921f51c45d090803c4fc12"
       },
       "counts": {
         "by_backend": {
-          ".shards": 5,
-          "html": 5
+          ".shards": 6,
+          "html": 6
         },
         "by_layout": {
-          "?": 5,
+          "?": 6,
           "eatery_ascii": 1,
           "eatery_indexed": 1,
           "market_barcode": 1,
           "market_compact": 1,
-          "market_vat": 1
+          "market_vat": 1,
+          "notebook_ledger": 1
         }
       },
-      "dataset_json": "f17fb5738e7c6fcdc99f0d02de32b82d32d03f08b23b8cc384e5bed4a22fa11b"
+      "dataset_json": "9cf9a3f2be04fc17ddad2233e4cdc4a1a0982c606b550026dd15a95d7c6f4dab"
     },
     "all": {
       "inputs": {
@@ -362,6 +366,6 @@
     }
   },
   "normalisation": "each record is json.loads then json.dumps(sort_keys=True, ensure_ascii=False); no field is excluded",
-  "reason": "merge master (table component, augmentation/toner-drum-rollers split, notebook family, hand17_model) into the document-taxonomy branch; recapture for the combined layout set",
-  "replaced": "Recapture, two reasons at once: (1) items_table()/_header_rows()/_group_row()/_item_row()/_item_extras() in sheets/base.py now build a components.table.TableSpec instead of hand-rolled <tr>/<td> strings -- column widths move from a width: style on each header <th> to <colgroup><col style=width:...%>, which is not guaranteed byte-identical under table-layout:auto even though every family's own CSS still draws the actual borders/shading/zebra unchanged (border=Border.none(), cls= passthrough); (2) this baseline was already stale independent of that work -- last captured at a8ea2f4, before 9d2c97d and other rulebase/rules, rulebase/corpus changes that never got a recapture (metadata schema was None, now 8), and before the layout count grew from 14 to 16 (tools/baseline.py's own plan names, n14 -> n16). Both kinds of drift are folded into this one capture since a plan's images say nothing about either until it is retaken."
+  "reason": "merge master again (LLM-augmented layout/content generation tool, and master's own independent fix for the identical hyphen-line-wrap invariant bug -- superseded this branch's version in favour of master's better-factored _tight() helper); recapture",
+  "replaced": "invoice_export unblocked: a name wrapping at a hyphen rejoined as LONG- SLEEVE and read as a missing field, which had been failing every recapture; also n5 -> n6, which had been drawing 5 of 6 thermal layouts since notebook_ledger"
 }
