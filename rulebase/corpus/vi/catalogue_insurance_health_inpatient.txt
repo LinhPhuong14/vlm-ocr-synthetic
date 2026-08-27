@@ -1,0 +1,8 @@
+# Quyền lợi điều trị nội trú — nhóm A của bảng quyền lợi bảo hiểm sức khoẻ.
+# Định dạng: tên quyền lợi<TAB>giới hạn tối thiểu<TAB>tối đa   (đơn vị VND/năm)
+Tiền phòng và giường bệnh	120000000	220000000
+Chi phí phẫu thuật, thủ thuật	100000000	200000000
+Điều trị trước và sau khi nhập viện	8000000	18000000
+Chi phí y tá chăm sóc riêng	20000000	50000000
+Trợ cấp mai táng	20000000	40000000
+Chăm sóc đặc biệt, hồi sức tích cực (ICU)	150000000	300000000

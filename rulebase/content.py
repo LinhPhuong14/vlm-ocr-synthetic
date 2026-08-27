@@ -83,6 +83,12 @@ class Item:
     # into a weighed one -- which put a weight and a per-kilo price in the
     # label that no invoice layout has a column for.
     weighed: bool = False
+    # An insurance product's sum insured (`unit_price`) and its premium
+    # (`amount`) are two independent facts about the same row, not a unit
+    # price the till multiplied by a quantity -- `qty` stays 1 for these,
+    # honestly, rather than being contorted to make the usual
+    # `amount == unit_price * qty` hold. See `_build_insurance_items`.
+    independent_price: bool = False
     # ---- bảng kê chi phí khám chữa bệnh (Mẫu số 01/KBCB)
     #
     # A hospital bill does not price a line once. It prices it twice -- what the
@@ -238,6 +244,12 @@ class Invoice:
     # The names printed under the signature titles -- a hotel bill is signed by
     # the receptionist and the guest, both named on the page.
     signature_names: list[str] = field(default_factory=list)
+    # A fixed question answered "Có"/"Không" per draw, plus an optional detail
+    # string when the answer is "Có" -- a health-declaration table's rows. The
+    # question is corpus text, the answer and detail are what varies, and
+    # unlike `form.py::_checklist`'s decorative mark, both are real ground
+    # truth here: nothing else models "yes, and here is the specific fact".
+    checks: list[tuple[str, str, str]] = field(default_factory=list)
 
 
 @dataclass
@@ -301,7 +313,15 @@ class Receipt:
             if item.weighed:
                 entry["weight"] = f"{quantity(item.qty, 'dot', 3)} {item.unit}"
                 entry["unitprice_per_unit"] = self.cash(item.unit_price)
-            if item.display_unit_price():
+            if item.independent_price:
+                # `unitprice` is `_check_arithmetic`'s cue to redo `cnt *
+                # unitprice == price`; a life-policy line's sum insured is
+                # not a factor of its premium, so it is printed (the box is
+                # still real, still labelled -- just under a name that check
+                # does not know to multiply), the same way the `weighed`
+                # branch above keeps its own true rate out of that key.
+                entry["insured"] = self.cash(item.unit_price)
+            elif item.display_unit_price():
                 entry["unitprice"] = self.cash(item.display_unit_price())
             if item.barcode:
                 entry["barcode"] = item.barcode
@@ -366,6 +386,11 @@ class Receipt:
             data["signed_by"] = invoice.signed_by
         if invoice.signed_at:
             data["signed_at"] = invoice.signed_at
+        if invoice.checks:
+            data["checks"] = [
+                {"question": q, "answer": a, **({"detail": d} if d else {})}
+                for q, a, d in invoice.checks
+            ]
         return data
 
     def text_sequence(self) -> str:
@@ -404,6 +429,8 @@ class Receipt:
             for value in (invoice.signed_by, invoice.signed_at):
                 if value:
                     parts.append(value)
+            for question, answer, detail in invoice.checks:
+                parts.append(f"{question} {answer} {detail}".strip())
         parts.extend(self.footer)
         return " ".join(part for part in parts if part)
 
@@ -631,11 +658,11 @@ def _build_issuer(profile: str, rng: random.Random, case, params: dict) -> Store
     store = Store(
         name=case(name),
         branch=case(unit) if unit and params.get("show_issuer_unit", True) else "",
-        address=case(address),
         # A VAT invoice must identify its issuer to the tax office; a hotel
-        # bill and a bakery order need not, and printing a tax code no layout
-        # of theirs has a line for would put a field in the label that no
-        # reader of the image can check.
+        # bill and a bakery order need not, and printing an address or a tax
+        # code no layout of theirs has a line for would put a field in the
+        # label that no reader of the image can check.
+        address=case(address) if params.get("show_seller_address", True) else "",
         tax_code=_tax_code(rng) if params.get("show_seller_tax_code", True) else "",
     )
     if params.get("show_seller_website"):
@@ -649,6 +676,96 @@ def _build_issuer(profile: str, rng: random.Random, case, params: dict) -> Store
     if params.get("show_seller_account"):
         store.account = _bank_account(rng)
     return store
+
+
+def _build_insurance_items(rng: random.Random, case, params: dict) -> list[Item]:
+    """A schedule of insurance products or coverage lines.
+
+    Not a basket a till multiplied: a life-policy product's sum insured and
+    its premium are two independent facts about the same row, not a unit
+    price times a quantity, and a travel certificate's benefit cap is one
+    fact with no premium at all. Both shapes reuse `Item.unit_price`/`amount`
+    as-is for rendering -- the column each prints (`item_values()`'s own
+    `unit_price`/`amount` keys, unrelated to `ground_truth()`'s) does not
+    change. `independent_price=True` marks the dual case for the two callers
+    that do need to know the multiplication was skipped: the exemption in
+    `tests/test_content.py`'s `amount == unit_price * qty` check, and
+    `ground_truth()`, which prints the sum insured under `insured` rather
+    than `unitprice` so `pipeline/invariants.py::_check_arithmetic` -- which
+    reads the plain `menu` dict, not this `Item`, and has no such exemption
+    -- does not redo a multiplication that was never done. `unit` carries the
+    term ("25 năm"), reusing the same column an ordinary invoice's "Đơn vị
+    tính" already prints.
+
+    `params["catalogue"]` names a `corpus.catalogue()` pool of (name, low,
+    high) rows. `premium_rate: [lo, hi]` present means two money columns
+    (sum insured drawn from the pool, premium a rate of it); absent means
+    one (the pool's own range IS the printed amount, e.g. a benefit cap).
+    """
+    lang = params.get("lang", corpus.DEFAULT_LANG)
+    pool = corpus.catalogue(params["catalogue"], lang)
+    lo, hi = params.get("num_items", [len(pool), len(pool)])
+    count = min(rng.randint(int(lo), int(hi)), len(pool))
+    chosen = rng.sample(pool, count)
+    step = int(params.get("price_step", 100000))
+    rate = params.get("premium_rate")
+    terms = params.get("terms") or []
+    items: list[Item] = []
+    for index, (name, low, high) in enumerate(chosen):
+        value = _round_to(rng.uniform(float(low), float(high)), step)
+        term = case(str(rng.choice(terms))) if terms else ""
+        if rate:
+            premium = _round_to(value * rng.uniform(float(rate[0]), float(rate[1])), 1000)
+            unit_price, amount, independent = int(value), int(premium), True
+        else:
+            # One value, not two: `unit_price = amount` (with `qty` already
+            # 1) keeps `amount == unit_price * qty` true by construction,
+            # rather than carrying a `unit_price` of 0 that would fail it.
+            unit_price = amount = int(value)
+            independent = False
+        items.append(Item(stt=index + 1, name=case(name), qty=1, unit=term,
+                          unit_price=unit_price, amount=amount,
+                          independent_price=independent))
+    return items
+
+
+def _build_grouped_items(rng: random.Random, case, params: dict) -> list[Item]:
+    """A benefit table split into named categories, each a heading row over a
+    handful of lines drawn from that category's own catalogue.
+
+    The same `Item.is_group` shape `_build_medical_items` already prints a
+    hospital bill's numbered-block cost table with, generalized off one
+    document's fixed blocks onto any document's own `groups:` param: each
+    entry is `{title, catalogue, num_lines: [lo, hi]}`. A heading's `name` is
+    all `_group_row` reads when the layout's `table.group_span` spans every
+    column (this root's own layouts do); it is excluded from
+    `ground_truth()["menu"]` the same way medical's block headings already
+    are, since it repeats what the lines under it already say individually.
+    """
+    lang = params.get("lang", corpus.DEFAULT_LANG)
+    step = int(params.get("price_step", 100000))
+    items: list[Item] = []
+    stt = 1
+    for group in params.get("groups") or []:
+        # `sums`, six zeros: `Item.amount_bv()`/`amount_bh()`/etc. index into
+        # it unconditionally for any `is_group` item -- the legacy grid path
+        # (`rulebase/layout.py::item_values`) calls them on every item
+        # regardless of family, so an empty tuple here is an `IndexError` on
+        # a layout the real renderer never even reaches.
+        items.append(Item(stt=0, name=case(str(group["title"])), qty=0,
+                          unit_price=0, amount=0, is_group=True, sums=(0,) * 6))
+        pool = corpus.catalogue(group["catalogue"], lang)
+        lo, hi = group.get("num_lines", [2, 3])
+        count = min(rng.randint(int(lo), int(hi)), len(pool))
+        for name, low, high in rng.sample(pool, count):
+            # `unit_price = amount` (see the same choice in
+            # `_build_insurance_items`) keeps `amount == unit_price * qty`
+            # true for these lines too.
+            value = int(_round_to(rng.uniform(float(low), float(high)), step))
+            items.append(Item(stt=stt, name=case(name), qty=1,
+                              unit_price=value, amount=value))
+            stt += 1
+    return items
 
 
 def _build_utility_items(profile: str, rng: random.Random, case, params: dict) -> list[Item]:
@@ -1153,6 +1270,30 @@ def _build_invoice(profile: str, store: Store, items: list[Item], rng: random.Ra
             "yn_2": rng.choice(["Có", "Không"]),
         })
 
+    # ---- xe cơ giới: the vehicle a compulsory-liability certificate names.
+    # `buyer_name`/`buyer_address`/`buyer_phone` above already cover the owner
+    # -- a plate, a chassis and an engine number are the only facts a vehicle
+    # certificate carries that nothing above does.
+    if params.get("vehicle_fields"):
+        kind = params.get("vehicle_kind", "car")
+        # `51K-999.99` (car) vs `29X1-123.45` (motorbike): both a province
+        # code, a registration letter, a dash, three digits, a dot, two
+        # digits -- a motorbike plate has one extra digit after the letter.
+        province = f"{rng.randrange(11, 99):02d}"
+        letter = rng.choice("ABCDEFGHKLMNPST")
+        series = f"{rng.randrange(1, 999):03d}.{rng.randrange(1, 99):02d}"
+        plate = (f"{province}{letter}{rng.randrange(1, 9)}-{series}" if kind == "motorbike"
+                else f"{province}{letter}-{series}")
+        chassis = "".join(rng.choice("ABCDEFGHJKLMNPRSTUVWXYZ0123456789") for _ in range(17))
+        engine = "".join(rng.choice("ABCDEFGHJKLMNPRSTUVWXYZ0123456789") for _ in range(11))
+        values.update({
+            "plate_number": plate,
+            "chassis_number": chassis,
+            "engine_number": engine,
+            "vehicle_type": case(rng.choice(params.get("vehicle_types")
+                                            or ["Ô tô con"])),
+        })
+
     # ---- xuất khẩu: the shipment the invoice travels with.
     values.update({
         "contract_no": f"{rng.randrange(1, 999):03d}/{year % 100:02d}/HĐXK",
@@ -1181,7 +1322,7 @@ def _build_invoice(profile: str, store: Store, items: list[Item], rng: random.Ra
 
     fields = params.get("party_fields") or {}
     invoice = Invoice(
-        serial=values["serial"],
+        serial=values["serial"] if params.get("show_serial", True) else "",
         # "Số hoá đơn: INV001421" on a designed invoice is the serial, and
         # there is no second number underneath it. Issuing one anyway would put
         # a field in the label that no layout of that document prints.
@@ -1219,6 +1360,20 @@ def _build_invoice(profile: str, store: Store, items: list[Item], rng: random.Ra
     if params.get("digital_signature"):
         invoice.signed_by = case(f"{params.get('signed_by_label', 'Được ký bởi:')} {store.name}")
         invoice.signed_at = case(f"{params.get('signed_at_label', 'Ngày ký:')} {issued}")
+    # A health-declaration table: `checks` in the document YAML is a fixed
+    # bank of {question, yes_rate, details} -- the question is corpus text,
+    # the answer is a coin toss at `yes_rate`, and the detail (drawn only on
+    # "Có") is one line from that question's own small pool. Absent for every
+    # document that doesn't set it, so this is a no-op everywhere else.
+    for entry in params.get("checks") or []:
+        yes = rng.random() < float(entry.get("yes_rate", 0.15))
+        pool = entry.get("details") or []
+        detail = case(str(rng.choice(pool))) if yes and pool else ""
+        invoice.checks.append((
+            case(str(entry["question"])),
+            case(str(entry.get("yes", "Có")) if yes else str(entry.get("no", "Không"))),
+            detail,
+        ))
     return invoice
 
 
@@ -1283,6 +1438,10 @@ def build(recipe, rng: random.Random | None = None) -> Receipt:
             items = _build_utility_items(profile, rng, case, params)
         elif stay:
             items = _build_stay_items(profile, rng, case, params, stay)
+        elif params.get("catalogue"):
+            items = _build_insurance_items(rng, case, params)
+        elif params.get("groups"):
+            items = _build_grouped_items(rng, case, params)
         else:
             items = _build_items(profile, rng, case, params)
         # The party block carries what a till prints as meta, and it is emitted
@@ -1345,8 +1504,16 @@ def build(recipe, rng: random.Random | None = None) -> Receipt:
     # A summarising form prints what is owed in its "Tổng hợp" block rather
     # than as a line of this list, so the index deliberately points past the
     # end: there is nothing here to set in bold.
+    #
+    # `no_totals` is the third case: a schedule of coverage limits (each
+    # `Item` a distinct benefit and its cap) has no meaningful sum at all --
+    # summing "50,000 EUR medical" and "2,000 EUR baggage" is not a number
+    # the document claims. `numbers["grand"]` is still computed below, for
+    # this function's own arithmetic checks; it is simply never appended to
+    # `totals`, so it never reaches `ground_truth()` (built from `totals`
+    # alone) for a page with no total to print.
     grand_index = len(totals)
-    if not summarised:
+    if not summarised and not params.get("no_totals"):
         totals.append((case(labels.get("grand", "Thanh toán")), cash(grand)))
     numbers["grand"] = grand
 

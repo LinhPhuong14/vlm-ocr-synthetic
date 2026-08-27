@@ -1,0 +1,52 @@
+profile: insurance
+invoice: true
+form_fields: true
+no_totals: true
+catalogue: insurance_life
+num_items: [1, 2]
+premium_rate: [0.008, 0.018]
+price_step: 500000
+terms: ["25 năm", "20 năm", "15 năm"]
+show_serial: false
+show_vat: false
+show_issuer_unit: false
+show_seller_address: false
+show_seller_phone: false
+show_subtotal: false
+show_payment: false
+show_amount_words: false
+show_seller_tax_code: false
+show_seller_account: false
+titles:
+  - "Đơn yêu cầu bảo hiểm"
+subtitle: ""
+party_fields:
+  left:
+    - [applicant_name, "Họ và tên"]
+    - [applicant_dob, "Ngày sinh"]
+    - [applicant_id, "Số CCCD"]
+    - [applicant_phone, "Điện thoại"]
+    - [residence, "Địa chỉ thường trú"]
+    - [profession, "Nghề nghiệp"]
+checks:
+  - question: "Trong 5 năm gần đây, có từng nằm viện, phẫu thuật hoặc điều trị nội trú?"
+    yes_rate: 0.08
+    details: ["Điều trị viêm ruột thừa", "Phẫu thuật chỉnh hình chân", "Nằm viện theo dõi tim mạch"]
+  - question: "Đang dùng thuốc theo chỉ định dài ngày?"
+    yes_rate: 0.1
+    details: ["Thuốc huyết áp", "Thuốc tiểu đường", "Thuốc dị ứng theo mùa"]
+  - question: "Hút thuốc lá / sử dụng đồ uống có cồn thường xuyên?"
+    yes_rate: 0.25
+    details: ["Hút 5 điếu/ngày", "Hút 10 điếu/ngày", "Uống bia vào cuối tuần"]
+  - question: "Tham gia hoạt động, nghề nghiệp có tính rủi ro cao?"
+    yes_rate: 0.05
+    details: ["Lái xe đường dài", "Làm việc trên giàn giáo", "Lặn biển thể thao"]
+  - question: "Đã từng bị từ chối / tăng phí / loại trừ khi tham gia bảo hiểm?"
+    yes_rate: 0.03
+    details: ["Bị tăng phí ở hợp đồng trước", "Bị loại trừ điều khoản tim mạch"]
+notes:
+  - "Cam kết của người yêu cầu bảo hiểm:"
+  - "Tôi xác nhận mọi thông tin kê khai trong Đơn này là đầy đủ, trung thực và chính xác; đây là căn cứ để doanh nghiệp bảo hiểm xem xét chấp nhận bảo hiểm và phát hành hợp đồng. Tôi đồng ý cho doanh nghiệp bảo hiểm thu thập, xác minh thông tin sức khoẻ và tài chính phục vụ việc thẩm định."
+signature_labels:
+  - ["Bên mua bảo hiểm", "(Ký, ghi rõ họ tên)"]
+  - ["Tư vấn viên", "(Ký, ghi mã số)"]
