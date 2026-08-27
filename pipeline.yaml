@@ -6,6 +6,11 @@
 
 run:
   out: data/run01
+  # Images per backend, and a FLOOR rather than a free number: it must be at
+  # least the layout count, or the run refuses to start rather than quietly
+  # drawing only the front of the list. 20 against 17 layouts today, so adding
+  # four more layouts is what makes this line need raising -- and the refusal
+  # will say so by name.
   per_backend: 20
   seed: 2026
   workers: auto          # auto = CPUs - 1, so the machine stays usable
@@ -34,12 +39,21 @@ run:
   # `dataset60` looks plainer than `invoices54` because it predates this line.
   template: auto
 
-  # Which layouts to draw from, by name. Empty (the default) means every file in
-  # `rulebase/layouts/`, which is what a dataset wants. A *fixed comparison*
-  # should name them: the quota walks the list in order, so a run that took the
-  # directory draws a different set the day someone adds a layout. That is how
-  # the golden baseline went red without being able to say why -- see
-  # `tools/baseline.py`, whose plans all name theirs.
+  # Which layouts to draw from, by name. Empty (the default) means **every file
+  # in `rulebase/layouts/`** -- so a layout added to that directory, by hand or
+  # by `tools/llm/augment_layout.py`, is in the next run without anybody
+  # editing this file. That is what a dataset wants.
+  #
+  # A *fixed comparison* should name them instead: the quota walks the list in
+  # order, so a run that took the directory draws a different set the day
+  # someone adds a layout. That is how the golden baseline went red without
+  # being able to say why -- see `tools/baseline.py`, whose plans all name
+  # theirs. `plan.json` records which of the two this run was (`layout_source`),
+  # because the list alone cannot say.
+  #
+  # Every layout in the run gets at least one image or the run refuses to
+  # start: `per_backend` below the layout count does not spread thin, it drops
+  # the tail of the list and says nothing. See `pipeline/plan.py::uncovered`.
   layouts: []
 
   # Every shipped layout already has a real entry in
