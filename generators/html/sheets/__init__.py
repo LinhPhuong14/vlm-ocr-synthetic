@@ -65,6 +65,7 @@ FAMILIES = {
     "market_barcode": till,
     "market_compact": till,
     "market_vat": till,
+    "market_vat_b": till,    # llm-generated from market_vat, 2026-08-27
     "notebook_ledger": notebook,
 }
 

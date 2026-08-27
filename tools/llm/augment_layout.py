@@ -217,9 +217,16 @@ def register(layout_id: str, parent: str, today: str) -> list[str]:
             RULES_LAYOUT.write_text("".join(lines), encoding="utf-8")
             return [f"the parent {parent!r} has no blank in blanks.yaml"]
         rows = block.rstrip("\n").split("\n")
-        new = [f"  {layout_id}:"] + [
-            row.replace(f"layout: {parent}", f"layout: {layout_id}")
-            for row in rows[1:]]
+        new = [f"  {layout_id}:"]
+        for row in rows[1:]:
+            row = row.replace(f"layout: {parent}", f"layout: {layout_id}")
+            if row.strip().startswith("source:"):
+                # Same reason as `restate_source`: a blank copied from a parent
+                # must not inherit the parent's claim to a photograph.
+                indent = row[:len(row) - len(row.lstrip())]
+                row = (f'{indent}source: "biến thể của {parent} '
+                       f'(sinh bằng LLM, không đo từ ảnh nào)"')
+            new.append(row)
         parts = text.splitlines(keepends=True)
         text = "".join(parts[:end]) + "\n".join(new) + "\n\n" + "".join(parts[end:])
     # ... and the documents that may draw the parent may draw the variant.
@@ -233,6 +240,31 @@ def register(layout_id: str, parent: str, today: str) -> list[str]:
         out_lines.append(line)
     BLANKS.write_text("".join(out_lines), encoding="utf-8")
     return []
+
+
+def restate_source(variant: dict, parent: str, parent_yaml: dict) -> None:
+    """Overwrite `source:` with where this layout ACTUALLY came from.
+
+    Every hand-written layout uses that field for one thing: the photograph or
+    document it was measured against -- `photo Saigon Co.op, PHIẾU TÍNH TIỀN
+    2022`, `ảnh hoá đơn xuất khẩu mẫu 06HDXK3/001`. It is the provenance of the
+    shape, and somebody deciding whether a column width is right goes and looks
+    at it.
+
+    A model asked to vary a layout rewrites that line like any other, and on
+    the first real run it produced `PHIẾU TÍNH TIỀN 2023` -- a receipt that
+    does not exist, from a year nobody photographed, in a field whose whole
+    job is to be checkable. Nothing downstream would ever catch it, because
+    the field is prose.
+
+    So it is not the model's to write. A variant was measured against nothing;
+    it was derived from its parent, and it says so, and it carries the parent's
+    real source so the trail still leads to the photograph.
+    """
+    inherited = str(parent_yaml.get("source", "")).strip()
+    variant["source"] = (
+        f"biến thể của {parent} (sinh bằng LLM, không đo từ ảnh nào)"
+        + (f" — bố cục gốc đo từ: {inherited}" if inherited else ""))
 
 
 def register_sheet(layout_id: str, parent: str, today: str) -> list[str]:
@@ -338,6 +370,12 @@ def main() -> int:
                 print(f"      ✗ ... and {len(problems) - 12} more")
             continue
         print("      ✓ schema clean")
+        # `source:` is provenance, not prose the model gets to invent. See
+        # `restate_source`.
+        restate_source(loaded, args.parent,
+                       yaml.safe_load((LAYOUTS / f"{args.parent}.yaml")
+                                      .read_text(encoding="utf-8")))
+        print(f"      · source restated: {loaded['source']}")
         variant, kept_reply = loaded, reply
         break
 
