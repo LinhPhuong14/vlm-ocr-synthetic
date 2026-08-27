@@ -266,6 +266,29 @@ làm đường tường minh khi bỏ hẳn cờ `--template`, và vẫn là đ�
 | **Đo trôi (drift)** | *phân phối* còn khớp luật không, tính trên từng shard, đã trừ đi độ tán của mẫu cỡ đó | [`pipeline/drift.py`](pipeline/drift.py) |
 | **Vân tay vàng** | sha256 từng ảnh và từng bản ghi, để đường song song bị buộc phải cho ra đúng thứ đường tuần tự cho ra | [`tools/baseline.py`](tools/baseline.py) |
 
+Trong lúc chạy, console là **một thanh tiến độ** (`pipeline/progress.py`), vẽ ra
+stderr và chỉ khi có terminal — chuyển hướng vào file thì in dòng thường, vì một
+ký tự `\r` trong log CI biến cả lượt chạy thành một dòng dài không đọc nổi:
+
+```
+[████████░░░░░░░░]  312/1200 ảnh  26%  4m12s  còn ~11m50s  shard 7
+```
+
+Xong một lượt, thư mục ra gồm **năm thứ, mỗi thứ trả lời một câu hỏi khác nhau**:
+
+| File | Trả lời | So sánh được? |
+| :--- | :--- | :--- |
+| `<backend>/html_000.jpg` + `.json` | ảnh và bản ghi của nó: hộp, chữ, ground truth | có — sha256 từng file |
+| `<backend>/synthesis.json` | **config từng ảnh**: bố cục nào, mười thuộc tính augment nào, seed nào | có — băm bởi [`tools/baseline.py`](tools/baseline.py) |
+| `<backend>/imagetimes.jsonl` | **thời gian sinh từng ảnh**, kèm chặng `draw`/`write` | không, và cố tình thế |
+| `timings.json` | tổng thời gian, theo shard và tóm tắt theo ảnh | không |
+| `report.json` | **pass/fail**: mỗi shard một case, mỗi cổng kiểm tra một case | không |
+
+Thời gian nằm riêng chứ không nhét vào `synthesis.json` là có lý do: file đó bị
+`tools/baseline.py` băm để chứng minh một worker và tám worker cho ra **đúng
+từng byte**, mà một khoảng thời gian thì không bao giờ lặp lại được — nhét vào
+là hỏng phép kiểm chứng đó trên mọi máy, vĩnh viễn.
+
 Theo dõi khi lượt chạy **đang** chạy — `manifest.json` chỉ ghi một lần lúc kết
 thúc, mà đó không phải lúc người ta muốn nhìn:
 
