@@ -214,6 +214,56 @@ def test_wrapped_text_is_still_printed():
     assert errors_of(item) == []
 
 
+def test_a_name_that_wrapped_at_a_HYPHEN_is_still_printed():
+    """The wrap that was NOT handled, and it failed a whole shard.
+
+    Joining a wrapped run back together puts a space at each break. That is
+    right when the browser broke at a space and wrong when it broke at a
+    hyphen -- which is what a hyphen is for. On `invoice_export` at seed 6026,
+    `ÁO SƠ MI NAM DÀI TAY (MEN'S LONG-SLEEVE SHIRT)` was too wide for its
+    column, came back as two boxes ending and starting `LONG-` / `SLEEVE`, and
+    rejoined as `LONG- SLEEVE`, which the label is not a substring of.
+
+    Everything was correct -- the value was on the page, the boxes were on the
+    ink, the label matched the pixels -- and the check reported a missing
+    field. It had been blocking every golden-baseline recapture since.
+    """
+    item = a_record()
+    gt = item.item["extracted"]
+    name = gt["menu"][0]["nm"]
+    hyphenated = name.replace(" ", "-", 1) if " " in name else name + "-SLEEVE"
+    gt["menu"][0]["nm"] = hyphenated
+    head, _, tail = hyphenated.partition("-")
+    for position, box in enumerate(item.item["blocks"]):
+        if box["text"] == name:
+            # The browser breaks AFTER the hyphen, so the hyphen stays on the
+            # first line -- which is exactly why the naive rejoin goes wrong.
+            box["text"] = head + "-"
+            item.item["blocks"].insert(
+                position + 1,
+                {"kind": box["kind"], "text": tail, "quad": box["quad"]})
+            break
+    else:
+        pytest.skip("this seed's first dish has no box of its own")
+    item.item["extracted"] = gt
+    assert errors_of(item) == []
+
+
+def test_the_space_insensitive_fallback_does_not_match_across_kinds():
+    """It is a fallback, and a narrow one. Squashing the whole page would let
+    `A B` under one kind satisfy a label reading `AB` under another, which is
+    the check quietly ceasing to check."""
+    item = a_record()
+    gt = item.item["extracted"]
+    gt["menu"][0]["nm"] = "KHONGCOTRENTRANG"
+    item.item["extracted"] = gt
+    for box in item.item["blocks"]:
+        if box["kind"] != "menu.name":
+            box["text"] = "KHONG CO TREN TRANG"
+            break
+    assert any("appears on no box" in e for e in errors_of(item))
+
+
 # ----------------------------------------------------------- the arithmetic
 
 
