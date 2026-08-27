@@ -344,9 +344,12 @@ def test_every_committed_page_has_a_record_in_the_shape_this_file_defines():
     # meant to: a set that quietly lost half its pages would otherwise look
     # like a passing test. The chain, newest first:
     #
-    #   380 = 296 plus `data/layouts84/`, 84 pages -- every one of the 42
-    #         layouts twice over, dealt so that no two adjacent images carry
-    #         the same layout. It is also the set that made
+    #   360 = 296 plus `data/layouts64/`, 64 pages -- every one of the 32
+    #         ENABLED layouts twice over, dealt so that no two adjacent images
+    #         carry the same layout. It was 380 and `layouts84` until root 3
+    #         (Form / Application) was switched off: ten fewer layouts, twenty
+    #         fewer pages, and the count is in the set's name so the name moved
+    #         with it. It is also the set that made
     #         `test_every_kind_in_every_committed_dataset_is_mapped` fail: the
     #         periodical layouts had shipped long before any committed page
     #         drew one, so 65 field kinds had been falling through to the
@@ -364,7 +367,7 @@ def test_every_committed_page_has_a_record_in_the_shape_this_file_defines():
     #   294 = 307 before `data/dataset_test` was rebuilt on the CSS sheets,
     #         which took it from 30 images over two renderers to 16, one per
     #         layout, on the only backend the pipeline still drives.
-    assert seen == 380, seen
+    assert seen == 360, seen
 
 
 # ------------------------------------------------------- the shape before this

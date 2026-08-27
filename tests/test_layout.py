@@ -11,10 +11,14 @@ from __future__ import annotations
 import pytest
 
 import rulebase
-from rulebase.layout import available as available_layouts
+from rulebase.layout import every as every_layout
+
+# `every_layout`, not `available_layouts`: a layout switched off with
+# `enabled: false` means no RUN draws it, not that nobody checks it any more.
+# An unwatched file rots, and switching one back on should not be archaeology.
 
 SEEDS = (1, 7, 42, 2026, 90210)
-LAYOUTS = available_layouts()
+LAYOUTS = every_layout()
 
 
 # Built once and reused. `rulebase.make` with a pinned layout retries seeds
@@ -359,3 +363,63 @@ def test_the_sheet_only_ever_grows_the_page():
 
     roll = rulebase.make(seed=11, force={"layout": "eatery_ascii"})[2]
     assert rulebase.sheet_height(roll, 1000, 100) == 100
+
+
+# ---------------------------------------------------- switching one off
+
+
+ROOT_FORM = ("form_activity_signature", "form_checkbox_heavy",
+             "form_dense_registration", "form_government_app",
+             "form_multi_section", "form_project_kv", "form_questionnaire",
+             "form_table_based", "form_timesheet_grid", "form_two_column")
+
+
+def test_a_switched_off_layout_leaves_the_drawable_list_and_not_the_disk():
+    """`enabled: false` means "no run draws it", not "it is gone".
+
+    The two lists are the whole mechanism: `available()` is what a run takes
+    when `run.layouts` is empty, `every()` is what the checks walk. A layout
+    that left both would take its committed pages with it -- nothing could
+    redraw them, because `rulebase.make(force=...)` needs the rules entry and
+    `sheets.FAMILIES` needs the file.
+    """
+    drawable = set(rulebase.available_layouts())
+    on_disk = set(every_layout())
+
+    assert set(ROOT_FORM) <= on_disk
+    assert not (set(ROOT_FORM) & drawable)
+    assert on_disk - drawable == set(ROOT_FORM), (
+        "something else was switched off without this test being told")
+
+
+def test_a_switched_off_layout_still_draws_when_it_is_named():
+    """The committed pages that drew one have to stay redrawable."""
+    recipe, _receipt, grid = rulebase.make(
+        seed=11, force={"layout": "form_two_column"})
+    assert grid.layout_id == "form_two_column"
+    assert recipe.layout.id == "form_two_column"
+
+
+def test_a_switched_off_layout_still_has_a_sheet_to_be_dressed_in():
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "generators" / "html"))
+    import sheets
+
+    assert sheets.FAMILIES["form_two_column"] is sheets.family_of("form_two_column")
+
+
+def test_the_switch_is_read_from_the_layouts_own_file(tmp_path):
+    from rulebase import layout as L
+
+    (tmp_path / "on.yaml").write_text("id: on\nname: x\n", encoding="utf-8")
+    (tmp_path / "off.yaml").write_text("enabled: false\nid: off\nname: x\n",
+                                       encoding="utf-8")
+
+    assert L.every(tmp_path) == ["off", "on"]
+    assert L.available(tmp_path) == ["on"]
+    assert L.is_enabled("on", tmp_path) and not L.is_enabled("off", tmp_path)
+    # `off:` as the key would be YAML 1.1's boolean and vanish. Spelled
+    # `enabled:` for that reason -- and this is the test that says so.
+    assert "enabled" in (tmp_path / "off.yaml").read_text(encoding="utf-8")
