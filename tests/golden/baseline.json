@@ -13,30 +13,30 @@
         "clean": false,
         "schema": 8,
         "rules": {
-          "rulebase/rules": "4080e3b0b7c26032797f2d0bbf7cf822e49ceb71e90b1e8fe1e46882f87ce0ff",
+          "rulebase/rules": "6d9dcfeb3b1a1a1f1001eb577c2ee7330d4328a372283ddfeea98015e56071d3",
           "rulebase/layouts": "46a8103433dcca0508de72d588abc366c73a28399e0bcd99fc2822c0f7e75ed7",
           "rulebase/corpus": "512b218801b3d52b2e9d70764d9ddf4700ebf8f1a55ee8a00e35e4eab6848cb1"
         }
       },
       "images": {
-        "html/html_000.jpg": "0921e2bdaf8e26ea505f5da8ae46817c39e3fb35c6086c25c8d694da450445d3",
-        "html/html_001.jpg": "cb2a336d42fe0494ab66a97613f9fef2dc855e701719c28582835ccbbc5d5433",
-        "html/html_002.jpg": "2fd55b55801f11c8d9438dcdc5f98f61a8665a76af53ac05ab04d6d619d719dc"
+        "html/html_000.jpg": "9c700ee98d899f8195fc6b5d210ad30c5ccf84f093ac00e23f7aea1c5a19ec3c",
+        "html/html_001.jpg": "37dc4e51beb84b306136a07f362bdb600f808454fa5d0fda713f4fb881b2fb5a",
+        "html/html_002.jpg": "4b1df20c0b5e15013372a0e3929e8cb779eb7860607e9ca78b71f81de603729c"
       },
       "metadata": {
         ".shards": [
-          "30a83f2c0c6a01c81bdb23e0d3daa7c47ef16320bc0f86c495f2f67d13430c70",
-          "b453cc35941bf41eee756dbe8a7a326cbd0e79538a1070c22c494844b1575b3e",
-          "66c894c41a29902487a9eb35385ffd5a354590e0bcef24b5d035b8eaf506efcf"
+          "833b9dabcad5cbeffd2cd27a1e5935c5bf2084ec53f27398bf6a00864713131e",
+          "cfc9e1e3be2f1bf6d1f0558a93b68f02742ec14bacbbc2e58f311b71f7ae3c01",
+          "e8c537842a23c25184320f71936f7ac9cb248c45d6877ccf8fb439f4d01ae6b7"
         ],
         "html": [
-          "30a83f2c0c6a01c81bdb23e0d3daa7c47ef16320bc0f86c495f2f67d13430c70",
-          "b453cc35941bf41eee756dbe8a7a326cbd0e79538a1070c22c494844b1575b3e",
-          "66c894c41a29902487a9eb35385ffd5a354590e0bcef24b5d035b8eaf506efcf"
+          "833b9dabcad5cbeffd2cd27a1e5935c5bf2084ec53f27398bf6a00864713131e",
+          "cfc9e1e3be2f1bf6d1f0558a93b68f02742ec14bacbbc2e58f311b71f7ae3c01",
+          "e8c537842a23c25184320f71936f7ac9cb248c45d6877ccf8fb439f4d01ae6b7"
         ]
       },
       "provenance": {
-        "html": "2377bebeb0c1e0b9a066cce32c69114d54ac47184587f01b2c35c728ef83acbb"
+        "html": "f5e38d39dec87269f3782779c37c55ef160b0100e649ddcb9c83694f95877703"
       },
       "counts": {
         "by_backend": {
@@ -52,69 +52,74 @@
       },
       "dataset_json": "48de3420c2a908dd3af062c98e91452dfaae6fde4a0ad7fdf36c056676cc330f"
     },
-    "n5": {
+    "n6": {
       "inputs": {
         "layouts": [
           "eatery_ascii",
           "eatery_indexed",
           "market_barcode",
           "market_compact",
-          "market_vat"
+          "market_vat",
+          "notebook_ledger"
         ],
         "seed": 2026,
-        "per_backend": 5,
+        "per_backend": 6,
         "pairing": "paired",
         "clean": false,
         "schema": 8,
         "rules": {
-          "rulebase/rules": "edd2855337be82aa30a0eb7535818ddf1e9e01cc549f2d9ce735c7ae9ec8d057",
-          "rulebase/layouts": "b3d3ae57d0ff0ca317d186d8ed9a4647c9c868bf55d192ca5995832348f7719e",
+          "rulebase/rules": "392ec92f19a7d4dc0a5f9849c8d97dbeeb259c7d5f7df7a85c8bbb282a611848",
+          "rulebase/layouts": "6ed64599361ac044fe626f3a637a342e2f10cca7581bbd0cc198abf2e858a6a2",
           "rulebase/corpus": "512b218801b3d52b2e9d70764d9ddf4700ebf8f1a55ee8a00e35e4eab6848cb1"
         }
       },
       "images": {
-        "html/html_000.jpg": "0921e2bdaf8e26ea505f5da8ae46817c39e3fb35c6086c25c8d694da450445d3",
-        "html/html_001.jpg": "cb2a336d42fe0494ab66a97613f9fef2dc855e701719c28582835ccbbc5d5433",
-        "html/html_002.jpg": "2fd55b55801f11c8d9438dcdc5f98f61a8665a76af53ac05ab04d6d619d719dc",
-        "html/html_003.jpg": "fc9757251de42ea5ca6c915fc4ff6e50a5300d69e49d7121eaeeef8fc8998259",
-        "html/html_004.jpg": "4999e765834018fd21c034b1aeed3c0d5189ca27c8138deba7d892baa05ef81e"
+        "html/html_000.jpg": "9c700ee98d899f8195fc6b5d210ad30c5ccf84f093ac00e23f7aea1c5a19ec3c",
+        "html/html_001.jpg": "37dc4e51beb84b306136a07f362bdb600f808454fa5d0fda713f4fb881b2fb5a",
+        "html/html_002.jpg": "4b1df20c0b5e15013372a0e3929e8cb779eb7860607e9ca78b71f81de603729c",
+        "html/html_003.jpg": "7a87dc933b42fbfc80d9807825353fc807bd1372f423fc66532335e7f44b8ff6",
+        "html/html_004.jpg": "62145e1d4f95cd2b1035649ac94deb478930e2d333b6eeb3b078eb55c4de07fb",
+        "html/html_005.jpg": "7b150ffae62a9f0ff0993b7eba657489a9218a4b94e1efd61dc212774b5e9745"
       },
       "metadata": {
         ".shards": [
-          "30a83f2c0c6a01c81bdb23e0d3daa7c47ef16320bc0f86c495f2f67d13430c70",
-          "b453cc35941bf41eee756dbe8a7a326cbd0e79538a1070c22c494844b1575b3e",
-          "66c894c41a29902487a9eb35385ffd5a354590e0bcef24b5d035b8eaf506efcf",
-          "8fb117b09c94ba9006157d4a8d7052c8edcda5b0b3c27125fc7ea8ecff078687",
-          "39810c07ba85617ee041b89db8c0c49fd3aa06e1735d7c475838d185c48dfa8b"
+          "833b9dabcad5cbeffd2cd27a1e5935c5bf2084ec53f27398bf6a00864713131e",
+          "cfc9e1e3be2f1bf6d1f0558a93b68f02742ec14bacbbc2e58f311b71f7ae3c01",
+          "e8c537842a23c25184320f71936f7ac9cb248c45d6877ccf8fb439f4d01ae6b7",
+          "01e4c854b953c80db7f295abcb374e2801ff18cfda3898fb91aa58ed0387db9b",
+          "ee5c65515f58da52f94f8b8c2ee06165aa1dc228ef8085b611fae10faae61e21",
+          "d84cdcd60d3ce020cd6d8dbdcbfe19343a212d35454118ee2a41361bee99486c"
         ],
         "html": [
-          "30a83f2c0c6a01c81bdb23e0d3daa7c47ef16320bc0f86c495f2f67d13430c70",
-          "b453cc35941bf41eee756dbe8a7a326cbd0e79538a1070c22c494844b1575b3e",
-          "66c894c41a29902487a9eb35385ffd5a354590e0bcef24b5d035b8eaf506efcf",
-          "8fb117b09c94ba9006157d4a8d7052c8edcda5b0b3c27125fc7ea8ecff078687",
-          "39810c07ba85617ee041b89db8c0c49fd3aa06e1735d7c475838d185c48dfa8b"
+          "833b9dabcad5cbeffd2cd27a1e5935c5bf2084ec53f27398bf6a00864713131e",
+          "cfc9e1e3be2f1bf6d1f0558a93b68f02742ec14bacbbc2e58f311b71f7ae3c01",
+          "e8c537842a23c25184320f71936f7ac9cb248c45d6877ccf8fb439f4d01ae6b7",
+          "01e4c854b953c80db7f295abcb374e2801ff18cfda3898fb91aa58ed0387db9b",
+          "ee5c65515f58da52f94f8b8c2ee06165aa1dc228ef8085b611fae10faae61e21",
+          "d84cdcd60d3ce020cd6d8dbdcbfe19343a212d35454118ee2a41361bee99486c"
         ]
       },
       "provenance": {
-        "html": "446532fed4c9213e46b0833448c7b1170b9dca4adff167a8b84e07b63f08a36a"
+        "html": "5c7355d53082608b15a4e10ee653614fc9383b8024847d61f16e8d25fb04792b"
       },
       "counts": {
         "by_backend": {
-          ".shards": 5,
-          "html": 5
+          ".shards": 6,
+          "html": 6
         },
         "by_layout": {
-          "?": 5,
+          "?": 6,
           "eatery_ascii": 1,
           "eatery_indexed": 1,
           "market_barcode": 1,
           "market_compact": 1,
-          "market_vat": 1
+          "market_vat": 1,
+          "notebook_ledger": 1
         }
       },
-      "dataset_json": "9223474fbcdb3a75cd1d5cc2659ba2b27a0c1c81b847150bd23b23344e42a234"
+      "dataset_json": "f1fa3a36ba448b9d51726ade138a2c1cb7cdde3aaa41a3171d9c5fdcede9fd3a"
     },
-    "n16": {
+    "n17": {
       "inputs": {
         "layouts": [
           "authorisation_letter",
@@ -132,85 +137,89 @@
           "market_barcode",
           "market_compact",
           "market_vat",
-          "medical_statement"
+          "medical_statement",
+          "notebook_ledger"
         ],
         "seed": 2026,
-        "per_backend": 16,
+        "per_backend": 17,
         "pairing": "paired",
         "clean": false,
         "schema": 8,
         "rules": {
-          "rulebase/rules": "6a048718b85dba98421dd6fd492849eedae49f64817eb5a03fcb86397573c1f6",
-          "rulebase/layouts": "de6910869bedaf5ec465eaa583605226fe1952ac3f272c1de8eccf603d51206c",
+          "rulebase/rules": "a76bb779ba8a84fdadea3ac03184fb8e0deb0e321eed0fe218aec788e5f38bfb",
+          "rulebase/layouts": "597dd03c8b46e6b3bdfa91bd69ba3c9fa5f56950888c518671ee8a8a81fdca4f",
           "rulebase/corpus": "512b218801b3d52b2e9d70764d9ddf4700ebf8f1a55ee8a00e35e4eab6848cb1"
         }
       },
       "images": {
-        "html/html_000.jpg": "5dd8fc2793a4da5cabdb921c004b5ccad76b71ea2a942e8c7398488044342f65",
-        "html/html_001.jpg": "5acf9f0fed04c664003e6960f5335903e07fcbc3edfda5f5fe7119acd29b65be",
-        "html/html_002.jpg": "9740499c1be03212e13b1fd28a7f0023552c0bfd7126de3fea8cbacf1dd942ef",
-        "html/html_003.jpg": "52f525e10850a8599f58aaffe522e9837c8eebadd13354645295ef259e679b04",
-        "html/html_004.jpg": "2d2943de8e19459cf8711dd896d9d023f17d7d9e7ee92e2103c7dda9615b66e9",
-        "html/html_005.jpg": "7bac1fa3a26e6726ce8b7b2893f6e8eb0be657366566ba6d46b26cfe36ae7b9d",
-        "html/html_006.jpg": "c5aa73e2f235c86726e140dbc9f25654391e07c6e651e60c67098a53021eb32e",
-        "html/html_007.jpg": "a0b839f92684595acb94d129d7f767a0170cfb5b2131f8fe523304b09f13bab0",
-        "html/html_008.jpg": "94decb50d1bb9d712f2626d87248d30f0606913b98504df953d05bac67def83d",
-        "html/html_009.jpg": "0b04285927c7b832b0ccd96c26a3b890ee1800efe440df27e95d5782a1fe9501",
-        "html/html_010.jpg": "acf812bb4385626cdf3f7ecf23959973e22b5bead2edee0990f48c54c7694dd6",
-        "html/html_011.jpg": "b50e566752e81c32386115d984c1cd6bb8aa0b47a4f6d36303db1aa860459a7e",
-        "html/html_012.jpg": "a5da5fc78c309920fdea6866fd4b9fb17fab907f9f9644f060f767d81f7fcffe",
-        "html/html_013.jpg": "fe8e32a83cc543939a8f2b7a8d9e5737fa2108343727a7ecfd4ce03340bb8f0d",
-        "html/html_014.jpg": "0031e031cff0c96f4c64ad94e7c564b3ce96078d1303f618bb79f98e9d3b9776",
-        "html/html_015.jpg": "e4fb7d5cdcdb1c1b0ce547329814e5f5c040d6d68879ec82fdc8e7c23fddb5ea"
+        "html/html_000.jpg": "53be056a09c3f9fac95060104156f6e7f7e2e51a4fc8e3f18207b1ebd06d2ab5",
+        "html/html_001.jpg": "2d064db380d1baac21fb4306b4867ea5ccbb344086d8e3034b516838423b8379",
+        "html/html_002.jpg": "1970a58811679ac2e179e2f1052e05c202a2f9078deff27259d0cc4d8c1167e1",
+        "html/html_003.jpg": "d3a67c6feb2c8b02ed55da53560b20e743871ea59f8788e8ca814a2c4e7ced5e",
+        "html/html_004.jpg": "238c0be94b05452e440f21eecd499de6bb898cb9178ffb9321ab27de90bf3a4b",
+        "html/html_005.jpg": "19574e76f510513beb9f897e7c6b66b26e1ceaab1d5c4057f9d3f7ce4ba39b42",
+        "html/html_006.jpg": "d60d40211fe4435676e1226d5b927bcb58161cb4ed3827695042af56fc6b003f",
+        "html/html_007.jpg": "83fc53a221d053d383fea3198c38adaa096329f49c36b985b88566d7f90d83df",
+        "html/html_008.jpg": "361b5dd1c5eed8b3c0e2ead534ca2e57341e7348fe12414727dde8e94eb0c649",
+        "html/html_009.jpg": "6ee50b197864d8d93e8a47e7176244c548fdcac517c96ff4d1374a186522a03d",
+        "html/html_010.jpg": "413ca75cb5a1e71ba2e2000f5eea00aa8f479fdb54a9d6d58f1a658478e4dc83",
+        "html/html_011.jpg": "100de0ee81ab9d4aed70aa4730e08b00a34af2f7a817dad33083327b212b7584",
+        "html/html_012.jpg": "24380055274776d9bc16308cad647f8b973bdb8222c3b4a171921366a7215bd2",
+        "html/html_013.jpg": "505ec28b8e8281c992e4481ef23c614be52a9881a9d25ce7e17d7a091796fb30",
+        "html/html_014.jpg": "43676d55ae29f8a582993e06a893f98b733f7357f7248325a4d5246bc7ff64d0",
+        "html/html_015.jpg": "47f80efb9a2d18f2487454d5cff6b3867c0d9cfdb5dc02b4f19a5037e2774020",
+        "html/html_016.jpg": "38f0aadd298142359dba9ffcb4c7b822a0ff0823549b3e4f95c6d1c3c7c8dcb3"
       },
       "metadata": {
         ".shards": [
-          "8d02e576dcd05b5b60912c595d85b13f7c566d858a9d56b5375d4a11b8bc6636",
-          "a4fa9d67b9e4506c8e925f778d1dd35ffd4763e0923753d5bbdb7e2dff64a409",
-          "acb8c98631e8ec8b2e15a44099d2afe9f885cd793329df3de71724cbcbce617e",
-          "479c521e8c583145d576a366d42bef1344661d64a21554ddb8bd0c7aae74f3b4",
-          "c556552a79c59473b658bae1f8072778a5055da3bf7a43f504aa223755fa0165",
-          "a1367214635a993c2563bab85aeffc70fa9b1c2b7aa568cf02c315125b213514",
-          "9052d525c230bee0ac9a36c4f61fe25afa3013d80e91a516295d5b6a0e275978",
-          "a675a1e9419e3544466f460e4244664b52c18f6f3d1fa101e26f191fc73a5aef",
-          "15c3181480a442d4cecb32689f4f8ef3a1ab9bf341e71997a89bf3733eebcf50",
-          "966d3ae1984ab81b5a1ab05e4ff6b82668e5c48fb42f389999d43e4d5f7e34f7",
-          "af95cacddd937950f7351a64dfeaa132f4525afcb7f2f02fe35e5d3d5cd57951",
-          "8da2a873e1b3280327224963fab26e5331abf3a629f58105a4481f9ed756e6e1",
-          "d9ff28918152a4a493a431858ea3f4136e0156d939335a7d409f3fdf662b4eb5",
-          "8502390f82a824c5657ab4672505e8fc78a4e38494416b71e43a00a10ecba715",
-          "f52b375d81ba3c9cd1557a0cae2f419760f9ac308762db93d510213ab9f31ac0",
-          "427475b42e4578222a1e6e6e34419d64a04749b99b766fbec23198a6a51d82b0"
+          "37468aee45aedcfc365ef829e6b6db4faf6fe868f920098db9e43bdb4b145da0",
+          "2d7228762d9351647d82db714fd163a8497e13f19214b1f53a5dcaa486b3eea8",
+          "03a0695dc13c289e2d37d16c6dfb69908d15f2456ecd58f140d6ace8f4ad5945",
+          "25d660e1f63b2574f32e6eb23e563aacb17488f1f1998be34b655f9c62609c78",
+          "a789dac979de6d01a5fb071b1c58e596258736ed0565426fcb33f990defa7f10",
+          "3db2e67989d46df4be9c8e8b857857e01630293b71084940e9196e6f0f2fa99c",
+          "6ad5dfb99941083be3288dbeb0823a47085552317a4f812b10a8800147391412",
+          "42d0890c99636dea5e85f92ee2f1d6a2b3bd9898a929dafabf6b1543ac51e2bc",
+          "3e95a2406296207c218605aa0f3faca552feb3c0f57358a517bfc4bd58f88795",
+          "921c323f4cef69540de4c3848a4fa3c949e84f30aabf365e704947320b30242e",
+          "b1badb9d96713c6e570e499fab1960769a8c18c188535e5bc99c9d7a728f58de",
+          "fea520cd197533cd28e921b73e5bc8da660a1ae151e2d4c1baac3b0af4b040a0",
+          "07a1275e7da5eb8253deae4c89c25ee73a510108c68473592a5ccfac2e465d83",
+          "3e3850ee394ca1ba016f21d294c1c207af4202c1d847d759e35c1b9ca0b1ccfa",
+          "23dc08ef40cd450091435c816abd37b01b180bb43a87695c19d9824ba38ca29b",
+          "8cb83444146813633e9a5e7b107f92b43a5510a09301e19d6795da8402e5eb88",
+          "6731d122c1496a7814933293ce81d59e4704e3a64ccd06750e289e604780ca0a"
         ],
         "html": [
-          "8d02e576dcd05b5b60912c595d85b13f7c566d858a9d56b5375d4a11b8bc6636",
-          "a4fa9d67b9e4506c8e925f778d1dd35ffd4763e0923753d5bbdb7e2dff64a409",
-          "acb8c98631e8ec8b2e15a44099d2afe9f885cd793329df3de71724cbcbce617e",
-          "479c521e8c583145d576a366d42bef1344661d64a21554ddb8bd0c7aae74f3b4",
-          "c556552a79c59473b658bae1f8072778a5055da3bf7a43f504aa223755fa0165",
-          "a1367214635a993c2563bab85aeffc70fa9b1c2b7aa568cf02c315125b213514",
-          "9052d525c230bee0ac9a36c4f61fe25afa3013d80e91a516295d5b6a0e275978",
-          "a675a1e9419e3544466f460e4244664b52c18f6f3d1fa101e26f191fc73a5aef",
-          "15c3181480a442d4cecb32689f4f8ef3a1ab9bf341e71997a89bf3733eebcf50",
-          "966d3ae1984ab81b5a1ab05e4ff6b82668e5c48fb42f389999d43e4d5f7e34f7",
-          "af95cacddd937950f7351a64dfeaa132f4525afcb7f2f02fe35e5d3d5cd57951",
-          "8da2a873e1b3280327224963fab26e5331abf3a629f58105a4481f9ed756e6e1",
-          "d9ff28918152a4a493a431858ea3f4136e0156d939335a7d409f3fdf662b4eb5",
-          "8502390f82a824c5657ab4672505e8fc78a4e38494416b71e43a00a10ecba715",
-          "f52b375d81ba3c9cd1557a0cae2f419760f9ac308762db93d510213ab9f31ac0",
-          "427475b42e4578222a1e6e6e34419d64a04749b99b766fbec23198a6a51d82b0"
+          "37468aee45aedcfc365ef829e6b6db4faf6fe868f920098db9e43bdb4b145da0",
+          "2d7228762d9351647d82db714fd163a8497e13f19214b1f53a5dcaa486b3eea8",
+          "03a0695dc13c289e2d37d16c6dfb69908d15f2456ecd58f140d6ace8f4ad5945",
+          "25d660e1f63b2574f32e6eb23e563aacb17488f1f1998be34b655f9c62609c78",
+          "a789dac979de6d01a5fb071b1c58e596258736ed0565426fcb33f990defa7f10",
+          "3db2e67989d46df4be9c8e8b857857e01630293b71084940e9196e6f0f2fa99c",
+          "6ad5dfb99941083be3288dbeb0823a47085552317a4f812b10a8800147391412",
+          "42d0890c99636dea5e85f92ee2f1d6a2b3bd9898a929dafabf6b1543ac51e2bc",
+          "3e95a2406296207c218605aa0f3faca552feb3c0f57358a517bfc4bd58f88795",
+          "921c323f4cef69540de4c3848a4fa3c949e84f30aabf365e704947320b30242e",
+          "b1badb9d96713c6e570e499fab1960769a8c18c188535e5bc99c9d7a728f58de",
+          "fea520cd197533cd28e921b73e5bc8da660a1ae151e2d4c1baac3b0af4b040a0",
+          "07a1275e7da5eb8253deae4c89c25ee73a510108c68473592a5ccfac2e465d83",
+          "3e3850ee394ca1ba016f21d294c1c207af4202c1d847d759e35c1b9ca0b1ccfa",
+          "23dc08ef40cd450091435c816abd37b01b180bb43a87695c19d9824ba38ca29b",
+          "8cb83444146813633e9a5e7b107f92b43a5510a09301e19d6795da8402e5eb88",
+          "6731d122c1496a7814933293ce81d59e4704e3a64ccd06750e289e604780ca0a"
         ]
       },
       "provenance": {
-        "html": "3d61050b9599941a9fe9568b04716e2ff3e1a35197d290e93191f6c4de1d5e26"
+        "html": "2e4b54b94459f72ecbae06066ffb18eca4ccbe9b96a6906148a0774fd45ddde5"
       },
       "counts": {
         "by_backend": {
-          ".shards": 16,
-          "html": 16
+          ".shards": 17,
+          "html": 17
         },
         "by_layout": {
-          "?": 16,
+          "?": 17,
           "authorisation_letter": 1,
           "eatery_ascii": 1,
           "eatery_indexed": 1,
@@ -226,13 +235,14 @@
           "market_barcode": 1,
           "market_compact": 1,
           "market_vat": 1,
-          "medical_statement": 1
+          "medical_statement": 1,
+          "notebook_ledger": 1
         }
       },
-      "dataset_json": "63f641e720afa6eeacacaa4657f8e15974e53d4de06f7e76a06c930140d5e083"
+      "dataset_json": "5eca9ebdb2a0ebfa319adddcba51920105ad0acb057fb6542471c61752480563"
     }
   },
   "normalisation": "each record is json.loads then json.dumps(sort_keys=True, ensure_ascii=False); no field is excluded",
-  "reason": "Recapture, two reasons at once: (1) items_table()/_header_rows()/_group_row()/_item_row()/_item_extras() in sheets/base.py now build a components.table.TableSpec instead of hand-rolled <tr>/<td> strings -- column widths move from a width: style on each header <th> to <colgroup><col style=width:...%>, which is not guaranteed byte-identical under table-layout:auto even though every family's own CSS still draws the actual borders/shading/zebra unchanged (border=Border.none(), cls= passthrough); (2) this baseline was already stale independent of that work -- last captured at a8ea2f4, before 9d2c97d and other rulebase/rules, rulebase/corpus changes that never got a recapture (metadata schema was None, now 8), and before the layout count grew from 14 to 16 (tools/baseline.py's own plan names, n14 -> n16). Both kinds of drift are folded into this one capture since a plan's images say nothing about either until it is retaken.",
-  "replaced": "ink_degradation now draws a quarter of DocCreator's blot count (DENSITY=0.25): the dose was derived from the ink component count, and a dotted leader line makes every full stop its own component, so invoice layouts got eight times the speckle of a receipt at the same level"
+  "reason": "invoice_export unblocked: a name wrapping at a hyphen rejoined as LONG- SLEEVE and read as a missing field, which had been failing every recapture; also n5 -> n6, which had been drawing 5 of 6 thermal layouts since notebook_ledger",
+  "replaced": "Recapture, two reasons at once: (1) items_table()/_header_rows()/_group_row()/_item_row()/_item_extras() in sheets/base.py now build a components.table.TableSpec instead of hand-rolled <tr>/<td> strings -- column widths move from a width: style on each header <th> to <colgroup><col style=width:...%>, which is not guaranteed byte-identical under table-layout:auto even though every family's own CSS still draws the actual borders/shading/zebra unchanged (border=Border.none(), cls= passthrough); (2) this baseline was already stale independent of that work -- last captured at a8ea2f4, before 9d2c97d and other rulebase/rules, rulebase/corpus changes that never got a recapture (metadata schema was None, now 8), and before the layout count grew from 14 to 16 (tools/baseline.py's own plan names, n14 -> n16). Both kinds of drift are folded into this one capture since a plan's images say nothing about either until it is retaken."
 }
