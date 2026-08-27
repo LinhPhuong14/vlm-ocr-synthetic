@@ -104,7 +104,20 @@ PLANS: dict[str, dict] = {
     # The plan the W1 brief names, on the three layouts it named.
     "n3": {"per_backend": 3, "seed": 2026, "layouts": THERMAL[:3]},
     # Every thermal layout: the till-roll half of the rule-base.
-    "n5": {"per_backend": 5, "seed": 2026, "layouts": THERMAL},
+    #
+    # It was `n5`, and it had a hole in it for a whole wave without anybody
+    # noticing. The quota walks the layout list in order and hands the
+    # remainder to the FRONT, so a `per_backend` below the layout count does
+    # not spread thin -- it drops the tail. `notebook_ledger` joined THERMAL,
+    # the count went to six, this line stayed at five, and the plan went on
+    # drawing five of six under a name that said five. The golden file
+    # recorded a fingerprint for a plan that was not covering what it claimed.
+    #
+    # `pipeline/plan.py::uncovered` is what found it, and it now refuses a
+    # plan like this outright rather than quietly drawing the front of the
+    # list. The count is in the name for exactly this reason -- so keep them
+    # equal, and let the rename be the thing that tells everyone.
+    "n6": {"per_backend": 6, "seed": 2026, "layouts": THERMAL},
     # Every layout, one image each per backend, so nothing is outside the net.
     # The name states the count, so it changes when the count does -- a plan
     # called `n14` that draws sixteen layouts is a plan nobody can check by

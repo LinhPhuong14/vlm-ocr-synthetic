@@ -97,3 +97,50 @@ nào bán. Đó là việc của dấu vết provenance và của người đọ
 Qwen2.5 7B lượng tử hoá 4-bit chạy CPU: **~5 token/giây**. Một vòng 20 dòng mất
 hai tới ba phút, và một file corpus là cả buổi chiều. Bộ sinh in tiến độ từng
 vòng vì lý do đó. Máy có GPU thì `--model` trỏ sang model lớn hơn.
+
+## Augment layout: `augment_layout.py`
+
+```bash
+python -m tools.llm.augment_layout --from market_vat --id market_vat_b          # xem trước
+python -m tools.llm.augment_layout --from market_vat --id market_vat_b --write  # chạy hàng rào
+```
+
+Đọc `rulebase/layouts/<parent>.yaml`, bảo model viết một **biến thể** — cùng
+loại chứng từ, khác cách in — rồi **chỉ giữ lại nếu nó qua được đúng những gì
+một layout viết tay phải qua**:
+
+| # | kiểm | bắt được gì |
+| --- | --- | --- |
+| 1 | là YAML và là mapping | model viết văn xuôi |
+| 2 | mọi key path có trong layout viết tay, đúng kiểu, trong dải đã đo, enum đúng tập | `meta.style: one_column`, `columns[].width: 30` |
+| 3 | mọi khoảng `[min, max]` đúng thứ tự | `width: [48, 42]` — đảo là **mọi seed** đều `ValueError` |
+| 4 | có đủ key mà cả 17 layout đều có | thiếu `sections`, thiếu `id` |
+| 5 | `rulebase.make()` dựng được trang qua nhiều seed | layout hợp lệ về hình thức nhưng vô nghĩa |
+| 6 | `pipeline/preflight.py` toàn bộ rule base | quên đăng ký, nội dung tràn khổ giấy |
+
+Hỏng ở bất kỳ bước nào: file bị xoá và **cả ba đăng ký được hoàn nguyên**
+(`rules/layout.yaml`, `blanks.yaml`, `sheets.FAMILIES`). Một layout đăng ký nửa
+vời là rule base trỏ tới file không tồn tại, và preflight sẽ báo đó là lỗi của
+kho chứ không phải lỗi của lệnh này.
+
+Đăng ký chèn **theo văn bản**, không dùng `yaml.safe_dump`: hai file kia nhiều
+comment hơn dữ liệu — chúng giải thích vì sao từng layout loại trừ cái gì — và
+dump lại sẽ xoá sạch phần giải thích ấy.
+
+### Đã chạy thật, và bắt được đúng những gì thiết kế để bắt
+
+| vòng | model viết | hàng rào |
+| --- | --- | --- |
+| 1 | `width: [48, 42]` | bước 3 — trong vài giây |
+| 2 | `meta.style: one_column`, `columns[].width: 30` | bước 2 |
+| 3 | schema sạch, 8 trang dựng được | bước 6 — **thiếu sheet CSS** |
+| 4 | schema sạch | qua hết, `check_boxes` sạch 428 hộp / 6 ảnh |
+
+Hai lần sửa **prompt** chứ không sửa luật: model liên tục viết `[48, 42]` vì nó
+muốn "rộng hơn" nên để số lớn trước, và viết `rule_char: '—'`. Prompt nay nói
+thẳng hai điều đó.
+
+**Biến thể sinh ra chưa được commit.** Nó qua hàng rào, nhưng đưa một layout mới
+vào kho đòi chụp lại golden baseline, mà việc đó đang bị chặn bởi một lỗi có sẵn
+(`invoice_export` seed 6026: `menu.nm` có trong nhãn mà không có hộp nào). Máy
+móc đã xong và đã chứng minh; dữ liệu sinh ra thì chờ lỗi kia được sửa.
