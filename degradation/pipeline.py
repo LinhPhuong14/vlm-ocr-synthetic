@@ -7,7 +7,12 @@ function is the difference between comparing three renderers and comparing
 three ageing implementations that happen to share a name.
 
     from degradation.pipeline import apply_recipe
-    aged = apply_recipe(image, recipe, seed=recipe.seed)
+    aged = apply_recipe(image, recipe, seed=recipe.seed, boxes=boxes)
+
+`boxes` is the page's label quads, and it is optional only because callers
+without labels exist -- `tools/augment_samples.py` runs over directories of
+finished images. A chain that asks for `by_box` and gets no boxes fails loudly
+rather than quietly ageing the whole sheet; see `degradation/regions.py`.
 """
 
 from __future__ import annotations
@@ -23,28 +28,46 @@ from . import apply_one
 
 
 def chain_of(recipe) -> list[tuple[str, dict[str, Any]]]:
-    """The (name, options) pairs the recipe's augmentation attribute asks for."""
-    raw = recipe.get("augmentation", "chain", []) or []
+    """Every (name, options) pair the recipe asks for, in the order drawn.
+
+    **Any attribute may carry a `chain`, not only `augmentation`.** That was the
+    shape from the start -- `augmentation` was simply the only one that used it
+    -- and it stopped being a hypothetical when the copier split into `toner`,
+    `drum` and `rollers`: three parts of one machine, drawn independently so a
+    page can have a scored drum without a spent cartridge, instead of getting
+    all three or none from whichever hand-written scenario happened to be drawn.
+
+    Concatenated in DRAW ORDER, which `rules/_order.yaml` fixes and
+    `Recipe.choices` preserves. That is what puts the machine's marks after the
+    sheet has been aged rather than under it, and it is the only thing that
+    decides the order -- so moving a line in `_order.yaml` moves the step.
+    """
     chain = []
-    for entry in raw:
-        if isinstance(entry, (list, tuple)):
-            name = entry[0]
-            options = dict(entry[1]) if len(entry) > 1 and entry[1] else {}
-        elif isinstance(entry, dict):  # {name: {...}} is the other natural YAML shape
-            (name, options), = entry.items()
-            options = dict(options or {})
-        else:
-            name, options = str(entry), {}
-        chain.append((name, options))
+    for option in recipe.choices.values():
+        for entry in option.params.get("chain") or []:
+            if isinstance(entry, (list, tuple)):
+                name = entry[0]
+                options = dict(entry[1]) if len(entry) > 1 and entry[1] else {}
+            elif isinstance(entry, dict):  # {name: {...}} is the other natural YAML shape
+                (name, options), = entry.items()
+                options = dict(options or {})
+            else:
+                name, options = str(entry), {}
+            chain.append((name, options))
     return chain
 
 
-def apply_recipe(image: np.ndarray, recipe, seed: int | None = None) -> np.ndarray:
+def apply_recipe(
+    image: np.ndarray, recipe, seed: int | None = None, boxes=None
+) -> np.ndarray:
     """Age `image` per `recipe`, filling in the paper the visual attribute chose.
 
     `paper_texture` in the chain never names a sheet; the sheet comes from
     `visual.paper`, so the same recipe puts the same paper under a glyph render
     and an HTML render. A chain entry may still override it explicitly.
+
+    `boxes` are the page's label quads, passed straight through to `by_box` --
+    the only chain entry that acts on part of the page rather than all of it.
     """
     rng = random.Random(recipe.seed if seed is None else seed)
     paper = recipe.get("visual", "paper", "auto")
@@ -76,7 +99,7 @@ def apply_recipe(image: np.ndarray, recipe, seed: int | None = None) -> np.ndarr
         # Timed one model at a time: the chain's cost is not evenly spread, and
         # which model dominates is exactly the thing a suspect list gets wrong.
         with profiling.stage(name):
-            out = apply_one(out, name, options, rng)
+            out = apply_one(out, name, options, rng, boxes)
     return out
 
 

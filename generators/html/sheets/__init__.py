@@ -30,6 +30,7 @@ not a sixth template here.
     medical            hospital bill: 12 columns, grouped       docs/mau/bang_ke_kcb.html
     statement          a form of fields, no table at all        docs/mau/giay_uy_quyen.html
     till               the thermal roll, so the flag is total  -- (grid is the model)
+    notebook           a ruled exercise book, nothing printed  -- (no press run at all)
 
 The box contract is unchanged and is `base.py`'s to keep: every labelled run is
 a `<span data-kind="...">`, every `<td>` carries `data-cell`/`data-row`/
@@ -41,8 +42,8 @@ from __future__ import annotations
 
 from html.parser import HTMLParser
 
-from . import form, lodging, medical, modern, periodical, statement, statutory, till
-from .base import structure_tokens
+from . import form, lodging, medical, modern, notebook, periodical, statement, statutory, till
+from .base import EVERY_RUN, structure_tokens
 
 # Module name (as it appears in a layout file's own `family:` key) -> the
 # module that dresses it. A brand-new family still needs one line here --
@@ -54,6 +55,7 @@ _MODULES = {
     "lodging": lodging,
     "medical": medical,
     "modern": modern,
+    "notebook": notebook,
     "periodical": periodical,
     "statement": statement,
     "statutory": statutory,
@@ -107,6 +109,59 @@ def __getattr__(name: str):
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
+# The page-model vocabulary, in one place because three entry points and a
+# config file all have to mean the same thing by it.
+#
+#   grid          the character grid -- the model that predates this package
+#   auto          the sheet this recipe's layout belongs to
+#   <layout id>   that layout's sheet, whatever the recipe drew
+#
+# There is deliberately no fourth spelling for "unset". A page model decides
+# what the whole page looks like -- 0.24% coloured pixels against 4.32%,
+# measured over the sixteen layouts -- and inheriting it from a default nobody
+# wrote down is how a set gets built on the wrong one and nobody notices until
+# they put it beside an older set. Every entry point names it.
+GRID = "grid"
+AUTO = "auto"
+CHOICES = "grid | auto | <layout id>"
+
+
+def is_grid(value: str | None) -> bool:
+    """Whether this `--template` value asks for the character grid.
+
+    `None` and `""` are accepted as the grid for the callers that predate the
+    vocabulary, so old scripts keep working; what they do not get is silence --
+    the value is resolved and then *recorded*, per image, by both backends.
+    """
+    return value in (None, "", GRID)
+
+
+def resolve(value: str | None) -> str | None:
+    """The sheet spec, or `None` for the grid.
+
+    Every backend keeps its internal `template` in this normalised form, so
+    `if self.template:` continues to mean "draw a sheet" and no call site has
+    to learn the vocabulary.
+    """
+    if is_grid(value):
+        return None
+    if value != AUTO and value not in _families():
+        raise KeyError(
+            f"unknown page model {value!r}; expected {CHOICES}. "
+            f"Layouts with a sheet: {', '.join(names())}")
+    return value
+
+
+def uncovered(layout_ids) -> list[str]:
+    """Layouts with no CSS sheet. Empty is the healthy answer.
+
+    `family_of` already refuses one at draw time, but only when a sheet was
+    asked for; while the grid was the default, a layout added without a sheet
+    was invisible. `pipeline/preflight.py` calls this so it is not.
+    """
+    return sorted(set(layout_ids) - set(_families()))
+
+
 def names() -> list[str]:
     return sorted(_families())
 
@@ -120,6 +175,19 @@ def family_of(layout_id: str):
             f"Set `family:` in rulebase/layouts/{layout_id}.yaml to the "
             "family it belongs to."
         ) from None
+
+
+def hand_kinds(layout_id: str, default=None):
+    """Which labelled runs a pen reaches on this layout, or `default`.
+
+    A printed form is filled in, so only the fields a person writes into are
+    ink and the rest was printed before they arrived -- that is
+    `handwriting.HAND_KINDS` and it is the default here, passed in by the
+    caller rather than imported so this package keeps knowing nothing about
+    ink. A family that is *not* a printed form says so by carrying its own
+    `HAND_KINDS`; `notebook` returns `EVERY_RUN` and is the only one.
+    """
+    return getattr(family_of(layout_id), "HAND_KINDS", default)
 
 
 def build(recipe, receipt, template: str | None = None) -> str:
@@ -244,6 +312,7 @@ def cells_from_markup(markup: str) -> list[dict]:
 
 
 __all__ = [
-    "FAMILIES", "build", "cells_from_markup", "family_of", "labelled_runs",
-    "names", "structure_from_markup", "structure_tokens",
+    "EVERY_RUN", "FAMILIES", "build", "cells_from_markup", "family_of",
+    "hand_kinds", "labelled_runs", "names", "structure_from_markup",
+    "structure_tokens",
 ]

@@ -94,7 +94,7 @@ GOLDEN = REPO_ROOT / "tests" / "golden" / "baseline.json"
 #
 # Adding a plan is fine. Editing one means recapturing.
 THERMAL = ["eatery_ascii", "eatery_indexed", "market_barcode",
-           "market_compact", "market_vat"]
+           "market_compact", "market_vat", "notebook_ledger"]
 
 PLANS: dict[str, dict] = {
     # The plan the W1 brief names, on the three layouts it named.

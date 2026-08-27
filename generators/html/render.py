@@ -34,6 +34,7 @@ sys.path.insert(0, str(REPO_ROOT))
 # The browser, the fonts and the two box-reading snippets live in `page.py`:
 # two producers sit on this backend now -- receipts here, tables in
 # `tables.py` -- and both need all four.
+import sheets  # noqa: E402
 from page import (  # noqa: E402
     CELL_RECTS_JS,
     CELL_REGIONS_JS,
@@ -314,6 +315,7 @@ class HtmlReceiptRenderer:
                     # requires: `handwriting.fill` can replace a `sign.name`
                     # run with an `<img>` of ink, and `signature.WHO` will not
                     # match a run containing markup. See `signature.fill`.
+                    import handwriting
                     import signature
 
                     markup, sign_report = signature.fill(
@@ -321,9 +323,10 @@ class HtmlReceiptRenderer:
                         source=self.sign,
                         # The same worker `--handwriting model` already keeps
                         # alive, when both are on: one checkpoint load a run,
-                        # not one per signature block.
-                        hand=self.hand if getattr(
-                            self.hand, "source", "") == "model" else None)
+                        # not one per signature block. `model_of` reaches
+                        # through `--handwriting both`, which keeps its worker
+                        # a layer down.
+                        hand=handwriting.model_of(self.hand))
                 if self.hand is not None:
                     # After the sheet is built and before a pixel is drawn:
                     # the form is printed first and filled in second, which is
@@ -331,8 +334,16 @@ class HtmlReceiptRenderer:
                     # hand-filled without one of them knowing about ink.
                     import handwriting
 
+                    # Which runs the pen reaches is the LAYOUT's answer, not
+                    # this renderer's: a printed form is filled in, and a
+                    # school exercise book was never printed at all. The
+                    # default is the printed-form answer, passed in rather
+                    # than imported so `sheets/` keeps knowing nothing of ink.
                     markup, hand_report = handwriting.fill(
-                        markup, self.hand, seed=seed)
+                        markup, self.hand, seed=seed,
+                        kinds=sheets.hand_kinds(
+                            override or recipe.layout.id,
+                            handwriting.HAND_KINDS))
                 markup = markup.replace("{FONT_FACES}", font_faces())
             else:
                 markup = build_html(grid, recipe, receipt)
@@ -386,7 +397,13 @@ class HtmlReceiptRenderer:
         # box without changing anything visible about the image.
         before = image.shape[:2]
         with profiling.stage("degradation"):
-            aged = apply_recipe(image, recipe, seed=seed)
+            # The boxes go in as well as the image: `by_box` puts a model on a
+            # few text boxes rather than on the whole sheet, and the boxes are
+            # the only thing that says where those are. Computed just above, so
+            # they describe THIS page rather than the one before ageing shifted
+            # anything -- which is also why nothing in the chain may move a
+            # pixel. See degradation/regions.py.
+            aged = apply_recipe(image, recipe, seed=seed, boxes=boxes)
         if aged.shape[:2] != before:
             raise RuntimeError(
                 f"a degradation resized the page ({before} -> {aged.shape[:2]}); "
@@ -442,21 +459,22 @@ def main() -> int:
     )
     parser.add_argument("--scale", type=float, default=2.0)
     parser.add_argument(
-        "--template", metavar="LAYOUT", nargs="?", const="auto", default=None,
-        help="lay the page out with CSS instead of the character grid; see "
-             "sheets/. Bare, the sheet follows the layout the recipe drew; give "
-             "a layout id to force one particular dress",
+        "--template", metavar="MODEL", nargs="?", const="auto", default="auto",
+        help="which page model to draw: `grid` is the character grid, `auto` is the CSS sheet for this recipe's layout, or name a layout id to force its dress. Defaults to `auto` -- every layout has a sheet, and the grid is now the thing you ask for. See generators/html/sheets/",
     )
     parser.add_argument(
         "--handwriting", nargs="?", const="model", default=None,
-        choices=["model", "font"], metavar="SOURCE",
+        choices=["model", "font", "both"], metavar="SOURCE",
         help="fill the fields a person fills in with handwriting instead of "
              "type. `model` (the default) is the WriteViT checkpoint -- real "
              "generated ink, but it cannot write digits or ALL-CAPS and so "
              "reaches 42%% of the fields at best. `font` is a licensed "
              "handwriting typeface from fonts/hand/, which fills every field "
-             "but repeats: one hand per face, every `a` the same `a`. Only "
-             "with --template. See generators/html/handwriting.py",
+             "but repeats: one hand per face, every `a` the same `a`. `both` "
+             "gives the model what it can write and the typeface the rest, so "
+             "no run is left in type -- at the cost of two hands on one page, "
+             "counted in the record. Only with --template. "
+             "See generators/html/handwriting.py",
     )
     parser.add_argument(
         "--signature", nargs="?", const="font", default=None,
@@ -483,6 +501,14 @@ def main() -> int:
     profile = Path(args.profile) if args.profile else profiling.enable_from_env()
     if args.profile:
         profiling.enable()
+
+    # Resolved once, here: `grid` becomes None so every `if self.template:`
+    # below keeps meaning "draw a sheet", and an unknown value stops the run
+    # instead of quietly drawing the grid.
+    try:
+        args.template = sheets.resolve(args.template)
+    except KeyError as error:
+        parser.error(str(error))
 
     if args.handwriting and not args.template:
         parser.error(
@@ -535,7 +561,11 @@ def main() -> int:
                     cv2.imwrite(str(args.out / name), image,
                                 [cv2.IMWRITE_JPEG_QUALITY, 90])
                 with profiling.stage("annotation"):
-                    extra = {}
+                    # Which page model drew THIS image. At set level in
+                    # `dataset.json` it could not say whether a set was mixed;
+                    # per image it can, and a reader no longer has to infer it
+                    # from the pixels.
+                    extra = {"page_model": args.template or sheets.GRID}
                     if hand_report is not None:
                         # What was written and what refused, per page. A sheet
                         # that asked for handwriting and got two inked fields

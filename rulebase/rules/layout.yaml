@@ -1,4 +1,4 @@
-# THUỘC TÍNH 2/6 — BỐ CỤC
+# THUỘC TÍNH 2/10 — BỐ CỤC
 #
 # Mỗi `id` ở đây phải có một file cùng tên trong `rulebase/layouts/`. File đó
 # mô tả cột, dòng, chỗ ngắt — đo từ ảnh hoá đơn thật, xem phần `source:`.
@@ -53,6 +53,17 @@ groups:
         requires: [doc_market]
         excludes: [has_vat_lines]  # bố cục này không có chỗ cho dòng VAT riêng
         tags: [wrapped_names]
+
+      - id: notebook_ledger
+        weight: 2
+        requires: [doc_market]
+        # Không VAT và không mã vạch. Quyển sổ chép tay không tách dòng thuế,
+        # và không ai chép tay mã vạch của từng món — mà nhãn thì vẫn sinh ra
+        # `menu.barcode` nếu document có thẻ đó, thành ra một giá trị trong
+        # nhãn không có nét chữ nào trên trang. `tests/test_sheets.py` bắt
+        # đúng chuyện này.
+        excludes: [has_vat_lines, has_barcode]
+        tags: [handwritten, ruled_paper]
 
       - id: market_vat
         weight: 2

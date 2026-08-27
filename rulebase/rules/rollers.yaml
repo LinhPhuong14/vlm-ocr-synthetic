@@ -1,0 +1,38 @@
+# THUỘC TÍNH 10/10 — TRỤC LĂN
+#
+# Dải NGANG, vuông góc với hướng giấy đi — trục lăn bẩn ép lên tờ giấy khi kéo
+# nó qua máy. Khác `scan_banding` (trong chuỗi `augmentation`) ở hai chỗ đo
+# được, và giữ cả hai vì đó là cách phân biệt hai loại hỏng trên bản scan thật:
+# `scan_banding` là tổng hai sóng sin nên tuần hoàn đều, còn cái này là nhiễu
+# trơn nên khoảng cách giữa hai dải không đoán trước được; và mặt cắt của nó đi
+# qua một hàm gờ nên chỗ chuyển sáng-tối gấp khúc chứ không mượt.
+#
+# KHÔNG `excludes: [thermal]`, khác hai thuộc tính kia. Máy in nhiệt không có
+# hộp mực và không có trống, nhưng nó vẫn phải kéo giấy qua một trục — và máy
+# quét phẳng cũng thế. Đường giấy nào cũng có trục lăn.
+#
+# Đọc `toner.yaml` trước — nó giải thích cách ba thuộc tính này ghép với nhau.
+
+options:
+  - id: no_rollers
+    weight: 17
+    tags: [rollers_clean]
+
+  - id: rollers_faint
+    weight: 1
+    params:
+      chain:
+        - [dirty_rollers, {intensity: 0.2, period: 100}]
+
+  - id: rollers_banded
+    weight: 1
+    params:
+      chain:
+        - [dirty_rollers, {intensity: 0.35, period: 80}]
+
+  - id: rollers_worn
+    weight: 1
+    requires: [worn_machine]
+    params:
+      chain:
+        - [dirty_rollers, {intensity: 0.5, period: 55}]

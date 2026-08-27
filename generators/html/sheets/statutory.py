@@ -21,7 +21,7 @@ the layout file.
 from __future__ import annotations
 
 from . import base
-from .base import Rows, cell, esc, span
+from .base import Rows, esc, span
 
 # Ink a real form is printed in. Drawn by seed so a run varies, and only from
 # this list so it never lands on a colour no printer would buy.
@@ -142,11 +142,16 @@ def _parties(receipt, parse: dict, spec: dict) -> str:
 def _summary_table(parse: dict, spec: dict, rows: Rows) -> str:
     """The "Tổng hợp" table: the money split by tax rate.
 
-    A second table on the same sheet, and the reason the row counter is shared.
-    Its columns are its own -- five, not eight -- and it is precisely because
-    the browser resolves each table's columns independently that the two can sit
-    on one page without anybody working out where the edges should fall.
+    A second table on the same sheet, and the reason the row counter is shared
+    -- `base.items_table` took the same `rows` for the item table above it, and
+    `render_table(table, rows=rows)` here just keeps advancing the one counter
+    both tables draw their `data-row` numbers from. Its columns are its own --
+    five, not eight -- and it is precisely because the browser resolves each
+    table's columns independently that the two can sit on one page without
+    anybody working out where the edges should fall.
     """
+    from components.table import Border, Cell, Column, Row, TableSpec, render_table
+
     summary = (parse.get("invoice") or {}).get("summary") or []
     settings = spec.get("vat_summary") or {}
     columns = settings.get("columns") or []
@@ -154,24 +159,33 @@ def _summary_table(parse: dict, spec: dict, rows: Rows) -> str:
         return ""
     ncols = base.ncols_of(spec)
     resolved = base.columns_of({"columns": columns, "width": [ncols, ncols]}, ncols)
-    head = rows.take()
-    header = "<tr>" + "".join(
-        cell("th", head, index, span("colhdr", column.get("title", "")),
-             kind="colhdr", cls=base.align_class(column.get("title_align", "center")),
-             style=f"width:{column['pct']:.2f}%")
-        for index, column in enumerate(resolved)) + "</tr>"
-    body = []
+
+    table_columns = [
+        Column(width=column["pct"], align=base.safe_align(column.get("align", "left")),
+              valign=None)
+        for column in resolved
+    ]
+    header = Row([
+        Cell(span("colhdr", column.get("title", "")), html=True, kind="colhdr",
+            align=base.safe_align(column.get("title_align", "center")),
+            cls=base.align_class(column.get("title_align", "center")))
+        for column in resolved
+    ], header=True)
+
+    body_rows = []
     for position, entry in enumerate(summary):
-        row = rows.take()
         last = position == len(summary) - 1
-        body.append(f'<tr class="{"grand" if last else ""}">' + "".join(
-            cell("td", row, index,
-                 span(f"summary.{column['key']}", entry.get(column["key"], "")),
-                 kind=f"summary.{column['key']}",
-                 cls=base.align_class(column.get("align", "left")))
-            for index, column in enumerate(resolved)) + "</tr>")
-    return (f'<table class="items sum"><thead>{header}</thead>'
-            f'<tbody>{"".join(body)}</tbody></table>')
+        body_rows.append(Row([
+            Cell(span(f"summary.{column['key']}", entry.get(column["key"], "")), html=True,
+                kind=f"summary.{column['key']}",
+                align=base.safe_align(column.get("align", "left")),
+                cls=base.align_class(column.get("align", "left")))
+            for column in resolved
+        ], cls="grand" if last else ""))
+
+    table = TableSpec(rows=[header, *body_rows], columns=table_columns,
+                      border=Border.none(), cls="items sum")
+    return render_table(table, rows=rows)
 
 
 def _stamp(parse: dict) -> str:

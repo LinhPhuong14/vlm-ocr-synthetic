@@ -23,8 +23,16 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 sys.path.insert(0, str(REPO_ROOT / "generators" / "html"))
 
+from components.table import (  # noqa: E402
+    Border,
+    Cell,
+    Column,
+    Line,
+    Row,
+    TableSpec,
+    render_table,
+)
 from sheets import base  # noqa: E402
-from table import Border, Cell, Column, Line, Row, TableSpec, render_table  # noqa: E402
 
 COLUMNS = [Column(10, align="center"), Column(), Column(18, align="right"),
            Column(18, align="right")]
