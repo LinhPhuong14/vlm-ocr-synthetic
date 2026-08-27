@@ -25,6 +25,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from tools.llm import corpus_rules as rules  # noqa: E402
+from tools.llm import layout_schema  # noqa: E402
 from tools.llm import provenance as prov  # noqa: E402
 from tools.llm.client import lines_of, retab  # noqa: E402
 
@@ -324,3 +325,76 @@ def test_every_generatable_family_has_a_vietnamese_description():
         assert content.subject_for(stem)     # and it is asked for in Vietnamese
     with pytest.raises(SystemExit, match="no Vietnamese description"):
         content.subject_for("items_nonesuch")
+
+
+# ------------------------------------------------------- the layout schema
+
+
+def test_the_schema_accepts_every_hand_written_layout():
+    """The same rule as the corpus audit, and it failed the same way twice:
+    once on `đ` not decomposing under NFD, once on the em dash that every
+    layout's `name:` carries. A schema that rejects a committed layout is a
+    broken schema."""
+    import yaml
+
+    schema = layout_schema.derive()
+    for path in sorted(layout_schema.LAYOUTS_ROOT.glob("*.yaml")):
+        if layout_schema.is_generated(path):
+            continue
+        layout = yaml.safe_load(path.read_text(encoding="utf-8"))
+        problems = (layout_schema.check(layout, schema)
+                    + layout_schema.ranges(layout)
+                    + [f"missing {k}" for k in layout_schema.missing(layout)])
+        assert problems == [], f"{path.stem}: {problems[:3]}"
+
+
+def test_a_generated_layout_cannot_widen_the_schema():
+    """Otherwise the second variant is checked against the first one's
+    mistakes -- the same drift the corpus envelope avoids."""
+    files = [p for p in layout_schema.LAYOUTS_ROOT.glob("*.yaml")]
+    hand = [p for p in files if not layout_schema.is_generated(p)]
+    assert len(hand) < len(files) or len(hand) == len(files)
+    assert layout_schema.derive() == layout_schema.derive(include_generated=False)
+
+
+def test_an_unknown_key_is_reported_with_the_key_it_resembles():
+    problems = layout_schema.check({"rule_charr": "-"})
+    assert problems and "no layout has this key" in problems[0]
+    assert "rule_char" in problems[0]
+
+
+def test_a_reversed_range_is_caught_before_anything_is_built():
+    """`width: [48, 42]` is `ValueError: empty range for randrange()` on every
+    seed. The build step catches it -- after six subprocesses. This is the same
+    failure for the price of a comparison, and it is what the first generated
+    variant actually did."""
+    assert layout_schema.ranges({"width": [48, 42]})
+    assert layout_schema.ranges({"width": [42, 48]}) == []
+    assert layout_schema.ranges({"header": {"name_scale": [1.5, 1.2]}})
+
+
+def test_every_committed_numeric_pair_ascends():
+    """The measurement the rule above rests on: 59 pairs, none descending, so
+    there is no legitimate reversed range to reject by mistake."""
+    import yaml
+
+    for path in sorted(layout_schema.LAYOUTS_ROOT.glob("*.yaml")):
+        layout = yaml.safe_load(path.read_text(encoding="utf-8"))
+        assert layout_schema.ranges(layout) == [], path.stem
+
+
+def test_an_enum_value_outside_the_observed_set_is_refused():
+    """`align` is left|center|right and nothing else. A model writing `centre`
+    should be told, not silently ignored by the builder."""
+    problems = layout_schema.check({"columns": [{"align": "centre"}]})
+    assert problems and "is not one of" in problems[0]
+    assert layout_schema.check({"columns": [{"align": "center"}]}) == []
+
+
+def test_the_charset_is_measured_rather_than_listed():
+    """A hand-written list of "characters a layout uses" rejected all seventeen
+    on the em dash in `name:`."""
+    marks = layout_schema.charset(layout_schema.derive())
+    assert "—" in marks, "every layout's name: carries one"
+    assert layout_schema.check({"name": "Siêu thị — hoá đơn GTGT"}) == []
+    assert layout_schema.check({"name": "Siêu thị 🧾 hoá đơn"})
