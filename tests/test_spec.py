@@ -414,10 +414,27 @@ def test_the_ageing_attributes_are_drawn_after_everything_on_the_paper():
               if any(option.params.get("chain") for option in rules[name])]
     assert ageing, "something has to carry the ageing chain"
     first_ageing = ATTRIBUTES.index(ageing[0])
-    assert [name for name in ATTRIBUTES[first_ageing:]] == ageing, (
-        "an attribute that does not age a page is drawn after one that does; "
-        "the ageing chain runs in draw order, so that step would land on a "
-        "sheet whose own appearance had not been decided yet")
+    # Everything from the first ageing attribute onwards must either age the
+    # page or do NOTHING to it.
+    #
+    # It read `== ageing` -- a strict suffix -- until `rollers` was switched
+    # off. That attribute now has one value, `no_rollers`, which carries no
+    # params at all: it sits at the end of the order applying nothing. Deleting
+    # it instead would have been tidier and much worse, because every committed
+    # record names `rollers` and `rulebase.make(force=...)` refuses an unknown
+    # attribute -- `tools/check_boxes.py` would stop re-deriving every page in
+    # `data/`, not just the ones that drew a roller mark.
+    #
+    # So the rule is stated as what it always meant: an attribute drawn after
+    # the ageing has begun may not put anything on the sheet except through a
+    # chain, because the chain is the only thing that runs in draw order.
+    for name in ATTRIBUTES[first_ageing:]:
+        if name in ageing:
+            continue
+        assert not any(option.params for option in rules[name]), (
+            f"{name} is drawn after the ageing starts and carries params that "
+            f"are not a chain; that step would land on a sheet whose own "
+            f"appearance had already been decided")
 
 
 def test_toner_is_drawn_before_the_parts_that_require_its_tag():
