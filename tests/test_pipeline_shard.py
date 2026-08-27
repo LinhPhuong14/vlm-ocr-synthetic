@@ -24,7 +24,7 @@ from pathlib import Path
 
 import pytest
 
-from pipeline import invariants, record, synthesis, worker
+from pipeline import imagetimes, invariants, record, synthesis, worker
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SOURCE = REPO_ROOT / "data" / "dataset60" / "html" / "html_000.jpg"
@@ -44,7 +44,7 @@ sys.path.insert(0, __REPO_ROOT__)
 
 import rulebase
 import worklist
-from pipeline import invariants, record, synthesis
+from pipeline import imagetimes, invariants, record, synthesis
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-o", "--out", type=Path, required=True)
@@ -68,20 +68,24 @@ if os.environ.get("SHARD_TEST_REVERSE"):
     pages = [(index, job, seed) for index, (_i, job, seed)
              in enumerate(reversed(pages))]
 
-with synthesis.Writer(synthesis.beside(args.out), "html") as notes:
+with synthesis.Writer(synthesis.beside(args.out), "html") as notes, \
+        imagetimes.Log(args.out) as clock:
     for index, job, seed in pages:
-        recipe, receipt, grid = rulebase.make(seed=seed, force={"layout": job.layout})
         name = f"html_{index:03d}.jpg"
-        shutil.copy2(SOURCE, args.out / name)
-        item = record.build(
-            filename=name, width=width, height=height, parser="html",
-            boxes=[{"kind": cell.role, "text": cell.text,
-                    "quad": [[0, 0], [10, 0], [10, 10], [0, 10]]}
-                   for cell in grid.cells if cell.text.strip() and cell.role != "sep"],
-            extracted=receipt.ground_truth(), seed=seed, layout=grid.layout_id)
-        record.write_one(item, args.out, strict=False)
-        notes.add(name, job_id=item["job_id"], layout=grid.layout_id,
-                  recipe=recipe.to_dict(), text_sequence=receipt.text_sequence())
+        with clock.time(name) as timed:
+            recipe, receipt, grid = rulebase.make(seed=seed, force={"layout": job.layout})
+            timed.layout = grid.layout_id
+            timed.stages["draw"] = 0.5
+            shutil.copy2(SOURCE, args.out / name)
+            item = record.build(
+                filename=name, width=width, height=height, parser="html",
+                boxes=[{"kind": cell.role, "text": cell.text,
+                        "quad": [[0, 0], [10, 0], [10, 10], [0, 10]]}
+                       for cell in grid.cells if cell.text.strip() and cell.role != "sep"],
+                extracted=receipt.ground_truth(), seed=seed, layout=grid.layout_id)
+            record.write_one(item, args.out, strict=False)
+            notes.add(name, job_id=item["job_id"], layout=grid.layout_id,
+                      recipe=recipe.to_dict(), text_sequence=receipt.text_sequence())
 '''
 
 
@@ -201,6 +205,32 @@ def test_a_renderer_that_returns_its_pages_in_another_order_is_caught(
     with pytest.raises(worker.ShardError, match="different order from the job list"):
         rendered(shard, tmp_path)
     assert not worker.is_done(worker.shard_dir(tmp_path / "run", shard["index"]))
+
+
+def test_every_page_leaves_its_drawing_time_under_the_dataset_name(shard, tmp_path):
+    """The re-key, on a shard whose numbering is NOT the renderer's.
+
+    A renderer numbers from zero every time; the dataset numbers across the
+    whole run, so shard 1 of a 3-image plan writes `html_003.jpg` where the
+    renderer wrote `html_000.jpg`. With `first_index` at 0 the two agree by
+    accident and a broken re-key looks correct, which is why this shard starts
+    at ten.
+    """
+    later = dict(shard, index=1, runs=[dict(run, first_index=run["first_index"] + 10)
+                                       for run in RUNS])
+    _result, directory, items = rendered(later, tmp_path)
+
+    times = imagetimes.read(directory)
+    names = [record.file_name(item) for item in items]
+    assert names == ["html_010.jpg", "html_011.jpg", "html_012.jpg"]
+    # The dataset's names, not the renderer's, and every page has one.
+    assert sorted(times) == names
+    for name in names:
+        assert times[name].seconds > 0
+        assert times[name].stages["draw"] == 0.5
+    # The plan's layout, so this file joins to the records beside it.
+    assert [times[name].layout for name in names] == [
+        "eatery_ascii", "market_vat", "market_vat"]
 
 
 def test_a_shard_that_is_already_done_is_left_alone(shard, tmp_path):
