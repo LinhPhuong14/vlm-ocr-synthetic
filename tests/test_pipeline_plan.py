@@ -19,6 +19,7 @@ from pipeline.plan import (
     disjoint_seeds,
     shard_runs,
     split_by_layout,
+    uncovered,
 )
 
 LAYOUTS = ["eatery_ascii", "eatery_indexed", "market_barcode",
@@ -33,7 +34,7 @@ def make_config(**changes) -> Config:
     }
     for key, value in changes.items():
         if key in ("out", "per_backend", "seed", "workers", "clean", "force",
-                   "pairing"):
+                   "pairing", "layouts"):
             raw["run"][key] = value
         elif key == "size":
             raw["shard"]["size"] = value
@@ -151,6 +152,38 @@ def test_the_layout_split_matches_the_sequential_driver():
     assert split_by_layout(20, LAYOUTS) == [(name, 4) for name in LAYOUTS]
     assert [q for _, q in split_by_layout(3, LAYOUTS)] == [1, 1, 1, 0, 0]
     assert sum(q for _, q in split_by_layout(37, LAYOUTS)) == 37
+
+
+def test_a_run_too_small_for_its_layouts_names_the_ones_it_would_drop():
+    """The split hands the remainder to the FRONT of the list, so a count below
+    the layout count does not spread thin -- it drops the tail entirely."""
+    assert uncovered(3, LAYOUTS) == LAYOUTS[3:]
+    assert uncovered(5, LAYOUTS) == []
+    assert uncovered(20, LAYOUTS) == []
+
+
+def test_a_plan_that_would_miss_a_layout_is_refused():
+    """A dataset silently missing the tail of its own layout list is worse than
+    a run that will not start: `dataset.json` still names every layout, because
+    that field records what the run was pointed at, not what came out."""
+    with pytest.raises(ValueError, match="cannot cover"):
+        build_plan(make_config(per_backend=3), LAYOUTS)
+    # ... and the error says which ones and what to do about it.
+    try:
+        build_plan(make_config(per_backend=3), LAYOUTS)
+    except ValueError as error:
+        assert "market_compact" in str(error)
+        assert "at least 5" in str(error)
+
+
+def test_a_plan_records_where_its_layout_list_came_from():
+    """The list alone cannot say. An `all` run and a `named` run over the same
+    five layouts produce identical `layouts:` and are not comparable: the day
+    someone adds a layout, only one of them changes."""
+    assert build_plan(make_config(), LAYOUTS)["layout_source"] == "all"
+    assert build_plan(make_config(layouts=LAYOUTS), LAYOUTS)["layout_source"] == "named"
+    forced = make_config(force=["layout=market_vat"])
+    assert build_plan(forced, LAYOUTS)["layout_source"] == "forced"
 
 
 def test_the_same_config_gives_the_same_plan_bytes():

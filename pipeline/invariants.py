@@ -335,6 +335,29 @@ class Observation:
     unchecked: list[str] = field(default_factory=list)
 
 
+def _tight(text: str) -> str:
+    """`text` with every space removed. For the one comparison that needs it.
+
+    Joining a wrapped run back together puts a space at each break, which is
+    right when the browser broke at a space and wrong when it broke anywhere
+    else. A hyphen is the case that actually happens: `ÁO SƠ MI NAM DÀI TAY
+    (MEN'S LONG-SLEEVE SHIRT)` is too wide for its column, the browser breaks
+    after the hyphen -- which is what a hyphen is for -- and the two boxes
+    rejoin as `LONG- SLEEVE`, which the label's `LONG-SLEEVE` is not a
+    substring of.
+
+    So the value is on the page, the boxes are right, the label is right, and
+    the check said the field was missing. It said so on `invoice_export` at
+    seed 6026, which was enough to fail a whole shard and had been blocking
+    every golden-baseline recapture since.
+
+    Used only as a **fallback**, and only within one box kind: matching the
+    whole page with its spaces removed would let `A B` in one field satisfy a
+    label reading `AB` in another.
+    """
+    return "".join(text.split())
+
+
 def _printed(boxes: list[dict]) -> tuple[str, dict[str, str]]:
     """The page as one string, and one string per box kind.
 
@@ -548,20 +571,10 @@ def inspect(item: dict[str, Any], *, order: tuple[str, ...] | list[str],
         wanted = " ".join(value.split())
         if wanted in page or any(wanted in text for text in by_kind.values()):
             continue
-        # A run that wraps across two visual lines at a HYPHEN, not a space
-        # (a long "[Thu tiền chênh lệch giá] SOLI-MEDON 40" item name, found
-        # by measuring a real render -- CELL_RECTS_JS in page.py splits it
-        # into "...SOLI-" and "MEDON 40"), has no space at the break either.
-        # `by_kind` above always joins same-kind boxes with one, which is
-        # right for a break at a space and wrong for a break at a hyphen; it
-        # then reconstructs "SOLI- MEDON 40", one character short of the
-        # value it is being checked against. Falling back to a whitespace-
-        # blind comparison only ever makes this check MORE lenient than the
-        # one above -- it cannot turn a genuinely missing value into a match,
-        # only recognise the same text the space-joined form already found,
-        # written without the line-wrap's phantom space.
-        squeezed = re.sub(r"\s+", "", wanted)
-        if any(squeezed in re.sub(r"\s+", "", text) for text in by_kind.values()):
+        # ... and once more with the spaces taken out, for a run that wrapped
+        # at something other than a space. See `_tight`.
+        tight = _tight(wanted)
+        if any(tight in _tight(text) for text in by_kind.values()):
             continue
         if name in BUDGETS:
             out.unprinted[name] = out.unprinted.get(name, 0) + 1
