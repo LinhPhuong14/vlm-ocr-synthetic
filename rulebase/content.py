@@ -1115,6 +1115,44 @@ def _build_invoice(profile: str, store: Store, items: list[Item], rng: random.Ra
             "notified_on": f"{max(day - rng.randint(1, 20), 1):02d}/{month:02d}/{year}",
         })
 
+    # ---- biểu mẫu/đơn từ: an applicant's own civil details, and the two
+    # yes/no lines a form asks for its own record. Nothing above covers these
+    # -- `buyer`/`ship` are commercial parties, `principal`/`agent` come with
+    # an authorisation, `admission` with a hospital stay -- so root 3's forms
+    # (`rulebase/documents/form_*.yaml`) get their own small block, gated
+    # behind a flag only they set. The categorical lists (`ethnicities`,
+    # `religions`, ...) are read from the document's own params first, the
+    # same `rng.choice(params.get(X) or [...])` shape `payment_forms`/`banks`/
+    # `room_types` already use above, so a document overrides them by adding
+    # one YAML key rather than by editing this file.
+    if params.get("form_fields"):
+        applicant_name = case(rng.choice(corpus.people(lang)))
+        values.update({
+            "applicant_name": applicant_name,
+            "applicant_dob": f"{rng.randrange(1, 29):02d}/{rng.randrange(1, 13):02d}/"
+                             f"{rng.randrange(1955, 2007)}",
+            "applicant_id": f"{rng.randrange(10 ** 11, 10 ** 12)}",
+            "applicant_id_date": f"{rng.randrange(1, 29):02d}/{rng.randrange(1, 13):02d}/"
+                                 f"{year - rng.randint(1, 8)}",
+            "applicant_id_place": case(params.get(
+                "id_issuer", "Cục Cảnh sát quản lý hành chính về trật tự xã hội")),
+            "applicant_phone": f"0{rng.randrange(2, 10)}{rng.randrange(10000000, 99999999)}"[:11],
+            "applicant_gender": case(rng.choice(["Nam", "Nữ"])),
+            "hometown": case(rng.choice(corpus.wards(lang))[2]),
+            "residence": case(f"{rng.randrange(1, 300)} {rng.choice(corpus.streets(lang))}, "
+                              f"{', '.join(rng.choice(corpus.wards(lang))[:3])}"),
+            "ethnicity": case(rng.choice(params.get("ethnicities") or ["Kinh"])),
+            "religion": case(rng.choice(params.get("religions") or ["Không"])),
+            "education_level": case(rng.choice(params.get("education_levels") or ["12/12"])),
+            "profession": case(rng.choice(params.get("professions") or ["Công nhân viên"])),
+            "health": case(rng.choice(params.get("health_states") or ["Bình thường"])),
+            "father_name": case(rng.choice(corpus.people(lang))),
+            "mother_name": case(rng.choice(corpus.people(lang))),
+            "witness_name": case(rng.choice(corpus.people(lang))),
+            "yn_1": rng.choice(["Có", "Không"]),
+            "yn_2": rng.choice(["Có", "Không"]),
+        })
+
     # ---- xuất khẩu: the shipment the invoice travels with.
     values.update({
         "contract_no": f"{rng.randrange(1, 999):03d}/{year % 100:02d}/HĐXK",

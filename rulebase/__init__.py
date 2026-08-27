@@ -22,6 +22,7 @@ import random
 
 import profiling
 
+from . import periodical
 from .content import Item, Receipt, Store
 from .content import build as build_receipt
 from .corpus import CORPUS_ROOT
@@ -108,8 +109,17 @@ def make(seed: int | None = None, force: dict[str, str] | None = None, attempts:
     half of a "twenty image" dataset was duplicates. See `sample_recipe`.
     """
     recipe, receipt, rng = make_content(seed=seed, force=force, attempts=attempts)
+    # A periodical page has no character-grid shape of its own (see
+    # `make_content`'s docstring on why the CSS path never builds one at
+    # all) -- `as_grid_receipt()` stands in a minimal, valid `Receipt` so
+    # `build_grid` has something to draw, purely for `tests/test_layout.py`
+    # and `pipeline/preflight.py::sheet_overflow()`, which call `make()` on
+    # every layout unconditionally. Neither ever reads `.ground_truth()` off
+    # what they build here, so the shim is never checked against a label --
+    # only the real `receipt` is returned below.
+    grid_source = receipt if isinstance(receipt, Receipt) else receipt.as_grid_receipt()
     with profiling.stage("layout"):
-        grid = build_grid(receipt, recipe.layout.id, rng)
+        grid = build_grid(grid_source, recipe.layout.id, rng)
     return recipe, receipt, grid
 
 
@@ -133,5 +143,17 @@ def make_content(seed: int | None = None, force: dict[str, str] | None = None,
         recipe = sample_recipe(seed=seed, force=force, attempts=attempts)
     rng = random.Random(recipe.seed)
     with profiling.stage("content"):
-        receipt = build_receipt(recipe, rng)
+        # `kind: periodical` is an opaque params flag, read the same
+        # ungoverned way every other document param already is (`spec.py`
+        # never schema-checks `params`) -- set on the four periodical
+        # documents in rulebase/documents/, nowhere else. A newspaper page
+        # has no store/items/totals/invoice-parties shape at all, so it gets
+        # its own builder (`rulebase.periodical`) rather than a stretched
+        # corner of `Receipt`/`Invoice`. See rulebase/periodical.py's module
+        # docstring for why this is a sibling, not a subclass.
+        document = recipe.choices["document"].params
+        if document.get("kind") == "periodical":
+            receipt = periodical.build(recipe, rng)
+        else:
+            receipt = build_receipt(recipe, rng)
     return recipe, receipt, rng

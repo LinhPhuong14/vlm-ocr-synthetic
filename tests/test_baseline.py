@@ -282,7 +282,7 @@ def test_every_plan_names_its_layouts_explicitly():
 
 def test_a_plan_asks_the_driver_for_exactly_what_it_declares():
     argv = B.arguments({"per_backend": 4, "seed": 7, "layouts": ["a", "b"]})
-    assert argv == ["-n", "4", "--seed", "7", "--layouts", "a", "b"]
+    assert argv == ["-n", "4", "--seed", "7", "--template", "auto", "--layouts", "a", "b"]
 
 
 def widest() -> str:

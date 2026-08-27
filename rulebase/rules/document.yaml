@@ -106,6 +106,22 @@ groups:
       weight: 2
       tags: [doc_invoice, doc_export]
 
+    # --------------------------------------------------------------------
+    # HAI TÀI LIỆU CHO HỌ "MODERN" — 10 bố cục root Invoice/Billing.
+    #
+    # `bare_fields` / `rich_fields` là chỗ nối với `rules/layout.yaml`: mười
+    # bố cục mới chia làm hai nhóm theo đúng những gì chúng liệt trong
+    # `sections:`, và mỗi tài liệu chỉ điền đúng phần mà nhóm layout của nó
+    # in ra — xem đầu `documents/invoice_plain.yaml` và
+    # `documents/invoice_detailed.yaml`.
+    - id: invoice_plain
+      weight: 2
+      tags: [doc_invoice, has_vat, bare_fields]
+
+    - id: invoice_detailed
+      weight: 2
+      tags: [doc_invoice, has_vat, rich_fields]
+
   # ------------------------------------------------------------------------
   - id: service_invoice
     label: "Hoá đơn dịch vụ — lưu trú, ăn uống có thương hiệu"
@@ -168,3 +184,69 @@ groups:
     - id: authorisation_letter
       weight: 1
       tags: [doc_invoice, doc_authorisation, doc_service]
+
+    # ------------------------------------------------------------------------
+    # Root 3 (Form / Application) — tám tài liệu cho mười layout ở
+    # `rules/layout.yaml` (nhóm `form_document`). `bare_kv`/`symmetric`/
+    # `activity`/`checklist`/`checklist_table`/`sectioned`/`roster`/`dense`:
+    # mỗi tag khớp ĐÚNG MỘT layout hoặc một cặp layout cùng hình dạng nội
+    # dung — cùng cơ chế requires/excludes root 1 dùng cho invoice_plain/
+    # invoice_detailed. Xem `docs/root-document-taxonomy.md` § 3.3.
+    - id: form_brief
+      weight: 2
+      tags: [doc_invoice, doc_form, bare_kv]
+
+    - id: form_symmetric
+      weight: 1
+      tags: [doc_invoice, doc_form, symmetric]
+
+    - id: form_activity
+      weight: 1
+      tags: [doc_invoice, doc_form, activity]
+
+    - id: form_checklist
+      weight: 1
+      tags: [doc_invoice, doc_form, checklist]
+
+    - id: form_checklist_table
+      weight: 1
+      tags: [doc_invoice, doc_form, checklist_table]
+
+    - id: form_sectioned
+      weight: 1
+      tags: [doc_invoice, doc_form, sectioned]
+
+    - id: form_roster
+      weight: 1
+      tags: [doc_invoice, doc_form, roster]
+
+    - id: form_dense
+      weight: 2
+      tags: [doc_invoice, doc_form, dense_registry]
+
+  # ------------------------------------------------------------------------
+  - id: periodical
+    label: "Báo/tạp chí — trang biên tập"
+    # Root 4 (Newspaper/Magazine). Không giống mọi document phía trên, các
+    # option dưới đây KHÔNG mang tag `doc_invoice` -- một trang báo/tạp chí
+    # không ghi lại một lần mua bán, cùng lý do `till_receipt` ở đầu file này
+    # cũng không mang tag đó. `params:` của bốn document này (masthead, tên
+    # ấn phẩm, ...) không nằm ở đây mà ở `rulebase/documents/<id>.yaml`, như
+    # mọi document khác -- xem `rulebase/spec.py::PARAMS_DIRS`.
+    options:
+
+    - id: newspaper_front_broadsheet
+      weight: 2
+      tags: [doc_periodical, periodical_lead_sidebar]
+
+    - id: newspaper_classifieds
+      weight: 2
+      tags: [doc_periodical, periodical_classifieds]
+
+    - id: magazine_contents
+      weight: 2
+      tags: [doc_periodical, periodical_toc]
+
+    - id: magazine_qa_interview
+      weight: 2
+      tags: [doc_periodical, periodical_qa]

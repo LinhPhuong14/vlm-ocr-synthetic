@@ -1,0 +1,16 @@
+# THAM SỐ NỘI DUNG — newspaper_classifieds
+#
+# Cùng tờ báo "Minh Hoạ" với `newspaper_front_broadsheet.yaml`, một trang
+# khác trong số đó. `section`/`masthead`/`footer_disclaimer` chép nguyên văn
+# từ `samples/periodical-templates/newspaper_classifieds.html`; toàn bộ nội
+# dung rao vặt (mục, mẩu rao, thông báo, cáo phó, cảm tạ) bốc trọn một bộ từ
+# `rulebase/corpus/vi/periodical_classifieds.yaml` -- xem module docstring
+# của `rulebase/periodical.py` cho lý do đây là bộ trọn vẹn, không phải các
+# mẩu rời ghép lại.
+
+kind: periodical
+composition: classifieds
+
+section: "Rao vặt · Thông báo"
+masthead: "Nhật báo Minh Hoạ"
+footer_disclaimer: "Nội dung rao vặt do người đăng chịu trách nhiệm. Toà soạn không xác minh từng mẩu tin."

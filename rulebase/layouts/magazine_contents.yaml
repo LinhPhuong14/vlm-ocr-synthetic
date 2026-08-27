@@ -1,0 +1,24 @@
+# Trang mục lục tạp chí — hộp bài đinh (ảnh + số trang lớn + tít + sapo) rồi
+# hai cột danh sách bài theo chuyên mục.
+#
+# Family `periodical`, composition `toc` -- không có bảng, không có bên mua/
+# bán, chỉ có số trang + tít + sapo lặp lại theo từng mục. Xem
+# `rulebase/periodical.py::TocPage`.
+#
+# `sections` chỉ phục vụ lưới ký tự cho `test_layout.py`/`preflight`, không
+# phải cột chữ thật -- xem chú thích trong `newspaper_front_broadsheet.yaml`.
+id: magazine_contents
+name: Magazine table of contents — hero story box, two-column section listing
+source: "samples/periodical-templates/magazine_contents.html (N-06)"
+family: periodical
+composition: toc
+
+width: [92, 104]
+gutter: 2
+rule_char: "-"
+
+sheet: a4
+
+rules: marks
+
+sections: [header, parties, notes, footer]

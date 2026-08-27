@@ -32,11 +32,18 @@ def test_every_blank_names_a_real_layout_and_a_sheet_that_exists(real_rules):
 
 
 def test_a_document_with_one_blank_is_reported_as_such(real_rules):
-    """Most kinds have exactly one, and that is the fact the file exists to show."""
+    """Most kinds have exactly one, and that is the fact the file exists to show.
+
+    `pub_eatery` has three since `eatery_indexed_b` shipped. A variant is drawn
+    by the same documents as the layout it varies -- that is what makes it a
+    variant rather than a new kind of paper -- so `tools/llm/augment_layout.py`
+    adds it beside its parent in every document list the parent appears in, and
+    this count moves with it.
+    """
     _, documents = load_blanks()
     counts = {name: len(members) for name, members in documents.items()}
     assert counts["hospital_bill"] == 1
-    assert counts["pub_eatery"] == 2
+    assert counts["pub_eatery"] == 3
     assert set(counts) == {option.id for option in real_rules["document"]}
 
 

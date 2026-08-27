@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>N-04 · Trang xã luận &amp; ý kiến (315 × 470 mm)</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#5d6158;font-family:Georgia,"Times New Roman",serif;color:#111}
+  @page{size:315mm 470mm;margin:0}
+  .sheet{width:315mm;height:470mm;background:#f8f6ef;margin:10mm auto;position:relative;overflow:hidden;
+         box-shadow:0 3mm 12mm rgba(0,0,0,.4);padding:11mm 12mm 9mm;display:flex;flex-direction:column}
+
+  .running{display:flex;justify-content:space-between;align-items:baseline;
+           border-bottom:1.2mm solid #111;padding-bottom:1.8mm}
+  .running .sec{font-family:Arial,sans-serif;font-size:6.4mm;font-weight:700;letter-spacing:3mm;text-transform:uppercase}
+  .running .meta{font-family:Arial,sans-serif;font-size:2.8mm;color:#444}
+
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0 6mm;padding-top:5mm;flex:1;align-content:start}
+  .edit{grid-column:1 / 3;padding-right:5mm;border-right:.25mm solid #aaa}
+  .right{grid-column:3 / 5}
+
+  /* ---- măng sét thu nhỏ đặt trên bài xã luận ---- */
+  .minihead{border-bottom:.35mm solid #111;padding-bottom:2mm;margin-bottom:3mm}
+  .minihead .nm{font-size:9mm;font-weight:700;letter-spacing:-.35mm;text-transform:uppercase;color:#8a0d14;line-height:1}
+  .minihead .lbl{font-family:Arial,sans-serif;font-size:2.6mm;letter-spacing:2.2mm;text-transform:uppercase;
+                 color:#555;margin-top:1.4mm}
+
+  h2{font-size:11mm;line-height:1.05;letter-spacing:-.3mm;margin-bottom:3mm}
+  .edit p{font-size:3.5mm;line-height:1.55;text-align:justify;margin-bottom:2mm}
+  .edit p:first-of-type::first-letter{float:left;font-size:16mm;line-height:.8;font-weight:700;
+        padding:1.2mm 2mm 0 0;color:#8a0d14}
+  .sign{font-family:Arial,sans-serif;font-size:3mm;letter-spacing:1.4mm;text-transform:uppercase;
+        text-align:right;margin-top:3mm;padding-top:2mm;border-top:.25mm solid #111}
+
+  /* ---- măng-xét toà soạn (masthead box) ---- */
+  .masthead{margin-top:5mm;border:.5mm solid #111;padding:3mm;font-family:Arial,sans-serif;font-size:2.5mm;
+            line-height:1.5;color:#333;background:#efece2}
+  .masthead b{display:block;font-size:2.7mm;letter-spacing:.8mm;text-transform:uppercase;color:#111;margin-bottom:1.2mm}
+  .masthead .row{display:grid;grid-template-columns:34mm 1fr;gap:2mm;padding:.5mm 0}
+
+  /* ---- biếm hoạ ---- */
+  .toon{border:.6mm solid #111;background:#fff;padding:3mm;margin-bottom:5mm}
+  .toon .art{height:74mm;position:relative;background:
+      repeating-linear-gradient(45deg,rgba(0,0,0,.07) 0 .4mm,transparent .4mm 2.2mm),#faf8f2;
+      border:.25mm dashed #666;display:flex;align-items:center;justify-content:center}
+  .toon .art span{font-family:Arial,sans-serif;font-size:3mm;letter-spacing:1.6mm;text-transform:uppercase;color:#888}
+  .toon .tcap{font-family:Arial,sans-serif;font-size:2.8mm;line-height:1.4;margin-top:2mm;
+              display:flex;justify-content:space-between;gap:4mm;color:#333}
+  .toon .tcap i{font-style:italic;white-space:nowrap;color:#666}
+
+  /* ---- góc nhìn (op-ed) ---- */
+  .oped{border-top:.9mm solid #111;padding-top:3mm;margin-bottom:5mm}
+  .oped .au{display:grid;grid-template-columns:16mm 1fr;gap:3mm;align-items:center;margin-bottom:2.5mm}
+  .oped .av{width:16mm;height:16mm;border-radius:50%;background:
+      radial-gradient(circle at 50% 50%, rgba(0,0,0,.55) 0 .3mm, transparent .31mm) 0 0/1mm 1mm,
+      linear-gradient(150deg,#c8c5bb,#6f6d67);border:.3mm solid #333}
+  .oped .au .n{font-family:Arial,sans-serif;font-size:3.4mm;font-weight:700;letter-spacing:.3mm}
+  .oped .au .r{font-family:Arial,sans-serif;font-size:2.6mm;color:#555;font-style:italic}
+  .oped h3{font-size:7.6mm;line-height:1.1;margin-bottom:2.5mm}
+  .oped .cols2{column-count:2;column-gap:5mm;column-rule:.2mm solid #ccc}
+  .oped p{font-size:3.1mm;line-height:1.48;text-align:justify;margin-bottom:1.5mm}
+  .pull{border-left:1.2mm solid #8a0d14;padding-left:4mm;margin:3mm 0;font-size:5mm;line-height:1.3;
+        font-style:italic;color:#8a0d14;break-inside:avoid}
+
+  /* ---- thư bạn đọc ---- */
+  .letters{border-top:.9mm solid #111;padding-top:3mm}
+  .letters h4{font-family:Arial,sans-serif;font-size:3.4mm;letter-spacing:1.6mm;text-transform:uppercase;
+              margin-bottom:2.5mm}
+  .letters .l{padding:2.2mm 0;border-bottom:.2mm dotted #999}
+  .letters .l:last-child{border-bottom:0}
+  .letters .l p{font-size:3mm;line-height:1.45;text-align:justify}
+  .letters .l .who{font-family:Arial,sans-serif;font-size:2.5mm;color:#555;text-align:right;margin-top:1mm;font-style:italic}
+
+  .foot{margin-top:auto;padding-top:2.5mm;border-top:.25mm solid #111;display:flex;justify-content:space-between;
+        font-family:Arial,sans-serif;font-size:2.5mm;color:#444}
+  @media print{html,body{background:#fff}.sheet{margin:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="running">
+    <div class="sec">Ý kiến</div>
+    <div class="meta">Thứ Tư 26 · 8 · 2026 &nbsp;·&nbsp; Trang 2</div>
+  </div>
+
+  <div class="grid">
+    <div class="edit">
+      <div class="minihead">
+        <div class="nm">Minh Hoạ</div>
+        <div class="lbl">Xã luận</div>
+      </div>
+
+      <h2>Sửa một khúc đê, và sửa cả cách chờ đợi</h2>
+      <p>Bốn mươi bảy điểm xung yếu trên một tuyến đê không phải là con số bất ngờ. Nó đã nằm trong báo cáo
+        rà soát từ tháng ba, được nhắc lại trong hai cuộc họp và một văn bản đôn đốc. Điều đáng nói là đến
+        cuối tháng tám, mới sáu điểm được xử lý.</p>
+      <p>Người ta có thể liệt kê đủ lý do: vốn về chậm, mặt bằng vướng, địa chất khác dự kiến. Từng lý do đều
+        đúng và đều có thể chứng minh bằng giấy tờ. Nhưng cộng lại, chúng tạo ra một thứ khó chứng minh hơn:
+        thói quen coi việc chậm là bình thường.</p>
+      <p>Ở chân đê, thói quen ấy được đo bằng những chiếc túi nylon đựng giấy tờ buộc sẵn. Người dân không đợi
+        hệ thống làm xong việc của mình; họ tự chuẩn bị cho khả năng nó không xong kịp.</p>
+      <p>Đó mới là điều đáng lo. Bởi khi người dân thôi kỳ vọng, họ cũng thôi chất vấn. Và một hệ thống không
+        bị chất vấn thì rất khó tự nhanh lên.</p>
+      <p>Sáu điểm đã xong là kết quả thật, không nên phủ nhận. Nhưng bốn mươi mốt điểm còn lại không cần thêm
+        một văn bản đôn đốc nữa. Chúng cần một mốc thời gian cụ thể, có tên người chịu trách nhiệm, và được
+        công bố để dân biết mà đối chiếu.</p>
+      <p>Mùa nước năm nay được dự báo đến sớm hơn nửa tháng. Nửa tháng ấy, nếu tính bằng thủ tục, là không đáng
+        kể. Nếu tính bằng một khúc đê vỡ, thì là tất cả.</p>
+      <div class="sign">Minh Hoạ</div>
+
+      <div class="masthead">
+        <b>Nhật báo Minh Hoạ</b>
+        <div class="row"><span>Tổng Biên tập</span><span>Nguyễn Văn A</span></div>
+        <div class="row"><span>Phó Tổng Biên tập</span><span>Trần Thị B · Lê Văn C</span></div>
+        <div class="row"><span>Thư ký toà soạn</span><span>Phạm Thu D</span></div>
+        <div class="row"><span>Toà soạn</span><span>Số 1 Đường Mẫu, Quận Trung Tâm</span></div>
+        <div class="row"><span>Điện thoại</span><span>024 0000 0000 · Fax 024 0000 0001</span></div>
+        <div class="row"><span>Thư bạn đọc</span><span>bandoc@example.vn</span></div>
+        <div class="row"><span>Giấy phép</span><span>Số 000/GP-BTTTT</span></div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="toon">
+        <div class="art"><span>Tranh biếm hoạ</span></div>
+        <div class="tcap">
+          <span>— Đê sắp vỡ rồi, anh xử lý tới đâu?<br>— Tôi vừa ký xong văn bản đôn đốc lần thứ ba.</span>
+          <i>Tranh: Hoạ sĩ M.H</i>
+        </div>
+      </div>
+
+      <div class="oped">
+        <div class="au">
+          <div class="av"></div>
+          <div>
+            <div class="n">TS. Lê Quang Minh</div>
+            <div class="r">Chuyên gia quản lý rủi ro thiên tai</div>
+          </div>
+        </div>
+        <h3>Chúng ta đang gia cố đê, hay gia cố sự an tâm?</h3>
+        <div class="cols2">
+          <p>Bao cát là giải pháp tình thế hợp lý trong vài ngày. Vấn đề bắt đầu khi nó được dùng liên tục qua
+            hai mùa lũ, và dần được ghi vào báo cáo như một biện pháp đã xử lý.</p>
+          <p>Trong hồ sơ, một điểm xung yếu được gia cố bằng bao cát và một điểm được xử lý bằng cọc cừ có thể
+            cùng chuyển sang trạng thái “đã khắc phục”. Nhưng ngoài thực địa, hai thứ đó không giống nhau.</p>
+          <div class="pull">Một biện pháp tạm thời lặp lại đủ nhiều lần sẽ được hệ thống ghi nhận như biện pháp
+            chính thức.</div>
+          <p>Điều cần sửa trước tiên có thể không nằm ở kỹ thuật, mà ở cách phân loại. Nếu báo cáo tách riêng
+            “xử lý tạm” và “xử lý căn cơ”, bức tranh sẽ khác hẳn.</p>
+          <p>Khi đó, con số sáu trên bốn mươi bảy sẽ không còn là một tiến độ khiêm tốn, mà là một cảnh báo
+            được đọc đúng.</p>
+        </div>
+      </div>
+
+      <div class="letters">
+        <h4>Thư bạn đọc</h4>
+        <div class="l">
+          <p>Nhà tôi cách chân đê ba mươi mét. Mỗi mùa lũ, xã đều cử người xuống nhắc di dời, nhưng chưa năm nào
+            nói rõ đi đâu và ai lo chỗ ở. Mong báo hỏi giúp chúng tôi câu đó.</p>
+          <div class="who">Bạn đọc N.T.H · xã Mẫu Thượng</div>
+        </div>
+        <div class="l">
+          <p>Bài viết về tuyến buýt nhanh tuần trước rất sát thực tế. Tuy nhiên tôi thấy còn thiếu ý kiến của
+            người khuyết tật — sáu điểm dừng mới đều chưa có lối lên xe lăn.</p>
+          <div class="who">Bạn đọc Trần V.K · Quận Trung Tâm</div>
+        </div>
+        <div class="l">
+          <p>Xin cảm ơn báo đã đăng loạt bài về làng gốm. Sau bài báo, hai nhóm sinh viên đã tìm về xưởng của
+            chúng tôi để học nghề trong hè.</p>
+          <div class="who">Nghệ nhân L.V.T · làng gốm Mẫu</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>Bài viết trên trang này thể hiện quan điểm riêng của tác giả.</span>
+    <span>Ý kiến · Trang 2</span>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,54 @@
+# INV-07 — Bảng dày đặc: nhiều dòng hơn, dòng thưa hẹp lại.
+#
+# `table.compact: true` là cờ mới `generators/html/sheets/modern.py` đọc để
+# xiết padding của mỗi ô — xem phần đầu file đó. Cùng `invoice_plain` như
+# `invoice_header_table`, chỉ khác cách vẽ bảng (và số dòng hàng khi sinh —
+# xem lúc gọi `--force`).
+id: invoice_dense_table
+name: Dense item table — many rows, tighter row padding
+source: "khảo sát mẫu hoá đơn bán hàng tự thiết kế phổ biến — bảng nhiều dòng hàng, không thừa khoảng trắng"
+family: modern
+
+width: [88, 100]
+gutter: 1
+rule_char: "-"
+sheet: a4
+rules: marks
+
+sections: [header, table, totals, footer]
+
+header:
+  name_scale: [1.25, 1.45]
+  name_bold: true
+  title: true
+  title_scale: [1.15, 1.30]
+
+columns:
+  - {key: stt,        title: "STT",       width: 4,  align: center, title_align: center}
+  - {key: name,       title: "Tên hàng",  width: 0,  align: left,   title_align: left}
+  - {key: unit,       title: "ĐVT",       width: 6,  align: center, title_align: center}
+  - {key: qty,        title: "SL",        width: 6,  align: right,  title_align: right}
+  - {key: unit_price, title: "Đơn giá",   width: 12, align: right,  title_align: right}
+  - {key: amount,     title: "Thành tiền", width: 14, align: right,  title_align: right}
+
+table:
+  frame: false
+  shade: 0.10
+  header_rules: true
+  compact: true
+
+item:
+  wrap_name: true
+  rows:
+    - - {col: stt, from: stt}
+      - {col: name, from: name}
+      - {col: unit, from: unit}
+      - {col: qty, from: qty}
+      - {col: unit_price, from: unit_price}
+      - {col: amount, from: amount}
+
+totals:
+  frame: false
+  indent: 0.42
+  emphasise_grand: true
+  grand_scale: [1.10, 1.25]

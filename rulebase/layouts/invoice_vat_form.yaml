@@ -15,6 +15,7 @@
 id: invoice_vat_form
 name: VAT invoice form — boxed party block, dotted fields, blank rows to the printed depth
 source: "ảnh mẫu hoá đơn GTGT ký hiệu 1K22DAA số 6830, và mẫu có dấu HOÁ ĐƠN MẪU"
+family: statutory
 
 # Tờ A4 in ngang cột, 12 cpi ≈ 100 ký tự. Hẹp hơn thì tám cột không đủ chỗ.
 width: [104, 118]

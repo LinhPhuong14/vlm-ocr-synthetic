@@ -1,0 +1,68 @@
+# llm-generated qwen2.5:7b-instruct@845dbda0ea48ed74 from=eatery_indexed seed=60 2026-08-27
+# Reviewed by a person before it drew anything. The gauntlet it passed is in tools/llm/augment_layout.py.
+id: eatery_indexed_b
+name: Eatery — index column, quantity, price, amount
+source: 'biến thể của eatery_indexed (sinh bằng LLM, không đo từ ảnh nào) — bố cục
+  gốc đo từ: photo QUÁN NHẬU BÌNH DÂN 129, Đà Nẵng'
+family: till
+width:
+- 42
+- 48
+rule_char: '*'
+header:
+  name_scale:
+  - 1.2
+  - 1.45
+  name_bold: true
+  title: true
+  title_scale:
+  - 1.25
+  - 1.5
+meta:
+  style: two_column
+  rule_after: false
+column_header: true
+column_header_bold: true
+columns:
+- key: stt
+  title: STT
+  width: 4
+  align: right
+- key: qty
+  title: Số Lượng
+  width: 10
+  align: right
+- key: unit_price
+  title: Đơn Giá
+  width: 10
+  align: right
+- key: amount
+  title: Thành Tiền
+  width: 14
+  align: right
+item:
+  wrap_name: true
+  rows:
+  - - col: stt
+      from: stt
+    - from: name
+      span:
+      - qty
+      - amount
+      align: left
+  - - col: qty
+      from: qty
+    - col: unit_price
+      from: unit_price
+    - col: amount
+      from: amount
+  discount_row:
+    label: Giảm Giá
+totals:
+  emphasise_grand: true
+  grand_scale:
+  - 1.25
+  - 1.6
+  grand_two_lines: true
+footer:
+  rule_before: false

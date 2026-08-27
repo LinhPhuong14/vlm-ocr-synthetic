@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LO-07 · Đơn bảo hiểm hàng hoá vận chuyển – song ngữ Việt/Anh</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#6d716a;font-family:"Times New Roman",Times,serif;color:#111}
+  @page{size:A4 portrait;margin:0}
+  .sheet{width:210mm;min-height:297mm;background:#fffdf7;margin:10mm auto;position:relative;
+         box-shadow:0 2mm 8mm rgba(0,0,0,.35);padding:12mm 14mm 16mm}
+  .sheet::before{content:"";position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(0deg,rgba(0,0,0,.018) 0 .25mm,transparent .25mm 1.4mm)}
+
+  header{display:grid;grid-template-columns:auto 1fr auto;gap:5mm;align-items:center;position:relative}
+  .anchor{width:17mm;height:17mm;border:.6mm solid #123a63;border-radius:50%;display:flex;align-items:center;
+          justify-content:center;font-family:Arial,sans-serif;font-weight:800;font-size:4.4mm;color:#123a63}
+  .org .vn{font-family:Arial,sans-serif;font-size:4.2mm;font-weight:800;text-transform:uppercase;color:#123a63}
+  .org .en{font-size:3mm;font-style:italic;color:#3a4b5c;letter-spacing:.2mm}
+  .org .ad{font-size:2.6mm;color:#444;margin-top:.8mm}
+  .polno{text-align:right;font-size:2.7mm;color:#444}
+  .polno b{display:block;font-family:"Courier New",monospace;font-size:4.4mm;color:#b3121f;letter-spacing:.3mm;margin-top:.7mm}
+
+  .rule{height:.9mm;background:#123a63;margin:3mm 0 0}
+  .rule2{height:.25mm;background:#123a63;margin-top:.9mm}
+
+  h1{text-align:center;font-family:Arial,sans-serif;font-size:5.6mm;font-weight:800;text-transform:uppercase;
+     letter-spacing:.6mm;margin:5mm 0 .6mm;color:#123a63}
+  h1 em{display:block;font-family:"Times New Roman",serif;font-size:3.6mm;font-weight:400;
+        text-transform:none;letter-spacing:0;color:#3a4b5c}
+
+  /* lưới nhãn/giá trị song ngữ – đặc trưng đơn bảo hiểm hàng hải */
+  .fields{margin-top:5mm;border:.4mm solid #123a63}
+  .fr{display:grid;grid-template-columns:56mm 1fr;border-bottom:.25mm solid #9fb0c0}
+  .fr:last-child{border-bottom:0}
+  .fr>.l{padding:2mm 2.5mm;border-right:.25mm solid #9fb0c0;background:#f2f5f9}
+  .fr>.l .en{font-family:Arial,sans-serif;font-size:2.6mm;font-weight:700;text-transform:uppercase;color:#123a63;letter-spacing:.15mm}
+  .fr>.l .vn{font-size:2.7mm;font-style:italic;color:#3a4b5c}
+  .fr>.v{padding:2mm 3mm;font-size:3mm;font-weight:700;color:#0f2338;display:flex;align-items:center}
+  .fr>.v.small{font-weight:400;font-size:2.85mm;line-height:1.5;display:block}
+  .split{display:grid;grid-template-columns:1fr 1fr}
+  .split>div{padding:2mm 3mm;font-size:3mm;font-weight:700}
+  .split>div+div{border-left:.25mm solid #9fb0c0}
+
+  .cond{margin-top:5mm;border:.4mm solid #123a63;padding:3mm 3.5mm}
+  .cond h2{font-family:Arial,sans-serif;font-size:2.9mm;text-transform:uppercase;color:#123a63;letter-spacing:.3mm;margin-bottom:1.5mm}
+  .cond p{font-size:2.8mm;line-height:1.55;text-align:justify}
+  .cond p+p{margin-top:1.5mm}
+  .cond .vi{font-style:italic;color:#3a4b5c}
+
+  .claims{display:grid;grid-template-columns:1fr 1fr;gap:5mm;margin-top:5mm}
+  .box{border:.35mm solid #123a63}
+  .box .h{background:#123a63;color:#fff;font-family:Arial,sans-serif;font-size:2.6mm;text-transform:uppercase;
+          padding:1.4mm 2.5mm;letter-spacing:.3mm}
+  .box .c{padding:2.5mm;font-size:2.8mm;line-height:1.5}
+
+  .sign{display:grid;grid-template-columns:1fr 62mm;gap:8mm;margin-top:7mm;align-items:end}
+  .orig{font-size:2.7mm;line-height:1.6;color:#333}
+  .orig b{font-family:Arial,sans-serif;text-transform:uppercase;color:#123a63;font-size:2.6mm;letter-spacing:.3mm}
+  .sigb{text-align:center;position:relative}
+  .sigb .place{font-size:2.8mm;font-style:italic}
+  .sigb .for{font-family:Arial,sans-serif;font-size:2.8mm;font-weight:800;text-transform:uppercase;margin-top:1mm;color:#123a63}
+  .sigb .sp{height:19mm;position:relative}
+  .sigb .nm{border-top:.25mm solid #6d7f90;padding-top:1.2mm;font-size:2.8mm;font-weight:700}
+  .stamp{position:absolute;left:50%;top:-1mm;transform:translateX(-50%) rotate(-13deg);width:29mm;height:29mm;
+         border:.65mm solid #b3121f;border-radius:50%;opacity:.66;display:flex;align-items:center;justify-content:center;text-align:center}
+  .stamp::before{content:"";position:absolute;inset:2.3mm;border:.28mm solid #b3121f;border-radius:50%}
+  .stamp span{color:#b3121f;font-family:Arial,sans-serif;font-weight:800;font-size:2.2mm;line-height:1.2}
+  .footer{position:absolute;left:14mm;right:14mm;bottom:7mm;font-size:2.4mm;color:#6d7f90;
+          display:flex;justify-content:space-between;border-top:.25mm solid #c3ccd4;padding-top:1.6mm;font-style:italic}
+  @media print{html,body{background:#fff}.sheet{margin:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header>
+    <div class="anchor">MH</div>
+    <div class="org">
+      <div class="vn">Tổng công ty Bảo hiểm Minh Hoạ</div>
+      <div class="en">Minh Hoa Insurance Corporation</div>
+      <div class="ad">Số 1 Đường Mẫu, Quận Trung Tâm, Hà Nội, Việt Nam · Tel (+84) 24 0000 0000</div>
+    </div>
+    <div class="polno">Policy No. / <em>Số đơn</em><b>CARGO/2026/000317</b></div>
+  </header>
+  <div class="rule"></div><div class="rule2"></div>
+
+  <h1>Đơn bảo hiểm hàng hoá<em>Cargo Insurance Policy</em></h1>
+
+  <div class="fields">
+    <div class="fr">
+      <div class="l"><div class="en">The Assured</div><div class="vn">Người được bảo hiểm</div></div>
+      <div class="v">CÔNG TY CỔ PHẦN XUẤT NHẬP KHẨU MẪU</div>
+    </div>
+    <div class="fr">
+      <div class="l"><div class="en">Address</div><div class="vn">Địa chỉ</div></div>
+      <div class="v small">Lô B2, Khu công nghiệp Mẫu, TP. Hải Phòng, Việt Nam</div>
+    </div>
+    <div class="fr">
+      <div class="l"><div class="en">Goods &amp; Packing</div><div class="vn">Hàng hoá và quy cách đóng gói</div></div>
+      <div class="v small">2.000 thùng carton hàng dệt may thành phẩm, đóng trong 02 container 40'HC, hàng mới 100%</div>
+    </div>
+    <div class="fr">
+      <div class="l"><div class="en">Marks &amp; Numbers</div><div class="vn">Ký mã hiệu</div></div>
+      <div class="v small">MHIC/HP–ROT/2026 · Cont. MHCU0000001, MHCU0000002</div>
+    </div>
+    <div class="fr">
+      <div class="l"><div class="en">Vessel / Conveyance</div><div class="vn">Phương tiện vận chuyển</div></div>
+      <div class="v">M/V MAU STAR · V.026E</div>
+    </div>
+    <div class="fr">
+      <div class="l"><div class="en">Sailing on or about</div><div class="vn">Khởi hành ngày</div></div>
+      <div class="v">20/02/2026</div>
+    </div>
+    <div class="fr">
+      <div class="l"><div class="en">From / To</div><div class="vn">Từ / Đến</div></div>
+      <div class="v" style="padding:0">
+        <div class="split" style="width:100%">
+          <div>HAI PHONG, VIETNAM</div>
+          <div>ROTTERDAM, NETHERLANDS</div>
+        </div>
+      </div>
+    </div>
+    <div class="fr">
+      <div class="l"><div class="en">Invoice value</div><div class="vn">Trị giá hoá đơn</div></div>
+      <div class="v">USD 250,000.00 (CIF Rotterdam)</div>
+    </div>
+    <div class="fr">
+      <div class="l"><div class="en">Sum insured</div><div class="vn">Số tiền bảo hiểm</div></div>
+      <div class="v" style="color:#b3121f">USD 275,000.00 <span style="font-weight:400;font-style:italic;color:#3a4b5c;margin-left:2mm">(110% trị giá hoá đơn)</span></div>
+    </div>
+    <div class="fr">
+      <div class="l"><div class="en">Premium</div><div class="vn">Phí bảo hiểm</div></div>
+      <div class="v">USD 412.50 <span style="font-weight:400;font-style:italic;color:#3a4b5c;margin-left:2mm">(tỷ lệ 0,15%)</span></div>
+    </div>
+    <div class="fr">
+      <div class="l"><div class="en">Deductible</div><div class="vn">Mức khấu trừ</div></div>
+      <div class="v">USD 500.00 mỗi vụ tổn thất</div>
+    </div>
+  </div>
+
+  <div class="cond">
+    <h2>Conditions of insurance / <span style="text-transform:none;font-style:italic;font-family:'Times New Roman',serif">Điều kiện bảo hiểm</span></h2>
+    <p>Institute Cargo Clauses (A) 1/1/09 · Institute War Clauses (Cargo) 1/1/09 · Institute Strikes Clauses (Cargo) 1/1/09.
+       Warehouse to warehouse, subject to the terms and exclusions of the attached clauses.</p>
+    <p class="vi">Bảo hiểm theo điều kiện A, bao gồm rủi ro chiến tranh và đình công, có hiệu lực từ kho đến kho,
+       tuân theo toàn bộ điều khoản và điểm loại trừ của các bộ điều khoản đính kèm.</p>
+  </div>
+
+  <div class="claims">
+    <div class="box">
+      <div class="h">Claims payable at / <span style="text-transform:none">Nơi giải quyết bồi thường</span></div>
+      <div class="c">MAU SURVEY &amp; ADJUSTING B.V.<br>Havenstraat 1, Rotterdam · Tel (+31) 10 000 0000</div>
+    </div>
+    <div class="box">
+      <div class="h">Survey by / <span style="text-transform:none">Đại lý giám định</span></div>
+      <div class="c">Đại lý giám định do doanh nghiệp bảo hiểm chỉ định.<br>Thông báo tổn thất trong vòng 03 ngày kể từ khi phát hiện.</div>
+    </div>
+  </div>
+
+  <div class="sign">
+    <div class="orig">
+      <b>Number of originals issued / Số bản gốc phát hành:</b> 03 (ba) bản có giá trị như nhau;
+      khi một bản đã dùng để đòi bồi thường thì các bản còn lại không còn giá trị.<br>
+      <b>Date of issue / Ngày cấp:</b> 18/02/2026
+    </div>
+    <div class="sigb">
+      <div class="place">Hà Nội, ngày 18 tháng 02 năm 2026</div>
+      <div class="for">For and on behalf of the Insurer</div>
+      <div class="sp"><div class="stamp"><span>MINH HOA<br>INSURANCE<br>CORP.</span></div></div>
+      <div class="nm">Authorised Signature</div>
+    </div>
+  </div>
+
+  <div class="footer"><span>Form CARGO-POL/2026</span><span>Page 1 of 1 — issued in Hanoi, Vietnam</span></div>
+</div>
+</body>
+</html>

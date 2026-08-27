@@ -21,10 +21,8 @@ printer. See `docs/phan-tich-2-mau-moi.html`.
 
 from __future__ import annotations
 
-import random
-
 from . import base
-from .base import Rows, esc, span
+from .base import esc, span
 
 # The two-colour identity a life insurer prints its forms in: one for the mark,
 # one for the band over each block.
@@ -61,12 +59,11 @@ def _block(title: str, pairs, band: str) -> str:
 
 
 def build(recipe, receipt, spec: dict, parse: dict) -> str:
-    rng = random.Random(recipe.seed ^ 0x5A4D)
+    rng = base.rng_for(recipe)
     ink, band = LIVERIES[rng.randrange(len(LIVERIES))]
     sections = spec.get("sections") or []
     store = parse.get("store") or {}
     invoice = parse.get("invoice") or {}
-    Rows()                            # no table on this sheet; the counter is unused
 
     labels = (spec.get("letterhead") or {}).get("labels") or {}
     contact = "".join(

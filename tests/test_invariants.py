@@ -174,7 +174,7 @@ def test_every_budgeted_field_is_one_no_layout_prints_reliably():
     assert set(BUDGETS) == {
         "menu.unitprice", "menu.vatrate", "menu.barcode", "title",
         "store.address", "store.address2", "store.branch", "store.phone",
-        "menu.unitprice_per_unit", "menu.weight",
+        "menu.unitprice_per_unit", "menu.weight", "menu.discountprice",
     }
 
 
@@ -226,7 +226,10 @@ def test_a_name_that_wrapped_at_a_HYPHEN_is_still_printed():
 
     Everything was correct -- the value was on the page, the boxes were on the
     ink, the label matched the pixels -- and the check reported a missing
-    field. It had been blocking every golden-baseline recapture since.
+    field. It had been blocking every golden-baseline recapture since -- and
+    independently, on this branch, the same shape of break on a hospital-bill
+    item name ("[Thu tiền chênh lệch giá] SOLI-MEDON 40" wrapping to "...SOLI-"
+    / "MEDON 40") was doing the same thing to `notebook_ledger`'s baseline.
     """
     item = a_record()
     gt = item.item["extracted"]
@@ -262,6 +265,7 @@ def test_the_space_insensitive_fallback_does_not_match_across_kinds():
             box["text"] = "KHONG CO TREN TRANG"
             break
     assert any("appears on no box" in e for e in errors_of(item))
+
 
 
 # ----------------------------------------------------------- the arithmetic

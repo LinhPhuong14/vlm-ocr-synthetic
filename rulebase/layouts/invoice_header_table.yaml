@@ -1,0 +1,95 @@
+# INV-01 — Header rồi một bảng hàng chạy hết bề ngang.
+#
+# Đối chiếu trực tiếp với ảnh tham chiếu của chính layout này trong gallery
+# (`docs/root-document-taxonomy.md` § 3.1, INV-01): một hoá đơn GTGT điện tử
+# Viettel S-Invoice thật — tên/logo bên bán góc TRÁI, hộp "Mẫu số / Ký hiệu /
+# Số" nhỏ góc PHẢI cùng hàng, tiêu đề canh giữa full-width ngay dưới, rồi MỘT
+# khối viền bao quanh cả "Đơn vị bán hàng" (nhãn IN ĐẬM) VÀ "Người mua hàng"
+# nối tiếp nhau, sau đó MỘT bảng full viền (đủ bốn cạnh mỗi ô) chạy thẳng
+# vào ba dòng tổng cộng — cùng một bảng, không phải một khối tổng rời bên
+# dưới — rồi số tiền bằng chữ, hai ô chữ ký, ghi chú chân trang nhỏ. Chữ
+# serif (`font: serif`) chứ không sans như phần còn lại của họ modern — đúng
+# mặt chữ một biểu mẫu in sẵn hơn là sheet tự thiết kế.
+#
+# Bốn lượt sửa trên cùng layout này: (1) bản đầu dùng `invoice_plain`, bỏ
+# hẳn khối khách hàng; (2) đổi sang `invoice_detailed` + `header.align:
+# corner`; (3) thêm viền hộp/bảng lưới/nhãn đậm/khối "Đơn vị bán hàng"/logo
+# +dấu chìm; (4) lượt này — người dùng gửi thẳng phôi HTML của ảnh tham
+# chiếu, đối chiếu byte-for-byte và đổi bảng dòng hàng sang
+# `generators/html/table.py` (`table.component: true`, xem
+# `_grid_items_table` trong modern.py) để có full viền THẬT và gộp ba dòng
+# tổng vào cùng bảng qua colspan — thay cho bản giả full viền bằng CSS
+# (`table.grid`, vẫn còn trong modern.py cho layout khác dùng, chỉ không
+# phải layout này nữa). Cột bảng thêm `title_en:` — phụ đề tiếng Anh — cho
+# đúng dáng nhãn song ngữ của ảnh gốc; đây là dữ liệu, không phải mã cứng,
+# nên đổi một chữ là sửa file này, không phải sửa code.
+#
+# Cờ trang trí không chép nguyên logo/dấu chìm THẬT của Viettel (tránh mạo
+# danh thương hiệu) — `header.logo`/`page.watermark` chỉ đứng vào đúng CHỖ
+# hai chi tiết đó chiếm, bằng nội dung chung chung, đổi được theo từng cửa
+# hàng (`parties.seller` cũng vậy: tên/địa chỉ/MST bên bán đọc thẳng từ
+# `store`, không phải giá trị cố định). Hộp góc phải đã vẽ số/ngày của
+# `strip` nên KHÔNG liệt `strip` riêng trong `sections:`.
+id: invoice_header_table
+name: Corner masthead, one boxed seller+buyer block, full-grid item table
+source: "hoá đơn giá trị gia tăng điện tử Viettel S-Invoice (bản thể hiện) — khối bán/mua đầy đủ trước MỘT bảng hàng full-width"
+family: modern
+
+width: [78, 92]
+gutter: 2
+rule_char: "-"
+sheet: a4
+rules: marks
+
+font: serif
+
+sections: [header, parties, table, words, signatures, footer]
+
+page:
+  watermark: true
+
+header:
+  align: corner
+  logo: true
+  name_scale: [1.30, 1.55]
+  name_bold: true
+  title: true
+  title_scale: [1.20, 1.40]
+  # Moved into the boxed seller block below (`parties.seller`) instead --
+  # labelled there, unlike these lines, which never carried a label.
+  address: false
+  address2: false
+  phone: false
+  tax_code: false
+  account: false
+  website: false
+
+parties:
+  columns: stacked
+  seller: true
+  boxed: true
+
+# `title_en:` is the parenthetical English subtitle `_grid_items_table`
+# prints under each Vietnamese header, as its own second `span()` -- see
+# that function's docstring for why it is a sibling span and not markup
+# inside one.
+columns:
+  - {key: stt,        title: "STT",                   title_en: "No.",          width: 4,  align: center, title_align: center}
+  - {key: name,       title: "Tên hàng hoá, dịch vụ",  title_en: "Description",  width: 0,  align: left,   title_align: left}
+  - {key: unit,       title: "ĐVT",                    title_en: "Unit",         width: 8,  align: center, title_align: center}
+  - {key: qty,        title: "Số lượng",               title_en: "Quantity",     width: 8,  align: right,  title_align: right}
+  - {key: unit_price, title: "Đơn giá",                title_en: "Unit price",   width: 13, align: right,  title_align: right}
+  - {key: amount,     title: "Thành tiền",             title_en: "Amount",       width: 15, align: right,  title_align: right}
+
+table:
+  component: true
+
+item:
+  wrap_name: true
+  rows:
+    - - {col: stt, from: stt}
+      - {col: name, from: name}
+      - {col: unit, from: unit}
+      - {col: qty, from: qty}
+      - {col: unit_price, from: unit_price}
+      - {col: amount, from: amount}

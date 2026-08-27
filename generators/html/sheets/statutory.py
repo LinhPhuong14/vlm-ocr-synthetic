@@ -20,8 +20,6 @@ the layout file.
 
 from __future__ import annotations
 
-import random
-
 from . import base
 from .base import Rows, esc, span
 
@@ -207,7 +205,7 @@ def _stamp(parse: dict) -> str:
 
 
 def build(recipe, receipt, spec: dict, parse: dict) -> str:
-    rng = random.Random(recipe.seed ^ 0x5A4D)
+    rng = base.rng_for(recipe)
     livery = LIVERIES[rng.randrange(len(LIVERIES))]
     frame, title_ink, serial_ink, wash = livery
     sections = spec.get("sections") or []

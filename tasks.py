@@ -173,7 +173,8 @@ def ornaments(args) -> None:
 
 @task("templates", "print the reference sheets in samples/")
 def templates(args) -> None:
-    for directory in ("invoice-templates", "form-templates"):
+    for directory in ("invoice-templates", "form-templates", "insurance-templates",
+                      "periodical-templates"):
         run([first_available_python(),
              REPO_ROOT / "samples" / directory / "render.py"])
 
@@ -186,14 +187,18 @@ def blanks(args) -> None:
 
 @task("dataset", "labelled dataset with the html renderer (-n images)")
 def dataset(args) -> None:
+    # `--template auto`: every shipped layout already has a real entry in
+    # generators/html/sheets/FAMILIES, so this draws through the CSS-sheet
+    # family every layout was actually designed against, not the
+    # character-grid fallback. See tools/baseline.py::arguments()'s docstring.
     run([first_available_python(), REPO_ROOT / "tools" / "generate_dataset.py",
-         "-o", args.out, "-n", str(args.count)])
+         "-o", args.out, "-n", str(args.count), "--template", "auto"])
 
 
 @task("dataset-clean", "the same dataset with no ageing and no distortion")
 def dataset_clean(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "generate_dataset.py",
-         "-o", f"{args.out}_clean", "-n", str(args.count), "--clean"])
+         "-o", f"{args.out}_clean", "-n", str(args.count), "--clean", "--template", "auto"])
 
 
 @task("tables", "table-structure images, from the html backend")
@@ -349,6 +354,17 @@ def monitor(args) -> None:
     command = [first_available_python(), REPO_ROOT / "tools" / "monitor.py"]
     command += [args.run] if getattr(args, "run", None) else ["--static"]
     run(command)
+
+
+@task("figures-stamp", "rebuild the figures in docs/co-che-sinh-con-dau.md")
+def figures_stamp(args) -> None:
+    """Documentation code, not the pipeline.
+
+    Each figure re-runs the measurement the document quotes and draws the
+    result, so a number in the prose and the picture beside it come from the
+    same run and cannot drift apart.
+    """
+    run([first_available_python(), REPO_ROOT / "docs" / "figures" / "make_stamp_figures.py"])
 
 
 @task("legibility", "does a chain age the text out of its own label boxes?")

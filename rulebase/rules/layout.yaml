@@ -37,6 +37,14 @@ groups:
         requires: [doc_eatery]
         tags: [has_index_column, two_line_items]
 
+      # llm-generated, varied from eatery_indexed on 2026-08-27.
+      # Same document kind, so the same requires/excludes/tags; half the weight,
+      # because a variant should not double how often this kind is drawn.
+      - id: eatery_indexed_b
+        weight: 1
+        requires: [doc_eatery]
+        tags: [has_index_column, two_line_items]
+
       - id: eatery_ascii
         weight: 2
         requires: [doc_eatery]
@@ -70,13 +78,6 @@ groups:
         requires: [has_vat_lines]
         tags: [vat_rows]
 
-      # llm-generated, varied from market_vat on 2026-08-27.
-      # Same document kind, so the same requires/excludes/tags; half the weight,
-      # because a variant should not double how often this kind is drawn.
-      - id: market_vat_b
-        weight: 1
-        requires: [has_vat_lines]
-        tags: [vat_rows]
 
   # ------------------------------------------------------------------------
   - id: statutory_invoice
@@ -164,6 +165,55 @@ groups:
         requires: [doc_brand]
         tags: [key_strip, footer_columns]
 
+      # ----------------------------------------------------------------
+      # MƯỜI BỐ CỤC ROOT "Invoice / Billing" — xem docs/root-document-
+      # taxonomy.md §3.1. Chia hai nhóm theo đúng những gì mỗi file liệt
+      # trong `sections:` của nó, khớp với tài liệu nó `requires`:
+      # `bare_fields` (invoice_plain, không khối khách hàng/ghi chú/chữ ký)
+      # hay `rich_fields` (invoice_detailed, đủ cả) — xem đầu hai file
+      # `rulebase/documents/invoice_plain.yaml` và `invoice_detailed.yaml`.
+      # Trộn lẫn hai nhóm là đúng thứ `pipeline/invariants.py` bắt lỗi:
+      # một trường tài liệu đã điền mà không bố cục nào vẽ nó.
+      - id: invoice_header_table
+        weight: 2
+        requires: [rich_fields]
+
+      - id: invoice_logo_split
+        weight: 2
+        requires: [rich_fields]
+
+      - id: invoice_logo_center
+        weight: 2
+        requires: [bare_fields]
+
+      - id: invoice_two_column
+        weight: 2
+        requires: [rich_fields]
+
+      - id: invoice_sidebar
+        weight: 2
+        requires: [rich_fields]
+
+      - id: invoice_keyvalue
+        weight: 2
+        requires: [rich_fields]
+
+      - id: invoice_dense_table
+        weight: 2
+        requires: [bare_fields]
+
+      - id: invoice_minimalist
+        weight: 2
+        requires: [bare_fields]
+
+      - id: invoice_multipage
+        weight: 1
+        requires: [bare_fields]
+
+      - id: invoice_remittance
+        weight: 2
+        requires: [rich_fields]
+
   # ------------------------------------------------------------------------
   - id: administrative_form
     label: "Chứng từ hành chính — không phải hoá đơn, nhưng vẫn là giấy tờ có nhãn"
@@ -184,3 +234,93 @@ groups:
         weight: 2
         requires: [doc_authorisation]
         tags: [no_frame, dotted_fields, field_form]
+
+      # Root 3 (Form / Application) — mười layout khớp mười đề xuất ở
+      # `docs/root-document-taxonomy.md` § 3.3 (FORM-01..FORM-10). Mỗi
+      # `requires:` khớp đúng tag document ở `rules/document.yaml` cho
+      # đúng hình dạng nội dung layout đó cần in — cùng cơ chế root 1 dùng
+      # cho invoice_plain/invoice_detailed. Vẽ qua họ `form` mới,
+      # `generators/html/sheets/form.py`.
+      - id: form_questionnaire
+        weight: 2
+        requires: [bare_kv]
+        tags: [field_form]
+
+      - id: form_timesheet_grid
+        weight: 1
+        requires: [roster]
+        tags: [ruled_table, grid_form]
+
+      - id: form_project_kv
+        weight: 2
+        requires: [bare_kv]
+        tags: [field_form]
+
+      - id: form_two_column
+        weight: 1
+        requires: [symmetric]
+        tags: [field_form, two_column]
+
+      - id: form_multi_section
+        weight: 1
+        requires: [sectioned]
+        tags: [ruled_table, field_form]
+
+      - id: form_checkbox_heavy
+        weight: 1
+        requires: [checklist]
+        tags: [checkbox_form]
+
+      - id: form_activity_signature
+        weight: 1
+        requires: [activity]
+        tags: [ruled_table, field_form]
+
+      - id: form_table_based
+        weight: 1
+        requires: [checklist_table]
+        tags: [ruled_table, checkbox_form]
+
+      - id: form_government_app
+        weight: 1
+        requires: [dense_registry]
+        tags: [field_form, govt_masthead]
+
+      - id: form_dense_registration
+        weight: 1
+        requires: [dense_registry]
+        tags: [field_form]
+
+  # ------------------------------------------------------------------------
+  - id: periodical_page
+    label: "Báo/tạp chí — trang biên tập, không phải hoá đơn"
+    # Root 4 (Newspaper/Magazine) -- bốn layout đầu tiên khớp bốn mockup ở
+    # `docs/root-document-taxonomy.md` § 3.7 (N-01, N-06, N-09, N-10). Một
+    # trang báo/tạp chí không ghi lại một lần mua bán: không bên mua/bán,
+    # không bảng hàng, không tổng tiền -- `excludes: [doc_invoice]` ở đây
+    # giống hệt `retail_receipt` ở trên, không phải một ngoại lệ mới. Vẽ qua
+    # họ `periodical` mới, `generators/html/sheets/periodical.py`; mô hình
+    # nội dung ở `rulebase/periodical.py` (bốn dataclass, không kế thừa
+    # `Receipt`/`Invoice`) chứ không phải một `document:` mới trên mô hình cũ.
+    excludes: [doc_invoice]
+    tags: [periodical, wide_paper]
+    options:
+      - id: newspaper_front_broadsheet
+        weight: 2
+        requires: [periodical_lead_sidebar]
+        tags: [lead_sidebar, multi_column_body]
+
+      - id: newspaper_classifieds
+        weight: 2
+        requires: [periodical_classifieds]
+        tags: [classified_ads, six_column]
+
+      - id: magazine_contents
+        weight: 2
+        requires: [periodical_toc]
+        tags: [toc_listing, two_column]
+
+      - id: magazine_qa_interview
+        weight: 2
+        requires: [periodical_qa]
+        tags: [qa_transcript, two_column, full_bleed_photo]

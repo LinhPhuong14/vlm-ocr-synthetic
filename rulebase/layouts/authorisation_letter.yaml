@@ -11,6 +11,7 @@
 id: authorisation_letter
 name: Authorisation to collect — a form of fields, with no table at all
 source: "ảnh giấy uỷ quyền nhận tiền của một công ty bảo hiểm nhân thọ, mẫu POSF_ALA"
+family: statement
 
 width: [92, 104]
 gutter: 2
