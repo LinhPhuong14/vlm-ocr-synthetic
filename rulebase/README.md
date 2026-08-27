@@ -17,12 +17,33 @@ with glyphs, with Chromium or with WeasyPrint. That is the precondition for a
 comparison between the three to mean anything — if each renderer invented its
 own content, what you compared would be two datasets, not two ways of drawing.
 
+**The two HTML backends have a second entry point, for a page made of CSS
+rather than character cells.** `build_grid` cuts an over-wide value to fit its
+column and writes the cut back, which is correct once but wrong twice: a sheet
+built from that grid would inherit a trim the sheet never needed, since it has
+no column to overflow. So Chromium (`generators/html/render.py`) and
+WeasyPrint (`generators/genalog/render.py`) skip the grid on this path and call
+`recipe, receipt, rng = rulebase.make_content(seed=7)` instead, then hand
+`(recipe, receipt)` straight to `sheets.build()`, which reads the layout's own
+`family:` key from `rulebase/layouts/<id>.yaml` and drapes it in ordinary
+flow — real `<table>`, real `colspan`, millimetres, no character grid at all.
+This is what `--template auto` selects on both backends, and it is the
+default every production path now uses: `make dataset`, `make run` and every
+`tools/baseline.py` plan pass it, because every shipped layout already has a
+family to be dressed in. `--template <layout-id>` forces one specific family
+regardless of what the recipe drew — for looking at a single sheet on demand,
+not for a run. Leaving `--template` off entirely still asks for the plain
+character-grid page (`python tools/generate_dataset.py -o out -n 5`, no
+flags) — the one path `sheets` is never imported for, and the one
+`test_layout.py`'s geometry suite and `pipeline/preflight.py`'s page-overflow
+estimate still exercise directly.
+
 ```
 rulebase/
 ├── rules/          7 ATTRIBUTES, one file each         ← tune the distribution here
-├── documents/      17 DOCUMENT KINDS, one file each    ← edit what a kind prints
-├── blanks.yaml     16 PHÔI GỐC and what became of them ← register a new form here
-├── layouts/        14 LAYOUTS measured off real paper  ← add a layout here
+├── documents/      27 DOCUMENT KINDS, one file each    ← edit what a kind prints
+├── blanks.yaml     36 PHÔI GỐC and what became of them ← register a new form here
+├── layouts/        36 LAYOUTS measured off real paper  ← add a layout here
 ├── corpus/vi/      Vietnamese corpus, WITH diacritics  ← add products here
 ├── corpus/en/      one document kind prints English
 ├── spec.py         weighted sampling with constraints
@@ -31,10 +52,11 @@ rulebase/
 └── text.py         diacritic folding, money formatting, wrapping
 ```
 
-The sixteen layouts are not sixteen variations on a receipt. A thermal till
-receipt, a printed VAT form, a metered utility bill, a hotel folio and a
-self-designed order confirmation share a character grid and very little else,
-so `rules/layout.yaml` sorts them into **parent nodes** — see §1b.
+The thirty-six layouts are not thirty-six variations on a receipt. A thermal
+till receipt, a printed VAT form, a metered utility bill, a hotel folio, a
+self-designed order confirmation and a field-block application form share a
+character grid and very little else, so `rules/layout.yaml` sorts them into
+**parent nodes** — see §1b.
 
 ### Naming: English identifiers, Vietnamese printed text
 
@@ -181,7 +203,7 @@ until one is added there is nothing to vary.
 ### Where a value's params live
 
 Two shapes, and the file says which. `rules/<attribute>.yaml` normally carries
-`params:` inline. `document` does not: its seventeen values each carry the whole
+`params:` inline. `document` does not: its twenty-seven values each carry the whole
 content model of a kind of paper — titles, labels, party fields, signature
 blocks — and one file of 750 lines buried the part you actually came to read,
 which is *which values exist, how often, under what tags*. So the params moved
