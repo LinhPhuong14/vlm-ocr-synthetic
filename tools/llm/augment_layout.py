@@ -67,7 +67,6 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 LAYOUTS = REPO_ROOT / "rulebase" / "layouts"
 RULES_LAYOUT = REPO_ROOT / "rulebase" / "rules" / "layout.yaml"
 BLANKS = REPO_ROOT / "rulebase" / "blanks.yaml"
-SHEETS = REPO_ROOT / "generators" / "html" / "sheets" / "__init__.py"
 
 # How many seeds the variant has to draw before it is believed. Ten rather than
 # one because a layout can be fine on a short basket and overflow on a long
@@ -100,33 +99,95 @@ def parse(text: str) -> tuple[dict | None, str]:
 
 
 def draws(layout_id: str, seeds: int = SEEDS) -> list[str]:
-    """Build the page for a spread of seeds, in a subprocess. Empty is healthy.
+    """Build and CHECK the page for a spread of seeds. Empty is healthy.
 
-    A subprocess because `rulebase` caches the layout directory and the rules,
-    and this runs right after writing new files into both -- an in-process
-    check would be checking the state the process started with.
+    Two things per seed, and the second one had to be added after it was
+    already claimed:
+
+    1. `rulebase.make()` builds a grid without raising, and the grid is not
+       empty. That is where a structurally-valid-but-nonsense layout dies.
+    2. **every label value appears on some run of the drawn page**, joined by
+       kind and excused only by `invariants.SUPPRESSED` -- the same rule
+       `pipeline/invariants.py` applies to a rendered image and
+       `tests/test_sheets.py::test_what_the_label_says_the_page_prints`
+       applies to a layout.
+
+    The second was in this module's docstring as check 5 from the beginning and
+    was **not in the code**: the subprocess imported `invariants` and never
+    called it. So the first variant this tool ever produced passed the gauntlet
+    and then failed the committed test suite, on `menu.weight '1,582 KG' is in
+    the label and on no run` -- a column narrowed by one character until a
+    weight no longer fitted. A gauntlet that claims a check it does not run is
+    worse than one that never claimed it, because the claim is what stops
+    anybody looking.
+
+    A subprocess because `rulebase` and `sheets` cache the layout directory and
+    the rules, and this runs right after writing new files into both -- an
+    in-process check would be checking the state the process started with.
     """
-    script = (
-        "import sys;"
-        "sys.path.insert(0, %r);"
-        "import rulebase;"
-        "from pipeline import invariants;"
-        "bad=[]\n"
-        "for seed in range(%d):\n"
-        "    try:\n"
-        "        recipe, receipt, grid = rulebase.make(seed=seed, force={'layout': %r})\n"
-        "    except Exception as error:\n"
-        "        bad.append('seed %%d: %%s: %%s' %% (seed, type(error).__name__, error))\n"
-        "        continue\n"
-        "    if grid is not None and not grid.cells:\n"
-        "        bad.append('seed %%d: the page came out empty' %% seed)\n"
-        "print('\\n'.join(bad))\n"
-    ) % (str(REPO_ROOT), seeds, layout_id)
+    script = LABEL_CHECK % (str(REPO_ROOT), str(REPO_ROOT / "generators" / "html"),
+                            seeds, layout_id)
     result = subprocess.run([sys.executable, "-c", script], cwd=str(REPO_ROOT),
                             capture_output=True, text=True)
     if result.returncode != 0:
         return [f"the builder itself failed: {result.stderr.strip()[-400:]}"]
     return [line for line in result.stdout.splitlines() if line.strip()]
+
+
+# Run in a subprocess; see `draws`. Written as a module-level string rather than
+# inline so the quoting stays readable and the two `%s` paths are obvious.
+LABEL_CHECK = """
+import sys
+sys.path.insert(0, %r)
+sys.path.insert(0, %r)
+import rulebase, sheets
+from pipeline.invariants import SUPPRESSED
+
+def leaves(value, path=""):
+    if isinstance(value, dict):
+        for key, item in value.items():
+            yield from leaves(item, (path + "." + key) if path else key)
+    elif isinstance(value, list):
+        for item in value:
+            yield from leaves(item, path)
+    elif value is not None:
+        yield path, str(value)
+
+bad = []
+seeds, layout_id = %d, %r
+allowed = SUPPRESSED.get(layout_id, frozenset())
+for seed in range(seeds):
+    try:
+        recipe, receipt, grid = rulebase.make(seed=seed, force={'layout': layout_id})
+    except Exception as error:
+        bad.append('seed %%d: %%s: %%s' %% (seed, type(error).__name__, error))
+        continue
+    if grid is not None and not grid.cells:
+        bad.append('seed %%d: the page came out empty' %% seed)
+        continue
+    try:
+        markup = sheets.build(recipe, receipt)
+    except Exception as error:
+        bad.append('seed %%d: the sheet would not build: %%s' %% (seed, error))
+        continue
+    by_kind = {}
+    for kind, text in sheets.labelled_runs(markup):
+        by_kind.setdefault(kind, []).append(text)
+    printed = ' '.join(' '.join(sum(by_kind.values(), [])).split())
+    joined = {k: ' '.join(' '.join(v).split()) for k, v in by_kind.items()}
+    for name, value in leaves(receipt.ground_truth()):
+        if not value.strip() or name == 'doc_type':
+            continue
+        field = 'total' if name.startswith('total.') else name
+        if field in allowed:
+            continue
+        wanted = ' '.join(value.split())
+        if wanted in printed or any(wanted in t for t in joined.values()):
+            continue
+        bad.append('seed %%d: %%s %%r is in the label and on no run'
+                   %% (seed, name, wanted))
+print('\\n'.join(bad))
+"""
 
 
 def preflight() -> list[str]:
@@ -217,9 +278,16 @@ def register(layout_id: str, parent: str, today: str) -> list[str]:
             RULES_LAYOUT.write_text("".join(lines), encoding="utf-8")
             return [f"the parent {parent!r} has no blank in blanks.yaml"]
         rows = block.rstrip("\n").split("\n")
-        new = [f"  {layout_id}:"] + [
-            row.replace(f"layout: {parent}", f"layout: {layout_id}")
-            for row in rows[1:]]
+        new = [f"  {layout_id}:"]
+        for row in rows[1:]:
+            row = row.replace(f"layout: {parent}", f"layout: {layout_id}")
+            if row.strip().startswith("source:"):
+                # Same reason as `restate_source`: a blank copied from a parent
+                # must not inherit the parent's claim to a photograph.
+                indent = row[:len(row) - len(row.lstrip())]
+                row = (f'{indent}source: "biến thể của {parent} '
+                       f'(sinh bằng LLM, không đo từ ảnh nào)"')
+            new.append(row)
         parts = text.splitlines(keepends=True)
         text = "".join(parts[:end]) + "\n".join(new) + "\n\n" + "".join(parts[end:])
     # ... and the documents that may draw the parent may draw the variant.
@@ -235,35 +303,147 @@ def register(layout_id: str, parent: str, today: str) -> list[str]:
     return []
 
 
-def register_sheet(layout_id: str, parent: str, today: str) -> list[str]:
-    """Give the variant the CSS sheet family that already draws its parent.
+def restate_source(variant: dict, parent: str, parent_yaml: dict) -> None:
+    """Overwrite `source:` with where this layout ACTUALLY came from.
 
-    Not optional and not a detail: `preflight` refuses a layout with no sheet,
-    because while the character grid was the default a layout added without one
-    drew perfectly well on the wrong page model and nobody noticed. It is the
-    third registration, and the one the first run of this tool forgot -- which
-    is how it got caught, at the last step of the gauntlet rather than the
-    first.
+    Every hand-written layout uses that field for one thing: the photograph or
+    document it was measured against -- `photo Saigon Co.op, PHIẾU TÍNH TIỀN
+    2022`, `ảnh hoá đơn xuất khẩu mẫu 06HDXK3/001`. It is the provenance of the
+    shape, and somebody deciding whether a column width is right goes and looks
+    at it.
 
-    The parent's family, always: a variant is the same document at different
-    settings, so the module that knows how to dress a market till slip is the
-    module that should dress a varied one.
+    A model asked to vary a layout rewrites that line like any other, and on
+    the first real run it produced `PHIẾU TÍNH TIỀN 2023` -- a receipt that
+    does not exist, from a year nobody photographed, in a field whose whole
+    job is to be checkable. Nothing downstream would ever catch it, because
+    the field is prose.
+
+    So it is not the model's to write. A variant was measured against nothing;
+    it was derived from its parent, and it says so, and it carries the parent's
+    real source so the trail still leads to the photograph.
     """
-    text = SHEETS.read_text(encoding="utf-8")
-    if f'"{layout_id}"' in text:
-        return [f"{layout_id} is already in sheets.FAMILIES"]
-    anchor = f'    "{parent}": '
-    line = next((row for row in text.splitlines() if row.startswith(anchor)), "")
-    if not line:
-        return [f"the parent {parent!r} is not in sheets.FAMILIES"]
-    family = line.split(":", 1)[1].strip().rstrip(",")
-    out = []
-    for existing in text.splitlines(keepends=True):
-        out.append(existing)
-        if existing.rstrip("\n") == line:
-            out.append(f'    "{layout_id}": {family},'
-                       f'    {schema_mod.MARK} from {parent}, {today}\n')
-    SHEETS.write_text("".join(out), encoding="utf-8")
+    inherited = str(parent_yaml.get("source", "")).strip()
+    variant["source"] = (
+        f"biến thể của {parent} (sinh bằng LLM, không đo từ ảnh nào)"
+        + (f" — bố cục gốc đo từ: {inherited}" if inherited else ""))
+
+
+def check_sentinels(variant: dict, parent_yaml: dict) -> list[str]:
+    """`width: 0` is a SENTINEL, not a small number, and it must not move.
+
+    `rulebase/layout.py` says it in one line: "Widths in the spec are fixed;
+    the ONE column written `width: 0` takes" the rest of the roll. Every other
+    width is a character count.
+
+    A schema derived from values cannot see that. `columns[].width` is `0..18`
+    across the layouts, `10` is inside that range, and the model turned the
+    name column from `0` to `10` because ten looks like a reasonable width for
+    a name. What it actually did was give the name a fixed ten characters on a
+    45-character roll -- and `till` writes the weight and the price-per-kilo
+    INSIDE the name cell, so `Nho đỏ không hạt Mỹ 1,582 KG x 160,500` was
+    truncated and the label promised a weight the page had cut off.
+
+    Ten label values on one seed, and every one of them `menu.weight` or
+    `menu.unitprice_per_unit`. The failure was invisible to the schema, to the
+    range check and to `preflight`; only the label-versus-page check saw it,
+    which is the check this module claimed for weeks without running.
+
+    The rule is symmetric: a variant may not turn a sentinel into a number, nor
+    a number into a sentinel. Both are a change of KIND, and this tool varies
+    settings rather than meanings.
+    """
+    problems: list[str] = []
+    problems += _slack(variant, parent_yaml)
+    parent_columns = parent_yaml.get("columns") or []
+    variant_columns = variant.get("columns") or []
+    if len(parent_columns) != len(variant_columns):
+        return [f"{len(variant_columns)} columns, the parent has "
+                f"{len(parent_columns)}; a variant re-dresses the same columns"]
+    for index, (was, now) in enumerate(zip(parent_columns, variant_columns)):
+        old, new = was.get("width"), now.get("width")
+        if (old == 0) != (new == 0):
+            key = now.get("key", index)
+            problems.append(
+                f"columns[{index}] ({key}): width {old} -> {new}. "
+                "`0` means THIS column takes the rest of the roll; a number "
+                "means that many characters. Changing one into the other "
+                "changes what the column IS, and the run that overflows is "
+                "trimmed out of the page while staying in the label.")
+        if was.get("key") != now.get("key"):
+            problems.append(
+                f"columns[{index}]: key {was.get('key')!r} -> {now.get('key')!r}; "
+                "the key is the wiring into the data, not a label")
+    return problems
+
+
+def _slack(variant: dict, parent: dict) -> list[str]:
+    """The flexible column must not lose room. The rule that was backwards.
+
+    A roll has ONE column written `width: 0` -- the item name -- and it takes
+    whatever the fixed columns leave. So the name's width is not a number
+    anywhere in the file; it is `roll_width - sum(fixed widths) - gutters`, and
+    **widening any other column narrows it**.
+
+    The first attempt at a rule here said "do not narrow a column", which is
+    exactly backwards for this shape: the model widened `qty` 9->10 and
+    `unit_price` 12->15, widened the roll 42..48 -> 46..50 to compensate, and
+    the name band still fell from 8..14 characters to 6..10. `till` writes the
+    weight and the price-per-kilo INSIDE the name cell, so
+    `Nho đỏ không hạt Mỹ 1,582 KG x 160,500` no longer fitted and ten label
+    values went missing on one seed.
+
+    Nothing else could see it. The schema is per key and every width was in
+    range; the range check is per pair and both were ascending; `preflight`
+    draws the page and does not read the label. Only the label-versus-page
+    check catches it, and only after this module started actually running it.
+    """
+    def band(spec: dict) -> tuple[int, int] | None:
+        columns = spec.get("columns") or []
+        if not any(c.get("width") == 0 for c in columns):
+            return None                      # no flexible column, nothing to lose
+        roll = spec.get("width")
+        if not (isinstance(roll, list) and len(roll) == 2):
+            return None
+        fixed = sum(int(c.get("width") or 0) for c in columns)
+        gutters = int(spec.get("gutter") or 0) * max(len(columns) - 1, 0)
+        return (int(roll[0]) - fixed - gutters, int(roll[1]) - fixed - gutters)
+
+    was, now = band(parent), band(variant)
+    if was is None or now is None:
+        return []
+    if now[0] < was[0] or now[1] < was[1]:
+        return [f"the flexible column's band falls from {was[0]}..{was[1]} "
+                f"characters to {now[0]}..{now[1]}. It takes what the fixed "
+                "columns leave, so widening any other column narrows it -- and "
+                "the item name carries the weight and the price per kilo inside "
+                "it, which are then trimmed off the page and left in the label."]
+    return []
+
+
+def check_family(variant: dict, parent_yaml: dict) -> list[str]:
+    """The variant must name a CSS sheet family, and it must be its parent's.
+
+    This used to append a line to `sheets.FAMILIES`, and it does not any more:
+    master made that mapping data-driven, so a layout says which module dresses
+    it with its own `family:` key and `sheets` only maps family NAMES to
+    modules. A variant copies every key from its parent, so it inherits the
+    right family for free -- which is strictly better than a third file being
+    edited by a tool.
+
+    What is left is worth keeping as a check rather than dropping entirely.
+    `preflight` refuses a layout with no sheet, so a model that dropped or
+    renamed `family:` would fail at the last and slowest step of the gauntlet;
+    catching it here costs a dictionary lookup, and the first version of this
+    tool learned that lesson the expensive way by forgetting the registration
+    altogether.
+    """
+    want = str(parent_yaml.get("family", "")).strip()
+    got = str(variant.get("family", "")).strip()
+    if not want:
+        return [f"the parent has no `family:` key, so there is nothing to inherit"]
+    if got != want:
+        return [f"family is {got!r}, but the parent is dressed by {want!r}; "
+                "a variant is the same document and belongs in the same family"]
     return []
 
 
@@ -291,6 +471,12 @@ def main() -> int:
     parser.add_argument("--seeds", type=int, default=SEEDS,
                         help="how many pages the variant must draw")
     parser.add_argument("--write", action="store_true")
+    parser.add_argument("--keep-failed", action="store_true",
+                        help="on failure, leave the layout file behind (with "
+                             "the registrations still rolled back) so the diff "
+                             "against its parent can be read. Off by default: "
+                             "a rejected variant that stays on disk is a "
+                             "layout the next run picks up.")
     args = parser.parse_args()
 
     from tools.llm.client import MODEL
@@ -338,6 +524,17 @@ def main() -> int:
                 print(f"      ✗ ... and {len(problems) - 12} more")
             continue
         print("      ✓ schema clean")
+        # `source:` is provenance, not prose the model gets to invent. See
+        # `restate_source`.
+        parent_yaml = yaml.safe_load(
+            (LAYOUTS / f"{args.parent}.yaml").read_text(encoding="utf-8"))
+        family = check_family(loaded, parent_yaml) + check_sentinels(loaded, parent_yaml)
+        if family:
+            for line in family:
+                print(f"      ✗ {line}")
+            continue
+        restate_source(loaded, args.parent, parent_yaml)
+        print(f"      · source restated: {loaded['source']}")
         variant, kept_reply = loaded, reply
         break
 
@@ -366,21 +563,21 @@ def main() -> int:
     # layout with no file -- which preflight reports as a repository fault
     # rather than as this command having failed.
     before = {path: path.read_text(encoding="utf-8")
-              for path in (RULES_LAYOUT, BLANKS, SHEETS)}
+              for path in (RULES_LAYOUT, BLANKS)}
 
     def rollback() -> None:
         for path, text in before.items():
             path.write_text(text, encoding="utf-8")
 
-    problems = (register(args.layout_id, args.parent, today)
-                or register_sheet(args.layout_id, args.parent, today))
+    problems = register(args.layout_id, args.parent, today)
     if problems:
         target.unlink()
         rollback()
         for line in problems:
             print(f"  ✗ {line}")
         return 1
-    print("registered in rules/layout.yaml, blanks.yaml and sheets.FAMILIES")
+    print("registered in rules/layout.yaml and blanks.yaml "
+          "(the CSS family rides along in the layout's own `family:` key)")
 
     print(f"building {args.seeds} pages ...")
     problems = draws(args.layout_id, args.seeds)
@@ -398,8 +595,15 @@ def main() -> int:
               "a rule base that names a file which is not there, and preflight "
               "reports that as a repository fault rather than as this command "
               "having failed.")
-        target.unlink()
         rollback()
+        if args.keep_failed:
+            kept = target.with_suffix(".yaml.rejected")
+            target.rename(kept)
+            print(f"kept the rejected layout at {kept.relative_to(REPO_ROOT)} "
+                  "(--keep-failed). It is NOT registered and NOT a .yaml, so "
+                  "nothing picks it up.")
+        else:
+            target.unlink()
         return 1
 
     print(f"\n{args.layout_id} passes the gauntlet. Read the diff before "

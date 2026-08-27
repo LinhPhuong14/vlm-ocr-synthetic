@@ -37,6 +37,14 @@ groups:
         requires: [doc_eatery]
         tags: [has_index_column, two_line_items]
 
+      # llm-generated, varied from eatery_indexed on 2026-08-27.
+      # Same document kind, so the same requires/excludes/tags; half the weight,
+      # because a variant should not double how often this kind is drawn.
+      - id: eatery_indexed_b
+        weight: 1
+        requires: [doc_eatery]
+        tags: [has_index_column, two_line_items]
+
       - id: eatery_ascii
         weight: 2
         requires: [doc_eatery]
@@ -69,6 +77,7 @@ groups:
         weight: 2
         requires: [has_vat_lines]
         tags: [vat_rows]
+
 
   # ------------------------------------------------------------------------
   - id: statutory_invoice
