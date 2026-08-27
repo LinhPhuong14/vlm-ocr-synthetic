@@ -1,0 +1,46 @@
+# THAM SỐ NỘI DUNG — form_dense
+#
+# Root 3, tầng "dày": nhiều trường dân sự nhất trong root này (~13),
+# không bảng, không đoạn văn dài — chỉ liệt kê. Dùng cho FORM-09
+# (government application — giấy khai sinh) và FORM-10 (dense
+# registration form — sơ yếu lý lịch): cùng "thể loại" (biểu mẫu hành
+# chính dày trường thông tin cá nhân), khác nhau ở cách trình bày
+# (`header.masthead`/`header.photobox` — xem layout của từng cái), không
+# phải ở nội dung.
+
+profile: invoice
+invoice: true
+no_items: true
+form_fields: true
+show_vat: false
+show_subtotal: false
+show_payment: false
+show_amount_words: false
+show_number: false
+show_seller_tax_code: false
+show_seller_website: false
+titles: ["GIẤY KHAI SINH", "SƠ YẾU LÝ LỊCH TỰ THUẬT"]
+serial_format: "HT{n}"
+party_fields:
+  left:
+    - [applicant_name, "Họ và tên (CHỮ IN HOA):"]
+    - [applicant_gender, "Giới tính:"]
+    - [applicant_dob, "Ngày, tháng, năm sinh:"]
+    - [ethnicity, "Dân tộc:"]
+    - [religion, "Tôn giáo:"]
+    - [hometown, "Quê quán:"]
+    - [residence, "Nơi thường trú:"]
+    - [applicant_id, "Số CMND/CCCD:"]
+    - [applicant_id_date, "Ngày cấp:"]
+    - [applicant_id_place, "Nơi cấp:"]
+  right:
+    - [education_level, "Trình độ văn hoá:"]
+    - [profession, "Nghề nghiệp:"]
+    - [health, "Tình trạng sức khoẻ:"]
+    - [applicant_phone, "Điện thoại liên hệ:"]
+notes:
+  - "Hoàn cảnh gia đình:"
+  - "Họ tên cha: {father_name}"
+  - "Họ tên mẹ: {mother_name}"
+signature_labels:
+  - ["Người khai ký tên", "(Ký, ghi rõ họ tên)"]

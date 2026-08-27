@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>N-08 · Trang tạp chí dạng lưới mô-đun (A4 dọc)</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#5d6158;font-family:"Segoe UI",Arial,Helvetica,sans-serif;color:#1c1b18}
+  @page{size:A4 portrait;margin:0}
+  .sheet{width:210mm;height:297mm;background:#fbf8f1;margin:10mm auto;position:relative;overflow:hidden;
+         box-shadow:0 3mm 12mm rgba(0,0,0,.4);padding:14mm 14mm 11mm;display:flex;flex-direction:column}
+
+  .ph{position:relative;background:
+      radial-gradient(circle at 50% 50%, rgba(0,0,0,.42) 0 .24mm, transparent .25mm) 0 0/.85mm .85mm,
+      linear-gradient(150deg,#c9c2b2 0%,#8f887a 52%,#544f46 100%)}
+  .ph::after{content:"ẢNH";position:absolute;right:1.4mm;bottom:1mm;font-size:2.1mm;letter-spacing:.7mm;
+      color:rgba(255,255,255,.8)}
+
+  header{border-bottom:1mm solid #1c1b18;padding-bottom:3.5mm}
+  header .sec{font-size:2.5mm;letter-spacing:2.6mm;text-transform:uppercase;color:#0d6b58}
+  header h1{font-family:Georgia,serif;font-size:14mm;line-height:1.02;font-weight:700;letter-spacing:-.5mm;
+            margin:2.5mm 0 2mm}
+  header p{font-size:3.2mm;line-height:1.5;color:#4a463c;max-width:130mm}
+
+  /* ---- lưới mô-đun: 12 thẻ, 3 cột × 4 hàng ---- */
+  /* min-height:0 -- sửa hành vi flex mặc định, không phải thiết kế; xem
+     README.md, mục "Một dòng CSS được thêm vào bốn file". Lưới vẫn tràn
+     xuống dưới trang sau khi sửa -- thẻ nhấn (.hi) chiếm 2 ô nên 12 thẻ cần
+     5 hàng chứ không phải 4, đó là phần KHÔNG sửa được bằng CSS, xem cùng
+     mục. */
+  .grid{flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;
+        gap:5mm;padding:5mm 0}
+  .card{display:flex;flex-direction:column;border-top:.5mm solid #1c1b18;padding-top:2.4mm}
+  .card .n{font-family:Georgia,serif;font-size:8mm;font-weight:700;line-height:.9;color:#0d6b58;
+           margin-bottom:1.8mm}
+  .card .ph{height:26mm;margin-bottom:2mm}
+  .card h3{font-family:Georgia,serif;font-size:4.2mm;line-height:1.18;margin-bottom:1.4mm}
+  .card p{font-size:2.7mm;line-height:1.42;color:#55503f;flex:1}
+  .card .tag{font-size:2.3mm;letter-spacing:1mm;text-transform:uppercase;color:#0d6b58;margin-top:1.8mm;
+             padding-top:1.4mm;border-top:.2mm dotted #b9b1a0}
+
+  /* một thẻ được nhấn: nền đặc, chiếm hai ô */
+  .card.hi{grid-column:span 2;background:#0d6b58;color:#f4f1e6;border-top-color:#0d6b58;
+           padding:4mm;flex-direction:row;gap:4mm;align-items:flex-start}
+  .card.hi .n{color:#f0c96a;font-size:11mm}
+  .card.hi .ph{width:38mm;height:100%;flex:0 0 auto;margin:0}
+  .card.hi h3{font-size:5.6mm;color:#fff}
+  .card.hi p{color:rgba(244,241,230,.88);font-size:2.9mm}
+  .card.hi .tag{color:#f0c96a;border-top-color:rgba(255,255,255,.3)}
+
+  .foot{border-top:.3mm solid #1c1b18;padding-top:2.5mm;display:flex;justify-content:space-between;
+        font-size:2.5mm;letter-spacing:.6mm;color:#6a6558}
+  @media print{html,body{background:#fff}.sheet{margin:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header>
+    <div class="sec">Ẩm thực</div>
+    <h1>Mười hai món ăn của mùa nước nổi</h1>
+    <p>Mỗi năm chỉ có chừng mười tuần để nấu những món này. Danh sách được lập cùng ba đầu bếp
+      và hai người bán hàng ở chợ nổi, xếp theo thứ tự xuất hiện trong mùa.</p>
+  </header>
+
+  <div class="grid">
+    <div class="card hi">
+      <div class="ph"></div>
+      <div style="display:flex;flex-direction:column;height:100%">
+        <div class="n">01</div>
+        <h3>Cá linh non nấu bông điên điển</h3>
+        <p>Món mở màn của cả mùa. Cá linh non chỉ ngon trong khoảng ba tuần đầu, khi xương còn mềm đến mức
+          không cần gỡ. Bông điên điển hái buổi sáng, chỉ trần qua đúng lúc nước vừa sôi lại.</p>
+        <div class="tag">Đầu mùa · tháng 8</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="n">02</div>
+      <div class="ph"></div>
+      <h3>Bông súng mắm kho</h3>
+      <p>Cọng súng giòn, tước vỏ ngay trước khi ăn để không bị thâm.</p>
+      <div class="tag">Đầu mùa</div>
+    </div>
+
+    <div class="card">
+      <div class="n">03</div>
+      <div class="ph"></div>
+      <h3>Lẩu cá kèo lá giang</h3>
+      <p>Vị chua của lá giang thay hoàn toàn cho me hay chanh.</p>
+      <div class="tag">Giữa mùa</div>
+    </div>
+
+    <div class="card">
+      <div class="n">04</div>
+      <div class="ph"></div>
+      <h3>Cá lóc nướng trui</h3>
+      <p>Nướng bằng rơm, để nguyên vảy, chỉ trở đúng một lần.</p>
+      <div class="tag">Cả mùa</div>
+    </div>
+
+    <div class="card">
+      <div class="n">05</div>
+      <div class="ph"></div>
+      <h3>Chuột đồng quay lu</h3>
+      <p>Món gây tranh cãi nhất trong danh sách, nhưng khó bỏ qua.</p>
+      <div class="tag">Cuối mùa</div>
+    </div>
+
+    <div class="card">
+      <div class="n">06</div>
+      <div class="ph"></div>
+      <h3>Ốc bươu hấp sả</h3>
+      <p>Ngâm nước vo gạo qua đêm trước khi hấp, không cần gì hơn.</p>
+      <div class="tag">Giữa mùa</div>
+    </div>
+
+    <div class="card">
+      <div class="n">07</div>
+      <div class="ph"></div>
+      <h3>Canh chua cá hú bần</h3>
+      <p>Trái bần chín rụng ven sông, dằm lấy nước, bỏ hạt.</p>
+      <div class="tag">Giữa mùa</div>
+    </div>
+
+    <div class="card">
+      <div class="n">08</div>
+      <div class="ph"></div>
+      <h3>Mắm kho bông so đũa</h3>
+      <p>So đũa chỉ bỏ vào sau cùng, tắt bếp rồi mới đậy nắp.</p>
+      <div class="tag">Cuối mùa</div>
+    </div>
+
+    <div class="card">
+      <div class="n">09</div>
+      <div class="ph"></div>
+      <h3>Bánh xèo bông điên điển</h3>
+      <p>Vỏ mỏng, nhân nhiều bông hơn tôm thịt mới đúng kiểu.</p>
+      <div class="tag">Cả mùa</div>
+    </div>
+
+    <div class="card">
+      <div class="n">10</div>
+      <div class="ph"></div>
+      <h3>Cá rô kho tộ</h3>
+      <p>Kho hai lửa, lần hai chỉ để nước cạn xuống sát mình cá.</p>
+      <div class="tag">Cuối mùa</div>
+    </div>
+
+    <div class="card">
+      <div class="n">11</div>
+      <div class="ph"></div>
+      <h3>Gỏi sầu đâu khô cá lóc</h3>
+      <p>Lá sầu đâu trụng nhanh để bớt đắng, nhưng đừng bớt hết.</p>
+      <div class="tag">Cuối mùa</div>
+    </div>
+
+    <div class="card">
+      <div class="n">12</div>
+      <div class="ph"></div>
+      <h3>Chè bột báng nước cốt dừa</h3>
+      <p>Món khép mùa, thường nấu vào ngày nước bắt đầu rút.</p>
+      <div class="tag">Hết mùa</div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>Bài: Hoàng Vân · Ảnh: Trần Hải · Tư vấn: ba đầu bếp tại vùng hạ lưu</span>
+    <span>Bến · Số 84 · Trang 62</span>
+  </div>
+</div>
+</body>
+</html>
