@@ -31,7 +31,7 @@ rulebase/
 └── text.py         diacritic folding, money formatting, wrapping
 ```
 
-The sixteen layouts are not sixteen variations on a receipt. A thermal till
+The eighteen layouts are not eighteen variations on a receipt. A thermal till
 receipt, a printed VAT form, a metered utility bill, a hotel folio and a
 self-designed order confirmation share a character grid and very little else,
 so `rules/layout.yaml` sorts them into **parent nodes** — see §1b.
