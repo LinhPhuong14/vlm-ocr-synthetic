@@ -51,8 +51,21 @@ ENUM_MAX = 6
 # meant to be able to be wider than any existing one -- but not ten times.
 SLACK = 1.4
 
-# Keys whose value is free Vietnamese text printed on the page. Checked for
-# charset and length, never against a list.
+# Leaf names whose value is free Vietnamese text PRINTED ON THE PAGE. Never
+# treated as an enum however few distinct values the corpus of layouts happens
+# to hold.
+#
+# This constant existed from the first version of this file and was never read
+# -- dead code that would have prevented the bug it was written for. Only four
+# layouts set `item.discount_row.label` and between them they use three values,
+# so `ENUM_MAX` called it an enum and the generator was told `Giảm Giá` "is not
+# one of Giảm giá|KM|KM:". It is a label a shop prints on a receipt; a shop may
+# print whatever it likes there, and the whole point of varying a layout is to
+# get a different wording.
+#
+# The distinction is not how many values were seen. It is whether the field
+# NAMES something the engine dispatches on (`align`, `style`, `family`) or
+# CARRIES something the page prints. Only the first kind is a closed set.
 TEXT_LEAVES = ("title", "label", "name", "source", "separator", "leader",
                "notes", "id")
 
@@ -63,9 +76,13 @@ class Leaf:
     numbers: list[float] = field(default_factory=list)
     values: set[str] = field(default_factory=set)
     seen: int = 0
+    key: str = ""                 # the full path, so `enum` can read its leaf
 
     @property
     def enum(self) -> bool:
+        # A printed label is never a closed set, however few of them exist.
+        if self.key.split("[]")[-1].lstrip(".").split(".")[-1] in TEXT_LEAVES:
+            return False
         return (self.types == {"str"} and len(self.values) <= ENUM_MAX
                 and all(len(v) <= 24 for v in self.values))
 
@@ -105,7 +122,7 @@ def derive(root: Path = LAYOUTS_ROOT, include_generated: bool = False
         if not include_generated and is_generated(path):
             continue
         for key, value in walk(yaml.safe_load(path.read_text(encoding="utf-8"))):
-            leaf = schema.setdefault(key, Leaf())
+            leaf = schema.setdefault(key, Leaf(key=key))
             leaf.types.add(type(value).__name__)
             leaf.seen += 1
             if isinstance(value, bool):

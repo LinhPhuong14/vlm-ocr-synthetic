@@ -161,6 +161,29 @@ def build(recipe, receipt, spec: dict, parse: dict) -> str:
             left += " @ " + span("menu.unit_price", unit)
         lines.append(_written(rng, left, span("menu.amount", item.get("price", ""))))
 
+        # A price struck through and a discount under it, on their own lines.
+        #
+        # These were missing, and the way they were found is worth keeping: the
+        # sampler only reaches a discounted basket on some seeds, so the family
+        # shipped drawing every page it was tried on. Adding an eighteenth
+        # layout shifted `notebook_ledger`'s seed block by `LAYOUT_STRIDE`, the
+        # golden recapture hit a seed with a discount in it, and the invariant
+        # said `menu.discountprice '-23,600' appears on no box` -- a value the
+        # label promised on a page that never printed it.
+        #
+        # A hand-kept book really does write both: the shopkeeper crosses the
+        # marked price out and writes what was actually taken off, which is why
+        # this is drawn rather than added to `invariants.SUPPRESSED`. There is
+        # room on the page; nothing was suppressing it but an oversight.
+        original = str(item.get("originalprice", "") or "").strip()
+        if original:
+            lines.append(_written(rng, span("menu.originalprice.label", "Giá gốc"),
+                                  span("menu.originalprice", original), "small"))
+        cut = str(item.get("discountprice", "") or "").strip()
+        if cut:
+            lines.append(_written(rng, span("menu.discount.label", "Bớt"),
+                                  span("menu.discountprice", cut), "small"))
+
     lines.append('<div class="ln sep"></div>')
 
     entries = list((parse.get("total") or {}).items())

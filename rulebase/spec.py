@@ -432,7 +432,30 @@ class _Clash(RuleError):
 # How many times one seed may re-draw before the pin is declared unreachable.
 # Whether it really is unreachable is then decided by `_reachable_tags`, not by
 # having run out of patience -- see `sample_recipe`.
-DRAW_ATTEMPTS = 500
+#
+# **Measured, and it had to be raised.** Pinning a layout is rejection
+# sampling: the document is drawn first, and a draw that lands on a document
+# the pinned layout cannot dress is thrown away. So the budget has to cover the
+# WORST hit rate in the rule base, and that rate falls every time a document
+# root is added -- the invoice, form and periodical roots between them made a
+# forced invoice layout much rarer than it used to be.
+#
+# Measured over 300 single-draw attempts per layout, the two thinnest are:
+#
+#     authorisation_letter   0.3% per draw   -> 4,138 attempts for 1e-6 failure
+#     invoice_tax_en         0.7% per draw   -> 2,066
+#     (the easiest layout is 14.3%)
+#
+# At 500 this failed for real: `pipeline/drift.py` draws 400 expectations per
+# pinned layout, and one of `invoice_tax_en`'s failed -- which surfaced only
+# when a layout was added, because the expectation seed block is indexed by
+# position and everything after the new layout shifted by one. The run drew all
+# 42 images correctly and still exited non-zero.
+#
+# 6,000 covers the measured worst case with room for the next root. It costs
+# nothing on the happy path: the loop stops at the first draw that fits, so a
+# 14% layout still exits after about seven.
+DRAW_ATTEMPTS = 6_000
 
 
 def _draw_once(order: tuple[str, ...], rules: dict[str, list[Option]],

@@ -93,27 +93,50 @@ GOLDEN = REPO_ROOT / "tests" / "golden" / "baseline.json"
 # baseline that shifts when someone adds unrelated content is not a baseline.
 #
 # Adding a plan is fine. Editing one means recapturing.
-THERMAL = ["eatery_ascii", "eatery_indexed", "market_barcode",
-           "market_compact", "market_vat", "notebook_ledger"]
+# The till-roll half of the rule base, COMPUTED rather than listed -- for the
+# same reason the `all` plan below is computed, and because the listed version
+# went stale twice.
+#
+# It went stale as `n5` when `notebook_ledger` shipped, which
+# `pipeline/plan.py::uncovered` eventually caught; renaming it to `n6` fixed
+# that instance and left the mechanism in place, so `market_vat_b` broke it
+# again on the very next layout. A hand-maintained list of "every X" is a claim
+# that has to be re-earned by whoever adds the next X, and it never is.
+#
+# A layout is on a roll if its own `family:` says so. That key is the one
+# `sheets` already dispatches on since master made FAMILIES data-driven, so
+# there is exactly one place a layout declares what it is, and this reads it.
+def _roll_layouts() -> list[str]:
+    from rulebase import available_layouts, load_layout
+
+    return sorted(layout for layout in available_layouts()
+                  if str(load_layout(layout).get("family", "")) in ROLL_FAMILIES)
+
+
+# `till` is the thermal slip; `notebook` is the ruled exercise book, which is
+# not printed by a till but is the same narrow continuous page and is measured
+# in characters like one.
+ROLL_FAMILIES = frozenset({"till", "notebook"})
+THERMAL = _roll_layouts()
 
 PLANS: dict[str, dict] = {
     # The plan the W1 brief names, on the three layouts it named.
-    "n3": {"per_backend": 3, "seed": 2026, "layouts": THERMAL[:3]},
-    # Every thermal layout: the till-roll half of the rule-base.
-    #
-    # It was `n5`, and it had a hole in it for a whole wave without anybody
-    # noticing. The quota walks the layout list in order and hands the
-    # remainder to the FRONT, so a `per_backend` below the layout count does
-    # not spread thin -- it drops the tail. `notebook_ledger` joined THERMAL,
-    # the count went to six, this line stayed at five, and the plan went on
-    # drawing five of six under a name that said five. The golden file
-    # recorded a fingerprint for a plan that was not covering what it claimed.
-    #
-    # `pipeline/plan.py::uncovered` is what found it, and it now refuses a
-    # plan like this outright rather than quietly drawing the front of the
-    # list. The count is in the name for exactly this reason -- so keep them
-    # equal, and let the rename be the thing that tells everyone.
-    "n6": {"per_backend": 6, "seed": 2026, "layouts": THERMAL},
+    # The plan the W1 brief names, on the three layouts it named -- SPELLED
+    # OUT, not sliced off THERMAL. Slicing was fine while THERMAL was a literal
+    # list and became a bug the moment it was computed: `eatery_indexed_b`
+    # sorts third, so `THERMAL[:3]` silently started drawing a layout the W1
+    # brief never mentioned. A fixed comparison names its layouts; that is the
+    # whole lesson of the comment above this block, and this line was quietly
+    # exempt from it.
+    "n3": {"per_backend": 3, "seed": 2026,
+           "layouts": ["eatery_ascii", "eatery_indexed", "market_barcode"]},
+    # Every layout on a roll, named for what it is rather than for how many
+    # there are -- `roll`, not `n5`/`n6`/`n7`. The count is computed with the
+    # list, so this plan cannot develop the hole `n5` had: it drew five of six
+    # thermal layouts for a whole wave under a name that said five, and the
+    # rename to `n6` fixed that one instance while leaving the mechanism to
+    # break again on the next layout, which it promptly did.
+    "roll": {"per_backend": len(THERMAL), "seed": 2026, "layouts": THERMAL},
     # Every layout that ships, one image each per backend, so nothing is
     # outside the net. Used to be a fixed id list (INVOICE + FORM) concatenated
     # by hand and a plan name that had to be renamed every time the count grew

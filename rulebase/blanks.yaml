@@ -83,6 +83,11 @@ blanks:
     layout: eatery_indexed
     sheet: null
 
+  eatery_indexed_b:
+    source: "biến thể của eatery_indexed (sinh bằng LLM, không đo từ ảnh nào)"
+    layout: eatery_indexed_b
+    sheet: null
+
   invoice_brand:
     source: "ảnh hoá đơn một tiệm bánh, khối chuyển khoản và khối liên hệ ở chân trang"
     layout: invoice_brand
@@ -235,9 +240,9 @@ blanks:
 
 # Phôi mà mỗi document được phép dựng từ. Thứ tự không quan trọng.
 documents:
-  pub_eatery: [eatery_indexed, eatery_ascii]
-  street_eatery: [eatery_indexed, eatery_ascii]
-  restaurant_vat: [eatery_indexed]
+  pub_eatery: [eatery_indexed, eatery_ascii, eatery_indexed_b]
+  street_eatery: [eatery_indexed, eatery_ascii, eatery_indexed_b]
+  restaurant_vat: [eatery_indexed, eatery_indexed_b]
   supermarket: [market_barcode, market_compact]
   convenience_store: [market_compact, notebook_ledger]
   supermarket_vat: [market_barcode, market_vat]

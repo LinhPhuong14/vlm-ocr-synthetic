@@ -344,9 +344,11 @@ def test_every_committed_page_has_a_record_in_the_shape_this_file_defines():
     # meant to: a set that quietly lost half its pages would otherwise look
     # like a passing test. The chain, newest first:
     #
-    #   295 = 278 plus `data/hand17_model/`, one page per layout drawn with
+    #   296 = 278 plus `data/hand18_model/`, one page per layout drawn with
     #         `--handwriting model` -- a measurement of what that source
-    #         actually covers, nine of whose pages carry no ink at all.
+    #         actually covers, eight of whose pages carry no ink at all. It was
+    #         295 and `hand17_model` until `market_vat_b` shipped: the count is
+    #         in the set's name, so the name moved with it.
     #   278 = 294 minus `data/dataset_test/synthdog/`, the last 16 images of a
     #         retired backend still sitting in a committed set. Deleted by "Stop
     #         defaulting the page model, and check every layout has a sheet",
@@ -355,7 +357,7 @@ def test_every_committed_page_has_a_record_in_the_shape_this_file_defines():
     #   294 = 307 before `data/dataset_test` was rebuilt on the CSS sheets,
     #         which took it from 30 images over two renderers to 16, one per
     #         layout, on the only backend the pipeline still drives.
-    assert seen == 295, seen
+    assert seen == 296, seen
 
 
 # ------------------------------------------------------- the shape before this
