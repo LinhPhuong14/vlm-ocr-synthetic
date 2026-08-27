@@ -145,15 +145,34 @@ Hai số đo được từ định nghĩa ấy:
 
 *Cùng bảng trên, dựng ra ảnh. Sáu nguyên thuỷ hình học cho `p = 0` — phóng vào
 mép thấy bậc thang, không điểm ảnh nào mang độ phủ một phần. `text()` cho
-`p = 2,72 %`. Ô cuối là hàng đối chứng `rectangle` thẳng trục: `p = 0` ở đấy là
-đúng, và vì thế nó không chứng minh gì.*
+`p = 2,72 %`. Với riêng ô đầu, một bộ raster lấy mẫu diện tích sẽ cho
+`|V| = 58` thay vì 2. Ô cuối là hàng đối chứng `rectangle` thẳng trục: `p = 0`
+ở đấy là đúng, và vì thế nó không chứng minh gì.*
 
-**`|V|` = 2 nghĩa là gì, và vì sao không phải 0 hay 1.** Một ảnh luôn có ít
-nhất một giá trị, nên `|V| = 0` không tồn tại. `|V| = 1` là ảnh chỉ còn nền —
-không vẽ gì cả, hàng cuối bảng. Vậy **2 là giá trị nhỏ nhất mà một hình đã
-thực sự vẽ ra bằng một màu có thể đạt**, và nó nói đúng một điều: tập giá trị
-của ảnh bằng chính {nền, mực}. Mọi điểm ảnh hoặc hoàn toàn trong hình, hoặc
-hoàn toàn ngoài. Không điểm nào ở giữa — nên `p = 0`.
+**Vì sao `|V|` bằng đúng 2.** Câu hỏi có hai vế, và mỗi vế chặn một đầu.
+
+*Vế dưới — vì sao không phải 0 hay 1.* Ảnh nào cũng có ít nhất một giá trị, nên
+`|V| = 0` không tồn tại. `|V| = 1` là ảnh chỉ còn nền, tức không vẽ gì — hàng
+cuối bảng. Phép vẽ ở đây chỉ dùng **một màu mực duy nhất** (`fill=255`) trên
+**một màu nền duy nhất** (0), nên hễ đã vẽ ra cái gì thì `|V| ≥ 2`. **2 là
+sàn.**
+
+*Vế trên — vì sao không phải 58.* Đây mới là vế mang thông tin, và nó cần một
+con số đối chứng. Lấy đúng vành tròn ấy — cùng bán kính, cùng bề dày, cùng ảnh
+150×150, cùng một màu mực — rồi tính độ phủ **giải tích** cho từng điểm ảnh và
+ghi `round(255·c)`:
+
+| dựng bằng | `\|V\|` | số giá trị trung gian (`0 < v < 255`) |
+| --- | ---: | ---: |
+| lấy mẫu diện tích (giải tích) | **58** | 56 |
+| `ImageDraw.ellipse` | **2** | **0** |
+
+Cùng một hình, cùng một màu, cùng một khổ ảnh. Đáp án đúng dùng 58 giá trị;
+`ImageDraw` dùng 2. **56 giá trị ở giữa không bao giờ được sinh ra.**
+
+Vậy `|V| = 2` không có nghĩa "ảnh này ít màu". Nó có nghĩa: **phép vẽ rơi đúng
+xuống sàn** — tập giá trị bằng chính {nền, mực}, mọi điểm ảnh hoặc hoàn toàn
+trong hình hoặc hoàn toàn ngoài, không điểm nào ở giữa. Và vì thế `p = 0`.
 
 Trong hai số, **`p` mới là số mang nghĩa**; `|V| = 2` chỉ là hệ quả của
 `p = 0`. `|V|` có mặt trong bảng vì nó rẻ và vì nó cho biết thêm *tập* giá trị
