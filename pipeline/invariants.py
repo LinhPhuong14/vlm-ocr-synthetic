@@ -79,10 +79,26 @@ UNCHECKED = "unchecked:"
 # so `pipeline/drift.py` can read it without importing the module that writes it.
 INVARIANTS_NAME = "invariants.json"
 
-# The augmentation value whose chain is empty -- what `--clean` pins. Named
-# rather than inlined so renaming it in rules/augmentation.yaml fails loudly
-# instead of silently producing an aged "clean" set.
-CLEAN_AUGMENTATION = "pristine"
+# What `--clean` pins: for EVERY attribute that can add steps to the ageing
+# chain, the value whose chain is empty.
+#
+# It used to be one name, because `augmentation` used to be the only attribute
+# that carried a chain. Splitting the copier into `toner`, `drum` and `rollers`
+# ended that, and a clean run that pinned only `augmentation` would have gone
+# on calling itself clean while a drum streak was drawn across it. The clean
+# set is the CEILING every ageing number is measured against, so that is not a
+# cosmetic bug -- it moves the baseline and nothing says so.
+#
+# `tools/rules_report.py` checks this dict against the rules both ways: every
+# chain-bearing attribute must be named here, and every value named here must
+# have an empty chain. Rename a value in the YAML and preflight fails, which is
+# the whole reason these live in a constant rather than inline.
+CLEAN_FORCES: dict[str, str] = {
+    "augmentation": "pristine",
+    "toner": "no_toner",
+    "drum": "no_drum",
+    "rollers": "no_rollers",
+}
 
 # Characters that mean a font had nothing to draw. They reach the label only
 # through a corpus or a font change, and both are worth stopping for.
@@ -105,6 +121,7 @@ MISSING_GLYPH = "□"
 # near 100% and is nowhere close to it.
 BUDGETS: dict[str, float] = {
     "menu.barcode": 0.05,
+    "menu.discountprice": 0.05,
     "menu.unitprice": 0.05,
     "menu.unitprice_per_unit": 0.05,
     "menu.vatrate": 0.05,
@@ -148,6 +165,25 @@ SUPPRESSED: dict[str, frozenset[str]] = {
         "menu.unitprice_per_unit",   # 100%
         "menu.weight",               # 100%
         "store.branch",              # 100%
+    }),
+    "notebook_ledger": frozenset({
+        # A book kept by hand carries what a person writes, and nobody copies
+        # a thirteen-digit barcode into a ledger. Everything else the content
+        # model produces IS written -- the weight, the price per kilo, the
+        # quantity -- because those are the numbers somebody works the line out
+        # from. Suppressed rather than excluded by tag: the barcode is attached
+        # to a market item by `rulebase/content.py` whatever the document's
+        # tags say, so a tag rule would not have removed it.
+        "menu.barcode",
+        # A promotional discount is a second, ruled row under the priced line
+        # on a printed receipt (`base.py::_item_extras`, gated on a layout's
+        # own `item.discount_row` setting) -- a shape `notebook_ledger.yaml`'s
+        # two columns (name, amount) have no line to spare for.
+        # `rulebase/content.py` attaches `discount`/`discountprice` to a
+        # market item unconditionally, same as the barcode above, so this is
+        # found on the rare seed that happens to draw a discounted item for
+        # this layout rather than on every draw.
+        "menu.discountprice",
     }),
     "eatery_indexed": frozenset(),   # prints everything it is given
 
@@ -741,7 +777,7 @@ def attribute_names() -> tuple[str, ...]:
 
 __all__ = [
     "BUDGETS",
-    "CLEAN_AUGMENTATION",
+    "CLEAN_FORCES",
     "INVARIANTS_NAME",
     "MIN_COUNT",
     "SUPPRESSED",

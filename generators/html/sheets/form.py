@@ -10,7 +10,7 @@ this repo's own `sections:`/flag vocabulary -- read from the layout file,
 dispatched here -- the same shape `modern.py` settled on for root 1's ten,
 not a new family per layout.
 
-`generators/html/table.py` draws every ruled grid in this module (the
+`generators/html/components/table.py` draws every ruled grid in this module (the
 activity table, the timesheet roster) the same way `modern.py`'s
 `_grid_items_table` does for INV-01: full borders, real `span()` content
 inside cells `table.py` only frames.
@@ -169,7 +169,7 @@ def _item_table(spec: dict, receipt, parse: dict, rows) -> str:
     _grid_items_table`, the same recipe: `table.py` frames it, `span()`
     still carries every value's ground truth.
     """
-    from table import Border, Cell, Column, Row, TableSpec, render_table
+    from components.table import Border, Cell, Column, Row, TableSpec, render_table
     from rulebase.layout import item_values
 
     columns = base.columns_of(spec, base.ncols_of(spec))
@@ -214,7 +214,7 @@ def _roster_table(spec: dict, receipt, parse: dict, rows, rng: random.Random) ->
     `recipe.seed`, so the marks are as reproducible as everything else on
     the page rather than drifting between two runs of the same seed.
     """
-    from table import Border, Cell, Column, Row, TableSpec, render_table
+    from components.table import Border, Cell, Column, Row, TableSpec, render_table
     from rulebase.layout import item_values
 
     columns = base.columns_of(spec, base.ncols_of(spec))
