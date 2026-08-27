@@ -174,7 +174,7 @@ def test_every_budgeted_field_is_one_no_layout_prints_reliably():
     assert set(BUDGETS) == {
         "menu.unitprice", "menu.vatrate", "menu.barcode", "title",
         "store.address", "store.address2", "store.branch", "store.phone",
-        "menu.unitprice_per_unit", "menu.weight",
+        "menu.unitprice_per_unit", "menu.weight", "menu.discountprice",
     }
 
 
