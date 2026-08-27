@@ -1,0 +1,37 @@
+# THAM SỐ NỘI DUNG — form_activity
+#
+# Root 3: một bảng nhỏ (quá trình hoạt động) + hai đoạn nhãn riêng (khen
+# thưởng/kỷ luật) + lời cam đoan + hai chữ ký. Dùng cho FORM-07 (form +
+# signature) — trang cuối mẫu sơ yếu lý lịch tự thuật.
+#
+# Có `num_items` (không `no_items: true`) để có bảng; cột bảng đọc từ
+# `item_values()` chung (thời gian/nội dung/ghi chú) — tên cột đặt theo
+# đúng hình dạng dữ liệu sẵn có, không ép "nơi công tác" lên một chuỗi
+# vốn được bốc như tên sản phẩm/dịch vụ.
+
+profile: invoice
+invoice: true
+num_items: [3, 5]
+price_step: 1
+show_vat: false
+show_subtotal: false
+show_payment: false
+show_amount_words: false
+show_number: false
+show_seller_tax_code: false
+show_seller_website: false
+titles: ["SƠ YẾU LÝ LỊCH TỰ THUẬT"]
+subtitle: "Quá trình hoạt động của bản thân"
+serial_format: "SYLL{n}"
+units: ["-"]
+notes:
+  - "Khen thưởng:"
+  - "Không"
+  - ""
+  - "Kỷ luật:"
+  - "Không"
+  - ""
+  - "Tôi xin cam đoan những lời khai trên đây là đúng sự thật, nếu có điều gì khai không đúng tôi xin chịu hoàn toàn trách nhiệm trước pháp luật."
+signature_labels:
+  - ["Xác nhận của Thủ trưởng cơ quan, đơn vị", "(Ký, đóng dấu, ghi rõ họ tên)"]
+  - ["Người khai ký tên", "(Ký, ghi rõ họ tên)"]

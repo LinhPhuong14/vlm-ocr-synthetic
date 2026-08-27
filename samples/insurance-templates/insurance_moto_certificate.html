@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LO-01 · Giấy chứng nhận bảo hiểm bắt buộc TNDS – Mô tô, xe máy</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#6d716a;font-family:"Times New Roman",Times,serif;-webkit-font-smoothing:antialiased}
+  @page{size:148mm 105mm;margin:0}
+  .sheet{
+    width:148mm;height:105mm;background:#fff;position:relative;overflow:hidden;
+    margin:10mm auto;box-shadow:0 2mm 8mm rgba(0,0,0,.35)
+  }
+  /* nền bảo an (guilloche) mô phỏng bằng CSS thuần */
+  .sheet::before{
+    content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+    background:
+      repeating-radial-gradient(circle at 20% 120%, transparent 0 2.2mm, rgba(0,90,150,.16) 2.2mm 2.35mm),
+      repeating-radial-gradient(circle at 105% -20%, transparent 0 2.6mm, rgba(0,120,90,.13) 2.6mm 2.75mm),
+      linear-gradient(180deg,#eaf5f2 0%,#ffffff 45%,#f2f7fb 100%);
+  }
+  .frame{position:absolute;inset:3mm;border:.7mm solid #0a5b9c;border-radius:1.2mm}
+  .frame::after{content:"";position:absolute;inset:1mm;border:.2mm solid #0a5b9c;border-radius:.8mm}
+  .inner{position:absolute;inset:5mm;display:flex;flex-direction:column}
+
+  /* --- dải đầu --- */
+  .head{display:flex;align-items:flex-start;gap:2.5mm;border-bottom:.35mm solid #0a5b9c;padding-bottom:1.4mm}
+  .logo{width:11mm;height:11mm;border-radius:50%;border:.5mm solid #0a5b9c;flex:0 0 auto;
+        display:flex;align-items:center;justify-content:center;background:#fff}
+  .logo b{font-family:Arial,Helvetica,sans-serif;font-size:4.2mm;color:#0a5b9c;letter-spacing:-.2mm}
+  .co{flex:1;line-height:1.15}
+  .co .name{font-family:Arial,Helvetica,sans-serif;font-weight:700;font-size:2.9mm;color:#0a5b9c;text-transform:uppercase;letter-spacing:.02mm}
+  .co .sub{font-size:2.2mm;color:#333;font-style:italic}
+  .co .addr{font-family:Arial,Helvetica,sans-serif;font-size:2mm;color:#444;margin-top:.4mm}
+  .serial{text-align:right;flex:0 0 auto}
+  .serial .lbl{font-family:Arial,Helvetica,sans-serif;font-size:1.9mm;color:#555;text-transform:uppercase}
+  .serial .no{font-family:"Courier New",monospace;font-size:3.6mm;font-weight:700;color:#c8102e;letter-spacing:.2mm}
+
+  /* --- tiêu đề --- */
+  .title{text-align:center;margin:1.8mm 0 1.2mm}
+  .title h1{font-family:Arial,Helvetica,sans-serif;font-size:3.6mm;font-weight:700;color:#0a3f78;
+            text-transform:uppercase;letter-spacing:.05mm;line-height:1.25}
+  .title h2{font-size:2.4mm;font-weight:400;font-style:italic;color:#0a5b9c;margin-top:.3mm}
+
+  /* --- lưới trường dữ liệu --- */
+  .grid{flex:1;display:grid;grid-template-columns:1fr 1fr;column-gap:4mm;row-gap:.9mm;
+        align-content:start;font-size:2.45mm;line-height:1.35}
+  .f{display:flex;gap:1mm;align-items:baseline}
+  .f .k{color:#111;white-space:nowrap}
+  .f .v{flex:1;font-weight:700;color:#062f5c;border-bottom:.15mm dotted #7d94a8;min-height:2.9mm}
+  .span2{grid-column:1 / -1}
+
+  /* --- chân --- */
+  .foot{display:flex;align-items:flex-end;gap:3mm;margin-top:1.2mm;border-top:.35mm solid #0a5b9c;padding-top:1.2mm}
+  .note{flex:1;font-size:1.95mm;font-style:italic;color:#3a3a3a;line-height:1.3}
+  .note b{font-style:normal;color:#c8102e}
+  .barcode{display:flex;flex-direction:column;align-items:center;gap:.5mm}
+  .bars{display:flex;align-items:flex-end;height:7mm}
+  .bars i{display:block;width:.28mm;height:100%;background:#111;margin-right:.18mm}
+  .bars i:nth-child(3n){width:.6mm}
+  .bars i:nth-child(4n){height:80%}
+  .bars i:nth-child(7n){width:.9mm}
+  .barcode span{font-family:"Courier New",monospace;font-size:1.9mm;letter-spacing:.35mm}
+  .sign{width:34mm;text-align:center;position:relative}
+  .sign .role{font-family:Arial,Helvetica,sans-serif;font-size:2.1mm;font-weight:700;text-transform:uppercase;color:#111}
+  .sign .date{font-size:2mm;font-style:italic;color:#333}
+  .stamp{position:absolute;right:1mm;bottom:-1mm;width:17mm;height:17mm;border:.5mm solid #c8102e;border-radius:50%;
+         transform:rotate(-14deg);opacity:.72;display:flex;align-items:center;justify-content:center}
+  .stamp::before{content:"";position:absolute;inset:1.4mm;border:.2mm dashed #c8102e;border-radius:50%}
+  .stamp span{font-family:Arial,Helvetica,sans-serif;font-size:1.6mm;color:#c8102e;font-weight:700;text-align:center;line-height:1.1}
+
+  @media print{html,body{background:#fff}.sheet{margin:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="frame"></div>
+  <div class="inner">
+
+    <div class="head">
+      <div class="logo"><b>MH</b></div>
+      <div class="co">
+        <div class="name">Tổng công ty Bảo hiểm Minh Hoạ</div>
+        <div class="sub">Minh Hoa Insurance Corporation</div>
+        <div class="addr">Số 1 Đường Mẫu, Quận Trung Tâm, Hà Nội · Hotline 1900 0000</div>
+      </div>
+      <div class="serial">
+        <div class="lbl">Số GCN</div>
+        <div class="no">XM 24 001357</div>
+      </div>
+    </div>
+
+    <div class="title">
+      <h1>Giấy chứng nhận bảo hiểm bắt buộc<br>trách nhiệm dân sự của chủ xe cơ giới</h1>
+      <h2>(Mô tô hai bánh, ba bánh, xe gắn máy, xe máy điện)</h2>
+    </div>
+
+    <div class="grid">
+      <div class="f span2"><span class="k">Chủ xe:</span><span class="v">NGUYỄN VĂN A</span></div>
+      <div class="f span2"><span class="k">Địa chỉ:</span><span class="v">Số 12, Phố Mẫu, Phường Mẫu, Hà Nội</span></div>
+      <div class="f"><span class="k">Điện thoại:</span><span class="v">09xx xxx xxx</span></div>
+      <div class="f"><span class="k">Biển số xe:</span><span class="v">29X1-123.45</span></div>
+      <div class="f"><span class="k">Số khung:</span><span class="v">RLHJC00000X000000</span></div>
+      <div class="f"><span class="k">Số máy:</span><span class="v">JC00E0000000</span></div>
+      <div class="f"><span class="k">Dung tích:</span><span class="v">Trên 50 cm³</span></div>
+      <div class="f"><span class="k">Phí bảo hiểm:</span><span class="v">60.500 đ (đã gồm VAT)</span></div>
+      <div class="f"><span class="k">Hiệu lực từ:</span><span class="v">14:30 · 02/01/2026</span></div>
+      <div class="f"><span class="k">Đến:</span><span class="v">14:30 · 02/01/2027</span></div>
+      <div class="f span2"><span class="k">Giới hạn trách nhiệm:</span><span class="v">Về người 150.000.000 đ/người/vụ · Về tài sản 50.000.000 đ/vụ</span></div>
+    </div>
+
+    <div class="foot">
+      <div class="note">
+        Khi tai nạn xảy ra, chủ xe/lái xe phải <b>thông báo ngay</b> cho doanh nghiệp bảo hiểm
+        qua đường dây nóng 1900 0000 và tích cực cứu chữa, hạn chế thiệt hại.
+        Giấy chứng nhận này chỉ có giá trị khi đã đóng đủ phí bảo hiểm.
+      </div>
+      <div class="barcode">
+        <div class="bars">
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <span>8930000001357</span>
+      </div>
+      <div class="sign">
+        <div class="date">Hà Nội, ngày 02 tháng 01 năm 2026</div>
+        <div class="role">Doanh nghiệp bảo hiểm</div>
+        <div class="stamp"><span>MINH HOẠ<br>INSURANCE</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

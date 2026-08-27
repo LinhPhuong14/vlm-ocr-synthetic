@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>N-07 · Trải trang đôi bài phóng sự (2 × A4 = 420 × 297 mm)</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#5d6158;font-family:Georgia,"Times New Roman",serif;color:#1c1b18}
+  @page{size:420mm 297mm;margin:0}
+  .spread{width:420mm;height:297mm;background:#fbf8f1;margin:10mm auto;position:relative;overflow:hidden;
+          box-shadow:0 3mm 12mm rgba(0,0,0,.4);display:grid;grid-template-columns:1fr 1fr}
+  /* gáy sách: bóng đổ ở giữa trải trang */
+  .gutter{position:absolute;left:50%;top:0;bottom:0;width:16mm;transform:translateX(-50%);z-index:5;
+          background:linear-gradient(90deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.13) 42%,rgba(0,0,0,.2) 50%,
+                     rgba(0,0,0,.13) 58%,rgba(0,0,0,0) 100%);pointer-events:none}
+
+  .ph{position:relative;background:
+      radial-gradient(circle at 50% 50%, rgba(0,0,0,.45) 0 .26mm, transparent .27mm) 0 0/.9mm .9mm,
+      linear-gradient(150deg,#c6bfaf 0%,#8d8678 50%,#4e4a42 100%)}
+  .ph::after{content:"ẢNH";position:absolute;right:2mm;bottom:1.4mm;font-family:Arial,sans-serif;
+      font-size:2.4mm;letter-spacing:.9mm;color:rgba(255,255,255,.82)}
+
+  /* ---- trang trái: ảnh tràn lề ---- */
+  .left{position:relative;overflow:hidden}
+  .left .img{position:absolute;inset:0}
+  .left .veil{position:absolute;left:0;right:0;bottom:0;height:150mm;
+              background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.82) 78%)}
+  .left .txt{position:absolute;left:18mm;right:26mm;bottom:20mm;color:#fff}
+  .left .kick{display:inline-block;border:.4mm solid rgba(255,255,255,.75);font-family:Arial,sans-serif;
+              font-size:2.7mm;letter-spacing:2mm;text-transform:uppercase;padding:1.4mm 3.4mm;margin-bottom:5mm}
+  .left h1{font-size:22mm;line-height:.98;letter-spacing:-.7mm;font-weight:700;
+           text-shadow:0 .6mm 2.4mm rgba(0,0,0,.5)}
+  .left h1 em{font-style:italic;color:#f0c96a}
+  .left .cred{position:absolute;right:20mm;top:16mm;writing-mode:vertical-rl;font-family:Arial,sans-serif;
+              font-size:2.4mm;letter-spacing:1.4mm;text-transform:uppercase;color:rgba(255,255,255,.75)}
+  .left .fol{position:absolute;left:18mm;bottom:9mm;font-family:Arial,sans-serif;font-size:2.5mm;
+             letter-spacing:1mm;color:rgba(255,255,255,.7)}
+
+  /* ---- trang phải: chữ 3 cột ---- */
+  .right{padding:20mm 18mm 14mm 26mm;display:flex;flex-direction:column}
+  .deck{font-size:5.4mm;line-height:1.36;font-style:italic;color:#4a463c;
+        border-bottom:.5mm solid #1c1b18;padding-bottom:5mm;margin-bottom:4mm}
+  .byline{display:flex;justify-content:space-between;font-family:Arial,sans-serif;font-size:2.7mm;
+          letter-spacing:1mm;text-transform:uppercase;color:#6a6558;margin-bottom:5mm}
+  .cols{column-count:3;column-gap:7mm;column-rule:.2mm solid #cfc8b8;flex:1}
+  .cols p{font-size:3.35mm;line-height:1.52;text-align:justify;margin-bottom:2mm;hyphens:auto}
+  .cols p:first-child::first-letter{float:left;font-size:19mm;line-height:.78;font-weight:700;
+        padding:1.6mm 2.2mm 0 0;color:#b8532f}
+  .pull{break-inside:avoid;margin:4mm 0;padding:3.5mm 0;border-top:.9mm solid #b8532f;
+        border-bottom:.9mm solid #b8532f;font-size:5.4mm;line-height:1.28;font-style:italic;color:#b8532f}
+  .sub{break-inside:avoid;font-family:Arial,sans-serif;font-size:3mm;letter-spacing:1.4mm;
+       text-transform:uppercase;color:#b8532f;margin:4mm 0 2mm}
+  /* ảnh nhỏ chèn trong cột */
+  .inl{break-inside:avoid;margin:3mm 0 1mm}
+  .inl .ph{height:34mm}
+  .inl .cap{font-family:Arial,sans-serif;font-size:2.4mm;line-height:1.4;color:#5c574c;
+            padding-top:1.2mm;border-top:.2mm solid #b9b1a0;margin-top:1.2mm}
+
+  .rfol{display:flex;justify-content:space-between;font-family:Arial,sans-serif;font-size:2.5mm;
+        letter-spacing:1mm;color:#6a6558;border-top:.25mm solid #cfc8b8;padding-top:2.5mm;margin-top:4mm}
+  @media print{html,body{background:#fff}.spread{margin:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="spread">
+  <div class="gutter"></div>
+
+  <div class="left">
+    <div class="img ph"></div>
+    <div class="veil"></div>
+    <div class="cred">Ảnh: Trần Hải</div>
+    <div class="txt">
+      <div class="kick">Hồ sơ · 12 trang</div>
+      <h1>Ba mươi năm<br>một cây cầu<br>và <em>một lời hứa</em></h1>
+    </div>
+    <div class="fol">Bến · Số 84 · Trang 24</div>
+  </div>
+
+  <div class="right">
+    <div class="deck">Năm 1996, mười bảy hộ dân góp tiền dựng một cây cầu gỗ bắc qua rạch Mẫu.
+      Ba mươi năm sau, cây cầu vẫn là lối đến trường duy nhất của trẻ con hai ấp — và quyển sổ ghi chép
+      của những người góp tiền đã dày lên qua ba thế hệ.</div>
+
+    <div class="byline">
+      <span>Bài: Minh Khuê</span>
+      <span>Ảnh: Trần Hải</span>
+    </div>
+
+    <div class="cols">
+      <p>Quyển sổ được bọc bằng một lớp nylon đã ngả vàng. Ông Tám mở ra ở trang đầu, nơi có mười bảy cái tên
+        viết bằng bút bi xanh, chữ nghiêng đều đặn của một người từng làm thư ký hợp tác xã.</p>
+      <p>“Đây là chữ ba tôi”, ông nói. “Ổng ghi ngày mười tám tháng chạp năm chín sáu. Bữa đó góp được ba triệu
+        hai trăm ngàn.”</p>
+      <p>Số tiền ấy, vào thời điểm đó, đủ mua ván và đinh cho một cây cầu dài hai mươi bốn mét. Phần công thì
+        mười bảy hộ tự làm, mất mười một ngày.</p>
+
+      <div class="pull">“Chúng tôi chờ ba mươi năm rồi. Chờ thêm một mùa nữa cũng được. Nhưng lần này tôi
+        sẽ ghi vào sổ một dòng khác: ngày khởi công.”</div>
+
+      <p>Từ đó, cứ mỗi năm hai lần, các hộ lại góp tiền thay ván. Việc góp được ghi lại đều đặn, đến mức quyển
+        sổ trở thành một thứ biên niên sử của cả xóm.</p>
+      <p>Có những trang chỉ ghi số tiền. Có trang ghi thêm lý do vắng mặt: “nhà bà Sáu năm nay mất mùa, ghi nợ”.
+        Khoản nợ đó, ba năm sau, được gạch đi bằng mực đỏ.</p>
+
+      <div class="sub">Lối đến trường</div>
+
+      <p>Sáu giờ sáng, cầu đông nhất. Trẻ con hai ấp đi thành từng tốp, cặp sách đeo lệch một bên vai để tay
+        kia bám vào sợi dây thừng căng dọc thành cầu.</p>
+      <p>Cô giáo Lan, dạy ở điểm trường bên kia rạch mười bốn năm, nói rằng mỗi mùa nước cô lại đếm học sinh
+        hai lần: một lần ở lớp, một lần ở đầu cầu.</p>
+
+      <div class="inl">
+        <div class="ph"></div>
+        <div class="cap">Quyển sổ ghi chép các đợt góp tiền thay ván, được ba thế hệ trong xóm nối nhau giữ.</div>
+      </div>
+
+      <p>“Hôm nào mưa lớn tôi không cho các em qua. Nhưng nói thiệt, cấm cũng khó. Không qua cầu thì đi đường
+        vòng mười hai cây số.”</p>
+
+      <div class="sub">Một cái tên trên tờ niêm yết</div>
+
+      <p>Tháng tư năm nay, danh mục đầu tư công trung hạn được niêm yết ở trụ sở ấp. Ông Tám đi bộ ra đọc,
+        rồi về đọc lại lần nữa vào buổi chiều.</p>
+      <p>Trên tờ giấy A4 dán bằng băng keo trong ấy, giữa một danh sách dài các công trình, có tên rạch Mẫu.</p>
+      <p>Ông không chụp ảnh lại. Ông chép tay vào quyển sổ, ở trang trống kế tiếp, ngay dưới dòng ghi đợt thay
+        ván gần nhất.</p>
+      <p>Rồi ông để trống một dòng phía dưới.</p>
+    </div>
+
+    <div class="rfol">
+      <span>Bến · Số 84 · Tháng 9 · 2026</span>
+      <span>Trang 25</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

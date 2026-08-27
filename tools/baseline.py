@@ -49,11 +49,15 @@ Three fixed plans, because one is not enough:
 
 * `n3` is the plan the W1 brief names, on three named layouts.
 * `n5` is every thermal layout -- the till-roll half of the rule-base.
-* `n18` is every layout, one image each per backend.
+* `all` is every layout that ships, one image each per backend, computed
+  from `available_layouts()` rather than a maintained id list -- see its
+  own comment in `PLANS` below.
 
-Adding a layout leaves `n3` and `n5` green, which is the point: a regression
-baseline must not move when someone adds unrelated content. The widest plan is
-the one that is *meant* to move, because its job is to cover everything.
+Adding a layout leaves `n3`/`n5` green, which is the point: a regression
+baseline must not move when someone adds unrelated content. `all` legitimately
+grows and needs a recapture when that happens -- it is *defined* as
+everything that ships -- but no longer needs a rename or a hand-maintained
+list edit first.
 
 This needs all three renderer virtualenvs, so it is a hand-run command and not
 part of the `tests` CI job. Keeping that job down to pytest and pyyaml is what
@@ -76,6 +80,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from pipeline import record, synthesis  # noqa: E402
+from rulebase import available_layouts  # noqa: E402
 
 GOLDEN = REPO_ROOT / "tests" / "golden" / "baseline.json"
 
@@ -88,49 +93,67 @@ GOLDEN = REPO_ROOT / "tests" / "golden" / "baseline.json"
 # baseline that shifts when someone adds unrelated content is not a baseline.
 #
 # Adding a plan is fine. Editing one means recapturing.
-THERMAL = ["eatery_ascii", "eatery_indexed", "market_barcode",
-           "market_compact", "market_vat", "market_vat_b",
-           "notebook_ledger"]
-INVOICE = ["invoice_brand", "invoice_export", "invoice_hotel_compact",
-           "invoice_hotel_stay", "invoice_power", "invoice_tax_en",
-           "invoice_vat_form", "invoice_vat_summary", "invoice_water"]
-# Documents that are not a sale: a hospital's statement of treatment costs, and
-# an authorisation to collect money on somebody's behalf. Cut sheets like the
-# invoices, and drawn by the same three backends, but neither is an invoice and
-# neither is named like one -- which is why they are their own list rather than
-# an entry in the one above.
-FORM = ["authorisation_letter", "medical_statement"]
+# The till-roll half of the rule base, COMPUTED rather than listed -- for the
+# same reason the `all` plan below is computed, and because the listed version
+# went stale twice.
+#
+# It went stale as `n5` when `notebook_ledger` shipped, which
+# `pipeline/plan.py::uncovered` eventually caught; renaming it to `n6` fixed
+# that instance and left the mechanism in place, so `market_vat_b` broke it
+# again on the very next layout. A hand-maintained list of "every X" is a claim
+# that has to be re-earned by whoever adds the next X, and it never is.
+#
+# A layout is on a roll if its own `family:` says so. That key is the one
+# `sheets` already dispatches on since master made FAMILIES data-driven, so
+# there is exactly one place a layout declares what it is, and this reads it.
+def _roll_layouts() -> list[str]:
+    from rulebase import available_layouts, load_layout
+
+    return sorted(layout for layout in available_layouts()
+                  if str(load_layout(layout).get("family", "")) in ROLL_FAMILIES)
+
+
+# `till` is the thermal slip; `notebook` is the ruled exercise book, which is
+# not printed by a till but is the same narrow continuous page and is measured
+# in characters like one.
+ROLL_FAMILIES = frozenset({"till", "notebook"})
+THERMAL = _roll_layouts()
 
 PLANS: dict[str, dict] = {
     # The plan the W1 brief names, on the three layouts it named.
-    "n3": {"per_backend": 3, "seed": 2026, "layouts": THERMAL[:3]},
-    # Every thermal layout: the till-roll half of the rule-base.
-    #
-    # It was `n5`, and it had a hole in it for a whole wave without anybody
-    # noticing. The quota walks the layout list in order and hands the
-    # remainder to the FRONT, so a `per_backend` below the layout count does
-    # not spread thin -- it drops the tail. `notebook_ledger` joined THERMAL,
-    # the count went to six, this line stayed at five, and the plan went on
-    # drawing five of six under a name that said five. The golden file
-    # recorded a fingerprint for a plan that was not covering what it claimed.
-    #
-    # `pipeline/plan.py::uncovered` is what found it, and it now refuses a
-    # plan like this outright rather than quietly drawing the front of the
-    # list. The count is in the name for exactly this reason -- so keep them
-    # equal, and let the rename be the thing that tells everyone.
-    "n7": {"per_backend": 7, "seed": 2026, "layouts": THERMAL},
-    # Every layout, one image each per backend, so nothing is outside the net.
-    # The name states the count, so it changes when the count does -- a plan
-    # called `n14` that draws sixteen layouts is a plan nobody can check by
-    # reading it. A rename means the golden file has no entry under the new key
-    # and `make baseline-verify` says so, which is the correct report: the
-    # generator grew, and the fingerprint has to be recaptured on a machine with
-    # all three renderer environments.
-    # Every layout, one image each. The name is the count and the count moves
-    # when a layout ships -- which is the point: a plan that silently stopped
-    # covering the newest layout would be a baseline with a hole in it.
-    "n18": {"per_backend": 18, "seed": 2026,
-            "layouts": sorted(THERMAL + INVOICE + FORM)},
+    # The plan the W1 brief names, on the three layouts it named -- SPELLED
+    # OUT, not sliced off THERMAL. Slicing was fine while THERMAL was a literal
+    # list and became a bug the moment it was computed: `eatery_indexed_b`
+    # sorts third, so `THERMAL[:3]` silently started drawing a layout the W1
+    # brief never mentioned. A fixed comparison names its layouts; that is the
+    # whole lesson of the comment above this block, and this line was quietly
+    # exempt from it.
+    "n3": {"per_backend": 3, "seed": 2026,
+           "layouts": ["eatery_ascii", "eatery_indexed", "market_barcode"]},
+    # Every layout on a roll, named for what it is rather than for how many
+    # there are -- `roll`, not `n5`/`n6`/`n7`. The count is computed with the
+    # list, so this plan cannot develop the hole `n5` had: it drew five of six
+    # thermal layouts for a whole wave under a name that said five, and the
+    # rename to `n6` fixed that one instance while leaving the mechanism to
+    # break again on the next layout, which it promptly did.
+    "roll": {"per_backend": len(THERMAL), "seed": 2026, "layouts": THERMAL},
+    # Every layout that ships, one image each per backend, so nothing is
+    # outside the net. Used to be a fixed id list (INVOICE + FORM) concatenated
+    # by hand and a plan name that had to be renamed every time the count grew
+    # -- n14, then n16, then n26, then n36, each rename a recapture nobody
+    # actually ran (see git history if curious). Naming it "all" and computing
+    # its layouts from `available_layouts()` directly removes the rename
+    # forever: this plan is *defined* as everything that ships, so it can
+    # never itself drift out of sync with what ships -- `tests/test_baseline.
+    # py::test_the_widest_plan_covers_every_layout_that_ships` is therefore
+    # tautologically true for this plan by construction, not by upkeep. It is
+    # also immune to the `n5` hole above by construction: `per_backend` is
+    # `len(available_layouts())`, so there is never a quota below the layout
+    # count for `uncovered` to catch.
+    # A per-layout content change (not a count change) still means recapturing,
+    # same as ever -- that is what `rules_fingerprint` is for.
+    "all": {"per_backend": len(available_layouts()), "seed": 2026,
+            "layouts": sorted(available_layouts())},
 }
 
 # What a plan's images are a function of, beyond the plan itself. A change to one
@@ -234,6 +257,10 @@ def plan_inputs(plan: dict) -> dict:
         "per_backend": plan["per_backend"],
         "pairing": plan.get("pairing", "paired"),
         "clean": bool(plan.get("clean", False)),
+        # `arguments()` always passes this now (see its own docstring); pinned
+        # here too so a *future* change to which template a plan draws through
+        # shows up as a named condition instead of an unexplained pixel diff.
+        "template": plan.get("template", "auto"),
         # The shape of a metadata line is a *condition*, not an output. Half
         # this fingerprint is metadata hashes, so a schema change makes every
         # line differ while not a pixel moved -- and a check that called that a
@@ -293,9 +320,18 @@ def fingerprint(root: Path) -> dict:
 
 
 def arguments(plan: dict) -> list[str]:
-    """One plan as the driver's command line."""
+    """One plan as the driver's command line.
+
+    `--template auto` -- every shipped layout already has a real entry in
+    `generators/html/sheets/FAMILIES`, so the CSS-sheet family is what a real
+    run draws; the golden fingerprint should be captured against that, not
+    against the character-grid fallback (`build_grid`) that only
+    `tests/test_layout.py`'s geometry suite and `preflight.sheet_overflow()`
+    still exercise directly. Must come before `--layouts`: that flag is
+    `nargs="+"` and greedy, so anything after it is swallowed as a layout name.
+    """
     return ["-n", str(plan["per_backend"]), "--seed", str(plan["seed"]),
-            "--layouts", *plan["layouts"]]
+            "--template", "auto", "--layouts", *plan["layouts"]]
 
 
 def generate(plan: dict, out: Path, driver: list[str]) -> None:
@@ -343,7 +379,7 @@ def input_changes(want: dict, have: dict) -> list[str]:
             f"-{', -'.join(gone)}" if gone else "",
         ])) or "reordered"
         changes.append(f"layouts {len(a['layouts'])} -> {len(b['layouts'])} ({detail})")
-    for key in ("seed", "per_backend", "pairing", "clean"):
+    for key in ("seed", "per_backend", "pairing", "clean", "template"):
         if a.get(key) != b.get(key):
             changes.append(f"{key} {a.get(key)!r} -> {b.get(key)!r}")
     if a.get("schema") != b.get("schema"):

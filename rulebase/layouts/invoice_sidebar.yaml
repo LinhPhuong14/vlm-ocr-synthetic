@@ -1,0 +1,72 @@
+# INV-05 — Dải màu bên trái chạy suốt trang, bảng hàng ở vùng chính.
+#
+# `page.style: sidebar` là cờ mới `generators/html/sheets/modern.py` đọc:
+# tách `sections:` thành hai vùng thay vì một cột chảy dọc — `sidebar_sections`
+# liệt tên nào vào dải màu bên trái (tô `house`, chữ trắng), phần còn lại
+# vào vùng chính bên phải (nền trắng, như mọi bố cục khác). `doctitle` được
+# liệt tường minh vì cần đi vào dải màu cùng tên hiệu, không phải chỗ chèn
+# tự động (vùng chính) — xem code.
+id: invoice_sidebar
+name: Full-height coloured sidebar (brand + parties) beside the main table
+source: "khảo sát mẫu hoá đơn Excel/thiết kế 'split panel' — dải màu chứa tên hiệu và bên mua"
+family: modern
+
+width: [78, 92]
+gutter: 2
+rule_char: "-"
+sheet: a4
+rules: marks
+
+page:
+  style: sidebar
+  sidebar_sections: [header, doctitle, strip, parties]
+
+sections: [header, doctitle, strip, parties, table, totals, notes, words, signatures, footer]
+
+header:
+  name_scale: [1.30, 1.50]
+  name_bold: true
+  title: true
+  address: true
+  phone: true
+
+strip:
+  rule_after: false
+
+parties:
+  split: 0.38
+
+columns:
+  - {key: stt,        title: "STT",                   width: 4,  align: center, title_align: center}
+  - {key: name,       title: "Tên hàng hoá, dịch vụ",  width: 0,  align: left,   title_align: left}
+  - {key: unit,       title: "ĐVT",                    width: 7,  align: center, title_align: center}
+  - {key: qty,        title: "Số lượng",               width: 8,  align: right,  title_align: right}
+  - {key: unit_price, title: "Đơn giá",                width: 13, align: right,  title_align: right}
+  - {key: amount,     title: "Thành tiền",             width: 15, align: right,  title_align: right}
+
+table:
+  frame: false
+  shade: 0.10
+  header_rules: true
+
+item:
+  wrap_name: true
+  rows:
+    - - {col: stt, from: stt}
+      - {col: name, from: name}
+      - {col: unit, from: unit}
+      - {col: qty, from: qty}
+      - {col: unit_price, from: unit_price}
+      - {col: amount, from: amount}
+
+totals:
+  frame: false
+  indent: 0.35
+  emphasise_grand: true
+  grand_scale: [1.15, 1.35]
+
+notes:
+  style: two_column
+  split: 0.52
+
+signatures: {}
