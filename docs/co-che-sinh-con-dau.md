@@ -9,12 +9,18 @@
 `tools/make_ornaments.py` sinh 27 hoạ tiết trong `textures/ornament/`, trong đó
 13 mục có chữ và 14 mục thuần hình học. Bài này mô tả cơ chế theo hai tầng.
 
-**Tầng nền** là mô hình raster của Pillow, và nó có một tính chất quyết định
-toàn bộ thiết kế phía trên: **các nguyên thuỷ hình học của `ImageDraw` không
-khử răng cưa** — chúng cho ra ảnh nhị phân — trong khi **chữ thì có**, vì chữ
-đi qua FreeType và nhận về trường phủ 8 bit. Một con dấu tròn gồm cả hai loại
-nét, nên nếu vẽ thẳng ở độ phân giải đích thì vành tròn sẽ răng cưa còn chữ thì
-mượt, và sự chênh lệch ấy nhìn thấy được.
+**Tầng nền** là mô hình raster của Pillow. Phần 2 kể nó không phải để giới
+thiệu thư viện: mỗi tiểu mục ở đó tự khai nó là **ràng buộc** — thứ Pillow
+không làm được, nên phần 3 phải dựng cơ chế đi vòng — hay **công cụ** — thứ
+Pillow có sẵn và phần 3 gọi thẳng; và chỉ ra đúng chỗ phần 3 dùng nó.
+
+Ràng buộc chính là: **các nguyên thuỷ hình học của `ImageDraw` không lấy mẫu
+diện tích**. Với một điểm ảnh mà đường biên hình đi xuyên qua, đáp án đúng là
+một giá trị nằm giữa nền và mực — tỉ lệ với phần diện tích điểm ảnh nằm trong
+hình — còn `ImageDraw` ép nó về một trong hai đầu. **Chữ thì không bị thế**, vì
+chữ đi qua FreeType và nhận về đúng giá trị ở giữa ấy. Một con dấu tròn gồm cả
+hai loại nét, nên vẽ thẳng ở độ phân giải đích sẽ cho hai chất lượng mép khác
+nhau đứng cạnh nhau trong cùng một hình.
 
 **Tầng trên** giải quyết đúng chỗ đó bằng **siêu lấy mẫu (supersampling) hệ số
 4**, rồi dựng ba cơ chế mà thư viện không có sẵn: đặt chữ trên cung tròn với
@@ -52,7 +58,33 @@ kết quả là độ phủ biến thiên theo không gian, cộng vài mảng m
 
 ## 2. Nền: mô hình raster của Pillow
 
+Phần này **không phải một bản tóm tắt Pillow**. Mỗi sự thật dưới đây có mặt vì
+đúng một trong hai lý do, và tiểu mục nào cũng nói ngay ở dòng đầu nó thuộc
+loại nào:
+
+* **RÀNG BUỘC** — Pillow *không* làm được việc gì đó, nên phần 3 phải dựng thêm
+  cơ chế để đi vòng. Đọc xong là biết một đoạn mã ở phần 3 tồn tại để làm gì.
+* **CÔNG CỤ** — Pillow *có sẵn* việc gì đó, và phần 3 gọi thẳng. Đọc xong là
+  biết một dòng ở phần 3 dựa vào đâu.
+
+Không có mục nào ở đây chỉ để biết. Bản đồ:
+
+| tiểu mục | loại | phần 3 dùng nó ở đâu |
+| --- | --- | --- |
+| 2.1 ảnh lưu 8 bit, không có tầng float trung gian | ràng buộc | ép cả chuỗi chỉ được hạ mẫu **một lần** (§3.1), và quyết định thứ tự `hạ mẫu → mực` chứ không ngược lại (§4.2) |
+| 2.2 nguyên thuỷ hình học không lấy mẫu diện tích | **ràng buộc chính** | §3.1 tồn tại **hoàn toàn** vì nó. Bỏ ràng buộc này thì `SS = 4` là thừa. |
+| 2.3 chữ đi qua FreeType và nhận về độ phủ | vừa công cụ vừa ràng buộc | công cụ: §3.2 có chữ khử răng cưa miễn phí. Ràng buộc: nó **lệch pha** với 2.2 trên cùng một con dấu, và đó là lý do thứ hai của §3.1. |
+| 2.4 bộ lọc hạ mẫu | công cụ | `LANCZOS` là thứ biến `SS²` mẫu nhị phân thành một ước lượng độ phủ (§3.1); `BICUBIC` xoay từng glyph (§3.2) |
+| 2.5 `GaussianBlur` là ba lượt hộp | công cụ | `_ink` làm mềm mép các mảng hở (§3.4), và đuôi ngắn của nhân ảnh hưởng tới hình dạng mảng ấy |
+| 2.6 ghép alpha theo toán tử "over" | công cụ | `_arc_text` ghép từng glyph một, và chỗ hai glyph giao nhau phải **cộng** độ phủ (§3.2) |
+
+Ai chỉ cần biết engine dựng con dấu thế nào thì đọc thẳng phần 3; quay lại đây
+khi phần 3 nói "vì §2.x".
+
 ### 2.1 Biểu diễn ảnh
+
+> **RÀNG BUỘC.** Không có tầng số thực trung gian: mọi toán tử trả về 8 bit,
+> nên sai số lượng tử cộng dồn qua từng bước của chuỗi.
 
 Một `PIL.Image.Image` bọc một đối tượng lõi `ImagingCore` cài đặt trong C
 (`_imaging` là extension nhị phân). Ảnh lưu **theo băng, xen kẽ theo điểm** với
@@ -64,39 +96,117 @@ tử chạy, kết quả bị lượng tử hoá về 8 bit. Chuỗi `vẽ → x
 alpha → làm mờ` do đó tích luỹ sai số lượng tử ở từng bước, và đó là một lý do
 nữa để làm việc ở độ phân giải cao rồi mới hạ xuống một lần.
 
-### 2.2 Nguyên thuỷ hình học: không khử răng cưa
+→ **Dùng ở §3.1** (hạ mẫu đúng một lần) và **§4.2** (vì sao `_ink` chạy *sau*
+khi hạ mẫu chứ không trước).
 
-Đây là tính chất quyết định. Đo trực tiếp:
+### 2.2 Nguyên thuỷ hình học không lấy mẫu diện tích
 
-```python
-im = Image.new('L', (200,200), 0)
-ImageDraw.Draw(im).ellipse([20,20,180,180], outline=255, width=3)
-np.unique(np.array(im))          # -> array([  0, 255], dtype=uint8)
-```
+> **RÀNG BUỘC, và là ràng buộc chính của cả tài liệu.** `ImageDraw` quyết định
+> mỗi điểm ảnh thuộc hay không thuộc hình — không có giá trị ở giữa. Toàn bộ
+> §3.1 tồn tại để đi vòng qua đúng câu này.
 
-| nguyên thuỷ | số mức xám khác nhau trong ảnh kết quả |
-| --- | ---: |
-| `ImageDraw.ellipse(outline=…)` | **2** |
-| `ImageDraw.polygon(fill=…)` | **2** |
-| `ImageDraw.text(…)` | **158** |
+Đây là tính chất quyết định thiết kế ở phần 3. Trước khi đưa số, định nghĩa ba
+đại lượng — cả bài dùng lại chúng, và bản đầu của tài liệu này đưa con số "2"
+mà không nói nó đếm cái gì.
 
-![Bảy nguyên thuỷ, cùng một phép đo](figures/con-dau/fig-2.2-nguyen-thuy-hinh-hoc.png)
+**Ảnh mode `L`.** Mỗi điểm ảnh là một byte: một số nguyên trong 0…255. Pillow
+không gán ý nghĩa nào cho các số ấy; ý nghĩa do người dùng đặt. Ở đây chúng
+luôn mang đúng một ý nghĩa, là đại lượng tiếp theo.
 
-*Bảy nguyên thuỷ, cùng một phép đo. Sáu nguyên thuỷ hình học cho **2 mức xám** — phóng vào mép thấy bậc thang. `text()` cho **225 mức** vì nó đi qua FreeType.*
+**Độ phủ `c` của một điểm ảnh** là phần diện tích của ô điểm ảnh nằm bên trong
+hình đang vẽ, một số thực trong [0, 1]. Một bộ raster **lấy mẫu diện tích**
+(area sampling) ghi vào điểm ảnh giá trị `round(255·c)`. Điểm nằm trọn trong
+hình nhận 255, nằm trọn ngoài nhận 0, và điểm mà **đường biên đi xuyên qua**
+nhận một giá trị nằm hẳn giữa hai đầu. "Khử răng cưa" trong tài liệu này không
+có nghĩa gì khác ngoài điều đó.
 
-`ImageDraw` quyết định mỗi điểm ảnh thuộc hay không thuộc hình, theo quy tắc
-điểm-trong-đa-giác quét dòng. Không có phủ một phần, không có mức trung gian.
-Pillow không có API bật khử răng cưa cho nhóm này.
+Hai số đo được từ định nghĩa ấy:
+
+| ký hiệu | là gì | tính bằng |
+| --- | --- | --- |
+| `\|V\|` | **số giá trị phân biệt thực sự xuất hiện** trong ảnh. Không phải số giá trị mà định dạng cho phép — số ấy luôn là 256 — mà số giá trị đã được dùng đến. | `len(np.unique(array))` |
+| `p` | **tỉ lệ điểm biên**: phần trăm điểm ảnh có `0 < v < 255`, tức là các điểm nhận độ phủ một phần. | `mean((a > 0) & (a < 255))` |
+
+Đo trên ảnh `L` 150×150, nền 0, hình vẽ bằng giá trị 255:
+
+| nguyên thuỷ | `\|V\|` | tập `V` | `p` |
+| --- | ---: | :---: | ---: |
+| `ellipse(outline=…, width=4)` | 2 | {0, 255} | 0,00 % |
+| `ellipse(fill=…)` | 2 | {0, 255} | 0,00 % |
+| `polygon(fill=…)` | 2 | {0, 255} | 0,00 % |
+| `line(width=5)`, vẽ chéo | 2 | {0, 255} | 0,00 % |
+| `arc(width=6)` | 2 | {0, 255} | 0,00 % |
+| `regular_polygon(…)` | 2 | {0, 255} | 0,00 % |
+| **`text("Ag", 84px)`** | **225** | 0…255 | **2,72 %** |
+| `rectangle(…)` thẳng trục, toạ độ nguyên — *đối chứng* | 2 | {0, 255} | 0,00 % |
+| ảnh không vẽ gì — *sàn* | 1 | {0} | 0,00 % |
+
+![Bảy nguyên thuỷ cùng một phép đo](figures/con-dau/fig-2.2-nguyen-thuy-hinh-hoc.png)
+
+*Cùng bảng trên, dựng ra ảnh. Sáu nguyên thuỷ hình học cho `p = 0` — phóng vào
+mép thấy bậc thang, không điểm ảnh nào mang độ phủ một phần. `text()` cho
+`p = 2,72 %`. Ô cuối là hàng đối chứng `rectangle` thẳng trục: `p = 0` ở đấy là
+đúng, và vì thế nó không chứng minh gì.*
+
+**`|V|` = 2 nghĩa là gì, và vì sao không phải 0 hay 1.** Một ảnh luôn có ít
+nhất một giá trị, nên `|V| = 0` không tồn tại. `|V| = 1` là ảnh chỉ còn nền —
+không vẽ gì cả, hàng cuối bảng. Vậy **2 là giá trị nhỏ nhất mà một hình đã
+thực sự vẽ ra bằng một màu có thể đạt**, và nó nói đúng một điều: tập giá trị
+của ảnh bằng chính {nền, mực}. Mọi điểm ảnh hoặc hoàn toàn trong hình, hoặc
+hoàn toàn ngoài. Không điểm nào ở giữa — nên `p = 0`.
+
+Trong hai số, **`p` mới là số mang nghĩa**; `|V| = 2` chỉ là hệ quả của
+`p = 0`. `|V|` có mặt trong bảng vì nó rẻ và vì nó cho biết thêm *tập* giá trị
+là gì, nhưng lập luận đứng trên `p`.
+
+**Chỗ dễ đọc sai, và vì sao có hàng đối chứng.** `p = 0` chỉ là bằng chứng khi
+biên của hình **không trùng lưới điểm ảnh**. Hình chữ nhật thẳng trục với toạ độ
+nguyên có biên rơi đúng vào cạnh giữa hai điểm ảnh, nên **không điểm nào bị
+biên đi xuyên qua**: độ phủ của mọi điểm đúng bằng 0 hoặc 1, và một bộ raster
+lấy mẫu diện tích hoàn hảo cũng cho `p = 0` ở đấy. Hàng ấy không chứng minh
+điều gì, và có mặt trong bảng để nói rằng phép đo này phụ thuộc việc chọn hình.
+
+**Vì sao `ellipse(outline=…)` là bằng chứng mạnh nhất trong bảng.** Đường tròn
+cong tại mọi điểm: không một đoạn biên nào của nó song song với trục điểm ảnh,
+nên không có chỗ nào để lưới "may mắn" trùng. Với vành dày 4 điểm ảnh trên ảnh
+150×150 ấy, tính giải tích thì **biên đi xuyên qua 752 điểm ảnh** — 3,34 % mặt
+ảnh — và với mỗi điểm trong số đó, độ phủ thật là một số nằm hẳn giữa 0 và 1.
+Một bộ raster lấy mẫu diện tích buộc phải sinh ra 752 giá trị trung gian ấy.
+
+`ImageDraw` sinh ra **0**.
+
+Đó là phát biểu đầy đủ của giới hạn: không phải "ảnh có ít giá trị", mà **với
+752 điểm ảnh mà đáp án đúng là một số ở giữa, cả 752 đều bị ép về một trong hai
+đầu**. `ImageDraw` quyết định mỗi điểm ảnh *thuộc hay không thuộc* hình theo quy
+tắc điểm-trong-đa-giác quét dòng, và tập giá trị {0, 255} là dấu vết của phép
+quyết định nhị phân ấy. Pillow không có tham số nào bật lấy mẫu diện tích cho
+nhóm nguyên thuỷ này.
+
+→ **Đây là câu mà §3.1 sinh ra để trả lời.** Một con dấu tròn là hai vành
+`ellipse(outline=…)`, nên nếu vẽ thẳng ở độ phân giải đích thì cả hai vành đều
+mang mép bậc thang.
 
 ### 2.3 Chữ: FreeType và trường phủ 8 bit
+
+> **CÔNG CỤ, và một nửa là ràng buộc.** Chữ đi đường raster khác hẳn hình học
+> và nhận được độ phủ thật. Nửa ràng buộc: trên cùng một con dấu, chữ khử răng
+> cưa còn vành tròn thì không, và chênh lệch ấy nhìn thấy được.
 
 Đường đi của chữ hoàn toàn khác. `ImageFont.truetype` mở font qua **FreeType2**;
 `font.getmask(text)` trả về một mặt nạ **mode `L`** — tức là trường phủ 8 bit
 đã khử răng cưa bởi bộ rasteriser của FreeType, không phải bởi Pillow.
 `ImageDraw.text` chỉ lấy mặt nạ ấy làm alpha rồi tô màu qua nó.
 
-Đó là lý do bảng trên chênh nhau 2 mức so với 158 mức: **hai đường raster khác
-nhau trong cùng một thư viện**, và một con dấu tròn dùng cả hai.
+Đó là lý do hàng `text` trong bảng §2.2 lệch hẳn phần còn lại — `|V| = 225` và
+`p = 2,72 %` so với `|V| = 2` và `p = 0`: **hai đường raster khác nhau trong
+cùng một thư viện**, và một con dấu tròn dùng cả hai. `p = 2,72 %` chính là
+những điểm ảnh mà biên nét chữ đi xuyên qua, và FreeType trả về độ phủ của
+chúng thay vì ép về hai đầu.
+
+→ **Công cụ cho §3.2**: `_arc_text` chỉ việc gọi `ImageDraw.text` cho từng
+glyph. **Ràng buộc cho §3.1**: hai đường raster ấy gặp nhau trên cùng một ảnh,
+nên nếu không siêu lấy mẫu thì trên một con dấu, chữ có `p > 0` còn vành tròn
+có `p = 0` — hai chất lượng mép khác nhau cạnh nhau trong cùng một hình.
 
 ![Mép một nét chữ, phóng 9×, và lát cắt ngang qua nó](figures/con-dau/fig-2.3-phu-freetype.png)
 
@@ -104,6 +214,9 @@ nhau trong cùng một thư viện**, và một con dấu tròn dùng cả hai.
 
 
 ### 2.4 Lấy mẫu lại
+
+> **CÔNG CỤ.** Phép thu nhỏ có trọng số chính là phép lấy trung bình diện tích
+> mà §3.1 cần; không có nó thì siêu lấy mẫu không mua được gì.
 
 `Image.resize` cài đặt sáu bộ lọc; ba bộ dùng trong file này:
 
@@ -115,7 +228,7 @@ nhau trong cùng một thư viện**, và một con dấu tròn dùng cả hai.
 
 ![Cùng một bản dựng ở 8×, hạ về 120 px bằng bốn bộ lọc](figures/con-dau/fig-2.4-lay-mau-lai.png)
 
-*Cùng một bản dựng ở 8×, hạ về 120 px bằng bốn bộ lọc. `NEAREST` lấy một mẫu nên giữ nguyên 2 mức của bản gốc; ba bộ còn lại lấy trung bình có trọng số.*
+*Cùng một bản dựng ở 8×, hạ về 120 px bằng bốn bộ lọc. `NEAREST` lấy đúng một mẫu nguồn cho mỗi điểm đích nên giữ nguyên tập {0, 255} của bản gốc; ba bộ còn lại lấy trung bình có trọng số, và trung bình của các mẫu nhị phân chính là ước lượng độ phủ.*
 
 Pillow cài đặt phép thu nhỏ theo lối **tích chập tách được có tỉ lệ hỗ trợ**:
 khi thu nhỏ hệ số `k`, bán kính hỗ trợ của bộ lọc được nhân `k`, nên mọi điểm
@@ -123,6 +236,9 @@ khi thu nhỏ hệ số `k`, bán kính hỗ trợ của bộ lọc được nh�
 phép hạ mẫu *là* phép lấy trung bình diện tích có trọng số.
 
 ### 2.5 Làm mờ Gauss là ba lượt hộp, không phải tích chập Gauss
+
+> **CÔNG CỤ.** `_ink` (§3.4) gọi nó hai lần. Đáng đo vì nhân thật **không phải**
+> Gauss, và hình dạng đuôi quyết định mép các mảng hở trên mặt dấu.
 
 Docstring của `ImageFilter.GaussianBlur` nói thẳng: *"Blurs the image with a
 sequence of extended box filters, which approximates a Gaussian kernel"*, dẫn
@@ -155,6 +271,9 @@ như thế thì đuôi ngắn làm mép mảng dứt khoát hơn một chút so 
 
 ### 2.6 Ghép alpha
 
+> **CÔNG CỤ.** `_arc_text` (§3.2) ghép từng glyph vào canvas bằng toán tử này,
+> nên quy tắc cộng độ phủ ở chỗ hai glyph giao nhau là quy tắc của nó.
+
 `Image.alpha_composite` cài đặt toán tử **"over" của Porter–Duff** trên dữ liệu
 không nhân sẵn alpha:
 
@@ -177,7 +296,8 @@ với mực thật, nơi hai nét chồng lên nhau thì đậm hơn.
 
 ### 3.1 Siêu lấy mẫu thay cho khử răng cưa giải tích
 
-Vì §2.2, cách duy nhất để vành tròn có mép mượt là **lấy mẫu diện tích bằng số**:
+Vì §2.2, cách duy nhất để vành tròn có điểm ảnh mang độ phủ một phần là **lấy
+mẫu diện tích bằng số**:
 vẽ ở độ phân giải `SS` lần rồi hạ xuống. Mọi hàm vẽ trong file mở đầu bằng
 
 ```python
@@ -195,7 +315,7 @@ Chọn `SS` là một đánh đổi đo được, và §4.1 đo nó.
 
 ![Cùng một vành tròn ở bốn hệ số](figures/con-dau/fig-3.1-sieu-lay-mau.png)
 
-*Cùng một vành tròn ở bốn hệ số. `SS = 1` cho 2 mức xám và mép bậc thang; từ `SS = 2` trở đi phép hạ mẫu biến `SS²` mẫu nhị phân thành ước lượng phủ.*
+*Cùng một vành tròn ở bốn hệ số. `SS = 1` cho tập {0, 255} và mép bậc thang; từ `SS = 2` trở đi phép hạ mẫu biến `SS²` mẫu nhị phân trong mỗi ô đích thành một ước lượng độ phủ, nên `p` nhảy từ 0 lên vài phần trăm.*
 
 
 ### 3.2 Chữ trên cung tròn
@@ -313,7 +433,7 @@ trị 95–185 trên nền 255, làm mờ bằng `GaussianBlur(0.05·W)` rồi *
 mask. Bán kính mờ tỉ lệ bề rộng nên hình dạng bất biến theo cỡ ảnh.
 
 **(d) Áp và làm mềm.** `alpha ← alpha · mask`, rồi `GaussianBlur(0.4)` toàn ảnh
-— mực nhoè vào thớ giấy, mép nét không bao giờ sắc như mép hình học.
+— mực thấm vào thớ giấy, nên mép nét mực trải rộng hơn mép hình học đã vẽ.
 
 Cuối cùng `round_seal` xoay ảnh `±16°` bằng BICUBIC với `expand=True`: **con dấu
 đóng tay không bao giờ thẳng**.
@@ -480,7 +600,8 @@ python docs/figures/make_stamp_figures.py     # hoặc: make figures-stamp
 Bộ dựng **chạy lại đúng phép đo mà bài trích** rồi vẽ kết quả, nên một con số
 trong bài và hình minh hoạ nó không thể lệch nhau — cả hai đến từ cùng một lần
 chạy. Xuất PNG chứ không JPG: phần lớn hình phóng tới mức thấy từng điểm ảnh,
-mà nén JPEG sẽ bịa thêm mức trung gian ở đúng chỗ bài khẳng định là chỉ có hai.
+mà nén JPEG sẽ bịa ra giá trị trung gian ở đúng chỗ bài khẳng định tập giá trị
+chỉ có hai phần tử.
 
 | hình | mục | trả lời câu hỏi |
 | --- | --- | --- |
