@@ -1,0 +1,16 @@
+# THAM SỐ NỘI DUNG — magazine_contents
+#
+# Bộ nhận diện cố định của tạp chí "Bến", số 84 -- chép nguyên văn từ
+# `samples/periodical-templates/magazine_contents.html`. `magazine_qa_
+# interview.yaml` là một trang khác của cùng số báo này (`footer_right` ở đó
+# ghép "Bến" + số trang ngẫu nhiên). Bài đinh, mục lục theo chuyên mục bốc từ
+# `rulebase/corpus/vi/periodical_toc.yaml` -- một bộ trọn vẹn, xem module
+# docstring của `rulebase/periodical.py`.
+
+kind: periodical
+composition: toc
+
+masthead: "Tạp chí Bến"
+issue_label: "Số 84 · Tháng 9 · 2026"
+footer_left: "Bìa: Ảnh chụp tại rạch Mẫu, tháng 8 · 2026"
+footer_right: "Bến · Số 84 · Trang 4"

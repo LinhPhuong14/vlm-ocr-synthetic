@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LO-06 · Giấy chứng nhận bảo hiểm sức khoẻ – bố cục cột dọc + thẻ hội viên</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#6d716a;font-family:"Segoe UI",Arial,Helvetica,sans-serif;color:#1b2430}
+  @page{size:A4 portrait;margin:0}
+  .sheet{width:210mm;min-height:297mm;background:#fff;margin:10mm auto;position:relative;overflow:hidden;
+         box-shadow:0 2mm 8mm rgba(0,0,0,.35);display:grid;grid-template-columns:58mm 1fr}
+
+  /* ---- cột trái ---- */
+  aside{background:#06584f;color:#eafaf6;padding:12mm 8mm;display:flex;flex-direction:column;gap:8mm}
+  aside::after{content:"";position:absolute;left:0;top:0;width:58mm;height:100%;
+    background:repeating-linear-gradient(180deg,rgba(255,255,255,.04) 0 .3mm,transparent .3mm 5mm);pointer-events:none}
+  .brand{font-size:5.4mm;font-weight:800;letter-spacing:-.2mm;line-height:1.1}
+  .brand small{display:block;font-size:2.5mm;font-weight:400;letter-spacing:.7mm;opacity:.8;
+               text-transform:uppercase;margin-top:1.5mm}
+  .memcard{background:linear-gradient(140deg,#0b7a6c,#0f9a86);border-radius:2.5mm;padding:4mm;
+           box-shadow:0 1mm 4mm rgba(0,0,0,.28)}
+  .memcard .lbl{font-size:2.2mm;letter-spacing:.6mm;text-transform:uppercase;opacity:.85}
+  .memcard .no{font-family:"Courier New",monospace;font-size:4.4mm;letter-spacing:.5mm;font-weight:700;margin:1.5mm 0 2.5mm}
+  .memcard .nm{font-size:3.2mm;font-weight:700;text-transform:uppercase}
+  .memcard .ex{font-size:2.4mm;opacity:.85;margin-top:.8mm}
+  aside dl{font-size:2.7mm;line-height:1.5}
+  aside dt{opacity:.7;text-transform:uppercase;letter-spacing:.4mm;font-size:2.3mm;margin-top:3mm}
+  aside dd{font-weight:700;font-size:3mm}
+  .hotbox{margin-top:auto;border:.3mm solid rgba(255,255,255,.35);border-radius:2mm;padding:3mm;font-size:2.5mm;line-height:1.5}
+  .hotbox b{display:block;font-size:3.4mm;letter-spacing:.3mm}
+
+  /* ---- cột phải ---- */
+  main{padding:12mm 14mm 16mm}
+  .eyebrow{font-size:2.5mm;letter-spacing:1.2mm;text-transform:uppercase;color:#0b7a6c;font-weight:700}
+  h1{font-size:7.2mm;font-weight:800;line-height:1.15;margin:2mm 0 2mm;color:#06322c}
+  .lead{font-size:2.9mm;color:#54626e;line-height:1.55;max-width:110mm;border-left:.8mm solid #0b7a6c;padding-left:4mm}
+
+  h2{font-size:3.2mm;font-weight:800;text-transform:uppercase;letter-spacing:.5mm;color:#06584f;
+     margin:8mm 0 2.5mm;padding-bottom:1.2mm;border-bottom:.4mm solid #cfe3df}
+  table{width:100%;border-collapse:collapse;font-size:2.85mm}
+  thead th{text-align:left;font-size:2.5mm;text-transform:uppercase;letter-spacing:.35mm;color:#06584f;
+           border-bottom:.5mm solid #06584f;padding:1.6mm 2mm}
+  tbody td{padding:2mm;border-bottom:.2mm solid #e4ece9;vertical-align:top}
+  tbody tr:last-child td{border-bottom:0}
+  td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+  td.b{font-weight:700;color:#06322c}
+  .grp td{background:#f0f7f5;font-weight:700;text-transform:uppercase;font-size:2.5mm;letter-spacing:.3mm;color:#06584f}
+
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:5mm}
+  .note{background:#fff6e8;border-radius:2mm;padding:3.5mm 4mm;font-size:2.6mm;line-height:1.55;color:#5a4413}
+  .note b{color:#8a5a00;display:block;margin-bottom:1mm;text-transform:uppercase;letter-spacing:.3mm;font-size:2.4mm}
+  ul.ex{margin:0 0 0 4mm;font-size:2.7mm;line-height:1.6;color:#3d4a55}
+
+  .authrow{display:flex;justify-content:space-between;align-items:flex-end;margin-top:10mm;gap:8mm}
+  .esign{font-size:2.6mm;color:#54626e;line-height:1.5}
+  .esign b{display:block;color:#06322c;font-size:3mm}
+  .sigbox{width:52mm;text-align:center;position:relative}
+  .sigbox .r{font-size:2.8mm;font-weight:800;text-transform:uppercase;color:#06322c}
+  .sigbox .sp{height:20mm;position:relative}
+  .sigbox .nm{border-top:.2mm solid #9fb0ab;padding-top:1.2mm;font-weight:700;font-size:2.8mm}
+  .stamp{position:absolute;left:50%;top:0;transform:translateX(-50%) rotate(-12deg);width:28mm;height:28mm;
+         border:.65mm solid #c8102e;border-radius:50%;opacity:.65;display:flex;align-items:center;justify-content:center;text-align:center}
+  .stamp::before{content:"";position:absolute;inset:2.2mm;border:.28mm solid #c8102e;border-radius:50%}
+  .stamp span{color:#c8102e;font-weight:800;font-size:2.2mm;line-height:1.2}
+  .foot{position:absolute;left:72mm;right:14mm;bottom:7mm;font-size:2.3mm;color:#8b9791;
+        display:flex;justify-content:space-between;border-top:.2mm solid #e4ece9;padding-top:1.8mm}
+  @media print{html,body{background:#fff}.sheet{margin:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <aside>
+    <div class="brand">MINH HOẠ<br>CARE<small>Bảo hiểm sức khoẻ</small></div>
+
+    <div class="memcard">
+      <div class="lbl">Số thẻ hội viên</div>
+      <div class="no">MHC 0042 8891</div>
+      <div class="nm">Nguyễn Văn A</div>
+      <div class="ex">Hiệu lực đến 31/12/2026</div>
+    </div>
+
+    <dl>
+      <dt>Chương trình</dt><dd>Gói Vàng</dd>
+      <dt>Hiệu lực từ</dt><dd>01/01/2026</dd>
+      <dt>Hiệu lực đến</dt><dd>31/12/2026</dd>
+      <dt>Phí bảo hiểm/năm</dt><dd>9.850.000 đ</dd>
+      <dt>Thời gian chờ</dt><dd>30 ngày (bệnh thông thường)</dd>
+    </dl>
+
+    <div class="hotbox">
+      Bảo lãnh viện phí 24/7<b>1900 0000</b>
+      Xuất trình thẻ hội viên và giấy tờ tuỳ thân tại cơ sở y tế liên kết.
+    </div>
+  </aside>
+
+  <main>
+    <div class="eyebrow">Giấy chứng nhận bảo hiểm</div>
+    <h1>Bảo hiểm sức khoẻ toàn diện</h1>
+    <div class="lead">
+      Giấy chứng nhận này xác nhận Người được bảo hiểm nêu bên trái đã tham gia chương trình
+      bảo hiểm sức khoẻ và là bằng chứng giao kết hợp đồng bảo hiểm giữa Bên mua bảo hiểm và
+      doanh nghiệp bảo hiểm, có giá trị khi đã đóng đủ phí.
+    </div>
+
+    <h2>Quyền lợi và mức trách nhiệm</h2>
+    <table>
+      <thead>
+        <tr><th>Quyền lợi</th><th class="r" style="width:34mm">Giới hạn / năm</th><th class="r" style="width:30mm">Giới hạn / lần</th></tr>
+      </thead>
+      <tbody>
+        <tr class="grp"><td colspan="3">A · Điều trị nội trú</td></tr>
+        <tr><td>Tiền phòng và giường bệnh</td><td class="r b">200.000.000 đ</td><td class="r">2.500.000 đ/ngày</td></tr>
+        <tr><td>Chi phí phẫu thuật, thủ thuật</td><td class="r b">Theo giới hạn A</td><td class="r">—</td></tr>
+        <tr><td>Điều trị trước và sau khi nhập viện</td><td class="r b">15.000.000 đ</td><td class="r">—</td></tr>
+        <tr class="grp"><td colspan="3">B · Điều trị ngoại trú (tuỳ chọn)</td></tr>
+        <tr><td>Khám bệnh, xét nghiệm, chẩn đoán hình ảnh</td><td class="r b">20.000.000 đ</td><td class="r">2.000.000 đ/lần</td></tr>
+        <tr><td>Vật lý trị liệu theo chỉ định</td><td class="r b">5.000.000 đ</td><td class="r">—</td></tr>
+        <tr class="grp"><td colspan="3">C · Quyền lợi bổ sung</td></tr>
+        <tr><td>Nha khoa cơ bản</td><td class="r b">6.000.000 đ</td><td class="r">—</td></tr>
+        <tr><td>Thai sản</td><td class="r b">30.000.000 đ</td><td class="r">—</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Điểm cần lưu ý</h2>
+    <div class="twocol">
+      <div class="note">
+        <b>Điều kiện chi trả</b>
+        Quyền lợi chỉ áp dụng cho chi phí y tế cần thiết, hợp lý, phát sinh trong thời hạn
+        bảo hiểm và sau khi kết thúc thời gian chờ tương ứng của từng quyền lợi.
+      </div>
+      <div>
+        <ul class="ex">
+          <li>Bệnh có sẵn trước ngày hiệu lực đầu tiên</li>
+          <li>Điều trị mang tính thẩm mỹ, không do tai nạn</li>
+          <li>Chi phí phát sinh ngoài phạm vi lãnh thổ đã đăng ký</li>
+          <li>Trường hợp thuộc điều khoản loại trừ của quy tắc bảo hiểm</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="authrow">
+      <div class="esign">
+        Chứng từ được phát hành điện tử<br>
+        Mã kiểm tra: <b>MHC-2026-0042-8891</b>
+        Tra cứu tại example.vn/tra-cuu
+      </div>
+      <div class="sigbox">
+        <div class="r">Doanh nghiệp bảo hiểm</div>
+        <div class="sp"><div class="stamp"><span>MINH HOẠ CARE<br>VIỆT NAM</span></div></div>
+        <div class="nm">Giám đốc nghiệp vụ</div>
+      </div>
+    </div>
+  </main>
+
+  <div class="foot"><span>Mẫu GCN-SK/2026</span><span>Trang 1/1 · Kèm theo Quy tắc bảo hiểm sức khoẻ hiện hành</span></div>
+</div>
+</body>
+</html>

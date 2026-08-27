@@ -1,0 +1,56 @@
+# INV-03 — Logo/tên hiệu canh giữa, thông tin công ty ngay dưới.
+#
+# Gần với mặc định của khối `_masthead` nhất trong cả họ: tên hiệu canh
+# giữa, và — khác `invoice_header_table` — có thêm các dòng liên hệ
+# (address/phone/website) ngay dưới tên, cũng canh giữa, trước khi vào
+# bảng. Vẫn dùng `invoice_plain`: không khối khách hàng, không chữ ký.
+id: invoice_logo_center
+name: Centred trading name and contact block, then the table
+source: "khảo sát mẫu hoá đơn bán hàng tự thiết kế phổ biến — khối liên hệ canh giữa dưới tên hiệu"
+family: modern
+
+width: [78, 92]
+gutter: 2
+rule_char: "-"
+sheet: a4
+rules: marks
+
+sections: [header, table, totals, footer]
+
+header:
+  name_scale: [1.40, 1.65]
+  name_bold: true
+  title: true
+  title_scale: [1.20, 1.40]
+  address: true
+  phone: true
+  website: true
+
+columns:
+  - {key: stt,        title: "STT",                   width: 4,  align: center, title_align: center}
+  - {key: name,       title: "Tên hàng hoá, dịch vụ",  width: 0,  align: left,   title_align: left}
+  - {key: unit,       title: "ĐVT",                    width: 8,  align: center, title_align: center}
+  - {key: qty,        title: "Số lượng",               width: 8,  align: right,  title_align: right}
+  - {key: unit_price, title: "Đơn giá",                width: 13, align: right,  title_align: right}
+  - {key: amount,     title: "Thành tiền",             width: 15, align: right,  title_align: right}
+
+table:
+  frame: false
+  shade: 0.10
+  header_rules: true
+
+item:
+  wrap_name: true
+  rows:
+    - - {col: stt, from: stt}
+      - {col: name, from: name}
+      - {col: unit, from: unit}
+      - {col: qty, from: qty}
+      - {col: unit_price, from: unit_price}
+      - {col: amount, from: amount}
+
+totals:
+  frame: false
+  indent: 0.42
+  emphasise_grand: true
+  grand_scale: [1.15, 1.35]

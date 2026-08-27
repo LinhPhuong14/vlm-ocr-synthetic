@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LO-03 · Trang hợp đồng bảo hiểm nhân thọ (Policy Schedule) – A4 dọc</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#6d716a;font-family:Arial,Helvetica,sans-serif;color:#1d2530}
+  @page{size:A4 portrait;margin:0}
+  .sheet{width:210mm;min-height:297mm;background:#fff;margin:10mm auto;position:relative;
+         box-shadow:0 2mm 8mm rgba(0,0,0,.35);padding:0 0 18mm}
+
+  /* dải đầu trang màu – đặc trưng layout doanh nghiệp BHNT */
+  .band{background:linear-gradient(100deg,#0d3b66 0%,#12518c 55%,#1a6fb0 100%);color:#fff;
+        padding:9mm 16mm 7mm;position:relative;overflow:hidden}
+  .band::after{content:"";position:absolute;right:-20mm;top:-30mm;width:80mm;height:80mm;
+        border:14mm solid rgba(255,255,255,.06);border-radius:50%}
+  .band .row{display:flex;justify-content:space-between;align-items:flex-start;gap:8mm;position:relative}
+  .band .brand{font-size:6mm;font-weight:800;letter-spacing:-.3mm}
+  .band .brand small{display:block;font-size:2.7mm;font-weight:400;letter-spacing:.6mm;opacity:.85;text-transform:uppercase}
+  .band .pol{text-align:right;font-size:2.9mm;opacity:.9}
+  .band .pol b{display:block;font-family:"Courier New",monospace;font-size:6mm;letter-spacing:.4mm;margin-top:1mm}
+  .band h1{font-size:7mm;font-weight:800;margin-top:7mm;text-transform:uppercase;letter-spacing:.1mm;position:relative}
+  .band h1 span{display:block;font-size:3.2mm;font-weight:400;text-transform:none;font-style:italic;opacity:.85;margin-top:1mm}
+
+  main{padding:8mm 16mm 0}
+  section{margin-bottom:6mm;break-inside:avoid}
+  h2{font-size:3.4mm;font-weight:800;text-transform:uppercase;color:#0d3b66;letter-spacing:.35mm;
+     display:flex;align-items:center;gap:3mm;margin-bottom:2.5mm}
+  h2::after{content:"";flex:1;height:.5mm;background:linear-gradient(90deg,#1a6fb0,rgba(26,111,176,0))}
+  h2 .num{width:6mm;height:6mm;border-radius:50%;background:#0d3b66;color:#fff;font-size:3mm;
+          display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+
+  .kv{display:grid;grid-template-columns:52mm 1fr 44mm 1fr;gap:1.6mm 4mm;font-size:3mm}
+  .kv .k{color:#5c6a78}
+  .kv .v{font-weight:700;color:#12233a;border-bottom:.2mm dotted #c3ccd4;padding-bottom:.5mm}
+  .kv .full{grid-column:2 / -1}
+
+  table{width:100%;border-collapse:collapse;font-size:2.9mm}
+  thead th{background:#0d3b66;color:#fff;padding:2mm;text-align:left;font-weight:700;font-size:2.8mm}
+  tbody td{border-bottom:.2mm solid #dde3e9;padding:2mm;vertical-align:top}
+  tbody tr:nth-child(even) td{background:#f6f9fc}
+  td.r,th.r{text-align:right}
+  tfoot td{padding:2.2mm 2mm;font-weight:800;border-top:.5mm solid #0d3b66;color:#0d3b66;font-size:3.1mm}
+
+  .callout{border-left:1.2mm solid #d98b00;background:#fff8e9;padding:3mm 4mm;font-size:2.8mm;line-height:1.5;color:#4a3a12}
+  .callout b{color:#8a5a00}
+
+  .signrow{display:grid;grid-template-columns:1fr 1fr;gap:10mm;margin-top:10mm;text-align:center;font-size:3mm}
+  .signrow .role{font-weight:800;text-transform:uppercase;font-size:2.9mm;letter-spacing:.2mm}
+  .signrow .hint{font-style:italic;color:#5c6a78;font-size:2.6mm}
+  .signrow .space{height:20mm;position:relative}
+  .signrow .nm{border-top:.2mm solid #9aa6b2;padding-top:1.2mm;font-weight:700}
+  .stamp{position:absolute;left:50%;top:0;transform:translateX(-50%) rotate(-11deg);width:30mm;height:30mm;
+         border:.7mm solid #c8102e;border-radius:50%;opacity:.68;display:flex;align-items:center;justify-content:center;text-align:center}
+  .stamp::before{content:"";position:absolute;inset:2.4mm;border:.3mm solid #c8102e;border-radius:50%}
+  .stamp span{color:#c8102e;font-weight:800;font-size:2.3mm;line-height:1.2}
+
+  footer{position:absolute;left:16mm;right:16mm;bottom:8mm;border-top:.2mm solid #dde3e9;padding-top:2mm;
+         display:flex;justify-content:space-between;font-size:2.4mm;color:#7a8593}
+  @media print{html,body{background:#fff}.sheet{margin:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="band">
+    <div class="row">
+      <div class="brand">MINH HOẠ LIFE<small>Bảo hiểm nhân thọ Minh Hoạ Việt Nam</small></div>
+      <div class="pol">Số hợp đồng<b>7100 458 921</b></div>
+    </div>
+    <h1>Trang hợp đồng<span>Bản thông tin chi tiết hợp đồng bảo hiểm nhân thọ — đính kèm và là một phần không tách rời của Bộ hợp đồng</span></h1>
+  </div>
+
+  <main>
+    <section>
+      <h2><span class="num">1</span>Bên mua bảo hiểm &amp; Người được bảo hiểm</h2>
+      <div class="kv">
+        <div class="k">Bên mua bảo hiểm</div><div class="v">NGUYỄN VĂN A</div>
+        <div class="k">Ngày sinh</div><div class="v">12/05/1988</div>
+        <div class="k">Số giấy tờ tuỳ thân</div><div class="v">0010880xxxxx</div>
+        <div class="k">Giới tính</div><div class="v">Nam</div>
+        <div class="k">Địa chỉ liên hệ</div><div class="v full">Số 12, Phố Mẫu, Phường Mẫu, TP. Hà Nội</div>
+        <div class="k">Người được bảo hiểm chính</div><div class="v">NGUYỄN VĂN A</div>
+        <div class="k">Tuổi bảo hiểm</div><div class="v">37</div>
+        <div class="k">Người thụ hưởng</div><div class="v full">TRẦN THỊ B — Vợ — Tỷ lệ thụ hưởng 100%</div>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="num">2</span>Thông tin hiệu lực</h2>
+      <div class="kv">
+        <div class="k">Ngày hiệu lực hợp đồng</div><div class="v">01/03/2026</div>
+        <div class="k">Ngày kỷ niệm</div><div class="v">01/03 hằng năm</div>
+        <div class="k">Thời hạn hợp đồng</div><div class="v">25 năm</div>
+        <div class="k">Thời hạn đóng phí</div><div class="v">15 năm</div>
+        <div class="k">Định kỳ đóng phí</div><div class="v">Nửa năm</div>
+        <div class="k">Ngày đến hạn đóng phí</div><div class="v">01/03 và 01/09</div>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="num">3</span>Quyền lợi bảo hiểm</h2>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:9mm">STT</th>
+            <th>Sản phẩm bảo hiểm</th>
+            <th style="width:26mm">Thời hạn</th>
+            <th class="r" style="width:36mm">Số tiền bảo hiểm</th>
+            <th class="r" style="width:30mm">Phí định kỳ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>01</td><td><b>Sản phẩm chính</b> — Bảo hiểm liên kết chung An Tâm Trọn Đời</td><td>25 năm</td><td class="r">1.000.000.000 đ</td><td class="r">11.500.000 đ</td></tr>
+          <tr><td>02</td><td>Sản phẩm bổ trợ — Bảo hiểm bệnh hiểm nghèo</td><td>25 năm</td><td class="r">300.000.000 đ</td><td class="r">1.850.000 đ</td></tr>
+          <tr><td>03</td><td>Sản phẩm bổ trợ — Bảo hiểm tai nạn cá nhân</td><td>10 năm</td><td class="r">200.000.000 đ</td><td class="r">420.000 đ</td></tr>
+          <tr><td>04</td><td>Sản phẩm bổ trợ — Miễn đóng phí do thương tật</td><td>15 năm</td><td class="r">Theo phí sản phẩm chính</td><td class="r">310.000 đ</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><td colspan="4">Tổng phí bảo hiểm định kỳ (nửa năm)</td><td class="r">14.080.000 đ</td></tr>
+        </tfoot>
+      </table>
+    </section>
+
+    <section>
+      <h2><span class="num">4</span>Lưu ý quan trọng</h2>
+      <div class="callout">
+        <b>Thời gian cân nhắc 21 ngày.</b> Trong vòng 21 ngày kể từ ngày nhận được Bộ hợp đồng,
+        Bên mua bảo hiểm có quyền từ chối tiếp tục tham gia và được hoàn lại phí bảo hiểm đã đóng
+        sau khi trừ chi phí khám sức khoẻ (nếu có). Sau thời hạn này, hợp đồng có hiệu lực theo
+        các điều khoản đã giao kết. Bên mua bảo hiểm có nghĩa vụ kê khai đầy đủ, trung thực mọi
+        thông tin liên quan đến hợp đồng.
+      </div>
+    </section>
+
+    <div class="signrow">
+      <div>
+        <div class="role">Bên mua bảo hiểm</div>
+        <div class="hint">(Ký, ghi rõ họ tên)</div>
+        <div class="space"></div>
+        <div class="nm">Nguyễn Văn A</div>
+      </div>
+      <div>
+        <div class="role">Doanh nghiệp bảo hiểm</div>
+        <div class="hint">(Ký, đóng dấu)</div>
+        <div class="space"><div class="stamp"><span>MINH HOẠ LIFE<br>VIỆT NAM</span></div></div>
+        <div class="nm">Tổng Giám đốc</div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <span>Mẫu TL-HĐ/2026 · Trang 1/1</span>
+    <span>Hợp đồng số 7100 458 921 · Cấp ngày 01/03/2026</span>
+  </footer>
+</div>
+</body>
+</html>

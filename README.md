@@ -236,6 +236,14 @@ python -c "from pathlib import Path; from pipeline import record; \
 
 ## ⚡ 5. Hai Chế Độ Vận Hành
 
+Cả hai chế độ dưới đây, mặc định, đều dựng ảnh qua **tờ CSS riêng của từng
+họ bố cục** (`--template auto`) chứ không qua lưới ký tự cũ — mỗi bố cục
+trong 36 bố cục đã sẵn một khoá `family:` để tự chọn tờ mặc, nên đường tô CSS
+không còn là thứ phải bật tay theo từng lượt chạy. Lưới ký tự cũ vẫn còn,
+làm đường tường minh khi bỏ hẳn cờ `--template`, và vẫn là đường
+`test_layout.py`/`make preflight` dùng để đo hình học. Xem
+[`rulebase/README.md`](rulebase/README.md) để biết hai đường khác nhau ở đâu.
+
 1. **🚀 Một lệnh (`make dataset`)** — cho lần chạy nhanh và cho CI cục bộ. Vẫn
    đi qua đúng bộ máy shard bên dưới, chỉ là mọi tuỳ chọn nằm trên dòng lệnh.
 
@@ -398,7 +406,7 @@ cột, tiêu đề hai băng với `rowspan`/`colspan`, dòng theo nhóm — d�
 vlm-ocr-synthetic/
 ├── rulebase/                       # LUẬT SINH — nguồn sự thật duy nhất về nội dung
 │   ├── rules/                      # 10 thuộc tính, mỗi thuộc tính một file YAML
-│   ├── layouts/                    # 16 bố cục, đo từ giấy thật (`source:` ghi từ đâu)
+│   ├── layouts/                    # 41 bố cục, đo từ giấy thật (`source:` ghi từ đâu)
 │   ├── corpus/vi/ · corpus/en/     # các chuỗi tờ giấy in ra
 │   ├── spec.py                     # bốc có trọng số, thẻ, node cha
 │   ├── content.py                  # điền trường, dựng nhãn CORD

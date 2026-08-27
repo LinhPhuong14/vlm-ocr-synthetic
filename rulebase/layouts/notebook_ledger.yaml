@@ -12,6 +12,7 @@
 id: notebook_ledger
 name: Hand-kept sales book — ruled exercise paper, no printing
 source: "sổ ghi bán hàng chép tay, tiệm tạp hoá"
+family: notebook
 
 width: [34, 42]
 rule_char: "-"

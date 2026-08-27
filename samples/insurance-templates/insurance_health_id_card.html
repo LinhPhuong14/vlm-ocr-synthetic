@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LO-05 · Thẻ bảo hiểm y tế – khổ thẻ ID-1, hai mặt</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#6d716a;font-family:Tahoma,Verdana,Arial,sans-serif;color:#111}
+  @page{size:A4 landscape;margin:0}
+  .stage{display:flex;gap:14mm;justify-content:center;align-items:flex-start;padding:16mm 10mm;flex-wrap:wrap}
+  .wrap{display:flex;flex-direction:column;align-items:center;gap:3mm}
+  .cap{font-size:3mm;color:#e8ece6;letter-spacing:.6mm;text-transform:uppercase}
+
+  /* khổ thẻ ID-1 chuẩn 85,60 × 53,98 mm, bo góc 3,18 mm */
+  .card{width:85.6mm;height:53.98mm;border-radius:3.18mm;background:#fff;position:relative;overflow:hidden;
+        box-shadow:0 1.5mm 5mm rgba(0,0,0,.4);border:.3mm solid #c9d3dc}
+  /* Bản gốc (upload) có thêm một `.card::before` (nền hoạ tiết bảo an dạng
+     guilloche: chấm toả tròn + gạch chéo + dải màu) phủ khắp mặt thẻ. Bỏ khỏi
+     bản lưu này theo yêu cầu: đó là hiệu ứng nền, việc của chuỗi augmentation
+     dùng chung (`rulebase/rules/augmentation.yaml`), không phải CSS riêng của
+     layout này — `.card` giữ nguyên nền trắng phẳng của chính nó. */
+  .card .edge{position:absolute;inset:1.3mm;border:.25mm solid #9fc0d8;border-radius:2.2mm;pointer-events:none}
+
+  /* ---- MẶT TRƯỚC ---- */
+  .front{position:absolute;inset:3mm;display:grid;grid-template-columns:13mm 1fr;gap:2.5mm}
+  .rail{display:flex;flex-direction:column;align-items:center;gap:1.6mm}
+  .logo{width:7mm;height:7mm;border-radius:50%;border:.4mm solid #1B3D8F;display:flex;align-items:center;
+        justify-content:center;font-size:2.4mm;font-weight:700;color:#1B3D8F;background:#fff}
+  .qr{width:12mm;height:12mm;outline:.25mm solid #111;background:
+      linear-gradient(90deg,#111 0 1.2mm,transparent 1.2mm 2.4mm,#111 2.4mm 3mm,transparent 3mm 4.2mm,#111 4.2mm 5.4mm,transparent 5.4mm 6.6mm,#111 6.6mm 7.2mm,transparent 7.2mm 8.4mm,#111 8.4mm 9.6mm,transparent 9.6mm 10.8mm,#111 10.8mm 12mm),
+      linear-gradient(0deg,#111 0 1.2mm,transparent 1.2mm 1.8mm,#111 1.8mm 3mm,transparent 3mm 4.8mm,#111 4.8mm 6mm,transparent 6mm 7.2mm,#111 7.2mm 7.8mm,transparent 7.8mm 9.6mm,#111 9.6mm 10.8mm,transparent 10.8mm 12mm);
+      background-blend-mode:multiply}
+  .rail .cardno{font-family:"Courier New",monospace;font-size:1.7mm;letter-spacing:.1mm;color:#444}
+
+  .body{display:flex;flex-direction:column}
+  .org{font-size:1.95mm;font-weight:700;text-transform:uppercase;color:#1B3D8F;letter-spacing:.05mm;
+       border-bottom:.35mm solid #1B3D8F;padding-bottom:.5mm}
+  .ttl{font-size:2.7mm;font-weight:700;text-transform:uppercase;color:#C8102E;margin:.8mm 0 .3mm;letter-spacing:.15mm}
+  .msn{font-family:"Courier New",monospace;font-size:3.6mm;font-weight:700;letter-spacing:1.1mm;color:#111;margin-bottom:.9mm}
+  .fld{font-size:2mm;line-height:1.5;display:flex;gap:1mm}
+  .fld b{font-weight:700;color:#0d2a4d}
+  .fld .k{color:#333;white-space:nowrap}
+  .rowsplit{display:flex;gap:3mm}
+  .muc{position:absolute;right:3mm;top:12mm;width:8mm;height:6mm;border:.35mm solid #1B3D8F;border-radius:.6mm;
+       display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff}
+  .muc small{font-size:1.35mm;color:#1B3D8F;line-height:1}
+  .muc b{font-size:3mm;color:#C8102E;line-height:1}
+  .seal{position:absolute;right:3mm;bottom:1mm;width:15mm;height:15mm;border-radius:50%;border:.45mm solid #C8102E;
+        display:flex;align-items:center;justify-content:center;text-align:center;opacity:.85;transform:rotate(-8deg)}
+  .seal::before{content:"";position:absolute;inset:1.4mm;border:.2mm solid #C8102E;border-radius:50%}
+  .seal span{font-size:1.5mm;font-weight:700;color:#C8102E;line-height:1.1}
+
+  /* ---- MẶT SAU ---- */
+  .back{position:absolute;inset:3mm;display:flex;flex-direction:column}
+  .back h3{font-size:2.7mm;font-weight:700;text-transform:uppercase;text-align:center;letter-spacing:.2mm;margin-bottom:1.4mm}
+  .back ol{margin-left:3.4mm;font-size:1.85mm;font-style:italic;line-height:1.45;text-align:justify}
+  .back li{margin-bottom:.7mm}
+  .back .hot{margin-top:auto;border-top:.25mm solid #1B3D8F;padding-top:.9mm;font-size:1.85mm;
+             display:flex;justify-content:space-between;color:#1B3D8F;font-style:normal;font-weight:700}
+  @media print{html,body{background:#fff}.cap{color:#444}.card{box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <div class="wrap">
+    <div class="cap">Mặt trước</div>
+    <div class="card">
+      <div class="edge"></div>
+      <div class="front">
+        <div class="rail">
+          <div class="logo">BHXH</div>
+          <div class="qr"></div>
+          <div class="cardno">GD-01</div>
+        </div>
+        <div class="body">
+          <div class="org">Bảo hiểm xã hội Việt Nam</div>
+          <div class="ttl">Thẻ bảo hiểm y tế</div>
+          <div class="msn">0 1 2 3 4 5 6 7 8 9</div>
+          <div class="fld"><span class="k">Họ và tên:</span><b>NGUYỄN VĂN A</b></div>
+          <div class="rowsplit">
+            <div class="fld"><span class="k">Ngày sinh:</span><b>12/05/1988</b></div>
+            <div class="fld"><span class="k">Giới tính:</span><b>Nam</b></div>
+          </div>
+          <div class="fld"><span class="k">Nơi ĐK KCB ban đầu:</span><b>Bệnh viện Đa khoa Mẫu</b></div>
+          <div class="fld"><span class="k">Giá trị sử dụng: từ ngày</span><b>01/01/2026</b></div>
+          <div class="fld"><span class="k">Thời điểm đủ 05 năm liên tục: từ ngày</span><b>01/01/2029</b></div>
+        </div>
+      </div>
+      <div class="muc"><small>Mức hưởng</small><b>4</b></div>
+      <div class="seal"><span>BHXH<br>VIỆT NAM</span></div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="cap">Mặt sau</div>
+    <div class="card">
+      <div class="edge"></div>
+      <div class="back">
+        <h3>Những điều cần chú ý</h3>
+        <ol>
+          <li>Xuất trình thẻ bảo hiểm y tế cùng giấy tờ tuỳ thân có ảnh khi đi khám bệnh, chữa bệnh; trẻ em dưới 6 tuổi chỉ cần xuất trình thẻ.</li>
+          <li>Trường hợp cấp cứu được khám, chữa bệnh tại bất kỳ cơ sở nào và phải xuất trình thẻ trước khi ra viện.</li>
+          <li>Thẻ không có giá trị sử dụng khi bị tẩy xoá, sửa chữa, hoặc người sử dụng không đúng chủ thẻ.</li>
+          <li>Người tham gia được thay đổi nơi đăng ký khám, chữa bệnh ban đầu vào đầu mỗi quý.</li>
+          <li>Tra cứu thông tin thẻ và lịch sử khám, chữa bệnh trên ứng dụng bảo hiểm xã hội số.</li>
+        </ol>
+        <div class="hot"><span>Tổng đài hỗ trợ 1900 0000</span><span>baohiemxahoi.example.vn</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

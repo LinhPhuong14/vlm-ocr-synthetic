@@ -23,6 +23,56 @@ blanks:
     layout: authorisation_letter
     sheet: samples/form-templates/authorisation_letter.html
 
+  form_questionnaire:
+    source: "FUNSD (R&D Quality Improvement Suggestion Form) — trường tên/ngày/quản lý, đoạn mô tả, câu hỏi Có/Không"
+    layout: form_questionnaire
+    sheet: null
+
+  form_timesheet_grid:
+    source: "LuatVietnam.vn (mẫu bảng chấm công) — lưới ngày 1-31 × nhân viên, cột Tổng cộng, ba dòng ký tên"
+    layout: form_timesheet_grid
+    sheet: null
+
+  form_project_kv:
+    source: "FUNSD (Project Initiation Form) — cặp nhãn-giá trị rõ ràng, chữ ký phê duyệt viết tay"
+    layout: form_project_kv
+    sheet: null
+
+  form_two_column:
+    source: "LuatVietnam.vn (tờ khai đăng ký kết hôn) — hai cột song song Bên nữ/Bên nam, lời cam đoan, chữ ký kép"
+    layout: form_two_column
+    sheet: null
+
+  form_multi_section:
+    source: "FUNSD (Project Status Report) — mục A/B, mục B có bảng 5 cột theo năm"
+    layout: form_multi_section
+    sheet: null
+
+  form_checkbox_heavy:
+    source: "FUNSD (Capital Budget Project) — bảy ô đánh dấu mục đích dự án + ô trạng thái Proposed/Approved"
+    layout: form_checkbox_heavy
+    sheet: null
+
+  form_activity_signature:
+    source: "Cục QLLĐ ngoài nước — Bộ Nội vụ (Sơ yếu lý lịch tự thuật, trang cuối) — bảng 4 cột, khen thưởng/kỷ luật, chữ ký kép"
+    layout: form_activity_signature
+    sheet: null
+
+  form_table_based:
+    source: "FUNSD (Compound Physical Parameters) — bảng viền rõ ràng, ô checkbox, chữ ký cuối trang"
+    layout: form_table_based
+    sheet: null
+
+  form_government_app:
+    source: "LuatVietnam.vn (mẫu giấy khai sinh) — quốc hiệu, khung CHXHCNVN, dày trường hộ tịch"
+    layout: form_government_app
+    sheet: null
+
+  form_dense_registration:
+    source: "Cục QLLĐ ngoài nước — Bộ Nội vụ (Sơ yếu lý lịch tự thuật, trang đầu) — khung dán ảnh, gần 20 trường, mục Hoàn cảnh gia đình"
+    layout: form_dense_registration
+    sheet: null
+
   eatery_ascii:
     source: "photo QUAN AN THIEN TAN, TPHCM 2011"
     layout: eatery_ascii
@@ -103,6 +153,86 @@ blanks:
     layout: medical_statement
     sheet: samples/form-templates/medical_statement.html
 
+  # ------------------------------------------------------------------
+  # Mười phôi của root "Invoice / Billing" (docs/root-document-taxonomy.md
+  # §3.1) — không đo từ MỘT ảnh cụ thể như các phôi trên, mà từ khảo sát
+  # nhiều mẫu hoá đơn bán hàng tự thiết kế phổ biến cho từng kiểu bố cục;
+  # `source:` ở đây khớp nguyên văn `source:` trong file bố cục của nó.
+  invoice_header_table:
+    source: "hoá đơn giá trị gia tăng điện tử Viettel S-Invoice (bản thể hiện) — khối bán/mua đầy đủ trước MỘT bảng hàng full-width"
+    layout: invoice_header_table
+    sheet: null
+
+  invoice_logo_center:
+    source: "khảo sát mẫu hoá đơn bán hàng tự thiết kế phổ biến — khối liên hệ canh giữa dưới tên hiệu"
+    layout: invoice_logo_center
+    sheet: null
+
+  invoice_dense_table:
+    source: "khảo sát mẫu hoá đơn bán hàng tự thiết kế phổ biến — bảng nhiều dòng, cột thuế suất riêng"
+    layout: invoice_dense_table
+    sheet: null
+
+  invoice_minimalist:
+    source: "khảo sát mẫu hoá đơn bán hàng tự thiết kế phổ biến — bản tối giản, chỉ chữ đen trên nền trắng"
+    layout: invoice_minimalist
+    sheet: null
+
+  invoice_multipage:
+    source: "khảo sát mẫu hoá đơn PDF nhiều trang thật — trang 1 luôn có dòng 'còn tiếp' ở chân"
+    layout: invoice_multipage
+    sheet: null
+
+  invoice_logo_split:
+    source: "khảo sát mẫu hoá đơn bán hàng tự thiết kế phổ biến — logo/tên trái, tiêu đề+số phải"
+    layout: invoice_logo_split
+    sheet: null
+
+  invoice_two_column:
+    source: "khảo sát mẫu hoá đơn bán hàng tự thiết kế phổ biến — bên mua/bên nhận hàng hai cột song song"
+    layout: invoice_two_column
+    sheet: null
+
+  invoice_sidebar:
+    source: "khảo sát mẫu hoá đơn Excel/thiết kế 'split panel' — dải màu chứa tên hiệu và bên mua"
+    layout: invoice_sidebar
+    sheet: null
+
+  invoice_keyvalue:
+    source: "khảo sát mẫu hoá đơn bán hàng tự thiết kế phổ biến — khối thông tin khách hàng đóng khung riêng"
+    layout: invoice_keyvalue
+    sheet: null
+
+  invoice_remittance:
+    source: "khảo sát mẫu hoá đơn bán hàng tự thiết kế phổ biến — khối chuyển khoản đóng khung riêng cuối trang"
+    layout: invoice_remittance
+    sheet: null
+
+  # ------------------------------------------------------------------
+  # Bốn phôi đầu tiên của root "Newspaper/Magazine"
+  # (docs/root-document-taxonomy.md §3.7) — khớp bốn trong mười mockup lưu ở
+  # `samples/periodical-templates/`; sáu mockup còn lại (N-02/03/04/05/07/08)
+  # là việc còn nợ, xem README trong thư mục đó.
+  newspaper_front_broadsheet:
+    source: "samples/periodical-templates/newspaper_front_broadsheet.html (N-01)"
+    layout: newspaper_front_broadsheet
+    sheet: samples/periodical-templates/newspaper_front_broadsheet.html
+
+  newspaper_classifieds:
+    source: "samples/periodical-templates/newspaper_classifieds.html (N-10)"
+    layout: newspaper_classifieds
+    sheet: samples/periodical-templates/newspaper_classifieds.html
+
+  magazine_contents:
+    source: "samples/periodical-templates/magazine_contents.html (N-06)"
+    layout: magazine_contents
+    sheet: samples/periodical-templates/magazine_contents.html
+
+  magazine_qa_interview:
+    source: "samples/periodical-templates/magazine_qa_interview.html (N-09)"
+    layout: magazine_qa_interview
+    sheet: samples/periodical-templates/magazine_qa_interview.html
+
 # Phôi mà mỗi document được phép dựng từ. Thứ tự không quan trọng.
 documents:
   pub_eatery: [eatery_indexed, eatery_ascii]
@@ -122,3 +252,21 @@ documents:
   bakery_order: [invoice_brand]
   hospital_bill: [medical_statement]
   authorisation_letter: [authorisation_letter]
+  form_brief: [form_questionnaire, form_project_kv]
+  form_symmetric: [form_two_column]
+  form_activity: [form_activity_signature]
+  form_checklist: [form_checkbox_heavy]
+  form_checklist_table: [form_table_based]
+  form_sectioned: [form_multi_section]
+  form_roster: [form_timesheet_grid]
+  form_dense: [form_government_app, form_dense_registration]
+  invoice_plain:
+    [invoice_logo_center, invoice_dense_table,
+     invoice_minimalist, invoice_multipage]
+  invoice_detailed:
+    [invoice_header_table, invoice_logo_split, invoice_two_column, invoice_sidebar,
+     invoice_keyvalue, invoice_remittance]
+  newspaper_front_broadsheet: [newspaper_front_broadsheet]
+  newspaper_classifieds: [newspaper_classifieds]
+  magazine_contents: [magazine_contents]
+  magazine_qa_interview: [magazine_qa_interview]
