@@ -15,6 +15,7 @@ single test going red anywhere else.
 from __future__ import annotations
 
 import ast
+import re
 import sys
 from pathlib import Path
 
@@ -79,6 +80,12 @@ def test_the_generator_never_writes_outside_the_corpus_and_the_rules():
             assert any(part in source for part in ("CORPUS_VI", "CORPUS_ROOT")), (
                 f"{path.name} appends to a file without going through a "
                 "corpus path constant")
+        # `allowed` used to be declared and never read, so the list an audit is
+        # told to read was not checked against anything. Every rulebase path
+        # named in the source has to sit under one of the three roots.
+        for named in re.findall(r'"(rulebase/[^"]+)"', source):
+            assert named.startswith(allowed), (
+                f"{path.name} names {named!r}, outside {allowed}")
 
 
 # ------------------------------------------------------------- the validator
