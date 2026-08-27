@@ -23,7 +23,7 @@ LAYOUT  ?=
         ornaments templates \
         preflight check-rules check-corpus check-boxes migrate-metadata \
         distribution monitor \
-        list-degradations legibility \
+        list-degradations legibility figures-stamp \
         lint format check clean
 
 help:  ## Show this help
@@ -103,6 +103,8 @@ list-degradations:  ## Names usable in an augmentation chain
 	@$(TASKS) list-degradations
 legibility:      ## does an ageing chain age the text out of its own label boxes?
 	$(TASKS) legibility
+figures-stamp:   ## rebuild the figures embedded in docs/co-che-sinh-con-dau.md
+	$(TASKS) figures-stamp
 
 # -------------------------------------------------------------- quality
 
