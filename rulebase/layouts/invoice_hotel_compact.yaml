@@ -12,6 +12,7 @@
 id: invoice_hotel_compact
 name: Small-hotel folio — the same fields on a third less paper
 source: "ảnh hoá đơn một khách sạn nhỏ, khối liên hệ hai cột ở chân trang"
+family: lodging
 
 width: [78, 90]
 gutter: 2

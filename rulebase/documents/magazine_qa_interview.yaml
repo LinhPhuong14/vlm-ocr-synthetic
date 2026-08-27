@@ -1,0 +1,15 @@
+# THAM SỐ NỘI DUNG — magazine_qa_interview
+#
+# Một trang khác của tạp chí "Bến" (xem `magazine_contents.yaml`). `masthead`
+# ở đây chỉ dùng để ghép chân trang "Bến · Trang N" (`rulebase.periodical.
+# _build_qa`), nên chỉ cần tên ngắn, không phải "Tạp chí Bến" -- đúng chữ
+# hiện trên `samples/periodical-templates/magazine_qa_interview.html`. Toàn
+# bộ nội dung phỏng vấn (câu hỏi, câu trả lời, câu trích, bảng tiểu sử) bốc
+# trọn một bộ từ `rulebase/corpus/vi/periodical_qa.yaml`; tên người thực hiện/
+# chụp ảnh bốc riêng từ `corpus.people()` mỗi lần để có nhiều ê-kíp khác nhau.
+
+kind: periodical
+composition: qa_pairs
+
+masthead: "Bến"
+footer_note: "Bài phỏng vấn đã được biên tập cho ngắn gọn và rõ ý."

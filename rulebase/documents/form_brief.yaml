@@ -1,0 +1,38 @@
+# THAM SỐ NỘI DUNG — form_brief
+#
+# Root 3 (Form / Application), tầng "gọn": vài trường + một đoạn mô tả +
+# một chữ ký, không bảng, không checkbox. Dùng cho FORM-01 (questionnaire)
+# và FORM-03 (label-value form) — hai layout khác nhau về cách sắp xếp
+# trang, cùng một hình dạng nội dung.
+#
+# `form_fields: true` bật khối field mới trong `rulebase/content.py`
+# (applicant_*, yn_1/yn_2...) — xem comment ngay tại khối đó.
+
+profile: invoice
+invoice: true
+no_items: true
+form_fields: true
+show_vat: false
+show_subtotal: false
+show_payment: false
+show_amount_words: false
+show_number: false
+show_seller_tax_code: false
+show_seller_website: false
+titles: ["PHIẾU ĐỀ XUẤT CẢI TIẾN", "PHIẾU KHỞI TẠO DỰ ÁN"]
+serial_format: "F{n}"
+party_fields:
+  left:
+    - [applicant_name, "Họ và tên:"]
+    - [buyer_company, "Đơn vị/Phòng ban:"]
+    - [date, "Ngày:"]
+  right:
+    - [witness_name, "Người quản lý trực tiếp:"]
+    - [applicant_phone, "Điện thoại:"]
+notes:
+  - "Nội dung / Mô tả:"
+  - "{buyer_company} đề xuất triển khai một thay đổi trong quy trình làm việc hiện tại nhằm nâng cao hiệu suất, giảm thời gian xử lý và tiết kiệm chi phí vận hành cho bộ phận liên quan."
+  - ""
+  - "Đề xuất có cần phê duyệt ngân sách bổ sung không? {yn_1}"
+signature_labels:
+  - ["Người đề xuất", "(Ký, ghi rõ họ tên)"]

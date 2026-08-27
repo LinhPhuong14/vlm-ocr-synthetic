@@ -1,0 +1,48 @@
+# THAM SỐ NỘI DUNG — form_symmetric
+#
+# Root 3, tầng "hai cột đối xứng": hai khối trường CÙNG HÌNH DẠNG (bên
+# này/bên kia), một đoạn cam đoan, hai chữ ký. Dùng cho FORM-04 (two-column
+# form) — mẫu tờ khai đăng ký kết hôn, "Bên nữ" / "Bên nam".
+#
+# `no_items: true` mở khối principal_*/agent_* (giấy uỷ quyền vốn dùng cho
+# bên uỷ quyền/được uỷ quyền) — tái dùng làm hai bên khai, vì đúng hình
+# dạng cần (tên + số CMND/CCCD + ngày cấp + nơi cấp). `form_fields: true`
+# thêm ethnicity/hometown cho bên trái — không có bản sao thứ hai của các
+# trường này nên bên phải không lặp lại, số trường không đối xứng tuyệt
+# đối nhưng không sai dữ liệu.
+
+profile: invoice
+invoice: true
+no_items: true
+form_fields: true
+show_vat: false
+show_subtotal: false
+show_payment: false
+show_amount_words: false
+show_number: false
+show_seller_tax_code: false
+show_seller_website: false
+titles: ["TỜ KHAI ĐĂNG KÝ KẾT HÔN"]
+serial_format: "KH{n}"
+party_fields:
+  left_title: "BÊN NỮ"
+  right_title: "BÊN NAM"
+  left:
+    - [principal_name, "Họ và tên:"]
+    - [ethnicity, "Dân tộc:"]
+    - [hometown, "Nơi cư trú:"]
+    - [principal_id, "Số CMND/CCCD:"]
+    - [principal_id_date, "Ngày cấp:"]
+    - [principal_id_place, "Nơi cấp:"]
+  right:
+    - [agent_name, "Họ và tên:"]
+    - [agent_address, "Nơi cư trú:"]
+    - [agent_id, "Số CMND/CCCD:"]
+    - [agent_id_date, "Ngày cấp:"]
+    - [agent_id_place, "Nơi cấp:"]
+    - [agent_phone, "Điện thoại:"]
+notes:
+  - "Chúng tôi làm tờ khai này đề nghị cơ quan đăng ký hộ tịch đăng ký kết hôn cho chúng tôi và cam đoan những lời khai trên đây là đúng sự thật, việc kết hôn này là hoàn toàn tự nguyện, không vi phạm quy định của Luật Hôn nhân và gia đình. Chúng tôi chịu trách nhiệm trước pháp luật về cam đoan của mình."
+signature_labels:
+  - ["Bên nữ ký tên", "(Ký, ghi rõ họ tên)"]
+  - ["Bên nam ký tên", "(Ký, ghi rõ họ tên)"]

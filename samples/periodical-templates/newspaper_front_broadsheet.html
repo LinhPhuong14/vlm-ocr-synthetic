@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>N-01 · Trang nhất nhật báo khổ broadsheet (375 × 597 mm, 6 cột)</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#5d6158;font-family:Georgia,"Times New Roman",serif;color:#111}
+  @page{size:375mm 597mm;margin:0}
+  .sheet{width:375mm;height:597mm;background:#f7f4ec;margin:10mm auto;position:relative;overflow:hidden;
+         box-shadow:0 3mm 12mm rgba(0,0,0,.4);padding:12mm 13mm 10mm}
+
+  /* ẢNH GIẢ LẬP: lưới tram in báo dựng bằng CSS, không dùng file ngoài */
+  .ph{position:relative;background:
+      radial-gradient(circle at 50% 50%, rgba(0,0,0,.62) 0 .34mm, transparent .35mm) 0 0/1.15mm 1.15mm,
+      linear-gradient(160deg,#c9c6bc 0%,#8e8b83 45%,#605e58 100%);
+      border:.3mm solid #2a2a28}
+  .ph::after{content:"ẢNH";position:absolute;right:1.5mm;bottom:1.2mm;font-family:Arial,sans-serif;
+      font-size:2.4mm;letter-spacing:.8mm;color:rgba(255,255,255,.85)}
+  .cap{font-family:Arial,Helvetica,sans-serif;font-size:2.7mm;line-height:1.4;color:#333;
+       padding-top:1.2mm;border-top:.2mm solid #999;margin-top:1.5mm}
+  .cap b{color:#111}
+
+  /* ---- măng sét ---- */
+  .flag{display:grid;grid-template-columns:56mm 1fr 56mm;align-items:center;gap:6mm;
+        border-bottom:.35mm solid #111;padding-bottom:2.5mm}
+  .ear{font-family:Arial,Helvetica,sans-serif;font-size:2.9mm;line-height:1.55}
+  .ear.r{text-align:right}
+  .ear b{display:block;font-size:3.2mm;text-transform:uppercase;letter-spacing:.3mm}
+  .flag .name{text-align:center}
+  .flag .name h1{font-family:Georgia,"Times New Roman",serif;font-size:24mm;font-weight:700;
+                 letter-spacing:-1mm;line-height:.92;text-transform:uppercase;color:#8a0d14}
+  .flag .name .slogan{font-family:Arial,sans-serif;font-size:3.1mm;letter-spacing:2.2mm;
+                      text-transform:uppercase;color:#333;margin-top:1.5mm}
+  .rule{height:1.6mm;background:#111;margin-top:1.6mm}
+  .rule.thin{height:.35mm;margin-top:1.2mm}
+
+  /* ---- dải điểm tin ---- */
+  .teasers{display:grid;grid-template-columns:repeat(3,1fr);gap:6mm;padding:3mm 0;
+           border-bottom:.35mm solid #111}
+  .teasers .t{display:grid;grid-template-columns:26mm 1fr;gap:3mm}
+  .teasers .ph{height:19mm}
+  .teasers .k{font-family:Arial,sans-serif;font-size:2.5mm;letter-spacing:.9mm;text-transform:uppercase;color:#8a0d14}
+  .teasers h4{font-size:4mm;line-height:1.2;margin-top:1mm}
+  .teasers p{font-size:2.9mm;line-height:1.35;color:#444;margin-top:1mm}
+
+  /* ---- lưới 6 cột ---- */
+  .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:0 5mm;padding-top:4mm}
+  .lead{grid-column:1 / 5;padding-right:4mm;border-right:.25mm solid #999}
+  .rail{grid-column:5 / 7}
+
+  .kicker{font-family:Arial,sans-serif;font-size:3.2mm;letter-spacing:1.6mm;text-transform:uppercase;
+          color:#8a0d14;margin-bottom:2mm}
+  h2.head{font-size:19mm;line-height:.98;letter-spacing:-.6mm;font-weight:700}
+  .deck{font-size:5.2mm;line-height:1.35;color:#333;font-style:italic;margin-top:3mm;
+        max-width:150mm}
+  .byline{font-family:Arial,sans-serif;font-size:2.9mm;letter-spacing:.5mm;text-transform:uppercase;
+          margin:3mm 0 2.5mm;padding:1.2mm 0;border-top:.25mm solid #111;border-bottom:.25mm solid #111}
+  .lead .ph{height:88mm;margin-bottom:1mm}
+  .cols3{column-count:3;column-gap:5mm;column-rule:.2mm solid #bbb;margin-top:3mm}
+  .cols2{column-count:2;column-gap:5mm;column-rule:.2mm solid #bbb;margin-top:3mm}
+  .body p{font-size:3.35mm;line-height:1.45;text-align:justify;hyphens:auto;margin-bottom:1.6mm}
+  .body p:first-child::first-letter{float:left;font-size:14mm;line-height:.82;font-weight:700;
+          padding:1mm 1.6mm 0 0}
+  .jump{font-family:Arial,sans-serif;font-size:2.9mm;font-style:italic;color:#8a0d14;margin-top:1mm}
+
+  /* ---- cột phải ---- */
+  .rail .box{border:.5mm solid #111;padding:3mm;margin-bottom:4mm;background:#efe9db}
+  .rail .box h3{font-family:Arial,sans-serif;font-size:3.6mm;letter-spacing:1.2mm;text-transform:uppercase;
+                border-bottom:.35mm solid #111;padding-bottom:1.4mm;margin-bottom:2mm}
+  .rail .box li{list-style:none;font-size:3.1mm;line-height:1.35;padding:1.8mm 0;border-bottom:.2mm dotted #999}
+  .rail .box li:last-child{border-bottom:0;padding-bottom:0}
+  .rail .box li b{display:block;font-family:Arial,sans-serif;font-size:2.5mm;letter-spacing:.6mm;
+                  text-transform:uppercase;color:#8a0d14;margin-bottom:.6mm}
+  .rail .ph{height:52mm;margin-bottom:1mm}
+  .rail h4{font-size:6.2mm;line-height:1.1;margin:2.5mm 0 1.5mm}
+  .rail .body p{font-size:3.2mm}
+
+  /* ---- chân trang: hai tin phụ ---- */
+  .bottom{border-top:1.2mm solid #111;margin-top:5mm;padding-top:4mm;
+          display:grid;grid-template-columns:repeat(6,1fr);gap:0 5mm}
+  .s1{grid-column:1 / 4;padding-right:4mm;border-right:.25mm solid #999}
+  .s2{grid-column:4 / 7}
+  .bottom h3{font-size:8.4mm;line-height:1.08;margin-bottom:2mm}
+  .bottom .ph{height:34mm;margin-bottom:1mm}
+
+  .colophon{position:absolute;left:13mm;right:13mm;bottom:4mm;border-top:.25mm solid #111;padding-top:1.6mm;
+            display:flex;justify-content:space-between;font-family:Arial,sans-serif;font-size:2.6mm;color:#444}
+  @media print{html,body{background:#fff}.sheet{margin:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="flag">
+    <div class="ear">
+      <b>Thứ Tư</b>
+      26 · 8 · 2026<br>
+      Số 4.128 · Năm thứ 32
+    </div>
+    <div class="name">
+      <h1>Minh Hoạ</h1>
+      <div class="slogan">Nhật báo</div>
+    </div>
+    <div class="ear r">
+      <b>Giá 8.000 đ</b>
+      minhhoa.example.vn<br>
+      Đường dây nóng 1900 0000
+    </div>
+  </div>
+  <div class="rule"></div>
+
+  <div class="teasers">
+    <div class="t"><div class="ph"></div><div>
+      <div class="k">Kinh tế</div><h4>Xuất khẩu nông sản lấy lại đà tăng</h4>
+      <p>Bốn nhóm hàng chủ lực cùng tăng trưởng hai chữ số trong tháng 7. <b>Trang 5</b></p></div></div>
+    <div class="t"><div class="ph"></div><div>
+      <div class="k">Đô thị</div><h4>Tuyến buýt nhanh mở thêm sáu điểm dừng</h4>
+      <p>Thời gian chờ trung bình rút ngắn còn bảy phút vào giờ cao điểm. <b>Trang 8</b></p></div></div>
+    <div class="t"><div class="ph"></div><div>
+      <div class="k">Văn hoá</div><h4>Làng gốm ba trăm tuổi mở xưởng cho khách</h4>
+      <p>Mô hình du lịch làng nghề thu hút lớp thợ trẻ trở về. <b>Trang 12</b></p></div></div>
+  </div>
+
+  <div class="grid">
+    <div class="lead">
+      <div class="kicker">Phóng sự điều tra</div>
+      <h2 class="head">Những con đê chờ mùa nước lớn</h2>
+      <div class="deck">Hơn hai trăm kilômét đê bao vùng hạ lưu đã quá tuổi thiết kế. Mùa lũ năm nay được dự báo
+        đến sớm hơn mọi năm nửa tháng, trong khi nhiều đoạn xung yếu vẫn đang chờ vốn.</div>
+      <div class="byline">Bài và ảnh: Nhóm phóng viên thời sự · Ghi tại ba tỉnh hạ lưu</div>
+
+      <div class="ph"></div>
+      <div class="cap"><b>Đoạn đê xã Mẫu Thượng</b> đã ba lần được gia cố tạm bằng bao cát trong hai mùa lũ gần nhất.
+        Người dân trong vùng gọi đây là “khúc đê ngủ không yên”.</div>
+
+      <div class="body cols3">
+        <p>Bốn giờ sáng, khi mặt sông còn chưa rõ bờ, ông Tư đã ra tới chân đê. Hai mươi hai năm làm tổ trưởng
+          tổ tuần tra, ông thuộc từng vết nứt trên đoạn đê dài chưa đầy hai cây số này như thuộc lối vào nhà mình.</p>
+        <p>“Chỗ này năm ngoái rỉ nước, chúng tôi lấp bao cát. Năm nay nó rỉ lại, nhưng rỉ chỗ khác”, ông chỉ tay
+          xuống mép chân đê, nơi một vệt sẫm màu kéo dài chừng hai mét.</p>
+        <p>Theo báo cáo rà soát gần nhất, toàn tuyến có bốn mươi bảy điểm được xếp vào nhóm xung yếu, trong đó
+          mười một điểm cần xử lý ngay trước mùa mưa. Đến giữa tháng tám, mới sáu điểm được thi công.</p>
+        <p>Nguyên nhân chậm, theo giải trình của cơ quan quản lý, nằm ở khâu bố trí vốn và giải phóng mặt bằng.
+          Ba trong số năm gói thầu phải điều chỉnh thiết kế sau khi khảo sát địa chất cho kết quả khác dự kiến.</p>
+        <p>Nhưng ở phía chân đê, những con số ấy được đo bằng thứ đơn vị khác. Bà Sáu, nhà cách mặt đê hơn ba
+          chục mét, kể rằng mỗi lần có tin bão là cả nhà lại xếp sẵn giấy tờ vào một chiếc túi nylon buộc chặt.</p>
+        <p>“Không phải chúng tôi sợ nước. Sống ở đây bao đời rồi, ai chẳng quen nước”, bà nói. “Chúng tôi sợ cái
+          đoạn không biết nó vỡ lúc nào.”</p>
+        <p>Đêm hôm trước, tổ tuần tra ghi nhận mực nước lên thêm mười một xăngtimét so với cùng kỳ. Con số ấy
+          được viết bằng bút bi lên tấm bảng gỗ treo ở chốt gác, ngay dưới danh sách phân công ca trực.</p>
+        <p>Đến sáng, tấm bảng có thêm một dòng nữa.</p>
+      </div>
+      <div class="jump">(Xem tiếp trang 4 và 5)</div>
+    </div>
+
+    <div class="rail">
+      <div class="box">
+        <h3>Tin vắn</h3>
+        <ul>
+          <li><b>Giao thông</b>Cầu vượt nút giao phía nam thông xe kỹ thuật từ ngày 1 tháng 9, sớm hơn kế hoạch ba tuần.</li>
+          <li><b>Y tế</b>Chiến dịch tiêm chủng mở rộng đợt hai bắt đầu tại 214 trạm y tế xã, phường.</li>
+          <li><b>Giáo dục</b>Hơn 1.200 phòng học được sửa chữa xong trước ngày khai giảng.</li>
+          <li><b>Thời tiết</b>Áp thấp nhiệt đới trên Biển Đông có khả năng mạnh lên trong 24 giờ tới.</li>
+          <li><b>Thị trường</b>Giá thu mua lúa hè thu tăng nhẹ hai ngày liên tiếp.</li>
+        </ul>
+      </div>
+
+      <div class="ph"></div>
+      <div class="cap">Xưởng đóng ghe ở cửa sông vào mùa cao điểm sửa chữa trước lũ.</div>
+      <h4>Nghề đóng ghe hồi sinh trước mùa nước</h4>
+      <div class="body cols2">
+        <p>Ba xưởng đóng ghe trong xã đều kín lịch đến hết tháng chín. Chủ xưởng cho biết lượng đơn sửa chữa
+          tăng gần gấp đôi so với năm ngoái.</p>
+        <p>Lớp thợ trẻ quay lại nghề sau nhiều năm đi làm xa. Mức công nhật hiện khoảng bốn trăm nghìn đồng,
+          cao hơn mặt bằng chung của các nghề thời vụ trong vùng.</p>
+        <p>Chính quyền xã đang xét hỗ trợ lãi suất cho các hộ vay vốn mở rộng xưởng.</p>
+      </div>
+      <div class="jump">(Trang 7)</div>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <div class="s1">
+      <div class="ph"></div>
+      <div class="cap">Khu tái định cư vừa bàn giao đợt đầu cho 86 hộ dân.</div>
+      <h3>Bàn giao đợt đầu khu tái định cư ven sông</h3>
+      <div class="body cols2">
+        <p>Tám mươi sáu hộ dân trong diện di dời khẩn cấp đã nhận nhà tại khu tái định cư mới, cách vị trí cũ
+          khoảng bốn kilômét.</p>
+        <p>Hạ tầng điện, nước và đường nội bộ hoàn thành đồng bộ. Trường tiểu học trong khu dự kiến đón học sinh
+          từ đầu năm học này.</p>
+        <p>Đợt bàn giao thứ hai cho 134 hộ còn lại sẽ diễn ra trong quý bốn, sau khi hoàn tất thủ tục cấp giấy
+          chứng nhận quyền sử dụng đất.</p>
+      </div>
+      <div class="jump">(Trang 6)</div>
+    </div>
+    <div class="s2">
+      <h3>Ba mươi năm một cây cầu và một lời hứa</h3>
+      <div class="body cols3">
+        <p>Cây cầu gỗ bắc qua rạch Mẫu được dựng năm 1996 bằng tiền góp của mười bảy hộ dân. Ba mươi năm sau,
+          nó vẫn là lối đi duy nhất của trẻ con hai ấp đến trường.</p>
+        <p>Mỗi năm hai lần, các hộ lại góp tiền thay ván. Sổ ghi chép của ông tổ trưởng dày lên theo từng mùa,
+          nét chữ của ba thế hệ nối nhau.</p>
+        <p>Năm nay, cây cầu có tên trong danh mục đầu tư công trung hạn. Người dân đã đọc thấy tên rạch của
+          mình trên tờ niêm yết dán ở trụ sở ấp.</p>
+        <p>“Chúng tôi chờ ba mươi năm rồi, chờ thêm một mùa nữa cũng được”, ông tổ trưởng nói, tay vẫn giữ
+          quyển sổ.</p>
+        <p>Nhưng ông cũng nói thêm rằng lần này ông sẽ ghi vào sổ một dòng khác: ngày khởi công.</p>
+      </div>
+      <div class="jump">(Trang 11)</div>
+    </div>
+  </div>
+
+  <div class="colophon">
+    <span>Toà soạn: Số 1 Đường Mẫu, Quận Trung Tâm · Điện thoại 024 0000 0000</span>
+    <span>Trang 1</span>
+  </div>
+</div>
+</body>
+</html>

@@ -23,7 +23,7 @@ kiểu layout, 28 loại block-level + 4 loại span-level).
 
 | # | Root | Ưu tiên | Đặc trưng OCR chính | Kho này hiện có gì |
 | :-: | :--- | :--- | :--- | :--- |
-| 1 | Invoice / Billing | 🔴 Rất cao | key-value + table + totals | **Có** — 4 họ document, là trọng tâm hiện tại |
+| 1 | Invoice / Billing | 🔴 Rất cao | key-value + table + totals | **Có** — 4 họ document; cả 10/10 layout đề xuất bên dưới nay đã có trong rulebase (§ 3.1) |
 | 2 | Receipt | 🔴 Rất cao | narrow layout + line items | **Có** — họ `till_receipt`, 5 layout |
 | 3 | Forms / Applications | 🔴 Rất cao | fields + checkbox + K-V | **Một phần** — chỉ 2 chứng từ (`hospital_bill`, `authorisation_letter`), chưa có checkbox/chữ ký/đơn chính phủ |
 | 4 | Identity Documents | 🔴 Rất cao | photo + K-V + MRZ + security | **Chưa có** |
@@ -93,18 +93,29 @@ câu truy vấn). Ảnh tương ứng từng dòng xem trong gallery ở đầu 
 ### 3.1 · Invoice / Billing — *key-value + table + totals*
 Dataset trích dẫn: **FATURA** (10.000 hoá đơn tổng hợp, 50 layout khác nhau) · **MIDD** (4 layout) · **DocILE**
 
-| ID | Layout | Keyword |
-| :--- | :--- | :--- |
-| INV-01 | Header + full-width table | invoice header full width line item table |
-| INV-02 | Logo trái + metadata phải | invoice logo left metadata right |
-| INV-03 | Logo giữa + company info | centered invoice header |
-| INV-04 | 2-column billing/shipping | invoice billing shipping two column |
-| INV-05 | Sidebar + main table | invoice sidebar layout |
-| INV-06 | Header + key-value blocks + table | invoice key value layout line items |
-| INV-07 | Dense table invoice | dense invoice table layout |
-| INV-08 | Minimalist invoice | minimal invoice layout |
-| INV-09 | Multi-page invoice | multi page invoice layout |
-| INV-10 | Invoice + payment/remittance section | invoice remittance payment section |
+Cả 10 layout dưới đây nay đã là layout thật trong rulebase (`rulebase/layouts/`,
+họ `modern` — xem `generators/html/sheets/modern.py`), sinh được qua
+`tools/generate_dataset.py --template auto`, không phải ảnh minh hoạ suông.
+Mỗi layout ghép với một trong hai document mới — `invoice_plain` (chỉ
+header + bảng + tổng, không khối khách hàng) hoặc `invoice_detailed` (đủ
+khối bên mua/bên nhận, ghi chú chuyển khoản, số tiền bằng chữ, hai chữ ký) —
+xem `rulebase/documents/invoice_plain.yaml` và `invoice_detailed.yaml`.
+INV-01 bám sát ảnh tham chiếu thật của chính nó (hoá đơn Viettel S-Invoice ở
+gallery đầu tài liệu) nên dùng `invoice_detailed`; các layout "tự thiết kế
+tối giản" khác (03/07/08/09) dùng `invoice_plain`.
+
+| ID | Layout | Keyword | Rulebase layout id |
+| :--- | :--- | :--- | :--- |
+| INV-01 | Header + full-width table | invoice header full width line item table | `invoice_header_table` |
+| INV-02 | Logo trái + metadata phải | invoice logo left metadata right | `invoice_logo_split` |
+| INV-03 | Logo giữa + company info | centered invoice header | `invoice_logo_center` |
+| INV-04 | 2-column billing/shipping | invoice billing shipping two column | `invoice_two_column` |
+| INV-05 | Sidebar + main table | invoice sidebar layout | `invoice_sidebar` |
+| INV-06 | Header + key-value blocks + table | invoice key value layout line items | `invoice_keyvalue` |
+| INV-07 | Dense table invoice | dense invoice table layout | `invoice_dense_table` |
+| INV-08 | Minimalist invoice | minimal invoice layout | `invoice_minimalist` |
+| INV-09 | Multi-page invoice | multi page invoice layout | `invoice_multipage` |
+| INV-10 | Invoice + payment/remittance section | invoice remittance payment section | `invoice_remittance` |
 
 ### 3.2 · Receipt — *narrow layout + line items*
 Dataset trích dẫn: **SROIE** · **CORD** (1.000 biên lai thật) · **WildReceipt**
@@ -125,18 +136,29 @@ Dataset trích dẫn: **SROIE** · **CORD** (1.000 biên lai thật) · **WildRe
 ### 3.3 · Form / Application — *fields + checkbox + K-V*
 Dataset trích dẫn: **FUNSD** (199 scanned forms, nhãn semantic entities + relations) · **XFUND** (mở rộng 7 ngôn ngữ) · **RVL-CDIP** (lớp questionnaire/form)
 
-| ID | Layout | Keyword |
-| :--- | :--- | :--- |
-| FORM-01 | Simple questionnaire | questionnaire form layout |
-| FORM-02 | Grid form | grid form layout |
-| FORM-03 | Label-value form | key value form layout |
-| FORM-04 | Two-column form | two column application form |
-| FORM-05 | Multi-section form | multi section form layout |
-| FORM-06 | Checkbox-heavy | checkbox form layout |
-| FORM-07 | Form + signature | form signature field layout |
-| FORM-08 | Table-based form | table form layout |
-| FORM-09 | Government application | government application form layout |
-| FORM-10 | Dense registration form | registration form dense layout |
+Cả 10 layout dưới đây nay đã là layout thật trong rulebase (`rulebase/layouts/`,
+họ `form` — xem `generators/html/sheets/form.py`), sinh được qua
+`tools/generate_dataset.py --template auto`, không phải ảnh minh hoạ suông.
+Mỗi layout ghép với một trong 8 document mới (`rulebase/documents/form_*.yaml`)
+tái dùng từ vựng nội dung sẵn có của rulebase (đăng ký kết hôn, sơ yếu lý lịch,
+báo cáo dự án, chấm công, uỷ quyền, ...) cộng một khối trường hồ sơ cá nhân mới
+(`form_fields: true`, xem `rulebase/content.py`: họ tên/ngày sinh/dân tộc/quê
+quán/nghề nghiệp/...). FORM-02/05/07/08 in một bảng dòng thật qua component
+dùng chung `generators/html/table.py`, với cột "Phụ cấp"/"Giá trị"/"Chi phí"
+đọc đúng `item.amount` — con số `ground_truth()` gọi là `menu.price`.
+
+| ID | Layout | Keyword | Rulebase layout id |
+| :--- | :--- | :--- | :--- |
+| FORM-01 | Simple questionnaire | questionnaire form layout | `form_questionnaire` |
+| FORM-02 | Grid form | grid form layout | `form_timesheet_grid` |
+| FORM-03 | Label-value form | key value form layout | `form_project_kv` |
+| FORM-04 | Two-column form | two column application form | `form_two_column` |
+| FORM-05 | Multi-section form | multi section form layout | `form_multi_section` |
+| FORM-06 | Checkbox-heavy | checkbox form layout | `form_checkbox_heavy` |
+| FORM-07 | Form + signature | form signature field layout | `form_activity_signature` |
+| FORM-08 | Table-based form | table form layout | `form_table_based` |
+| FORM-09 | Government application | government application form layout | `form_government_app` |
+| FORM-10 | Dense registration form | registration form dense layout | `form_dense_registration` |
 
 ### 3.4 · Identity Document — *photo + K-V + MRZ + security*
 Dataset trích dẫn: **MIDV-500** (500 video clip, 50 loại giấy tờ tuỳ thân **mẫu**)
