@@ -78,9 +78,12 @@ DEGRADATIONS: dict[str, tuple[Callable[..., np.ndarray], bool, bool]] = {
     "blur_zones": (blur_zones, True, False),
     "ink_degradation": (ink_degradation, True, False),
     "holes": (holes, True, False),
-    # the texture models
+    # the texture models. `paper_overlay` (a real photographed paper texture
+    # pasted over the finished page) is imported and still exported below,
+    # but deliberately left out of dispatch: see rules/augmentation.yaml's
+    # header for why every chain that used it was found too heavy and had
+    # it removed. Call it directly if a caller genuinely wants it back.
     "paper_texture": (paper_texture, True, False),
-    "paper_overlay": (paper_overlay, True, False),
     "pattern_overlay": (pattern_overlay, True, False),
     "gradient_domain": (gradient_domain, True, False),
     "phantom_character": (phantom_character, True, False),
