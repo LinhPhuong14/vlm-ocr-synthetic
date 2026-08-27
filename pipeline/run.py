@@ -27,8 +27,25 @@ Layout on disk:
       .shards/shard-*/   one directory per shard, each with its own DONE
       manifest.json      what happened; comparable byte for byte
       timings.json       how long it took; deliberately not comparable
-      <backend>/         the assembled dataset, as the sequential driver left it
+      report.json        did it pass; one case per shard and per gate
+      <backend>/
+        html_000.jpg     the image
+        html_000.json    its record: the boxes and the ground truth
+        synthesis.json   how every image here was made: layout, attributes, seed
+        imagetimes.jsonl how long each one took
       dataset.json
+
+Four files rather than one because they are read by four different things and
+have four different lifetimes: a record is per image and is what a loader
+consumes; `synthesis.json` is the per-image *config*, and is hashed by
+`tools/baseline.py`, so it may hold no duration; `imagetimes.jsonl` is the
+per-image *cost*, which nothing compares; `report.json` is this run's verdict
+and is thrown away with the run.
+
+The console shows a progress bar (`pipeline/progress.py`) on stderr while the
+shards render, and prints the report's summary on stdout at the end. The bar is
+a view: nothing downstream may parse it, and a run redirected to a file prints
+plain lines instead.
 """
 
 from __future__ import annotations
@@ -50,7 +67,16 @@ for extra in (REPO_ROOT, REPO_ROOT / "tools"):
     if str(extra) not in sys.path:
         sys.path.insert(0, str(extra))
 
-from pipeline import drift, invariants, preflight, record, synthesis  # noqa: E402
+from pipeline import (  # noqa: E402
+    drift,
+    imagetimes,
+    invariants,
+    preflight,
+    progress,
+    record,
+    report,
+    synthesis,
+)
 from pipeline.config import Config, apply_overrides, materialise_rules  # noqa: E402
 from pipeline.plan import build_plan, write_plan  # noqa: E402
 from pipeline.worker import (  # noqa: E402
@@ -81,18 +107,18 @@ def gather_invariants(plan: dict, shards_root: Path) -> dict:
         path = shard_dir(shards_root, shard["index"]) / INVARIANTS
         if not path.exists():
             continue
-        report = json.loads(path.read_text(encoding="utf-8"))
-        images += report.get("images", 0)
-        boxes += report.get("boxes", 0)
-        for layout, count in (report.get("label_values") or {}).items():
+        measured = json.loads(path.read_text(encoding="utf-8"))
+        images += measured.get("images", 0)
+        boxes += measured.get("boxes", 0)
+        for layout, count in (measured.get("label_values") or {}).items():
             values[layout] = values.get(layout, 0) + count
-        for layout, fields in (report.get("unprinted") or {}).items():
+        for layout, fields in (measured.get("unprinted") or {}).items():
             for name, count in fields.items():
                 bucket = unprinted.setdefault(layout, {})
                 bucket[name] = bucket.get(name, 0) + count
-        for name, count in (report.get("notes") or {}).items():
+        for name, count in (measured.get("notes") or {}).items():
             notes[name] = notes.get(name, 0) + count
-        unchecked.update(report.get("unchecked") or [])
+        unchecked.update(measured.get("unchecked") or [])
 
     return {
         "images": images,
@@ -164,15 +190,24 @@ def _render_one(job: dict) -> dict:
     return result
 
 
-def assemble(out: Path, plan: dict, shards_root: Path) -> tuple[dict, list[str]]:
+def assemble(out: Path, plan: dict, shards_root: Path
+             ) -> tuple[dict, list[str], list[imagetimes.Entry]]:
     """Gather finished shards into the flat per-backend dataset.
 
     Images are hard-linked rather than moved, so the shard directories stay
     intact and a later resume still sees its own `DONE`. On a filesystem that
     cannot link, this falls back to copying.
+
+    Also returns every page's drawing time, gathered from the shards and
+    rewritten beside the assembled images. **Read back from the shards rather
+    than carried out of the pool**, because half of a resumed run never goes
+    through the pool at all: a shard that was already `DONE` returns in
+    milliseconds having drawn nothing, and a report built from what the workers
+    handed back would show a 4 000-image run that took nine seconds.
     """
     warnings: list[str] = []
     frameworks: dict[str, dict] = {}
+    timed: list[imagetimes.Entry] = []
 
     for backend in plan["backends"]:
         target = out / backend
@@ -192,7 +227,8 @@ def assemble(out: Path, plan: dict, shards_root: Path) -> tuple[dict, list[str]]
         # The records and the provenance, assembled together: they are one
         # dataset, and a run that produced only half of it would leave images
         # nothing can redraw.
-        with synthesis.Writer(synthesis.beside(target), backend) as notes:
+        with synthesis.Writer(synthesis.beside(target), backend) as notes, \
+                imagetimes.Log(target) as clock:
             for shard in sorted((s for s in plan["shards"] if s["backend"] == backend),
                                 key=lambda s: s["index"]):
                 directory = shard_dir(shards_root, shard["index"])
@@ -202,6 +238,7 @@ def assemble(out: Path, plan: dict, shards_root: Path) -> tuple[dict, list[str]]
                         f"assembled dataset: no DONE")
                     continue
                 drew = synthesis.read_if_there(directory)
+                drawn_times = imagetimes.read(directory)
                 for item in record.read(directory):
                     name = record.file_name(item)
                     source = directory / name
@@ -223,6 +260,10 @@ def assemble(out: Path, plan: dict, shards_root: Path) -> tuple[dict, list[str]]
                                                     "attributes", "tags")})
 
                     layout = drew.layout(name) if name in drew else "?"
+                    took = drawn_times.get(name)
+                    if took is not None:
+                        clock.add(took)
+                        timed.append(took)
                     by_layout[layout] = by_layout.get(layout, 0) + 1
                     seeds.add(recipe.get("seed"))
                     labels.add(hashlib.sha256(
@@ -238,7 +279,7 @@ def assemble(out: Path, plan: dict, shards_root: Path) -> tuple[dict, list[str]]
             warnings.append(
                 f"{backend}: {written} images but only {len(labels)} distinct "
                 f"labels; the sample is smaller than the file count says")
-    return frameworks, warnings
+    return frameworks, warnings, timed
 
 
 def execute(config: Config, *, workers: int | None = None,
@@ -312,27 +353,41 @@ def execute(config: Config, *, workers: int | None = None,
     started = time.time()
     results: list[dict] = []
     if jobs:
+        wanted = {s["index"]: s for s in pending}
+        # Counted in images rather than shards, because a shard is an
+        # implementation detail and "312 of 1200 ảnh" is the number a person
+        # came to see. It moves in shard-sized steps -- a worker says nothing
+        # until its whole shard is on disk -- which is why the note names the
+        # shard that just landed rather than the page being drawn.
         # spawn, not fork: it is what Windows uses anyway, so a job that works
         # here works there rather than depending on inherited state.
         context = multiprocessing.get_context("spawn")
-        with ProcessPoolExecutor(max_workers=min(workers, len(jobs)),
-                                 mp_context=context) as pool:
+        with progress.Bar(sum(s["count"] for s in pending), "ảnh") as bar, \
+                ProcessPoolExecutor(max_workers=min(workers, len(jobs)),
+                                    mp_context=context) as pool:
             futures = {pool.submit(_render_one, job): job for job in jobs}
             for future in as_completed(futures):
                 result = future.result()
                 results.append(result)
-                state = "ok" if not result["error"] else "FAILED"
-                print(f"  [{state}] shard {result['shard']:4d} "
-                      f"{result['backend']:9s} {result['images']:5d} ảnh")
+                # The plan's count, not the shard's: a shard that failed after
+                # eight of twenty images is finished as far as this run is
+                # concerned, and a bar that stops short of its own total looks
+                # like a run that hung.
+                asked = wanted[result["shard"]]["count"]
+                if result["error"]:
+                    bar.say(f"  [FAILED] shard {result['shard']:4d} "
+                            f"{result['backend']:9s} "
+                            f"{str(result['error']).strip().splitlines()[0]}")
+                bar.advance(asked, note=f"shard {result['shard']}")
     elapsed = time.time() - started
 
     # 4. Assemble whatever finished, then report honestly about the rest.
-    frameworks, warnings = assemble(out, plan, shards_root)
+    frameworks, assembly, timed = assemble(out, plan, shards_root)
     # The rules the run actually rendered with, overrides included: comparing an
     # overridden run against the shipped weights would report drift on every one.
     quality, drifting = gather_drift(plan, shards_root, config.quality,
                                      rules=rendered_rules)
-    warnings += drifting
+    warnings = assembly + drifting
     failed = sorted((r for r in results if r["error"]), key=lambda r: r["shard"])
 
     manifest = {
@@ -386,7 +441,44 @@ def execute(config: Config, *, workers: int | None = None,
         "shards": sorted(
             ({"shard": r["shard"], "seconds": r["seconds"]} for r in results),
             key=lambda r: r["shard"]),
+        # Per image, summed over the assembled dataset rather than over this
+        # run's shards: on a resume the two differ, and the question "how long
+        # does one of these pages cost" is about the dataset.
+        "images": imagetimes.summarise(timed),
     }, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    # 5. The verdict, as cases. `manifest.json` says what the set is and holds
+    # no duration; this says whether the run passed and what it cost.
+    #
+    # `preflight` and `pairing` appear only when they ran and therefore only
+    # ever as a pass: either stops the run where it stands, and no report is
+    # written for a run that drew nothing. They are listed anyway, because
+    # "which gates did this run actually pass" is a different question from
+    # "which gates exist", and `--no-preflight` is the answer to it.
+    checks: list[dict] = []
+    if not skip_preflight:
+        checks.append({"name": "preflight", "status": report.PASS,
+                       "detail": "mọi điều kiện đầu vào đạt"})
+    checks.append({"name": "pairing", "status": report.PASS,
+                   "detail": str(plan.get("pairing", "paired"))})
+    checks.append({
+        "name": "assembly",
+        "status": report.FAIL if assembly else report.PASS,
+        "detail": "; ".join(assembly) if assembly
+                  else f"{sum(e['images'] for e in frameworks.values())} ảnh gom đủ",
+    })
+    checks.append({
+        "name": "drift",
+        "status": report.FAIL if drifting else report.PASS,
+        "detail": "; ".join(drifting) if drifting
+                  else f"mix trong dung sai {quality.get('tolerance')}",
+    })
+    verdict = report.build(
+        plan=plan, results=results, frameworks=frameworks, warnings=warnings,
+        checks=checks, elapsed=elapsed, workers=workers, times=timed,
+        done={s["index"]: is_done(shard_dir(shards_root, s["index"]))
+              for s in plan["shards"]})
+    report.write(out, verdict)
 
     # `dataset.json` in the shape the sequential driver wrote, so everything
     # downstream -- ocr_proof, check_boxes, the READMEs -- keeps working.
@@ -407,14 +499,11 @@ def execute(config: Config, *, workers: int | None = None,
 
     total = sum(entry["images"] for entry in frameworks.values())
     print(f"\n{total} ảnh -> {out}")
-    if failed or warnings:
-        for entry in manifest["failed"]:
-            print(f"  [FAILED] shard {entry['shard']}: {entry['error'].splitlines()[0]}")
-        for warning in manifest["warnings"]:
-            print(f"  [warn] {warning}")
-        # A shard that failed must never look like a smaller run that succeeded.
-        return 1
-    return 0
+    # One summary, printed from the same structure that was written to disk, so
+    # the console and `report.json` can never disagree about the verdict.
+    print(report.render(verdict))
+    # A shard that failed must never look like a smaller run that succeeded.
+    return 1 if verdict["verdict"] == report.FAIL else 0
 
 
 def main() -> int:

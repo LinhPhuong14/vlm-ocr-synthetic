@@ -22,6 +22,7 @@ import argparse
 import html
 import random
 import sys
+import time
 from pathlib import Path
 
 import cv2
@@ -47,7 +48,7 @@ import profiling  # noqa: E402
 import rulebase  # noqa: E402
 import worklist  # noqa: E402
 from degradation.pipeline import apply_recipe  # noqa: E402
-from pipeline import record, synthesis  # noqa: E402
+from pipeline import imagetimes, record, synthesis  # noqa: E402
 
 
 def _sheet_css(grid, line_px: float, padding_px: float) -> str:
@@ -447,6 +448,55 @@ def structure_from_cells(cells: list[dict]) -> list[str]:
     return structure_tokens(ordered)
 
 
+def _emit_page(args, name, recipe, receipt, image, boxes, cells,
+               hand_report, sign_report, seed, notes) -> None:
+    """Everything an image costs after it is drawn: the JPEG, the record, the
+    provenance line.
+
+    Lifted out of the render loop unchanged so the loop can time it as one
+    thing. `imagetimes` splits an image into `draw` and `write` because those
+    answer different questions -- a run that has got slow is one or the other --
+    and that split is only expressible if the second half is one call.
+    """
+    with profiling.stage("export"):
+        cv2.imwrite(str(args.out / name), image, [cv2.IMWRITE_JPEG_QUALITY, 90])
+    with profiling.stage("annotation"):
+        # Which page model drew THIS image. At set level in `dataset.json` it
+        # could not say whether a set was mixed; per image it can, and a reader
+        # no longer has to infer it from the pixels.
+        extra = {"page_model": args.template or sheets.GRID}
+        if hand_report is not None:
+            # What was written and what refused, per page. A sheet that asked
+            # for handwriting and got two inked fields is a fact about the
+            # checkpoint, and it belongs in the record beside the blocks rather
+            # than in a log nobody keeps -- see docs/handwriting-html.md.
+            extra["handwriting"] = hand_report
+        if sign_report is not None:
+            # The style of every mark on the page, and every block that went
+            # unsigned. A signature carries no box and no text, so this record
+            # is the only place it exists in the label at all -- and a set that
+            # wanted signatures and drew none should say so here.
+            extra["signature"] = sign_report
+        if cells:
+            # Additive, and only for a template render: the structure half of
+            # the label, so a merged cell is recoverable. The blocks are
+            # untouched, so every existing loader keeps working.
+            extra["cells"] = cells
+            extra["structure"] = structure_from_cells(cells)
+        item = record.build(
+            filename=name, width=image.shape[1], height=image.shape[0],
+            parser="html", boxes=boxes, extracted=receipt.ground_truth(),
+            seed=seed, layout=recipe.layout.id)
+    with profiling.stage("export"):
+        # The record beside its image, and the provenance streamed into the one
+        # file for the set -- so a shard's memory does not grow with its size
+        # and the two stay in step page for page.
+        record.write_one(item, args.out, strict=False)
+        notes.add(name, job_id=item["job_id"], layout=recipe.layout.id,
+                  recipe=recipe.to_dict(),
+                  text_sequence=receipt.text_sequence(), extra=extra)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("-o", "--out", type=Path, default=Path("outputs"))
@@ -552,55 +602,31 @@ def main() -> int:
         # carries every box on the page. Written in page order, which is the
         # order the caller listed the jobs in -- `pipeline/worker.py` walks the
         # runs in that order to name the files.
-        with synthesis.Writer(synthesis.beside(args.out), "html") as notes:
+        # How long each page took, written beside it as it goes. NOT into
+        # `synthesis.json`: that file is fingerprinted by `tools/baseline.py`
+        # and a duration in it would make the check fail on every machine --
+        # see `pipeline/imagetimes.py`, which says so at length.
+        with synthesis.Writer(synthesis.beside(args.out), "html") as notes, \
+                imagetimes.Log(args.out) as clock:
             for index, job, seed in worklist.pages(jobs):
-                recipe, receipt, _grid, image, boxes, cells, hand_report, sign_report = (
-                    renderer.render(seed, forces[job]))
                 name = f"html_{index:03d}.jpg"
-                with profiling.stage("export"):
-                    cv2.imwrite(str(args.out / name), image,
-                                [cv2.IMWRITE_JPEG_QUALITY, 90])
-                with profiling.stage("annotation"):
-                    # Which page model drew THIS image. At set level in
-                    # `dataset.json` it could not say whether a set was mixed;
-                    # per image it can, and a reader no longer has to infer it
-                    # from the pixels.
-                    extra = {"page_model": args.template or sheets.GRID}
-                    if hand_report is not None:
-                        # What was written and what refused, per page. A sheet
-                        # that asked for handwriting and got two inked fields
-                        # is a fact about the checkpoint, and it belongs in the
-                        # record beside the blocks rather than in a log nobody
-                        # keeps -- see docs/handwriting-html.md.
-                        extra["handwriting"] = hand_report
-                    if sign_report is not None:
-                        # The style of every mark on the page, and every block
-                        # that went unsigned. A signature carries no box and no
-                        # text, so this record is the only place it exists in
-                        # the label at all -- and a set that wanted signatures
-                        # and drew none should say so here.
-                        extra["signature"] = sign_report
-                    if cells:
-                        # Additive, and only for a template render: the
-                        # structure half of the label, so a merged cell is
-                        # recoverable. The blocks are untouched, so every
-                        # existing loader keeps working.
-                        extra["cells"] = cells
-                        extra["structure"] = structure_from_cells(cells)
-                    item = record.build(
-                        filename=name, width=image.shape[1], height=image.shape[0],
-                        parser="html", boxes=boxes,
-                        extracted=receipt.ground_truth(),
-                        seed=seed, layout=recipe.layout.id)
-                with profiling.stage("export"):
-                    # The record beside its image, and the provenance streamed
-                    # into the one file for the set -- so a shard's memory does
-                    # not grow with its size and the two stay in step page for
-                    # page.
-                    record.write_one(item, args.out, strict=False)
-                    notes.add(name, job_id=item["job_id"], layout=recipe.layout.id,
-                              recipe=recipe.to_dict(),
-                              text_sequence=receipt.text_sequence(), extra=extra)
+                # The name is chosen before the timer starts so a page that
+                # raises still leaves a row saying which page it was.
+                with clock.time(name, layout=job.layout or "") as timed:
+                    drawing = time.monotonic()
+                    recipe, receipt, _grid, image, boxes, cells, hand_report, sign_report = (
+                        renderer.render(seed, forces[job]))
+                    # Two stages, because they answer different questions: `draw`
+                    # is the renderer and `write` is the disk, and a run that has
+                    # got slow is one or the other.
+                    timed.stages["draw"] = time.monotonic() - drawing
+                    # Known only now, when the job pinned no layout.
+                    timed.layout = recipe.layout.id
+                    writing = time.monotonic()
+                    _emit_page(
+                        args, name, recipe, receipt, image, boxes, cells,
+                        hand_report, sign_report, seed, notes)
+                    timed.stages["write"] = time.monotonic() - writing
                 inked = len(hand_report["inked"]) if hand_report else 0
                 signed = len(sign_report["marks"]) if sign_report else 0
                 print(f"[ok] {name}  {image.shape[1]}x{image.shape[0]}  "

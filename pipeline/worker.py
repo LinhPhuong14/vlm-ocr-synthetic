@@ -59,7 +59,7 @@ for extra in (REPO_ROOT, REPO_ROOT / "tools"):
 from paths import VENVS, venv_python  # noqa: E402
 
 import worklist  # noqa: E402
-from pipeline import drift, invariants, record, synthesis  # noqa: E402
+from pipeline import drift, imagetimes, invariants, record, synthesis  # noqa: E402
 from pipeline.config import RULES_ENV  # noqa: E402
 from pipeline.plan import image_name  # noqa: E402
 
@@ -195,6 +195,7 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
     tally = invariants.Tally(invariants.attribute_names())
 
     written = 0
+    timed: list[imagetimes.Entry] = []
     staging = Path(tempfile.mkdtemp(prefix="shard-", dir=str(directory)))
     # A record per image, written beside it, and one `synthesis.json` for the
     # shard. The first is what a converted page looks like; the second is how
@@ -257,6 +258,13 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
                 raise ShardError(
                     f"shard {shard['index']} {backend}: " + "; ".join(gaps))
 
+            # How long each page took, under the renderer's own names. Re-keyed
+            # to the dataset's names in the loop below -- the same rename the
+            # image gets, at the same moment, so the two can never drift apart.
+            # Absent is not an error: `imagetimes.read` returns `{}` and the run
+            # reports "no per-image timing" rather than refusing to finish.
+            drawn_times = imagetimes.read(staging)
+
             cursor = 0
             for run in shard["runs"]:
                 for offset in range(run["count"]):
@@ -277,6 +285,15 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
                             f"{run['layout']!r}; the renderer returned its pages "
                             f"in a different order from the job list")
                     shutil.move(str(staging / drawn_name), str(directory / target))
+                    clock = drawn_times.get(drawn_name)
+                    if clock is not None:
+                        # The plan's layout, not the renderer's, for the same
+                        # reason the record takes it: they were just checked
+                        # against each other, and every other file in this
+                        # directory says the plan's name.
+                        timed.append(imagetimes.Entry(
+                            file=target, layout=run["layout"],
+                            seconds=clock.seconds, stages=dict(clock.stages)))
 
                     page = dict(drew.entry(drawn_name))
                     recipe = drew.recipe(drawn_name)
@@ -312,6 +329,15 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
         # last write is what makes `synthesis.json` parse at all, so a shard
         # killed here leaves a file that fails to load rather than one that
         # loads and is short.
+
+    # The per-image times, under the dataset's names now, beside the images they
+    # measure. Written here rather than left in the staging directory, which is
+    # about to be gone, and written even when the budget check below stops the
+    # shard: a shard that failed slowly is exactly the one somebody times.
+    if timed:
+        with imagetimes.Log(directory) as clock:
+            for entry in timed:
+                clock.add(entry)
 
     expected = sum(run["count"] for run in shard["runs"])
     if written != expected:
