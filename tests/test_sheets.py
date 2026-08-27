@@ -26,10 +26,13 @@ sys.path.insert(0, str(REPO_ROOT / "generators" / "html"))
 import sheets  # noqa: E402
 
 import rulebase  # noqa: E402
-from rulebase.layout import available as available_layouts  # noqa: E402
+from rulebase.layout import every as every_layout  # noqa: E402
+
+# `every_layout`, not `available_layouts`: a layout switched off with
+# `enabled: false` means no RUN draws it, not that nobody checks it any more.
 
 SEEDS = (1, 7, 2026)
-LAYOUTS = available_layouts()
+LAYOUTS = every_layout()
 
 _PAGES: dict[tuple[str, int], tuple] = {}
 

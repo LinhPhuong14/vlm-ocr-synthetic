@@ -28,6 +28,7 @@ from .content import build as build_receipt
 from .corpus import CORPUS_ROOT
 from .layout import LAYOUTS_ROOT, Cell, Grid, build_grid, item_values, load_layout
 from .layout import available as available_layouts
+from .layout import every as every_layout
 from .spec import (
     ATTRIBUTES,
     RULES_ROOT,
@@ -70,6 +71,7 @@ __all__ = [
     "RuleError",
     "Store",
     "available_layouts",
+    "every_layout",
     "build_grid",
     "build_receipt",
     "enumerate_valid",

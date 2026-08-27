@@ -24,7 +24,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from pipeline import invariants  # noqa: E402
 from rulebase import (  # noqa: E402
     ATTRIBUTES,
-    available_layouts,
     blanks,  # noqa: E402
     corpus,  # noqa: E402
     load_groups,
@@ -33,15 +32,22 @@ from rulebase import (  # noqa: E402
     validate,
 )
 from rulebase.layout import LAYOUTS_ROOT  # noqa: E402
+from rulebase.layout import every as every_layout  # noqa: E402
 
 
 def check() -> list[str]:
     problems = validate()
 
     # Every bố cục named in the rules must have a file, and vice versa.
+    #
+    # Against EVERY file, not just the drawable ones. A layout switched off with
+    # `enabled: false` keeps its file and keeps its entry in the rules -- that
+    # is what lets a committed page that drew it still be redrawn -- so reading
+    # the drawable list here would report ten perfectly present files as
+    # missing, which is how a check teaches people to ignore it.
     rules = load_rules()
     declared = {option.id for option in rules["layout"]}
-    on_disk = set(available_layouts())
+    on_disk = set(every_layout())
     for missing in sorted(declared - on_disk):
         problems.append(f"layout/{missing}: declared in rules but no {LAYOUTS_ROOT}/{missing}.yaml")
     for orphan in sorted(on_disk - declared):

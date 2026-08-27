@@ -547,9 +547,9 @@ def test_forcing_maps_distinct_seeds_to_distinct_recipes(real_rules):
     Two hundred seeds is enough to catch it without slowing the suite: the old
     code gave 30 here for `market_vat` and 114 for the least affected layout.
     """
-    from rulebase import available_layouts
+    from rulebase import every_layout
 
-    for layout in available_layouts():
+    for layout in every_layout():
         seeds = [sample_recipe(seed=k, rules=real_rules, force={"layout": layout}).seed
                  for k in range(200)]
         assert len(set(seeds)) == 200, (
@@ -558,9 +558,9 @@ def test_forcing_maps_distinct_seeds_to_distinct_recipes(real_rules):
 
 def test_a_forced_recipe_reports_the_seed_it_was_asked_for(real_rules):
     """Everything that rebuilds a page from `recipe.seed` depends on this."""
-    from rulebase import available_layouts
+    from rulebase import every_layout
 
-    for layout in available_layouts():
+    for layout in every_layout():
         for seed in range(0, 200, 7):
             recipe = sample_recipe(seed=seed, rules=real_rules, force={"layout": layout})
             assert recipe.seed == seed
