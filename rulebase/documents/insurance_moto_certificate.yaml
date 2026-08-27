@@ -1,0 +1,35 @@
+profile: insurance
+invoice: true
+no_items: true
+no_totals: true
+vehicle_fields: true
+vehicle_kind: motorbike
+vehicle_types: ["Mô tô hai bánh", "Xe gắn máy", "Xe máy điện"]
+show_serial: false
+show_vat: false
+show_issuer_unit: false
+show_seller_address: false
+show_seller_phone: false
+show_subtotal: false
+show_payment: false
+show_amount_words: false
+show_seller_tax_code: false
+show_seller_website: false
+show_seller_account: false
+titles:
+  - "Giấy chứng nhận bảo hiểm bắt buộc trách nhiệm dân sự của chủ xe cơ giới"
+subtitle: "(Mô tô hai bánh, ba bánh, xe gắn máy, xe máy điện)"
+party_fields:
+  left:
+    - [buyer_name, "Chủ xe:"]
+    - [buyer_address, "Địa chỉ:"]
+    - [buyer_phone, "Điện thoại:"]
+    - [plate_number, "Biển số xe:"]
+    - [chassis_number, "Số khung:"]
+    - [engine_number, "Số máy:"]
+    - [vehicle_type, "Dung tích:"]
+notes:
+  - "Giới hạn trách nhiệm đối với người thứ ba: về sức khoẻ, tính mạng 150.000.000 đồng/người/vụ; về tài sản 50.000.000 đồng/vụ."
+  - "Khi tai nạn xảy ra, chủ xe/lái xe phải thông báo ngay cho doanh nghiệp bảo hiểm qua đường dây nóng 1900 0000 và tích cực cứu chữa, hạn chế thiệt hại. Giấy chứng nhận này chỉ có giá trị khi đã đóng đủ phí bảo hiểm."
+signature_labels:
+  - ["Doanh nghiệp bảo hiểm", ""]

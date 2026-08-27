@@ -1,0 +1,15 @@
+# Sản phẩm bảo hiểm nhân thọ - dùng cho bảng sản phẩm của hợp đồng/đơn yêu cầu.
+# Định dạng: tên sản phẩm<TAB>số tiền bảo hiểm tối thiểu<TAB>tối đa   (đơn vị VND)
+#
+# Tên sản phẩm là tên loại (liên kết chung, trọn đời, hưu trí...), không phải
+# tên thương mại của một hãng bảo hiểm thật - cùng lý do với `shops_insurance.txt`.
+An Tâm Trọn Đời (sản phẩm chính - bảo hiểm liên kết chung)	500000000	2000000000
+An Bình Hưu Trí (sản phẩm chính - bảo hiểm hưu trí)	300000000	1000000000
+An Khang Học Đường (sản phẩm chính - bảo hiểm giáo dục)	200000000	800000000
+Bảo hiểm bệnh hiểm nghèo (sản phẩm bổ trợ)	100000000	500000000
+Bảo hiểm tai nạn cá nhân (sản phẩm bổ trợ)	100000000	300000000
+Bảo hiểm trợ cấp nằm viện (sản phẩm bổ trợ)	50000000	150000000
+Bảo hiểm miễn đóng phí do thương tật (sản phẩm bổ trợ)	100000000	500000000
+Bảo hiểm tử vong và thương tật toàn bộ vĩnh viễn (sản phẩm bổ trợ)	300000000	1000000000
+Bảo hiểm chăm sóc sức khoẻ toàn diện (sản phẩm bổ trợ)	100000000	400000000
+Bảo hiểm hỗ trợ chi phí phẫu thuật (sản phẩm bổ trợ)	50000000	200000000
