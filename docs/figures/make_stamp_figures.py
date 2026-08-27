@@ -8,9 +8,9 @@ liệu trích**, rồi vẽ kết quả ra — nên một con số trong bài v�
 không thể lệch nhau: cả hai đến từ cùng một lần chạy.
 
 Xuất **PNG chứ không JPG**, khác với các hình khác trong thư mục này. Phần lớn
-hình dưới đây phóng to tới mức thấy từng điểm ảnh, mà điều đang cần chỉ ra là
-*một điểm ảnh mang giá trị gì* — nén JPEG bịa thêm mức trung gian ở đúng chỗ
-tài liệu khẳng định là chỉ có hai mức.
+hình dưới đây phóng to tới chỗ thấy được từng điểm ảnh, mà điều đang cần chỉ ra
+là *một điểm ảnh mang giá trị gì* — nén JPEG bịa ra giá trị trung gian ở đúng
+chỗ tài liệu khẳng định tập giá trị chỉ có hai phần tử.
 
 Chỉ cần Pillow và numpy. Hai đồ thị vẽ tay bằng Pillow chứ không kéo matplotlib
 về: hai đồ thị không đáng một phụ thuộc mới cho cả repo.
@@ -150,8 +150,20 @@ def on_paper(rgba: Image.Image, size: tuple[int, int] | None = None) -> Image.Im
     return flat
 
 
-def levels_of(image: Image.Image) -> int:
+def value_set(image: Image.Image) -> int:
+    """|V| — số giá trị phân biệt THỰC SỰ xuất hiện, không phải 256 mà định
+    dạng cho phép. Xem §2.2 của tài liệu."""
     return int(len(np.unique(np.array(image.convert("L")))))
+
+
+def edge_share(image: Image.Image) -> float:
+    """p — phần trăm điểm ảnh có 0 < v < 255, tức nhận độ phủ MỘT PHẦN.
+
+    Đây là số mang nghĩa; |V| chỉ là hệ quả của nó. Một bộ raster lấy mẫu diện
+    tích phải cho p > 0 ở mọi hình có biên không trùng lưới điểm ảnh.
+    """
+    array = np.array(image.convert("L"))
+    return 100.0 * float(((array > 0) & (array < 255)).mean())
 
 
 def plot(series, *, size=(620, 320), xlabel="", ylabel="", xlog=False, title="") -> Image.Image:
@@ -214,10 +226,16 @@ def plot(series, *, size=(620, 320), xlabel="", ylabel="", xlog=False, title="")
 # -------------------------------------------- §2.2 nguyên thuỷ hình học
 
 def fig_primitives() -> Image.Image:
-    """Từng nguyên thuỷ của ImageDraw, kèm số mức xám nó cho ra.
+    """Từng nguyên thuỷ của ImageDraw, đo bằng |V| và p (§2.2 của tài liệu).
+
+    Có hai ô ĐỐI CHỨNG ở cuối, và chúng là phần đáng đọc nhất: `rectangle`
+    thẳng trục cũng cho p = 0, mà đó là hành vi ĐÚNG kể cả với một bộ raster
+    lấy mẫu diện tích hoàn hảo — biên của nó rơi đúng vào cạnh điểm ảnh nên
+    không điểm nào bị biên đi xuyên qua. Nói cách khác p = 0 chỉ là bằng chứng
+    khi biên không trùng lưới, và bảng này phải tự nói ra điều đó.
 
     Ô phóng chọn sao cho nó CẮT QUA MỘT MÉP: giữa một mảng đặc thì nguyên thuỷ
-    nào cũng như nhau, và cả bảng này nói về chuyện xảy ra ở mép.
+    nào cũng như nhau.
     """
     side, factor, window = 150, 6, 25
     cases = []
@@ -227,35 +245,40 @@ def fig_primitives() -> Image.Image:
 
     image = blank()
     ImageDraw.Draw(image).ellipse([14, 14, side - 14, side - 14], outline=255, width=4)
-    cases.append(("ellipse(outline=…)", image, (96, 24)))
+    cases.append(("ellipse(outline=…, width=4)", image, (96, 24), "biên cong khắp nơi"))
 
     image = blank()
     ImageDraw.Draw(image).ellipse([14, 14, side - 14, side - 14], fill=255)
-    cases.append(("ellipse(fill=…)", image, (16, 42)))
+    cases.append(("ellipse(fill=…)", image, (16, 42), "biên cong khắp nơi"))
 
     image = blank()
     ImageDraw.Draw(image).polygon([(20, 20), (side - 20, 46), (74, side - 20)], fill=255)
-    cases.append(("polygon(fill=…)", image, (58, 20)))
+    cases.append(("polygon(fill=…)", image, (58, 20), "ba cạnh đều chéo"))
 
     image = blank()
     ImageDraw.Draw(image).line([16, 26, side - 16, side - 30], fill=255, width=5)
-    cases.append(("line(width=5)", image, (60, 60)))
+    cases.append(("line(width=5), vẽ chéo", image, (60, 60), "biên chéo"))
 
     image = blank()
     ImageDraw.Draw(image).arc([14, 14, side - 14, side - 14], 200, 340, fill=255, width=6)
-    cases.append(("arc(width=6)", image, (34, 32)))
+    cases.append(("arc(width=6)", image, (34, 32), "biên cong"))
 
     image = blank()
     ImageDraw.Draw(image).regular_polygon((side // 2, side // 2, 58), 5, fill=255)
-    cases.append(("regular_polygon(…)", image, (28, 72)))
+    cases.append(("regular_polygon(…)", image, (28, 72), "bốn trong năm cạnh chéo"))
 
     image = blank()
     ImageDraw.Draw(image).text((8, 34), "Ag", font=_font(84, bold=True), fill=255)
-    cases.append(("text(…)  ←  qua FreeType", image, (20, 58)))
+    cases.append(("text('Ag', 84px)  ←  qua FreeType", image, (20, 58), "biên cong"))
+
+    image = blank()
+    ImageDraw.Draw(image).rectangle([20, 20, side - 20, side - 20], fill=255)
+    cases.append(("rectangle(…) thẳng trục  ←  ĐỐI CHỨNG", image, (12, 60),
+                  "biên TRÙNG cạnh điểm ảnh"))
 
     tiles = []
-    for name, image, (bx, by) in cases:
-        levels = levels_of(image)
+    for name, image, (bx, by), geometry in cases:
+        values, edge = value_set(image), edge_share(image)
         marked = image.convert("RGB")
         ImageDraw.Draw(marked).rectangle([bx - 1, by - 1, bx + window, by + window],
                                          outline=MARKER)
@@ -264,40 +287,79 @@ def fig_primitives() -> Image.Image:
         pair.paste(marked, (0, 0))
         pair.paste(framed(zoom(image, (bx, by, bx + window, by + window), factor)),
                    (side + 14, 0))
-        verdict = "khử răng cưa" if levels > 2 else "KHÔNG khử răng cưa"
-        tiles.append((pair, f"{name} — {levels} mức xám, {verdict}",
-                      f"trái: ảnh đầy đủ, ô cam là vùng phóng · phải: phóng {factor}× "
-                      f"vào {window}×{window} điểm ảnh cắt qua một mép"))
+        if "ĐỐI CHỨNG" in name:
+            verdict = "p = 0 ở đây KHÔNG chứng minh gì: không điểm nào bị biên đi xuyên qua"
+        elif edge > 0:
+            verdict = "có lấy mẫu diện tích — biên trả về độ phủ một phần"
+        else:
+            verdict = "KHÔNG lấy mẫu diện tích — mọi điểm bị ép về một trong hai đầu"
+        tiles.append((pair, f"{name} — |V| = {values}, p = {edge:.2f}%",
+                      f"{geometry} · {verdict} · ô cam: phóng {factor}× vào "
+                      f"{window}×{window} điểm ảnh cắt qua một mép"))
     return grid_of(tiles, 2)
 
 
 # ------------------------------------------------- §2.3 phủ 8 bit của FreeType
 
 def fig_freetype() -> Image.Image:
+    """Trường phủ 8 bit của FreeType, và một lát cắt qua mép nét.
+
+    Lát cắt chọn TỪ DỮ LIỆU chứ không đặt tay: quét tìm hàng có nhiều điểm phủ
+    một phần nhất, rồi lấy cửa sổ quanh chỗ chuyển đầu tiên trong hàng ấy. Bản
+    đầu của hình này cắm cứng `array[92]` và một dải cột đoán bằng mắt; lát cắt
+    ấy rơi vào chỗ nét đặc, nên hình chỉ hiện hai khối 0 và 255 — đúng thứ
+    ngược lại với điều nó sinh ra để chỉ.
+
+    Đo trên "Ơ" 120 px, ảnh 260×150 — KHÁC bố trí của bảng §2.2 ("Ag" 84 px,
+    ảnh 150×150), nên |V| và p ở đây không so trực tiếp với bảng ấy được. Cả
+    hai bố trí đều ghi ra trong chú thích vì lý do đó.
+    """
     image = Image.new("L", (260, 150), 0)
     ImageDraw.Draw(image).text((10, 18), "Ơ", font=_font(120, bold=True), fill=255)
     array = np.array(image)
-    edge = zoom(image, (30, 44, 62, 76), 9)
+    partial = (array > 0) & (array < 255)
 
-    row = array[92]
-    cut = Image.new("RGB", (edge.width, 104), PAPER)
+    row = int(partial.sum(axis=1).argmax())
+    columns = np.flatnonzero(partial[row])
+    window = 22
+    start = max(int(columns[0]) - window // 3, 0)
+    start = min(start, array.shape[1] - window)
+
+
+    # Ô phóng canh vào CHÍNH chỗ lát cắt lấy mẫu, nếu không hai nửa của hình
+    # nói về hai chỗ khác nhau trên cùng một nét chữ.
+    top = min(max(row - 16, 0), array.shape[0] - 32)
+    left_edge = min(max(int(columns[0]) - 10, 0), array.shape[1] - 32)
+    edge = zoom(image, (left_edge, top, left_edge + 32, top + 32), 9)
+    marker_y = (row - top) * 9
+    marked = ImageDraw.Draw(edge)
+    marked.line([0, marker_y, edge.width, marker_y], fill=MARKER)
+
+    bar_width = max(edge.width // window, 6)
+    cut = Image.new("RGB", (edge.width, 140), PAPER)
     draw = ImageDraw.Draw(cut)
-    draw.text((6, 4), "lát cắt ngang qua mép nét — giá trị phủ 0…255",
-              font=_font(12), fill=INK)
-    columns = np.linspace(18, 96, 140).astype(int)
-    for index, x in enumerate(columns):
-        value = int(row[x])
-        at = 6 + index * 2
+    draw.text((6, 4), f"lát cắt tại hàng y = {row}, {window} cột liên tiếp",
+              font=_font(12, bold=True), fill=INK)
+    draw.line([4, 126, edge.width - 4, 126], fill=RULE)
+    for index in range(window):
+        value = int(array[row, start + index])
+        left = 6 + index * bar_width
+        height = value * 0.34
         colour = ACCENT if 0 < value < 255 else MUTED
-        draw.line([at, 96, at, 96 - value * 0.26], fill=colour)
-    partial = int(((array > 0) & (array < 255)).sum())
+        draw.rectangle([left, 126 - height, left + bar_width - 2, 126], fill=colour)
+        if 0 < value < 255:
+            draw.text((left - 2, 126 - height - 13), str(value), font=_font(9), fill=ACCENT)
     body = Image.new("RGB", (edge.width, edge.height + cut.height + 8), PAPER)
     body.paste(edge, (0, 0))
     body.paste(cut, (0, edge.height + 8))
     return caption(
-        body, f"FreeType trả về mặt nạ mode L — {levels_of(image)} mức xám",
-        f"{partial} điểm ảnh có phủ MỘT PHẦN (0 < v < 255); cột đỏ là các mức "
-        f"trung gian ấy. So với 2 mức của mọi nguyên thuỷ hình học ở §2.2.")
+        body,
+        f'FreeType, "Ơ" 120 px trên ảnh 260×150 — |V| = {value_set(image)}, '
+        f"p = {edge_share(image):.2f}%",
+        f"{int(partial.sum())} điểm ảnh nhận độ phủ MỘT PHẦN; cột đỏ là chúng, "
+        f"kèm giá trị. Xám là 0 hoặc 255. Vạch cam trên ô phóng là hàng được cắt. "
+        f"Bố trí khác bảng §2.2 nên p không so "
+        f"trực tiếp — điều so được là p > 0 ở đây và p = 0 ở mọi nguyên thuỷ hình học.")
 
 
 # ------------------------------------------------------- §2.4 lấy mẫu lại
@@ -322,7 +384,7 @@ def fig_resample() -> Image.Image:
         pair = Image.new("RGB", (120 + 10 + patch.width, max(120, patch.height)), PAPER)
         pair.paste(small.convert("RGB"), (0, 0))
         pair.paste(framed(patch), (130, 0))
-        tiles.append((pair, f"{name} — {levels_of(small)} mức xám",
+        tiles.append((pair, f"{name} — |V| = {value_set(small)}, p = {edge_share(small):.2f}%",
                       "cùng một bản dựng ở 8×, hạ về 120 px"))
     return grid_of(tiles, 2)
 
@@ -405,8 +467,8 @@ def fig_supersample() -> Image.Image:
         array = np.array(small)
         partial = 100 * float(((array > 8) & (array < 247)).mean())
         how = "vẽ thẳng ở độ phân giải đích" if ss == 1 else f"vẽ ở {ss}× rồi hạ bằng LANCZOS"
-        tiles.append((pair, f"SS = {ss} — {levels_of(small)} mức xám",
-                      f"{partial:.2f}% điểm ảnh có phủ một phần · bộ nhớ {ss * ss}× · {how}"))
+        tiles.append((pair, f"SS = {ss} — |V| = {value_set(small)}, p = {partial:.2f}%",
+                      f"bộ nhớ {ss * ss}× · {how}"))
     return grid_of(tiles, 2)
 
 
