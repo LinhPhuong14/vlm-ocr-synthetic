@@ -7,7 +7,7 @@ Hai tờ để nhìn, không phải một bộ dữ liệu — bộ dữ liệu 
 `hand-filled-folio.jpg` là tờ mực-mô-hình **ở mức phủ cao nhất mô hình đạt
 được**, tắt làm cũ để nhìn rõ nét bút. Muốn thấy nguồn `model` cư xử thế nào
 trên cả không gian bố cục — kể cả chín trang nó không viết được gì — thì xem
-[`data/hand17_model/`](../../data/hand17_model).
+[`data/hand18_model/`](../../data/hand18_model).
 
 | | `hand-filled-form.jpg` | `hand-filled-folio.jpg` |
 | --- | --- | --- |

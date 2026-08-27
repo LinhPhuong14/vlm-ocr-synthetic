@@ -70,6 +70,14 @@ groups:
         requires: [has_vat_lines]
         tags: [vat_rows]
 
+      # llm-generated, varied from market_vat on 2026-08-27.
+      # Same document kind, so the same requires/excludes/tags; half the weight,
+      # because a variant should not double how often this kind is drawn.
+      - id: market_vat_b
+        weight: 1
+        requires: [has_vat_lines]
+        tags: [vat_rows]
+
   # ------------------------------------------------------------------------
   - id: statutory_invoice
     label: "Hoá đơn theo mẫu — tờ khung in sẵn, có Mẫu số / Ký hiệu / Số"

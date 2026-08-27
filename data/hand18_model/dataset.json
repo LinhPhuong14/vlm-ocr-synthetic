@@ -1,5 +1,5 @@
 {
- "per_framework": 17,
+ "per_framework": 18,
  "layouts": [
   "authorisation_letter",
   "eatery_ascii",
@@ -16,6 +16,7 @@
   "market_barcode",
   "market_compact",
   "market_vat",
+  "market_vat_b",
   "medical_statement",
   "notebook_ledger"
  ],
@@ -26,7 +27,7 @@
  "handwriting": "model",
  "frameworks": {
   "html": {
-   "images": 17
+   "images": 18
   }
  }
 }

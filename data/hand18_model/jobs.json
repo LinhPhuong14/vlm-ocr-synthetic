@@ -75,13 +75,18 @@
   "count": 1
  },
  {
-  "layout": "medical_statement",
+  "layout": "market_vat_b",
   "seed": 8500,
   "count": 1
  },
  {
-  "layout": "notebook_ledger",
+  "layout": "medical_statement",
   "seed": 8600,
+  "count": 1
+ },
+ {
+  "layout": "notebook_ledger",
+  "seed": 8700,
   "count": 1
  }
 ]

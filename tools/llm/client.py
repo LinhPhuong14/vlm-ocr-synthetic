@@ -106,6 +106,24 @@ def _call(path: str, payload: dict | None, timeout: float) -> dict:
     try:
         with _OPENER.open(request, timeout=timeout) as response:
             return json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as error:
+        # The server IS there and said no, which is a different problem and
+        # was reported as the same one until it happened: a cold load of a 7B
+        # on a busy CPU can exceed Ollama's own start-up timeout and come back
+        # as a 500, and being told to `ollama serve` while ollama was serving
+        # is the least useful sentence available.
+        detail = ""
+        try:
+            detail = error.read().decode("utf-8")[:300]
+        except Exception:  # noqa: BLE001 -- best effort on an error path
+            pass
+        raise LLMError(
+            f"the local model server answered {error.code} {error.reason}. "
+            f"{detail}\n"
+            "A 500 on /api/chat is usually the model failing to load in time "
+            "-- it is several GB off disk on the first call after an eviction. "
+            "Warm it with a one-word request and a long timeout, then retry."
+        ) from error
     except urllib.error.URLError as error:
         raise LLMError(
             f"cannot reach the local model at {HOST} ({error}).\n"

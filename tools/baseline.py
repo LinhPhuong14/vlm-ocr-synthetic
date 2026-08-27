@@ -49,7 +49,7 @@ Three fixed plans, because one is not enough:
 
 * `n3` is the plan the W1 brief names, on three named layouts.
 * `n5` is every thermal layout -- the till-roll half of the rule-base.
-* `n17` is every layout, one image each per backend.
+* `n18` is every layout, one image each per backend.
 
 Adding a layout leaves `n3` and `n5` green, which is the point: a regression
 baseline must not move when someone adds unrelated content. The widest plan is
@@ -89,7 +89,8 @@ GOLDEN = REPO_ROOT / "tests" / "golden" / "baseline.json"
 #
 # Adding a plan is fine. Editing one means recapturing.
 THERMAL = ["eatery_ascii", "eatery_indexed", "market_barcode",
-           "market_compact", "market_vat", "notebook_ledger"]
+           "market_compact", "market_vat", "market_vat_b",
+           "notebook_ledger"]
 INVOICE = ["invoice_brand", "invoice_export", "invoice_hotel_compact",
            "invoice_hotel_stay", "invoice_power", "invoice_tax_en",
            "invoice_vat_form", "invoice_vat_summary", "invoice_water"]
@@ -117,7 +118,7 @@ PLANS: dict[str, dict] = {
     # plan like this outright rather than quietly drawing the front of the
     # list. The count is in the name for exactly this reason -- so keep them
     # equal, and let the rename be the thing that tells everyone.
-    "n6": {"per_backend": 6, "seed": 2026, "layouts": THERMAL},
+    "n7": {"per_backend": 7, "seed": 2026, "layouts": THERMAL},
     # Every layout, one image each per backend, so nothing is outside the net.
     # The name states the count, so it changes when the count does -- a plan
     # called `n14` that draws sixteen layouts is a plan nobody can check by
@@ -128,7 +129,7 @@ PLANS: dict[str, dict] = {
     # Every layout, one image each. The name is the count and the count moves
     # when a layout ships -- which is the point: a plan that silently stopped
     # covering the newest layout would be a baseline with a hole in it.
-    "n17": {"per_backend": 17, "seed": 2026,
+    "n18": {"per_backend": 18, "seed": 2026,
             "layouts": sorted(THERMAL + INVOICE + FORM)},
 }
 

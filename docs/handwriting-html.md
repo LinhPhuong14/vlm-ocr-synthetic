@@ -35,8 +35,8 @@ trang, 6 bố cục, **159 ô điền tay, 0 ô in máy**. Cùng 12 trang ấy c
 nội dung của tài liệu này.
 
 Mực của mô hình có tập riêng để **đo** chứ không phải để huấn luyện:
-[`data/hand17_model/`](../data/hand17_model), 17 bố cục × 1 trang bằng
-`--handwriting model`. **25/197 run có mực (13 %)**, và **9/17 trang không có
+[`data/hand18_model/`](../data/hand18_model), 18 bố cục × 1 trang bằng
+`--handwriting model`. **30/191 run có mực (16 %)**, và **8/18 trang không có
 một nét mực nào** — vì hai lý do khác hẳn nhau mà README của nó tách ra. Ngoài
 ra còn `samples/handwriting/hand-filled-folio.jpg`, một tờ để nhìn.
 

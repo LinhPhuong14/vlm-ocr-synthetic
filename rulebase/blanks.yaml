@@ -93,6 +93,11 @@ blanks:
     layout: market_vat
     sheet: null
 
+  market_vat_b:
+    source: "biến thể của market_vat (sinh bằng LLM, không đo từ ảnh nào)"
+    layout: market_vat_b
+    sheet: null
+
   notebook_ledger:
     source: "sổ ghi bán hàng chép tay, tiệm tạp hoá — không có bản in nào để chụp"
     layout: notebook_ledger
@@ -110,7 +115,7 @@ documents:
   restaurant_vat: [eatery_indexed]
   supermarket: [market_barcode, market_compact]
   convenience_store: [market_compact, notebook_ledger]
-  supermarket_vat: [market_barcode, market_vat]
+  supermarket_vat: [market_barcode, market_vat, market_vat_b]
   vat_invoice_form: [invoice_vat_form]
   utility_water: [invoice_water]
   utility_power: [invoice_power]
