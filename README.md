@@ -6,7 +6,7 @@
 [![ci](https://github.com/LinhPhuong14/vlm-ocr-synthetic/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB.svg?logo=python&logoColor=white)](pyproject.toml)
 [![Renderer](https://img.shields.io/badge/Renderer-Chromium_via_Playwright-4285F4.svg?logo=googlechrome&logoColor=white)](generators/html)
-[![Layouts](https://img.shields.io/badge/Bố_cục-16_/_6_họ-28C840.svg)](rulebase/layouts)
+[![Layouts](https://img.shields.io/badge/Bố_cục-18_/_7_họ-28C840.svg)](rulebase/layouts)
 [![Degradation](https://img.shields.io/badge/Làm_cũ-26_mô_hình_+_by__box-FF6B6B.svg)](degradation/README.md)
 [![Handwriting](https://img.shields.io/badge/Chữ_viết_tay-2_nguồn_mực-9B59B6.svg)](docs/handwriting-html.md)
 [![License](https://img.shields.io/badge/License-chưa_chọn-lightgrey.svg)](#-repository--licence)
@@ -360,8 +360,8 @@ ra là đằng kia.
 Không có đường thứ tư: làm lệch từng ký tự của một mặt chữ **in** để giả nét tay
 chính là thứ `ff9a9f0` đã gỡ. Vì thế [`data/hand12/`](data/hand12) dùng `font` —
 đổi 106 người viết lấy việc không còn ô nào in máy — còn nguồn `model` được đo
-riêng trên cả 17 bố cục ở [`data/hand17_model/`](data/hand17_model): 25/197 run
-có mực, chín trang không có nét nào.
+riêng trên cả 18 bố cục ở [`data/hand18_model/`](data/hand18_model): 30/191 run
+có mực, tám trang không có nét nào.
 
 Chi tiết cách nối và **lý do từng ô bị từ chối** nằm trong
 [`docs/handwriting-html.md`](docs/handwriting-html.md); khảo sát mô hình trong
@@ -398,7 +398,8 @@ cột, tiêu đề hai băng với `rowspan`/`colspan`, dòng theo nhóm — d�
 vlm-ocr-synthetic/
 ├── rulebase/                       # LUẬT SINH — nguồn sự thật duy nhất về nội dung
 │   ├── rules/                      # 10 thuộc tính, mỗi thuộc tính một file YAML
-│   ├── layouts/                    # 16 bố cục, đo từ giấy thật (`source:` ghi từ đâu)
+│   ├── layouts/                    # 18 bố cục — 17 đo từ giấy thật, 1 do LLM biến thể
+│   │                               #   (`source:` của mỗi file ghi nó từ đâu ra)
 │   ├── corpus/vi/ · corpus/en/     # các chuỗi tờ giấy in ra
 │   ├── spec.py                     # bốc có trọng số, thẻ, node cha
 │   ├── content.py                  # điền trường, dựng nhãn CORD
@@ -538,10 +539,10 @@ Python 3.11.15, 4 nhân, venv `html` đã dựng:
 | `python -m pytest` | **750 passed**, 1 skipped, 1 xfailed, 3 phút 28 |
 | `python tasks.py check` | 96 file Python đều compile |
 | `python tasks.py lint` | ruff: sạch |
-| `python tasks.py preflight` | sạch, ~30 s (phủ glyph trên 16 bố cục) |
+| `python tasks.py preflight` | sạch, ~30 s (phủ glyph trên 18 bố cục) |
 | `python tasks.py check-rules` / `check-corpus` | hợp lệ |
 | `python tasks.py list-degradations` | 26 mô hình + `by_box` |
-| `python tools/generate_dataset.py -n 16 --workers 3` | 16 ảnh, đủ 16 bố cục, 1 shard |
+| `python tools/generate_dataset.py -n 18 --workers 3` | 18 ảnh, đủ 18 bố cục, 1 shard. `-n` dưới số bố cục nay bị **từ chối** thay vì lặng lẽ bỏ phần đuôi — xem `pipeline/plan.py::uncovered` |
 | `python tasks.py check-boxes` trên bộ vừa sinh | 1 443 hộp, khớp hết |
 | `python tasks.py check-boxes` trên `data/dataset60` | 1 330 hộp mỗi renderer (cả ba), khớp hết |
 
@@ -559,7 +560,7 @@ từng bộ và schema nhãn nằm trong **[`data/README.md`](data/README.md)**.
 | [`data/invoices54/`](data/invoices54) | 54 hoá đơn thương mại vẽ bằng tờ CSS |
 | [`data/forms16/`](data/forms16) | hai chứng từ **không phải hoá đơn**: bảng kê viện phí, giấy uỷ quyền |
 | [`data/hand12/`](data/hand12) | 12 tờ mẫu **điền tay** bằng nguồn `font`: 159 ô, **không ô nào còn in máy** |
-| [`data/hand17_model/`](data/hand17_model) | 17 bố cục × 1 trang bằng nguồn `model` — một **phép đo**, không phải tập huấn luyện: 25/197 run có mực, 9 trang không có nét nào |
+| [`data/hand18_model/`](data/hand18_model) | 18 bố cục × 1 trang bằng nguồn `model` — một **phép đo**, không phải tập huấn luyện: 30/191 run có mực, 8 trang không có nét nào |
 | [`data/tables60/`](data/tables60) | ảnh bảng, nhãn theo cấu trúc PubTabNet — dạy **bố cục, không dạy đọc** |
 | [`data/profile/`](data/profile) | thời gian từng giai đoạn và mô hình chi phí |
 

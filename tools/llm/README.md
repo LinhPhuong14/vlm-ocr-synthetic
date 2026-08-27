@@ -114,7 +114,7 @@ một layout viết tay phải qua**:
 | 1 | là YAML và là mapping | model viết văn xuôi |
 | 2 | mọi key path có trong layout viết tay, đúng kiểu, trong dải đã đo, enum đúng tập | `meta.style: one_column`, `columns[].width: 30` |
 | 3 | mọi khoảng `[min, max]` đúng thứ tự | `width: [48, 42]` — đảo là **mọi seed** đều `ValueError` |
-| 4 | có đủ key mà cả 17 layout đều có | thiếu `sections`, thiếu `id` |
+| 4 | có đủ key mà cả 17 layout **viết tay** đều có | thiếu `sections`, thiếu `id` |
 | 5 | `rulebase.make()` dựng được trang qua nhiều seed | layout hợp lệ về hình thức nhưng vô nghĩa |
 | 6 | `pipeline/preflight.py` toàn bộ rule base | quên đăng ký, nội dung tràn khổ giấy |
 

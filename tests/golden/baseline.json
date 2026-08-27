@@ -52,7 +52,7 @@
       },
       "dataset_json": "48de3420c2a908dd3af062c98e91452dfaae6fde4a0ad7fdf36c056676cc330f"
     },
-    "n6": {
+    "n7": {
       "inputs": {
         "layouts": [
           "eatery_ascii",
@@ -60,16 +60,17 @@
           "market_barcode",
           "market_compact",
           "market_vat",
+          "market_vat_b",
           "notebook_ledger"
         ],
         "seed": 2026,
-        "per_backend": 6,
+        "per_backend": 7,
         "pairing": "paired",
         "clean": false,
         "schema": 8,
         "rules": {
-          "rulebase/rules": "392ec92f19a7d4dc0a5f9849c8d97dbeeb259c7d5f7df7a85c8bbb282a611848",
-          "rulebase/layouts": "6ed64599361ac044fe626f3a637a342e2f10cca7581bbd0cc198abf2e858a6a2",
+          "rulebase/rules": "bc62d4232450f2dea494c354f9a08e5a4d08262f34bac963ad15671d9fe29b96",
+          "rulebase/layouts": "133ae7118ce1e68397c63394cd97a8e8ceadb7c65a1b73e9244f45f017457b84",
           "rulebase/corpus": "512b218801b3d52b2e9d70764d9ddf4700ebf8f1a55ee8a00e35e4eab6848cb1"
         }
       },
@@ -79,7 +80,8 @@
         "html/html_002.jpg": "4b1df20c0b5e15013372a0e3929e8cb779eb7860607e9ca78b71f81de603729c",
         "html/html_003.jpg": "7a87dc933b42fbfc80d9807825353fc807bd1372f423fc66532335e7f44b8ff6",
         "html/html_004.jpg": "62145e1d4f95cd2b1035649ac94deb478930e2d333b6eeb3b078eb55c4de07fb",
-        "html/html_005.jpg": "7b150ffae62a9f0ff0993b7eba657489a9218a4b94e1efd61dc212774b5e9745"
+        "html/html_005.jpg": "df12a4e7773ce6b795a84ae8d06fc0fc39b9a63fe8b492498cfce9365af6eecf",
+        "html/html_006.jpg": "2e5f8535805ba8d35d09a5e76e8cec330525220ae2820341e32581f439cfc31d"
       },
       "metadata": {
         ".shards": [
@@ -88,7 +90,8 @@
           "e8c537842a23c25184320f71936f7ac9cb248c45d6877ccf8fb439f4d01ae6b7",
           "01e4c854b953c80db7f295abcb374e2801ff18cfda3898fb91aa58ed0387db9b",
           "ee5c65515f58da52f94f8b8c2ee06165aa1dc228ef8085b611fae10faae61e21",
-          "d84cdcd60d3ce020cd6d8dbdcbfe19343a212d35454118ee2a41361bee99486c"
+          "701fac2cb3de1ef96815129d98675503313a7b2357c76093efb055e6e591ff30",
+          "feac3e3b1cf16d4ae63795f4224cbee31b7ea5248a894d7e49fd6dc859d66695"
         ],
         "html": [
           "833b9dabcad5cbeffd2cd27a1e5935c5bf2084ec53f27398bf6a00864713131e",
@@ -96,30 +99,32 @@
           "e8c537842a23c25184320f71936f7ac9cb248c45d6877ccf8fb439f4d01ae6b7",
           "01e4c854b953c80db7f295abcb374e2801ff18cfda3898fb91aa58ed0387db9b",
           "ee5c65515f58da52f94f8b8c2ee06165aa1dc228ef8085b611fae10faae61e21",
-          "d84cdcd60d3ce020cd6d8dbdcbfe19343a212d35454118ee2a41361bee99486c"
+          "701fac2cb3de1ef96815129d98675503313a7b2357c76093efb055e6e591ff30",
+          "feac3e3b1cf16d4ae63795f4224cbee31b7ea5248a894d7e49fd6dc859d66695"
         ]
       },
       "provenance": {
-        "html": "5c7355d53082608b15a4e10ee653614fc9383b8024847d61f16e8d25fb04792b"
+        "html": "c5ad5f44f8854d14ed18700a56766e8ecb2853e957cdc651fdb285f8fdd13516"
       },
       "counts": {
         "by_backend": {
-          ".shards": 6,
-          "html": 6
+          ".shards": 7,
+          "html": 7
         },
         "by_layout": {
-          "?": 6,
+          "?": 7,
           "eatery_ascii": 1,
           "eatery_indexed": 1,
           "market_barcode": 1,
           "market_compact": 1,
           "market_vat": 1,
+          "market_vat_b": 1,
           "notebook_ledger": 1
         }
       },
-      "dataset_json": "f1fa3a36ba448b9d51726ade138a2c1cb7cdde3aaa41a3171d9c5fdcede9fd3a"
+      "dataset_json": "da3e86402896af3ad09db481aac3f097fa58b4f1f08c365a47634eb4802d11f7"
     },
-    "n17": {
+    "n18": {
       "inputs": {
         "layouts": [
           "authorisation_letter",
@@ -137,17 +142,18 @@
           "market_barcode",
           "market_compact",
           "market_vat",
+          "market_vat_b",
           "medical_statement",
           "notebook_ledger"
         ],
         "seed": 2026,
-        "per_backend": 17,
+        "per_backend": 18,
         "pairing": "paired",
         "clean": false,
         "schema": 8,
         "rules": {
-          "rulebase/rules": "a76bb779ba8a84fdadea3ac03184fb8e0deb0e321eed0fe218aec788e5f38bfb",
-          "rulebase/layouts": "597dd03c8b46e6b3bdfa91bd69ba3c9fa5f56950888c518671ee8a8a81fdca4f",
+          "rulebase/rules": "f03395ae0a8d61fb20888cf4f0b6626475c7ebf9ac37313b8fe03330c3fbaa7b",
+          "rulebase/layouts": "000fcfb6149a4e5b283b55fd8543589985ff1466b7cd9e40da9df774e31c189a",
           "rulebase/corpus": "512b218801b3d52b2e9d70764d9ddf4700ebf8f1a55ee8a00e35e4eab6848cb1"
         }
       },
@@ -167,8 +173,9 @@
         "html/html_012.jpg": "24380055274776d9bc16308cad647f8b973bdb8222c3b4a171921366a7215bd2",
         "html/html_013.jpg": "505ec28b8e8281c992e4481ef23c614be52a9881a9d25ce7e17d7a091796fb30",
         "html/html_014.jpg": "43676d55ae29f8a582993e06a893f98b733f7357f7248325a4d5246bc7ff64d0",
-        "html/html_015.jpg": "47f80efb9a2d18f2487454d5cff6b3867c0d9cfdb5dc02b4f19a5037e2774020",
-        "html/html_016.jpg": "38f0aadd298142359dba9ffcb4c7b822a0ff0823549b3e4f95c6d1c3c7c8dcb3"
+        "html/html_015.jpg": "bb234235ab8ea0e87b97a55362e2910efad813653f31b2864e54a51717aedc42",
+        "html/html_016.jpg": "1c20bf859aabf721969b80c9d1dd703c920cdfd8ef3f21e203cfbe8aee20c7a1",
+        "html/html_017.jpg": "463d6c241c20721fea948b76081574442ec8351a229d2d3dd68013abec146037"
       },
       "metadata": {
         ".shards": [
@@ -187,8 +194,9 @@
           "07a1275e7da5eb8253deae4c89c25ee73a510108c68473592a5ccfac2e465d83",
           "3e3850ee394ca1ba016f21d294c1c207af4202c1d847d759e35c1b9ca0b1ccfa",
           "23dc08ef40cd450091435c816abd37b01b180bb43a87695c19d9824ba38ca29b",
-          "8cb83444146813633e9a5e7b107f92b43a5510a09301e19d6795da8402e5eb88",
-          "6731d122c1496a7814933293ce81d59e4704e3a64ccd06750e289e604780ca0a"
+          "c503bc256e5c668972bdf5d8b9303c29608c23647fbeb648bced298bde26d869",
+          "7b6d9a0b533f9d48d453d509d77094f65027c52b8d72348a8870caea79d2e6e0",
+          "dc81e062e44528d87ccacca9a35eb9300a05c091ac7d6ec25beea9bb23ecae9a"
         ],
         "html": [
           "37468aee45aedcfc365ef829e6b6db4faf6fe868f920098db9e43bdb4b145da0",
@@ -206,20 +214,21 @@
           "07a1275e7da5eb8253deae4c89c25ee73a510108c68473592a5ccfac2e465d83",
           "3e3850ee394ca1ba016f21d294c1c207af4202c1d847d759e35c1b9ca0b1ccfa",
           "23dc08ef40cd450091435c816abd37b01b180bb43a87695c19d9824ba38ca29b",
-          "8cb83444146813633e9a5e7b107f92b43a5510a09301e19d6795da8402e5eb88",
-          "6731d122c1496a7814933293ce81d59e4704e3a64ccd06750e289e604780ca0a"
+          "c503bc256e5c668972bdf5d8b9303c29608c23647fbeb648bced298bde26d869",
+          "7b6d9a0b533f9d48d453d509d77094f65027c52b8d72348a8870caea79d2e6e0",
+          "dc81e062e44528d87ccacca9a35eb9300a05c091ac7d6ec25beea9bb23ecae9a"
         ]
       },
       "provenance": {
-        "html": "2e4b54b94459f72ecbae06066ffb18eca4ccbe9b96a6906148a0774fd45ddde5"
+        "html": "9f685cfdedc174eca991c802b91d1f37e149374fa82e85addcc404b09d124061"
       },
       "counts": {
         "by_backend": {
-          ".shards": 17,
-          "html": 17
+          ".shards": 18,
+          "html": 18
         },
         "by_layout": {
-          "?": 17,
+          "?": 18,
           "authorisation_letter": 1,
           "eatery_ascii": 1,
           "eatery_indexed": 1,
@@ -235,14 +244,15 @@
           "market_barcode": 1,
           "market_compact": 1,
           "market_vat": 1,
+          "market_vat_b": 1,
           "medical_statement": 1,
           "notebook_ledger": 1
         }
       },
-      "dataset_json": "5eca9ebdb2a0ebfa319adddcba51920105ad0acb057fb6542471c61752480563"
+      "dataset_json": "332399f14e8496df9ccd38572cf96a76b4bbded91fd18f6f11a9dc402533c457"
     }
   },
   "normalisation": "each record is json.loads then json.dumps(sort_keys=True, ensure_ascii=False); no field is excluded",
-  "reason": "invoice_export unblocked: a name wrapping at a hyphen rejoined as LONG- SLEEVE and read as a missing field, which had been failing every recapture; also n5 -> n6, which had been drawing 5 of 6 thermal layouts since notebook_ledger",
-  "replaced": "Recapture, two reasons at once: (1) items_table()/_header_rows()/_group_row()/_item_row()/_item_extras() in sheets/base.py now build a components.table.TableSpec instead of hand-rolled <tr>/<td> strings -- column widths move from a width: style on each header <th> to <colgroup><col style=width:...%>, which is not guaranteed byte-identical under table-layout:auto even though every family's own CSS still draws the actual borders/shading/zebra unchanged (border=Border.none(), cls= passthrough); (2) this baseline was already stale independent of that work -- last captured at a8ea2f4, before 9d2c97d and other rulebase/rules, rulebase/corpus changes that never got a recapture (metadata schema was None, now 8), and before the layout count grew from 14 to 16 (tools/baseline.py's own plan names, n14 -> n16). Both kinds of drift are folded into this one capture since a plan's images say nothing about either until it is retaken."
+  "reason": "market_vat_b ships: the first LLM-varied layout, from market_vat through the six-check gauntlet. n6 -> n7 and n17 -> n18 because the plan names are the counts. notebook_ledger now prints menu.originalprice and menu.discountprice, which it had never drawn.",
+  "replaced": "invoice_export unblocked: a name wrapping at a hyphen rejoined as LONG- SLEEVE and read as a missing field, which had been failing every recapture; also n5 -> n6, which had been drawing 5 of 6 thermal layouts since notebook_ledger"
 }
