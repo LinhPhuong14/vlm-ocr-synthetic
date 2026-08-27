@@ -1,0 +1,40 @@
+profile: insurance
+invoice: true
+catalogue: insurance_property
+num_items: [2, 3]
+price_step: 500000000
+total_labels:
+  grand: "Tổng cộng"
+show_serial: false
+show_vat: false
+show_issuer_unit: false
+# NOT show_seller_address: false, unlike the other nine -- this document's own
+# `party_fields.right` prints `seller_address` (Bên B's own address line), the
+# same string `store.address` would otherwise go unclaimed as.
+show_subtotal: false
+show_payment: false
+show_amount_words: false
+show_seller_tax_code: false
+show_seller_account: false
+titles:
+  - "Hợp đồng bảo hiểm tài sản"
+subtitle: "(Bảo hiểm mọi rủi ro tài sản)"
+party_fields:
+  left:
+    - [buyer_company, "Tên tổ chức (Bên A)"]
+    - [buyer_address, "Địa chỉ"]
+    - [buyer_tax_code, "Mã số thuế"]
+    - [buyer_phone, "Điện thoại"]
+  right:
+    - [seller_name, "Tên tổ chức (Bên B)"]
+    - [seller_address, "Địa chỉ"]
+    - [seller_phone, "Điện thoại"]
+notes:
+  - "1) Bên B bồi thường cho những tổn thất vật chất bất ngờ và không lường trước được xảy ra đối với tài sản được bảo hiểm, trừ các trường hợp loại trừ trách nhiệm bảo hiểm quy định tại Quy tắc bảo hiểm mọi rủi ro tài sản đính kèm."
+  - "2) Mức khấu trừ: 50.000.000 đồng cho mỗi và mọi vụ tổn thất. Phí bảo hiểm thanh toán một lần bằng chuyển khoản trong vòng 20 ngày kể từ ngày ký Hợp đồng."
+  - "3) Bên A có trách nhiệm kê khai đầy đủ, trung thực; áp dụng các biện pháp đề phòng, hạn chế tổn thất; khi xảy ra sự kiện bảo hiểm, thông báo ngay cho Bên B trong vòng 24 giờ và giữ nguyên hiện trường."
+  - "4) Bên B cấp Giấy chứng nhận bảo hiểm sau khi Bên A đã đóng đủ phí; bồi thường trong vòng 15 ngày kể từ ngày nhận đủ hồ sơ hợp lệ."
+  - "5) Mọi tranh chấp trước hết giải quyết bằng thương lượng; không thương lượng được thì đưa ra Toà án có thẩm quyền tại Việt Nam."
+signature_labels:
+  - ["Đại diện Bên A", "(Ký, ghi rõ họ tên và đóng dấu)"]
+  - ["Đại diện Bên B", "(Ký, ghi rõ họ tên và đóng dấu)"]

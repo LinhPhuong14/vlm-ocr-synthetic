@@ -250,3 +250,54 @@ groups:
     - id: magazine_qa_interview
       weight: 2
       tags: [doc_periodical, periodical_qa]
+
+  # ------------------------------------------------------------------------
+  - id: insurance
+    label: "Bảo hiểm — chứng nhận, hợp đồng, đơn từ, thẻ"
+    # Mười chứng từ bảo hiểm Việt Nam, tất cả vẫn dựng `Invoice` (không phải
+    # một mô hình nội dung mới như `periodical` ở trên): mỗi document đặt
+    # `invoice: true` trong `rulebase/documents/insurance_<id>.yaml` nên vẫn
+    # mang `doc_invoice` -- khác hẳn `periodical`, giống `authorisation_letter`
+    # ở nhóm `administrative_form` (`rules/layout.yaml`). `params:` của cả
+    # mười nằm ở `rulebase/documents/<id>.yaml`, như mọi document khác.
+    options:
+
+    - id: insurance_moto_certificate
+      weight: 2
+      tags: [doc_invoice, doc_insurance, insurance_moto_cert]
+
+    - id: insurance_auto_certificate
+      weight: 2
+      tags: [doc_invoice, doc_insurance, insurance_auto_cert]
+
+    - id: insurance_life_schedule
+      weight: 2
+      tags: [doc_invoice, doc_insurance, insurance_life_schedule]
+
+    - id: insurance_application_form
+      weight: 2
+      tags: [doc_invoice, doc_insurance, insurance_application_form]
+
+    - id: insurance_health_id_card
+      weight: 2
+      tags: [doc_invoice, doc_insurance, insurance_health_id_card]
+
+    - id: insurance_health_certificate
+      weight: 2
+      tags: [doc_invoice, doc_insurance, insurance_health_cert]
+
+    - id: insurance_cargo_policy
+      weight: 2
+      tags: [doc_invoice, doc_insurance, insurance_cargo_policy]
+
+    - id: insurance_fire_certificate
+      weight: 2
+      tags: [doc_invoice, doc_insurance, insurance_fire_cert]
+
+    - id: insurance_travel_certificate
+      weight: 2
+      tags: [doc_invoice, doc_insurance, insurance_travel_cert]
+
+    - id: insurance_property_contract
+      weight: 2
+      tags: [doc_invoice, doc_insurance, insurance_property_contract]
