@@ -6,7 +6,7 @@
 [![ci](https://github.com/LinhPhuong14/vlm-ocr-synthetic/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB.svg?logo=python&logoColor=white)](pyproject.toml)
 [![Renderer](https://img.shields.io/badge/Renderer-Chromium_via_Playwright-4285F4.svg?logo=googlechrome&logoColor=white)](generators/html)
-[![Layouts](https://img.shields.io/badge/Bố_cục-18_/_7_họ-28C840.svg)](rulebase/layouts)
+[![Layouts](https://img.shields.io/badge/Bố_cục-32_bật_/_42_file-28C840.svg)](rulebase/layouts)
 [![Degradation](https://img.shields.io/badge/Làm_cũ-26_mô_hình_+_by__box-FF6B6B.svg)](degradation/README.md)
 [![Handwriting](https://img.shields.io/badge/Chữ_viết_tay-2_nguồn_mực-9B59B6.svg)](docs/handwriting-html.md)
 [![License](https://img.shields.io/badge/License-chưa_chọn-lightgrey.svg)](#-repository--licence)
@@ -120,7 +120,7 @@ bật; số này đo lại sau khi tắt nó, không phải chép lại từ l�
 | # | Thuộc tính | Quyết định | File |
 | ---: | :--- | :--- | :--- |
 | 1 | `document` | loại chứng từ — 5 họ, 17 giá trị | [`rules/document.yaml`](rulebase/rules/document.yaml) |
-| 2 | `layout` | bố cục — 6 họ, 16 file | [`rules/layout.yaml`](rulebase/rules/layout.yaml) |
+| 2 | `layout` | bố cục — **32 đang bật / 42 file**. Một file tự tắt mình bằng `enabled: false`: lượt chạy không bốc nó nữa, nhưng file vẫn ở đó và vẫn dựng lại được khi gọi đích danh (mười bố cục root 3 Form đang tắt) | [`rules/layout.yaml`](rulebase/rules/layout.yaml) |
 | 3 | `content` | dấu tiếng Việt, viết hoa, định dạng tiền, VAT | [`rules/content.yaml`](rulebase/rules/content.yaml) |
 | 4 | `visual` | font, cỡ chữ, độ đậm mực, lề, khổ giấy | [`rules/visual.yaml`](rulebase/rules/visual.yaml) |
 | 5 | `color` | màu mực, sắc nền, màu nhấn | [`rules/color.yaml`](rulebase/rules/color.yaml) |
@@ -239,7 +239,7 @@ python -c "from pathlib import Path; from pipeline import record; \
 
 Cả hai chế độ dưới đây, mặc định, đều dựng ảnh qua **tờ CSS riêng của từng
 họ bố cục** (`--template auto`) chứ không qua lưới ký tự cũ — mỗi bố cục
-trong 36 bố cục đã sẵn một khoá `family:` để tự chọn tờ mặc, nên đường tô CSS
+trong 42 bố cục đã sẵn một khoá `family:` để tự chọn tờ mặc, nên đường tô CSS
 không còn là thứ phải bật tay theo từng lượt chạy. Lưới ký tự cũ vẫn còn,
 làm đường tường minh khi bỏ hẳn cờ `--template`, và vẫn là đường
 `test_layout.py`/`make preflight` dùng để đo hình học. Xem
@@ -263,7 +263,7 @@ làm đường tường minh khi bỏ hẳn cờ `--template`, và vẫn là đ�
 | **Resume là được-cả-hoặc-không** | `DONE` ghi **cuối cùng và nguyên tử**; shard thiếu `DONE` bị xoá làm lại chứ không ghi nối — ghi nối vào một `metadata` dở dang sinh bản ghi trùng, mà bản ghi trùng thì vô hình | [`pipeline/worker.py`](pipeline/worker.py) |
 | **Song song bằng tiến trình, không bằng luồng** | API đồng bộ của Playwright không an toàn đa luồng | [`pipeline/run.py`](pipeline/run.py) |
 | **Danh sách bố cục khai tường minh** | `layouts: []` nghĩa là mọi file — thứ một dataset muốn. Một **phép so sánh cố định** phải gọi tên, vì quota đi theo thứ tự danh sách | `pipeline.yaml` |
-| **Đủ mọi bố cục, không cần sửa tay** | `per_backend: auto` = **một ảnh cho mỗi bố cục đang có**. Số cứng sẽ hết hạn: `20` đúng khi có 18 bố cục và **từ chối chạy** khi có 42 | [`pipeline/config.py`](pipeline/config.py) |
+| **Đủ mọi bố cục, không cần sửa tay** | `per_backend: auto` = **một ảnh cho mỗi bố cục đang có**. Số cứng sẽ hết hạn: `20` đúng khi có 18 bố cục và **từ chối chạy** khi có 32 | [`pipeline/config.py`](pipeline/config.py) |
 | **Chia bài chứ không xếp khối** | hai ảnh **liền kề không bao giờ cùng bố cục**: chia vòng tròn, mỗi bố cục một ảnh rồi quay lại. Hạt giống không đổi — ảnh thứ k của một bố cục vẫn là hạt thứ k của khối bố cục đó, nên đây là đổi **thứ tự**, không đổi một trang nào | [`pipeline/plan.py`](pipeline/plan.py) |
 | **Bất biến từng ảnh** | số học tiền, hộp nằm trong khung, không ký tự thay thế / ô trống glyph | [`pipeline/invariants.py`](pipeline/invariants.py) |
 | **Đo trôi (drift)** | *phân phối* còn khớp luật không, tính trên từng shard, đã trừ đi độ tán của mẫu cỡ đó | [`pipeline/drift.py`](pipeline/drift.py) |
@@ -432,7 +432,7 @@ cột, tiêu đề hai băng với `rowspan`/`colspan`, dòng theo nhóm — d�
 vlm-ocr-synthetic/
 ├── rulebase/                       # LUẬT SINH — nguồn sự thật duy nhất về nội dung
 │   ├── rules/                      # 10 thuộc tính, mỗi thuộc tính một file YAML
-│   ├── layouts/                    # 42 bố cục — 41 đo từ giấy thật, 1 do LLM
+│   ├── layouts/                    # 42 file — 32 đang bật, 10 tắt (root Form)
 │   │                               #   biến thể (`source:` mỗi file ghi từ đâu ra)
 │   ├── corpus/vi/ · corpus/en/     # các chuỗi tờ giấy in ra
 │   ├── spec.py                     # bốc có trọng số, thẻ, node cha
