@@ -49,7 +49,7 @@ giấy *quét vào* đọc lên giống hệt nhau.
 | :--- | :--- | :--- |
 | **Chromium** (Playwright) — [`generators/html/`](generators/html) | Renderer **duy nhất** sinh dataset: dàn trang bằng CSS thật, chụp màn hình, đọc hộp từ chính DOM vừa dàn. | **Bắt buộc (Required)** |
 | **Rule-base** — [`rulebase/`](rulebase/README.md) | 10 thuộc tính có trọng số + ràng buộc thẻ, quyết định *tờ giấy nói gì*: loại chứng từ, bố cục, nội dung, hình thức, màu, hoạ tiết, cách làm cũ, và ba bộ phận của cái máy đã sao nó. | **Bắt buộc (Required)** |
-| **Degradation** — [`degradation/`](degradation/README.md) | 26 mô hình xuống cấp: 8 chuyển thể từ **DocCreator** (LaBRI Bordeaux) — vân giấy, mực mòn, thấm mặt sau, nhoè vùng, rách, bóng gáy; 12 từ **Augraphy** — máy photo hỏng, trống mực bẩn, in kim, in typo, chữ rỗng ruột, bút đánh dấu, nền chia ô, lệch kênh màu; 6 của repo — halftone, sọc quét, JPEG, dấu đóng, ảnh giấy phủ. Cộng `by_box`: bọc mô hình bất kỳ để nó chỉ ăn vào vài ô chữ. | **Bắt buộc (Required)** |
+| **Degradation** — [`degradation/`](degradation/README.md) | 26 mô hình xuống cấp (**3 đang tắt**: `gradient_domain`, `holes`, `dirty_rollers` — xem `degradation.SWITCHED_OFF`): 8 chuyển thể từ **DocCreator** (LaBRI Bordeaux) — vân giấy, mực mòn, thấm mặt sau, nhoè vùng, rách, bóng gáy; 12 từ **Augraphy** — máy photo hỏng, trống mực bẩn, in kim, in typo, chữ rỗng ruột, bút đánh dấu, nền chia ô, lệch kênh màu; 6 của repo — halftone, sọc quét, JPEG, dấu đóng, ảnh giấy phủ. Cộng `by_box`: bọc mô hình bất kỳ để nó chỉ ăn vào vài ô chữ. | **Bắt buộc (Required)** |
 | **Pipeline** — [`pipeline/`](pipeline) | Một lượt chạy được **khai báo, chia shard, chạy song song và resume được**, kèm bất biến từng ảnh và đo trôi phân phối. | **Bắt buộc (Required)** |
 | **Chữ viết tay** — [`generators/html/handwriting.py`](generators/html/handwriting.py), [`docs/handwriting-html.md`](docs/handwriting-html.md) | Điền ô trống của biểu mẫu bằng **nét bút chứ không phải font in bị rung**. Hai nguồn mực, **không thay thế nhau**: `font` phủ hết mọi ô nhưng một trang chỉ một nét chữ; `model` là [WriteViT](docs/writevit.md) ([`tools/writevit/`](tools/writevit)), nét mỗi lần một khác nhưng không viết được chữ số. | *Mở rộng (Handwriting)* |
 | **Chữ ký** — [`generators/html/signature.py`](generators/html/signature.py), [`docs/chu-ky.md`](docs/chu-ky.md) | Ký vào khối chữ ký — ô trống cuối cùng của tờ mẫu. Lấy chữ thật (từ `fonts/hand/` hoặc từ WriteViT, **trace thành contour**) rồi kéo giãn thành dấu ký: chữ đầu phóng to, phần thân tan thành nét lượn, nét cuối hất lên, paraph. Mực **không mang nhãn** — nó phải nằm trên trang và nằm ngoài nhãn. | *Mở rộng (Signature)* |
@@ -84,10 +84,10 @@ flowchart TD
         D2 --> D3["3 · điền tay (tuỳ chọn)<br/>handwriting.py — nguồn font hoặc WriteViT"]
     end
 
-    subgraph S3 ["Bước 4-6: Làm cũ & hình học"]
-        D3 --> E["4 · chuỗi làm cũ<br/>apply_recipe — KHÔNG đổi kích thước"]
-        E --> F["5 · hoạ tiết & con dấu<br/>thuộc tính ornament"]
-        F --> G["6 · thu nhỏ<br/>hộp co theo pixel"]
+    subgraph S3 ["Bước 4-6: Hoạ tiết, làm cũ & hình học"]
+        D3 --> F["4 · hoạ tiết & con dấu<br/>ornament.py — đóng theo box của trang"]
+        F --> E["5 · chuỗi làm cũ<br/>apply_recipe — KHÔNG đổi kích thước"]
+        E --> G["6 · thu nhỏ<br/>hộp co theo pixel"]
     end
 
     subgraph S4 ["Bước 7: Kiểm & ghi"]
@@ -114,7 +114,8 @@ Ba thuộc tính cuối là **ba bộ phận của cái máy đã in hoặc đã
 chúng hỏng độc lập với nhau: một cái máy có thể sọc trống mà mực vẫn đủ. Gói cả
 ba vào một giá trị `augmentation` thì mỗi tổ hợp phải viết tay một kịch bản, và
 số kịch bản phải viết là **tích** chứ không phải tổng. Đo trên 3 000 lượt bốc:
-**25,2 %** số trang mang ít nhất một vết máy.
+**18,0 %** số trang mang ít nhất một vết máy — từng là 25,2 % khi `rollers` còn
+bật; số này đo lại sau khi tắt nó, không phải chép lại từ lần đo cũ.
 
 | # | Thuộc tính | Quyết định | File |
 | ---: | :--- | :--- | :--- |
@@ -123,11 +124,11 @@ số kịch bản phải viết là **tích** chứ không phải tổng. Đo tr
 | 3 | `content` | dấu tiếng Việt, viết hoa, định dạng tiền, VAT | [`rules/content.yaml`](rulebase/rules/content.yaml) |
 | 4 | `visual` | font, cỡ chữ, độ đậm mực, lề, khổ giấy | [`rules/visual.yaml`](rulebase/rules/visual.yaml) |
 | 5 | `color` | màu mực, sắc nền, màu nhấn | [`rules/color.yaml`](rulebase/rules/color.yaml) |
-| 6 | `ornament` | **mực không phải chữ**: con dấu tròn, dấu vuông, hoa văn chìm, nẹp sóng, QR | [`rules/ornament.yaml`](rulebase/rules/ornament.yaml) |
+| 6 | `ornament` | **mực không phải chữ**: con dấu tròn, dấu vuông, hoa văn chìm, nẹp sóng, QR. Đóng lên trang bởi [`generators/html/ornament.py`](generators/html/ornament.py), theo **vị trí có nghĩa** (`signature_seller`, `letterhead`…) đọc từ chính box của trang | [`rules/ornament.yaml`](rulebase/rules/ornament.yaml) |
 | 7 | `augmentation` | chuỗi làm cũ chạy sau khi vẽ | [`rules/augmentation.yaml`](rulebase/rules/augmentation.yaml) |
 | 8 | `toner` | hộp mực của cái máy đã sao tờ này — bụi mực bám mảng, mảng cháy trắng | [`rules/toner.yaml`](rulebase/rules/toner.yaml) |
 | 9 | `drum` | trống mực — sọc **dọc** theo hướng giấy đi | [`rules/drum.yaml`](rulebase/rules/drum.yaml) |
-| 10 | `rollers` | trục lăn — dải **ngang**, vuông góc hướng giấy | [`rules/rollers.yaml`](rulebase/rules/rollers.yaml) |
+| 10 | `rollers` | trục lăn — **đang tắt**, chỉ còn `no_rollers` | [`rules/rollers.yaml`](rulebase/rules/rollers.yaml) |
 
 ### Hai đường dựng trang, và cái nối chúng
 

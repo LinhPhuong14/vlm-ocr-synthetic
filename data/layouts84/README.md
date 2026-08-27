@@ -25,8 +25,46 @@ loại khác.
 | box | **6 346** |
 | hạt giống phân biệt | 84 / 84 |
 | nhãn phân biệt | **83 / 84** — xem "Một chỗ chưa xong" bên dưới |
-| làm cũ | có, rút từ luật: 20 giá trị `augmentation`, 16 `ornament`, 7 `visual`, cộng `toner`/`drum`/`rollers` |
+| làm cũ | có, rút từ luật: 19 giá trị `augmentation`, 7 `visual`, 4 `toner`, 4 `drum` |
+| **hoạ tiết in ra** | **80 dấu trên 55 / 84 trang**, 19 file PNG khác nhau — xem dưới |
 | pairing | `paired` |
+
+## Hoạ tiết: lần đầu con dấu thật sự nằm trên giấy
+
+Tập này cũng là tập đầu tiên **in ra** thuộc tính `ornament`. Trước đó thuộc
+tính ấy được bốc, được ghi vào `synthesis.json` và **không renderer nào vẽ nó**
+— mọi bộ dữ liệu kho này từng phát hành đều khai một con dấu mà trang giấy
+không có. `generators/html/ornament.py` là nửa còn thiếu ấy.
+
+Luật khai chỗ đóng dấu theo **nghĩa** (`signature_seller`, `letterhead`,
+`footer_band`, `totals`, `page_full`…), còn chỗ ấy nằm đâu trên trang thì đọc
+từ chính các box vừa đo được từ DOM. Trong 80 dấu của tập này:
+
+* **51 dấu** đặt theo box thật của trang (`"placed": "boxes"`)
+* **29 dấu** rơi vào vị trí dự phòng (`"placed": "fallback"`) — bố cục ấy không
+  có khối tương ứng, ví dụ `invoice_minimalist` không có khối chữ ký nào
+
+Mỗi trang ghi lại đúng điều đó trong `synthesis.json`, nên câu hỏi "con dấu có
+đặt đúng chỗ trên bố cục này không" trả lời được bằng metadata chứ không phải
+bằng mắt:
+
+```json
+"ornament": {"ornament": "qr_and_seal", "marks": [
+  {"pattern": "qr_verify_sample", "anchor": "letterhead",
+   "placed": "boxes", "box": [72, 72, 941, 148], "from_receipt": false},
+  {"pattern": "seal_name_block_chief", "anchor": "signature_seller",
+   "placed": "boxes", "box": [463, 549, 551, 564]}]}
+```
+
+(nguyên văn `html_009.jpg` trong tập này.)
+
+`"from_receipt": false` là một khoảng cách được khai chứ không giấu: luật muốn
+mã vạch/QR mã hoá **số hoá đơn của chính trang này**, còn `textures/ornament/`
+mới có ảnh mẫu. Không nhãn nào khai mã ấy, nên trang không nói dối — nhưng ai
+định giải mã mã vạch trong tập này thì phải biết trước.
+
+**Dấu không mang nhãn.** Không box nào được thêm cho con dấu, đúng luật mà mực
+chữ ký đang theo: dấu là mực trên giấy, không phải một trường của chứng từ.
 
 ## Sinh lại
 
@@ -51,12 +89,11 @@ lại đúng những gì đã sinh ra tập này.
 
 | | giây |
 | --- | ---: |
-| trung bình mỗi ảnh | 2,42 |
-| trung vị | 2,18 |
-| p95 | 4,87 |
-| chậm nhất (`html_040`, `newspaper_front_broadsheet`) | 7,25 |
-| tổng thời gian vẽ (cộng dồn mọi worker) | 203,5 |
-| thời gian thực của lượt chạy, 4 worker, 5 shard | **61,1** |
+| trung bình mỗi ảnh | 2,59 |
+| trung vị | 2,27 |
+| p95 | 4,93 |
+| chậm nhất (`html_040`, `newspaper_front_broadsheet`) | 9,30 |
+| thời gian thực của lượt chạy, 4 worker, 5 shard | **69,4** |
 
 Con số này là **thuộc tính của cái máy đã vẽ**, không phải của tập dữ liệu:
 nó không lặp lại được và không có gì so sánh nó giữa hai lượt chạy. Đó cũng là

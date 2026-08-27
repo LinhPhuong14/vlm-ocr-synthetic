@@ -225,6 +225,20 @@ def ornament_assets() -> list[str]:
         problems.append(
             f"textures/ornament/{stray}.png: no rule in rules/ornament.yaml names it, "
             f"so it is never drawn")
+
+    # ...and the third agreement, added when the marks finally started being
+    # printed: every `anchor:` a rule names has to be one the renderer can
+    # resolve. An unknown anchor is not an error while rendering -- the mark
+    # lands in the middle of the page instead of on the signature block, which
+    # looks like a design decision -- so it has to stop the run before it.
+    try:
+        sys.path.insert(0, str(REPO_ROOT / "generators" / "html"))
+        import ornament  # noqa: PLC0415 -- optional import, renderer-side
+
+        problems += ornament.problems()
+    except ImportError:
+        problems.append("unchecked: generators/html/ornament.py not importable, "
+                        "so ornament anchors were not checked")
     return problems
 
 

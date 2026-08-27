@@ -344,6 +344,13 @@ def test_every_committed_page_has_a_record_in_the_shape_this_file_defines():
     # meant to: a set that quietly lost half its pages would otherwise look
     # like a passing test. The chain, newest first:
     #
+    #   380 = 296 plus `data/layouts84/`, 84 pages -- every one of the 42
+    #         layouts twice over, dealt so that no two adjacent images carry
+    #         the same layout. It is also the set that made
+    #         `test_every_kind_in_every_committed_dataset_is_mapped` fail: the
+    #         periodical layouts had shipped long before any committed page
+    #         drew one, so 65 field kinds had been falling through to the
+    #         default label with nothing to catch them.
     #   296 = 278 plus `data/hand18_model/`, one page per layout drawn with
     #         `--handwriting model` -- a measurement of what that source
     #         actually covers, eight of whose pages carry no ink at all. It was
@@ -357,7 +364,7 @@ def test_every_committed_page_has_a_record_in_the_shape_this_file_defines():
     #   294 = 307 before `data/dataset_test` was rebuilt on the CSS sheets,
     #         which took it from 30 images over two renderers to 16, one per
     #         layout, on the only backend the pipeline still drives.
-    assert seen == 296, seen
+    assert seen == 380, seen
 
 
 # ------------------------------------------------------- the shape before this

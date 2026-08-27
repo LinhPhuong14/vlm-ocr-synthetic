@@ -116,9 +116,41 @@ DEGRADATIONS: dict[str, tuple[Callable[..., np.ndarray], bool, bool]] = {
     "by_box": (by_box, True, True),
 }
 
+# Models kept here on purpose and drawn by NO rule. Same shape, and the same
+# reasoning, as `pipeline/config.py::RETIRED_BACKENDS`: switching a model off is
+# not deleting it. The port stays, its tests stay, and turning it back on is one
+# chain entry in `rulebase/rules/`.
+#
+# The list is what makes the switch-off *declared* rather than merely true.
+# `tools/rules_report.py --check` fails on a registered model no chain names --
+# `docs/lam-cu-de-xuat.md` is a whole document about capability that was built,
+# paid for and never reached a dataset -- and without this the way to quieten
+# that check would be to stop looking. Instead the check reads this table, and
+# it enforces the list in BOTH directions: a name here that a rule does start
+# naming again is an error too, so the reason below can never quietly go stale.
+SWITCHED_OFF = {
+    "gradient_domain": (
+        "vết bẩn ghép bằng Poisson blending -- che chữ ở chỗ nó dán vào, mà "
+        "nhãn vẫn khai đủ chữ ở đó. Tắt cùng `stains` và `crumpled`"
+    ),
+    "holes": (
+        "rách mép và thủng giữa trang: phần mất đi lấp bằng màu đen, xoá hẳn "
+        "chữ nằm dưới. Tắt cùng `torn_edges` và `punched`"
+    ),
+    "dirty_rollers": (
+        "dải ngang do trục lăn bẩn. Tắt cả ba giá trị của thuộc tính "
+        "`rollers`, xem rulebase/rules/rollers.yaml"
+    ),
+}
+
 
 def names() -> list[str]:
     return sorted(DEGRADATIONS)
+
+
+def drawable() -> list[str]:
+    """Every model a rule is allowed to name -- `names()` minus `SWITCHED_OFF`."""
+    return sorted(set(DEGRADATIONS) - set(SWITCHED_OFF))
 
 
 def apply_one(
@@ -178,6 +210,7 @@ DEFAULT_CHAIN: list[tuple[str, dict[str, Any]]] = [
 __all__ = [
     "DEFAULT_CHAIN",
     "DEGRADATIONS",
+    "SWITCHED_OFF",
     "OVERLAY_DIR",
     "PAPER_DIR",
     "STAIN_DIR",
@@ -196,6 +229,7 @@ __all__ = [
     "dirty_drum",
     "dirty_rollers",
     "dot_matrix",
+    "drawable",
     "glitch_effect",
     "gradient_domain",
     "halftone_screen",

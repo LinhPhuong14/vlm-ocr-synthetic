@@ -120,8 +120,8 @@ def _rules():
 
 
 def test_an_override_changes_the_weight():
-    rules = apply_overrides(_rules(), {"augmentation.torn_edges.weight": 0.5})
-    option = next(o for o in rules["augmentation"] if o.id == "torn_edges")
+    rules = apply_overrides(_rules(), {"augmentation.heavy.weight": 0.5})
+    option = next(o for o in rules["augmentation"] if o.id == "heavy")
     assert option.weight == 0.5
 
 
@@ -140,12 +140,12 @@ def test_an_override_naming_a_missing_attribute_is_rejected():
 
 def test_an_override_of_the_wrong_shape_is_rejected():
     with pytest.raises(ConfigError, match="attribute.value_id.field"):
-        apply_overrides(_rules(), {"augmentation.torn_edges": 1})
+        apply_overrides(_rules(), {"augmentation.heavy": 1})
 
 
 def test_an_override_of_an_unsupported_field_is_rejected():
     with pytest.raises(ConfigError, match="only weight"):
-        apply_overrides(_rules(), {"augmentation.torn_edges.wieght": 1})
+        apply_overrides(_rules(), {"augmentation.heavy.wieght": 1})
 
 
 def test_no_overrides_leaves_the_rules_untouched():

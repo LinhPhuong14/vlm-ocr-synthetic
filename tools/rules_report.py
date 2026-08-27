@@ -60,7 +60,14 @@ def check() -> list[str]:
     #
     # `by_box` is the wrapper, so what IT names counts as reached too:
     # `[by_box, {effect: markup, ...}]` is what puts `markup` on a page.
+    #
+    # A model in `degradation.SWITCHED_OFF` is exempt from the second direction
+    # and gains a third: it is *declared* unused, so a chain that starts naming
+    # it again is the error. Without that, the way to quieten this check after
+    # switching a model off would be to delete the model -- and the way to
+    # switch one back on would be to leave a stale reason behind.
     try:
+        from degradation import SWITCHED_OFF
         from degradation import names as degradation_names
 
         known = set(degradation_names())
@@ -98,10 +105,15 @@ def check() -> list[str]:
                         f"{wrapped!r}; have {', '.join(sorted(known))}")
                 else:
                     drawn.add(wrapped)
-        for unused in sorted(known - drawn):
+        for unused in sorted(known - drawn - set(SWITCHED_OFF)):
             problems.append(
                 f"degradation/{unused}: registered but no chain in rules/ names it, "
                 f"so it never reaches a dataset")
+        for revived in sorted(drawn & set(SWITCHED_OFF)):
+            problems.append(
+                f"degradation/{revived}: a chain in rules/ names it, but it is in "
+                f"degradation.SWITCHED_OFF ({SWITCHED_OFF[revived]}). Take it off "
+                f"that list if it is back on")
 
         # `--clean` pins one value per chain-bearing attribute, and the whole
         # point of naming them in a constant is that renaming one in the YAML

@@ -1,9 +1,39 @@
 # THUỘC TÍNH 7/10 — LÀM CŨ
 #
-# Ba cái cuối là hiệu ứng texture của DocCreator:
+# Hai hiệu ứng texture của DocCreator còn dùng ở đây:
 #   paper_texture      dán trang giấy lên texture giấy thật
-#   gradient_domain    ghép vết bẩn bằng Poisson blending (Seuret và cs. 2015)
 #   phantom_character  dán mảng mực thừa vào rìa chữ
+#
+# ---- HAI MÔ HÌNH ĐÃ TẮT ----
+#
+# `gradient_domain` (vết bẩn ghép bằng Poisson blending) và `holes` (rách mép,
+# thủng giữa trang) **không còn giá trị nào trong file này gọi tới**. Cùng với
+# `dirty_rollers` trong `rollers.yaml`, đó là ba mô hình đã tắt.
+#
+# Bốn giá trị đã bị XOÁ chứ không đặt `weight: 0`, vì
+# `rulebase/spec.py::validate` coi weight 0 là luật chết và `make check-rules`
+# (chạy trong CI) sẽ báo lỗi:
+#
+#   stains       paper_texture → gradient_domain → ink_degradation
+#   crumpled     ... → gradient_domain → ...        (chỉ giấy nhiệt)
+#   torn_edges   ... → holes ×2 → ...
+#   punched      ... → holes → shadow_binding
+#
+# Xoá cả bốn chứ không chỉ bỏ một bước, vì bỏ bước đi thì cái còn lại **không
+# còn là thứ mà tên nó khai**: `stains` không có vết bẩn nào chỉ là một bản
+# `light` viết lại, mà một id nói dối về pixel của chính nó là đúng loại lỗi kho
+# này tồn tại để chặn. `heavy` thì ngược lại — `holes` chỉ là 1 trong 6 bước và
+# `bleed_through` không có giá trị nào khác dùng, nên nó ở lại và mất đúng bước
+# `holes`.
+#
+# Hai mô hình vẫn còn trong `degradation/` và vẫn có test: `degradation/` là
+# thư viện, file này mới là chỗ quyết định dùng gì. Bật lại = `git show` file
+# này ở commit trước.
+#
+# 58 ảnh đã commit trong `data/` có ghi một trong các id vừa xoá. Chúng vẫn đọc
+# được bình thường; chỉ `tools/check_boxes.py` không dựng lại được trang từ
+# công thức của chúng nữa — nó bắt đúng trường hợp này (`except Exception: # a
+# rule that no longer exists lands here`) và bỏ qua ảnh đó thay vì hỏng.
 #
 # `paper_overlay` khác `paper_texture` ở CHỖ ĐỨNG trong chuỗi, không ở ảnh dùng:
 # `paper_texture` chạy ĐẦU chuỗi và NHÂN chứ không hoà, nên tờ giấy hiện dưới
@@ -62,16 +92,6 @@ options:
         - [bleed_through, {intensity: 0.5, nb_iter: 6}]
         - [blur_zones, {radius: 1.4, zones: 3, coverage: 0.18}]
         - [shadow_binding, {border: left, distance_ratio: 0.13, intensity: 0.45}]
-        - [holes, {count: 2, placement: border, size_ratio: 0.10, fill: black}]
-
-  - id: stains
-    weight: 3
-    tags: [textured, dirty]
-    params:
-      chain:
-        - [paper_texture, {alpha: 0.35, grain: 0.5}]
-        - [gradient_domain, {count: 5, strength: 0.75}]
-        - [ink_degradation, {level: 3}]
 
   - id: ghost_text
     weight: 3
@@ -96,42 +116,6 @@ options:
         - [blur, {radius: 0.8}]
         - [shadow_binding, {border: top, distance_ratio: 0.08, intensity: 0.3}]
         - [paper_overlay, {alpha: 0.22, lighten: 0.4}]
-
-  - id: crumpled
-    weight: 2
-    requires: [thermal]         # chỉ tờ giấy nhiệt mỏng mới nhàu kiểu này
-    tags: [textured, creased]
-    params:
-      chain:
-        - [paper_texture, {alpha: 0.50, grain: 0.8, creases: 4}]
-        - [ink_degradation, {level: 3}]
-        - [gradient_domain, {count: 3, strength: 0.6}]
-        - [blur_zones, {radius: 1.2, zones: 3, coverage: 0.18}]
-        - [paper_overlay, {alpha: 0.34, lighten: 0.3}]
-
-  - id: torn_edges
-    weight: 2
-    tags: [textured, torn]
-    params:
-      chain:
-        - [paper_texture, {alpha: 0.40, grain: 0.6, creases: 2}]
-        - [ink_degradation, {level: 2}]
-        # Giấy rách: phần mất đi lấp bằng MÀU ĐEN — mặt bàn tối lộ qua chỗ
-        # rách, đúng mặc định của DocCreator (Assistant.cpp:153).
-        - [holes, {count: 2, placement: border, size_ratio: 0.16, fill: black}]
-        - [holes, {count: 1, placement: corner, size_ratio: 0.26, fill: black}]
-        - [blur_zones, {radius: 1.0, zones: 2, coverage: 0.14}]
-
-  - id: punched
-    weight: 1
-    tags: [textured, torn]
-    params:
-      chain:
-        - [paper_texture, {alpha: 0.45, grain: 0.7}]
-        - [ink_degradation, {level: 3}]
-        # Thủng giữa trang, không phải rách mép.
-        - [holes, {count: 3, placement: center, size_ratio: 0.09, fill: black}]
-        - [shadow_binding, {border: left, distance_ratio: 0.10, intensity: 0.35}]
 
   # --------------------------------------------------------------------
   # HOẠ TIẾT CỦA KHÂU CHỤP LẠI
