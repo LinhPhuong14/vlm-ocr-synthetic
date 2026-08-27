@@ -80,6 +80,10 @@ np.unique(np.array(im))          # -> array([  0, 255], dtype=uint8)
 | `ImageDraw.polygon(fill=…)` | **2** |
 | `ImageDraw.text(…)` | **158** |
 
+![Bảy nguyên thuỷ, cùng một phép đo](figures/con-dau/fig-2.2-nguyen-thuy-hinh-hoc.png)
+
+*Bảy nguyên thuỷ, cùng một phép đo. Sáu nguyên thuỷ hình học cho **2 mức xám** — phóng vào mép thấy bậc thang. `text()` cho **225 mức** vì nó đi qua FreeType.*
+
 `ImageDraw` quyết định mỗi điểm ảnh thuộc hay không thuộc hình, theo quy tắc
 điểm-trong-đa-giác quét dòng. Không có phủ một phần, không có mức trung gian.
 Pillow không có API bật khử răng cưa cho nhóm này.
@@ -94,6 +98,11 @@ Pillow không có API bật khử răng cưa cho nhóm này.
 Đó là lý do bảng trên chênh nhau 2 mức so với 158 mức: **hai đường raster khác
 nhau trong cùng một thư viện**, và một con dấu tròn dùng cả hai.
 
+![Mép một nét chữ, phóng 9×, và lát cắt ngang qua nó](figures/con-dau/fig-2.3-phu-freetype.png)
+
+*Mép một nét chữ, phóng 9×, và lát cắt ngang qua nó. Cột đỏ là các điểm ảnh có phủ **một phần** — thứ mà `ImageDraw.ellipse` không bao giờ sinh ra.*
+
+
 ### 2.4 Lấy mẫu lại
 
 `Image.resize` cài đặt sáu bộ lọc; ba bộ dùng trong file này:
@@ -103,6 +112,10 @@ nhau trong cùng một thư viện**, và một con dấu tròn dùng cả hai.
 | `LANCZOS` | 3,0 | hạ 4× về độ phân giải đích |
 | `BICUBIC` | 2,0 | xoay từng glyph, xoay cả con dấu |
 | `NEAREST` | 0,5 | không dùng |
+
+![Cùng một bản dựng ở 8×, hạ về 120 px bằng bốn bộ lọc](figures/con-dau/fig-2.4-lay-mau-lai.png)
+
+*Cùng một bản dựng ở 8×, hạ về 120 px bằng bốn bộ lọc. `NEAREST` lấy một mẫu nên giữ nguyên 2 mức của bản gốc; ba bộ còn lại lấy trung bình có trọng số.*
 
 Pillow cài đặt phép thu nhỏ theo lối **tích chập tách được có tỉ lệ hỗ trợ**:
 khi thu nhỏ hệ số `k`, bán kính hỗ trợ của bộ lọc được nhân `k`, nên mọi điểm
@@ -132,6 +145,10 @@ Hai kết luận, cả hai đều dùng được:
    phân phối Irwin–Hall với kurtosis `3 − 6/(5n)`; nghịch đảo quan hệ ấy trên
    kurtosis đo được cho `n ≈ 2,6…3,1`, tức **n = 3**. Gauss thật có kurtosis 3.
 
+![Hàm trải rộng đường đo tại σ = 8](figures/con-dau/fig-2.5-gauss-ba-luot-hop.png)
+
+*Hàm trải rộng đường đo tại σ = 8. Đường đỏ (Pillow) nằm chồng lên đường xanh lá (chập 3 hộp), không lên đường xanh lam (Gauss thật).*
+
 Đuôi ngắn hơn Gauss thật là điều đáng biết khi mô hình hoá quang học: `_ink`
 dùng `GaussianBlur(width * 0.05)` để làm mềm mảng mất mực, và ở bán kính lớn
 như thế thì đuôi ngắn làm mép mảng dứt khoát hơn một chút so với Gauss.
@@ -145,6 +162,10 @@ không nhân sẵn alpha:
 α_o = α_a + α_b(1 − α_a)
 C_o = (C_a·α_a + C_b·α_b(1 − α_a)) / α_o
 ```
+
+![Hai glyph chồng nhau, mỗi glyph alpha 200/255](figures/con-dau/fig-2.6-ghep-alpha.png)
+
+*Hai glyph chồng nhau, mỗi glyph alpha 200/255. Kênh alpha bên phải cho thấy chỗ giao **sáng hơn**: phủ cộng dồn theo `α_o = α_a + α_b(1 − α_a)`.*
 
 với `a` là lớp trên. `_arc_text` ghép từng glyph vào canvas bằng toán tử này,
 nên hai glyph chồng nhau ở chỗ giao sẽ **cộng phủ**, không thay thế nhau — đúng
@@ -171,6 +192,11 @@ một ước lượng phủ có trọng số. Nói cách khác, **siêu lấy m�
 mà `ImageDraw` không cho**, với giá bộ nhớ `SS²`.
 
 Chọn `SS` là một đánh đổi đo được, và §4.1 đo nó.
+
+![Cùng một vành tròn ở bốn hệ số](figures/con-dau/fig-3.1-sieu-lay-mau.png)
+
+*Cùng một vành tròn ở bốn hệ số. `SS = 1` cho 2 mức xám và mép bậc thang; từ `SS = 2` trở đi phép hạ mẫu biến `SS²` mẫu nhị phân thành ước lượng phủ.*
+
 
 ### 3.2 Chữ trên cung tròn
 
@@ -214,6 +240,10 @@ cy = centre_y − R·cos(θᵢ)
 
 Dấu trừ ở `cy` là vì trục `y` của ảnh hướng xuống, còn 0° quy ước ở đỉnh.
 
+![Trái: dựng hình — tiếp tuyến tại θ chính là góc xoay glyph](figures/con-dau/fig-3.2-chu-tren-cung-tron.png)
+
+*Trái: dựng hình — tiếp tuyến tại θ chính là góc xoay glyph. Giữa: bước ∝ advance width. Phải: bước đều, đúng luật `CurveLayout` — mọi glyph nhận ô rộng bằng glyph rộng nhất, nên dòng chữ giãn toác.*
+
 **Từng glyph là một ảnh riêng.** Mỗi ký tự vẽ vào một tile RGBA riêng, xoay
 bằng `BICUBIC, expand=True`, rồi `alpha_composite` vào canvas. Điều đó có hai
 hệ quả ở §4.1: mỗi glyph đi qua **một lượt lấy mẫu lại**, và vị trí dán bị
@@ -239,6 +269,11 @@ tối đa `⌈log(0.55)/log(0.96)⌉ = 15` lần thử. `_fit_width` là bản t
 cùng ý tưởng, hệ số 0,95, sàn 0,45.
 
 Đây cũng là cách thợ khắc dấu thật xử lý tên dài: co chữ cho vừa vành.
+
+![Tên ngắn và tên dài, mỗi tên dựng hai lần](figures/con-dau/fig-3.3-khop-co-chu.png)
+
+*Tên ngắn và tên dài, mỗi tên dựng hai lần. Với cỡ cố định, tên dài chiếm quá 212° và đâm vào vành dưới; `_fit_arc` co chữ lại cho vừa.*
+
 
 ### 3.4 Mô hình mực
 
@@ -283,6 +318,11 @@ mask. Bán kính mờ tỉ lệ bề rộng nên hình dạng bất biến theo 
 Cuối cùng `round_seal` xoay ảnh `±16°` bằng BICUBIC với `expand=True`: **con dấu
 đóng tay không bao giờ thẳng**.
 
+![Ba tầng nhiễu, mặt trộn, mặt nạ sau ánh xạ phủ có sàn 0,62, lớp mảng không chạm giấy, và kết quả](figures/con-dau/fig-3.4-mo-hinh-muc.png)
+
+*Ba tầng nhiễu, mặt trộn, mặt nạ sau ánh xạ phủ có sàn 0,62, lớp mảng không chạm giấy, và kết quả. Vành tròn ở ô cuối là **cùng một `ImageDraw.ellipse`** với ô đầu của hình §2.2.*
+
+
 ### 3.5 Toán tử biến thể
 
 Ba hàm nhận **ảnh con dấu đã dựng** làm đầu vào chứ không vẽ lại — chúng là
@@ -293,6 +333,11 @@ toán tử trên ảnh, và đó là điều đúng: cùng một con dấu, đó
 | `double_strike` | tay trượt, đóng hai lần | ghép bản mờ (α×0,45) lệch ngẫu nhiên, rồi ghép bản gốc lên |
 | `_ring_only` | mặt dấu vồng, chỉ vành chạm giấy | `α ← α·(0,18 + 0,82·fade(r))`, `fade` tăng theo bán kính chuẩn hoá |
 | `edge_seal` | dấu giáp lai vắt qua mép hai tờ | **cắt thẳng** giữ 42 % bề rộng — mép giấy cắt mực dứt khoát, và chính cạnh sắc ấy là dấu hiệu nhận biết |
+
+![Cùng một con dấu, ba kiểu đóng hỏng](figures/con-dau/fig-3.5-toan-tu-bien-the.png)
+
+*Cùng một con dấu, ba kiểu đóng hỏng. Cả ba nhận **ảnh** làm đầu vào chứ không vẽ lại từ đầu.*
+
 
 ---
 
@@ -316,6 +361,10 @@ bản dựng trùng lưới của chuẩn.
 | 6 | 0,0132 | 37,58 | +3,20 | +3,52 |
 | 8 | 0,0102 | 39,81 | +2,23 | +2,50 |
 | 12 | 0,0073 | 42,74 | +2,93 | +3,52 |
+
+![Đo được so với đường lý thuyết `1/SS`, trục SS thang log](figures/con-dau/fig-4.1-ngan-sach-sai-so.png)
+
+*Đo được so với đường lý thuyết `1/SS`, trục SS thang log. Hai đường gần như trùng nhau trên cả dải 1…12.*
 
 **Sai số suy giảm theo `1/SS`, khớp lý thuyết trong vòng 0,3 dB ở mọi bước.**
 Đó là hành vi đúng cho lấy mẫu diện tích một biên trơn: số điểm ảnh có phủ một
@@ -419,6 +468,33 @@ là hình học thuần và hưởng lợi duy nhất từ §3.1.
   of Applied Meteorology 18(8). — bộ lọc hạ mẫu ở §2.4.
 - FreeType 2 documentation, *Glyph conventions* — advance width và trường phủ ở
   §2.3.
+
+## Hình, và cách dựng lại
+
+Mười một hình trong bài nằm ở [`figures/con-dau/`](figures/con-dau), dựng bằng
+
+```bash
+python docs/figures/make_stamp_figures.py     # hoặc: make figures-stamp
+```
+
+Bộ dựng **chạy lại đúng phép đo mà bài trích** rồi vẽ kết quả, nên một con số
+trong bài và hình minh hoạ nó không thể lệch nhau — cả hai đến từ cùng một lần
+chạy. Xuất PNG chứ không JPG: phần lớn hình phóng tới mức thấy từng điểm ảnh,
+mà nén JPEG sẽ bịa thêm mức trung gian ở đúng chỗ bài khẳng định là chỉ có hai.
+
+| hình | mục | trả lời câu hỏi |
+| --- | --- | --- |
+| `fig-2.2-nguyen-thuy-hinh-hoc` | §2.2 | nguyên thuỷ nào của `ImageDraw` khử răng cưa? |
+| `fig-2.3-phu-freetype` | §2.3 | trường phủ 8 bit của FreeType trông thế nào? |
+| `fig-2.4-lay-mau-lai` | §2.4 | bốn bộ lọc hạ mẫu khác nhau ra sao? |
+| `fig-2.5-gauss-ba-luot-hop` | §2.5 | `GaussianBlur` là Gauss hay là hộp? |
+| `fig-2.6-ghep-alpha` | §2.6 | hai glyph chồng nhau thì alpha cộng hay thay? |
+| `fig-3.1-sieu-lay-mau` | §3.1 | `SS` mua được gì? |
+| `fig-3.2-chu-tren-cung-tron` | §3.2 | bước góc theo advance width khác bước đều thế nào? |
+| `fig-3.3-khop-co-chu` | §3.3 | tên dài không co chữ thì hỏng ra sao? |
+| `fig-3.4-mo-hinh-muc` | §3.4 | từ vành hình học tới vết mực, qua những lớp nào? |
+| `fig-3.5-toan-tu-bien-the` | §3.5 | ba kiểu đóng hỏng |
+| `fig-4.1-ngan-sach-sai-so` | §4.1 | sai số suy giảm theo `1/SS` thật không? |
 
 ## Chạy lại các phép đo
 
