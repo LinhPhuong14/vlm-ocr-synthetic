@@ -262,6 +262,8 @@ làm đường tường minh khi bỏ hẳn cờ `--template`, và vẫn là đ�
 | **Resume là được-cả-hoặc-không** | `DONE` ghi **cuối cùng và nguyên tử**; shard thiếu `DONE` bị xoá làm lại chứ không ghi nối — ghi nối vào một `metadata` dở dang sinh bản ghi trùng, mà bản ghi trùng thì vô hình | [`pipeline/worker.py`](pipeline/worker.py) |
 | **Song song bằng tiến trình, không bằng luồng** | API đồng bộ của Playwright không an toàn đa luồng | [`pipeline/run.py`](pipeline/run.py) |
 | **Danh sách bố cục khai tường minh** | `layouts: []` nghĩa là mọi file — thứ một dataset muốn. Một **phép so sánh cố định** phải gọi tên, vì quota đi theo thứ tự danh sách | `pipeline.yaml` |
+| **Đủ mọi bố cục, không cần sửa tay** | `per_backend: auto` = **một ảnh cho mỗi bố cục đang có**. Số cứng sẽ hết hạn: `20` đúng khi có 18 bố cục và **từ chối chạy** khi có 42 | [`pipeline/config.py`](pipeline/config.py) |
+| **Chia bài chứ không xếp khối** | hai ảnh **liền kề không bao giờ cùng bố cục**: chia vòng tròn, mỗi bố cục một ảnh rồi quay lại. Hạt giống không đổi — ảnh thứ k của một bố cục vẫn là hạt thứ k của khối bố cục đó, nên đây là đổi **thứ tự**, không đổi một trang nào | [`pipeline/plan.py`](pipeline/plan.py) |
 | **Bất biến từng ảnh** | số học tiền, hộp nằm trong khung, không ký tự thay thế / ô trống glyph | [`pipeline/invariants.py`](pipeline/invariants.py) |
 | **Đo trôi (drift)** | *phân phối* còn khớp luật không, tính trên từng shard, đã trừ đi độ tán của mẫu cỡ đó | [`pipeline/drift.py`](pipeline/drift.py) |
 | **Vân tay vàng** | sha256 từng ảnh và từng bản ghi, để đường song song bị buộc phải cho ra đúng thứ đường tuần tự cho ra | [`tools/baseline.py`](tools/baseline.py) |

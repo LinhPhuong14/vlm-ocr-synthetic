@@ -10,7 +10,9 @@ PYTHON  ?= python3
 TASKS    = $(PYTHON) tasks.py
 
 DATASET ?= data/dataset60
-N       ?= 20
+# `auto` = one image of every layout there is, which is also the floor a
+# number has to clear: every layout gets an image or the run refuses.
+N       ?= auto
 TABLES  ?= 60
 PROFILE ?= data/profile
 PROFILE_N ?= 8
@@ -56,7 +58,7 @@ signatures:      ## Regenerate samples/signatures: the style grid and two signed
 
 receipts:        ## 100 receipts with the glyph renderer, via the synthtiger CLI
 	$(TASKS) receipts
-dataset:         ## Build a labelled dataset with the html renderer (N=20)
+dataset:         ## Build a labelled dataset with the html renderer (N=auto)
 	$(TASKS) dataset -o $(DATASET) -n $(N)
 dataset-clean:   ## The same dataset with no ageing and no distortion at all
 	$(TASKS) dataset-clean -o $(DATASET) -n $(N)
