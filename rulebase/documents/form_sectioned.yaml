@@ -1,0 +1,28 @@
+# THAM SỐ NỘI DUNG — form_sectioned
+#
+# Root 3: hai mục có nhãn A/B — mục A là trường thông tin, mục B là một
+# bảng nhỏ. Dùng cho FORM-05 (multi-section form). `num_items` cho bảng
+# mục B; `party_fields.left` cho các trường mục A.
+
+profile: invoice
+invoice: true
+num_items: [3, 5]
+price_step: 1000
+show_vat: false
+show_subtotal: false
+show_payment: false
+show_amount_words: false
+show_number: false
+show_seller_tax_code: false
+show_seller_website: false
+titles: ["BÁO CÁO TÌNH TRẠNG DỰ ÁN"]
+serial_format: "PSR{n}"
+units: ["%", "triệu đồng", "người", "sản phẩm"]
+party_fields:
+  left:
+    - [buyer_company, "Tên dự án:"]
+    - [applicant_name, "Trưởng dự án:"]
+    - [date, "Ngày báo cáo:"]
+    - [due_date, "Hạn hoàn thành:"]
+signature_labels:
+  - ["Người lập báo cáo", "(Ký, ghi rõ họ tên)"]

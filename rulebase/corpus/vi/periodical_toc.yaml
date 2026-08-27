@@ -1,0 +1,258 @@
+# PERIODICAL_TOC — sáu bộ mục lục trọn vẹn, mỗi bộ là nội dung của một số
+# tạp chí: một bài đinh (hero) và các mục theo chuyên mục. Một khối thống
+# nhất như classifieds, không phải kho bài rời -- số trang trong `hero` và
+# trong các `entries` được viết khớp với nhau trong cùng một bộ.
+
+- hero:
+    kicker: "Hồ sơ"
+    page_no: "22"
+    headline: "Người giữ chiếc thư viện container giữa cánh đồng"
+    teaser: "Không có kinh phí xây phòng đọc, một nhóm giáo viên trẻ dựng thư viện cho học sinh trong một container cũ. Ba năm sau, nơi này có hơn hai nghìn đầu sách."
+    byline: "Bài: Minh Khuê · Ảnh: Trần Hải"
+  sections:
+    - name: "Thường kỳ"
+      entries:
+        - page_no: "6"
+          title: "Thư toà soạn"
+          teaser: "Vì sao số này chúng tôi dành mười trang cho một thư viện container."
+        - page_no: "8"
+          title: "Thư bạn đọc"
+          teaser: "Phản hồi về loạt bài làng nghề số trước."
+        - page_no: "10"
+          title: "Ống kính tháng này"
+          teaser: "Sáu bức ảnh gửi về từ mùa gặt."
+    - name: "Hồ sơ"
+      entries:
+        - page_no: "22"
+          title: "Người giữ chiếc thư viện container giữa cánh đồng"
+          teaser: "Phóng sự dài kỳ từ xã Mẫu Lâm."
+        - page_no: "34"
+          title: "Những cây cầu chờ được xây"
+          teaser: "Bốn mươi điểm xung yếu và sáu điểm đã xử lý."
+    - name: "Chân dung"
+      entries:
+        - page_no: "46"
+          title: "Người thợ sơn mài cuối cùng nhận học trò trái nghề"
+          teaser: "Ông thợ 63 tuổi và điều kiện ba năm ở lại làng."
+    - name: "Đời sống"
+      entries:
+        - page_no: "58"
+          title: "Mười hai người phụ nữ và một hợp đồng bao tiêu đầu tiên"
+          teaser: "Từ chợ đầu mối đến chuỗi siêu thị."
+        - page_no: "68"
+          title: "Chợ nổi họp lại sau mười một ngày"
+          teaser: "Ghi chép một buổi sáng ở cửa sông."
+    - name: "Kiến trúc & thiết kế"
+      entries:
+        - page_no: "80"
+          title: "Nhà nổi: sống chung với lũ, kiểu mới"
+          teaser: "Ba phương án đã qua thử nghiệm thực địa."
+    - name: "Đọc chậm"
+      entries:
+        - page_no: "94"
+          title: "Vì sao chúng ta thích nghe kể chuyện dài"
+          teaser: "Tiểu luận của Hoàng Vân."
+        - page_no: "100"
+          title: "Trang cuối"
+          teaser: "Một tấm ảnh và một đoạn ghi chép."
+
+- hero:
+    kicker: "Phóng sự"
+    page_no: "20"
+    headline: "Khung cửi lên mạng: làng dệt Mẫu Xá bán hàng qua livestream"
+    teaser: "Ba năm trước, làng dệt còn phụ thuộc hoàn toàn vào thương lái. Nay một nhóm phụ nữ trong làng tự livestream bán hàng, doanh thu tăng gấp ba."
+    byline: "Bài: Hoàng Vân · Ảnh: Trần Hải"
+  sections:
+    - name: "Thường kỳ"
+      entries:
+        - page_no: "5"
+          title: "Thư toà soạn"
+          teaser: "Về việc chọn một làng nghề cho số này."
+        - page_no: "7"
+          title: "Điểm tin trong tháng"
+          teaser: "Mười sự kiện đáng chú ý ở các xã trong vùng."
+    - name: "Phóng sự"
+      entries:
+        - page_no: "20"
+          title: "Khung cửi lên mạng"
+          teaser: "Livestream đổi đời một làng dệt."
+        - page_no: "30"
+          title: "Nước mắm nhà thùng giữ khách bằng cách không giảm giá"
+          teaser: "Một cách cạnh tranh ngược với thị trường."
+    - name: "Nhân vật"
+      entries:
+        - page_no: "42"
+          title: "Bốn mươi cây số mỗi ngày cho một giờ học nhạc"
+          teaser: "Cô giáo tình nguyện và sáu năm không bỏ cuộc."
+    - name: "Đời sống"
+      entries:
+        - page_no: "52"
+          title: "Người sửa máy bơm đi khắp mười bốn xã"
+          teaser: "Nghề khó có người trẻ theo lâu dài."
+        - page_no: "60"
+          title: "Mạng lưới báo lũ bằng bộ đàm"
+          teaser: "Khi loa xã im tiếng đúng lúc cần nhất."
+    - name: "Đọc chậm"
+      entries:
+        - page_no: "72"
+          title: "Vì sao một tin đồn đi nhanh hơn một lời cải chính"
+          teaser: "Tiểu luận của một nhà nghiên cứu truyền thông."
+
+- hero:
+    kicker: "Điều tra"
+    page_no: "18"
+    headline: "Chuyến phà cuối cùng qua sông Mẫu Hạ"
+    teaser: "Cây cầu bê tông thay cho bến phà bốn mươi ba năm dự kiến thông xe cuối năm nay. Người lái phà cuối cùng nói ông sẽ nhớ tiếng máy nổ mỗi sáng."
+    byline: "Bài và ảnh: Nhóm phóng viên"
+  sections:
+    - name: "Thường kỳ"
+      entries:
+        - page_no: "4"
+          title: "Thư toà soạn"
+          teaser: "Vì sao một cây cầu đáng một câu chuyện dài."
+        - page_no: "6"
+          title: "Thư bạn đọc"
+          teaser: "Ý kiến về loạt bài giao thông nông thôn."
+    - name: "Điều tra"
+      entries:
+        - page_no: "18"
+          title: "Chuyến phà cuối cùng qua sông Mẫu Hạ"
+          teaser: "Từ đời ông đến đời cháu."
+        - page_no: "28"
+          title: "Một mình một trạm, hai mươi năm không nghỉ hè"
+          teaser: "Y sĩ duy nhất của một xã bốn nghìn dân."
+    - name: "Nông nghiệp"
+      entries:
+        - page_no: "40"
+          title: "Mười hai người phụ nữ và một hợp đồng bao tiêu đầu tiên"
+          teaser: "Giá ổn định hơn, tiêu chuẩn khắt khe hơn."
+    - name: "Kiến trúc & thiết kế"
+      entries:
+        - page_no: "50"
+          title: "Cây cầu dân sinh, tính lại từ đầu"
+          teaser: "Ba mẫu thiết kế cho vùng hay ngập."
+    - name: "Đọc chậm"
+      entries:
+        - page_no: "62"
+          title: "Giá sách tháng này"
+          teaser: "Năm cuốn về sông nước và di dân."
+
+- hero:
+    kicker: "Chân dung"
+    page_no: "24"
+    headline: "Người thợ sơn mài cuối cùng nhận học trò trái nghề"
+    teaser: "Không còn ai trong làng theo nghề, ông Tám nhận hai học trò từ tỉnh khác, với điều kiện họ phải ở lại làng ít nhất ba năm."
+    byline: "Bài: Minh Khuê · Ảnh: Trần Hải"
+  sections:
+    - name: "Thường kỳ"
+      entries:
+        - page_no: "6"
+          title: "Thư toà soạn"
+          teaser: "Vì sao một nghề sắp mất vẫn đáng theo dõi."
+        - page_no: "9"
+          title: "Ống kính tháng này"
+          teaser: "Ảnh từ xưởng sơn mài cuối làng."
+    - name: "Chân dung"
+      entries:
+        - page_no: "24"
+          title: "Người thợ sơn mài cuối cùng"
+          teaser: "Hai học trò và một điều kiện ba năm."
+    - name: "Hồ sơ"
+      entries:
+        - page_no: "36"
+          title: "Bốn mươi cây số mỗi ngày cho một giờ học nhạc"
+          teaser: "Khi định mức biên chế không theo kịp nhu cầu thật."
+        - page_no: "48"
+          title: "Mạng lưới báo lũ bằng bộ đàm"
+          teaser: "Năm mùa lũ, ba lần báo kịp."
+    - name: "Đời sống"
+      entries:
+        - page_no: "60"
+          title: "Người sửa máy bơm đi khắp mười bốn xã"
+          teaser: "Mùa khô gọi không kịp trả lời."
+    - name: "Đọc chậm"
+      entries:
+        - page_no: "72"
+          title: "Trang cuối"
+          teaser: "Một tấm ảnh và một đoạn ghi chép."
+
+- hero:
+    kicker: "Ghi chép"
+    page_no: "16"
+    headline: "Mạng lưới báo lũ bằng bộ đàm của những người lái xe ôm"
+    teaser: "Không có hệ thống cảnh báo tự động, một nhóm xe ôm tự lập mạng lưới báo mực nước bằng bộ đàm, hoạt động đã năm mùa lũ liên tiếp."
+    byline: "Bài: Hoàng Vân · Ảnh: Trần Hải"
+  sections:
+    - name: "Thường kỳ"
+      entries:
+        - page_no: "4"
+          title: "Thư toà soạn"
+          teaser: "Về những giải pháp tự phát khi hệ thống chưa tới kịp."
+        - page_no: "7"
+          title: "Thư bạn đọc"
+          teaser: "Ý kiến quanh loạt bài phòng chống thiên tai."
+    - name: "Ghi chép"
+      entries:
+        - page_no: "16"
+          title: "Mạng lưới báo lũ bằng bộ đàm"
+          teaser: "Khi loa xã im tiếng đúng lúc cần nhất."
+        - page_no: "26"
+          title: "Chuyến phà cuối cùng qua sông Mẫu Hạ"
+          teaser: "Bốn mươi ba năm chở khách qua sông."
+    - name: "Nông nghiệp"
+      entries:
+        - page_no: "38"
+          title: "Mười hai người phụ nữ và một hợp đồng bao tiêu đầu tiên"
+          teaser: "Giá ổn định hơn, tiêu chuẩn khắt khe hơn."
+    - name: "Văn hoá"
+      entries:
+        - page_no: "50"
+          title: "Nước mắm nhà thùng giữ khách bằng cách không giảm giá"
+          teaser: "Một cách cạnh tranh ngược với thị trường."
+    - name: "Đọc chậm"
+      entries:
+        - page_no: "64"
+          title: "Vì sao chúng ta thích nghe kể chuyện dài"
+          teaser: "Tiểu luận của Hoàng Vân."
+
+- hero:
+    kicker: "Câu chuyện"
+    page_no: "26"
+    headline: "Thư viện trong container ở giữa cánh đồng"
+    teaser: "Không có kinh phí xây phòng đọc, một nhóm giáo viên trẻ dựng thư viện cho học sinh trong một container cũ."
+    byline: "Bài: Minh Khuê · Ảnh: Trần Hải"
+  sections:
+    - name: "Thường kỳ"
+      entries:
+        - page_no: "6"
+          title: "Thư toà soạn"
+          teaser: "Vì sao một container cũ đáng được kể lại."
+        - page_no: "8"
+          title: "Điểm tin trong tháng"
+          teaser: "Mười sự kiện giáo dục đáng chú ý."
+    - name: "Câu chuyện"
+      entries:
+        - page_no: "26"
+          title: "Thư viện trong container ở giữa cánh đồng"
+          teaser: "Hai nghìn cuốn sách sau ba năm."
+        - page_no: "36"
+          title: "Bốn mươi cây số mỗi ngày cho một giờ học nhạc"
+          teaser: "Một giáo viên và sáu năm không bỏ cuộc."
+    - name: "Đời sống"
+      entries:
+        - page_no: "48"
+          title: "Người sửa máy bơm đi khắp mười bốn xã"
+          teaser: "Nghề khó có người trẻ theo lâu dài."
+    - name: "Kiến trúc & thiết kế"
+      entries:
+        - page_no: "58"
+          title: "Nhà nổi: sống chung với lũ, kiểu mới"
+          teaser: "Ba phương án đã qua thử nghiệm thực địa."
+    - name: "Đọc chậm"
+      entries:
+        - page_no: "70"
+          title: "Giá sách tháng này"
+          teaser: "Năm cuốn về giáo dục vùng nông thôn."
+        - page_no: "76"
+          title: "Trang cuối"
+          teaser: "Một tấm ảnh và một đoạn ghi chép."

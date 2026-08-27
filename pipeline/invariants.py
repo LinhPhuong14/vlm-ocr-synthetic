@@ -121,6 +121,7 @@ MISSING_GLYPH = "□"
 # near 100% and is nowhere close to it.
 BUDGETS: dict[str, float] = {
     "menu.barcode": 0.05,
+    "menu.discountprice": 0.05,
     "menu.unitprice": 0.05,
     "menu.unitprice_per_unit": 0.05,
     "menu.vatrate": 0.05,
@@ -174,8 +175,37 @@ SUPPRESSED: dict[str, frozenset[str]] = {
         # to a market item by `rulebase/content.py` whatever the document's
         # tags say, so a tag rule would not have removed it.
         "menu.barcode",
+        # A promotional discount is a second, ruled row under the priced line
+        # on a printed receipt (`base.py::_item_extras`, gated on a layout's
+        # own `item.discount_row` setting) -- a shape `notebook_ledger.yaml`'s
+        # two columns (name, amount) have no line to spare for.
+        # `rulebase/content.py` attaches `discount`/`discountprice` to a
+        # market item unconditionally, same as the barcode above, so this is
+        # found on the rare seed that happens to draw a discounted item for
+        # this layout rather than on every draw.
+        "menu.discountprice",
     }),
     "eatery_indexed": frozenset(),   # prints everything it is given
+
+    # Root 3 (Form / Application): none of these four rule a distinct "đơn
+    # giá" column at all -- an activity record, a technical-parameter table,
+    # a project data table and a timesheet's allowance column each print one
+    # money value per row (`amount`), not two. `menu.unitprice` is a real
+    # leaf on every item regardless (the rule-base's item model is shared
+    # with every invoice), so it is suppressed here on purpose rather than
+    # by omission -- see `rulebase/layouts/form_multi_section.yaml`'s own
+    # comment on why `amount` is the column these tables print instead.
+    # `total` is deliberately NOT suppressed anywhere -- an unprinted total
+    # is always a bug (see `test_an_unprinted_total_is_an_error_not_a_budget_
+    # line` in `tests/test_invariants.py`), and `menu.unit`/`menu.unitprice`
+    # are the only leaves not in `BUDGETS` a `SUPPRESSED` entry may name (see
+    # `test_every_suppressed_pair_names_a_field_that_has_a_budget`); these
+    # four layouts print their own `totals` section and a "Đơn vị" column
+    # instead of suppressing either.
+    "form_activity_signature": frozenset({"menu.unitprice"}),   # 100%
+    "form_multi_section": frozenset({"menu.unitprice"}),        # 100%
+    "form_table_based": frozenset({"menu.unitprice"}),          # 100%
+    "form_timesheet_grid": frozenset({"menu.unitprice"}),       # 100%
 }
 
 # A budget is only consulted once this many values of that field failed to
@@ -527,7 +557,7 @@ def inspect(item: dict[str, Any], *, order: tuple[str, ...] | list[str],
     # --- the label against what was drawn
     gt: dict[str, Any] = record.extracted(item)
     for name, value in leaves(gt):
-        if not value.strip() or value.startswith("receipt_"):
+        if not value.strip() or name == "doc_type":
             continue          # doc_type is a class, not text on the page
         out.values += 1
         if REPLACEMENT in value or MISSING_GLYPH in value:

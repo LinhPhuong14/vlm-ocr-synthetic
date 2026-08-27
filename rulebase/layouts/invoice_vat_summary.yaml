@@ -14,6 +14,7 @@
 id: invoice_vat_summary
 name: VAT e-invoice rendition — boxed seller block, summary by tax rate
 source: "ảnh hoá đơn GTGT mẫu 01GTKT0/001, ký hiệu AA/18E, của một chuỗi bán lẻ"
+family: statutory
 
 width: [106, 118]
 gutter: 3

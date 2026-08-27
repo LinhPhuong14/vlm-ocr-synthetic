@@ -12,6 +12,7 @@
 id: invoice_brand
 name: Branded order invoice — right-hand totals, two-column footer blocks
 source: "ảnh hoá đơn một tiệm bánh, khối chuyển khoản và khối liên hệ ở chân trang"
+family: modern
 
 width: [66, 78]
 gutter: 2

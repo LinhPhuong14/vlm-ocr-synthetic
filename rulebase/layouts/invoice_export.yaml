@@ -17,6 +17,7 @@
 id: invoice_export
 name: Export invoice — bilingual labels, stacked party blocks, one signature
 source: "ảnh hoá đơn xuất khẩu mẫu 06HDXK3/001, ký hiệu AA/13P, của một doanh nghiệp FDI"
+family: statutory
 
 width: [100, 112]
 gutter: 3

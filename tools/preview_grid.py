@@ -60,7 +60,11 @@ def show(layout: str | None, seed: int) -> None:
     print(bar)
     print(to_text(grid))
     print(bar)
-    print(f"{len(receipt.items)} mặt hàng, {grid.nrows} dòng, {grid.ncols} cột\n")
+    # A periodical page (rulebase/periodical.py) has no basket of items at
+    # all -- report just the grid geometry for it, same as any other
+    # no-items document would if this line only checked `receipt.items`.
+    items_note = f"{len(receipt.items)} mặt hàng, " if hasattr(receipt, "items") else ""
+    print(f"{items_note}{grid.nrows} dòng, {grid.ncols} cột\n")
 
 
 def main() -> int:

@@ -42,32 +42,71 @@ from __future__ import annotations
 
 from html.parser import HTMLParser
 
-from . import lodging, medical, modern, notebook, statement, statutory, till
+from . import form, lodging, medical, modern, notebook, periodical, statement, statutory, till
 from .base import EVERY_RUN, structure_tokens
 
-# Layout id -> the module that dresses it. A layout missing from here is a
-# failure with a list, not a silent fall-through to a VAT invoice: drawing a
-# hotel folio as a tax form is exactly the defect this package exists to fix.
-FAMILIES = {
-    "invoice_vat_form": statutory,
-    "invoice_vat_summary": statutory,
-    "invoice_export": statutory,
-    "invoice_water": statutory,
-    "invoice_power": statutory,
-    "invoice_hotel_stay": lodging,
-    "invoice_hotel_compact": lodging,
-    "invoice_brand": modern,
-    "medical_statement": medical,
-    "authorisation_letter": statement,
-    "invoice_tax_en": modern,
-    "eatery_indexed": till,
-    "eatery_ascii": till,
-    "market_barcode": till,
-    "market_compact": till,
-    "market_vat": till,
-    "market_vat_b": till,    # llm-generated from market_vat, 2026-08-27
-    "notebook_ledger": notebook,
+# Module name (as it appears in a layout file's own `family:` key) -> the
+# module that dresses it. A brand-new family still needs one line here --
+# Python has to import the module regardless -- but that is the only
+# per-family registration step left; a layout that reuses an existing family
+# needs nothing beyond its own `family: <name>` line in `rulebase/layouts/`.
+_MODULES = {
+    "form": form,
+    "lodging": lodging,
+    "medical": medical,
+    "modern": modern,
+    "notebook": notebook,
+    "periodical": periodical,
+    "statement": statement,
+    "statutory": statutory,
+    "till": till,
 }
+
+_families_cache: dict | None = None
+
+
+def _families() -> dict:
+    """Layout id -> the module that dresses it, read from each layout's own
+    `family:` key and cached.
+
+    Used to be a hand-written dict here, one line per layout -- the exact
+    kind of registration this package's own docstring above says a new
+    layout should never need. A layout missing a family (an unset or
+    unrecognised `family:` key) is still a failure with a list, not a silent
+    fall-through to a VAT invoice: drawing a hotel folio as a tax form is
+    exactly the defect this package exists to fix.
+
+    Lazy and cached rather than built at import time: `import sheets` should
+    not pay for a scan of every file in `rulebase/layouts/` before anyone has
+    asked to render a page, and the layout files do not change mid-process.
+    """
+    global _families_cache
+    if _families_cache is None:
+        from rulebase import available_layouts, load_layout
+
+        out = {}
+        for layout_id in available_layouts():
+            name = load_layout(layout_id).get("family")
+            if name not in _MODULES:
+                raise KeyError(
+                    f"{layout_id}: family {name!r} is not one of "
+                    f"{', '.join(sorted(_MODULES))}. Set `family:` in "
+                    f"rulebase/layouts/{layout_id}.yaml to the module that "
+                    "should dress it, adding a new one to sheets._MODULES "
+                    "first if it is a genuinely new family."
+                )
+            out[layout_id] = _MODULES[name]
+        _families_cache = out
+    return _families_cache
+
+
+def __getattr__(name: str):
+    # PEP 562: makes `sheets.FAMILIES` keep working as a plain dict lookup
+    # (`layout in sheets.FAMILIES`, `sheets.FAMILIES[layout]`) for every
+    # existing caller and test, without eagerly building it at import time.
+    if name == "FAMILIES":
+        return _families()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 # The page-model vocabulary, in one place because three entry points and a
@@ -106,7 +145,7 @@ def resolve(value: str | None) -> str | None:
     """
     if is_grid(value):
         return None
-    if value != AUTO and value not in FAMILIES:
+    if value != AUTO and value not in _families():
         raise KeyError(
             f"unknown page model {value!r}; expected {CHOICES}. "
             f"Layouts with a sheet: {', '.join(names())}")
@@ -120,20 +159,21 @@ def uncovered(layout_ids) -> list[str]:
     asked for; while the grid was the default, a layout added without a sheet
     was invisible. `pipeline/preflight.py` calls this so it is not.
     """
-    return sorted(set(layout_ids) - set(FAMILIES))
+    return sorted(set(layout_ids) - set(_families()))
 
 
 def names() -> list[str]:
-    return sorted(FAMILIES)
+    return sorted(_families())
 
 
 def family_of(layout_id: str):
     try:
-        return FAMILIES[layout_id]
+        return _families()[layout_id]
     except KeyError:
         raise KeyError(
             f"no CSS sheet for layout {layout_id!r}; have {', '.join(names())}. "
-            "Add it to sheets.FAMILIES beside the family it belongs to."
+            f"Set `family:` in rulebase/layouts/{layout_id}.yaml to the "
+            "family it belongs to."
         ) from None
 
 
