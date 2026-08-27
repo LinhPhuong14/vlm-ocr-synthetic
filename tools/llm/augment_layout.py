@@ -253,7 +253,7 @@ def register_sheet(layout_id: str, parent: str, today: str) -> list[str]:
     if f'"{layout_id}"' in text:
         return [f"{layout_id} is already in sheets.FAMILIES"]
     anchor = f'    "{parent}": '
-    line = next((l for l in text.splitlines() if l.startswith(anchor)), "")
+    line = next((row for row in text.splitlines() if row.startswith(anchor)), "")
     if not line:
         return [f"the parent {parent!r} is not in sheets.FAMILIES"]
     family = line.split(":", 1)[1].strip().rstrip(",")

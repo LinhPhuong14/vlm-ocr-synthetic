@@ -351,6 +351,17 @@ def monitor(args) -> None:
     run(command)
 
 
+@task("figures-stamp", "rebuild the figures in docs/co-che-sinh-con-dau.md")
+def figures_stamp(args) -> None:
+    """Documentation code, not the pipeline.
+
+    Each figure re-runs the measurement the document quotes and draws the
+    result, so a number in the prose and the picture beside it come from the
+    same run and cannot drift apart.
+    """
+    run([first_available_python(), REPO_ROOT / "docs" / "figures" / "make_stamp_figures.py"])
+
+
 @task("legibility", "does a chain age the text out of its own label boxes?")
 def legibility(args) -> None:
     """The check `docs/lam-cu-de-xuat.md` ranks first, ahead of any new model.
