@@ -51,9 +51,9 @@ từng ký tự để giấu điều đó; làm lệch chính là thứ `ff9a9f0
 `handwriting.source` khai nguồn trên từng trang, nên một tập không thể nhận mình
 là đằng này rồi thực ra là đằng kia.
 
-Mực của mô hình nay có chỗ riêng: [`hand17_model/`](../hand17_model) — 17 bố
+Mực của mô hình nay có chỗ riêng: [`hand18_model/`](../hand18_model) — 18 bố
 cục, mỗi bố cục một trang, `--handwriting model`, và nó tồn tại để **đo** chứ
-không phải để huấn luyện. Con số ở đó: 25/197 run = 13 %, chín trang không có
+không phải để huấn luyện. Con số ở đó: 30/191 run = 16 %, tám trang không có
 một nét mực nào. Ngoài ra còn
 [`samples/handwriting/hand-filled-folio.jpg`](../../samples/handwriting) — một
 tờ để nhìn, không làm cũ, ở mức phủ cao nhất mô hình đạt được.

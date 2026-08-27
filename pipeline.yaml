@@ -8,8 +8,8 @@ run:
   out: data/run01
   # Images per backend, and a FLOOR rather than a free number: it must be at
   # least the layout count, or the run refuses to start rather than quietly
-  # drawing only the front of the list. 20 against 17 layouts today, so adding
-  # four more layouts is what makes this line need raising -- and the refusal
+  # drawing only the front of the list. 20 against 18 layouts today, so adding
+  # three more layouts is what makes this line need raising -- and the refusal
   # will say so by name.
   per_backend: 20
   seed: 2026
