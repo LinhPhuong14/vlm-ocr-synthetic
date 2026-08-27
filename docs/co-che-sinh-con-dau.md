@@ -64,29 +64,77 @@ tử chạy, kết quả bị lượng tử hoá về 8 bit. Chuỗi `vẽ → x
 alpha → làm mờ` do đó tích luỹ sai số lượng tử ở từng bước, và đó là một lý do
 nữa để làm việc ở độ phân giải cao rồi mới hạ xuống một lần.
 
-### 2.2 Nguyên thuỷ hình học: không khử răng cưa
+### 2.2 Nguyên thuỷ hình học không lấy mẫu diện tích
 
-Đây là tính chất quyết định. Đo trực tiếp:
+Đây là tính chất quyết định thiết kế ở phần 3. Trước khi đưa số, định nghĩa ba
+đại lượng — cả bài dùng lại chúng, và bản đầu của tài liệu này đưa con số "2"
+mà không nói nó đếm cái gì.
 
-```python
-im = Image.new('L', (200,200), 0)
-ImageDraw.Draw(im).ellipse([20,20,180,180], outline=255, width=3)
-np.unique(np.array(im))          # -> array([  0, 255], dtype=uint8)
-```
+**Ảnh mode `L`.** Mỗi điểm ảnh là một byte: một số nguyên trong 0…255. Pillow
+không gán ý nghĩa nào cho các số ấy; ý nghĩa do người dùng đặt. Ở đây chúng
+luôn mang đúng một ý nghĩa, là đại lượng tiếp theo.
 
-| nguyên thuỷ | số mức xám khác nhau trong ảnh kết quả |
-| --- | ---: |
-| `ImageDraw.ellipse(outline=…)` | **2** |
-| `ImageDraw.polygon(fill=…)` | **2** |
-| `ImageDraw.text(…)` | **158** |
+**Độ phủ `c` của một điểm ảnh** là phần diện tích của ô điểm ảnh nằm bên trong
+hình đang vẽ, một số thực trong [0, 1]. Một bộ raster **lấy mẫu diện tích**
+(area sampling) ghi vào điểm ảnh giá trị `round(255·c)`. Điểm nằm trọn trong
+hình nhận 255, nằm trọn ngoài nhận 0, và điểm mà **đường biên đi xuyên qua**
+nhận một giá trị nằm hẳn giữa hai đầu. "Khử răng cưa" trong tài liệu này không
+có nghĩa gì khác ngoài điều đó.
 
-![Bảy nguyên thuỷ, cùng một phép đo](figures/con-dau/fig-2.2-nguyen-thuy-hinh-hoc.png)
+Hai số đo được từ định nghĩa ấy:
 
-*Bảy nguyên thuỷ, cùng một phép đo. Sáu nguyên thuỷ hình học cho **2 mức xám** — phóng vào mép thấy bậc thang. `text()` cho **225 mức** vì nó đi qua FreeType.*
+| ký hiệu | là gì | tính bằng |
+| --- | --- | --- |
+| `\|V\|` | **số giá trị phân biệt thực sự xuất hiện** trong ảnh. Không phải số giá trị mà định dạng cho phép — số ấy luôn là 256 — mà số giá trị đã được dùng đến. | `len(np.unique(array))` |
+| `p` | **tỉ lệ điểm biên**: phần trăm điểm ảnh có `0 < v < 255`, tức là các điểm nhận độ phủ một phần. | `mean((a > 0) & (a < 255))` |
 
-`ImageDraw` quyết định mỗi điểm ảnh thuộc hay không thuộc hình, theo quy tắc
-điểm-trong-đa-giác quét dòng. Không có phủ một phần, không có mức trung gian.
-Pillow không có API bật khử răng cưa cho nhóm này.
+Đo trên ảnh `L` 150×150, nền 0, hình vẽ bằng giá trị 255:
+
+| nguyên thuỷ | `\|V\|` | tập `V` | `p` |
+| --- | ---: | :---: | ---: |
+| `ellipse(outline=…, width=4)` | 2 | {0, 255} | 0,00 % |
+| `ellipse(fill=…)` | 2 | {0, 255} | 0,00 % |
+| `polygon(fill=…)` | 2 | {0, 255} | 0,00 % |
+| `line(width=5)`, vẽ chéo | 2 | {0, 255} | 0,00 % |
+| `arc(width=6)` | 2 | {0, 255} | 0,00 % |
+| `regular_polygon(…)` | 2 | {0, 255} | 0,00 % |
+| **`text("Ag", 84px)`** | **225** | 0…255 | **2,72 %** |
+| `rectangle(…)` thẳng trục, toạ độ nguyên — *đối chứng* | 2 | {0, 255} | 0,00 % |
+| ảnh không vẽ gì — *sàn* | 1 | {0} | 0,00 % |
+
+**`|V|` = 2 nghĩa là gì, và vì sao không phải 0 hay 1.** Một ảnh luôn có ít
+nhất một giá trị, nên `|V| = 0` không tồn tại. `|V| = 1` là ảnh chỉ còn nền —
+không vẽ gì cả, hàng cuối bảng. Vậy **2 là giá trị nhỏ nhất mà một hình đã
+thực sự vẽ ra bằng một màu có thể đạt**, và nó nói đúng một điều: tập giá trị
+của ảnh bằng chính {nền, mực}. Mọi điểm ảnh hoặc hoàn toàn trong hình, hoặc
+hoàn toàn ngoài. Không điểm nào ở giữa — nên `p = 0`.
+
+Trong hai số, **`p` mới là số mang nghĩa**; `|V| = 2` chỉ là hệ quả của
+`p = 0`. `|V|` có mặt trong bảng vì nó rẻ và vì nó cho biết thêm *tập* giá trị
+là gì, nhưng lập luận đứng trên `p`.
+
+**Chỗ dễ đọc sai, và vì sao có hàng đối chứng.** `p = 0` chỉ là bằng chứng khi
+biên của hình **không trùng lưới điểm ảnh**. Hình chữ nhật thẳng trục với toạ độ
+nguyên có biên rơi đúng vào cạnh giữa hai điểm ảnh, nên **không điểm nào bị
+biên đi xuyên qua**: độ phủ của mọi điểm đúng bằng 0 hoặc 1, và một bộ raster
+lấy mẫu diện tích hoàn hảo cũng cho `p = 0` ở đấy. Hàng ấy không chứng minh
+điều gì, và có mặt trong bảng để nói rằng phép đo này phụ thuộc việc chọn hình.
+
+**Vì sao `ellipse(outline=…)` là bằng chứng mạnh nhất trong bảng.** Đường tròn
+cong tại mọi điểm: không một đoạn biên nào của nó song song với trục điểm ảnh,
+nên không có chỗ nào để lưới "may mắn" trùng. Với vành dày 4 điểm ảnh trên ảnh
+150×150 ấy, tính giải tích thì **biên đi xuyên qua 752 điểm ảnh** — 3,34 % mặt
+ảnh — và với mỗi điểm trong số đó, độ phủ thật là một số nằm hẳn giữa 0 và 1.
+Một bộ raster lấy mẫu diện tích buộc phải sinh ra 752 giá trị trung gian ấy.
+
+`ImageDraw` sinh ra **0**.
+
+Đó là phát biểu đầy đủ của giới hạn: không phải "ảnh có ít giá trị", mà **với
+752 điểm ảnh mà đáp án đúng là một số ở giữa, cả 752 đều bị ép về một trong hai
+đầu**. `ImageDraw` quyết định mỗi điểm ảnh *thuộc hay không thuộc* hình theo quy
+tắc điểm-trong-đa-giác quét dòng, và tập giá trị {0, 255} là dấu vết của phép
+quyết định nhị phân ấy. Pillow không có tham số nào bật lấy mẫu diện tích cho
+nhóm nguyên thuỷ này.
 
 ### 2.3 Chữ: FreeType và trường phủ 8 bit
 
@@ -95,8 +143,11 @@ Pillow không có API bật khử răng cưa cho nhóm này.
 đã khử răng cưa bởi bộ rasteriser của FreeType, không phải bởi Pillow.
 `ImageDraw.text` chỉ lấy mặt nạ ấy làm alpha rồi tô màu qua nó.
 
-Đó là lý do bảng trên chênh nhau 2 mức so với 158 mức: **hai đường raster khác
-nhau trong cùng một thư viện**, và một con dấu tròn dùng cả hai.
+Đó là lý do hàng `text` trong bảng §2.2 lệch hẳn phần còn lại — `|V| = 225` và
+`p = 2,72 %` so với `|V| = 2` và `p = 0`: **hai đường raster khác nhau trong
+cùng một thư viện**, và một con dấu tròn dùng cả hai. `p = 2,72 %` chính là
+những điểm ảnh mà biên nét chữ đi xuyên qua, và FreeType trả về độ phủ của
+chúng thay vì ép về hai đầu.
 
 ![Mép một nét chữ, phóng 9×, và lát cắt ngang qua nó](figures/con-dau/fig-2.3-phu-freetype.png)
 
@@ -115,7 +166,7 @@ nhau trong cùng một thư viện**, và một con dấu tròn dùng cả hai.
 
 ![Cùng một bản dựng ở 8×, hạ về 120 px bằng bốn bộ lọc](figures/con-dau/fig-2.4-lay-mau-lai.png)
 
-*Cùng một bản dựng ở 8×, hạ về 120 px bằng bốn bộ lọc. `NEAREST` lấy một mẫu nên giữ nguyên 2 mức của bản gốc; ba bộ còn lại lấy trung bình có trọng số.*
+*Cùng một bản dựng ở 8×, hạ về 120 px bằng bốn bộ lọc. `NEAREST` lấy đúng một mẫu nguồn cho mỗi điểm đích nên giữ nguyên tập {0, 255} của bản gốc; ba bộ còn lại lấy trung bình có trọng số, và trung bình của các mẫu nhị phân chính là ước lượng độ phủ.*
 
 Pillow cài đặt phép thu nhỏ theo lối **tích chập tách được có tỉ lệ hỗ trợ**:
 khi thu nhỏ hệ số `k`, bán kính hỗ trợ của bộ lọc được nhân `k`, nên mọi điểm
@@ -195,7 +246,7 @@ Chọn `SS` là một đánh đổi đo được, và §4.1 đo nó.
 
 ![Cùng một vành tròn ở bốn hệ số](figures/con-dau/fig-3.1-sieu-lay-mau.png)
 
-*Cùng một vành tròn ở bốn hệ số. `SS = 1` cho 2 mức xám và mép bậc thang; từ `SS = 2` trở đi phép hạ mẫu biến `SS²` mẫu nhị phân thành ước lượng phủ.*
+*Cùng một vành tròn ở bốn hệ số. `SS = 1` cho tập {0, 255} và mép bậc thang; từ `SS = 2` trở đi phép hạ mẫu biến `SS²` mẫu nhị phân trong mỗi ô đích thành một ước lượng độ phủ, nên `p` nhảy từ 0 lên vài phần trăm.*
 
 
 ### 3.2 Chữ trên cung tròn
@@ -480,7 +531,8 @@ python docs/figures/make_stamp_figures.py     # hoặc: make figures-stamp
 Bộ dựng **chạy lại đúng phép đo mà bài trích** rồi vẽ kết quả, nên một con số
 trong bài và hình minh hoạ nó không thể lệch nhau — cả hai đến từ cùng một lần
 chạy. Xuất PNG chứ không JPG: phần lớn hình phóng tới mức thấy từng điểm ảnh,
-mà nén JPEG sẽ bịa thêm mức trung gian ở đúng chỗ bài khẳng định là chỉ có hai.
+mà nén JPEG sẽ bịa ra giá trị trung gian ở đúng chỗ bài khẳng định tập giá trị
+chỉ có hai phần tử.
 
 | hình | mục | trả lời câu hỏi |
 | --- | --- | --- |
