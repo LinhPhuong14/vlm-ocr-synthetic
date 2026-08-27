@@ -19,6 +19,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+# For CLEAN_FORCES: what `--clean` pins. Imported rather than restated, since a
+# second copy of that list is exactly how a clean run stops being clean.
+from pipeline import invariants  # noqa: E402
 from rulebase import (  # noqa: E402
     ATTRIBUTES,
     available_layouts,
@@ -47,19 +50,82 @@ def check() -> list[str]:
     # The blank registry: intention against what the tags actually resolve to.
     problems += blanks.problems(rules)
 
-    # Chains may only name degradations that exist.
+    # Chains and the registry, checked BOTH ways.
+    #
+    # One way is obvious: a chain may not name a model that does not exist.
+    # The other way is the one that kept catching this repository out --
+    # `docs/lam-cu-de-xuat.md` is a whole document about capability that was
+    # built, paid for and then never reached by any chain. A model no chain
+    # names is a model that has never been in a dataset, however good it is.
+    #
+    # `by_box` is the wrapper, so what IT names counts as reached too:
+    # `[by_box, {effect: markup, ...}]` is what puts `markup` on a page.
     try:
         from degradation import names as degradation_names
 
         known = set(degradation_names())
-        for option in rules["augmentation"]:
-            for entry in option.params.get("chain", []) or []:
-                name = entry[0] if isinstance(entry, (list, tuple)) else entry
+        drawn: set[str] = set()
+        # Every attribute, not just `augmentation`. `toner`, `drum` and
+        # `rollers` carry chains of their own, and a check that walked one
+        # attribute would call their three models unused and then let a typo in
+        # one of the three files through.
+        chained = {name: options for name, options in rules.items()
+                   if any(option.params.get("chain") for option in options)}
+        for attribute, options in chained.items():
+            for option in options:
+              for entry in option.params.get("chain", []) or []:
+                is_pair = isinstance(entry, (list, tuple))
+                name = entry[0] if is_pair else entry
+                drawn.add(name)
                 if name not in known:
                     problems.append(
-                        f"augmentation/{option.id}: unknown degradation {name!r}; "
+                        f"{attribute}/{option.id}: unknown degradation {name!r}; "
                         f"have {', '.join(sorted(known))}"
                     )
+                    continue
+                if name != "by_box":
+                    continue
+                wrapped = (entry[1] or {}).get("effect") if is_pair and len(entry) > 1 else None
+                if not wrapped:
+                    problems.append(
+                        f"{attribute}/{option.id}: by_box without `effect`; it wraps a "
+                        f"model and has nothing to run")
+                elif wrapped == "by_box":
+                    problems.append(f"{attribute}/{option.id}: by_box wraps itself")
+                elif wrapped not in known:
+                    problems.append(
+                        f"{attribute}/{option.id}: by_box names unknown effect "
+                        f"{wrapped!r}; have {', '.join(sorted(known))}")
+                else:
+                    drawn.add(wrapped)
+        for unused in sorted(known - drawn):
+            problems.append(
+                f"degradation/{unused}: registered but no chain in rules/ names it, "
+                f"so it never reaches a dataset")
+
+        # `--clean` pins one value per chain-bearing attribute, and the whole
+        # point of naming them in a constant is that renaming one in the YAML
+        # fails here instead of silently producing an aged "clean" set.
+        clean = invariants.CLEAN_FORCES
+        for attribute in sorted(set(chained) - set(clean)):
+            problems.append(
+                f"{attribute}: carries an ageing chain but is not in "
+                f"pipeline.invariants.CLEAN_FORCES, so `--clean` leaves it free to "
+                f"draw a mark onto the set every ageing number is measured against")
+        for attribute, value in clean.items():
+            options = {option.id: option for option in rules.get(attribute) or []}
+            if attribute not in rules:
+                problems.append(
+                    f"CLEAN_FORCES names attribute {attribute!r}, which is not in "
+                    f"rules/_order.yaml")
+            elif value not in options:
+                problems.append(
+                    f"CLEAN_FORCES pins {attribute}={value!r}, which rules/{attribute}"
+                    f".yaml does not have; have {', '.join(sorted(options))}")
+            elif options[value].params.get("chain"):
+                problems.append(
+                    f"CLEAN_FORCES pins {attribute}={value!r}, but its chain is not "
+                    f"empty, so a clean run is not clean")
     except ImportError:
         problems.append("degradation not importable (needs numpy and opencv); chains unchecked")
 

@@ -305,7 +305,7 @@ def _grid_items_table(spec: dict, receipt, parse: dict, rows) -> str:
     component: true` in the layout file asks for this instead of
     `base.items_table`'s own ruled-above-and-below-the-header look (and the
     lighter `table.grid` CSS-only version of a full grid); every other
-    modern layout is untouched -- see `generators/html/table.py`'s own
+    modern layout is untouched -- see `generators/html/components/table.py`'s own
     docstring for why nothing already shipping was rewired onto it.
 
     Column titles carry an optional English subtitle (`columns: [{title_en:
@@ -314,7 +314,7 @@ def _grid_items_table(spec: dict, receipt, parse: dict, rows) -> str:
     the measured box instead of the run), so the two languages are two
     boxes joined by a literal `<br>`, never one span holding markup.
     """
-    from table import Border, Cell, Column, Row, TableSpec, render_table
+    from components.table import Border, Cell, Column, Row, TableSpec, render_table
     from rulebase.layout import item_values
 
     columns = base.columns_of(spec, base.ncols_of(spec))
@@ -383,7 +383,7 @@ def build(recipe, receipt, spec: dict, parse: dict) -> str:
     grid = bool(table_settings.get("grid"))
 
     if table_settings.get("component"):
-        # The `table` component (`generators/html/table.py`), totals merged
+        # The `table` component (`generators/html/components/table.py`), totals merged
         # in as its last three rows -- see `_grid_items_table`.
         table = _grid_items_table(spec, receipt, parse, rows)
     else:

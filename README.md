@@ -7,7 +7,7 @@
 [![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB.svg?logo=python&logoColor=white)](pyproject.toml)
 [![Renderer](https://img.shields.io/badge/Renderer-Chromium_via_Playwright-4285F4.svg?logo=googlechrome&logoColor=white)](generators/html)
 [![Layouts](https://img.shields.io/badge/Bố_cục-16_/_6_họ-28C840.svg)](rulebase/layouts)
-[![Degradation](https://img.shields.io/badge/Làm_cũ-14_mô_hình_DocCreator-FF6B6B.svg)](degradation/README.md)
+[![Degradation](https://img.shields.io/badge/Làm_cũ-26_mô_hình_+_by__box-FF6B6B.svg)](degradation/README.md)
 [![Handwriting](https://img.shields.io/badge/Chữ_viết_tay-2_nguồn_mực-9B59B6.svg)](docs/handwriting-html.md)
 [![License](https://img.shields.io/badge/License-chưa_chọn-lightgrey.svg)](#-repository--licence)
 
@@ -48,8 +48,8 @@ giấy *quét vào* đọc lên giống hệt nhau.
 | Thành phần | Vai trò trong hệ thống | Trạng thái |
 | :--- | :--- | :--- |
 | **Chromium** (Playwright) — [`generators/html/`](generators/html) | Renderer **duy nhất** sinh dataset: dàn trang bằng CSS thật, chụp màn hình, đọc hộp từ chính DOM vừa dàn. | **Bắt buộc (Required)** |
-| **Rule-base** — [`rulebase/`](rulebase/README.md) | 7 thuộc tính có trọng số + ràng buộc thẻ, quyết định *tờ giấy nói gì*: loại chứng từ, bố cục, nội dung, hình thức, màu, hoạ tiết, cách làm cũ. | **Bắt buộc (Required)** |
-| **Degradation** — [`degradation/`](degradation/README.md) | 14 mô hình xuống cấp chuyển thể từ **DocCreator** (LaBRI Bordeaux): vân giấy, mực mòn, thấm mặt sau, nhoè vùng, rách, bóng gáy, lưới halftone, sọc quét. | **Bắt buộc (Required)** |
+| **Rule-base** — [`rulebase/`](rulebase/README.md) | 10 thuộc tính có trọng số + ràng buộc thẻ, quyết định *tờ giấy nói gì*: loại chứng từ, bố cục, nội dung, hình thức, màu, hoạ tiết, cách làm cũ, và ba bộ phận của cái máy đã sao nó. | **Bắt buộc (Required)** |
+| **Degradation** — [`degradation/`](degradation/README.md) | 26 mô hình xuống cấp: 8 chuyển thể từ **DocCreator** (LaBRI Bordeaux) — vân giấy, mực mòn, thấm mặt sau, nhoè vùng, rách, bóng gáy; 12 từ **Augraphy** — máy photo hỏng, trống mực bẩn, in kim, in typo, chữ rỗng ruột, bút đánh dấu, nền chia ô, lệch kênh màu; 6 của repo — halftone, sọc quét, JPEG, dấu đóng, ảnh giấy phủ. Cộng `by_box`: bọc mô hình bất kỳ để nó chỉ ăn vào vài ô chữ. | **Bắt buộc (Required)** |
 | **Pipeline** — [`pipeline/`](pipeline) | Một lượt chạy được **khai báo, chia shard, chạy song song và resume được**, kèm bất biến từng ảnh và đo trôi phân phối. | **Bắt buộc (Required)** |
 | **Chữ viết tay** — [`generators/html/handwriting.py`](generators/html/handwriting.py), [`docs/handwriting-html.md`](docs/handwriting-html.md) | Điền ô trống của biểu mẫu bằng **nét bút chứ không phải font in bị rung**. Hai nguồn mực, **không thay thế nhau**: `font` phủ hết mọi ô nhưng một trang chỉ một nét chữ; `model` là [WriteViT](docs/writevit.md) ([`tools/writevit/`](tools/writevit)), nét mỗi lần một khác nhưng không viết được chữ số. | *Mở rộng (Handwriting)* |
 | **Chữ ký** — [`generators/html/signature.py`](generators/html/signature.py), [`docs/chu-ky.md`](docs/chu-ky.md) | Ký vào khối chữ ký — ô trống cuối cùng của tờ mẫu. Lấy chữ thật (từ `fonts/hand/` hoặc từ WriteViT, **trace thành contour**) rồi kéo giãn thành dấu ký: chữ đầu phóng to, phần thân tan thành nét lượn, nét cuối hất lên, paraph. Mực **không mang nhãn** — nó phải nằm trên trang và nằm ngoài nhãn. | *Mở rộng (Signature)* |
@@ -60,40 +60,43 @@ giấy *quét vào* đọc lên giống hệt nhau.
 
 ## 🧠 3. Kiến Trúc Pipeline
 
-Tám giai đoạn, từ một hạt giống ngẫu nhiên tới một ảnh kèm bản ghi. Ba giai
-đoạn đầu **thuần nội dung**, không cần thư viện ảnh nào — đó là lý do CI kiểm
-được chúng chỉ với `pytest` và `pyyaml`.
+Bảy bước, từ một hạt giống ngẫu nhiên tới một ảnh kèm bản ghi.
+
+Bước 1 gộp cả ba việc `rulebase.make()` làm — bốc công thức, điền trường, dàn
+thành ô chữ và nét vẽ. Cả ba **thuần nội dung**, không cần thư viện ảnh nào, và
+đó là lý do CI kiểm được chúng chỉ với `pytest` và `pyyaml`; ngữ pháp của chúng
+nằm trong [`rulebase/README.md`](rulebase/README.md).
+
+Bước 2 vẽ **tờ CSS** — đường mà các bộ hoá đơn và biểu mẫu đã công bố dùng.
+Còn một đường thứ hai, lưới ký tự cho giấy cuộn nhiệt, không vẽ ở đây mà ở mục
+[Hai đường dựng trang](#hai-đường-dựng-trang-và-cái-nối-chúng) ngay dưới.
 
 ```mermaid
 flowchart TD
     seed(["seed + tuỳ chọn --force ATTR=ID"]) --> A
 
-    subgraph S1 ["Giai đoạn 1-3: Nội dung — rulebase/"]
-        A["1 · sample_recipe<br/>bốc 7 thuộc tính theo trọng số + ràng buộc thẻ"]
-        A --> B["2 · build_receipt<br/>đơn vị phát hành, dòng hàng, tổng tiền, nhãn CORD"]
-        B --> C["3 · build_grid<br/>sections → ô chữ (Cell) và nét vẽ (Mark)"]
+    subgraph S1 ["Bước 1: Nội dung — rulebase/"]
+        A["1 · rulebase.make<br/>bốc 10 thuộc tính, điền trường, dàn ô chữ + nét vẽ"]
     end
 
-    subgraph S2 ["Giai đoạn 4: Dựng pixel — generators/html/"]
-        C --> D1["4a · lưới ký tự<br/>render.py — giấy cuộn nhiệt"]
-        C --> D2["4b · tờ CSS<br/>sheets/ — A4 có khung, bảng, chữ ký"]
-        D2 --> D3["4c · điền tay (tuỳ chọn)<br/>handwriting.py — nguồn font hoặc WriteViT"]
+    subgraph S2 ["Bước 2-3: Dựng pixel — generators/html/"]
+        A --> D2["2 · tờ CSS<br/>sheets/ — A4 có khung, bảng, chữ ký"]
+        D2 --> D3["3 · điền tay (tuỳ chọn)<br/>handwriting.py — nguồn font hoặc WriteViT"]
     end
 
-    subgraph S3 ["Giai đoạn 5-7: Làm cũ & hình học"]
-        D1 --> E["5 · chuỗi làm cũ<br/>apply_recipe — KHÔNG đổi kích thước"]
-        D3 --> E
-        E --> F["6 · hoạ tiết & con dấu<br/>thuộc tính ornament"]
-        F --> G["7 · thu nhỏ<br/>hộp co theo pixel"]
+    subgraph S3 ["Bước 4-6: Làm cũ & hình học"]
+        D3 --> E["4 · chuỗi làm cũ<br/>apply_recipe — KHÔNG đổi kích thước"]
+        E --> F["5 · hoạ tiết & con dấu<br/>thuộc tính ornament"]
+        F --> G["6 · thu nhỏ<br/>hộp co theo pixel"]
     end
 
-    subgraph S4 ["Giai đoạn 8: Kiểm & ghi"]
-        G --> H["8 · record.validate + invariants<br/>số học tiền, hộp trong khung, không ô trống"]
+    subgraph S4 ["Bước 7: Kiểm & ghi"]
+        G --> H["7 · record.validate + invariants<br/>số học tiền, hộp trong khung, không ô trống"]
         H --> O[("ảnh .jpg<br/>+ .json từng ảnh<br/>+ synthesis.json")]
     end
 ```
 
-### Thứ tự bảy thuộc tính không phải chuyện thẩm mỹ
+### Thứ tự mười thuộc tính không phải chuyện thẩm mỹ
 
 Mỗi thuộc tính **nhìn thấy thẻ (`tags`) mà các thuộc tính trước đã đặt**, và
 một giá trị chỉ được `require` thẻ do thuộc tính **trước** nó đặt. Nên thứ tự
@@ -104,7 +107,14 @@ này quyết định *ràng buộc nào viết ra được*. Nó theo nhân qu�
 flowchart LR
     d["1 document<br/>loại chứng từ"] --> l["2 layout<br/>bố cục"] --> c["3 content<br/>nội dung"] --> v["4 visual<br/>font, mực, giấy"]
     v --> col["5 color<br/>màu mực, nền"] --> orn["6 ornament<br/>dấu, hoa văn"] --> a["7 augmentation<br/>chuỗi làm cũ"]
+    a --> t["8 toner<br/>hộp mực"] --> dr["9 drum<br/>trống mực"] --> ro["10 rollers<br/>trục lăn"]
 ```
+
+Ba thuộc tính cuối là **ba bộ phận của cái máy đã in hoặc đã sao tờ giấy**, và
+chúng hỏng độc lập với nhau: một cái máy có thể sọc trống mà mực vẫn đủ. Gói cả
+ba vào một giá trị `augmentation` thì mỗi tổ hợp phải viết tay một kịch bản, và
+số kịch bản phải viết là **tích** chứ không phải tổng. Đo trên 3 000 lượt bốc:
+**25,2 %** số trang mang ít nhất một vết máy.
 
 | # | Thuộc tính | Quyết định | File |
 | ---: | :--- | :--- | :--- |
@@ -115,6 +125,9 @@ flowchart LR
 | 5 | `color` | màu mực, sắc nền, màu nhấn | [`rules/color.yaml`](rulebase/rules/color.yaml) |
 | 6 | `ornament` | **mực không phải chữ**: con dấu tròn, dấu vuông, hoa văn chìm, nẹp sóng, QR | [`rules/ornament.yaml`](rulebase/rules/ornament.yaml) |
 | 7 | `augmentation` | chuỗi làm cũ chạy sau khi vẽ | [`rules/augmentation.yaml`](rulebase/rules/augmentation.yaml) |
+| 8 | `toner` | hộp mực của cái máy đã sao tờ này — bụi mực bám mảng, mảng cháy trắng | [`rules/toner.yaml`](rulebase/rules/toner.yaml) |
+| 9 | `drum` | trống mực — sọc **dọc** theo hướng giấy đi | [`rules/drum.yaml`](rulebase/rules/drum.yaml) |
+| 10 | `rollers` | trục lăn — dải **ngang**, vuông góc hướng giấy | [`rules/rollers.yaml`](rulebase/rules/rollers.yaml) |
 
 ### Hai đường dựng trang, và cái nối chúng
 
@@ -172,7 +185,7 @@ tính, thứ tự đọc phẳng thì sang `synthesis.json` — nơi tham số c
 
 ```mermaid
 flowchart LR
-    R["Recipe<br/>7 thuộc tính + seed"] --> RC["Receipt"]
+    R["Recipe<br/>10 thuộc tính + seed"] --> RC["Receipt"]
     RC --> GT["extracted<br/>nhãn CORD"]
     RC --> G["Grid"]
     G --> PX["pixel"]
@@ -350,13 +363,13 @@ ra là đằng kia.
 | :--- | :--- | :--- |
 | `font` — mặt chữ viết tay có giấy phép trong [`fonts/hand/`](fonts/hand) | **mọi ô**, vì một mặt chữ có đủ mười chữ số và mọi dấu | **lặp**: một trang là một nét chữ, và có hai mặt chữ chứ không phải 106 người viết |
 | `model` — [WriteViT](docs/writevit.md), nét sinh ra thật, 106 người viết | **14,6 %** số ô; quét cả không gian luật thì trang nhiều mực nhất đạt **42 %** | **không viết được chữ số** — mà chữ số là số hoá đơn, ngày, mã số thuế, số tài khoản |
+| `both` — model viết phần nó viết được, mặt chữ viết phần còn lại | **mọi ô** | **hai nét chữ trên một trang**; nhãn khai `by_source` để đếm được từng nửa |
 
-Không có đường thứ ba: làm lệch từng ký tự của một mặt chữ **in** để giả nét tay
+Không có đường thứ tư: làm lệch từng ký tự của một mặt chữ **in** để giả nét tay
 chính là thứ `ff9a9f0` đã gỡ. Vì thế [`data/hand12/`](data/hand12) dùng `font` —
-đổi 106 người viết lấy việc không còn ô nào in máy — và trang mực-mô-hình duy
-nhất còn lại trong kho là
-[`samples/handwriting/hand-filled-folio.jpg`](samples/handwriting), giữ để nhìn
-thấy đúng cái trần ấy.
+đổi 106 người viết lấy việc không còn ô nào in máy — còn nguồn `model` được đo
+riêng trên cả 17 bố cục ở [`data/hand17_model/`](data/hand17_model): 25/197 run
+có mực, chín trang không có nét nào.
 
 Chi tiết cách nối và **lý do từng ô bị từ chối** nằm trong
 [`docs/handwriting-html.md`](docs/handwriting-html.md); khảo sát mô hình trong
@@ -370,6 +383,21 @@ cái gì.
 
 ![Bảng ghép: từng mô hình làm cũ áp riêng lên một trang](samples/degradation/showcase-contact.jpg)
 
+### 7.7 Một component bảng, mười hai cách viền — và bảng kê viện phí thật nó dựng ra
+
+[`generators/html/components/table.py`](generators/html/components/table.py) là
+nơi `sheets/base.py` (`items_table()`, dùng chung cả 5 family) và
+`sheets/statutory.py` (`_summary_table()`) dựng mọi bảng có viền trong bộ
+sinh — khai bằng `TableSpec`/`Border`/`Row`/`Cell`, không còn CSS viết tay
+cho từng family. Chi tiết và mười hai bố cục mẫu ở
+[`samples/table-component/`](samples/table-component/README.md).
+
+Bảng kê viện phí (`medical_statement`) là ca khó nhất bộ sinh có — mười hai
+cột, tiêu đề hai băng với `rowspan`/`colspan`, dòng theo nhóm — dựng qua
+đúng component đó:
+
+![Bảng kê viện phí 12 cột, tiêu đề hai băng, dựng qua components/table.py](samples/table-component/pipeline-medical_statement.jpg)
+
 ---
 
 ## 📁 8. Cấu Trúc Thư Mục
@@ -377,8 +405,8 @@ cái gì.
 ```
 vlm-ocr-synthetic/
 ├── rulebase/                       # LUẬT SINH — nguồn sự thật duy nhất về nội dung
-│   ├── rules/                      # 7 thuộc tính, mỗi thuộc tính một file YAML
-│   ├── layouts/                    # 36 bố cục, đo từ giấy thật (`source:` ghi từ đâu)
+│   ├── rules/                      # 10 thuộc tính, mỗi thuộc tính một file YAML
+│   ├── layouts/                    # 41 bố cục, đo từ giấy thật (`source:` ghi từ đâu)
 │   ├── corpus/vi/ · corpus/en/     # các chuỗi tờ giấy in ra
 │   ├── spec.py                     # bốc có trọng số, thẻ, node cha
 │   ├── content.py                  # điền trường, dựng nhãn CORD
@@ -387,11 +415,13 @@ vlm-ocr-synthetic/
 │
 ├── generators/html/                # RENDERER — Chromium qua Playwright
 │   ├── render.py                   # đường lưới ký tự (giấy cuộn nhiệt)
-│   ├── sheets/                     # một tờ CSS cho mỗi HỌ bố cục (A4)
+│   ├── sheets/                     # một tờ CSS cho mỗi HỌ bố cục (A4) — bảng của cả 5 family
+│   │                                 dựng qua components/table.py, viền/màu vẫn của riêng sheets/
+│   ├── components/                 # khối dựng dùng chung, không thuộc riêng family nào
+│   │   └── table.py                # component bảng — viền/màu/gộp/lồng qua attribute, không CSS
 │   ├── handwriting.py              # điền tay: WriteViT, hoặc font viết tay
 │   ├── signature.py                # chữ ký: chữ thật kéo giãn thành dấu ký
-│   ├── tables.py                   # ảnh bảng, nhãn theo cấu trúc PubTabNet
-│   ├── table.py                    # component bảng dùng chung — viền/màu/gộp/lồng qua attribute
+│   ├── tables.py                   # ảnh bảng ĐỘC LẬP, nhãn theo cấu trúc PubTabNet (khác components/table.py)
 │   ├── overlap.py                  # phát hiện chữ chồng lên nhau
 │   └── page.py                     # dùng chung: trình duyệt, font nhúng, đọc hộp
 │
@@ -406,7 +436,7 @@ vlm-ocr-synthetic/
 │   ├── drift.py                    # phân phối còn khớp luật không
 │   └── preflight.py                # mọi kiểm tra phải qua trước khi vẽ
 │
-├── degradation/                    # 14 mô hình DocCreator, mọi backend đều gọi
+├── degradation/                    # 26 mô hình (DocCreator + Augraphy) + by_box
 ├── textures/paper/ · background/   # tờ giấy được in LÊN · cảnh nó được chụp TRÊN
 ├── textures/ornament/              # 27 con dấu và hoa văn (make ornaments)
 ├── augmentations/data/image/       # ảnh giấy thật phủ LÊN trang đã vẽ xong
@@ -501,6 +531,7 @@ bốc, còn generation vẫn chạy tới hết.
 | `make preflight` | giá trị luật không bao giờ bốc được, thiếu bố cục / giấy / hoạ tiết, chuỗi làm cũ gọi tên lạ, **độ phủ glyph** |
 | `python -m pytest` | tầng nội dung: bốc mẫu, bố cục, văn bản, kế hoạch shard, drift, bất biến |
 | `make check-boxes` | hộp còn mô tả đúng pixel: phủ đủ, nằm trong khung, có mực bên dưới |
+| `make legibility` | chuỗi làm cũ **xoá mất chữ** trong hộp nhãn chưa — hộp khai có chữ mà ảnh không còn chữ là dữ liệu độc, không phải dữ liệu khó |
 | `make baseline-verify` | bộ sinh còn cho ra **đúng** thứ nó từng cho ra, so từng hash ảnh |
 | `make proof` | một engine OCR đọc được ảnh thật không, chấm **không phụ thuộc thứ tự đọc** |
 | `make distribution` / `make monitor` | luật **thật sự** bốc ra cái gì — không giống điều trọng số nói |
@@ -517,7 +548,7 @@ Python 3.11.15, 4 nhân, venv `html` đã dựng:
 | `python tasks.py lint` | ruff: sạch |
 | `python tasks.py preflight` | sạch, ~30 s (phủ glyph trên 16 bố cục) |
 | `python tasks.py check-rules` / `check-corpus` | hợp lệ |
-| `python tasks.py list-degradations` | 14 mô hình |
+| `python tasks.py list-degradations` | 26 mô hình + `by_box` |
 | `python tools/generate_dataset.py -n 16 --workers 3` | 16 ảnh, đủ 16 bố cục, 1 shard |
 | `python tasks.py check-boxes` trên bộ vừa sinh | 1 443 hộp, khớp hết |
 | `python tasks.py check-boxes` trên `data/dataset60` | 1 330 hộp mỗi renderer (cả ba), khớp hết |
@@ -536,6 +567,7 @@ từng bộ và schema nhãn nằm trong **[`data/README.md`](data/README.md)**.
 | [`data/invoices54/`](data/invoices54) | 54 hoá đơn thương mại vẽ bằng tờ CSS |
 | [`data/forms16/`](data/forms16) | hai chứng từ **không phải hoá đơn**: bảng kê viện phí, giấy uỷ quyền |
 | [`data/hand12/`](data/hand12) | 12 tờ mẫu **điền tay** bằng nguồn `font`: 159 ô, **không ô nào còn in máy** |
+| [`data/hand17_model/`](data/hand17_model) | 17 bố cục × 1 trang bằng nguồn `model` — một **phép đo**, không phải tập huấn luyện: 25/197 run có mực, 9 trang không có nét nào |
 | [`data/tables60/`](data/tables60) | ảnh bảng, nhãn theo cấu trúc PubTabNet — dạy **bố cục, không dạy đọc** |
 | [`data/profile/`](data/profile) | thời gian từng giai đoạn và mô hình chi phí |
 
@@ -569,11 +601,13 @@ từng bộ và schema nhãn nằm trong **[`data/README.md`](data/README.md)**.
 | :--- | :--- |
 | [`rulebase/README.md`](rulebase/README.md) | luật sinh đầy đủ: thuộc tính, họ, ngữ pháp file bố cục, cách thêm một bố cục |
 | [`degradation/README.md`](degradation/README.md) | từng mô hình làm cũ và file DocCreator nó chuyển thể từ đó |
+| [`docs/lam-cu-de-xuat.md`](docs/lam-cu-de-xuat.md) | kiểm kê nhiễu: mô hình nào đang dùng, phần đã dựng mà chưa bốc tới được, và danh mục đề xuất từ thư viện ngoài, kỹ thuật đồ hoạ và chỗ trống riêng của chứng từ Việt Nam |
 | [`data/README.md`](data/README.md) | các bộ dữ liệu và schema nhãn |
 | [`docs/renderers.md`](docs/renderers.md) | vì sao ba renderer còn một, và cái giá phải trả |
 | [`docs/handwriting-html.md`](docs/handwriting-html.md) · [`docs/writevit.md`](docs/writevit.md) | nối chữ viết tay vào engine HTML, và mô hình đứng sau |
 | [`docs/chu-ky.md`](docs/chu-ky.md) | khảo sát mẫu chữ ký — giám định, bút tướng, thư pháp, hướng dẫn tiếng Việt — engine kéo giãn từng phát hiện thành tham số, và hai nguồn mực nó vẽ bằng |
 | [`docs/huong-dan-va-giai-thich.md`](docs/huong-dan-va-giai-thich.md) | giải thích từng dòng của renderer, kèm Q&A |
+| [`docs/khao-sat-root-document-ocr.md`](docs/khao-sat-root-document-ocr.md) | khảo sát 6 root document phổ biến cho OCR/eKYC ngoài phạm vi hiện tại (CCCD/CMND, hộ chiếu, GPLX, sao kê ngân hàng, CV, hợp đồng) — mỗi root kèm từ khoá và 10 bố cục có link ảnh mẫu |
 | [`docs/python-versions.md`](docs/python-versions.md) · [`docs/windows.md`](docs/windows.md) | vì sao có mốc chặn phiên bản; cài trên Windows |
 | [`fonts/README.md`](fonts/README.md) | font nào, giấy phép nào, vì sao phải kiểm độ phủ |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | môi trường nào cho việc gì, và các kiểm tra phải chạy trước khi push |

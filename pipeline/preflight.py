@@ -297,6 +297,31 @@ def sheet_overflow(seeds: int = SHEET_SEEDS) -> list[str]:
 # ------------------------------------------------------------------- checks
 
 
+def sheet_coverage() -> list[str]:
+    """Every layout must have a CSS sheet to be drawn on.
+
+    `sheets.family_of` already refuses a layout it does not know -- but only at
+    draw time, and only when a sheet was asked for. While the character grid
+    was the default, a layout added without a sheet drew perfectly well and
+    nobody found out until someone ran with `--template auto` and it stopped.
+    Asking here turns that into a preflight failure with a name in it.
+    """
+    root = Path(__file__).resolve().parent.parent
+    here = root / "generators" / "html"
+    if str(here) not in sys.path:
+        sys.path.insert(0, str(here))
+    try:
+        import sheets
+    except Exception as error:                       # noqa: BLE001
+        return [f"{UNCHECKED} CSS sheets not importable ({error}); "
+                "page-model coverage unchecked"]
+
+    missing = sheets.uncovered(rulebase.available_layouts())
+    return [f"layout {name!r} has no CSS sheet: it can only be drawn on the "
+            f"character grid. Add it to sheets.FAMILIES beside the family it "
+            f"belongs to." for name in missing]
+
+
 def check() -> list[str]:
     """Every problem, in the order a person would want to fix them."""
     problems: list[str] = []
@@ -320,6 +345,7 @@ def check() -> list[str]:
     problems += font_coverage(printable_text())
     problems += ornament_assets()
     problems += sheet_overflow()
+    problems += sheet_coverage()
     return problems
 
 

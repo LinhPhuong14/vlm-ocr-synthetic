@@ -82,7 +82,7 @@ The label follows the same rule: `gt_parse.doc_type` is `receipt_eatery` /
 
 ---
 
-## 1. The seven attributes
+## 1. The ten attributes
 
 Drawn in this order. Each attribute sees the `tags` the earlier ones set, so a
 later one can rule itself out when it does not fit.
@@ -96,10 +96,22 @@ later one can rule itself out when it does not fit.
 | 5 | `color` | ink, paper tint, accent colour for the shop name | [rules/color.yaml](rules/color.yaml) |
 | 6 | `ornament` | seals and flourishes: the ink that is not text | [rules/ornament.yaml](rules/ornament.yaml) |
 | 7 | `augmentation` | ageing: the degradation chain that runs after rendering | [rules/augmentation.yaml](rules/augmentation.yaml) |
+| 8 | `toner` | the cartridge of the machine that copied this: toner dust in blotches | [rules/toner.yaml](rules/toner.yaml) |
+| 9 | `drum` | the imaging drum: streaks **along** the feed direction | [rules/drum.yaml](rules/drum.yaml) |
+| 10 | `rollers` | the transport rollers: bands **across** it | [rules/rollers.yaml](rules/rollers.yaml) |
 
 **The list is not in the Python.** Attributes are discovered from `rules/*.yaml`
-and ordered by [rules/_order.yaml](rules/_order.yaml), so a seventh criterion is
-a new YAML file and a line in that manifest -- nothing else.
+and ordered by [rules/_order.yaml](rules/_order.yaml), so a further criterion is
+a new YAML file and a line in that manifest -- nothing else. Attributes 8 to 10
+were added that way and are what the claim is worth: three parts of one machine,
+each failing on its own, drawn independently. Bundling them into one
+`augmentation` value would mean hand-writing a scenario per combination, and the
+number to write is the product, not the sum.
+
+**Any attribute may carry a `chain`,** not only `augmentation` -- see
+`degradation.pipeline.chain_of`, which concatenates them in draw order. That is
+what puts the machine's marks after the sheet has been aged rather than under
+it, and why moving a line in `_order.yaml` moves the step.
 
 The manifest is not a formality. Discovery alone would be a downgrade: a
 hard-coded tuple cannot forget a file, a directory listing can. Three mistakes

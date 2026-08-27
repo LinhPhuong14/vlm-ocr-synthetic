@@ -86,7 +86,7 @@ BACKENDS = {
     "html": (REPO_ROOT / "generators" / "html" / "render.py", REPO_ROOT),
 }
 
-CLEAN_AUGMENTATION = invariants.CLEAN_AUGMENTATION
+CLEAN_FORCES = invariants.CLEAN_FORCES
 
 
 class ShardError(RuntimeError):
@@ -145,8 +145,15 @@ def renderer_command(backend: str, staging: Path, jobs: Path,
         "--jobs", str(jobs),
     ]
     forced = list(force)
-    if clean and not any(item.startswith("augmentation=") for item in forced):
-        forced.append(f"augmentation={CLEAN_AUGMENTATION}")
+    if clean:
+        # Every chain-bearing attribute, not just `augmentation`: since the
+        # copier became `toner`/`drum`/`rollers`, pinning one of the four
+        # leaves the other three free to draw a mark onto the "clean" set.
+        # An explicit `--force` still wins -- pinning `drum=drum_streaked` on a
+        # clean run is a strange thing to ask for, but it is an ask.
+        already = {item.partition("=")[0] for item in forced}
+        forced += [f"{attribute}={value}" for attribute, value in CLEAN_FORCES.items()
+                   if attribute not in already]
     for item in forced:
         command += ["--force", item]
     # `--clean` used to ride along here as well: it switched off the glyph
