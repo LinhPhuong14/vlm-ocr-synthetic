@@ -1,0 +1,19 @@
+# FORM-01 — Biểu mẫu câu hỏi đơn giản: vài trường, một đoạn mô tả, một câu
+# hỏi Có/Không, một chữ ký.
+#
+# Dùng `form_brief` (§ xem `rulebase/documents/form_brief.yaml`) — cùng
+# tài liệu với FORM-03, khác cách trình bày (không chia mục, không khối
+# kép). `notes:` của tài liệu này luôn có nội dung nên PHẢI liệt "notes"
+# trong sections — bỏ sót là đúng lỗi "populated but never printed".
+id: form_questionnaire
+name: Simple questionnaire — a few fields, a description, one signature
+source: "FUNSD (R&D Quality Improvement Suggestion Form) — trường tên/ngày/quản lý, đoạn mô tả, câu hỏi Có/Không rõ ràng"
+family: form
+
+width: [78, 88]
+gutter: 2
+rule_char: "-"
+sheet: a4
+rules: marks
+
+sections: [header, parties, notes, signatures, footer]

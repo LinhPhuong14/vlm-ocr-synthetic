@@ -1,0 +1,26 @@
+# Trang rao vặt — mục rao có khung/không khung, thông báo pháp lý, cáo phó,
+# cảm tạ, dàn 6 cột hẹp kiểu báo giấy thật.
+#
+# Cùng family `periodical` với `newspaper_front_broadsheet` (cùng một tờ báo
+# "Minh Hoạ", xem `rulebase/documents/newspaper_classifieds.yaml`), khác
+# `composition:` -- một trang rao vặt không có bài viết, không có tác giả,
+# chỉ có các mẩu tin của nhiều người đăng cùng kỳ báo. Xem
+# `rulebase/periodical.py::ClassifiedsPage`.
+#
+# `sections` chỉ phục vụ lưới ký tự cho `test_layout.py`/`preflight`, không
+# phải cột chữ thật -- xem chú thích trong `newspaper_front_broadsheet.yaml`.
+id: newspaper_classifieds
+name: Classifieds page — categorised ads, legal notices, obituaries, condolences
+source: "samples/periodical-templates/newspaper_classifieds.html (N-10)"
+family: periodical
+composition: classifieds
+
+width: [92, 104]
+gutter: 2
+rule_char: "-"
+
+sheet: a4
+
+rules: marks
+
+sections: [header, parties, notes, footer]

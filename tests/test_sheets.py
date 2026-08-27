@@ -205,7 +205,7 @@ def test_what_the_label_says_the_page_prints(layout):
         joined = {kind: " ".join(" ".join(texts).split())
                   for kind, texts in by_kind.items()}
         for name, value in _leaves(receipt.ground_truth()):
-            if not value.strip() or value.startswith("receipt_"):
+            if not value.strip() or name == "doc_type":
                 continue
             field = "total" if name.startswith("total.") else name
             if field in allowed:
