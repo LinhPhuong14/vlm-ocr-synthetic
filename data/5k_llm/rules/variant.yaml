@@ -672,6 +672,8 @@ options:
   - dressed_free
   requires:
   - aug_free
+  excludes:
+  - till_receipt
   params:
     label: giấy xám nhạt, chỉ khung ngoài đậm, tiêu đề nền lam, sọc rất nhạt, chữ
       không chân, cột số kiểu máy in, nén dòng, vệt loang chéo, lề rộng, bảng thu
@@ -790,6 +792,8 @@ options:
   - dressed_free
   requires:
   - aug_free
+  excludes:
+  - till_receipt
   params:
     label: liên hồng, nét nhạt, tiêu đề nền lục, sọc rất nhạt, chữ không chân, dòng
       chuẩn, không hoạ tiết, lề rộng, bảng thu hẹp
@@ -1005,6 +1009,8 @@ options:
   - dressed_free
   requires:
   - aug_free
+  excludes:
+  - till_receipt
   params:
     label: giấy xám nhạt, nét nhạt, tiêu đề nền lam, không sọc, thân có chân, tiêu
       đề không chân, nén dòng, vạch gáy trái, lề rộng, bảng thu hẹp
@@ -1085,6 +1091,8 @@ options:
   - dressed_free
   requires:
   - aug_free
+  excludes:
+  - till_receipt
   params:
     label: liên hồng, chỉ khung ngoài đậm, tiêu đề nền xám đậm, sọc rất nhạt, chữ
       có chân, dòng chuẩn, vệt loang chéo, lề hẹp, tiêu đề phóng to
@@ -1852,6 +1860,8 @@ options:
   - dressed_free
   requires:
   - aug_free
+  excludes:
+  - till_receipt
   params:
     label: liên xanh lam, chỉ khung ngoài đậm, tiêu đề nền lục, sọc rất nhạt, thân
       có chân, tiêu đề không chân, dòng thoáng, băng đỉnh trang, lề rộng, bảng thu
@@ -1897,6 +1907,8 @@ options:
   - dressed_free
   requires:
   - aug_free
+  excludes:
+  - till_receipt
   params:
     label: giấy trắng, nét mực đen, tiêu đề nền lam, sọc xám, chữ không chân, cột
       số kiểu máy in, nén dòng, nẹp góc trên phải, lề hẹp, tiêu đề phóng to
@@ -1939,6 +1951,8 @@ options:
   - dressed_free
   requires:
   - aug_free
+  excludes:
+  - till_receipt
   params:
     label: liên xanh lam, nét nhạt, tiêu đề nền lục, sọc rất nhạt, chữ không chân,
       nén dòng, băng đỉnh trang, lề rộng, bảng thu hẹp
@@ -2237,6 +2251,8 @@ options:
   - dressed_free
   requires:
   - aug_free
+  excludes:
+  - till_receipt
   params:
     label: giấy ngà, nét đậm, tiêu đề gạch chân dày, không sọc, chữ không chân, dòng
       thoáng, vệt loang chéo, lề rộng, bảng thu hẹp
