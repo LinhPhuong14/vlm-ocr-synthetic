@@ -93,13 +93,19 @@ DEGRADATIONS: dict[str, tuple[Callable[..., np.ndarray], bool, bool]] = {
     "halftone_screen": (halftone_screen, True, False),
     "scan_banding": (scan_banding, True, False),
     "jpeg_blocks": (jpeg_blocks, True, False),
-    # Augraphy: the three parts of the machine that made this copy. A file
-    # each, and a rule-base ATTRIBUTE each -- `rules/toner.yaml`,
-    # `rules/drum.yaml`, `rules/rollers.yaml` -- so a page draws them
+    # Augraphy: the three parts of "the copier" -- the machine that made this
+    # copy. A file each, and a rule-base ATTRIBUTE each -- `rules/toner.yaml`,
+    # `rules/drum.yaml`, `rules/rollers.yaml` -- so a page would draw them
     # independently instead of getting all three or none from one scenario.
-    "bad_photocopy": (bad_photocopy, True, False),
-    "dirty_drum": (dirty_drum, True, False),
-    "dirty_rollers": (dirty_rollers, True, False),
+    # All three are deliberately unregistered here (imported and still
+    # exported below, just not dispatched): every one of `toner`/`drum`/
+    # `rollers`'s worn-machine options was removed, so nothing in rules/ names
+    # these three any more, and `tools/rules_report.py --check` would flag
+    # them as dead otherwise. Re-enable by restoring an option to each of the
+    # three YAML files and putting these three lines back.
+    #     "bad_photocopy": (bad_photocopy, True, False),
+    #     "dirty_drum": (dirty_drum, True, False),
+    #     "dirty_rollers": (dirty_rollers, True, False),
     # Augraphy: how the ink was laid down, and how it failed (printing.py)
     "letterpress": (letterpress, True, False),
     "hollow": (hollow, True, False),
