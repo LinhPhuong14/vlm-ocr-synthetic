@@ -380,10 +380,10 @@
   },
   "never_drawn": {},
   "elapsed_seconds": {
-    "rules": 0.48,
-    "plan": 0.61,
-    "verify": 0.42,
-    "render": 655.1,
-    "proof": 16.33
+    "rules": 0.49,
+    "plan": 0.58,
+    "verify": 0.41,
+    "render": 653.13,
+    "proof": 26.61
   }
 }
