@@ -20,6 +20,10 @@ order:
   - visual
   - color
   - ornament
+  # Mực bút TRƯỚC khi làm cũ: người ta điền vào tờ giấy rồi tờ giấy mới bị
+  # photo, nên nét bút phải mờ và nhoè y như chữ in. Đặt sau `augmentation`
+  # thì nét bút sẽ sắc nét nằm trên một trang đã cũ — một cảnh khác hẳn.
+  - handwriting
   - augmentation
   # Cái máy đã in hoặc đã sao tờ này, tách làm ba bộ phận hỏng độc lập với
   # nhau. Đứng SAU `augmentation` vì chúng là thứ xảy ra SAU CÙNG: tờ giấy đã
