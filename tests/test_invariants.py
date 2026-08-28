@@ -267,7 +267,6 @@ def test_the_space_insensitive_fallback_does_not_match_across_kinds():
     assert any("appears on no box" in e for e in errors_of(item))
 
 
-
 # ----------------------------------------------------------- the arithmetic
 
 

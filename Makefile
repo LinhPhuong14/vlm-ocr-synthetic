@@ -21,7 +21,7 @@ LAYOUT  ?=
 .DEFAULT_GOAL := help
 .PHONY: help setup setup-synthdog setup-html setup-genalog setup-writevit \
         textures patterns handwriting signatures \
-        receipts preview preview-grid dataset dataset-clean proof showcase \
+        receipts preview preview-grid visualize dataset dataset-clean proof showcase \
         ornaments templates \
         preflight check-rules check-corpus check-boxes migrate-metadata \
         distribution monitor \
@@ -86,6 +86,8 @@ preview:         ## Render a grid of sample receipts to eyeball the config
 	$(TASKS) preview
 preview-grid:    ## Print a sampled receipt as text (LAYOUT=<id> to pin one)
 	@$(TASKS) preview-grid $(if $(LAYOUT),--layout $(LAYOUT),)
+visualize:       ## Local Gradio app: sinh ảnh, thử con dấu, thử viết tay hybrid
+	$(TASKS) visualize
 
 # ------------------------------------------------------------- the rules
 

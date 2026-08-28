@@ -324,6 +324,17 @@ def preview_grid(args) -> None:
     run(command)
 
 
+@task("visualize", "local Gradio app: sinh ảnh, thử con dấu, thử viết tay hybrid")
+def visualize(args) -> None:
+    # The html backend's interpreter: the live-gallery tab drives
+    # `pipeline.run.execute()` in-process, and the handwriting tab imports
+    # `generators/html/handwriting.py` directly -- both need what that venv
+    # already has. The stamp tab's own synthtiger half crosses into
+    # `generators/synthdog/.venv` as a subprocess, the same way a real run's
+    # renderer dispatch does.
+    run([venv_python(VENVS["html"]), REPO_ROOT / "tools" / "visualize" / "app.py"])
+
+
 # -------------------------------------------------------------- the rules
 
 
@@ -449,6 +460,7 @@ def clean(args) -> None:
         REPO_ROOT / ".ruff_cache",
         REPO_ROOT / ".pytest_cache",
         SYNTHDOG / "outputs",
+        REPO_ROOT / "data" / "visualize_runs",
     ]
     targets += [
         path for path in REPO_ROOT.rglob("__pycache__")
