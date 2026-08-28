@@ -115,3 +115,4 @@ data/*/logs/
 data/*/plan.json
 data/*/manifest.json
 data/*/timings.json
+data/*/report.json

@@ -192,13 +192,14 @@ def dataset(args) -> None:
     # family every layout was actually designed against, not the
     # character-grid fallback. See tools/baseline.py::arguments()'s docstring.
     run([first_available_python(), REPO_ROOT / "tools" / "generate_dataset.py",
-         "-o", args.out, "-n", str(args.count), "--template", "auto"])
+         "-o", args.out, "-n", str(args.count or "auto"), "--template", "auto"])
 
 
 @task("dataset-clean", "the same dataset with no ageing and no distortion")
 def dataset_clean(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "generate_dataset.py",
-         "-o", f"{args.out}_clean", "-n", str(args.count), "--clean", "--template", "auto"])
+         "-o", f"{args.out}_clean", "-n", str(args.count or "auto"),
+         "--clean", "--template", "auto"])
 
 
 @task("tables", "table-structure images, from the html backend")
@@ -207,7 +208,7 @@ def tables(args) -> None:
     # backend: same Chromium, same boxes off the same laid-out DOM. There is no
     # fourth environment to build any more.
     run([venv_python(VENVS["html"]), REPO_ROOT / "tools" / "generate_tables.py",
-         "-o", args.out, "-n", str(args.count)])
+         "-o", args.out, "-n", str(args.count or 60)])
 
 
 @task("handwriting", "regenerate data/hand12: every field a person fills in, in ink")
@@ -275,7 +276,7 @@ def proof(args) -> None:
 @task("profile", "time every stage of every renderer and write a cost model")
 def profile(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "profile_pipeline.py",
-         "-c", str(args.count), "-o", args.out])
+         "-c", str(args.count or 8), "-o", args.out])
 
 
 @task("check-boxes", "verify every renderer's boxes still land on its text")
@@ -469,8 +470,14 @@ def main() -> int:
     parser.add_argument("task", nargs="?", choices=sorted(TASKS), help="task to run")
     parser.add_argument("-o", "--out", default=str(Path("data") / "dataset60"),
                         help="output directory (dataset, dataset-clean, preview)")
-    parser.add_argument("-n", "--count", type=int, default=20,
-                        help="images per renderer (dataset, dataset-clean)")
+    # No default here: each task below states its own, because they are not the
+    # same number and never were -- a dataset wants one image of every layout
+    # (`auto`), a table run wants 60, the profiler wants 8.
+    parser.add_argument("-n", "--count", default=None,
+                        help="images to make (dataset, dataset-clean, tables, "
+                             "profile). For a dataset, `auto` -- the default -- "
+                             "is one image of every layout there is, which is "
+                             "also the floor any number has to clear")
     parser.add_argument("--dataset", default=str(Path("data") / "dataset60"),
                         help="dataset to score (proof)")
     parser.add_argument("--layout", help="pin one bố cục (preview-grid)")

@@ -78,12 +78,15 @@ DEGRADATIONS: dict[str, tuple[Callable[..., np.ndarray], bool, bool]] = {
     "blur_zones": (blur_zones, True, False),
     "ink_degradation": (ink_degradation, True, False),
     "holes": (holes, True, False),
-    # the texture models. `paper_overlay` (a real photographed paper texture
-    # pasted over the finished page) is imported and still exported below,
-    # but deliberately left out of dispatch: see rules/augmentation.yaml's
-    # header for why every chain that used it was found too heavy and had
-    # it removed. Call it directly if a caller genuinely wants it back.
+    # the texture models
     "paper_texture": (paper_texture, True, False),
+    # Out of dispatch for a day and back in on request. It pastes a photograph
+    # of real paper over the finished page, ink included, and the six source
+    # photos are close-ups of CRUMPLED paper -- which is the measured
+    # complaint against it (big soft grey clouds over half an A4). The chains
+    # name it again at the alphas they used before; the two knobs, in the order
+    # worth trying, are in rules/augmentation.yaml's header.
+    "paper_overlay": (paper_overlay, True, False),
     "pattern_overlay": (pattern_overlay, True, False),
     "gradient_domain": (gradient_domain, True, False),
     "phantom_character": (phantom_character, True, False),
@@ -125,9 +128,106 @@ DEGRADATIONS: dict[str, tuple[Callable[..., np.ndarray], bool, bool]] = {
     "by_box": (by_box, True, True),
 }
 
+# Models kept here on purpose and drawn by NO rule. Same shape, and the same
+# reasoning, as `pipeline/config.py::RETIRED_BACKENDS`: switching a model off is
+# not deleting it. The port stays, its tests stay, and turning it back on is one
+# chain entry in `rulebase/rules/`.
+#
+# The list is what makes the switch-off *declared* rather than merely true.
+# `tools/rules_report.py --check` fails on a registered model no chain names --
+# `docs/lam-cu-de-xuat.md` is a whole document about capability that was built,
+# paid for and never reached a dataset -- and without this the way to quieten
+# that check would be to stop looking. Instead the check reads this table, and
+# it enforces the list in BOTH directions: a name here that a rule does start
+# naming again is an error too, so the reason below can never quietly go stale.
+SWITCHED_OFF = {
+    "gradient_domain": (
+        "vết bẩn ghép bằng Poisson blending -- che chữ ở chỗ nó dán vào, mà "
+        "nhãn vẫn khai đủ chữ ở đó. Tắt cùng `stains` và `crumpled`"
+    ),
+    "holes": (
+        "rách mép và thủng giữa trang: phần mất đi lấp bằng màu đen, xoá hẳn "
+        "chữ nằm dưới. Tắt cùng `torn_edges` và `punched`"
+    ),
+    "dirty_rollers": (
+        "dải ngang do trục lăn bẩn. Tắt cả ba giá trị của thuộc tính "
+        "`rollers`, xem rulebase/rules/rollers.yaml"
+    ),
+    "halftone_screen": (halftone_screen, True, False),
+    "scan_banding": (scan_banding, True, False),
+    "jpeg_blocks": (jpeg_blocks, True, False),
+    # Augraphy: the three parts of "the copier" -- the machine that made this
+    # copy. A file each, and a rule-base ATTRIBUTE each -- `rules/toner.yaml`,
+    # `rules/drum.yaml`, `rules/rollers.yaml` -- so a page would draw them
+    # independently instead of getting all three or none from one scenario.
+    # All three are deliberately unregistered here (imported and still
+    # exported below, just not dispatched): every one of `toner`/`drum`/
+    # `rollers`'s worn-machine options was removed, so nothing in rules/ names
+    # these three any more, and `tools/rules_report.py --check` would flag
+    # them as dead otherwise. Re-enable by restoring an option to each of the
+    # three YAML files and putting these three lines back.
+    #     "bad_photocopy": (bad_photocopy, True, False),
+    #     "dirty_drum": (dirty_drum, True, False),
+    #     "dirty_rollers": (dirty_rollers, True, False),
+    # Augraphy: how the ink was laid down, and how it failed (printing.py)
+    "letterpress": (letterpress, True, False),
+    "hollow": (hollow, True, False),
+    "dot_matrix": (dot_matrix, True, False),
+    # Augraphy: marks a PERSON added afterwards (marks.py). Both take
+    # `regions`, so `by_box` runs them once per box rather than masking.
+    "markup": (markup, True, False),
+    "scribbles": (scribbles, True, False),
+    # Augraphy: generated background patterns (tessellation.py)
+    "voronoi_tessellation": (voronoi_tessellation, True, False),
+    "delaunay_tessellation": (delaunay_tessellation, True, False),
+    # Augraphy: colour channels out of register (channel.py). `glitch_effect`
+    # is the only model here that moves pixels -- read its docstring.
+    "color_shift": (color_shift, True, False),
+    "glitch_effect": (glitch_effect, True, False),
+    # not a model: the wrapper that puts a model on a few boxes only
+    "by_box": (by_box, True, True),
+}
+
+# Models kept here on purpose and drawn by NO rule. Same shape, and the same
+# reasoning, as `pipeline/config.py::RETIRED_BACKENDS`: switching a model off is
+# not deleting it. The port stays, its tests stay, and turning it back on is one
+# chain entry in `rulebase/rules/`.
+#
+# The list is what makes the switch-off *declared* rather than merely true.
+# `tools/rules_report.py --check` fails on a registered model no chain names --
+# `docs/lam-cu-de-xuat.md` is a whole document about capability that was built,
+# paid for and never reached a dataset -- and without this the way to quieten
+# that check would be to stop looking. Instead the check reads this table, and
+# it enforces the list in BOTH directions: a name here that a rule does start
+# naming again is an error too, so the reason below can never quietly go stale.
+SWITCHED_OFF = {
+    "gradient_domain": (
+        "vết bẩn ghép bằng Poisson blending -- che chữ ở chỗ nó dán vào, mà "
+        "nhãn vẫn khai đủ chữ ở đó. Tắt cùng `stains` và `crumpled`"
+    ),
+    "holes": (
+        "rách mép và thủng giữa trang: phần mất đi lấp bằng màu đen, xoá hẳn "
+        "chữ nằm dưới. Tắt cùng `torn_edges` và `punched`"
+    ),
+    "dirty_rollers": (
+        "dải ngang do trục lăn bẩn. Tắt cả ba giá trị của thuộc tính "
+        "`rollers`, xem rulebase/rules/rollers.yaml"
+    ),
+    "halftone_screen": (
+        "lưới tram của máy photocopy. Không tự nó bị loại: hai giá trị duy "
+        "nhất gọi tới nó, `photocopy_screened` và `photocopy_stamped`, đã tắt "
+        "cùng `photocopy`"
+    ),
+}
+
 
 def names() -> list[str]:
     return sorted(DEGRADATIONS)
+
+
+def drawable() -> list[str]:
+    """Every model a rule is allowed to name -- `names()` minus `SWITCHED_OFF`."""
+    return sorted(set(DEGRADATIONS) - set(SWITCHED_OFF))
 
 
 def apply_one(
@@ -187,6 +287,7 @@ DEFAULT_CHAIN: list[tuple[str, dict[str, Any]]] = [
 __all__ = [
     "DEFAULT_CHAIN",
     "DEGRADATIONS",
+    "SWITCHED_OFF",
     "OVERLAY_DIR",
     "PAPER_DIR",
     "STAIN_DIR",
@@ -205,6 +306,7 @@ __all__ = [
     "dirty_drum",
     "dirty_rollers",
     "dot_matrix",
+    "drawable",
     "glitch_effect",
     "gradient_domain",
     "halftone_screen",

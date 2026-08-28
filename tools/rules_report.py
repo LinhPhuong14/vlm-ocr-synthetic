@@ -24,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from pipeline import invariants  # noqa: E402
 from rulebase import (  # noqa: E402
     ATTRIBUTES,
-    available_layouts,
+    RuleError,
     blanks,  # noqa: E402
     corpus,  # noqa: E402
     load_groups,
@@ -33,19 +33,50 @@ from rulebase import (  # noqa: E402
     validate,
 )
 from rulebase.layout import LAYOUTS_ROOT  # noqa: E402
+from rulebase.layout import every as every_layout  # noqa: E402
 
 
 def check() -> list[str]:
     problems = validate()
 
     # Every bố cục named in the rules must have a file, and vice versa.
+    #
+    # Against EVERY file, not just the drawable ones. A layout switched off with
+    # `enabled: false` keeps its file and keeps its entry in the rules -- that
+    # is what lets a committed page that drew it still be redrawn -- so reading
+    # the drawable list here would report ten perfectly present files as
+    # missing, which is how a check teaches people to ignore it.
     rules = load_rules()
     declared = {option.id for option in rules["layout"]}
-    on_disk = set(available_layouts())
+    on_disk = set(every_layout())
     for missing in sorted(declared - on_disk):
         problems.append(f"layout/{missing}: declared in rules but no {LAYOUTS_ROOT}/{missing}.yaml")
     for orphan in sorted(on_disk - declared):
         problems.append(f"layouts/{orphan}.yaml: on disk but not declared in rules/layout.yaml")
+
+    # Every value the rules can still DRAW has to be drawable all the way down.
+    #
+    # The failure this catches: switching the ten root-3 layouts off left eight
+    # `doc_form` documents whose only layouts were those ten. Nothing was
+    # unreachable by tags -- `validate()` was clean -- and yet a seed that drew
+    # one of those documents clashed on `layout`, retried 6,000 times and
+    # raised. A run would have died a third of the way in, on a seed nobody
+    # could have predicted, with a message about tags rather than about the
+    # switch that caused it.
+    #
+    # Pinned one at a time and drawn for real, because "can this value ever be
+    # part of a whole recipe" is a question about the interaction of every
+    # attribute after it, and the sampler is the thing that answers it.
+    for attribute in ("document", "layout"):
+        for option in rules.get(attribute) or []:
+            if not option.enabled or option.weight <= 0:
+                continue
+            try:
+                sample_recipe(seed=17, rules=rules, force={attribute: option.id})
+            except RuleError as error:
+                problems.append(
+                    f"{attribute}/{option.id}: enabled, but no complete recipe "
+                    f"can be drawn with it -- {str(error).splitlines()[0]}")
 
     # The blank registry: intention against what the tags actually resolve to.
     problems += blanks.problems(rules)
@@ -60,7 +91,14 @@ def check() -> list[str]:
     #
     # `by_box` is the wrapper, so what IT names counts as reached too:
     # `[by_box, {effect: markup, ...}]` is what puts `markup` on a page.
+    #
+    # A model in `degradation.SWITCHED_OFF` is exempt from the second direction
+    # and gains a third: it is *declared* unused, so a chain that starts naming
+    # it again is the error. Without that, the way to quieten this check after
+    # switching a model off would be to delete the model -- and the way to
+    # switch one back on would be to leave a stale reason behind.
     try:
+        from degradation import SWITCHED_OFF
         from degradation import names as degradation_names
 
         known = set(degradation_names())
@@ -76,7 +114,14 @@ def check() -> list[str]:
               for entry in option.params.get("chain", []) or []:
                 is_pair = isinstance(entry, (list, tuple))
                 name = entry[0] if is_pair else entry
-                drawn.add(name)
+                # A DISABLED value's chain is checked for typos like any other
+                # -- it has to still build the day it is switched back on --
+                # but it does not count as reaching the model. Otherwise a
+                # switched-off model kept alive only by a switched-off value
+                # would read as "in use", and the two halves of one decision
+                # would drift apart without a word.
+                if option.enabled:
+                    drawn.add(name)
                 if name not in known:
                     problems.append(
                         f"{attribute}/{option.id}: unknown degradation {name!r}; "
@@ -96,12 +141,27 @@ def check() -> list[str]:
                     problems.append(
                         f"{attribute}/{option.id}: by_box names unknown effect "
                         f"{wrapped!r}; have {', '.join(sorted(known))}")
-                else:
+                elif option.enabled:
                     drawn.add(wrapped)
-        for unused in sorted(known - drawn):
+
+        # `pattern_overlay` is reached by the ORNAMENT attribute rather than by
+        # a chain: `generators/html/ornament.py` strikes every seal and
+        # watermark through it. Counting only chains would call it unused the
+        # moment the last `photocopy_stamped` was switched off, and the fix
+        # would look like deleting a model that runs on 33 pages in 64.
+        if any(option.enabled and option.params.get("marks")
+               for option in rules.get("ornament") or []):
+            drawn.add("pattern_overlay")
+
+        for unused in sorted(known - drawn - set(SWITCHED_OFF)):
             problems.append(
                 f"degradation/{unused}: registered but no chain in rules/ names it, "
                 f"so it never reaches a dataset")
+        for revived in sorted(drawn & set(SWITCHED_OFF)):
+            problems.append(
+                f"degradation/{revived}: a chain in rules/ names it, but it is in "
+                f"degradation.SWITCHED_OFF ({SWITCHED_OFF[revived]}). Take it off "
+                f"that list if it is back on")
 
         # `--clean` pins one value per chain-bearing attribute, and the whole
         # point of naming them in a constant is that renaming one in the YAML

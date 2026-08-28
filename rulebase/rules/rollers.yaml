@@ -1,11 +1,28 @@
 # THUỘC TÍNH 10/10 — TRỤC LĂN
 #
+# **Tắt.** Chỉ còn `no_rollers`, nên `dirty_rollers` không còn được bốc trong
+# bất kỳ lượt chạy nào. Ba giá trị `rollers_faint` / `rollers_banded` /
+# `rollers_worn` đã bị xoá khỏi file này chứ không đặt `weight: 0`:
+# `rulebase/spec.py::validate` coi weight 0 là **luật chết** và `make
+# check-rules` (chạy trong CI) báo lỗi — một giá trị không ai bốc được thì gần
+# như luôn là lỗi gõ tên thẻ chứ không phải một cái công tắc.
+#
+# Mô hình `dirty_rollers` **vẫn còn** trong `degradation/` và vẫn có test. Đó
+# là ranh giới cố ý của kho này: `degradation/` là thư viện mô hình, còn
+# `rulebase/rules/` mới là chỗ quyết định mô hình nào được dùng. Bật lại =
+# `git show` file này ở commit trước và dán ba giá trị ấy về.
+#
+# Giữ nguyên thuộc tính (thay vì xoá cả file) vì hai lý do: bản ghi
+# `synthesis.json` của mọi ảnh vẫn có trường `rollers`, nên hình dạng dữ liệu
+# không đổi; và bật lại chỉ là sửa đúng file này.
+#
+# ---- vì sao nó từng ở đây, giữ lại để đọc khi bật lại ----
+#
 # Dải NGANG, vuông góc với hướng giấy đi — trục lăn bẩn ép lên tờ giấy khi kéo
 # nó qua máy. Khác `scan_banding` (trong chuỗi `augmentation`) ở hai chỗ đo
-# được, và giữ cả hai vì đó là cách phân biệt hai loại hỏng trên bản scan thật:
-# `scan_banding` là tổng hai sóng sin nên tuần hoàn đều, còn cái này là nhiễu
-# trơn nên khoảng cách giữa hai dải không đoán trước được; và mặt cắt của nó đi
-# qua một hàm gờ nên chỗ chuyển sáng-tối gấp khúc chứ không mượt.
+# được: `scan_banding` là tổng hai sóng sin nên tuần hoàn đều, còn cái này là
+# nhiễu trơn nên khoảng cách giữa hai dải không đoán trước được; và mặt cắt của
+# nó đi qua một hàm gờ nên chỗ chuyển sáng-tối gấp khúc chứ không mượt.
 #
 # ĐANG TẮT, cùng với `toner` và `drum` -- đọc `toner.yaml` trước, nó giải
 # thích vì sao "cái copier" là ba thuộc tính chứ không phải một, và tình trạng
@@ -13,5 +30,5 @@
 
 options:
   - id: no_rollers
-    weight: 17
+    weight: 1
     tags: [rollers_clean]
