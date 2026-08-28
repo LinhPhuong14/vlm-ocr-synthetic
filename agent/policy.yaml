@@ -1,0 +1,74 @@
+# AI ĐƯỢC PHÉP ĐỔI DÁNG, VÀ AI KHÔNG — luật của agent, viết bằng dữ liệu.
+#
+# Agent tự sinh bố cục mới để dữ liệu đa dạng hơn. Với phần lớn giấy tờ đó là
+# điều đúng: hai nhà in ra cùng một tờ hoá đơn không bao giờ ra hai tờ giống
+# nhau, và một mô hình học trên một dáng duy nhất sẽ học nhầm dáng ấy thành
+# định nghĩa của loại giấy.
+#
+# Nhưng có loại giấy mà DÁNG CHÍNH LÀ NỘI DUNG. Bằng lái xe, giấy chứng nhận
+# do nhà nước cấp, phôi biểu mẫu Bộ Tài chính ban hành — chúng có một dáng duy
+# nhất hợp lệ, và một bộ dữ liệu tự bịa ra dáng thứ hai sẽ dạy mô hình rằng
+# tờ giả cũng là tờ thật. Với chúng agent chỉ được đóng dấu và hoạ tiết
+# (`ornament`), tuyệt đối không đụng vào bố cục.
+#
+# Ba hạng, từ chặt tới lỏng:
+#
+#   locked   chỉ ornament. Không variant, không đổi nét, không đổi nền.
+#   livery   được đổi MỰC và NỀN (nét kẻ, dải tiêu đề, sọc dòng, tông giấy),
+#            KHÔNG được đổi bộ chữ, độ nén dòng hay thêm hoạ tiết CSS —
+#            hình học của tờ giấy giữ nguyên.
+#   free     được đổi tất cả, và được sinh thêm hoạ tiết/đồ hoạ mới.
+#
+# Hạng được gắn thành THẺ lên từng document trong rules root mà một lượt chạy
+# tự dựng, nên chính bộ luật là bên chặn — không phải một câu `if` trong
+# planner. `variant` nào đòi `aug_free` thì document `locked` không bốc tới
+# được, và `make check-rules` kiểm được điều đó.
+#
+# Kho này CHƯA CÓ phôi giấy tờ tuỳ thân nào (bằng lái, CCCD, giấy chứng nhận
+# nhà nước). `locked` là chỗ chúng sẽ vào nếu được thêm; danh sách dưới đây
+# hiện chỉ có hai phôi biểu mẫu do nhà nước ban hành.
+
+classes:
+
+  locked:
+    reason: >
+      Phôi do cơ quan nhà nước ban hành, có mẫu số và ký hiệu quy định. Dáng tờ
+      giấy là một phần của tính hợp lệ, nên chỉ đóng dấu chứ không dựng lại.
+    documents:
+      - vat_invoice_form   # phôi hoá đơn GTGT in sẵn, Mẫu số 01GTKT
+      - hospital_bill      # bảng kê chi phí KCB, Mẫu số 01/KBCB
+
+  livery:
+    reason: >
+      Bố cục do ngành hoặc bên phát hành quy định — số cột, thứ tự khối, nhãn
+      song ngữ đều cố định — nhưng mực, nền và nét kẻ thì mỗi đợt in một khác.
+      Đổi màu thì được, đổi hình thì không.
+    documents:
+      - export_invoice     # mẫu 06HDXK, nhãn song ngữ cố định
+      - utility_power      # hoá đơn tiền điện, khung ngành điện
+      - utility_water      # hoá đơn tiền nước, khung ngành nước
+      - tax_invoice_en     # tax invoice nước ngoài, khung cố định
+      - authorisation_letter  # giấy uỷ quyền theo mẫu công ty
+
+  free:
+    reason: >
+      Chứng từ thương mại và giấy tính tiền: mỗi quán, mỗi siêu thị, mỗi khách
+      sạn tự thiết kế. Đa dạng dáng ở đây là đúng với đời thật, không phải là
+      bịa.
+    documents:
+      - pub_eatery
+      - street_eatery
+      - restaurant_vat
+      - supermarket
+      - supermarket_vat
+      - convenience_store
+      - hotel_stay
+      - resort_stay
+      - bakery_order
+      - retail_vat_invoice
+
+# Thẻ gắn lên document của từng hạng. Variant đọc đúng ba tên này.
+tags:
+  locked: aug_locked
+  livery: aug_livery
+  free: aug_free

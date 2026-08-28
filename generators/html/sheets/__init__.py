@@ -41,7 +41,7 @@ from __future__ import annotations
 
 from html.parser import HTMLParser
 
-from . import lodging, medical, modern, statement, statutory, till
+from . import lodging, medical, modern, statement, statutory, till, variant
 from .base import structure_tokens
 
 # Layout id -> the module that dresses it. A layout missing from here is a
@@ -145,7 +145,11 @@ def build(recipe, receipt, template: str | None = None) -> str:
 
     layout_id = template or recipe.layout.id
     spec = load_layout(layout_id)
-    return family_of(layout_id).build(recipe, receipt, spec, receipt.ground_truth())
+    markup = family_of(layout_id).build(recipe, receipt, spec, receipt.ground_truth())
+    # The `variant` attribute exists only in a rules root a run materialised
+    # for itself, so this is a no-op under the shipped rules -- which is what
+    # keeps the committed datasets reproducible. See sheets/variant.py.
+    return variant.apply(markup, recipe)
 
 
 class _Cells(HTMLParser):
@@ -257,5 +261,5 @@ def cells_from_markup(markup: str) -> list[dict]:
 
 __all__ = [
     "FAMILIES", "build", "cells_from_markup", "family_of", "labelled_runs",
-    "names", "structure_from_markup", "structure_tokens",
+    "names", "structure_from_markup", "structure_tokens", "variant",
 ]

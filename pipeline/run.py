@@ -242,7 +242,7 @@ def assemble(out: Path, plan: dict, shards_root: Path) -> tuple[dict, list[str]]
 
 
 def execute(config: Config, *, workers: int | None = None,
-            skip_preflight: bool = False) -> int:
+            skip_preflight: bool = False, runs=None) -> int:
     """Run one job. The entry point for both the CLI and `generate_dataset.py`.
 
     Taking a `Config` rather than a path is what lets the compatibility shell
@@ -286,7 +286,7 @@ def execute(config: Config, *, workers: int | None = None,
         rules_root = materialise_rules(rendered_rules, out / ".rules")
 
     # 3. Plan.
-    plan = build_plan(config, layouts)
+    plan = build_plan(config, layouts, runs=runs)
 
     # Before a single page is drawn: under `paired` the backends must actually
     # be drawing the same receipts. Cheap, and the alternative is finding out

@@ -296,6 +296,32 @@ def _printed(boxes: list[dict]) -> tuple[str, dict[str, str]]:
     return page, {kind: " ".join(" ".join(v).split()) for kind, v in by_kind.items()}
 
 
+def dehyphen(text: str) -> str:
+    """Rejoin a word the engine broke *after* a hyphen it already had.
+
+    `_printed` joins the boxes of one kind with a space, which is right for the
+    break a wrap makes at a space and wrong for the one a browser makes after a
+    hyphen: "MEN'S LONG-SLEEVE SHIRT" comes back as "LONG-" and "SLEEVE SHIRT",
+    joins to "LONG- SLEEVE SHIRT", and the label -- which is correct, and whose
+    pixels are correct -- is then reported as printed nowhere.
+
+    Applied to both sides of the comparison and nowhere else. A page that
+    genuinely prints "- " loses the distinction here, which costs a missing box
+    that no layout has ever produced; the alternative cost was every bilingual
+    export invoice failing its shard.
+    """
+    return re.sub(r"-\s+", "-", text)
+
+
+def appears(wanted: str, page: str, by_kind: dict[str, str]) -> bool:
+    """Whether a label value was printed, once hyphen breaks are allowed for."""
+    if wanted in page or any(wanted in text for text in by_kind.values()):
+        return True
+    wanted = dehyphen(wanted)
+    return (wanted in dehyphen(page)
+            or any(wanted in dehyphen(text) for text in by_kind.values()))
+
+
 def _check_arithmetic(gt: dict, style: str, labels: dict, out: Observation) -> None:
     """The sums a till would have done, redone from the label alone."""
     menu = gt.get("menu")
@@ -490,7 +516,7 @@ def inspect(item: dict[str, Any], *, order: tuple[str, ...] | list[str],
         if name in BUDGETS:
             out.occurrences[name] = out.occurrences.get(name, 0) + 1
         wanted = " ".join(value.split())
-        if wanted in page or any(wanted in text for text in by_kind.values()):
+        if appears(wanted, page, by_kind):
             continue
         if name in BUDGETS:
             out.unprinted[name] = out.unprinted.get(name, 0) + 1

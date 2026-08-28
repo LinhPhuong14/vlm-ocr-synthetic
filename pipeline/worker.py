@@ -199,8 +199,13 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
             # over as a job list in the order the plan put them, and the
             # renderer draws them in that order, so the records come back in
             # it too -- checked below rather than trusted.
-            jobs = [worklist.Job(layout=run["layout"], seed=run["seed"],
-                                 count=run["count"]) for run in shard["runs"]]
+            jobs = [worklist.Job(
+                layout=run["layout"], seed=run["seed"], count=run["count"],
+                # A plan the agent built pins every attribute per page; an
+                # ordinary plan pins nothing here and the sampler draws.
+                force=tuple(sorted((str(k), str(v))
+                                   for k, v in (run.get("force") or {}).items())))
+                for run in shard["runs"]]
             jobs_path = worklist.write(staging / "jobs.json", jobs)
             command = renderer_command(backend, staging, jobs_path,
                                        bool(plan.get("clean")),
