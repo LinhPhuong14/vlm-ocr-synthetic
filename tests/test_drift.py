@@ -489,3 +489,44 @@ def test_every_float_in_a_vector_has_a_pinned_precision(tmp_path):
     assert floats, "no float in the vector; this test would pass vacuously"
     for number in floats:
         assert number == round(number, 6), f"{number!r} carries unpinned precision"
+
+
+# ---------------------------------------------- an agent pins every attribute
+
+
+def test_the_expectation_carries_a_runs_own_pins():
+    """`forced_for` merged the job's `--force` and the run's layout and stopped.
+
+    An agent-planned run pins all eight attributes on the run itself, so the
+    expectation was the mix the *weights* predict while the shard held the mix
+    the *plan* asked for -- and every such shard warned by 0.29 for doing what
+    it was told. The images were fine; only the judgement of them was wrong.
+    """
+    from pipeline.drift import forced_for
+
+    plan = {"force": [], "clean": False}
+    shard = {"runs": [{"layout": "market_vat", "count": 3,
+                       "force": {"document": "supermarket_vat",
+                                 "ornament": "shelf_barcode"}}]}
+    pinned = forced_for(shard, plan)[0]
+    assert pinned == {"document": "supermarket_vat", "ornament": "shelf_barcode",
+                      "layout": "market_vat", "_count": 3}
+
+
+def test_a_runs_pin_beats_the_jobs_pin():
+    """The narrower statement wins, as `worklist.Job.pins` already documents."""
+    from pipeline.drift import forced_for
+
+    plan = {"force": ["augmentation=pristine"], "clean": False}
+    shard = {"runs": [{"layout": "market_vat", "count": 1,
+                       "force": {"augmentation": "photocopy"}}]}
+    assert forced_for(shard, plan)[0]["augmentation"] == "photocopy"
+
+
+def test_a_run_with_no_pins_expects_what_it_always_expected():
+    from pipeline.drift import forced_for
+
+    plan = {"force": ["augmentation=pristine"], "clean": False}
+    shard = {"runs": [{"layout": "market_vat", "count": 2}]}
+    assert forced_for(shard, plan)[0] == {
+        "augmentation": "pristine", "layout": "market_vat", "_count": 2}
