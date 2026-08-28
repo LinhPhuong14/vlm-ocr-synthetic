@@ -1,0 +1,92 @@
+[
+ {
+  "layout": "authorisation_letter",
+  "seed": 7000,
+  "count": 1
+ },
+ {
+  "layout": "eatery_ascii",
+  "seed": 7100,
+  "count": 1
+ },
+ {
+  "layout": "eatery_indexed",
+  "seed": 7200,
+  "count": 1
+ },
+ {
+  "layout": "invoice_brand",
+  "seed": 7300,
+  "count": 1
+ },
+ {
+  "layout": "invoice_export",
+  "seed": 7400,
+  "count": 1
+ },
+ {
+  "layout": "invoice_hotel_compact",
+  "seed": 7500,
+  "count": 1
+ },
+ {
+  "layout": "invoice_hotel_stay",
+  "seed": 7600,
+  "count": 1
+ },
+ {
+  "layout": "invoice_power",
+  "seed": 7700,
+  "count": 1
+ },
+ {
+  "layout": "invoice_tax_en",
+  "seed": 7800,
+  "count": 1
+ },
+ {
+  "layout": "invoice_vat_form",
+  "seed": 7900,
+  "count": 1
+ },
+ {
+  "layout": "invoice_vat_summary",
+  "seed": 8000,
+  "count": 1
+ },
+ {
+  "layout": "invoice_water",
+  "seed": 8100,
+  "count": 1
+ },
+ {
+  "layout": "market_barcode",
+  "seed": 8200,
+  "count": 1
+ },
+ {
+  "layout": "market_compact",
+  "seed": 8300,
+  "count": 1
+ },
+ {
+  "layout": "market_vat",
+  "seed": 8400,
+  "count": 1
+ },
+ {
+  "layout": "market_vat_b",
+  "seed": 8500,
+  "count": 1
+ },
+ {
+  "layout": "medical_statement",
+  "seed": 8600,
+  "count": 1
+ },
+ {
+  "layout": "notebook_ledger",
+  "seed": 8700,
+  "count": 1
+ }
+]

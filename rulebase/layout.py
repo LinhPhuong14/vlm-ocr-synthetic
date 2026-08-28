@@ -139,8 +139,47 @@ def load_layout(layout_id: str, root: Path | str = LAYOUTS_ROOT) -> dict[str, An
     return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
-def available(root: Path | str = LAYOUTS_ROOT) -> list[str]:
+# A layout file may switch itself off with `enabled: false`. Written in the
+# layout's own file because that is where a layout already declares everything
+# about itself since `family:` moved there -- one place to read, one line to
+# change back.
+#
+# `off:` would be the obvious spelling and is a trap: YAML 1.1 reads a bare
+# `off` as the boolean false, so `off: true` parses to `{False: True}` and the
+# key silently disappears.
+ENABLED_KEY = "enabled"
+
+
+def is_enabled(name: str, root: Path | str = LAYOUTS_ROOT) -> bool:
+    path = Path(root) / f"{name}.yaml"
+    if not path.exists():
+        return False
+    body = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    return bool(body.get(ENABLED_KEY, True))
+
+
+def every(root: Path | str = LAYOUTS_ROOT) -> list[str]:
+    """Every layout FILE, switched off ones included.
+
+    What the checks walk: a layout that is off is still committed, still has a
+    sheet, still has to build, and `tests/test_sheets.py` still holds it to
+    "what the label says the page prints". Off means "no run draws it", not
+    "nobody looks at it any more" -- an unwatched file rots, and switching one
+    back on should not be an archaeology exercise.
+    """
     return sorted(path.stem for path in Path(root).glob("*.yaml"))
+
+
+def available(root: Path | str = LAYOUTS_ROOT) -> list[str]:
+    """Every layout a RUN may draw: the files, minus the ones switched off.
+
+    `pipeline/run.py` takes this list when `run.layouts` is empty, and
+    `per_backend: auto` counts it, so switching a layout off removes it from
+    every future dataset without anybody editing `pipeline.yaml` -- and without
+    deleting the file, which would stop `rulebase.make(force=...)` from
+    redrawing the committed pages that already drew it.
+    """
+    return [name for name in every(root) if is_enabled(name, root)]
 
 
 class _Builder:

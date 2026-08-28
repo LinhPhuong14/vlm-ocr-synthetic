@@ -318,14 +318,14 @@ def page_directories():
     tells `data/dataset60/html/` apart from `data/dataset60/proof/`, whose
     images are Tesseract's working, not the generator's output.
 
-    `.shards/` is skipped. It is a run's own working state, gitignored, and
-    holds a second copy of every image; counting it would put the census
-    hundreds ahead on the machine that did the rendering and nowhere else --
-    a test that passes on CI and fails for its author, for no reason either
-    could see.
+    **Committed**, so a path under a dot-directory is skipped. `data/*/.shards/`
+    is a run's own working state and is gitignored; counting it made the census
+    below depend on whether anyone had run the pipeline in this checkout, which
+    is a red test on one machine and a green one on another for no difference in
+    what is actually committed.
     """
     return sorted(path.parent for path in DATA.rglob("synthesis.json")
-                  if ".shards" not in path.parts)
+                  if not any(part.startswith(".") for part in path.parts))
 
 
 def test_every_committed_page_has_a_record_in_the_shape_this_file_defines():
@@ -342,16 +342,37 @@ def test_every_committed_page_has_a_record_in_the_shape_this_file_defines():
             seen += 1
     # A census, so it moves whenever a committed set is rebuilt -- and it is
     # meant to: a set that quietly lost half its pages would otherwise look
-    # like a passing test. 294 = 307 before `data/dataset_test` was rebuilt on
-    # the CSS sheets, which took it from 30 images over two renderers to 16,
-    # one per layout, on the only backend the pipeline still drives.
+    # like a passing test. The chain, newest first:
     #
-    # 5278 = 5000 from `data/5k_llm` plus the 278 that were already here. The
-    # 278 is not 294 and was not 294 before this set arrived: the older figure
-    # is 16 pages ahead of what is committed, on a tree with nothing modified
-    # under `data/`. Left as found rather than folded into this number -- which
-    # of the two is wrong is a question about those sets, not about this one.
-    assert seen == 5278, seen
+    #   5380 = 380 plus `data/5k_llm/`, the 5000-page agent run: every attribute
+    #         of every page chosen by `agent/planner.py` rather than drawn by
+    #         the seed, and committed whole -- images, records and a proof
+    #         beside each one -- at the repository owner's request.
+    #   380 = 296 plus `data/layouts_all/`, 84 pages -- every ENABLED layout
+    #         twice over, dealt so that no two adjacent images carry the same
+    #         layout. The count moved three times in one day (84 -> 64 -> 84:
+    #         root 3 switched off, then an insurance root merged in), which is
+    #         why the set is no longer named after it -- `tools/baseline.py`
+    #         renamed `n14`/`n26`/`n36` to `all` for the same reason, and its
+    #         own README carries the number. It is also the set that made
+    #         `test_every_kind_in_every_committed_dataset_is_mapped` fail: the
+    #         periodical layouts had shipped long before any committed page
+    #         drew one, so 65 field kinds had been falling through to the
+    #         default label with nothing to catch them.
+    #   296 = 278 plus `data/hand18_model/`, one page per layout drawn with
+    #         `--handwriting model` -- a measurement of what that source
+    #         actually covers, eight of whose pages carry no ink at all. It was
+    #         295 and `hand17_model` until `market_vat_b` shipped: the count is
+    #         in the set's name, so the name moved with it.
+    #   278 = 294 minus `data/dataset_test/synthdog/`, the last 16 images of a
+    #         retired backend still sitting in a committed set. Deleted by "Stop
+    #         defaulting the page model, and check every layout has a sheet",
+    #         which left this number behind -- the test was red on master until
+    #         it was updated here.
+    #   294 = 307 before `data/dataset_test` was rebuilt on the CSS sheets,
+    #         which took it from 30 images over two renderers to 16, one per
+    #         layout, on the only backend the pipeline still drives.
+    assert seen == 5380, seen
 
 
 # ------------------------------------------------------- the shape before this

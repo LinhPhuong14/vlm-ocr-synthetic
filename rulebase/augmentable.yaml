@@ -1,0 +1,105 @@
+# CHỨNG TỪ NÀO ĐƯỢC PHÉP BIẾN ĐỔI, VÀ ĐƯỢC PHÉP TỚI ĐÂU
+#
+# Một tờ hoá đơn GTGT theo mẫu và một trang rao vặt **không cùng một loại tự
+# do**. Tờ mẫu bị quy định: số liên, vị trí ô mã số thuế, dòng "Số tiền viết
+# bằng chữ", chỗ ký và đóng dấu — đổi bố cục của nó không cho ra "một cửa hàng
+# khác", nó cho ra **một tờ giấy không tồn tại**, và một mô hình học từ đó sẽ
+# đi tìm trên ảnh thật những thứ không có ở đấy. Trang rao vặt thì ngược lại:
+# mỗi toà báo một kiểu, càng nhiều kiểu càng tốt.
+#
+# File này là chỗ duy nhất nói điều đó, và nó là DỮ LIỆU chứ không phải code —
+# cùng lý do với `rules/`: người biết một tờ chứng từ Việt Nam bị ràng buộc tới
+# đâu không nhất thiết là người sửa Python.
+#
+# Đọc bởi `tools/llm/` (bước compose, xem `docs/llm-in-pipeline.md`). KHÔNG có
+# gì trong `pipeline/` hay `generators/` đọc file này: nó quyết định model được
+# đề xuất gì, không quyết định trang được vẽ ra sao.
+#
+# ---------------------------------------------------------------------------
+# BA MỨC
+#
+#   fixed    Bố cục do pháp luật hoặc do một biểu mẫu ban hành quy định.
+#            **Không đổi bố cục.** Nội dung các trường vẫn thay đổi (tên, địa
+#            chỉ, mặt hàng, số tiền) — đó là chỗ trống của tờ mẫu, không phải
+#            tờ mẫu.
+#
+#   styled   Doanh nghiệp tự thiết kế tờ giấy của mình trong khuôn khổ nội
+#            dung bắt buộc. Đổi được: khung, màu, thứ tự khối, nhãn cột, chỗ
+#            đặt khối tổng. Không đổi được: những trường mà quy định bắt phải
+#            có mặt.
+#
+#   free     Không quy định nào ràng buộc HÌNH THỨC (nội dung thì vẫn có thể
+#            bị ràng buộc — một hợp đồng bảo hiểm có điều khoản bắt buộc,
+#            nhưng không mẫu nào bắt nó phải trình bày ra sao). Càng nhiều biến
+#            thể càng tốt — đây là chỗ để model làm việc nhiều nhất.
+#
+# `unknown` (không có trong file này) được đối xử như `fixed`. Mặc định phải là
+# mức CHẶT NHẤT: quên khai một loại chứng từ mới thì hậu quả là "không được
+# biến đổi", chứ không phải "được biến đổi tự do theo cách chưa ai nghĩ tới".
+
+documents:
+  # ---- fixed: mẫu do quy định ban hành --------------------------------------
+  #
+  # Hoá đơn GTGT theo mẫu: số hiệu mẫu, ký hiệu, và bố cục các khối là thứ cơ
+  # quan thuế đọc. Bản thể hiện của hoá đơn điện tử cũng vậy.
+  vat_invoice_form: fixed
+  retail_vat_invoice: fixed
+  # Hoá đơn tiền điện, tiền nước: mẫu của đơn vị cung cấp, in hàng triệu bản
+  # giống nhau. Biến thể ở đây là bịa ra một công ty điện lực không có thật.
+  utility_water: fixed
+  utility_power: fixed
+  # Bảng kê chi phí khám chữa bệnh: mẫu của Bộ Y tế, các cột và cách chia bốn
+  # nguồn chi trả là phần bị quy định.
+  hospital_bill: fixed
+  # Hoá đơn thương mại xuất khẩu: đi kèm bộ chứng từ hải quan, các trường và
+  # thứ tự của chúng theo thông lệ quốc tế chứ không theo ý người in.
+  export_invoice: fixed
+
+  # Bảo hiểm BẮT BUỘC: mẫu giấy chứng nhận do nghị định/thông tư ban hành, và
+  # đó là tờ giấy cảnh sát giao thông hoặc cơ quan PCCC đọc. Biến thể của nó
+  # không phải "một công ty bảo hiểm khác" — nó là một giấy tờ không tồn tại.
+  insurance_auto_certificate: fixed
+  insurance_moto_certificate: fixed
+  insurance_fire_certificate: fixed
+  # Thẻ BHYT do cơ quan bảo hiểm xã hội phát hành: mã thẻ, nơi khám ban đầu,
+  # thời hạn — hình thức là của nhà nước, không của ai in nó.
+  insurance_health_id_card: fixed
+
+  # ---- styled: cửa hàng tự thiết kế -----------------------------------------
+  #
+  # Giấy tính tiền của quán và siêu thị: máy POS nào cũng in một kiểu khác
+  # nhau, nhưng vẫn phải có tên hàng, số lượng, đơn giá, thành tiền.
+  pub_eatery: styled
+  street_eatery: styled
+  restaurant_vat: styled
+  supermarket: styled
+  supermarket_vat: styled
+  convenience_store: styled
+  # Hoá đơn thương mại tự thiết kế: đây là chỗ mười bố cục root 1 sinh ra.
+  invoice_plain: styled
+  invoice_detailed: styled
+  tax_invoice_en: styled
+  bakery_order: styled
+  resort_stay: styled
+  hotel_stay: styled
+  # Giấy uỷ quyền: có khuôn mẫu quen thuộc nhưng không mẫu nào bắt buộc; mỗi
+  # nơi soạn một kiểu, miễn đủ hai bên, nội dung uỷ quyền và chữ ký.
+  authorisation_letter: styled
+
+  # Bảo hiểm THƯƠNG MẠI: nội dung bị Luật Kinh doanh bảo hiểm ràng buộc, còn
+  # tờ giấy thì mỗi doanh nghiệp một kiểu — đúng định nghĩa của `styled`.
+  insurance_life_schedule: styled
+  insurance_cargo_policy: styled
+  insurance_travel_certificate: styled
+  insurance_health_certificate: styled
+  insurance_application_form: styled
+
+  # ---- free: hình thức là của người làm báo ---------------------------------
+  # Hợp đồng: điều khoản bị ràng buộc, hình thức thì không — mỗi nơi soạn một
+  # kiểu, và càng nhiều kiểu càng tốt cho một mô hình phải đọc hợp đồng thật.
+  insurance_property_contract: free
+
+  newspaper_front_broadsheet: free
+  newspaper_classifieds: free
+  magazine_contents: free
+  magazine_qa_interview: free

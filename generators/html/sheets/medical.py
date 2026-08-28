@@ -157,9 +157,7 @@ def _sum_row(receipt, spec: dict, columns: list[dict], rows: Rows) -> str:
 
 
 def build(recipe, receipt, spec: dict, parse: dict) -> str:
-    import random
-
-    rng = random.Random(recipe.seed ^ 0x5A4D)
+    rng = base.rng_for(recipe)
     ink = LIVERIES[rng.randrange(len(LIVERIES))]
     sections = spec.get("sections") or []
     rows = Rows()

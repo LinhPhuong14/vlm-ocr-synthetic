@@ -37,6 +37,7 @@ because it is not in the label and never was.
 from __future__ import annotations
 
 import html
+import random
 import unicodedata
 from pathlib import Path
 from typing import Any, Sequence
@@ -46,12 +47,34 @@ from components.table import Border, Cell, Column, Row, TableSpec, render_table
 REPO_ROOT = Path(__file__).resolve().parents[3]
 ORNAMENT_DIR = REPO_ROOT / "textures" / "ornament"
 
+# What a family sets its own `HAND_KINDS` to when a pen reaches the whole page
+# rather than the fields of a printed form. Only `notebook` does: a school
+# exercise book has no press run, so there is no printed furniture for the
+# writing to sit inside.
+#
+# It is the same string as `handwriting.ALL_KINDS`, and `tests/test_sheets.py`
+# asserts they are, because the two modules must not be made to import each
+# other -- `handwriting` is renderer machinery and knows nothing about which
+# families exist, and a family knows nothing about ink.
+EVERY_RUN = "*"
+
 # Paper, in the units a print engine thinks in. `@page` gets the name and the
 # sheet gets the millimetres, so the browser -- which has no `@page` -- lays out
 # the same box the PDF does.
 PAPERS: dict[str, tuple[str, str]] = {
     "A4": ("210mm", "297mm"),
     "A5": ("148mm", "210mm"),
+    "BROADSHEET": ("375mm", "597mm"),
+    "TABLOID": ("280mm", "430mm"),
+    # Landscape is not a flag anywhere in this file -- it is just the same
+    # two lengths, swapped. Added for the insurance root: a travel-insurance
+    # "ticket" page and a health-insurance ID card's two-faces-on-one-sheet
+    # stage (A4_LANDSCAPE), an auto-liability certificate table (A5_LANDSCAPE),
+    # and a motorcycle-liability certificate small enough to be its own class
+    # (A6_LANDSCAPE).
+    "A4_LANDSCAPE": ("297mm", "210mm"),
+    "A5_LANDSCAPE": ("210mm", "148mm"),
+    "A6_LANDSCAPE": ("148mm", "105mm"),
 }
 
 # Font families as `page.font_faces()` names them: the file stem, so a stack
@@ -60,6 +83,21 @@ PAPERS: dict[str, tuple[str, str]] = {
 SERIF = "'LiberationSerif','DejaVu Serif',serif"
 SANS = "'DejaVuSans','LiberationSans','DejaVu Sans',sans-serif"
 MONO = "'LiberationMono','Cousine',monospace"
+
+
+def rng_for(recipe, tag: int = 0x5A4D) -> random.Random:
+    """The family's own independent random stream, seeded off the recipe.
+
+    `tag` keeps one family's coin flips (a livery, a watermark, a checkbox
+    mark) from ever landing in step with another's, even when both draw from
+    the same `recipe.seed` for the same page. `0x5A4D` is not a magic
+    constant chosen here -- it is the one five families (`lodging`,
+    `medical`, `modern`, `statement`, `statutory`) already happened to XOR
+    with, unnamed, before this helper existed; keeping it as the default
+    reproduces every one of them bit-for-bit. A family with its own tag
+    (`form.py` uses `0x46524D`, "FRM") passes it explicitly.
+    """
+    return random.Random(recipe.seed ^ tag)
 
 
 def esc(value: Any) -> str:
@@ -315,6 +353,101 @@ def field_line(label: str, value: str, *, cls: str = "f", leader: bool = False) 
     return (f'<div class="{cls}{dots}"><span class="k">'
             f'{span("invoice.field.label", label)}</span>'
             f'<span class="v">{body}</span></div>')
+
+
+def bilingual_field_line(label_en: str, label_vn: str, value: str, *, cls: str = "f") -> str:
+    """`field_line()`'s single-label contract, doubled: English stacked over
+    Vietnamese beside one value.
+
+    A bilingual insurance policy (a cargo policy, a travel certificate)
+    prints both languages as equally real fields on the paper, not one as a
+    gloss on the other -- so both label runs carry `data-kind`, the same as
+    the value, rather than only the Vietnamese one.
+    """
+    body = span("invoice.field", value)
+    return (f'<div class="{cls}"><span class="k">'
+            f'{span("invoice.field.label", label_en, "en")}'
+            f'{span("invoice.field.label", label_vn, "vn")}'
+            f'</span><span class="v">{body}</span></div>')
+
+
+def comb_box(kind: str, text: Any, *, groups: Sequence[int] | None = None) -> str:
+    """A per-character boxed grid -- the Vietnamese government-form input
+    where a citizen writes one glyph to a square (an application form's
+    name/date/ID-number fields), one bordered `<i>` per character.
+
+    Every labelled run in this package is `<span data-kind="...">TEXT</span>`
+    with **no nested element** (`tests/test_sheets.py::
+    test_every_labelled_run_is_a_span_with_a_kind` enforces this by regex,
+    repo-wide, with no per-layout exemption) -- so the boxes cannot be one
+    span wrapping a dozen `<i>` cells. Instead each *character* gets its own
+    trivial, unnested `data-kind` span, inside its own `<i>` cell; all of
+    them share the same `kind`, so `pipeline/invariants.py`'s box-rejoining
+    (already written to reassemble one value split across several same-kind
+    boxes, e.g. a line-wrapped run) reassembles the character run the same
+    way. A blank cell (a space in "Tạ Thị") carries no span at all --
+    `span()` already drops blank text -- which the same whitespace-
+    insensitive rejoin fallback tolerates.
+
+    `groups`, given, is how many characters each group holds before a
+    borderless gap cell -- `groups=(2, 2, 4)` for a date "12"+"05"+"1988".
+    Omit it for one unbroken run of boxes.
+    """
+    text = "" if text is None else str(text)
+    if not text.strip():
+        return ""
+    chunks = []
+    if groups:
+        pos = 0
+        for size in groups:
+            chunks.append(text[pos:pos + size])
+            pos += size
+        if pos < len(text):
+            chunks.append(text[pos:])
+    else:
+        chunks = [text]
+    cells = []
+    for index, chunk in enumerate(chunks):
+        if index:
+            cells.append('<i class="sp"></i>')
+        cells.extend(f"<i>{span(kind, ch)}</i>" for ch in chunk)
+    return f'<span class="comb">{"".join(cells)}</span>'
+
+
+def stamp(text: str, *, colour: str = "#c8102e", size_mm: float = 30,
+         rotate_deg: float = -13) -> str:
+    """A round, rotated, translucent ink stamp -- decorative furniture, never
+    ground truth (no `span()`, no `data-kind`): the org name it repeats is
+    already printed elsewhere on the page in a real labelled run, the same
+    way every existing family's own stamp already works.
+
+    Every family that wants a red circular seal today writes its own:
+    `statutory.py`'s is a green e-invoice tick box, `lodging.py`'s is a
+    background-image PNG -- neither is this shape, and neither is shared.
+    Since most of the insurance root's ten layouts want the same round
+    rotated seal, this is the one shared version. Inline-styled throughout
+    (two nested rings instead of one element plus a `::before`), so a family
+    that wants one needs no matching CSS of its own -- only a
+    `position:relative` ancestor, the same contract `signature_block(stamp=)`
+    already slots a stamp fragment into.
+    """
+    ring = round(size_mm * 0.08, 2)
+    border = round(size_mm * 0.022, 2)
+    inner_border = round(size_mm * 0.01, 2)
+    font = round(size_mm * 0.075, 2)
+    return (
+        f'<div style="position:absolute;left:50%;top:0;'
+        f'transform:translateX(-50%) rotate({rotate_deg}deg);'
+        f'width:{size_mm}mm;height:{size_mm}mm;box-sizing:border-box;'
+        f'border:{border}mm solid {colour};border-radius:50%;opacity:.65;'
+        f'display:flex;align-items:center;justify-content:center;text-align:center;">'
+        f'<div style="position:absolute;inset:{ring}mm;border:{inner_border}mm solid {colour};'
+        f'border-radius:50%;"></div>'
+        f'<span style="position:relative;color:{colour};'
+        f'font-family:Arial,Helvetica,sans-serif;font-weight:800;'
+        f'font-size:{font}mm;line-height:1.15;">{esc(text)}</span>'
+        f"</div>"
+    )
 
 
 def key_strip(strip, separator: str = "|") -> str:
@@ -681,13 +814,30 @@ def signature_block(receipt, parse: dict, *, stamp: str = "") -> str:
     return f'<div class="signs">{"".join(columns)}</div>'
 
 
-def signed_lines(parse: dict) -> str:
-    """"Được ký bởi ..." / "Ngày ký ...", the digital signature's own caption."""
-    invoice = parse.get("invoice") or {}
-    parts = [span("sign.signedby", invoice.get("signed_by", "")),
-             span("sign.signedat", invoice.get("signed_at", ""))]
-    parts = [part for part in parts if part]
-    return "".join(f'<div class="sline">{part}</div>' for part in parts)
+def notes_blocks(lines: Sequence[str], *, limit: int | None = None) -> list[list[str]]:
+    """`invoice.notes` split into blocks on blank lines.
+
+    The same convention `_emit_notes` in `rulebase/layout.py` reads: a blank
+    entry ends a block, so one document can print a "who to pay" block and a
+    "how to reach us" block from the same flat list without either family
+    inventing its own key for the second one. `modern.py::_notes` and
+    `form.py::_notes_block` used to each parse this by hand, identically down
+    to the loop -- `limit` is the one place they differed (`modern.py` shows
+    at most two blocks side by side; `form.py` prints as many as the document
+    gives it), so it is the one parameter here rather than two functions.
+
+    Returns the *lines*, not markup: each family still turns a block into its
+    own shape (columns, boxes, `<p>` tags, an "h" class on a heading line),
+    which is the part that is genuinely different between them.
+    """
+    blocks: list[list[str]] = [[]]
+    for line in lines:
+        if line.strip():
+            blocks[-1].append(line)
+        else:
+            blocks.append([])
+    blocks = [block for block in blocks if block]
+    return blocks[:limit] if limit else blocks
 
 
 def footer_block(parse: dict) -> str:
@@ -724,8 +874,17 @@ def document(body: str, css: str, *, paper: str = "A4", padding: str = "10mm",
     does not have, and the two renderers would disagree about where the paper
     ends. `min-height` is a floor, not a height -- a page whose content grew
     past its paper stays visible rather than being cropped into looking fine.
+
+    `paper` must be a `PAPERS` key. It used to fall back to A4 silently on
+    a miss -- harmless while every caller only ever passed "A4"/"A5"
+    (confirmed: every `sheets/*.py` call site did, at the time this was
+    tightened), but a real risk once a family needs several non-A4 sizes
+    (`periodical.py` uses four): a typo would render a wrong-sized page
+    with no error at all.
     """
-    width, height = PAPERS.get(paper, PAPERS["A4"])
+    if paper not in PAPERS:
+        raise KeyError(f"paper={paper!r} is not one of {', '.join(sorted(PAPERS))}")
+    width, height = PAPERS[paper]
     return f"""<!doctype html><html lang="vi"><head><meta charset="utf-8"><style>
 {{FONT_FACES}}
 @page{{size:{paper} portrait;margin:0;}}
@@ -747,10 +906,16 @@ td.c,th.c,.c{{text-align:center;}}
 
 
 __all__ = [
+    "EVERY_RUN",
     "MONO", "ORNAMENT_DIR", "PAPERS", "REPO_ROOT", "SANS", "SERIF", "Rows",
-    "align_class", "cell", "columns_of", "document", "esc", "field_line",
+    "align_class", "bilingual_field_line", "cell", "columns_of", "comb_box",
+    "document", "esc", "field_line",
     "footer_block", "initials", "item_rows", "items_table", "key_strip",
-    "ncols_of", "ornament_url", "party_rows", "qr_svg", "safe_align",
-    "signature_block", "signed_lines", "span", "structure_tokens",
+    "ncols_of", "notes_blocks", "ornament_url", "party_pairs", "party_rows",
+    # No `signed_lines` -- 459dfd4 deleted the function (zero callers) and
+    # took it out of this list; a later rewrite of the list put the name
+    # back without the function, so `from base import *` raised.
+    "qr_svg", "rng_for", "safe_align", "signature_block",
+    "span", "stamp", "structure_tokens",
     "totals_block", "words_block",
 ]

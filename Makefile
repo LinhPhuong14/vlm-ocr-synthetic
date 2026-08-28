@@ -10,7 +10,9 @@ PYTHON  ?= python3
 TASKS    = $(PYTHON) tasks.py
 
 DATASET ?= data/dataset60
-N       ?= 20
+# `auto` = one image of every layout there is, which is also the floor a
+# number has to clear: every layout gets an image or the run refuses.
+N       ?= auto
 TABLES  ?= 60
 PROFILE ?= data/profile
 PROFILE_N ?= 8
@@ -19,11 +21,11 @@ LAYOUT  ?=
 .DEFAULT_GOAL := help
 .PHONY: help setup setup-synthdog setup-html setup-genalog setup-writevit \
         textures patterns handwriting signatures \
-        receipts preview preview-grid dataset dataset-clean proof showcase \
+        receipts preview preview-grid visualize dataset dataset-clean proof showcase \
         ornaments templates \
         preflight check-rules check-corpus check-boxes migrate-metadata \
         distribution monitor \
-        list-degradations \
+        list-degradations legibility figures-stamp \
         lint format check clean
 
 help:  ## Show this help
@@ -56,7 +58,7 @@ signatures:      ## Regenerate samples/signatures: the style grid and two signed
 
 receipts:        ## 100 receipts with the glyph renderer, via the synthtiger CLI
 	$(TASKS) receipts
-dataset:         ## Build a labelled dataset with the html renderer (N=20)
+dataset:         ## Build a labelled dataset with the html renderer (N=auto)
 	$(TASKS) dataset -o $(DATASET) -n $(N)
 dataset-clean:   ## The same dataset with no ageing and no distortion at all
 	$(TASKS) dataset-clean -o $(DATASET) -n $(N)
@@ -84,6 +86,8 @@ preview:         ## Render a grid of sample receipts to eyeball the config
 	$(TASKS) preview
 preview-grid:    ## Print a sampled receipt as text (LAYOUT=<id> to pin one)
 	@$(TASKS) preview-grid $(if $(LAYOUT),--layout $(LAYOUT),)
+visualize:       ## Local Gradio app: sinh ảnh, thử con dấu, thử viết tay hybrid
+	$(TASKS) visualize
 
 # ------------------------------------------------------------- the rules
 
@@ -101,6 +105,10 @@ monitor:         ## Rule space; add RUN=data/run01 to watch a run instead
 	@$(TASKS) monitor $(if $(RUN),--run $(RUN),)
 list-degradations:  ## Names usable in an augmentation chain
 	@$(TASKS) list-degradations
+legibility:      ## does an ageing chain age the text out of its own label boxes?
+	$(TASKS) legibility
+figures-stamp:   ## rebuild the figures embedded in docs/co-che-sinh-con-dau.md
+	$(TASKS) figures-stamp
 
 # -------------------------------------------------------------- quality
 

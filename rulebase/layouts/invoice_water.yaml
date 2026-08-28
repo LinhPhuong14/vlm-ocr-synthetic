@@ -11,6 +11,7 @@
 id: invoice_water
 name: Water utility — meter readings, a ruled table, totals inside the frame
 source: "ảnh hoá đơn Công ty TNHH MTV Nước sạch Hà Nội, ký hiệu 1K25TAE, tháng 01/2025"
+family: statutory
 
 # A4 dọc in kim/laser ≈ 84-92 ký tự, rộng gấp đôi giấy nhiệt.
 width: [84, 92]

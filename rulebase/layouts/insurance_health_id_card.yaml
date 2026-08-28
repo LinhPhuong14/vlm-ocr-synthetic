@@ -1,0 +1,23 @@
+# Thẻ bảo hiểm y tế — khổ ID-1, hai mặt cạnh nhau trên một tờ A4 ngang.
+id: insurance_health_id_card
+name: Health-insurance ID card — front and back faces on one A4-landscape sheet
+source: "samples/insurance-templates/insurance_health_id_card.html (LO-05)"
+family: insurance
+composition: health_id_card
+
+width: [92, 104]
+gutter: 2
+rule_char: "-"
+
+sheet: a4
+
+rules: marks
+
+sections: [letterhead, doctitle, parties, notes, footer]
+
+letterhead:
+  frame: false
+  labels: {address: "", tax_code: "", phone: "", account: "", branch: "", form_no: "", serial: "", number: "Mã số thẻ:"}
+
+parties:
+  style: stacked

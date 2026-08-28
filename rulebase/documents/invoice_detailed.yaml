@@ -1,0 +1,77 @@
+# THAM SỐ NỘI DUNG — invoice_detailed
+#
+# Nửa còn lại của loại document này. Không gian lấy mẫu (weight, tags,
+# họ) nằm ở `rules/document.yaml`; những gì `rulebase.content.build`
+# đọc thì nằm đây.
+#
+# "Đầy đủ": khối bên mua (trái) VÀ bên nhận hàng (phải), dải số/ngày, khối
+# chuyển khoản + liên hệ ở chân trang, số tiền bằng chữ, hai ô chữ ký — dùng
+# cho năm bố cục có in đủ ngần ấy khối trong `sections:` (invoice_logo_split,
+# invoice_two_column, invoice_sidebar, invoice_keyvalue, invoice_remittance).
+# CÙNG MỘT tài liệu cho cả năm là chủ ý: khác nhau giữa chúng là cách SẮP XẾP
+# những khối này trên trang, không phải khối nào có mặt — xem
+# `generators/html/sheets/modern.py`. Nhờ vậy không bố cục nào có nguy cơ bỏ
+# sót một trường tài liệu đã điền.
+
+profile: invoice
+invoice: true
+titles: ["HOÁ ĐƠN BÁN HÀNG", "HOÁ ĐƠN GIÁ TRỊ GIA TĂNG"]
+num_items: [3, 8]
+price_step: 1000
+vat_rates: [5, 8, 10]
+# Xem invoice_plain.yaml — cùng lý do: không bố cục nào trong nhóm "đầy đủ"
+# có cột thuế suất riêng từng dòng.
+item_vat: false
+show_form_no: false
+show_seller_account: true
+units: ["Cái", "Bộ", "Chiếc", "Kg", "Gói", "Thùng", "Hộp", "Lượt", "m2"]
+# Không đặt `period_format`: ngày đã in qua dải `strip` (`[date, "Ngày:"]`
+# dưới) ở cả năm bố cục "đầy đủ" — để trống ở đây thay vì lặp cùng một ngày
+# dưới một field khác (`invoice.period`) mà không bố cục nào vẽ riêng.
+# Số hoá đơn không lặp lại "Số" bên cạnh ký hiệu: cả năm bố cục "đầy đủ" in
+# `serial` qua dải `strip` chứ không liệt `number` ở đâu cả — tắt ở đây để
+# không rơi vào đúng lỗi "in trong nhãn mà không có ô nào vẽ" mà
+# `tests/test_sheets.py` bắt.
+show_number: false
+words_label: "Số tiền bằng chữ:"
+banks:
+  - "Vietcombank - CN Hà Nội"
+  - "Techcombank - CN Hoàn Kiếm"
+  - "BIDV - CN Sở Giao Dịch"
+  - "MB Bank - CN Ba Đình"
+  - "ACB - CN Đống Đa"
+party_fields:
+  strip:
+    - [serial, "Số HĐ:"]
+    - [date, "Ngày:"]
+    - [due_date, "Hạn TT:"]
+  # Bên mua — cột trái.
+  left:
+    - [buyer_name, "Người mua:"]
+    - [buyer_company, "Đơn vị:"]
+    - [buyer_address, "Địa chỉ:"]
+    - [buyer_tax_code, "MST:"]
+    - [buyer_phone, "Điện thoại:"]
+  # Bên nhận hàng — cột phải. Khác bên mua khi giao hàng không cùng địa chỉ
+  # đặt hàng (`_build_invoice` bốc ngẫu nhiên ~45% số lần).
+  right:
+    - [ship_name, "Người nhận hàng:"]
+    - [ship_address, "Giao đến:"]
+    - [ship_locality, ""]
+payment_forms: ["Tiền mặt", "Chuyển khoản", "Tiền mặt/Chuyển khoản"]
+signature_labels:
+  - ["Người mua hàng", "(Ký, ghi rõ họ tên)"]
+  - ["Người bán hàng", "(Ký, ghi rõ họ tên)"]
+notes:
+  - "Thông tin chuyển khoản:"
+  - "{bank_name}"
+  - "Chủ tài khoản: {seller_name}"
+  - "Số tài khoản: {seller_account}"
+  - ""
+  - "Mọi thắc mắc xin liên hệ:"
+  - "{seller_phone}"
+  - "{seller_address}"
+total_labels:
+  subtotal: "Tạm tính"
+  vat: "Thuế GTGT"
+  grand: "Tổng cộng thanh toán"

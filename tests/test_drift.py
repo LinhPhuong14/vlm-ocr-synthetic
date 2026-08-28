@@ -140,18 +140,25 @@ def test_the_expectation_is_conditioned_on_the_pins_the_run_used(tmp_path):
     assert shares["layout"] == {"market_vat": pytest.approx(1.0)}
 
 
-def test_a_clean_run_expects_the_clean_augmentation(tmp_path):
+def test_a_clean_run_expects_every_chain_attribute_pinned(tmp_path):
+    """Not just `augmentation`: `toner`, `drum` and `rollers` carry chains too.
+
+    An expectation that left them free would report drift on a clean run for
+    the three attributes the run had in fact pinned to nothing.
+    """
     shard = build_shard(tmp_path / "s", make_records(range(4)))
     shares, _problems = drift.expected_shares(
         shard, plan_for(shard, clean=True), draws=40)
-    assert shares["augmentation"] == {invariants.CLEAN_AUGMENTATION: pytest.approx(1.0)}
+    for attribute, value in invariants.CLEAN_FORCES.items():
+        if attribute in shares:
+            assert shares[attribute] == {value: pytest.approx(1.0)}
 
 
 def test_an_explicit_force_reaches_the_expectation(tmp_path):
     shard = build_shard(tmp_path / "s", make_records(range(4)))
     shares, _problems = drift.expected_shares(
-        shard, plan_for(shard, force=["augmentation=stains"]), draws=40)
-    assert shares["augmentation"] == {"stains": pytest.approx(1.0)}
+        shard, plan_for(shard, force=["augmentation=heavy"]), draws=40)
+    assert shares["augmentation"] == {"heavy": pytest.approx(1.0)}
 
 
 def test_total_variation_reads_as_the_share_that_would_have_to_move():
@@ -402,11 +409,11 @@ def test_an_overridden_run_is_compared_against_its_own_weights(tmp_path):
     plan = plan_for(shard)
 
     shipped, _ = drift.expected_shares(shard, plan, draws=200)
-    silenced = apply_overrides(load_rules(), {"augmentation.crumpled.weight": 0})
+    silenced = apply_overrides(load_rules(), {"augmentation.ghost_text.weight": 0})
     overridden, _ = drift.expected_shares(shard, plan, rules=silenced, draws=200)
 
-    assert shipped["augmentation"].get("crumpled", 0) > 0
-    assert "crumpled" not in overridden["augmentation"], (
+    assert shipped["augmentation"].get("ghost_text", 0) > 0
+    assert "ghost_text" not in overridden["augmentation"], (
         "the expectation ignored the run's own overrides")
 
 

@@ -1,0 +1,37 @@
+# Hợp đồng bảo hiểm tài sản — văn bản hành chính, A4 dọc.
+#
+# Tờ mẫu gốc là 2 trang; `base.document()` chỉ vẽ một `#sheet` mỗi lần gọi
+# (không có phân trang thật -- xem `invoice_multipage.yaml`/`page.marker`,
+# đã gặp đúng giới hạn này một lần), nên hợp đồng ở đây dồn lại một trang
+# liên tục, các Điều rút gọn. Xem kế hoạch gốc.
+id: insurance_property_contract
+name: Property insurance contract — administrative document, single page
+source: "samples/insurance-templates/insurance_property_contract.html (LO-10)"
+family: insurance
+composition: property_contract
+
+width: [92, 104]
+gutter: 2
+rule_char: "-"
+
+sheet: a4
+
+rules: marks
+
+sections: [letterhead, doctitle, parties, table, totals, notes, signatures, footer]
+
+letterhead:
+  frame: false
+  labels: {address: "", tax_code: "", phone: "", account: "", branch: "", form_no: "", serial: "", number: "Số:"}
+
+parties:
+  style: stacked
+
+columns:
+  - {key: name, label: "Hạng mục tài sản được bảo hiểm", width: 0, align: left}
+  - {key: amount, label: "Số tiền bảo hiểm (đồng)", width: 26, align: right}
+
+item:
+  rows:
+    - - {col: name, from: name}
+      - {col: amount, from: amount}

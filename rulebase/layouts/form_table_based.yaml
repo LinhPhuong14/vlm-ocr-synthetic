@@ -1,0 +1,59 @@
+# TẮT — không lượt chạy nào bốc bố cục này nữa.
+#
+# `enabled: false` là công tắc của riêng file bố cục: `rulebase.available_layouts()`
+# bỏ qua nó, nên `layouts: []` trong `pipeline.yaml` (nghĩa là "mọi bố cục") và
+# `per_backend: auto` đều không còn thấy nó. File VẪN ở đây, vẫn được
+# `rulebase/rules/layout.yaml` khai, nên `rulebase.make(force={'layout': ...})`
+# vẫn dựng lại được những trang đã commit từng vẽ bằng nó, và các test vẫn soi
+# nó qua `rulebase.every_layout()`. Bật lại = xoá đúng một dòng.
+#
+# Đây là một trong mười bố cục của ROOT 3 (Form / Application),
+# `docs/root-document-taxonomy.md` § 3.3 — cả mười tắt cùng một lượt.
+enabled: false
+
+# FORM-08 — Bảng thông số kỹ thuật viền đủ, cộng danh sách checkbox, cộng
+# một chữ ký.
+#
+# Dùng `form_checklist_table` (§ xem tài liệu — có `num_items`, khác
+# `form_checklist` của FORM-06 đúng điểm đó). `checklist:` (khoá spec,
+# không phải tên section) làm "notes" đọc `invoice.notes` thành ô vuông
+# thay vì đoạn văn, y hệt FORM-06 — xem `_section_html` trong form.py. Cột
+# "Hạng mục kiểm tra" (width 0) co giãn. Cột "Chi phí" đọc `amount` — cùng
+# con số `ground_truth()` gọi là `menu.price` (xem
+# `form_multi_section.yaml`). "totals" bắt buộc có mặt (xem file đó).
+id: form_table_based
+name: Table-based form — a ruled parameter table, checklist, one signature
+source: "FUNSD (Compound Physical Parameters) — bảng viền rõ ràng, ô checkbox, chữ ký cuối trang"
+family: form
+
+width: [85, 95]
+gutter: 2
+rule_char: "-"
+sheet: a4
+rules: marks
+
+sections: [header, table, totals, notes, signatures, footer]
+
+header:
+  title: true
+
+checklist:
+  checked_rate: 0.6
+
+columns:
+  - {key: stt,        title: "STT",                width: 5,  align: center, title_align: center}
+  - {key: name,       title: "Hạng mục kiểm tra",   width: 0,  align: left,   title_align: left}
+  - {key: qty,        title: "Giá trị đo được",     width: 13, align: right,  title_align: right}
+  - {key: unit,       title: "Đơn vị",              width: 10, align: center, title_align: center}
+  - {key: amount,     title: "Chi phí",             width: 14, align: right,  title_align: right}
+
+# Đọc RIÊNG với `columns:` bởi renderer lưới ký tự (xem chú thích trong
+# `form_multi_section.yaml`) — thiếu khối này thì chỉ cột "name" được in.
+item:
+  wrap_name: true
+  rows:
+    - - {col: stt,    from: stt}
+      - {col: name,   from: name}
+      - {col: qty,    from: qty}
+      - {col: unit,   from: unit}
+      - {col: amount, from: amount}

@@ -1,4 +1,4 @@
-# THUỘC TÍNH 1/6 — LOẠI DOCUMENT
+# THUỘC TÍNH 1/10 — LOẠI DOCUMENT
 #
 # Bốc trước tiên, nên đây là chỗ quyết định "tờ giấy này là cái gì". Mọi thuộc
 # tính sau đều nhìn thấy `tags` mà giá trị ở đây gắn vào, và dùng
@@ -106,6 +106,22 @@ groups:
       weight: 2
       tags: [doc_invoice, doc_export]
 
+    # --------------------------------------------------------------------
+    # HAI TÀI LIỆU CHO HỌ "MODERN" — 10 bố cục root Invoice/Billing.
+    #
+    # `bare_fields` / `rich_fields` là chỗ nối với `rules/layout.yaml`: mười
+    # bố cục mới chia làm hai nhóm theo đúng những gì chúng liệt trong
+    # `sections:`, và mỗi tài liệu chỉ điền đúng phần mà nhóm layout của nó
+    # in ra — xem đầu `documents/invoice_plain.yaml` và
+    # `documents/invoice_detailed.yaml`.
+    - id: invoice_plain
+      weight: 2
+      tags: [doc_invoice, has_vat, bare_fields]
+
+    - id: invoice_detailed
+      weight: 2
+      tags: [doc_invoice, has_vat, rich_fields]
+
   # ------------------------------------------------------------------------
   - id: service_invoice
     label: "Hoá đơn dịch vụ — lưu trú, ăn uống có thương hiệu"
@@ -168,3 +184,135 @@ groups:
     - id: authorisation_letter
       weight: 1
       tags: [doc_invoice, doc_authorisation, doc_service]
+
+    # ------------------------------------------------------------------------
+    # Root 3 (Form / Application) — tám tài liệu cho mười layout ở
+    # `rules/layout.yaml` (nhóm `form_document`). `bare_kv`/`symmetric`/
+    # `activity`/`checklist`/`checklist_table`/`sectioned`/`roster`/`dense`:
+    # mỗi tag khớp ĐÚNG MỘT layout hoặc một cặp layout cùng hình dạng nội
+    # dung — cùng cơ chế requires/excludes root 1 dùng cho invoice_plain/
+    # invoice_detailed. Xem `docs/root-document-taxonomy.md` § 3.3.
+    # TẮT cùng mười bố cục root 3. Một loại chứng từ mà mọi bố cục in được nó
+    # đều đã tắt thì không phải "hiếm gặp", nó là **không dựng được**: người
+    # bốc sẽ bốc trúng nó rồi không tìm ra bố cục nào, thử lại 6 000 lần rồi
+    # bỏ cuộc. `tools/rules_report.py --check` bắt đúng chuyện đó từ bây giờ.
+    #
+    # Tắt chứ không xoá, giống mọi chỗ khác: bật lại là xoá tám dòng
+    # `enabled: false` ở đây và mười dòng ở `rules/layout.yaml`.
+    - id: form_brief
+      enabled: false
+      weight: 2
+      tags: [doc_invoice, doc_form, bare_kv]
+
+    - id: form_symmetric
+      enabled: false
+      weight: 1
+      tags: [doc_invoice, doc_form, symmetric]
+
+    - id: form_activity
+      enabled: false
+      weight: 1
+      tags: [doc_invoice, doc_form, activity]
+
+    - id: form_checklist
+      enabled: false
+      weight: 1
+      tags: [doc_invoice, doc_form, checklist]
+
+    - id: form_checklist_table
+      enabled: false
+      weight: 1
+      tags: [doc_invoice, doc_form, checklist_table]
+
+    - id: form_sectioned
+      enabled: false
+      weight: 1
+      tags: [doc_invoice, doc_form, sectioned]
+
+    - id: form_roster
+      enabled: false
+      weight: 1
+      tags: [doc_invoice, doc_form, roster]
+
+    - id: form_dense
+      enabled: false
+      weight: 2
+      tags: [doc_invoice, doc_form, dense_registry]
+
+  # ------------------------------------------------------------------------
+  - id: periodical
+    label: "Báo/tạp chí — trang biên tập"
+    # Root 4 (Newspaper/Magazine). Không giống mọi document phía trên, các
+    # option dưới đây KHÔNG mang tag `doc_invoice` -- một trang báo/tạp chí
+    # không ghi lại một lần mua bán, cùng lý do `till_receipt` ở đầu file này
+    # cũng không mang tag đó. `params:` của bốn document này (masthead, tên
+    # ấn phẩm, ...) không nằm ở đây mà ở `rulebase/documents/<id>.yaml`, như
+    # mọi document khác -- xem `rulebase/spec.py::PARAMS_DIRS`.
+    options:
+
+    - id: newspaper_front_broadsheet
+      weight: 2
+      tags: [doc_periodical, periodical_lead_sidebar]
+
+    - id: newspaper_classifieds
+      weight: 2
+      tags: [doc_periodical, periodical_classifieds]
+
+    - id: magazine_contents
+      weight: 2
+      tags: [doc_periodical, periodical_toc]
+
+    - id: magazine_qa_interview
+      weight: 2
+      tags: [doc_periodical, periodical_qa]
+
+  # ------------------------------------------------------------------------
+  - id: insurance
+    label: "Bảo hiểm — chứng nhận, hợp đồng, đơn từ, thẻ"
+    # Mười chứng từ bảo hiểm Việt Nam, tất cả vẫn dựng `Invoice` (không phải
+    # một mô hình nội dung mới như `periodical` ở trên): mỗi document đặt
+    # `invoice: true` trong `rulebase/documents/insurance_<id>.yaml` nên vẫn
+    # mang `doc_invoice` -- khác hẳn `periodical`, giống `authorisation_letter`
+    # ở nhóm `administrative_form` (`rules/layout.yaml`). `params:` của cả
+    # mười nằm ở `rulebase/documents/<id>.yaml`, như mọi document khác.
+    options:
+
+    - id: insurance_moto_certificate
+      weight: 2
+      tags: [doc_invoice, doc_insurance, insurance_moto_cert]
+
+    - id: insurance_auto_certificate
+      weight: 2
+      tags: [doc_invoice, doc_insurance, insurance_auto_cert]
+
+    - id: insurance_life_schedule
+      weight: 2
+      tags: [doc_invoice, doc_insurance, insurance_life_schedule]
+
+    - id: insurance_application_form
+      weight: 2
+      tags: [doc_invoice, doc_insurance, insurance_application_form]
+
+    - id: insurance_health_id_card
+      weight: 2
+      tags: [doc_invoice, doc_insurance, insurance_health_id_card]
+
+    - id: insurance_health_certificate
+      weight: 2
+      tags: [doc_invoice, doc_insurance, insurance_health_cert]
+
+    - id: insurance_cargo_policy
+      weight: 2
+      tags: [doc_invoice, doc_insurance, insurance_cargo_policy]
+
+    - id: insurance_fire_certificate
+      weight: 2
+      tags: [doc_invoice, doc_insurance, insurance_fire_cert]
+
+    - id: insurance_travel_certificate
+      weight: 2
+      tags: [doc_invoice, doc_insurance, insurance_travel_cert]
+
+    - id: insurance_property_contract
+      weight: 2
+      tags: [doc_invoice, doc_insurance, insurance_property_contract]

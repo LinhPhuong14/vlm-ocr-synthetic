@@ -4,8 +4,10 @@ Hai tờ để nhìn, không phải một bộ dữ liệu — bộ dữ liệu 
 [`data/hand12/`](../../data/hand12), dựng bằng nguồn `font`. Chúng khác nhau ở
 đúng một thứ: **mực đến từ đâu**, và đó là toàn bộ sự đánh đổi.
 
-`hand-filled-folio.jpg` cũng là **trang mực-mô-hình duy nhất còn lại trong
-kho**: không tập dữ liệu nào dùng nguồn `model` nữa.
+`hand-filled-folio.jpg` là tờ mực-mô-hình **ở mức phủ cao nhất mô hình đạt
+được**, tắt làm cũ để nhìn rõ nét bút. Muốn thấy nguồn `model` cư xử thế nào
+trên cả không gian bố cục — kể cả chín trang nó không viết được gì — thì xem
+[`data/hand18_model/`](../../data/hand18_model).
 
 | | `hand-filled-form.jpg` | `hand-filled-folio.jpg` |
 | --- | --- | --- |

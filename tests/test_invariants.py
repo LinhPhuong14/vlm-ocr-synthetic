@@ -174,7 +174,7 @@ def test_every_budgeted_field_is_one_no_layout_prints_reliably():
     assert set(BUDGETS) == {
         "menu.unitprice", "menu.vatrate", "menu.barcode", "title",
         "store.address", "store.address2", "store.branch", "store.phone",
-        "menu.unitprice_per_unit", "menu.weight",
+        "menu.unitprice_per_unit", "menu.weight", "menu.discountprice",
     }
 
 
@@ -212,6 +212,59 @@ def test_wrapped_text_is_still_printed():
                 {"kind": box["kind"], "text": tail, "quad": box["quad"]})
             break
     assert errors_of(item) == []
+
+
+def test_a_name_that_wrapped_at_a_HYPHEN_is_still_printed():
+    """The wrap that was NOT handled, and it failed a whole shard.
+
+    Joining a wrapped run back together puts a space at each break. That is
+    right when the browser broke at a space and wrong when it broke at a
+    hyphen -- which is what a hyphen is for. On `invoice_export` at seed 6026,
+    `ÁO SƠ MI NAM DÀI TAY (MEN'S LONG-SLEEVE SHIRT)` was too wide for its
+    column, came back as two boxes ending and starting `LONG-` / `SLEEVE`, and
+    rejoined as `LONG- SLEEVE`, which the label is not a substring of.
+
+    Everything was correct -- the value was on the page, the boxes were on the
+    ink, the label matched the pixels -- and the check reported a missing
+    field. It had been blocking every golden-baseline recapture since -- and
+    independently, on this branch, the same shape of break on a hospital-bill
+    item name ("[Thu tiền chênh lệch giá] SOLI-MEDON 40" wrapping to "...SOLI-"
+    / "MEDON 40") was doing the same thing to `notebook_ledger`'s baseline.
+    """
+    item = a_record()
+    gt = item.item["extracted"]
+    name = gt["menu"][0]["nm"]
+    hyphenated = name.replace(" ", "-", 1) if " " in name else name + "-SLEEVE"
+    gt["menu"][0]["nm"] = hyphenated
+    head, _, tail = hyphenated.partition("-")
+    for position, box in enumerate(item.item["blocks"]):
+        if box["text"] == name:
+            # The browser breaks AFTER the hyphen, so the hyphen stays on the
+            # first line -- which is exactly why the naive rejoin goes wrong.
+            box["text"] = head + "-"
+            item.item["blocks"].insert(
+                position + 1,
+                {"kind": box["kind"], "text": tail, "quad": box["quad"]})
+            break
+    else:
+        pytest.skip("this seed's first dish has no box of its own")
+    item.item["extracted"] = gt
+    assert errors_of(item) == []
+
+
+def test_the_space_insensitive_fallback_does_not_match_across_kinds():
+    """It is a fallback, and a narrow one. Squashing the whole page would let
+    `A B` under one kind satisfy a label reading `AB` under another, which is
+    the check quietly ceasing to check."""
+    item = a_record()
+    gt = item.item["extracted"]
+    gt["menu"][0]["nm"] = "KHONGCOTRENTRANG"
+    item.item["extracted"] = gt
+    for box in item.item["blocks"]:
+        if box["kind"] != "menu.name":
+            box["text"] = "KHONG CO TREN TRANG"
+            break
+    assert any("appears on no box" in e for e in errors_of(item))
 
 
 # ----------------------------------------------------------- the arithmetic
@@ -566,33 +619,3 @@ def test_no_shipped_image_prints_a_total_row_the_label_cannot_carry():
             if doubled:
                 bad.append(f"{index.parent.parent.name}/{record['file_name']}: {doubled}")
     assert not bad, "\n".join(bad)
-
-
-# ------------------------------------------------- a run broken across a hyphen
-
-
-def test_a_run_the_engine_broke_after_a_hyphen_still_counts_as_printed():
-    """The browser may break `LONG-SLEEVE` after the hyphen, so the run arrives
-    as two boxes. `_printed` joins a kind's boxes with a space, which is right
-    for a break at a space and wrong for this one -- and the label, which is
-    correct, was then reported as printed nowhere. Measured on
-    `invoice_export`, whose corpus is bilingual and whose name column is narrow.
-    """
-    boxes = [{"kind": "menu.name", "text": "ÁO SƠ MI NAM DÀI TAY (MEN'S LONG-"},
-             {"kind": "menu.name", "text": "SLEEVE SHIRT)"}]
-    page, by_kind = invariants._printed(boxes)
-    wanted = "ÁO SƠ MI NAM DÀI TAY (MEN'S LONG-SLEEVE SHIRT)"
-    assert wanted not in page, "the plain join is what this is about"
-    assert invariants.appears(wanted, page, by_kind)
-
-
-def test_a_value_that_really_is_missing_is_still_missing():
-    """The hyphen allowance must not turn the check into one that always passes."""
-    boxes = [{"kind": "menu.name", "text": "BÚN BÒ HUẾ"}]
-    page, by_kind = invariants._printed(boxes)
-    assert not invariants.appears("PHỞ GÀ", page, by_kind)
-
-
-def test_dehyphen_only_closes_a_gap_that_follows_a_hyphen():
-    assert invariants.dehyphen("LONG- SLEEVE") == "LONG-SLEEVE"
-    assert invariants.dehyphen("BÚN BÒ") == "BÚN BÒ"

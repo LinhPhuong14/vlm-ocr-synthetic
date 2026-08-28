@@ -59,7 +59,7 @@ for extra in (REPO_ROOT, REPO_ROOT / "tools"):
 from paths import VENVS, venv_python  # noqa: E402
 
 import worklist  # noqa: E402
-from pipeline import drift, invariants, record, synthesis  # noqa: E402
+from pipeline import drift, imagetimes, invariants, record, synthesis  # noqa: E402
 from pipeline.config import RULES_ENV  # noqa: E402
 from pipeline.plan import image_name  # noqa: E402
 
@@ -86,7 +86,7 @@ BACKENDS = {
     "html": (REPO_ROOT / "generators" / "html" / "render.py", REPO_ROOT),
 }
 
-CLEAN_AUGMENTATION = invariants.CLEAN_AUGMENTATION
+CLEAN_FORCES = invariants.CLEAN_FORCES
 
 
 class ShardError(RuntimeError):
@@ -145,8 +145,17 @@ def renderer_command(backend: str, staging: Path, jobs: Path,
         "--jobs", str(jobs),
     ]
     forced = list(force)
-    if clean and not any(item.startswith("augmentation=") for item in forced):
-        forced.append(f"augmentation={CLEAN_AUGMENTATION}")
+    if clean:
+        # Every chain-bearing attribute, not just `augmentation`: pinning one
+        # of them and not the others would leave the rest free to draw a mark
+        # onto the "clean" set. `toner`/`drum`/`rollers` (the copier, split
+        # into its three independently-failing parts) are in CLEAN_FORCES too,
+        # though every one of their own worn-machine options is gone today --
+        # see toner.yaml -- so pinning them currently changes nothing. An
+        # explicit `--force` still wins over any of this.
+        already = {item.partition("=")[0] for item in forced}
+        forced += [f"{attribute}={value}" for attribute, value in CLEAN_FORCES.items()
+                   if attribute not in already]
     for item in forced:
         command += ["--force", item]
     # `--clean` used to ride along here as well: it switched off the glyph
@@ -188,6 +197,7 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
     tally = invariants.Tally(invariants.attribute_names())
 
     written = 0
+    timed: list[imagetimes.Entry] = []
     staging = Path(tempfile.mkdtemp(prefix="shard-", dir=str(directory)))
     # A record per image, written beside it, and one `synthesis.json` for the
     # shard. The first is what a converted page looks like; the second is how
@@ -213,8 +223,14 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
                                        str(plan.get("template") or ""))
             if log:
                 log.write(f"$ {' '.join(command)}\n")
+                # Images PER PROCESS, which is the number W3b was about, and it
+                # is the whole shard: one renderer process draws all of it. The
+                # job count is a separate fact and is one job per image since
+                # the layouts are dealt rather than blocked (`plan.py::deal`) --
+                # printing images-per-JOB here would read as the 1.43 regression
+                # this line was written to watch for.
                 log.write(f"  {len(jobs)} job(s), {worklist.total(jobs)} image(s), "
-                          f"{worklist.total(jobs) / len(jobs):.2f} per process\n")
+                          f"1 process, {worklist.total(jobs)} per process\n")
                 log.flush()
             result = subprocess.run(command, cwd=cwd, env=environment,
                                     capture_output=True, text=True)
@@ -255,6 +271,13 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
                 raise ShardError(
                     f"shard {shard['index']} {backend}: " + "; ".join(gaps))
 
+            # How long each page took, under the renderer's own names. Re-keyed
+            # to the dataset's names in the loop below -- the same rename the
+            # image gets, at the same moment, so the two can never drift apart.
+            # Absent is not an error: `imagetimes.read` returns `{}` and the run
+            # reports "no per-image timing" rather than refusing to finish.
+            drawn_times = imagetimes.read(staging)
+
             cursor = 0
             for run in shard["runs"]:
                 for offset in range(run["count"]):
@@ -275,6 +298,15 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
                             f"{run['layout']!r}; the renderer returned its pages "
                             f"in a different order from the job list")
                     shutil.move(str(staging / drawn_name), str(directory / target))
+                    clock = drawn_times.get(drawn_name)
+                    if clock is not None:
+                        # The plan's layout, not the renderer's, for the same
+                        # reason the record takes it: they were just checked
+                        # against each other, and every other file in this
+                        # directory says the plan's name.
+                        timed.append(imagetimes.Entry(
+                            file=target, layout=run["layout"],
+                            seconds=clock.seconds, stages=dict(clock.stages)))
 
                     page = dict(drew.entry(drawn_name))
                     recipe = drew.recipe(drawn_name)
@@ -310,6 +342,15 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
         # last write is what makes `synthesis.json` parse at all, so a shard
         # killed here leaves a file that fails to load rather than one that
         # loads and is short.
+
+    # The per-image times, under the dataset's names now, beside the images they
+    # measure. Written here rather than left in the staging directory, which is
+    # about to be gone, and written even when the budget check below stops the
+    # shard: a shard that failed slowly is exactly the one somebody times.
+    if timed:
+        with imagetimes.Log(directory) as clock:
+            for entry in timed:
+                clock.add(entry)
 
     expected = sum(run["count"] for run in shard["runs"])
     if written != expected:

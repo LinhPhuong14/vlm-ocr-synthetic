@@ -1,0 +1,35 @@
+profile: insurance
+invoice: true
+catalogue: insurance_property
+num_items: [3, 4]
+price_step: 100000000
+total_labels:
+  grand: "Tổng số tiền bảo hiểm"
+show_serial: false
+show_vat: false
+show_issuer_unit: false
+show_seller_address: false
+show_seller_phone: false
+show_subtotal: false
+show_payment: false
+show_amount_words: false
+show_seller_tax_code: false
+show_seller_account: false
+titles:
+  - "Giấy chứng nhận bảo hiểm cháy, nổ bắt buộc"
+subtitle: "(Cấp theo quy định tại Nghị định số 67/2023/NĐ-CP ngày 06/9/2023 của Chính phủ)"
+party_fields:
+  left:
+    - [buyer_company, "Bên mua bảo hiểm"]
+    - [buyer_address, "Địa chỉ trụ sở"]
+    - [buyer_tax_code, "Mã số thuế"]
+notes:
+  - "III. Phí bảo hiểm, mức khấu trừ và thời hạn:"
+  - "Tỷ lệ phí bảo hiểm 0,10%/năm trên tổng số tiền bảo hiểm, thanh toán một lần trong vòng 15 ngày kể từ ngày cấp Giấy chứng nhận. Mức khấu trừ 100.000.000 đồng/vụ tổn thất. Thời hạn bảo hiểm 1 năm kể từ ngày cấp."
+  - "IV. Một số nội dung quan trọng:"
+  - "1) Doanh nghiệp bảo hiểm bồi thường cho thiệt hại xảy ra đối với tài sản được bảo hiểm do cháy, nổ, trừ các trường hợp loại trừ trách nhiệm bảo hiểm quy định tại quy tắc, điều khoản đính kèm."
+  - "2) Bên mua bảo hiểm có trách nhiệm chấp hành đầy đủ quy định của pháp luật về phòng cháy và chữa cháy; duy trì hệ thống phòng cháy, chữa cháy trong tình trạng hoạt động tốt."
+  - "3) Khi xảy ra sự kiện bảo hiểm, Bên mua bảo hiểm phải thông báo ngay cho doanh nghiệp bảo hiểm, giữ nguyên hiện trường và phối hợp cung cấp hồ sơ theo yêu cầu."
+signature_labels:
+  - ["Bên mua bảo hiểm", "(Ký, ghi rõ họ tên, đóng dấu)"]
+  - ["Doanh nghiệp bảo hiểm", "(Ký, ghi rõ họ tên, đóng dấu)"]

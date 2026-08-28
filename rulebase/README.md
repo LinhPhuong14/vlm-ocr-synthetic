@@ -17,12 +17,33 @@ with glyphs, with Chromium or with WeasyPrint. That is the precondition for a
 comparison between the three to mean anything — if each renderer invented its
 own content, what you compared would be two datasets, not two ways of drawing.
 
+**The two HTML backends have a second entry point, for a page made of CSS
+rather than character cells.** `build_grid` cuts an over-wide value to fit its
+column and writes the cut back, which is correct once but wrong twice: a sheet
+built from that grid would inherit a trim the sheet never needed, since it has
+no column to overflow. So Chromium (`generators/html/render.py`) and
+WeasyPrint (`generators/genalog/render.py`) skip the grid on this path and call
+`recipe, receipt, rng = rulebase.make_content(seed=7)` instead, then hand
+`(recipe, receipt)` straight to `sheets.build()`, which reads the layout's own
+`family:` key from `rulebase/layouts/<id>.yaml` and drapes it in ordinary
+flow — real `<table>`, real `colspan`, millimetres, no character grid at all.
+This is what `--template auto` selects on both backends, and it is the
+default every production path now uses: `make dataset`, `make run` and every
+`tools/baseline.py` plan pass it, because every shipped layout already has a
+family to be dressed in. `--template <layout-id>` forces one specific family
+regardless of what the recipe drew — for looking at a single sheet on demand,
+not for a run. Leaving `--template` off entirely still asks for the plain
+character-grid page (`python tools/generate_dataset.py -o out -n 5`, no
+flags) — the one path `sheets` is never imported for, and the one
+`test_layout.py`'s geometry suite and `pipeline/preflight.py`'s page-overflow
+estimate still exercise directly.
+
 ```
 rulebase/
 ├── rules/          7 ATTRIBUTES, one file each         ← tune the distribution here
-├── documents/      17 DOCUMENT KINDS, one file each    ← edit what a kind prints
-├── blanks.yaml     16 PHÔI GỐC and what became of them ← register a new form here
-├── layouts/        14 LAYOUTS measured off real paper  ← add a layout here
+├── documents/      27 DOCUMENT KINDS, one file each    ← edit what a kind prints
+├── blanks.yaml     36 PHÔI GỐC and what became of them ← register a new form here
+├── layouts/        36 LAYOUTS measured off real paper  ← add a layout here
 ├── corpus/vi/      Vietnamese corpus, WITH diacritics  ← add products here
 ├── corpus/en/      one document kind prints English
 ├── spec.py         weighted sampling with constraints
@@ -31,10 +52,11 @@ rulebase/
 └── text.py         diacritic folding, money formatting, wrapping
 ```
 
-The sixteen layouts are not sixteen variations on a receipt. A thermal till
-receipt, a printed VAT form, a metered utility bill, a hotel folio and a
-self-designed order confirmation share a character grid and very little else,
-so `rules/layout.yaml` sorts them into **parent nodes** — see §1b.
+The forty-two layouts are not forty-two variations on a receipt. A thermal
+till receipt, a printed VAT form, a metered utility bill, a hotel folio, a
+self-designed order confirmation and a field-block application form share a
+character grid and very little else, so `rules/layout.yaml` sorts them into
+**parent nodes** — see §1b.
 
 ### Naming: English identifiers, Vietnamese printed text
 
@@ -60,7 +82,7 @@ The label follows the same rule: `gt_parse.doc_type` is `receipt_eatery` /
 
 ---
 
-## 1. The seven attributes
+## 1. The ten attributes
 
 Drawn in this order. Each attribute sees the `tags` the earlier ones set, so a
 later one can rule itself out when it does not fit.
@@ -73,11 +95,24 @@ later one can rule itself out when it does not fit.
 | 4 | `visual` | font, size, ink weight, **white margin**, sheet, curl | [rules/visual.yaml](rules/visual.yaml) |
 | 5 | `color` | ink, paper tint, accent colour for the shop name | [rules/color.yaml](rules/color.yaml) |
 | 6 | `ornament` | seals and flourishes: the ink that is not text | [rules/ornament.yaml](rules/ornament.yaml) |
-| 7 | `augmentation` | ageing: the degradation chain that runs after rendering | [rules/augmentation.yaml](rules/augmentation.yaml) |
+| 7 | `handwriting` | is a blank filled with a **pen** or with type. Before `augmentation`, so the ink ages with the print | [rules/handwriting.yaml](rules/handwriting.yaml) |
+| 8 | `augmentation` | ageing: the degradation chain that runs after rendering | [rules/augmentation.yaml](rules/augmentation.yaml) |
+| 9 | `toner` | the cartridge of the machine that copied this: toner dust in blotches | [rules/toner.yaml](rules/toner.yaml) |
+| 10 | `drum` | the imaging drum: streaks **along** the feed direction | [rules/drum.yaml](rules/drum.yaml) |
+| 11 | `rollers` | the transport rollers: bands **across** it. **Switched off** -- only `no_rollers` is drawable | [rules/rollers.yaml](rules/rollers.yaml) |
 
 **The list is not in the Python.** Attributes are discovered from `rules/*.yaml`
-and ordered by [rules/_order.yaml](rules/_order.yaml), so a seventh criterion is
-a new YAML file and a line in that manifest -- nothing else.
+and ordered by [rules/_order.yaml](rules/_order.yaml), so a further criterion is
+a new YAML file and a line in that manifest -- nothing else. Attributes 8 to 10
+were added that way and are what the claim is worth: three parts of one machine,
+each failing on its own, drawn independently. Bundling them into one
+`augmentation` value would mean hand-writing a scenario per combination, and the
+number to write is the product, not the sum.
+
+**Any attribute may carry a `chain`,** not only `augmentation` -- see
+`degradation.pipeline.chain_of`, which concatenates them in draw order. That is
+what puts the machine's marks after the sheet has been aged rather than under
+it, and why moving a line in `_order.yaml` moves the step.
 
 The manifest is not a formality. Discovery alone would be a downgrade: a
 hard-coded tuple cannot forget a file, a directory listing can. Three mistakes
@@ -169,7 +204,7 @@ until one is added there is nothing to vary.
 ### Where a value's params live
 
 Two shapes, and the file says which. `rules/<attribute>.yaml` normally carries
-`params:` inline. `document` does not: its seventeen values each carry the whole
+`params:` inline. `document` does not: its twenty-seven values each carry the whole
 content model of a kind of paper — titles, labels, party fields, signature
 blocks — and one file of 750 lines buried the part you actually came to read,
 which is *which values exist, how often, under what tags*. So the params moved

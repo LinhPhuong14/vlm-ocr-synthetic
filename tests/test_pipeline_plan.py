@@ -11,15 +11,24 @@ import json
 
 import pytest
 
-from pipeline.config import Config, ConfigError, apply_overrides, resolve_workers
+from pipeline.config import (
+    Config,
+    ConfigError,
+    apply_overrides,
+    resolve_per_backend,
+    resolve_workers,
+)
 from pipeline.plan import (
     LAYOUT_STRIDE,
     Run,
+    adjacent_repeats,
     backend_runs,
     build_plan,
+    deal,
     disjoint_seeds,
     shard_runs,
     split_by_layout,
+    uncovered,
 )
 
 LAYOUTS = ["eatery_ascii", "eatery_indexed", "market_barcode",
@@ -34,7 +43,7 @@ def make_config(**changes) -> Config:
     }
     for key, value in changes.items():
         if key in ("out", "per_backend", "seed", "workers", "clean", "force",
-                   "pairing"):
+                   "pairing", "layouts"):
             raw["run"][key] = value
         elif key == "size":
             raw["shard"]["size"] = value
@@ -112,8 +121,8 @@ def _rules():
 
 
 def test_an_override_changes_the_weight():
-    rules = apply_overrides(_rules(), {"augmentation.torn_edges.weight": 0.5})
-    option = next(o for o in rules["augmentation"] if o.id == "torn_edges")
+    rules = apply_overrides(_rules(), {"augmentation.heavy.weight": 0.5})
+    option = next(o for o in rules["augmentation"] if o.id == "heavy")
     assert option.weight == 0.5
 
 
@@ -132,12 +141,12 @@ def test_an_override_naming_a_missing_attribute_is_rejected():
 
 def test_an_override_of_the_wrong_shape_is_rejected():
     with pytest.raises(ConfigError, match="attribute.value_id.field"):
-        apply_overrides(_rules(), {"augmentation.torn_edges": 1})
+        apply_overrides(_rules(), {"augmentation.heavy": 1})
 
 
 def test_an_override_of_an_unsupported_field_is_rejected():
     with pytest.raises(ConfigError, match="only weight"):
-        apply_overrides(_rules(), {"augmentation.torn_edges.wieght": 1})
+        apply_overrides(_rules(), {"augmentation.heavy.wieght": 1})
 
 
 def test_no_overrides_leaves_the_rules_untouched():
@@ -152,6 +161,38 @@ def test_the_layout_split_matches_the_sequential_driver():
     assert split_by_layout(20, LAYOUTS) == [(name, 4) for name in LAYOUTS]
     assert [q for _, q in split_by_layout(3, LAYOUTS)] == [1, 1, 1, 0, 0]
     assert sum(q for _, q in split_by_layout(37, LAYOUTS)) == 37
+
+
+def test_a_run_too_small_for_its_layouts_names_the_ones_it_would_drop():
+    """The split hands the remainder to the FRONT of the list, so a count below
+    the layout count does not spread thin -- it drops the tail entirely."""
+    assert uncovered(3, LAYOUTS) == LAYOUTS[3:]
+    assert uncovered(5, LAYOUTS) == []
+    assert uncovered(20, LAYOUTS) == []
+
+
+def test_a_plan_that_would_miss_a_layout_is_refused():
+    """A dataset silently missing the tail of its own layout list is worse than
+    a run that will not start: `dataset.json` still names every layout, because
+    that field records what the run was pointed at, not what came out."""
+    with pytest.raises(ValueError, match="cannot cover"):
+        build_plan(make_config(per_backend=3), LAYOUTS)
+    # ... and the error says which ones and what to do about it.
+    try:
+        build_plan(make_config(per_backend=3), LAYOUTS)
+    except ValueError as error:
+        assert "market_compact" in str(error)
+        assert "at least 5" in str(error)
+
+
+def test_a_plan_records_where_its_layout_list_came_from():
+    """The list alone cannot say. An `all` run and a `named` run over the same
+    five layouts produce identical `layouts:` and are not comparable: the day
+    someone adds a layout, only one of them changes."""
+    assert build_plan(make_config(), LAYOUTS)["layout_source"] == "all"
+    assert build_plan(make_config(layouts=LAYOUTS), LAYOUTS)["layout_source"] == "named"
+    forced = make_config(force=["layout=market_vat"])
+    assert build_plan(forced, LAYOUTS)["layout_source"] == "forced"
 
 
 def test_the_same_config_gives_the_same_plan_bytes():
@@ -171,6 +212,96 @@ def test_a_shard_may_span_layouts():
     spanning = [shard for shard in plan["shards"]
                 if len({run["layout"] for run in shard["runs"]}) >= 2]
     assert spanning, "no shard covers more than one layout; the cut is by layout"
+
+
+# ------------------------------------------------------- the deal (W4)
+
+
+def layouts_in_order(plan, backend="html"):
+    """Every image of one backend, in output order, as its layout name."""
+    pages = [(run["first_index"] + offset, run["layout"])
+             for shard in plan["shards"] if shard["backend"] == backend
+             for run in shard["runs"]
+             for offset in range(run["count"])]
+    return [layout for _index, layout in sorted(pages)]
+
+
+def test_no_two_adjacent_images_carry_the_same_layout():
+    """The property the deal exists for, over a run that is not a round number.
+
+    23 images over 5 layouts is quotas [5,5,5,4,4]: four full rounds and a
+    short one, so the last round is where a naive deal would leave the front
+    of the list beside itself.
+    """
+    plan = build_plan(make_config(per_backend=23, size=5), LAYOUTS)
+    for backend in plan["backends"]:
+        order = layouts_in_order(plan, backend)
+        assert len(order) == 23
+        assert adjacent_repeats(order) == [], f"{backend}: {order}"
+
+
+def test_the_deal_holds_across_shard_boundaries():
+    """A shard is a cut in the sequence, not a reason for two pages to pair up.
+
+    The images either side of a boundary sit next to each other in the
+    assembled dataset, however they were rendered, so the check is on the
+    assembled order and the shard size is deliberately not a multiple of the
+    layout count.
+    """
+    plan = build_plan(make_config(per_backend=20, size=3), LAYOUTS)
+    assert len([s for s in plan["shards"] if s["backend"] == "html"]) > 1
+    assert adjacent_repeats(layouts_in_order(plan)) == []
+
+
+def test_dealing_does_not_move_a_single_page():
+    """Order changed; content did not. The k-th page of a layout keeps its seed.
+
+    This is what makes the deal a re-ordering rather than a new dataset: every
+    (layout, seed) pair the block plan produced is still here, exactly once.
+    """
+    runs = backend_runs(0, 23, 2026, LAYOUTS)
+    dealt = sorted((run.layout, run.seed) for run in runs)
+
+    blocked = []
+    offset = 0
+    for layout, quota in split_by_layout(23, LAYOUTS):
+        if not quota:
+            continue
+        blocked += [(layout, 2026 + offset * LAYOUT_STRIDE + k) for k in range(quota)]
+        offset += 1
+    assert dealt == sorted(blocked)
+
+
+def test_every_layout_appears_before_any_layout_appears_twice():
+    """Round-robin, not merely shuffled: the first pass covers everything.
+
+    A run cut short after N images should hold N distinct layouts, which is
+    what makes a partial or failed run still worth looking at.
+    """
+    order = [layout for layout, _which in deal(23, LAYOUTS)]
+    assert order[:len(LAYOUTS)] == LAYOUTS
+    assert len(set(order[:len(LAYOUTS)])) == len(LAYOUTS)
+
+
+def test_a_run_pinned_to_one_layout_is_still_allowed():
+    """One layout has no other layout to alternate with. Not a failure."""
+    plan = build_plan(make_config(per_backend=4, force=["layout=market_vat"]), LAYOUTS)
+    assert layouts_in_order(plan) == ["market_vat"] * 4
+
+
+def test_per_backend_auto_draws_one_of_every_layout():
+    plan = build_plan(make_config(per_backend="auto"), LAYOUTS)
+
+    assert plan["per_backend"] == len(LAYOUTS)
+    assert sorted(layouts_in_order(plan)) == sorted(LAYOUTS)
+
+
+def test_per_backend_auto_records_the_number_it_resolved_to():
+    """`plan.json` must say what was built, not the word that asked for it."""
+    assert resolve_per_backend("auto") == 0
+    assert resolve_per_backend(12) == 12
+    with pytest.raises(ConfigError, match="a number or 'auto'"):
+        resolve_per_backend("every")
 
 
 def test_shards_cover_every_image_exactly_once():
