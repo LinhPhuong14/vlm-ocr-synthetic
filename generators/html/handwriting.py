@@ -50,6 +50,15 @@ filled and you would rather have one hand throughout than a form that is 42 %
 written and 58 % typed; reach for `both` when nothing on the page was printed
 and leaving a run in type would be leaving it wrong.
 
+A fourth source, `HybridHand`, goes one step further than `BothHands` and is
+**not** wired into any renderer's `--handwriting` flag: it decides per *word*
+inside one field rather than per field, so `"3.920.000 đồng"` can come back
+with `đồng` in the model's ink and the digits in the typeface's, composited
+into the one image `Hand` would have produced. Built for `tools/visualize/`'s
+side-by-side comparison against `BothHands`, to look at whether the finer
+split is worth losing `BothHands`'s per-field simplicity -- not a claim that
+it is.
+
 ## The policy, and why it is per field
 
 A word is writable when the checkpoint can actually write it:
@@ -194,6 +203,12 @@ WORD_GAP = 14          # source px between words, on a 32 px body
 # contrast, which is the most that can be taken without inventing.
 INK_GAMMA = 0.8
 
+# `font_tile`'s native render size, in px. Arbitrary -- `compose()` sizes every
+# tile off `extent()`, a function of the word's letters, not of how many
+# source pixels it started with -- but generous enough that a font tile is not
+# the blurriest thing on the page once everything lands on one unit.
+FONT_TILE_PX = 64
+
 
 # `base.span()` is text-only by contract -- `CELL_RECTS_JS` measures
 # `firstElementChild` and a nested element would silently become the box -- so a
@@ -248,19 +263,25 @@ def line_extent(text: str) -> tuple[float, float]:
     return max(a for a, _ in metrics), max(b for _, b in metrics)
 
 
+def writable_word(word: str) -> bool:
+    """Can the checkpoint write this one word? The per-word half of `writable`.
+
+    Pulled out on its own for `hybrid_line`, which needs these same three
+    checks at word granularity rather than across a whole run.
+    """
+    if any(character.isdigit() for character in word):
+        return False
+    if len(word) > 1 and word.isupper():
+        return False
+    if any(character not in ALPHABET_SET for character in word):
+        return False
+    return True
+
+
 def writable(text: str) -> bool:
     """Can the checkpoint write this whole run? See the module docstring."""
     words = words_of(text)
-    if not words:
-        return False
-    for word in words:
-        if any(character.isdigit() for character in word):
-            return False
-        if len(word) > 1 and word.isupper():
-            return False
-        if any(character not in ALPHABET_SET for character in word):
-            return False
-    return True
+    return bool(words) and all(writable_word(word) for word in words)
 
 
 def refusal(text: str) -> str:
@@ -582,13 +603,14 @@ class Hand:
         return [Image.open(io.BytesIO(base64.b64decode(item["png"]))).convert("L")
                 for item in reply["words"]]
 
-    def line(self, text: str, writer: int, seed: int):
-        """One run of text as a single grayscale image, words laid out in a row.
+    def tiles(self, words: list[str], writer: int, seed: int) -> dict[str, object]:
+        """Raw per-word grayscale tiles, cached by `(writer, word)`, not composed.
 
-        The gap between words is the caller's to set and always was -- WriteViT
-        generates one word at a time and says nothing about spacing.
+        `line()` below is exactly this plus `compose()`. Split out because
+        `hybrid_line` needs the tiles on their own, to lay them out beside a
+        font-drawn tile in one `compose_with_boxes()` call rather than two
+        separate images that would then need stitching back together.
         """
-        words = words_of(text)
         wanted = [word for word in words if (writer, word) not in self._cache]
         # Deduplicated before asking: a field can repeat a word, and the model
         # would otherwise be run twice for one tile.
@@ -599,9 +621,17 @@ class Hand:
         if seen:
             for word, tile in zip(seen, self._ask(seen, writer, seed)):
                 self._cache[(writer, word)] = tile
+        return {word: self._cache[(writer, word)] for word in words}
 
-        tiles = [self._cache[(writer, word)] for word in words]
-        return compose(list(zip(words, tiles)))
+    def line(self, text: str, writer: int, seed: int):
+        """One run of text as a single grayscale image, words laid out in a row.
+
+        The gap between words is the caller's to set and always was -- WriteViT
+        generates one word at a time and says nothing about spacing.
+        """
+        words = words_of(text)
+        tiles = self.tiles(words, writer, seed)
+        return compose([(word, tiles[word]) for word in words])
 
     def ink(self, text: str, writer: int, seed: int,
             pen: tuple[int, int, int]) -> tuple[bytes, tuple[int, int]]:
@@ -765,6 +795,117 @@ class BothHands:
         return self.primary.css(page) + self.fallback.css(page)
 
 
+class HybridHand:
+    """WriteViT where it can write, the typeface where it cannot -- per WORD.
+
+    `BothHands` makes this choice per field: a run with one digit anywhere in
+    it is typed in full, because mixing sources inside one labelled run would
+    split a ground-truth box in two -- see the module docstring's "per field"
+    policy. This goes one step further and mixes them anyway, inside a single
+    field, by compositing both into the one image `Hand` alone would have
+    produced rather than writing mixed markup: `"3.920.000 đồng"` comes back
+    as one `<img>` with `đồng` in the model's ink and the digits in the
+    typeface's. See `hybrid_line` for the actual per-word decision.
+
+    Built for `tools/visualize/`'s side-by-side comparison against
+    `BothHands`, and **not** wired into any renderer's `--handwriting` flag --
+    doing that is real production wiring outside what this class answers,
+    which is only "does the finer split look worth it".
+    """
+
+    source = "hybrid"
+
+    def __init__(self, primary=None, fallback=None, **kwargs):
+        # Built here when not supplied, so `source("hybrid")` is one call, the
+        # same as `source("model")` -- see `BothHands.__init__`.
+        self.primary = primary if primary is not None else Hand(**kwargs)
+        self.fallback = fallback if fallback is not None else FontHand()
+        self.device = getattr(self.primary, "device", "?")
+
+    def __enter__(self) -> "HybridHand":
+        return self.open()
+
+    def __exit__(self, *exc) -> None:
+        self.close()
+
+    def open(self) -> "HybridHand":
+        self.primary.open()
+        self.fallback.open()
+        self.device = getattr(self.primary, "device", "?") or "?"
+        return self
+
+    def close(self) -> None:
+        try:
+            self.fallback.close()
+        finally:
+            self.primary.close()
+
+    def writable(self, text: str, page: "Page") -> bool:
+        # The typeface is the ceiling, exactly as in `BothHands`: it checks
+        # every character in the whole run against its cmap, which is the
+        # same condition as "every word is coverable by one engine or the
+        # other" -- whatever it cannot draw, no per-word split rescues either,
+        # since `hybrid_line` falls back to this same source per word.
+        return self.fallback.writable(text, page)
+
+    def refusal(self, text: str, page: "Page") -> str:
+        return self.fallback.refusal(text, page)
+
+    def span(self, kind: str, classes: str, text: str, page: "Page") -> str:
+        image, _boxes = hybrid_line(text, self.primary, self.fallback, page)
+        png = ink_png(image, page.pen)
+        return ink_span(kind, classes, text, png, image.size,
+                        page.height_em, page.sit())
+
+    def css(self, page: "Page") -> str:
+        # No extra font-face rule needed, unlike `BothHands`: every word here
+        # is rasterized into the one image, none stays live text.
+        return CSS
+
+
+def hybrid_line(text: str, hand: "Hand", font: "FontHand",
+                page: "Page") -> tuple["object", list[dict]]:
+    """One run, word by word: the model's ink where it can write, the
+    typeface's where it cannot -- composited into one image, not two markups.
+
+    Batches every model-writable word into one `hand.tiles()` call rather than
+    asking word by word, for the same reason `Hand.line` always did: one
+    round trip to the WriteViT worker per run, not one per word.
+
+    Returns the image and, per word, which engine drew it and where it landed
+    in the final image -- `HybridHand.span()` uses the image alone and drops
+    the rest; `tools/visualize/` uses both, for the per-word overlay its
+    comparison tab draws. Raises if neither engine can write a single word in
+    `text`, which `HybridHand.writable()` guards against for `fill()`'s own
+    caller but not for one that calls this directly.
+    """
+    words = words_of(text)
+    model_words = [word for word in words if writable_word(word)]
+    tiles = hand.tiles(model_words, page.writer, page.seed) if model_words else {}
+
+    pairs: list[tuple[str, object]] = []
+    engine_of: list[str] = []
+    skipped: list[dict] = []
+    for word in words:
+        if word in tiles:
+            pairs.append((word, tiles[word]))
+            engine_of.append("model")
+        elif font.writable(word, page):
+            pairs.append((word, font_tile(word, font.face_for(page))))
+            engine_of.append("font")
+        else:
+            skipped.append({"word": word, "engine": "skipped",
+                            "reason": font.refusal(word, page)})
+
+    if not pairs:
+        raise ValueError(f"neither source can write any word in {text!r}")
+
+    image, placements = compose_with_boxes(pairs)
+    report = [{"word": word, "engine": engine, **box}
+             for (word, _tile), engine, box in zip(pairs, engine_of, placements)]
+    return image, report + skipped
+
+
 def model_of(hand):
     """The WriteViT worker inside a source, or None if there is not one.
 
@@ -780,13 +921,12 @@ def model_of(hand):
     return inner if getattr(inner, "source", "") == "model" else None
 
 
-def compose(pairs: list) -> "object":
-    """Word tiles laid out in a row, each at its own size, on one baseline.
+def _compose_layout(pairs: list) -> tuple["object", list[dict]]:
+    """The layout math shared by `compose` and `compose_with_boxes`.
 
-    The unit throughout is the x-height. A tile covers `above + 1 + below` of
-    them, so scaling it to `(above + 1 + below) * UNIT` px puts every word's
-    x-height at the same size; placing its top at `(top - above) * UNIT` puts
-    every word's baseline on the same rule.
+    See `compose` for why it works the way it does. Returns each word's
+    `(left, top, width, height)` in the finished image alongside it, which
+    `compose` throws away and `compose_with_boxes`/`hybrid_line` need.
     """
     from PIL import Image
 
@@ -829,9 +969,59 @@ def compose(pairs: list) -> "object":
         255,
     )
     x = 0
-    for tile, above in scaled:
-        canvas.paste(tile, (x, int(round((top - above) * unit))))
+    placements = []
+    for (word, _tile), (tile, above) in zip(pairs, scaled):
+        top_px = int(round((top - above) * unit))
+        canvas.paste(tile, (x, top_px))
+        placements.append({"left": x, "top": top_px,
+                           "width": tile.width, "height": tile.height})
         x += tile.width + gap
+    return canvas, placements
+
+
+def compose(pairs: list) -> "object":
+    """Word tiles laid out in a row, each at its own size, on one baseline.
+
+    The unit throughout is the x-height. A tile covers `above + 1 + below` of
+    them, so scaling it to `(above + 1 + below) * UNIT` px puts every word's
+    x-height at the same size; placing its top at `(top - above) * UNIT` puts
+    every word's baseline on the same rule.
+    """
+    return _compose_layout(pairs)[0]
+
+
+def compose_with_boxes(pairs: list) -> tuple["object", list[dict]]:
+    """`compose`, plus each word's placement in the finished image.
+
+    For `hybrid_line`, which has to say which pixels came from which engine --
+    `compose` alone pastes every tile down and forgets where.
+    """
+    return _compose_layout(pairs)
+
+
+def font_tile(word: str, face: tuple[str, str, float], *,
+             directory: Path = HAND_FONT_DIR) -> "object":
+    """One word, drawn with a handwriting typeface, as a grayscale tile.
+
+    Matches the convention `compose()` expects of a WriteViT tile: white
+    background, dark ink, cropped to the glyphs' own bounding box. Tight
+    cropping is what makes this drop into `compose()` unchanged -- it sizes
+    every tile off `extent()`, a function of the word's *letters*, not of how
+    many source pixels it started with, so all that has to be true of the
+    pixels themselves is that the ink is present and not padded. `hybrid_line`
+    is the only caller; `face` is whatever `FontHand.face_for(page)` returns.
+    """
+    from PIL import Image, ImageDraw, ImageFont
+
+    _name, filename, _size = face
+    font = ImageFont.truetype(str(Path(directory) / filename), FONT_TILE_PX)
+    # A 1x1 scratch canvas only to measure: `textbbox` already accounts for a
+    # font's own ascenders and descenders, which is exactly what "tight" means
+    # here -- there is no separate metric to crop against.
+    box = ImageDraw.Draw(Image.new("L", (1, 1))).textbbox((0, 0), word, font=font)
+    width, height = max(box[2] - box[0], 1), max(box[3] - box[1], 1)
+    canvas = Image.new("L", (width, height), 255)
+    ImageDraw.Draw(canvas).text((-box[0], -box[1]), word, font=font, fill=0)
     return canvas
 
 
@@ -978,11 +1168,11 @@ def main() -> int:
     return 0
 
 
-SOURCES = {"model": Hand, "font": FontHand, "both": BothHands}
+SOURCES = {"model": Hand, "font": FontHand, "both": BothHands, "hybrid": HybridHand}
 
 
 def source(name: str = "model", **kwargs):
-    """One of the two ink sources by name, unopened."""
+    """One of the ink sources by name, unopened."""
     try:
         return SOURCES[name](**kwargs)
     except KeyError:
@@ -991,10 +1181,11 @@ def source(name: str = "model", **kwargs):
 
 
 __all__ = [
-    "ALL_KINDS", "ALPHABET", "CSS", "FACES", "HAND_KINDS", "INK_HEIGHT_EM",
-    "PENS", "SIT_EM", "SOURCES", "BothHands", "FontHand", "Hand", "Page",
-    "compose", "extent", "fill", "ink_png", "ink_span", "line_extent",
-    "model_of", "refusal", "source", "writable", "words_of",
+    "ALL_KINDS", "ALPHABET", "CSS", "FACES", "FONT_TILE_PX", "HAND_KINDS",
+    "INK_HEIGHT_EM", "PENS", "SIT_EM", "SOURCES", "BothHands", "FontHand",
+    "Hand", "HybridHand", "Page", "compose", "compose_with_boxes", "extent",
+    "fill", "font_tile", "hybrid_line", "ink_png", "ink_span", "line_extent",
+    "model_of", "refusal", "source", "writable", "writable_word", "words_of",
 ]
 
 if __name__ == "__main__":

@@ -569,7 +569,14 @@ def inspect(item: dict[str, Any], *, order: tuple[str, ...] | list[str],
         if name in BUDGETS:
             out.occurrences[name] = out.occurrences.get(name, 0) + 1
         wanted = " ".join(value.split())
-        if wanted in page or any(wanted in text for text in by_kind.values()):
+        # A run wraps at a hyphen as well as at a space: the browser breaks
+        # "LONG-SLEEVE" after "LONG-", and the per-kind join above then puts a
+        # space where the paper has none. The collapsed variant is tried
+        # second, and only against the per-kind joins, so a value that really
+        # contains "- " still matches the page that printed it.
+        if wanted in page or any(
+                wanted in text or wanted in text.replace("- ", "-")
+                for text in by_kind.values()):
             continue
         # ... and once more with the spaces taken out, for a run that wrapped
         # at something other than a space. See `_tight`.
