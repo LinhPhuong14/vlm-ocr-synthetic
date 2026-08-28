@@ -631,6 +631,7 @@ từng bộ và schema nhãn nằm trong **[`data/README.md`](data/README.md)**.
 | [`degradation/README.md`](degradation/README.md) | từng mô hình làm cũ và file DocCreator nó chuyển thể từ đó |
 | [`docs/lam-cu-de-xuat.md`](docs/lam-cu-de-xuat.md) | kiểm kê nhiễu: mô hình nào đang dùng, phần đã dựng mà chưa bốc tới được, và danh mục đề xuất từ thư viện ngoài, kỹ thuật đồ hoạ và chỗ trống riêng của chứng từ Việt Nam |
 | [`data/README.md`](data/README.md) | các bộ dữ liệu và schema nhãn |
+| [`tools/llm/README.md`](tools/llm/README.md) · [`docs/llm-in-pipeline.md`](docs/llm-in-pipeline.md) | bước sinh bằng LLM chạy **cạnh** pipeline, và thiết kế để nối nó **vào** pipeline mà lượt chạy vẫn dựng lại được từng byte: model quyết định trước, quyết định ghi thành sổ cái, lúc vẽ chỉ đọc sổ cái. Kèm chính sách chứng từ nào được phép biến đổi ([`rulebase/augmentable.yaml`](rulebase/augmentable.yaml)) |
 | [`docs/renderers.md`](docs/renderers.md) | vì sao ba renderer còn một, và cái giá phải trả |
 | [`docs/handwriting-html.md`](docs/handwriting-html.md) · [`docs/writevit.md`](docs/writevit.md) | nối chữ viết tay vào engine HTML, và mô hình đứng sau |
 | [`docs/chu-ky.md`](docs/chu-ky.md) | khảo sát mẫu chữ ký — giám định, bút tướng, thư pháp, hướng dẫn tiếng Việt — engine kéo giãn từng phát hiện thành tham số, và hai nguồn mực nó vẽ bằng |
