@@ -1,0 +1,303 @@
+options:
+- id: pristine
+  weight: 2.0
+  tags:
+  - clean
+  params:
+    chain: []
+- id: real_paper
+  weight: 4.0
+  tags:
+  - textured
+  params:
+    chain:
+    - - paper_texture
+      - alpha: 0.35
+        grain: 0.5
+    - - paper_overlay
+      - alpha: 0.28
+        lighten: 0.3
+- id: light
+  weight: 4.0
+  tags:
+  - textured
+  params:
+    chain:
+    - - paper_texture
+      - alpha: 0.3
+        grain: 0.4
+    - - ink_degradation
+      - level: 1
+    - - blur_zones
+      - radius: 0.9
+        zones: 1
+        coverage: 0.12
+- id: medium
+  weight: 4.0
+  tags:
+  - textured
+  params:
+    chain:
+    - - paper_texture
+      - alpha: 0.4
+        grain: 0.6
+    - - ink_degradation
+      - level: 3
+    - - blur_zones
+      - radius: 1.1
+        zones: 2
+        coverage: 0.15
+    - - shadow_binding
+      - border: bottom
+        distance_ratio: 0.1
+        intensity: 0.35
+    - - paper_overlay
+      - alpha: 0.3
+        lighten: 0.35
+- id: heavy
+  weight: 2.0
+  tags:
+  - dirty
+  - textured
+  excludes:
+  - thermal
+  params:
+    chain:
+    - - paper_texture
+      - alpha: 0.45
+        grain: 0.7
+    - - ink_degradation
+      - level: 4
+    - - bleed_through
+      - intensity: 0.5
+        nb_iter: 6
+    - - blur_zones
+      - radius: 1.4
+        zones: 3
+        coverage: 0.18
+    - - shadow_binding
+      - border: left
+        distance_ratio: 0.13
+        intensity: 0.45
+    - - holes
+      - count: 2
+        placement: border
+        size_ratio: 0.1
+        fill: black
+- id: stains
+  weight: 3.0
+  tags:
+  - dirty
+  - textured
+  params:
+    chain:
+    - - paper_texture
+      - alpha: 0.35
+        grain: 0.5
+    - - gradient_domain
+      - count: 5
+        strength: 0.75
+    - - ink_degradation
+      - level: 3
+- id: ghost_text
+  weight: 3.0
+  tags:
+  - ghosting
+  - textured
+  params:
+    chain:
+    - - paper_texture
+      - alpha: 0.3
+        grain: 0.45
+    - - phantom_character
+      - frequency: rare
+    - - ink_degradation
+      - level: 2
+    - - blur_zones
+      - radius: 1.2
+        zones: 2
+        coverage: 0.15
+- id: photocopy
+  weight: 3.0
+  tags:
+  - high_contrast
+  - textured
+  params:
+    chain:
+    - - paper_texture
+      - alpha: 0.25
+        grain: 0.35
+    - - ink_degradation
+      - level: 3
+    - - phantom_character
+      - frequency: rare
+    - - blur
+      - radius: 0.8
+    - - shadow_binding
+      - border: top
+        distance_ratio: 0.08
+        intensity: 0.3
+    - - paper_overlay
+      - alpha: 0.22
+        lighten: 0.4
+- id: crumpled
+  weight: 2.0
+  tags:
+  - creased
+  - textured
+  requires:
+  - thermal
+  params:
+    chain:
+    - - paper_texture
+      - alpha: 0.5
+        grain: 0.8
+        creases: 4
+    - - ink_degradation
+      - level: 3
+    - - gradient_domain
+      - count: 3
+        strength: 0.6
+    - - blur_zones
+      - radius: 1.2
+        zones: 3
+        coverage: 0.18
+    - - paper_overlay
+      - alpha: 0.34
+        lighten: 0.3
+- id: torn_edges
+  weight: 2.0
+  tags:
+  - textured
+  - torn
+  params:
+    chain:
+    - - paper_texture
+      - alpha: 0.4
+        grain: 0.6
+        creases: 2
+    - - ink_degradation
+      - level: 2
+    - - holes
+      - count: 2
+        placement: border
+        size_ratio: 0.16
+        fill: black
+    - - holes
+      - count: 1
+        placement: corner
+        size_ratio: 0.26
+        fill: black
+    - - blur_zones
+      - radius: 1.0
+        zones: 2
+        coverage: 0.14
+- id: punched
+  weight: 1.0
+  tags:
+  - textured
+  - torn
+  params:
+    chain:
+    - - paper_texture
+      - alpha: 0.45
+        grain: 0.7
+    - - ink_degradation
+      - level: 3
+    - - holes
+      - count: 3
+        placement: center
+        size_ratio: 0.09
+        fill: black
+    - - shadow_binding
+      - border: left
+        distance_ratio: 0.1
+        intensity: 0.35
+- id: photocopy_screened
+  weight: 3.0
+  tags:
+  - screened
+  - textured
+  excludes:
+  - thermal
+  params:
+    chain:
+    - - paper_texture
+      - alpha: 0.28
+        grain: 0.4
+    - - halftone_screen
+      - cell: 4.2
+        angle: 45
+        strength: 0.5
+    - - blur
+      - radius: 0.6
+    - - scan_banding
+      - period: 46
+        amplitude: 0.045
+- id: photocopy_stamped
+  weight: 2.0
+  tags:
+  - screened
+  - textured
+  excludes:
+  - thermal
+  params:
+    chain:
+    - - paper_texture
+      - alpha: 0.3
+        grain: 0.45
+    - - halftone_screen
+      - cell: 3.6
+        angle: 45
+        strength: 0.7
+    - - blur
+      - radius: 0.7
+    - - pattern_overlay
+      - pattern: seal_square_copy
+        scale: 0.34
+        opacity: 0.55
+        anchor: bottom_right
+        rotate: 8
+    - - scan_banding
+      - period: 34
+        amplitude: 0.06
+- id: flatbed_scan
+  weight: 3.0
+  tags:
+  - scanned
+  - textured
+  params:
+    chain:
+    - - paper_texture
+      - alpha: 0.24
+        grain: 0.35
+    - - scan_banding
+      - period: 30
+        amplitude: 0.07
+        tilt: 1.5
+    - - blur_zones
+      - radius: 1.1
+        zones: 2
+        coverage: 0.16
+    - - jpeg_blocks
+      - quality: 42
+        passes: 1
+- id: forwarded_photo
+  weight: 3.0
+  tags:
+  - recompressed
+  - textured
+  params:
+    chain:
+    - - paper_texture
+      - alpha: 0.3
+        grain: 0.5
+    - - ink_degradation
+      - level: 2
+    - - blur_zones
+      - radius: 1.4
+        zones: 2
+        coverage: 0.2
+    - - jpeg_blocks
+      - quality: 30
+        passes: 3

@@ -1,0 +1,166 @@
+options:
+- id: eatery_indexed
+  weight: 3.0
+  tags:
+  - has_index_column
+  - till_receipt
+  - two_line_items
+  requires:
+  - doc_eatery
+  excludes:
+  - doc_invoice
+- id: eatery_ascii
+  weight: 2.0
+  tags:
+  - ascii_only
+  - no_title
+  - till_receipt
+  requires:
+  - doc_eatery
+  excludes:
+  - doc_invoice
+  - has_vat
+- id: market_barcode
+  weight: 3.0
+  tags:
+  - barcode_rows
+  - till_receipt
+  requires:
+  - has_barcode
+  excludes:
+  - doc_invoice
+- id: market_compact
+  weight: 3.0
+  tags:
+  - till_receipt
+  - wrapped_names
+  requires:
+  - doc_market
+  excludes:
+  - doc_invoice
+  - has_vat_lines
+- id: market_vat
+  weight: 2.0
+  tags:
+  - till_receipt
+  - vat_rows
+  requires:
+  - has_vat_lines
+  excludes:
+  - doc_invoice
+- id: invoice_vat_form
+  weight: 2.0
+  tags:
+  - dotted_fields
+  - printed_form
+  - ruled_table
+  - wide_paper
+  requires:
+  - doc_invoice
+  - invoice_form
+- id: invoice_vat_summary
+  weight: 2.0
+  tags:
+  - boxed_letterhead
+  - printed_form
+  - ruled_table
+  - summary_table
+  - wide_paper
+  requires:
+  - doc_invoice
+  - invoice_summary
+- id: invoice_export
+  weight: 2.0
+  tags:
+  - bilingual
+  - numbered_columns
+  - printed_form
+  - ruled_table
+  - stacked_parties
+  - wide_paper
+  requires:
+  - doc_export
+  - doc_invoice
+  excludes:
+  - has_vat
+- id: invoice_water
+  weight: 2.0
+  tags:
+  - meter_rows
+  - printed_form
+  - ruled_table
+  - wide_paper
+  requires:
+  - doc_utility
+  - metered_water
+- id: invoice_power
+  weight: 2.0
+  tags:
+  - printed_form
+  - ruled_table
+  - tier_rows
+  - wide_paper
+  requires:
+  - doc_utility
+  - metered_power
+- id: invoice_hotel_stay
+  weight: 2.0
+  tags:
+  - dated_rows
+  - key_strip
+  - no_frame
+  - signature_names
+  - wide_paper
+  requires:
+  - doc_lodging
+- id: invoice_hotel_compact
+  weight: 2.0
+  tags:
+  - dated_rows
+  - key_strip
+  - narrow_sheet
+  - no_frame
+  - signature_names
+  - wide_paper
+  requires:
+  - doc_lodging
+- id: invoice_tax_en
+  weight: 2.0
+  tags:
+  - no_frame
+  - wide_paper
+  requires:
+  - doc_invoice
+  - lang_en
+- id: invoice_brand
+  weight: 2.0
+  tags:
+  - footer_columns
+  - key_strip
+  - no_frame
+  - wide_paper
+  requires:
+  - doc_brand
+  - doc_invoice
+- id: medical_statement
+  weight: 2.0
+  tags:
+  - grouped_rows
+  - multi_source
+  - printed_form
+  - ruled_table
+  - wide_paper
+  requires:
+  - doc_invoice
+  - doc_medical
+- id: authorisation_letter
+  weight: 2.0
+  tags:
+  - dotted_fields
+  - field_form
+  - no_frame
+  - printed_form
+  - wide_paper
+  requires:
+  - doc_authorisation
+  - doc_invoice
