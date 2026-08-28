@@ -9,6 +9,7 @@ three backends at once.
 from __future__ import annotations
 
 import pytest
+from conftest import force_for
 
 import rulebase
 from rulebase.layout import every as every_layout
@@ -31,7 +32,7 @@ def grids():
     global _GRIDS
     if _GRIDS is None:
         _GRIDS = [
-            (layout, seed) + rulebase.make(seed=seed, force={"layout": layout})[1:]
+            (layout, seed) + rulebase.make(seed=seed, force=force_for(layout))[1:]
             for layout in LAYOUTS
             for seed in SEEDS
         ]
@@ -44,7 +45,7 @@ def test_there_are_layouts():
 
 @pytest.mark.parametrize("layout", LAYOUTS)
 def test_every_declared_layout_builds(layout):
-    _recipe, _receipt, grid = rulebase.make(seed=3, force={"layout": layout})
+    _recipe, _receipt, grid = rulebase.make(seed=3, force=force_for(layout))
     assert grid.cells
     assert grid.layout_id == layout
 
@@ -119,7 +120,7 @@ def _ruled(layout_id: str, seed: int = 2026):
 
     import rulebase.layout as L
 
-    receipt = rulebase.make(seed=seed, force={"layout": layout_id})[1]
+    receipt = rulebase.make(seed=seed, force=force_for(layout_id))[1]
     original = L.load_layout
 
     def built(mode):
@@ -146,7 +147,7 @@ def test_a_layout_that_does_not_ask_gets_no_marks():
     """
     for layout_id in ("eatery_ascii", "eatery_indexed", "market_barcode",
                       "market_compact", "market_vat"):
-        grid = rulebase.make(seed=7, force={"layout": layout_id})[2]
+        grid = rulebase.make(seed=7, force=force_for(layout_id))[2]
         assert grid.marks == [], layout_id
         assert "marks" not in grid.to_dict()
 
@@ -311,7 +312,7 @@ def test_a_thermal_layout_is_on_a_roll_and_an_invoice_is_on_a_sheet():
              if not rulebase.load_layout(layout).get("sheet")}
     assert rolls, "every layout claims a cut sheet; the roll case is untested"
     for layout_id in LAYOUTS:
-        grid = rulebase.make(seed=11, force={"layout": layout_id})[2]
+        grid = rulebase.make(seed=11, force=force_for(layout_id))[2]
         ratio = rulebase.sheet_ratio(grid)
         if layout_id in rolls:
             assert grid.sheet == "", layout_id
@@ -393,11 +394,23 @@ def test_a_switched_off_layout_leaves_the_drawable_list_and_not_the_disk():
 
 
 def test_a_switched_off_layout_still_draws_when_it_is_named():
-    """The committed pages that drew one have to stay redrawable."""
+    """The committed pages that drew one have to stay redrawable.
+
+    With its DOCUMENT named too, which is what a redraw does anyway --
+    `tools/check_boxes.py` forces every attribute off the record. The eight
+    `doc_form` documents were switched off with these ten layouts (a document
+    whose every layout is off cannot be drawn at all), so the layout alone
+    leaves the sampler with nothing that produces the tag it requires.
+    """
     recipe, _receipt, grid = rulebase.make(
-        seed=11, force={"layout": "form_two_column"})
+        seed=11, force={"document": "form_symmetric", "layout": "form_two_column"})
     assert grid.layout_id == "form_two_column"
     assert recipe.layout.id == "form_two_column"
+
+    # ...and the layout alone is refused, loudly, rather than drawing something
+    # else: `force_for` in conftest is the helper that pairs the two.
+    with pytest.raises(rulebase.RuleError):
+        rulebase.make(seed=11, force={"layout": "form_two_column"})
 
 
 def test_a_switched_off_layout_still_has_a_sheet_to_be_dressed_in():

@@ -191,6 +191,18 @@ class Option:
     requires: frozenset[str] = frozenset()
     excludes: frozenset[str] = frozenset()
     params: dict[str, Any] = field(default_factory=dict)
+    # `enabled: false` -- present, never drawn by chance, still drawable by
+    # name. The same word `rulebase/layouts/*.yaml` uses for a layout and the
+    # same idea as `degradation.SWITCHED_OFF`: switching a value off is not
+    # deleting it.
+    #
+    # Weight 0 is the obvious way to say this and `validate()` calls it dead
+    # rules, correctly -- an option nobody can draw is almost always a typo in
+    # a tag name. This is the declared form of the same state, so the two can
+    # be told apart: a value that is off ON PURPOSE says so, and `--force
+    # handwriting=hand_model` still reaches it (forcing looks a value up by id
+    # and never consults its weight).
+    enabled: bool = True
     # Which parent node this value sits under, "" for a flat file. Set from the
     # structure of the file and never from a key on the value itself: a value
     # that could name its own parent would let two nodes claim it.
@@ -199,7 +211,7 @@ class Option:
     @classmethod
     def from_dict(cls, raw: dict[str, Any], attribute: str,
                   parent: "Group | None" = None) -> "Option":
-        known = {"id", "weight", "tags", "requires", "excludes", "params"}
+        known = {"id", "weight", "tags", "requires", "excludes", "params", "enabled"}
         unknown = set(raw) - known
         if unknown:
             raise RuleError(
@@ -219,6 +231,7 @@ class Option:
             requires=frozenset(raw.get("requires") or ()) | inherited.requires,
             excludes=frozenset(raw.get("excludes") or ()) | inherited.excludes,
             params=dict(raw.get("params") or {}),
+            enabled=bool(raw.get("enabled", True)),
             group=inherited.id,
         )
 
@@ -467,7 +480,8 @@ def _draw_once(order: tuple[str, ...], rules: dict[str, list[Option]],
 
     for attribute in order:
         options = rules[attribute]
-        candidates = [option for option in options if option.allowed(tags)]
+        candidates = [option for option in options
+                      if option.enabled and option.allowed(tags)]
         if attribute in force:
             wanted = force[attribute]
             by_id = {option.id: option for option in options}
@@ -520,8 +534,10 @@ def _reachable_tags(order: tuple[str, ...], rules: dict[str, list[Option]],
         following: set[frozenset[str]] = set()
         for tags in states:
             for option in options:
-                # weight 0 means never drawn, so it cannot supply a tag either.
-                if option.weight > 0 and option.allowed(tags):
+                # Never drawn means it cannot supply a tag either -- by weight
+                # 0 or by `enabled: false`, which are the accidental and the
+                # declared spelling of the same state.
+                if option.weight > 0 and option.enabled and option.allowed(tags):
                     following.add(frozenset(tags | option.tags))
         states = following
         if not states:
@@ -666,14 +682,19 @@ def validate(rules: dict[str, list[Option]] | None = None) -> list[str]:
                     f"{attribute}/{option.id}: requires {sorted(missing)}, which no "
                     f"earlier attribute ever sets"
                 )
-            if option.weight == 0:
+            # An option that DECLARES itself off is not dead rules: it is a
+            # value kept for `--force` and for the day it is switched back on.
+            # Weight 0 without that declaration still is.
+            if option.weight == 0 and option.enabled:
                 problems.append(f"{attribute}/{option.id}: weight 0, never drawn")
         reachable |= {tag for option in rules[attribute] for tag in option.tags}
 
     # Something has to be drawable for every attribute in the worst case.
     for attribute in rules:
-        if not any(option.weight > 0 for option in rules[attribute]):
-            problems.append(f"{attribute}: every option has weight 0")
+        if not any(option.weight > 0 and option.enabled for option in rules[attribute]):
+            problems.append(
+                f"{attribute}: no option is drawable (every one is weight 0 or "
+                f"`enabled: false`)")
     return problems
 
 

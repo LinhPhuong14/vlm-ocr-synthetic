@@ -141,6 +141,11 @@ SWITCHED_OFF = {
         "dải ngang do trục lăn bẩn. Tắt cả ba giá trị của thuộc tính "
         "`rollers`, xem rulebase/rules/rollers.yaml"
     ),
+    "halftone_screen": (
+        "lưới tram của máy photocopy. Không tự nó bị loại: hai giá trị duy "
+        "nhất gọi tới nó, `photocopy_screened` và `photocopy_stamped`, đã tắt "
+        "cùng `photocopy`"
+    ),
 }
 
 
