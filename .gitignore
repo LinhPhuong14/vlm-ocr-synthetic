@@ -69,6 +69,11 @@ samples/form-templates/out/
 !data/**/*.json
 !data/**/*.jsonl
 
+# The visualize tool's own scratch runs: exploratory previews, never a dataset.
+# Without this, the three re-includes above would un-ignore every throwaway
+# preview image `make visualize` writes.
+data/visualize_runs/
+
 # Fonts you supply yourself are not redistributable; keep them out.
 # `fonts/` is the exception: everything in it is OFL, Apache-2.0 or Bitstream
 # Vera, and without it a fresh clone cannot render at all. See fonts/README.md.

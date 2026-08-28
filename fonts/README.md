@@ -42,6 +42,23 @@ written. It is not here. Dancing Script passes the check but ships only as a
 variable font, and instantiating a static cut would mean redistributing a
 modified face under a Reserved Font Name; it is not here either.
 
+**Two more, checked while looking for a third face.** Finesse (Republish /
+Behalf Studio) passes the Vietnamese check, but its own specimen sheet says
+"Only Finesse Oblique is released under SIL Open Font License" -- Roman,
+Italic, Flair and Future, the cuts that would actually stand in for a plain
+hand, are not. Every one of the five files' embedded metadata agrees they are
+not OFL: `Copyright © 2020 by Behalf Studio. All rights reserved.`, with no
+`licenseDescription` name record at all -- Patrick Hand's and Indie Flower's
+both carry the OFL's, verbatim, so the absence here is a real signal and not a
+quirk of how it was checked. Oblique itself carries no such record either,
+despite the specimen's claim for it: one licensing document disagreeing with
+itself is a reason to leave the whole family out, not to pick the cut it
+happens to bless. Playwrite VN (Google Fonts) is genuinely OFL but ships only
+as a variable font with no static instances published, the same reason
+Dancing Script is not here, and would additionally need checking against
+WeasyPrint's variable-font support before `--handwriting font` could use it on
+both HTML renderers. Neither is here.
+
 ## Vietnamese coverage is not optional
 
 Every font here has been checked to cover the full Vietnamese alphabet. That
