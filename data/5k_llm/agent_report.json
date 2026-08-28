@@ -381,9 +381,9 @@
   "never_drawn": {},
   "elapsed_seconds": {
     "rules": 0.47,
-    "plan": 0.61,
-    "verify": 0.41,
-    "render": 671.04,
-    "proof": 35.8
+    "plan": 0.57,
+    "verify": 0.4,
+    "render": 677.24,
+    "proof": 42.53
   }
 }
