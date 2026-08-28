@@ -351,3 +351,45 @@ def test_a_roll_still_has_plenty_to_wear(built):
     drawable = [o for o in rules[agent_rules.ATTRIBUTE] if o.allowed(on_a_roll)]
     every = rules[agent_rules.ATTRIBUTE]
     assert len(drawable) > 0.8 * len(every), f"{len(drawable)} of {len(every)}"
+
+
+# ------------------------------------------------ a value the rules switched off
+
+
+def test_weight_zero_means_never_not_rarely(built):
+    """`_weighted_choice` has always read `weight: 0` as off.
+
+    The coverage score divides by usage and floors at a tiny positive number, so
+    a switched-off value would otherwise be picked the moment everything else
+    had been used once -- which is the opposite of off, and would have drawn the
+    WriteViT ink sources on a machine that has no WriteViT.
+    """
+    rules, pol = built
+    # `seller_seal`, not `no_ornament`: the bare value is the only one some tag
+    # sets can reach, and switching it off means the rules cannot draw a page at
+    # all -- which `legal` reports rather than papering over, and which is a
+    # different thing from the property under test here.
+    rules = agent_rules.switch_off(rules, "ornament", ["seller_seal"])
+    chooser = planner.Chooser(rules, tuple(rules), seed=3)
+    assert all(option.id != "seller_seal"
+               for option in chooser.legal("ornament", frozenset({"doc_invoice"})))
+    for decision in planner.plan(400, seed=3, rules=rules, policy=pol):
+        assert decision.force["ornament"] != "seller_seal"
+
+
+def test_switching_off_keeps_the_value_it_switched(built):
+    """Not a deletion: a record naming it must still be readable."""
+    rules, _ = built
+    off = agent_rules.switch_off(rules, "ornament", ["seller_seal"])
+    assert {o.id for o in off["ornament"]} == {o.id for o in rules["ornament"]}
+    seal = next(o for o in off["ornament"] if o.id == "seller_seal")
+    assert seal.weight == 0
+    assert seal.params == next(o for o in rules["ornament"]
+                               if o.id == "seller_seal").params
+
+
+def test_the_ink_sources_that_need_writevit_are_named(built):
+    """Named, so a run without the clone switches them off deliberately."""
+    rules, _ = built
+    have = {option.id for option in rules["handwriting"]}
+    assert set(agent_rules.NEEDS_WRITEVIT) <= have, have
