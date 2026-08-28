@@ -23,7 +23,11 @@ for _extra in (REPO_ROOT, REPO_ROOT / "tools"):
         sys.path.insert(0, str(_extra))
 
 from make_ornaments import (  # noqa: E402
-    _ring_only, double_strike, edge_seal, rectangular_seal, round_seal,
+    _ring_only,
+    double_strike,
+    edge_seal,
+    rectangular_seal,
+    round_seal,
 )
 
 # Khoảng `coverage` truyền vào `_ink()` -- thấp hơn nghĩa là mực mòn/nhạt hơn.
