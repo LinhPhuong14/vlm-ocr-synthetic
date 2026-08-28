@@ -1,5 +1,5 @@
 {
-  "per_framework": 2000,
+  "per_framework": 3000,
   "layouts": [
     "authorisation_letter",
     "eatery_ascii",
@@ -24,26 +24,26 @@
   "template": "auto",
   "frameworks": {
     "html": {
-      "images": 2000,
-      "distinct_seeds": 2000,
-      "distinct_labels": 2000,
+      "images": 3000,
+      "distinct_seeds": 3000,
+      "distinct_labels": 3000,
       "by_layout": {
-        "eatery_indexed": 258,
-        "invoice_hotel_compact": 113,
-        "eatery_ascii": 155,
-        "authorisation_letter": 79,
-        "market_compact": 181,
-        "invoice_vat_form": 122,
-        "invoice_water": 114,
-        "market_barcode": 146,
-        "invoice_power": 100,
-        "medical_statement": 110,
-        "invoice_tax_en": 83,
-        "invoice_brand": 115,
-        "invoice_hotel_stay": 114,
-        "invoice_vat_summary": 128,
-        "market_vat": 67,
-        "invoice_export": 115
+        "eatery_indexed": 402,
+        "invoice_hotel_compact": 163,
+        "eatery_ascii": 209,
+        "authorisation_letter": 119,
+        "market_compact": 260,
+        "invoice_vat_form": 188,
+        "invoice_water": 184,
+        "market_barcode": 225,
+        "invoice_power": 165,
+        "medical_statement": 166,
+        "invoice_tax_en": 118,
+        "invoice_brand": 176,
+        "invoice_hotel_stay": 169,
+        "invoice_vat_summary": 177,
+        "market_vat": 101,
+        "invoice_export": 178
       }
     }
   }
