@@ -14,6 +14,7 @@ import pytest
 from pipeline.config import Config, ConfigError, apply_overrides, resolve_workers
 from pipeline.plan import (
     LAYOUT_STRIDE,
+    Run,
     backend_runs,
     build_plan,
     disjoint_seeds,
@@ -408,3 +409,28 @@ def test_a_pinned_plan_still_gives_every_backend_the_same_receipts():
     plan = build_plan(make_config(per_backend=4, size=4, force=["layout=eatery_ascii"]),
                       LAYOUTS)
     assert paired_content(plan) == []
+
+
+# --------------------------------------------- a split run keeps what it carries
+
+
+def test_splitting_a_run_across_shards_keeps_its_pins():
+    """`shard_runs` rebuilt each piece field by field and dropped `force`.
+
+    Invisible while `force` was always empty; fatal once an agent puts all eight
+    attributes there, because the pages still render and still validate -- they
+    are simply not the pages the plan describes.
+    """
+    pins = {"document": "supermarket", "variant": "f_x", "augmentation": "pristine"}
+    shards = shard_runs([Run(layout="market_vat", seed=10, count=5, first_index=0,
+                             force=pins)], "html", size=2, start_index=0)
+    pieces = [run for shard in shards for run in shard.runs]
+    assert sum(run.count for run in pieces) == 5
+    assert [run.seed for run in pieces] == [10, 12, 14]
+    assert all(run.force == pins for run in pieces)
+
+
+def test_a_run_with_no_pins_is_unchanged_by_the_split():
+    shards = shard_runs([Run(layout="market_vat", seed=1, count=3, first_index=0)],
+                        "html", size=2, start_index=0)
+    assert all(run.force == {} for shard in shards for run in shard.runs)

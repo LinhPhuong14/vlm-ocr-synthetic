@@ -566,3 +566,33 @@ def test_no_shipped_image_prints_a_total_row_the_label_cannot_carry():
             if doubled:
                 bad.append(f"{index.parent.parent.name}/{record['file_name']}: {doubled}")
     assert not bad, "\n".join(bad)
+
+
+# ------------------------------------------------- a run broken across a hyphen
+
+
+def test_a_run_the_engine_broke_after_a_hyphen_still_counts_as_printed():
+    """The browser may break `LONG-SLEEVE` after the hyphen, so the run arrives
+    as two boxes. `_printed` joins a kind's boxes with a space, which is right
+    for a break at a space and wrong for this one -- and the label, which is
+    correct, was then reported as printed nowhere. Measured on
+    `invoice_export`, whose corpus is bilingual and whose name column is narrow.
+    """
+    boxes = [{"kind": "menu.name", "text": "ÁO SƠ MI NAM DÀI TAY (MEN'S LONG-"},
+             {"kind": "menu.name", "text": "SLEEVE SHIRT)"}]
+    page, by_kind = invariants._printed(boxes)
+    wanted = "ÁO SƠ MI NAM DÀI TAY (MEN'S LONG-SLEEVE SHIRT)"
+    assert wanted not in page, "the plain join is what this is about"
+    assert invariants.appears(wanted, page, by_kind)
+
+
+def test_a_value_that_really_is_missing_is_still_missing():
+    """The hyphen allowance must not turn the check into one that always passes."""
+    boxes = [{"kind": "menu.name", "text": "BÚN BÒ HUẾ"}]
+    page, by_kind = invariants._printed(boxes)
+    assert not invariants.appears("PHỞ GÀ", page, by_kind)
+
+
+def test_dehyphen_only_closes_a_gap_that_follows_a_hyphen():
+    assert invariants.dehyphen("LONG- SLEEVE") == "LONG-SLEEVE"
+    assert invariants.dehyphen("BÚN BÒ") == "BÚN BÒ"
