@@ -167,8 +167,21 @@ def _ink(image: Image.Image, rng: random.Random, coverage: float = 0.86) -> Imag
 # ------------------------------------------------------------------ con dấu
 
 def round_seal(top: str, bottom: str, middle: list[str], *, seed: int,
-                 size: int = 520, colour=(196, 30, 38), star: bool = True) -> Image.Image:
-    """Dấu tròn: hai vành, chữ chạy vành trên và vành dưới, giữa là sao hoặc chữ."""
+                 size: int = 520, colour=(196, 30, 38), centre_kind: str = "star",
+                 wear: tuple[float, float] | None = None) -> Image.Image:
+    """Dấu tròn: hai vành, chữ chạy vành trên và vành dưới.
+
+    `centre_kind` chọn MỘT thứ choán khoảng trống bên trong hai vành, không
+    phải cả hai thứ chồng lên nhau -- một con dấu khắc tay không có chỗ cho cả
+    biểu tượng lẫn dòng chữ đều chiếm vị trí chính giữa:
+      "star"  chỉ ngôi sao năm cánh; `middle` không được vẽ
+      "text"  chỉ các dòng `middle`; không có sao
+      "both"  sao ở trên, `middle` ở dưới -- nếp cũ trước khi có tham số này
+      "none"  để trống hẳn, chỉ còn hai vành chữ
+
+    `wear` là khoảng `(thấp, cao)` truyền vào `_ink()` làm `coverage` -- thấp
+    hơn nghĩa là mực mòn/nhạt hơn. Để `None` thì dùng khoảng mặc định cũ.
+    """
     rng = random.Random(seed)
     side = size * SS
     canvas = Image.new("RGBA", (side, side), (0, 0, 0, 0))
@@ -206,26 +219,33 @@ def round_seal(top: str, bottom: str, middle: list[str], *, seed: int,
                       fill=ink, outward=True)
 
     draw = ImageDraw.Draw(canvas)
-    if star:
+    show_star = centre_kind in ("star", "both")
+    show_text = centre_kind in ("text", "both") and middle
+    if show_star:
         _star(draw, centre, side * 0.115, ink)
         text_top = centre[1] + side * 0.135
     else:
         text_top = centre[1] - side * 0.06
 
-    line_font = ImageFont.truetype(FONT_BOLD, int(side * 0.058))
-    for index, line in enumerate(middle):
-        w = draw.textlength(line, font=line_font)
-        draw.text((centre[0] - w / 2, text_top + index * side * 0.062), line,
-                  font=line_font, fill=ink)
+    if show_text:
+        line_font = ImageFont.truetype(FONT_BOLD, int(side * 0.058))
+        for index, line in enumerate(middle):
+            w = draw.textlength(line, font=line_font)
+            draw.text((centre[0] - w / 2, text_top + index * side * 0.062), line,
+                      font=line_font, fill=ink)
 
     canvas = canvas.resize((size, size), Image.LANCZOS)
-    canvas = _ink(canvas, rng, coverage=rng.uniform(0.78, 0.93))
+    lo, hi = wear if wear is not None else (0.78, 0.93)
+    canvas = _ink(canvas, rng, coverage=rng.uniform(lo, hi))
     return canvas.rotate(rng.uniform(-16, 16), resample=Image.BICUBIC, expand=True)
 
 
 def rectangular_seal(lines: list[str], *, seed: int, width: int = 560, height: int = 220,
-                  colour=(196, 30, 38)) -> Image.Image:
-    """Dấu chữ nhật -- "ĐÃ THU TIỀN", "BẢN SAO" -- đóng chồng lên tờ hoá đơn."""
+                  colour=(196, 30, 38), wear: tuple[float, float] | None = None) -> Image.Image:
+    """Dấu chữ nhật -- "ĐÃ THU TIỀN", "BẢN SAO" -- đóng chồng lên tờ hoá đơn.
+
+    `wear`: xem docstring của `round_seal` -- cùng ý nghĩa, cùng cách dùng.
+    """
     rng = random.Random(seed)
     w, h = width * SS, height * SS
     canvas = Image.new("RGBA", (w, h), (0, 0, 0, 0))
@@ -247,7 +267,8 @@ def rectangular_seal(lines: list[str], *, seed: int, width: int = 560, height: i
         y += font.size * 1.25
 
     canvas = canvas.resize((width, height), Image.LANCZOS)
-    canvas = _ink(canvas, rng, coverage=rng.uniform(0.80, 0.94))
+    lo, hi = wear if wear is not None else (0.80, 0.94)
+    canvas = _ink(canvas, rng, coverage=rng.uniform(lo, hi))
     return canvas.rotate(rng.uniform(-9, 9), resample=Image.BICUBIC, expand=True)
 
 
@@ -654,11 +675,11 @@ def main() -> None:
     RED = (196, 30, 38)
 
     company = round_seal("CÔNG TY TNHH BÁN LẺ AN PHÚ VIỆT NAM", "MST 0108432911",
-                         ["HÀ NỘI"], seed=23, star=True)
+                         ["HÀ NỘI"], seed=23, centre_kind="both")
     hotel = round_seal("CÔNG TY TNHH KHÁCH SẠN THÁI AN", "MST 4201234567",
-                       ["THÁI AN", "HOTEL"], seed=44, star=False, colour=(178, 34, 40))
+                       ["THÁI AN", "HOTEL"], seed=44, centre_kind="text", colour=(178, 34, 40))
     export = round_seal("CÔNG TY TNHH DỆT MAY TÂN PHÁT VINA", "ĐỒNG NAI",
-                        ["TÂN PHÁT", "VINA"], seed=37, star=False, colour=BLUE)
+                        ["TÂN PHÁT", "VINA"], seed=37, centre_kind="text", colour=BLUE)
 
     made: list[tuple[str, Image.Image]] = [
         # --- dấu: mực ép lên tờ giấy đã in xong
