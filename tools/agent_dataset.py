@@ -119,6 +119,18 @@ def main() -> int:
     root = agent_rules.materialise(out / RULES_DIR, catalogue, pol)
     agent_rules.activate(root)
     rules = agent_rules.compose(catalogue, pol)
+
+    # `handwriting.py` refuses to fake ink when WriteViT is absent, and it is
+    # right to: a page whose label says a field was filled by hand and whose
+    # pixels show a printed font is a lie. So the ink sources that need it are
+    # switched off deliberately here, and the run says so, rather than dying on
+    # whichever page first drew one.
+    if agent_rules.writevit_missing() is not None:
+        rules = agent_rules.switch_off(rules, "handwriting",
+                                       agent_rules.NEEDS_WRITEVIT)
+        print(f"[agent] không có WriteViT tại {agent_rules.writevit_missing()} — "
+              f"tắt {', '.join(agent_rules.NEEDS_WRITEVIT)}; "
+              f"chạy `python tools/writevit/setup.py` để bật lại")
     clock["rules"] = round(time.time() - started, 2)
     print(f"[agent] {len(catalogue)} dressing, rules -> {root}")
 
