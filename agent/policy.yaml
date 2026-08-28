@@ -24,9 +24,10 @@
 # planner. `variant` nào đòi `aug_free` thì document `locked` không bốc tới
 # được, và `make check-rules` kiểm được điều đó.
 #
-# Kho này CHƯA CÓ phôi giấy tờ tuỳ thân nào (bằng lái, CCCD, giấy chứng nhận
-# nhà nước). `locked` là chỗ chúng sẽ vào nếu được thêm; danh sách dưới đây
-# hiện chỉ có hai phôi biểu mẫu do nhà nước ban hành.
+# `locked` KHÔNG còn là chỗ trống: master đã mang vào giấy khai sinh, tờ khai
+# đăng ký kết hôn, sơ yếu lý lịch Bộ Nội vụ, thẻ BHYT và giấy chứng nhận bảo
+# hiểm bắt buộc TNDS xe cơ giới. Đó đúng là loại giấy mà dựng lại dáng là dạy
+# mô hình rằng tờ giả cũng là tờ thật.
 
 classes:
 
@@ -35,8 +36,14 @@ classes:
       Phôi do cơ quan nhà nước ban hành, có mẫu số và ký hiệu quy định. Dáng tờ
       giấy là một phần của tính hợp lệ, nên chỉ đóng dấu chứ không dựng lại.
     documents:
-      - vat_invoice_form   # phôi hoá đơn GTGT in sẵn, Mẫu số 01GTKT
-      - hospital_bill      # bảng kê chi phí KCB, Mẫu số 01/KBCB
+      - vat_invoice_form            # hoá đơn GTGT in sẵn, Mẫu số 01GTKT
+      - hospital_bill               # bảng kê chi phí KCB, Mẫu số 01/KBCB
+      - form_dense                  # mẫu giấy khai sinh — quốc hiệu, khung CHXHCNVN
+      - form_symmetric              # tờ khai đăng ký kết hôn
+      - form_activity               # sơ yếu lý lịch tự thuật, Cục QLLĐ ngoài nước
+      - insurance_health_id_card    # thẻ BHYT — giấy tờ tuỳ thân, hai mặt
+      - insurance_auto_certificate  # GCN bảo hiểm bắt buộc TNDS ô tô, mẫu Bộ Tài chính
+      - insurance_moto_certificate  # GCN bảo hiểm bắt buộc TNDS xe máy, phải xuất trình
 
   livery:
     reason: >
@@ -47,8 +54,14 @@ classes:
       - export_invoice     # mẫu 06HDXK, nhãn song ngữ cố định
       - utility_power      # hoá đơn tiền điện, khung ngành điện
       - utility_water      # hoá đơn tiền nước, khung ngành nước
-      - tax_invoice_en     # tax invoice nước ngoài, khung cố định
-      - authorisation_letter  # giấy uỷ quyền theo mẫu công ty
+      - tax_invoice_en                # tax invoice nước ngoài, khung cố định
+      - authorisation_letter          # giấy uỷ quyền theo mẫu công ty
+      - form_roster                   # mẫu bảng chấm công — lưới ngày cố định
+      - insurance_fire_certificate    # GCN bảo hiểm cháy nổ bắt buộc
+      - insurance_health_certificate  # GCN bảo hiểm sức khoẻ
+      - insurance_travel_certificate  # GCN bảo hiểm du lịch quốc tế, song ngữ
+      - insurance_cargo_policy        # đơn bảo hiểm hàng hoá, lưới trường song ngữ
+      - insurance_life_schedule       # bảng tóm tắt hợp đồng bảo hiểm nhân thọ
 
   free:
     reason: >
@@ -66,6 +79,23 @@ classes:
       - resort_stay
       - bakery_order
       - retail_vat_invoice
+      # Biểu mẫu doanh nghiệp tự thiết kế (nguồn FUNSD) — không cơ quan nào
+      # ban hành dáng cho chúng.
+      - form_brief
+      - form_checklist
+      - form_checklist_table
+      - form_sectioned
+      # Đơn và hợp đồng: bạn đọc ký vào, bên bán tự dàn trang.
+      - insurance_application_form
+      - insurance_property_contract
+      - invoice_detailed
+      - invoice_plain
+      # Báo và tạp chí — nơi dựng lại dáng KHÔNG chỉ được phép mà là bắt buộc:
+      # hai tờ báo cùng khổ không bao giờ dàn giống nhau.
+      - newspaper_front_broadsheet
+      - newspaper_classifieds
+      - magazine_contents
+      - magazine_qa_interview
 
 # Thẻ gắn lên document của từng hạng. Variant đọc đúng ba tên này.
 tags:
