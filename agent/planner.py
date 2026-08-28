@@ -94,7 +94,16 @@ class Chooser:
         self.used: dict[str, dict[str, int]] = {name: {} for name in self.order}
 
     def legal(self, attribute: str, tags: frozenset[str]) -> list[Option]:
-        return [option for option in self.rules[attribute] if option.allowed(tags)]
+        """Drawable values: allowed by the tags, and not switched off.
+
+        `weight: 0` is how the rules switch a value off -- `_weighted_choice`
+        has always read it that way. The coverage score divides by usage and
+        floors at a tiny positive number, so without this a switched-off value
+        would be picked the moment everything else had been used once, which is
+        the opposite of off.
+        """
+        return [option for option in self.rules[attribute]
+                if option.weight > 0 and option.allowed(tags)]
 
     def _score(self, attribute: str, option: Option, bare_penalty: float) -> float:
         used = self.used[attribute].get(option.id, 0)

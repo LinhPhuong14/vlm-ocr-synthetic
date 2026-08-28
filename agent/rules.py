@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import Iterable
 
 from rulebase.spec import ATTRIBUTES, Option, load_rules
 
@@ -71,6 +72,12 @@ DISABLED_DEGRADATIONS = ("gradient_domain", "holes")
 # sets the page's own margins in millimetres cannot be worn by a roll about
 # 80 mm across; naming the tag here keeps that one fact in one place.
 TILL_TAG = "till_receipt"
+
+# Ink sources that need the WriteViT clone beside the repository. Named here so
+# a run without it switches them off deliberately and says so, rather than
+# dying on the first page that draws one -- `handwriting.py` refuses to fake
+# ink when the model is missing, which is the right call and a fatal one.
+NEEDS_WRITEVIT = ("hand_model", "hand_both")
 
 
 class RulesError(ValueError):
@@ -159,6 +166,36 @@ def _without_disabled(options: list[Option]) -> list[Option]:
     return out
 
 
+def switch_off(rules: dict[str, list[Option]], attribute: str,
+               ids: Iterable[str]) -> dict[str, list[Option]]:
+    """Set `weight: 0` on named values -- the rules' own way of saying "off".
+
+    Not a deletion: the value keeps its id, tags and params, so anything that
+    reads a record still knows what it would have meant, and `_weighted_choice`
+    plus `Chooser.legal` both already treat zero as never.
+    """
+    wanted = set(ids)
+    out = dict(rules)
+    out[attribute] = [
+        option if option.id not in wanted else Option.from_dict({
+            "id": option.id, "weight": 0,
+            "tags": sorted(option.tags),
+            "requires": sorted(option.requires),
+            "excludes": sorted(option.excludes),
+            "params": option.params,
+        }, attribute)
+        for option in rules[attribute]
+    ]
+    return out
+
+
+def writevit_missing() -> Path | None:
+    """Where WriteViT should be, when it is not there. None means it is."""
+    root = Path(os.environ.get("WRITEVIT_DIR")
+                or Path(__file__).resolve().parents[2] / "WriteViT")
+    return None if root.is_dir() else root
+
+
 def compose(catalogue: list, policy=None) -> dict[str, list[Option]]:
     """The shipped rules, tagged, with `variant` spliced in after `layout`."""
     policy = policy or policy_module.load()
@@ -214,6 +251,7 @@ def reachable(rules: dict[str, list[Option]], policy) -> dict[str, list[str]]:
     }
 
 
-__all__ = ["AFTER", "ATTRIBUTE", "DISABLED_DEGRADATIONS", "FREE_WEIGHT", "TILL_TAG",
+__all__ = ["AFTER", "ATTRIBUTE", "DISABLED_DEGRADATIONS", "FREE_WEIGHT",
+           "NEEDS_WRITEVIT", "TILL_TAG", "switch_off", "writevit_missing",
            "NONE_ID", "NONE_WEIGHT", "RulesError",
            "activate", "compose", "materialise", "reachable", "variant_options"]
