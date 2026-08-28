@@ -42,8 +42,18 @@ from __future__ import annotations
 
 from html.parser import HTMLParser
 
-from . import (form, insurance, lodging, medical, modern, notebook, periodical,
-              statement, statutory, till)
+from . import (
+    form,
+    insurance,
+    lodging,
+    medical,
+    modern,
+    notebook,
+    periodical,
+    statement,
+    statutory,
+    till,
+)
 from .base import EVERY_RUN, structure_tokens
 
 # Module name (as it appears in a layout file's own `family:` key) -> the
