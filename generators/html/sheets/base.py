@@ -66,6 +66,15 @@ PAPERS: dict[str, tuple[str, str]] = {
     "A5": ("148mm", "210mm"),
     "BROADSHEET": ("375mm", "597mm"),
     "TABLOID": ("280mm", "430mm"),
+    # Landscape is not a flag anywhere in this file -- it is just the same
+    # two lengths, swapped. Added for the insurance root: a travel-insurance
+    # "ticket" page and a health-insurance ID card's two-faces-on-one-sheet
+    # stage (A4_LANDSCAPE), an auto-liability certificate table (A5_LANDSCAPE),
+    # and a motorcycle-liability certificate small enough to be its own class
+    # (A6_LANDSCAPE).
+    "A4_LANDSCAPE": ("297mm", "210mm"),
+    "A5_LANDSCAPE": ("210mm", "148mm"),
+    "A6_LANDSCAPE": ("148mm", "105mm"),
 }
 
 # Font families as `page.font_faces()` names them: the file stem, so a stack
@@ -344,6 +353,101 @@ def field_line(label: str, value: str, *, cls: str = "f", leader: bool = False) 
     return (f'<div class="{cls}{dots}"><span class="k">'
             f'{span("invoice.field.label", label)}</span>'
             f'<span class="v">{body}</span></div>')
+
+
+def bilingual_field_line(label_en: str, label_vn: str, value: str, *, cls: str = "f") -> str:
+    """`field_line()`'s single-label contract, doubled: English stacked over
+    Vietnamese beside one value.
+
+    A bilingual insurance policy (a cargo policy, a travel certificate)
+    prints both languages as equally real fields on the paper, not one as a
+    gloss on the other -- so both label runs carry `data-kind`, the same as
+    the value, rather than only the Vietnamese one.
+    """
+    body = span("invoice.field", value)
+    return (f'<div class="{cls}"><span class="k">'
+            f'{span("invoice.field.label", label_en, "en")}'
+            f'{span("invoice.field.label", label_vn, "vn")}'
+            f'</span><span class="v">{body}</span></div>')
+
+
+def comb_box(kind: str, text: Any, *, groups: Sequence[int] | None = None) -> str:
+    """A per-character boxed grid -- the Vietnamese government-form input
+    where a citizen writes one glyph to a square (an application form's
+    name/date/ID-number fields), one bordered `<i>` per character.
+
+    Every labelled run in this package is `<span data-kind="...">TEXT</span>`
+    with **no nested element** (`tests/test_sheets.py::
+    test_every_labelled_run_is_a_span_with_a_kind` enforces this by regex,
+    repo-wide, with no per-layout exemption) -- so the boxes cannot be one
+    span wrapping a dozen `<i>` cells. Instead each *character* gets its own
+    trivial, unnested `data-kind` span, inside its own `<i>` cell; all of
+    them share the same `kind`, so `pipeline/invariants.py`'s box-rejoining
+    (already written to reassemble one value split across several same-kind
+    boxes, e.g. a line-wrapped run) reassembles the character run the same
+    way. A blank cell (a space in "Tạ Thị") carries no span at all --
+    `span()` already drops blank text -- which the same whitespace-
+    insensitive rejoin fallback tolerates.
+
+    `groups`, given, is how many characters each group holds before a
+    borderless gap cell -- `groups=(2, 2, 4)` for a date "12"+"05"+"1988".
+    Omit it for one unbroken run of boxes.
+    """
+    text = "" if text is None else str(text)
+    if not text.strip():
+        return ""
+    chunks = []
+    if groups:
+        pos = 0
+        for size in groups:
+            chunks.append(text[pos:pos + size])
+            pos += size
+        if pos < len(text):
+            chunks.append(text[pos:])
+    else:
+        chunks = [text]
+    cells = []
+    for index, chunk in enumerate(chunks):
+        if index:
+            cells.append('<i class="sp"></i>')
+        cells.extend(f"<i>{span(kind, ch)}</i>" for ch in chunk)
+    return f'<span class="comb">{"".join(cells)}</span>'
+
+
+def stamp(text: str, *, colour: str = "#c8102e", size_mm: float = 30,
+         rotate_deg: float = -13) -> str:
+    """A round, rotated, translucent ink stamp -- decorative furniture, never
+    ground truth (no `span()`, no `data-kind`): the org name it repeats is
+    already printed elsewhere on the page in a real labelled run, the same
+    way every existing family's own stamp already works.
+
+    Every family that wants a red circular seal today writes its own:
+    `statutory.py`'s is a green e-invoice tick box, `lodging.py`'s is a
+    background-image PNG -- neither is this shape, and neither is shared.
+    Since most of the insurance root's ten layouts want the same round
+    rotated seal, this is the one shared version. Inline-styled throughout
+    (two nested rings instead of one element plus a `::before`), so a family
+    that wants one needs no matching CSS of its own -- only a
+    `position:relative` ancestor, the same contract `signature_block(stamp=)`
+    already slots a stamp fragment into.
+    """
+    ring = round(size_mm * 0.08, 2)
+    border = round(size_mm * 0.022, 2)
+    inner_border = round(size_mm * 0.01, 2)
+    font = round(size_mm * 0.075, 2)
+    return (
+        f'<div style="position:absolute;left:50%;top:0;'
+        f'transform:translateX(-50%) rotate({rotate_deg}deg);'
+        f'width:{size_mm}mm;height:{size_mm}mm;box-sizing:border-box;'
+        f'border:{border}mm solid {colour};border-radius:50%;opacity:.65;'
+        f'display:flex;align-items:center;justify-content:center;text-align:center;">'
+        f'<div style="position:absolute;inset:{ring}mm;border:{inner_border}mm solid {colour};'
+        f'border-radius:50%;"></div>'
+        f'<span style="position:relative;color:{colour};'
+        f'font-family:Arial,Helvetica,sans-serif;font-weight:800;'
+        f'font-size:{font}mm;line-height:1.15;">{esc(text)}</span>'
+        f"</div>"
+    )
 
 
 def key_strip(strip, separator: str = "|") -> str:
@@ -804,10 +908,11 @@ td.c,th.c,.c{{text-align:center;}}
 __all__ = [
     "EVERY_RUN",
     "MONO", "ORNAMENT_DIR", "PAPERS", "REPO_ROOT", "SANS", "SERIF", "Rows",
-    "align_class", "cell", "columns_of", "document", "esc", "field_line",
+    "align_class", "bilingual_field_line", "cell", "columns_of", "comb_box",
+    "document", "esc", "field_line",
     "footer_block", "initials", "item_rows", "items_table", "key_strip",
     "ncols_of", "notes_blocks", "ornament_url", "party_pairs", "party_rows",
     "qr_svg", "rng_for", "safe_align", "signature_block", "signed_lines",
-    "span", "structure_tokens",
+    "span", "stamp", "structure_tokens",
     "totals_block", "words_block",
 ]

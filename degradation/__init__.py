@@ -78,9 +78,12 @@ DEGRADATIONS: dict[str, tuple[Callable[..., np.ndarray], bool, bool]] = {
     "blur_zones": (blur_zones, True, False),
     "ink_degradation": (ink_degradation, True, False),
     "holes": (holes, True, False),
-    # the texture models
+    # the texture models. `paper_overlay` (a real photographed paper texture
+    # pasted over the finished page) is imported and still exported below,
+    # but deliberately left out of dispatch: see rules/augmentation.yaml's
+    # header for why every chain that used it was found too heavy and had
+    # it removed. Call it directly if a caller genuinely wants it back.
     "paper_texture": (paper_texture, True, False),
-    "paper_overlay": (paper_overlay, True, False),
     "pattern_overlay": (pattern_overlay, True, False),
     "gradient_domain": (gradient_domain, True, False),
     "phantom_character": (phantom_character, True, False),
@@ -90,13 +93,19 @@ DEGRADATIONS: dict[str, tuple[Callable[..., np.ndarray], bool, bool]] = {
     "halftone_screen": (halftone_screen, True, False),
     "scan_banding": (scan_banding, True, False),
     "jpeg_blocks": (jpeg_blocks, True, False),
-    # Augraphy: the three parts of the machine that made this copy. A file
-    # each, and a rule-base ATTRIBUTE each -- `rules/toner.yaml`,
-    # `rules/drum.yaml`, `rules/rollers.yaml` -- so a page draws them
+    # Augraphy: the three parts of "the copier" -- the machine that made this
+    # copy. A file each, and a rule-base ATTRIBUTE each -- `rules/toner.yaml`,
+    # `rules/drum.yaml`, `rules/rollers.yaml` -- so a page would draw them
     # independently instead of getting all three or none from one scenario.
-    "bad_photocopy": (bad_photocopy, True, False),
-    "dirty_drum": (dirty_drum, True, False),
-    "dirty_rollers": (dirty_rollers, True, False),
+    # All three are deliberately unregistered here (imported and still
+    # exported below, just not dispatched): every one of `toner`/`drum`/
+    # `rollers`'s worn-machine options was removed, so nothing in rules/ names
+    # these three any more, and `tools/rules_report.py --check` would flag
+    # them as dead otherwise. Re-enable by restoring an option to each of the
+    # three YAML files and putting these three lines back.
+    #     "bad_photocopy": (bad_photocopy, True, False),
+    #     "dirty_drum": (dirty_drum, True, False),
+    #     "dirty_rollers": (dirty_rollers, True, False),
     # Augraphy: how the ink was laid down, and how it failed (printing.py)
     "letterpress": (letterpress, True, False),
     "hollow": (hollow, True, False),

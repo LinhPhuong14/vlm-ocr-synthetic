@@ -146,11 +146,13 @@ def renderer_command(backend: str, staging: Path, jobs: Path,
     ]
     forced = list(force)
     if clean:
-        # Every chain-bearing attribute, not just `augmentation`: since the
-        # copier became `toner`/`drum`/`rollers`, pinning one of the four
-        # leaves the other three free to draw a mark onto the "clean" set.
-        # An explicit `--force` still wins -- pinning `drum=drum_streaked` on a
-        # clean run is a strange thing to ask for, but it is an ask.
+        # Every chain-bearing attribute, not just `augmentation`: pinning one
+        # of them and not the others would leave the rest free to draw a mark
+        # onto the "clean" set. `toner`/`drum`/`rollers` (the copier, split
+        # into its three independently-failing parts) are in CLEAN_FORCES too,
+        # though every one of their own worn-machine options is gone today --
+        # see toner.yaml -- so pinning them currently changes nothing. An
+        # explicit `--force` still wins over any of this.
         already = {item.partition("=")[0] for item in forced}
         forced += [f"{attribute}={value}" for attribute, value in CLEAN_FORCES.items()
                    if attribute not in already]
