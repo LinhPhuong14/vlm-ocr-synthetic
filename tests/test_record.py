@@ -346,13 +346,13 @@ def test_every_committed_page_has_a_record_in_the_shape_this_file_defines():
     # the CSS sheets, which took it from 30 images over two renderers to 16,
     # one per layout, on the only backend the pipeline still drives.
     #
-    # 278 while `data/5k_llm` is between batches; it reaches 5278 when the last
-    # one lands. The
+    # 1278 = the 278 that were already here plus the first 1000-page batch of
+    # `data/5k_llm`; it reaches 5278 when the last one lands. The
     # 278 is not 294 and was not 294 before this set arrived: the older figure
     # is 16 pages ahead of what is committed, on a tree with nothing modified
     # under `data/`. Left as found rather than folded into this number -- which
     # of the two is wrong is a question about those sets, not about this one.
-    assert seen == 278, seen
+    assert seen == 1278, seen
 
 
 # ------------------------------------------------------- the shape before this
