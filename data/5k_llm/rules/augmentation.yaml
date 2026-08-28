@@ -79,11 +79,6 @@ options:
       - border: left
         distance_ratio: 0.13
         intensity: 0.45
-    - - holes
-      - count: 2
-        placement: border
-        size_ratio: 0.1
-        fill: black
 - id: stains
   weight: 3.0
   tags:
@@ -94,9 +89,6 @@ options:
     - - paper_texture
       - alpha: 0.35
         grain: 0.5
-    - - gradient_domain
-      - count: 5
-        strength: 0.75
     - - ink_degradation
       - level: 3
 - id: ghost_text
@@ -155,9 +147,6 @@ options:
         creases: 4
     - - ink_degradation
       - level: 3
-    - - gradient_domain
-      - count: 3
-        strength: 0.6
     - - blur_zones
       - radius: 1.2
         zones: 3
@@ -178,16 +167,6 @@ options:
         creases: 2
     - - ink_degradation
       - level: 2
-    - - holes
-      - count: 2
-        placement: border
-        size_ratio: 0.16
-        fill: black
-    - - holes
-      - count: 1
-        placement: corner
-        size_ratio: 0.26
-        fill: black
     - - blur_zones
       - radius: 1.0
         zones: 2
@@ -204,11 +183,6 @@ options:
         grain: 0.7
     - - ink_degradation
       - level: 3
-    - - holes
-      - count: 3
-        placement: center
-        size_ratio: 0.09
-        fill: black
     - - shadow_binding
       - border: left
         distance_ratio: 0.1
