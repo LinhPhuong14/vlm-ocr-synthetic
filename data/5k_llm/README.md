@@ -41,6 +41,24 @@ recipe, receipt, rng = rulebase.make_content(seed=page["seed"], force=page["forc
 của lượt chạy, không có trong `rulebase/rules/` được ship — đó là điều giữ cho
 mọi dataset cũ vẫn dựng lại được y nguyên.
 
+## Đọc ngược bộ này: nhớ trỏ `VLM_RULES_ROOT`
+
+**Mọi công cụ dựng lại recipe từ bản ghi đều phải được trỏ vào rules root của
+lượt chạy**, vì `variant` không tồn tại trong `rulebase/rules/` được ship:
+
+```bash
+VLM_RULES_ROOT=data/5k_llm/rules python tools/check_boxes.py data/5k_llm
+VLM_RULES_ROOT=data/5k_llm/rules python tools/ocr_proof.py --dataset data/5k_llm
+```
+
+Quên nó thì công cụ không hỏng — nó báo `recipe does not rebuild; coverage
+unchecked` cho từng ảnh, tức là một phép kiểm im lặng không kiểm gì cả. Đo trên
+chính bộ này: thiếu biến môi trường thì 5000/5000 ảnh "có vấn đề"; có nó thì
+`mọi box đều khớp ảnh` trên 467.193 hộp.
+
+`tools/proof_boxes.py` là ngoại lệ — nó chỉ đọc ảnh và bản ghi bên cạnh, không
+dựng lại gì, nên không cần bộ luật nào.
+
 ## Kiểm
 
 `tools/agent_dataset.py` chạy ba phép kiểm, mỗi phép bắt một thứ hai phép kia
@@ -51,3 +69,9 @@ không bắt được:
 * `planner.audit_drawn()` — đối chiếu `synthesis.json` với kế hoạch **sau khi**
   vẽ, tức là kiểm rằng kế hoạch thật sự tới được renderer;
 * `pipeline/invariants.py` — từng ảnh, như mọi lượt chạy khác trong kho.
+
+Và một phép thứ tư, chạy tay sau khi bộ đã xong: `tools/check_boxes.py` chấm
+bằng **pixel** chứ không qua DOM — điểm tối nhất dưới mỗi hộp phải tối rõ rệt so
+với trung vị dưới chính hộp đó. Đây là thứ bắt được lỗi mà ảnh proof không bắt
+được, vì nếu renderer và bộ trích hộp cùng sai một kiểu thì proof vẫn đẹp. Kết
+quả trên bộ này: **467.193 hộp, mọi box đều khớp ảnh.**
