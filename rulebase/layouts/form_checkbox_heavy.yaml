@@ -1,0 +1,38 @@
+# TẮT — không lượt chạy nào bốc bố cục này nữa.
+#
+# `enabled: false` là công tắc của riêng file bố cục: `rulebase.available_layouts()`
+# bỏ qua nó, nên `layouts: []` trong `pipeline.yaml` (nghĩa là "mọi bố cục") và
+# `per_backend: auto` đều không còn thấy nó. File VẪN ở đây, vẫn được
+# `rulebase/rules/layout.yaml` khai, nên `rulebase.make(force={'layout': ...})`
+# vẫn dựng lại được những trang đã commit từng vẽ bằng nó, và các test vẫn soi
+# nó qua `rulebase.every_layout()`. Bật lại = xoá đúng một dòng.
+#
+# Đây là một trong mười bố cục của ROOT 3 (Form / Application),
+# `docs/root-document-taxonomy.md` § 3.3 — cả mười tắt cùng một lượt.
+enabled: false
+
+# FORM-06 — Dày checkbox: vài trường ngắn, rồi một danh sách hạng mục mỗi
+# dòng một ô vuông.
+#
+# Dùng `form_checklist` (§ xem tài liệu, `no_items: true`) — "checklist"
+# đọc `invoice.notes` thành ô vuông + chữ qua `_checklist` trong form.py,
+# KHÔNG qua `_notes_block` (đoạn văn) — hai cách đọc cùng một
+# `invoice.notes`, tuỳ layout đặt tên section nào.
+id: form_checkbox_heavy
+name: Checkbox-heavy form — a field strip, then a list of ticked items
+source: "FUNSD (Capital Budget Project) — bảy ô đánh dấu mục đích dự án, thêm ô trạng thái Proposed/Approved"
+family: form
+
+width: [78, 88]
+gutter: 2
+rule_char: "-"
+sheet: a4
+rules: marks
+
+sections: [header, parties, notes, signatures, footer]
+
+header:
+  title: true
+
+checklist:
+  checked_rate: 0.35

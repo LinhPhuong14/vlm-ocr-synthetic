@@ -112,6 +112,9 @@ def _reject_unknown(section: str, given: dict, known: set[str]) -> None:
 @dataclass(frozen=True)
 class Config:
     out: Path
+    # Images per backend, or 0 for `auto`: "one of every layout", resolved
+    # against the run's layout list by `pipeline/plan.py::build_plan`, which is
+    # the first place that knows how many layouts there are.
     per_backend: int
     seed: int
     workers: int          # already resolved: `auto` becomes a number here
@@ -183,9 +186,9 @@ class Config:
         if not out:
             raise ConfigError("run.out: required")
 
-        per_backend = int(run.get("per_backend", 0))
-        if per_backend < 1:
-            raise ConfigError(f"run.per_backend: must be >= 1, got {per_backend}")
+        if run.get("per_backend") is None:
+            raise ConfigError("run.per_backend: required (a number, or 'auto')")
+        per_backend = resolve_per_backend(run["per_backend"])
 
         size = int(shard.get("size", 250))
         if size < 1:
@@ -237,6 +240,33 @@ class Config:
             quality=dict(quality),
             source=source,
         )
+
+
+def resolve_per_backend(value: Any) -> int:
+    """`auto` -> 0, meaning "one image of every layout, whatever there are".
+
+    Zero rather than a number, because the number is not knowable here: this
+    file never reads `rulebase/layouts/`, and the layout list is only settled in
+    `pipeline/run.py` (a run may name its own). `pipeline/plan.py::build_plan`
+    turns the zero into `len(layouts)` and records the result in `plan.json`, so
+    the dataset still says the number it was built with.
+
+    It exists because the alternative was a config that goes stale by addition:
+    every layout must get at least one image or the run refuses to start, so
+    `per_backend: 20` was fine at eighteen layouts and refuses to run at
+    forty-two. The floor moves whenever somebody adds a YAML file, and a default
+    config that stops working the day the repository grows is a default nobody
+    can trust.
+    """
+    if isinstance(value, str):
+        if value.strip().lower() != "auto":
+            raise ConfigError(
+                f"run.per_backend: expected a number or 'auto', got {value!r}")
+        return 0
+    per_backend = int(value)
+    if per_backend < 1:
+        raise ConfigError(f"run.per_backend: must be >= 1, got {per_backend}")
+    return per_backend
 
 
 def resolve_workers(value: Any) -> int:
@@ -339,5 +369,6 @@ __all__ = [
     "RULES_ENV",
     "apply_overrides",
     "materialise_rules",
+    "resolve_per_backend",
     "resolve_workers",
 ]

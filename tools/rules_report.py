@@ -19,9 +19,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+# For CLEAN_FORCES: what `--clean` pins. Imported rather than restated, since a
+# second copy of that list is exactly how a clean run stops being clean.
+from pipeline import invariants  # noqa: E402
 from rulebase import (  # noqa: E402
     ATTRIBUTES,
-    available_layouts,
+    RuleError,
     blanks,  # noqa: E402
     corpus,  # noqa: E402
     load_groups,
@@ -30,36 +33,159 @@ from rulebase import (  # noqa: E402
     validate,
 )
 from rulebase.layout import LAYOUTS_ROOT  # noqa: E402
+from rulebase.layout import every as every_layout  # noqa: E402
 
 
 def check() -> list[str]:
     problems = validate()
 
     # Every bố cục named in the rules must have a file, and vice versa.
+    #
+    # Against EVERY file, not just the drawable ones. A layout switched off with
+    # `enabled: false` keeps its file and keeps its entry in the rules -- that
+    # is what lets a committed page that drew it still be redrawn -- so reading
+    # the drawable list here would report ten perfectly present files as
+    # missing, which is how a check teaches people to ignore it.
     rules = load_rules()
     declared = {option.id for option in rules["layout"]}
-    on_disk = set(available_layouts())
+    on_disk = set(every_layout())
     for missing in sorted(declared - on_disk):
         problems.append(f"layout/{missing}: declared in rules but no {LAYOUTS_ROOT}/{missing}.yaml")
     for orphan in sorted(on_disk - declared):
         problems.append(f"layouts/{orphan}.yaml: on disk but not declared in rules/layout.yaml")
 
+    # Every value the rules can still DRAW has to be drawable all the way down.
+    #
+    # The failure this catches: switching the ten root-3 layouts off left eight
+    # `doc_form` documents whose only layouts were those ten. Nothing was
+    # unreachable by tags -- `validate()` was clean -- and yet a seed that drew
+    # one of those documents clashed on `layout`, retried 6,000 times and
+    # raised. A run would have died a third of the way in, on a seed nobody
+    # could have predicted, with a message about tags rather than about the
+    # switch that caused it.
+    #
+    # Pinned one at a time and drawn for real, because "can this value ever be
+    # part of a whole recipe" is a question about the interaction of every
+    # attribute after it, and the sampler is the thing that answers it.
+    for attribute in ("document", "layout"):
+        for option in rules.get(attribute) or []:
+            if not option.enabled or option.weight <= 0:
+                continue
+            try:
+                sample_recipe(seed=17, rules=rules, force={attribute: option.id})
+            except RuleError as error:
+                problems.append(
+                    f"{attribute}/{option.id}: enabled, but no complete recipe "
+                    f"can be drawn with it -- {str(error).splitlines()[0]}")
+
     # The blank registry: intention against what the tags actually resolve to.
     problems += blanks.problems(rules)
 
-    # Chains may only name degradations that exist.
+    # Chains and the registry, checked BOTH ways.
+    #
+    # One way is obvious: a chain may not name a model that does not exist.
+    # The other way is the one that kept catching this repository out --
+    # `docs/lam-cu-de-xuat.md` is a whole document about capability that was
+    # built, paid for and then never reached by any chain. A model no chain
+    # names is a model that has never been in a dataset, however good it is.
+    #
+    # `by_box` is the wrapper, so what IT names counts as reached too:
+    # `[by_box, {effect: markup, ...}]` is what puts `markup` on a page.
+    #
+    # A model in `degradation.SWITCHED_OFF` is exempt from the second direction
+    # and gains a third: it is *declared* unused, so a chain that starts naming
+    # it again is the error. Without that, the way to quieten this check after
+    # switching a model off would be to delete the model -- and the way to
+    # switch one back on would be to leave a stale reason behind.
     try:
+        from degradation import SWITCHED_OFF
         from degradation import names as degradation_names
 
         known = set(degradation_names())
-        for option in rules["augmentation"]:
-            for entry in option.params.get("chain", []) or []:
-                name = entry[0] if isinstance(entry, (list, tuple)) else entry
+        drawn: set[str] = set()
+        # Every attribute, not just `augmentation`. `toner`, `drum` and
+        # `rollers` carry chains of their own, and a check that walked one
+        # attribute would call their three models unused and then let a typo in
+        # one of the three files through.
+        chained = {name: options for name, options in rules.items()
+                   if any(option.params.get("chain") for option in options)}
+        for attribute, options in chained.items():
+            for option in options:
+              for entry in option.params.get("chain", []) or []:
+                is_pair = isinstance(entry, (list, tuple))
+                name = entry[0] if is_pair else entry
+                # A DISABLED value's chain is checked for typos like any other
+                # -- it has to still build the day it is switched back on --
+                # but it does not count as reaching the model. Otherwise a
+                # switched-off model kept alive only by a switched-off value
+                # would read as "in use", and the two halves of one decision
+                # would drift apart without a word.
+                if option.enabled:
+                    drawn.add(name)
                 if name not in known:
                     problems.append(
-                        f"augmentation/{option.id}: unknown degradation {name!r}; "
+                        f"{attribute}/{option.id}: unknown degradation {name!r}; "
                         f"have {', '.join(sorted(known))}"
                     )
+                    continue
+                if name != "by_box":
+                    continue
+                wrapped = (entry[1] or {}).get("effect") if is_pair and len(entry) > 1 else None
+                if not wrapped:
+                    problems.append(
+                        f"{attribute}/{option.id}: by_box without `effect`; it wraps a "
+                        f"model and has nothing to run")
+                elif wrapped == "by_box":
+                    problems.append(f"{attribute}/{option.id}: by_box wraps itself")
+                elif wrapped not in known:
+                    problems.append(
+                        f"{attribute}/{option.id}: by_box names unknown effect "
+                        f"{wrapped!r}; have {', '.join(sorted(known))}")
+                elif option.enabled:
+                    drawn.add(wrapped)
+
+        # `pattern_overlay` is reached by the ORNAMENT attribute rather than by
+        # a chain: `generators/html/ornament.py` strikes every seal and
+        # watermark through it. Counting only chains would call it unused the
+        # moment the last `photocopy_stamped` was switched off, and the fix
+        # would look like deleting a model that runs on 33 pages in 64.
+        if any(option.enabled and option.params.get("marks")
+               for option in rules.get("ornament") or []):
+            drawn.add("pattern_overlay")
+
+        for unused in sorted(known - drawn - set(SWITCHED_OFF)):
+            problems.append(
+                f"degradation/{unused}: registered but no chain in rules/ names it, "
+                f"so it never reaches a dataset")
+        for revived in sorted(drawn & set(SWITCHED_OFF)):
+            problems.append(
+                f"degradation/{revived}: a chain in rules/ names it, but it is in "
+                f"degradation.SWITCHED_OFF ({SWITCHED_OFF[revived]}). Take it off "
+                f"that list if it is back on")
+
+        # `--clean` pins one value per chain-bearing attribute, and the whole
+        # point of naming them in a constant is that renaming one in the YAML
+        # fails here instead of silently producing an aged "clean" set.
+        clean = invariants.CLEAN_FORCES
+        for attribute in sorted(set(chained) - set(clean)):
+            problems.append(
+                f"{attribute}: carries an ageing chain but is not in "
+                f"pipeline.invariants.CLEAN_FORCES, so `--clean` leaves it free to "
+                f"draw a mark onto the set every ageing number is measured against")
+        for attribute, value in clean.items():
+            options = {option.id: option for option in rules.get(attribute) or []}
+            if attribute not in rules:
+                problems.append(
+                    f"CLEAN_FORCES names attribute {attribute!r}, which is not in "
+                    f"rules/_order.yaml")
+            elif value not in options:
+                problems.append(
+                    f"CLEAN_FORCES pins {attribute}={value!r}, which rules/{attribute}"
+                    f".yaml does not have; have {', '.join(sorted(options))}")
+            elif options[value].params.get("chain"):
+                problems.append(
+                    f"CLEAN_FORCES pins {attribute}={value!r}, but its chain is not "
+                    f"empty, so a clean run is not clean")
     except ImportError:
         problems.append("degradation not importable (needs numpy and opencv); chains unchecked")
 
@@ -218,6 +344,9 @@ def main() -> int:
                 for path in sorted((corpus.CORPUS_ROOT / lang).glob("items_*.txt")):
                     profile = path.stem[len("items_"):]
                     counts[profile] = len(corpus.items(profile, lang))
+                for path in sorted((corpus.CORPUS_ROOT / lang).glob("periodical_*.yaml")):
+                    kind = path.stem[len("periodical_"):]
+                    counts[f"periodical_{kind}"] = len(corpus.periodical(kind, lang))
                 shared = {
                     "streets": len(corpus.streets(lang)),
                     "wards": len(corpus.wards(lang)),

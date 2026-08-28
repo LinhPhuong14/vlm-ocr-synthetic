@@ -1,0 +1,29 @@
+profile: insurance
+invoice: true
+catalogue: insurance_travel
+num_items: [5, 7]
+price_step: 100
+no_totals: true
+show_serial: false
+show_vat: false
+show_issuer_unit: false
+show_seller_address: false
+show_seller_phone: false
+show_subtotal: false
+show_payment: false
+show_amount_words: false
+show_seller_tax_code: false
+show_seller_account: false
+titles:
+  - "Giấy chứng nhận bảo hiểm du lịch quốc tế"
+party_fields:
+  left:
+    - [buyer_name, "Full name"]
+    - [buyer_code, "Passport no."]
+    - [date, "Date of issue"]
+    - [due_date, "Period of insurance ends"]
+notes:
+  - "Hỗ trợ khẩn cấp 24/7 · Emergency assistance:"
+  - "Gọi ngay trước khi nhập viện hoặc phát sinh chi phí lớn để được bảo lãnh thanh toán. Vui lòng cung cấp số giấy chứng nhận và số hộ chiếu khi liên hệ. Hotline +84 24 0000 0000."
+signature_labels:
+  - ["Doanh nghiệp bảo hiểm", "Người được uỷ quyền"]

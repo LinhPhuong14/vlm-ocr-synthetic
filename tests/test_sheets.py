@@ -24,12 +24,18 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "generators" / "html"))
 
 import sheets  # noqa: E402
+from conftest import force_for  # noqa: E402
 
 import rulebase  # noqa: E402
-from rulebase.layout import available as available_layouts  # noqa: E402
+from rulebase.layout import every as every_layout  # noqa: E402
+
+# `every_layout`, not `available_layouts`: a layout switched off with
+# `enabled: false` means no RUN draws it, not that nobody checks it any more.
+
+KINDS = re.compile(r'data-kind="([^"]+)"')
 
 SEEDS = (1, 7, 2026)
-LAYOUTS = available_layouts()
+LAYOUTS = every_layout()
 
 _PAGES: dict[tuple[str, int], tuple] = {}
 
@@ -38,7 +44,7 @@ def page(layout: str, seed: int):
     """`(recipe, receipt, markup)` for one sheet, built once and reused."""
     key = (layout, seed)
     if key not in _PAGES:
-        recipe, receipt, _rng = rulebase.make_content(seed=seed, force={"layout": layout})
+        recipe, receipt, _rng = rulebase.make_content(seed=seed, force=force_for(layout))
         _PAGES[key] = (recipe, receipt, sheets.build(recipe, receipt))
     return _PAGES[key]
 
@@ -49,6 +55,44 @@ def test_every_layout_has_a_sheet():
     assert not missing, f"no CSS sheet for {missing}"
     extra = [name for name in sheets.FAMILIES if name not in LAYOUTS]
     assert not extra, f"sheets.FAMILIES names layouts that do not exist: {extra}"
+
+
+def test_the_fillable_tag_matches_the_pages_that_really_have_fields():
+    """Attribute 7 asks the rules "can a pen reach anything here", and the
+    rules answer with a tag. This is the measurement behind that answer.
+
+    `handwriting.yaml` gives `hand_font` `requires: [fillable]`, and the tag is
+    hand-written on 25 layout options in `rules/layout.yaml`. A hand-written
+    list of "every X" goes stale the day a sheet changes -- somebody adds a
+    signature block and the layout stays un-tagged, so no page of it is ever
+    hand-filled and nothing says why. So the list is MEASURED here and compared:
+    build each layout's markup and count the runs its family offers a pen.
+
+    The other direction matters as much: a layout tagged `fillable` whose sheet
+    stopped printing a signature block would draw ink on nothing, and the page
+    would record `hand_font` with an empty `inked` list.
+    """
+    import handwriting
+
+    tagged = {option.id for option in rulebase.load_rules()["layout"]
+              if "fillable" in option.tags}
+    measured = set()
+    for layout in LAYOUTS:
+        kinds = sheets.hand_kinds(layout, handwriting.HAND_KINDS)
+        every = kinds == handwriting.ALL_KINDS
+        for seed in (3, 17, 91, 205):
+            recipe, receipt, _rng = rulebase.make_content(seed=seed, force=force_for(layout))
+            markup = sheets.build(recipe, receipt, None)
+            if any(every or kind in kinds for kind in KINDS.findall(markup)):
+                measured.add(layout)
+                break
+
+    assert measured - tagged == set(), (
+        f"a pen reaches fields on {sorted(measured - tagged)} and the rules do "
+        f"not say so, so no page of them is ever hand-filled")
+    assert tagged - measured == set(), (
+        f"{sorted(tagged - measured)} are tagged `fillable` and print nothing a "
+        f"pen can reach; a page of them would record ink it does not have")
 
 
 def test_unknown_layout_is_an_error():
@@ -193,7 +237,7 @@ def test_what_the_label_says_the_page_prints(layout):
     character grid is held to. A till roll has no column for a barcode on
     either path; an invoice has room for everything it is given on both.
     """
-    from pipeline.invariants import SUPPRESSED
+    from pipeline.invariants import SUPPRESSED, _tight
 
     allowed = SUPPRESSED.get(layout, frozenset())
     for seed in SEEDS:
@@ -205,13 +249,22 @@ def test_what_the_label_says_the_page_prints(layout):
         joined = {kind: " ".join(" ".join(texts).split())
                   for kind, texts in by_kind.items()}
         for name, value in _leaves(receipt.ground_truth()):
-            if not value.strip() or value.startswith("receipt_"):
+            if not value.strip() or name == "doc_type":
                 continue
             field = "total" if name.startswith("total.") else name
             if field in allowed:
                 continue
             wanted = " ".join(value.split())
-            assert wanted in printed or any(wanted in text for text in joined.values()), (
+            if wanted in printed or any(wanted in text for text in joined.values()):
+                continue
+            # `comb_box()` (base.py) prints one character per `data-kind` run
+            # rather than one run for the whole value -- see its own
+            # docstring on why -- so the space-sensitive check above rejoins
+            # it as "T r ầ n" rather than "Trần". The same whitespace-
+            # insensitive fallback `pipeline/invariants.py::_printed()`
+            # already applies to a wrapped-at-a-hyphen run applies here too.
+            tight = _tight(wanted)
+            assert any(tight in _tight(text) for text in joined.values()), (
                 f"{layout} seed {seed}: {name} {wanted!r} is in the label and on no run")
 
 
@@ -228,8 +281,9 @@ def _leaves(value, path: str = ""):
 
 def test_the_same_seed_gives_the_same_markup():
     for layout in ("invoice_vat_summary", "invoice_hotel_compact", "market_vat"):
-        recipe, receipt, _rng = rulebase.make_content(seed=11, force={"layout": layout})
-        again, again_receipt, _rng2 = rulebase.make_content(seed=11, force={"layout": layout})
+        force = force_for(layout)
+        recipe, receipt, _rng = rulebase.make_content(seed=11, force=force)
+        again, again_receipt, _rng2 = rulebase.make_content(seed=11, force=force)
         assert sheets.build(recipe, receipt) == sheets.build(again, again_receipt)
 
 

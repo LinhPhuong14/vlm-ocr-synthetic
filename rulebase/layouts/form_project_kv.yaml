@@ -1,0 +1,34 @@
+# TẮT — không lượt chạy nào bốc bố cục này nữa.
+#
+# `enabled: false` là công tắc của riêng file bố cục: `rulebase.available_layouts()`
+# bỏ qua nó, nên `layouts: []` trong `pipeline.yaml` (nghĩa là "mọi bố cục") và
+# `per_backend: auto` đều không còn thấy nó. File VẪN ở đây, vẫn được
+# `rulebase/rules/layout.yaml` khai, nên `rulebase.make(force={'layout': ...})`
+# vẫn dựng lại được những trang đã commit từng vẽ bằng nó, và các test vẫn soi
+# nó qua `rulebase.every_layout()`. Bật lại = xoá đúng một dòng.
+#
+# Đây là một trong mười bố cục của ROOT 3 (Form / Application),
+# `docs/root-document-taxonomy.md` § 3.3 — cả mười tắt cùng một lượt.
+enabled: false
+
+# FORM-03 — Biểu mẫu nhãn-giá trị: các trường rõ ràng, một chữ ký phê
+# duyệt cuối trang.
+#
+# Cùng tài liệu `form_brief` với FORM-01 (xem file đó) — layout này KHÔNG
+# đổi cách trình bày trường/notes, chỉ khác source/tên gọi trong taxonomy;
+# hai layout tồn tại độc lập vì đề xuất gốc liệt chúng là hai bố cục khác
+# nhau, không phải vì HTML ở đây khác nhau nhiều — một khác biệt trung
+# thực hơn là ép hai bố cục giống hệt nhau phải trông khác nhau khi nội
+# dung tài liệu không thật sự khác.
+id: form_project_kv
+name: Label-value form — clear fields, one approval signature
+source: "FUNSD (Project Initiation Form) — cặp nhãn-giá trị rõ ràng, chữ ký phê duyệt viết tay cuối trang"
+family: form
+
+width: [78, 88]
+gutter: 2
+rule_char: "-"
+sheet: a4
+rules: marks
+
+sections: [header, parties, notes, signatures, footer]

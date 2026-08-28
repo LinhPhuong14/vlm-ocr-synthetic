@@ -18,10 +18,11 @@ a mark on the page is either the WriteViT generator's or a handwriting
 typeface's own outline, and no glyph is nudged, slanted or thickened after the
 fact.
 
-## Two sources, and they are not interchangeable
+## Three sources, and they are not interchangeable
 
-    Hand      WriteViT, one word at a time, pasted in as an <img> of ink
-    FontHand  a licensed handwriting typeface, set by the browser as text
+    Hand       WriteViT, one word at a time, pasted in as an <img> of ink
+    FontHand   a licensed handwriting typeface, set by the browser as text
+    BothHands  the model where it can write, the typeface where it cannot
 
 `Hand` is the real thing -- a generative model conditioned on a writer -- and it
 **cannot write digits or ALL-CAPS**, which caps it at 42 % of the fields on the
@@ -36,9 +37,27 @@ in a run drawn from the same face is the same hand, and there are two faces, not
 106 writers. Model ink varies per instance; font ink does not. A set built with
 `--handwriting font` should say so, and `record["handwriting"]["source"]` does.
 
+`BothHands` refuses to choose between them and pays for it in a different coin:
+every run is ink, none is type, and **two different hands share the page**. That
+is the honest trade, not a hidden one -- `record["handwriting"]["by_source"]`
+counts the runs each source wrote, so a reader of the label knows which half of
+a page came from where. It exists for `notebook_ledger`, where a single source
+cannot work: the checkpoint writes 8 % of a sales book and a page nine parts
+typed is not a notebook.
+
 The default is `model`. Reach for `font` when the page needs its numeric fields
 filled and you would rather have one hand throughout than a form that is 42 %
-written and 58 % typed.
+written and 58 % typed; reach for `both` when nothing on the page was printed
+and leaving a run in type would be leaving it wrong.
+
+A fourth source, `HybridHand`, goes one step further than `BothHands` and is
+**not** wired into any renderer's `--handwriting` flag: it decides per *word*
+inside one field rather than per field, so `"3.920.000 đồng"` can come back
+with `đồng` in the model's ink and the digits in the typeface's, composited
+into the one image `Hand` would have produced. Built for `tools/visualize/`'s
+side-by-side comparison against `BothHands`, to look at whether the finer
+split is worth losing `BothHands`'s per-field simplicity -- not a claim that
+it is.
 
 ## The policy, and why it is per field
 
@@ -117,6 +136,14 @@ ALPHABET_SET = frozenset(ALPHABET)
 # printed on the blank form, before anybody picks up a pen.
 HAND_KINDS = ("invoice.field", "invoice.words", "sign.name")
 
+# `fill(kinds=ALL_KINDS)` writes EVERY labelled run instead of a listed few.
+# For a page nobody printed: `sheets/notebook.py` is a school exercise book,
+# where a heading left in type would be a heading nobody typed. The same string
+# is `sheets.base.EVERY_RUN`, restated rather than imported so this module goes
+# on knowing nothing about which layout families exist; `tests/test_sheets.py`
+# asserts the two agree.
+ALL_KINDS = "*"
+
 # The handwriting typefaces, in `fonts/hand/`. Both are SIL OFL 1.1 and both
 # pass `generators/synthdog/tools/check_fonts.py` on the full Vietnamese
 # alphabet -- which is not a formality: **Caveat, the obvious casual-hand
@@ -176,6 +203,12 @@ WORD_GAP = 14          # source px between words, on a 32 px body
 # contrast, which is the most that can be taken without inventing.
 INK_GAMMA = 0.8
 
+# `font_tile`'s native render size, in px. Arbitrary -- `compose()` sizes every
+# tile off `extent()`, a function of the word's letters, not of how many
+# source pixels it started with -- but generous enough that a font tile is not
+# the blurriest thing on the page once everything lands on one unit.
+FONT_TILE_PX = 64
+
 
 # `base.span()` is text-only by contract -- `CELL_RECTS_JS` measures
 # `firstElementChild` and a nested element would silently become the box -- so a
@@ -219,19 +252,36 @@ def extent(word: str) -> tuple[float, float]:
     return above, below
 
 
+def line_extent(text: str) -> tuple[float, float]:
+    """How far a whole composed run reaches above and below the x-height band.
+
+    The same maxima `compose` takes over its tiles, worked out from the letters
+    alone -- so a caller can know how tall the ink will be before any of it is
+    generated. `BothHands` needs exactly that to size one hand against another.
+    """
+    metrics = [extent(word) for word in words_of(text)] or [(0.0, 0.0)]
+    return max(a for a, _ in metrics), max(b for _, b in metrics)
+
+
+def writable_word(word: str) -> bool:
+    """Can the checkpoint write this one word? The per-word half of `writable`.
+
+    Pulled out on its own for `hybrid_line`, which needs these same three
+    checks at word granularity rather than across a whole run.
+    """
+    if any(character.isdigit() for character in word):
+        return False
+    if len(word) > 1 and word.isupper():
+        return False
+    if any(character not in ALPHABET_SET for character in word):
+        return False
+    return True
+
+
 def writable(text: str) -> bool:
     """Can the checkpoint write this whole run? See the module docstring."""
     words = words_of(text)
-    if not words:
-        return False
-    for word in words:
-        if any(character.isdigit() for character in word):
-            return False
-        if len(word) > 1 and word.isupper():
-            return False
-        if any(character not in ALPHABET_SET for character in word):
-            return False
-    return True
+    return bool(words) and all(writable_word(word) for word in words)
 
 
 def refusal(text: str) -> str:
@@ -285,6 +335,10 @@ class Page:
         self.pen = self.rng.choices([colour for colour, _ in PENS],
                                     [weight for _, weight in PENS])[0]
         self.height_em = self.rng.uniform(*INK_HEIGHT_EM)
+        # How many runs each source actually inked, filled in by `BothHands`
+        # and reported by `fill`. A page written by two hands must say which
+        # half came from where -- see that class for why they do not match.
+        self.by_source: dict[str, int] = {}
 
     @property
     def pen_hex(self) -> str:
@@ -316,10 +370,20 @@ class FontHand:
     source = "font"
     device = "browser"
 
-    def __init__(self, faces=FACES, directory: Path = HAND_FONT_DIR):
+    def __init__(self, faces=FACES, directory: Path = HAND_FONT_DIR,
+                 mark: str = "hand"):
         self.directory = Path(directory)
         self.faces = [f for f in faces if (self.directory / f[1]).exists()]
         self._cmaps: dict[str, frozenset] = {}
+        self._x_heights: dict[str, float] = {}
+        # The class this source's runs carry AND the selector its CSS uses --
+        # one name, so the two cannot drift apart. It exists for `BothHands`:
+        # the font rule sets `font-size` on the runs it matches, and the model
+        # source states its image width in `em`, so a font rule that reached
+        # the model's runs would resize the model's ink. Scoping the font to
+        # its own class leaves the model's runs at the sheet's own size,
+        # exactly as `--handwriting model` alone leaves them.
+        self.mark = mark
 
     # -- lifecycle: there is no process, so these are the shape of `Hand`'s --
 
@@ -360,6 +424,34 @@ class FontHand:
     def face_for(self, page: "Page") -> tuple[str, str, float]:
         return self.faces[page.writer % len(self.faces)]
 
+    def x_height_em(self, page: "Page") -> float:
+        """How tall this page's writing is at the x-height, in the sheet's em.
+
+        Read off the face's own OS/2 table rather than assumed, and it exists
+        for `BothHands`: two hands on one page must be one SIZE even when they
+        cannot be one style, and the x-height is the size a reader judges
+        writing by. See `BothHands._matched_height`.
+        """
+        face, _filename, size = self.face_for(page)
+        return size * page.height_em / 2.1 * self._x_height(face)
+
+    def _x_height(self, face: str) -> float:
+        if face not in self._x_heights:
+            from fontTools.ttLib import TTFont  # noqa: PLC0415 -- see `cmap`
+
+            name = dict((f[0], f[1]) for f in self.faces)[face]
+            font = TTFont(self.directory / name)
+            units = font["head"].unitsPerEm
+            # `sxHeight` is optional in OS/2 version 0 and 1. Falling back to
+            # the height of `x` itself rather than to a constant: a guessed
+            # x-height would silently mis-size one half of every page.
+            raw = getattr(font["OS/2"], "sxHeight", None)
+            if not raw:
+                glyph = font.getBestCmap().get(ord("x"))
+                raw = font["glyf"][glyph].yMax if glyph else units * 0.5
+            self._x_heights[face] = raw / units
+        return self._x_heights[face]
+
     def writable(self, text: str, page: "Page") -> bool:
         if not text.strip():
             return False
@@ -381,8 +473,9 @@ class FontHand:
         # came back with 16 boxes instead of 97. `vertical-align` is an inline
         # shift with no stacking context, and it costs nothing in the browser.
         style = f"vertical-align:{SIT_EM - page.sit():.3f}em;"
+        extra = "hand" if self.mark == "hand" else f"hand {self.mark}"
         return (f'<span data-kind="{html.escape(kind)}" '
-                f'class="{_classes(classes, "hand")}" style="{style}">'
+                f'class="{_classes(classes, extra)}" style="{style}">'
                 f'{html.escape(text)}</span>')
 
     def css(self, page: "Page") -> str:
@@ -395,13 +488,13 @@ class FontHand:
    font with no Vietnamese diacritics. */
 @font-face{{font-family:'{face}';font-weight:400;
   src:url('{path.as_uri()}') format('truetype');}}
-#sheet span.hand{{
+#sheet span.{self.mark}{{
   font-family:'{face}',cursive;
   font-size:{size * page.height_em / 2.1:.3f}em;
   color:{page.pen_hex};
   font-weight:400;
 }}
-#sheet span.hand b,#sheet span.hand strong{{font-weight:400;}}
+#sheet span.{self.mark} b,#sheet span.{self.mark} strong{{font-weight:400;}}
 """
 
 
@@ -510,13 +603,14 @@ class Hand:
         return [Image.open(io.BytesIO(base64.b64decode(item["png"]))).convert("L")
                 for item in reply["words"]]
 
-    def line(self, text: str, writer: int, seed: int):
-        """One run of text as a single grayscale image, words laid out in a row.
+    def tiles(self, words: list[str], writer: int, seed: int) -> dict[str, object]:
+        """Raw per-word grayscale tiles, cached by `(writer, word)`, not composed.
 
-        The gap between words is the caller's to set and always was -- WriteViT
-        generates one word at a time and says nothing about spacing.
+        `line()` below is exactly this plus `compose()`. Split out because
+        `hybrid_line` needs the tiles on their own, to lay them out beside a
+        font-drawn tile in one `compose_with_boxes()` call rather than two
+        separate images that would then need stitching back together.
         """
-        words = words_of(text)
         wanted = [word for word in words if (writer, word) not in self._cache]
         # Deduplicated before asking: a field can repeat a word, and the model
         # would otherwise be run twice for one tile.
@@ -527,9 +621,17 @@ class Hand:
         if seen:
             for word, tile in zip(seen, self._ask(seen, writer, seed)):
                 self._cache[(writer, word)] = tile
+        return {word: self._cache[(writer, word)] for word in words}
 
-        tiles = [self._cache[(writer, word)] for word in words]
-        return compose(list(zip(words, tiles)))
+    def line(self, text: str, writer: int, seed: int):
+        """One run of text as a single grayscale image, words laid out in a row.
+
+        The gap between words is the caller's to set and always was -- WriteViT
+        generates one word at a time and says nothing about spacing.
+        """
+        words = words_of(text)
+        tiles = self.tiles(words, writer, seed)
+        return compose([(word, tiles[word]) for word in words])
 
     def ink(self, text: str, writer: int, seed: int,
             pen: tuple[int, int, int]) -> tuple[bytes, tuple[int, int]]:
@@ -550,21 +652,281 @@ class Hand:
     def refusal(self, text: str, page: "Page") -> str:
         return refusal(text)
 
-    def span(self, kind: str, classes: str, text: str, page: "Page") -> str:
+    def span(self, kind: str, classes: str, text: str, page: "Page",
+             height_em: float | None = None) -> str:
+        # `height_em` is an override, and only `BothHands` passes one: sharing
+        # a page with a typeface means matching its x-height rather than
+        # keeping the size a printed form's field was calibrated for.
         png, size = self.ink(text, page.writer, page.seed, page.pen)
-        return ink_span(kind, classes, text, png, size, page.height_em, page.sit())
+        return ink_span(kind, classes, text, png, size,
+                        page.height_em if height_em is None else height_em,
+                        page.sit())
 
     def css(self, page: "Page") -> str:
         return CSS
 
 
-def compose(pairs: list) -> "object":
-    """Word tiles laid out in a row, each at its own size, on one baseline.
+class BothHands:
+    """The checkpoint where it can write, the typeface where it cannot.
 
-    The unit throughout is the x-height. A tile covers `above + 1 + below` of
-    them, so scaling it to `(above + 1 + below) * UNIT` px puts every word's
-    x-height at the same size; placing its top at `(top - above) * UNIT` puts
-    every word's baseline on the same rule.
+    WriteViT refuses every run containing a digit and every ALL-CAPS word --
+    not a guard of ours but a fact about the checkpoint: `models/model.py`
+    draws its training text from a lexicon in which not one of 10,131 tokens
+    contains a digit, so the ten digit slots in `ALPHABET` were never taught,
+    and there is no full stop, comma, hyphen or slash in `ALPHABET` at all.
+
+    On a form that costs 85% of the fields. On a **ledger** it costs almost
+    everything: measured over five seeds of `notebook_ledger`, the checkpoint
+    can write **17 of 226 runs (8%)** and 9% of the characters, because a sales
+    book is amounts, dates and quantities. A page filled by the checkpoint
+    alone would be nine parts typed.
+
+    So this pairs them, per run: whatever the model will write, it writes;
+    everything else goes to the typeface, which has all ten digits and every
+    mark. Both are ink, so no run is left in type.
+
+    **The two hands do not match, and this class does not pretend they do.**
+    That is a real cost and it is recorded rather than hidden: `report` counts
+    the runs each source inked, so a reader of the label knows which half of a
+    page came from where. Making them match would need a model that is
+    style-conditioned *and* writes digits, and as of this writing there is no
+    such release -- VATr++, One-DM and DiffusionPen are all style-conditioned
+    and all trained on IAM word crops, which do not contain digits either. See
+    `docs/handwriting-html.md`.
+    """
+
+    source = "both"
+
+    # The class the typeface half writes under. NOT `hand`, which is what the
+    # model half also carries: the font rule sets a `font-size`, and the model
+    # states its image width in `em`, so one rule reaching both would resize
+    # the model's ink. See `FontHand.mark`.
+    FONT_MARK = "hand-font"
+
+    def __init__(self, primary=None, fallback=None, **kwargs):
+        # Built here when not supplied, so `source("both")` is the same one
+        # call as `source("model")` and the renderer needs no special case.
+        self.primary = primary if primary is not None else Hand(**kwargs)
+        self.fallback = (fallback if fallback is not None
+                         else FontHand(mark=self.FONT_MARK))
+        self.device = getattr(self.primary, "device", "?")
+
+    def __enter__(self) -> "BothHands":
+        return self.open()
+
+    def __exit__(self, *exc) -> None:
+        self.close()
+
+    def open(self) -> "BothHands":
+        self.primary.open()
+        self.fallback.open()
+        # After opening, not before: `Hand.device` is whatever the worker
+        # reported it loaded on, and it is empty until the worker says hello.
+        self.device = getattr(self.primary, "device", "?") or "?"
+        return self
+
+    def close(self) -> None:
+        # Both, and the model even if the typeface throws: it owns a
+        # subprocess, and leaking one per page is how a shard runs out of
+        # file handles halfway through a run.
+        try:
+            self.fallback.close()
+        finally:
+            self.primary.close()
+
+    def writable(self, text: str, page: "Page") -> bool:
+        return (self.primary.writable(text, page)
+                or self.fallback.writable(text, page))
+
+    def refusal(self, text: str, page: "Page") -> str:
+        """Only reached when BOTH refuse, so the typeface's reason is the one
+        that matters -- the model's is already known and expected."""
+        return self.fallback.refusal(text, page)
+
+    def _matched_height(self, text: str, page: "Page") -> float | None:
+        """The em height that puts the model's x-height on the typeface's.
+
+        Without it the two halves of a page are two SIZES as well as two
+        hands, which is worse than either alone. `INK_HEIGHT_EM` and
+        `FontHand`'s per-face factor were each calibrated against a printed
+        field, separately, and nothing ever made them agree with each other --
+        measured on a `notebook_ledger` page the model's x-height came out
+        about 1.5x the typeface's, and it read as a second, larger hand rather
+        than as the same person.
+
+        A tile covers `above + 1 + below` x-heights, so an em height of
+        `x_height * (above + 1 + below)` is the one that lands the model's
+        x-height exactly on the face's. `None` when the fallback cannot say
+        what its x-height is, which leaves the model at its own size.
+        """
+        x_height = getattr(self.fallback, "x_height_em", None)
+        if x_height is None:
+            return None
+        above, below = line_extent(text)
+        return x_height(page) * (above + X_HEIGHT + below)
+
+    def _count(self, page: "Page", which) -> None:
+        # Keyed on the source's own name rather than on "model"/"font", so the
+        # count says which source actually wrote the run whatever pair this is
+        # holding.
+        name = getattr(which, "source", "?")
+        page.by_source[name] = page.by_source.get(name, 0) + 1
+
+    def span(self, kind: str, classes: str, text: str, page: "Page") -> str:
+        if self.primary.writable(text, page):
+            try:
+                height = self._matched_height(text, page)
+                out = (self.primary.span(kind, classes, text, page)
+                       if height is None else
+                       self.primary.span(kind, classes, text, page,
+                                         height_em=height))
+                self._count(page, self.primary)
+                return out
+            except ValueError:
+                # The model refused a run its own policy allowed. Fall through
+                # rather than lose the run: the typeface can write it, and the
+                # disagreement is counted below like any other fallback.
+                pass
+        out = self.fallback.span(kind, classes, text, page)
+        self._count(page, self.fallback)
+        return out
+
+    def css(self, page: "Page") -> str:
+        return self.primary.css(page) + self.fallback.css(page)
+
+
+class HybridHand:
+    """WriteViT where it can write, the typeface where it cannot -- per WORD.
+
+    `BothHands` makes this choice per field: a run with one digit anywhere in
+    it is typed in full, because mixing sources inside one labelled run would
+    split a ground-truth box in two -- see the module docstring's "per field"
+    policy. This goes one step further and mixes them anyway, inside a single
+    field, by compositing both into the one image `Hand` alone would have
+    produced rather than writing mixed markup: `"3.920.000 đồng"` comes back
+    as one `<img>` with `đồng` in the model's ink and the digits in the
+    typeface's. See `hybrid_line` for the actual per-word decision.
+
+    Built for `tools/visualize/`'s side-by-side comparison against
+    `BothHands`, and **not** wired into any renderer's `--handwriting` flag --
+    doing that is real production wiring outside what this class answers,
+    which is only "does the finer split look worth it".
+    """
+
+    source = "hybrid"
+
+    def __init__(self, primary=None, fallback=None, **kwargs):
+        # Built here when not supplied, so `source("hybrid")` is one call, the
+        # same as `source("model")` -- see `BothHands.__init__`.
+        self.primary = primary if primary is not None else Hand(**kwargs)
+        self.fallback = fallback if fallback is not None else FontHand()
+        self.device = getattr(self.primary, "device", "?")
+
+    def __enter__(self) -> "HybridHand":
+        return self.open()
+
+    def __exit__(self, *exc) -> None:
+        self.close()
+
+    def open(self) -> "HybridHand":
+        self.primary.open()
+        self.fallback.open()
+        self.device = getattr(self.primary, "device", "?") or "?"
+        return self
+
+    def close(self) -> None:
+        try:
+            self.fallback.close()
+        finally:
+            self.primary.close()
+
+    def writable(self, text: str, page: "Page") -> bool:
+        # The typeface is the ceiling, exactly as in `BothHands`: it checks
+        # every character in the whole run against its cmap, which is the
+        # same condition as "every word is coverable by one engine or the
+        # other" -- whatever it cannot draw, no per-word split rescues either,
+        # since `hybrid_line` falls back to this same source per word.
+        return self.fallback.writable(text, page)
+
+    def refusal(self, text: str, page: "Page") -> str:
+        return self.fallback.refusal(text, page)
+
+    def span(self, kind: str, classes: str, text: str, page: "Page") -> str:
+        image, _boxes = hybrid_line(text, self.primary, self.fallback, page)
+        png = ink_png(image, page.pen)
+        return ink_span(kind, classes, text, png, image.size,
+                        page.height_em, page.sit())
+
+    def css(self, page: "Page") -> str:
+        # No extra font-face rule needed, unlike `BothHands`: every word here
+        # is rasterized into the one image, none stays live text.
+        return CSS
+
+
+def hybrid_line(text: str, hand: "Hand", font: "FontHand",
+                page: "Page") -> tuple["object", list[dict]]:
+    """One run, word by word: the model's ink where it can write, the
+    typeface's where it cannot -- composited into one image, not two markups.
+
+    Batches every model-writable word into one `hand.tiles()` call rather than
+    asking word by word, for the same reason `Hand.line` always did: one
+    round trip to the WriteViT worker per run, not one per word.
+
+    Returns the image and, per word, which engine drew it and where it landed
+    in the final image -- `HybridHand.span()` uses the image alone and drops
+    the rest; `tools/visualize/` uses both, for the per-word overlay its
+    comparison tab draws. Raises if neither engine can write a single word in
+    `text`, which `HybridHand.writable()` guards against for `fill()`'s own
+    caller but not for one that calls this directly.
+    """
+    words = words_of(text)
+    model_words = [word for word in words if writable_word(word)]
+    tiles = hand.tiles(model_words, page.writer, page.seed) if model_words else {}
+
+    pairs: list[tuple[str, object]] = []
+    engine_of: list[str] = []
+    skipped: list[dict] = []
+    for word in words:
+        if word in tiles:
+            pairs.append((word, tiles[word]))
+            engine_of.append("model")
+        elif font.writable(word, page):
+            pairs.append((word, font_tile(word, font.face_for(page))))
+            engine_of.append("font")
+        else:
+            skipped.append({"word": word, "engine": "skipped",
+                            "reason": font.refusal(word, page)})
+
+    if not pairs:
+        raise ValueError(f"neither source can write any word in {text!r}")
+
+    image, placements = compose_with_boxes(pairs)
+    report = [{"word": word, "engine": engine, **box}
+             for (word, _tile), engine, box in zip(pairs, engine_of, placements)]
+    return image, report + skipped
+
+
+def model_of(hand):
+    """The WriteViT worker inside a source, or None if there is not one.
+
+    `--signature model` traces the checkpoint's own ink, and borrows the worker
+    the page is already writing with rather than standing up a second one: an
+    11 s load and 294 MB of weights, twice, for one checkpoint. `BothHands`
+    keeps its worker one layer down, so the borrow has to reach through it --
+    otherwise `--handwriting both --signature model` quietly pays twice.
+    """
+    if getattr(hand, "source", "") == "model":
+        return hand
+    inner = getattr(hand, "primary", None)
+    return inner if getattr(inner, "source", "") == "model" else None
+
+
+def _compose_layout(pairs: list) -> tuple["object", list[dict]]:
+    """The layout math shared by `compose` and `compose_with_boxes`.
+
+    See `compose` for why it works the way it does. Returns each word's
+    `(left, top, width, height)` in the finished image alongside it, which
+    `compose` throws away and `compose_with_boxes`/`hybrid_line` need.
     """
     from PIL import Image
 
@@ -607,9 +969,59 @@ def compose(pairs: list) -> "object":
         255,
     )
     x = 0
-    for tile, above in scaled:
-        canvas.paste(tile, (x, int(round((top - above) * unit))))
+    placements = []
+    for (word, _tile), (tile, above) in zip(pairs, scaled):
+        top_px = int(round((top - above) * unit))
+        canvas.paste(tile, (x, top_px))
+        placements.append({"left": x, "top": top_px,
+                           "width": tile.width, "height": tile.height})
         x += tile.width + gap
+    return canvas, placements
+
+
+def compose(pairs: list) -> "object":
+    """Word tiles laid out in a row, each at its own size, on one baseline.
+
+    The unit throughout is the x-height. A tile covers `above + 1 + below` of
+    them, so scaling it to `(above + 1 + below) * UNIT` px puts every word's
+    x-height at the same size; placing its top at `(top - above) * UNIT` puts
+    every word's baseline on the same rule.
+    """
+    return _compose_layout(pairs)[0]
+
+
+def compose_with_boxes(pairs: list) -> tuple["object", list[dict]]:
+    """`compose`, plus each word's placement in the finished image.
+
+    For `hybrid_line`, which has to say which pixels came from which engine --
+    `compose` alone pastes every tile down and forgets where.
+    """
+    return _compose_layout(pairs)
+
+
+def font_tile(word: str, face: tuple[str, str, float], *,
+             directory: Path = HAND_FONT_DIR) -> "object":
+    """One word, drawn with a handwriting typeface, as a grayscale tile.
+
+    Matches the convention `compose()` expects of a WriteViT tile: white
+    background, dark ink, cropped to the glyphs' own bounding box. Tight
+    cropping is what makes this drop into `compose()` unchanged -- it sizes
+    every tile off `extent()`, a function of the word's *letters*, not of how
+    many source pixels it started with, so all that has to be true of the
+    pixels themselves is that the ink is present and not padded. `hybrid_line`
+    is the only caller; `face` is whatever `FontHand.face_for(page)` returns.
+    """
+    from PIL import Image, ImageDraw, ImageFont
+
+    _name, filename, _size = face
+    font = ImageFont.truetype(str(Path(directory) / filename), FONT_TILE_PX)
+    # A 1x1 scratch canvas only to measure: `textbbox` already accounts for a
+    # font's own ascenders and descenders, which is exactly what "tight" means
+    # here -- there is no separate metric to crop against.
+    box = ImageDraw.Draw(Image.new("L", (1, 1))).textbbox((0, 0), word, font=font)
+    width, height = max(box[2] - box[0], 1), max(box[3] - box[1], 1)
+    canvas = Image.new("L", (width, height), 255)
+    ImageDraw.Draw(canvas).text((-box[0], -box[1]), word, font=font, fill=0)
     return canvas
 
 
@@ -679,7 +1091,7 @@ def _check_contract(markup: str) -> None:
 
 
 def fill(markup: str, hand: Hand, *, seed: int = 0,
-         kinds: tuple[str, ...] = HAND_KINDS) -> tuple[str, dict]:
+         kinds: tuple[str, ...] | str = HAND_KINDS) -> tuple[str, dict]:
     """Fill in the form: the runs a person writes, written.
 
     Returns the markup and a report of what was inked and what refused, which
@@ -689,14 +1101,19 @@ def fill(markup: str, hand: Hand, *, seed: int = 0,
     """
     _check_contract(markup)
     page = Page(seed)
+    every = kinds == ALL_KINDS
     report = {"source": getattr(hand, "source", "model"), "writer": page.writer,
               "pen": page.pen_hex, "height_em": round(page.height_em, 3),
+              # Which runs were offered to the pen at all. Without it, a page
+              # reading "3 inked, 40 printed" cannot be told from one where the
+              # other 40 were never a person's to write.
+              "kinds": "all" if every else list(kinds),
               "inked": [], "printed": {}}
 
     def replace(match: re.Match) -> str:
         kind, classes, escaped = match.group(1), match.group(2), match.group(3)
         text = html.unescape(escaped)
-        if kind not in kinds or not text.strip():
+        if not text.strip() or not (every or kind in kinds):
             return match.group(0)
         if not hand.writable(text, page):
             reason = hand.refusal(text, page)
@@ -714,6 +1131,11 @@ def fill(markup: str, hand: Hand, *, seed: int = 0,
         return drawn
 
     filled = RUN.sub(replace, markup)
+    if page.by_source:
+        # Only `BothHands` fills this in, and only it needs to: a single source
+        # inked everything in `inked` and saying so twice would invite the two
+        # numbers to disagree.
+        report["by_source"] = dict(sorted(page.by_source.items()))
     if report["inked"]:
         filled = filled.replace("</style>", hand.css(page) + "</style>", 1)
     return filled, report
@@ -746,11 +1168,11 @@ def main() -> int:
     return 0
 
 
-SOURCES = {"model": Hand, "font": FontHand}
+SOURCES = {"model": Hand, "font": FontHand, "both": BothHands, "hybrid": HybridHand}
 
 
 def source(name: str = "model", **kwargs):
-    """One of the two ink sources by name, unopened."""
+    """One of the ink sources by name, unopened."""
     try:
         return SOURCES[name](**kwargs)
     except KeyError:
@@ -759,9 +1181,11 @@ def source(name: str = "model", **kwargs):
 
 
 __all__ = [
-    "ALPHABET", "CSS", "FACES", "HAND_KINDS", "INK_HEIGHT_EM", "PENS",
-    "SIT_EM", "SOURCES", "FontHand", "Hand", "Page", "compose", "extent",
-    "fill", "ink_png", "ink_span", "refusal", "source", "writable", "words_of",
+    "ALL_KINDS", "ALPHABET", "CSS", "FACES", "FONT_TILE_PX", "HAND_KINDS",
+    "INK_HEIGHT_EM", "PENS", "SIT_EM", "SOURCES", "BothHands", "FontHand",
+    "Hand", "HybridHand", "Page", "compose", "compose_with_boxes", "extent",
+    "fill", "font_tile", "hybrid_line", "ink_png", "ink_span", "line_extent",
+    "model_of", "refusal", "source", "writable", "writable_word", "words_of",
 ]
 
 if __name__ == "__main__":

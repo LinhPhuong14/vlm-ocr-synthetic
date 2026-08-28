@@ -213,6 +213,7 @@ def pattern_overlay(
     opacity: float = 0.6,
     anchor: str = "random",
     rotate: float = 0.0,
+    box: tuple[float, float, float, float] | None = None,
     rng: random.Random | None = None,
 ) -> np.ndarray:
     """Đóng một hoạ tiết có kênh alpha lên trang đã dựng xong.
@@ -275,7 +276,19 @@ def pattern_overlay(
         "bottom_right": (width - art_w - int(width * 0.08), height - art_h - int(height * 0.10)),
         "centre": ((width - art_w) // 2, (height - art_h) // 2),
     }
-    if anchor == "random":
+    if box is not None:
+        # Một hình chữ nhật cụ thể trên trang: hoạ tiết đặt vào GIỮA nó.
+        #
+        # Đây là đường mà thuộc tính `ornament` đi vào (xem
+        # `generators/html/ornament.py`): luật khai chỗ đóng dấu theo NGHĨA —
+        # "khối chữ ký bên bán", "măng-sét" — còn người gọi mới biết khối ấy
+        # nằm ở đâu trên trang này, vì nó vừa đo từ DOM. `scale` vẫn tính theo
+        # bề rộng TRANG chứ không theo ô: một con dấu co theo khối chữ ký sẽ
+        # to nhỏ khác nhau ở từng bố cục, mà luật thì viết theo tờ giấy.
+        x0, y0, x1, y1 = (float(v) for v in box)
+        x = int(round((x0 + x1) / 2 - art_w / 2))
+        y = int(round((y0 + y1) / 2 - art_h / 2))
+    elif anchor == "random":
         x, y = spots[sorted(spots)[rng.randrange(len(spots))]]
     else:
         x, y = spots.get(anchor, spots["centre"])

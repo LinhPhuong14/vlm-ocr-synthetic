@@ -1,0 +1,61 @@
+# INV-09 — Hoá đơn dài, có dấu hiệu còn tiếp trang sau.
+#
+# Bộ sinh này dựng MỘT trang cho một hạt giống (xem `rulebase/README.md`
+# §"Hai đường dựng trang"); dựng thật một hoá đơn nhiều trang cần renderer
+# tự cắt trang, việc đó nằm ngoài phạm vi một bố cục. Bố cục này làm điều
+# gần nhất trong khuôn khổ hiện có: nhiều dòng trắng dự phòng
+# (`table.blank_rows`) đẩy bảng xuống gần hết một tờ A4, và một dòng chữ
+# NGOÀI NHÃN — không phải `span()`, không thuộc `ground_truth()`, xem
+# `page.marker` trong `generators/html/sheets/modern.py` — báo "còn tiếp",
+# giống stub cuối trang một hoá đơn PDF nhiều trang thật.
+id: invoice_multipage
+name: Long invoice with a page marker — the closest stand-in for real pagination
+source: "khảo sát mẫu hoá đơn PDF nhiều trang thật — trang 1 luôn có dòng 'còn tiếp' ở chân"
+family: modern
+
+width: [78, 92]
+gutter: 2
+rule_char: "-"
+sheet: a4
+rules: marks
+
+page:
+  marker: "Trang 1/2 — còn tiếp mặt sau"
+
+sections: [header, table, totals, footer]
+
+header:
+  name_scale: [1.30, 1.55]
+  name_bold: true
+  title: true
+  title_scale: [1.20, 1.40]
+
+columns:
+  - {key: stt,        title: "STT",                   width: 4,  align: center, title_align: center}
+  - {key: name,       title: "Tên hàng hoá, dịch vụ",  width: 0,  align: left,   title_align: left}
+  - {key: unit,       title: "ĐVT",                    width: 8,  align: center, title_align: center}
+  - {key: qty,        title: "Số lượng",               width: 8,  align: right,  title_align: right}
+  - {key: unit_price, title: "Đơn giá",                width: 13, align: right,  title_align: right}
+  - {key: amount,     title: "Thành tiền",             width: 15, align: right,  title_align: right}
+
+table:
+  frame: false
+  shade: 0.10
+  header_rules: true
+  blank_rows: 6
+
+item:
+  wrap_name: true
+  rows:
+    - - {col: stt, from: stt}
+      - {col: name, from: name}
+      - {col: unit, from: unit}
+      - {col: qty, from: qty}
+      - {col: unit_price, from: unit_price}
+      - {col: amount, from: amount}
+
+totals:
+  frame: false
+  indent: 0.42
+  emphasise_grand: true
+  grand_scale: [1.15, 1.35]

@@ -1,0 +1,30 @@
+# THAM SỐ NỘI DUNG — form_roster
+#
+# Root 3, tầng "lưới/ma trận": mỗi dòng hàng đứng cho MỘT người, không
+# phải một mặt hàng — tên đọc từ `item.name` (đúng field đã có, chỉ đổi ý
+# nghĩa qua tên cột ở layout), `item.qty` đọc thành tổng công. Dùng cho
+# FORM-02 (grid form) — bảng chấm công.
+#
+# Ô đánh dấu từng ngày trong tuần là furniture (xem `_grid_table` trong
+# form.py) — không sinh dữ liệu chấm công thật cho từng ngày, chỉ dựng
+# đúng HÌNH DẠNG lưới; số liệu thật duy nhất trên mỗi dòng là tên người và
+# tổng công, cả hai đều có box qua `item_values()` như mọi bảng khác.
+
+profile: invoice
+invoice: true
+num_items: [6, 10]
+price_step: 1
+show_vat: false
+show_subtotal: false
+show_payment: false
+show_amount_words: false
+show_number: false
+show_seller_tax_code: false
+show_seller_website: false
+titles: ["BẢNG CHẤM CÔNG"]
+serial_format: "CC{n}"
+units: ["Công"]
+signature_labels:
+  - ["Người chấm công", "(Ký, ghi rõ họ tên)"]
+  - ["Phụ trách bộ phận", "(Ký, ghi rõ họ tên)"]
+  - ["Giám đốc", "(Ký, ghi rõ họ tên)"]

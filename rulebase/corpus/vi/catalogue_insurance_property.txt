@@ -1,0 +1,13 @@
+# Hạng mục tài sản được bảo hiểm - dùng cho bảng tài sản của hợp đồng/GCN
+# bảo hiểm cháy nổ và bảo hiểm tài sản.
+# Định dạng: tên hạng mục<TAB>số tiền bảo hiểm tối thiểu<TAB>tối đa   (đơn vị VND)
+Nhà xưởng sản xuất (kết cấu thép, mái tôn)	15000000000	35000000000
+Nhà kho và văn phòng	8000000000	22000000000
+Trang thiết bị văn phòng, hệ thống điện - điều hoà	1000000000	4000000000
+Máy móc, dây chuyền thiết bị sản xuất	8000000000	20000000000
+Hàng hoá, nguyên vật liệu trong kho	3000000000	12000000000
+Hàng hoá luân chuyển trong kho	3000000000	12000000000
+Vật tư, công cụ dụng cụ và tài sản khác	500000000	2000000000
+Hệ thống phòng cháy, chữa cháy	500000000	2500000000
+Kho lạnh và thiết bị bảo quản	1000000000	5000000000
+Phương tiện vận tải nội bộ (xe nâng, xe tải)	800000000	3000000000
