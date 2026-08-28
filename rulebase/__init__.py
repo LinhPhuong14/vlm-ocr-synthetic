@@ -30,6 +30,7 @@ from .layout import LAYOUTS_ROOT, Cell, Grid, build_grid, item_values, load_layo
 from .layout import available as available_layouts
 from .spec import (
     ATTRIBUTES,
+    DRAW_ATTEMPTS,
     RULES_ROOT,
     Group,
     Option,
@@ -91,7 +92,8 @@ __all__ = [
 ]
 
 
-def make(seed: int | None = None, force: dict[str, str] | None = None, attempts: int = 500):
+def make(seed: int | None = None, force: dict[str, str] | None = None,
+        attempts: int = DRAW_ATTEMPTS):
     """Recipe, contents and grid in one call -- what every backend starts with.
 
     One `random.Random(seed)` is threaded through content and layout so a seed
@@ -124,7 +126,7 @@ def make(seed: int | None = None, force: dict[str, str] | None = None, attempts:
 
 
 def make_content(seed: int | None = None, force: dict[str, str] | None = None,
-                 attempts: int = 500):
+                 attempts: int = DRAW_ATTEMPTS):
     """Recipe and contents, with no character grid laid over them.
 
     `(recipe, receipt, rng)` -- the rng too, so a caller that does want a grid

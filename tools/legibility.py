@@ -169,15 +169,18 @@ def sampled(base, boxes, count: int, seed: int, floor: float):
     """Measure what the rule-base ACTUALLY draws, chain by composed chain.
 
     The per-value table above measures one value at a time. A real page draws
-    one value from every attribute that carries a chain -- since the copier
-    split, that is `augmentation` plus `toner`, `drum` and `rollers` -- and the
-    composition is what reaches a dataset. `impact_ribbon` keeps 0.53 of its
-    contrast on its own and `toner_burnt` more than 1.0 on its own; what the
-    two do together is a question neither row answers.
+    one value from every attribute that carries a chain -- `augmentation`
+    today, plus `toner`, `drum` and `rollers` (the copier, split into its
+    three independently-failing parts) whenever any of the three has a live
+    option again -- and the composition is what reaches a dataset.
+    `impact_ribbon` keeps 0.53 of its contrast on its own; what it does
+    alongside whatever else a real draw adds is a question no single row
+    answers.
 
-    Enumerating the product is 24 x 4 x 4 x 4 rows, which nobody reads. So this
-    draws real recipes at their real weights and reports the worst ones: the
-    combinations that actually happen, in the proportion they happen.
+    Enumerating the product of every attribute's values is what nobody reads.
+    So this draws real recipes at their real weights and reports the worst
+    ones: the combinations that actually happen, in the proportion they
+    happen.
     """
     import rulebase
 
@@ -203,7 +206,7 @@ def main() -> int:
     parser.add_argument("--source", type=Path, help="a rendered page; default is a probe page")
     parser.add_argument("--boxes", type=Path, help="JSON with a `boxes` list, for --source")
     parser.add_argument("--chain", action="append", default=[],
-                        help="only these ids (repeatable); `drum/drum_scored` or `heavy`")
+                        help="only these ids (repeatable); `augmentation/heavy` or `heavy`")
     parser.add_argument("--seed", type=int, default=17)
     parser.add_argument("--floor", type=float, default=28.0,
                         help="grey levels below which a box counts as unreadable")

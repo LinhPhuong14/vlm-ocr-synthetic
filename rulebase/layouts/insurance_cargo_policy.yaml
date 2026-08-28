@@ -1,0 +1,35 @@
+# Đơn bảo hiểm hàng hoá vận chuyển — lưới trường song ngữ Việt/Anh, A4 dọc.
+#
+# `bilingual_left` là (label_en, label_vn) theo đúng thứ tự `party_fields.left`,
+# để `insurance.py::_build_cargo_policy` ghép từng cặp qua `base.bilingual_field_line`.
+id: insurance_cargo_policy
+name: Cargo insurance policy — bilingual VN/EN field grid, no item table
+source: "samples/insurance-templates/insurance_cargo_policy.html (LO-07)"
+family: insurance
+composition: cargo_policy
+
+width: [92, 104]
+gutter: 2
+rule_char: "-"
+
+sheet: a4
+
+rules: marks
+
+sections: [letterhead, doctitle, parties, notes, signatures, footer]
+
+letterhead:
+  frame: false
+  labels: {address: "", tax_code: "", phone: "", account: "", branch: "", form_no: "", serial: "", number: "Policy No.:"}
+
+parties:
+  style: stacked
+
+bilingual_left:
+  - ["The Assured", "Người được bảo hiểm"]
+  - ["Address", "Địa chỉ"]
+  - ["Vessel / Conveyance", "Phương tiện vận chuyển"]
+  - ["Marks & Numbers", "Ký mã hiệu"]
+  - ["From", "Từ"]
+  - ["To", "Đến"]
+  - ["Sum insured", "Số tiền bảo hiểm"]

@@ -1,0 +1,39 @@
+# Trang hợp đồng bảo hiểm nhân thọ (Policy Schedule) — A4 dọc.
+id: insurance_life_schedule
+name: Life-insurance policy schedule — party info, product table, boxed note
+source: "samples/insurance-templates/insurance_life_policy_schedule.html (LO-03)"
+family: insurance
+composition: life_schedule
+
+width: [92, 104]
+gutter: 2
+rule_char: "-"
+
+sheet: a4
+
+rules: marks
+
+sections: [letterhead, doctitle, parties, table, totals, notes, signatures, footer]
+
+letterhead:
+  frame: false
+  labels: {address: "", tax_code: "", phone: "", account: "", branch: "", form_no: "", serial: "", number: "Số hợp đồng:"}
+
+parties:
+  style: stacked
+
+columns:
+  - {key: name, label: "Sản phẩm bảo hiểm", width: 0, align: left}
+  - {key: unit, label: "Thời hạn", width: 14, align: center}
+  - {key: unit_price, label: "Số tiền bảo hiểm", width: 22, align: right}
+  - {key: amount, label: "Phí định kỳ", width: 20, align: right}
+
+table:
+  column_numbers: false
+
+item:
+  rows:
+    - - {col: name, from: name}
+      - {col: unit, from: unit}
+      - {col: unit_price, from: unit_price}
+      - {col: amount, from: amount}
