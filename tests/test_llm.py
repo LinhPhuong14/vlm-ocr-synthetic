@@ -405,3 +405,53 @@ def test_the_charset_is_measured_rather_than_listed():
     assert "—" in marks, "every layout's name: carries one"
     assert layout_schema.check({"name": "Siêu thị — hoá đơn GTGT"}) == []
     assert layout_schema.check({"name": "Siêu thị 🧾 hoá đơn"})
+
+
+# ------------------------------------------------- chính sách biến đổi
+
+
+def test_the_policy_and_the_rules_agree_both_ways():
+    """Every drawable document has a level, and every level names a document.
+
+    A document with no level is not an error at run time -- it falls to
+    `fixed`, which is the safe side -- and that is exactly why it is checked
+    here: "safe" means a document type that quietly never varies, and a run
+    whose point is variety should not find that out by reading the output.
+    """
+    from tools.llm import policy
+
+    assert policy.problems() == []
+
+
+def test_a_prescribed_form_may_not_have_its_layout_varied():
+    """The constraint the whole seam is built around.
+
+    A VAT invoice form's shape is set by a circular from the tax authority. A
+    generated variant of it is a document that does not exist, and a model
+    trained on those learns to look for a field no real page has.
+    """
+    from tools.llm import policy
+
+    assert policy.level_of("vat_invoice_form") == policy.FIXED
+    assert not policy.may_vary_layout("vat_invoice_form")
+    assert not policy.may_vary_layout("hospital_bill")
+    assert policy.may_vary_layout("newspaper_classifieds")
+    assert policy.level_of("newspaper_classifieds") == policy.FREE
+
+
+def test_an_unclassified_document_is_fixed_rather_than_free():
+    """The default has to be the strict end: forgetting to classify a new
+    document costs a variation, not a forged licence."""
+    from tools.llm import policy
+
+    assert policy.level_of("a_document_nobody_has_classified") == policy.FIXED
+    assert policy.DEFAULT == policy.FIXED
+
+
+def test_a_level_outside_the_three_is_refused(tmp_path):
+    from tools.llm import policy
+
+    path = tmp_path / "augmentable.yaml"
+    path.write_text("documents:\n  x: anything_goes\n", encoding="utf-8")
+    with pytest.raises(policy.PolicyError, match="must be one of"):
+        policy.load(path)

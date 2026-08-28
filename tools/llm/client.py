@@ -38,20 +38,33 @@ and the model are recorded beside it by `provenance.py`, and re-running the
 generator is a way to get *more* material rather than a way to get the same
 material back.
 
-## Why the local model rather than a hosted one
+## Local, or a server -- one environment variable apart
 
-Asked for and answered: no API key leaves the machine, no run depends on a
-service being up, and the corpus this writes is Vietnamese shop material that
-nobody needs to send anywhere. The cost is quality and speed -- a 7B at 4-bit
-on CPU runs about 5 tokens a second and writes `Dầu-tahini` when asked for
-groceries. Which is why every generator in this package validates what comes
-back and reports what it threw away, rather than trusting it.
+`VLM_LLM_HOST` points this at another machine, and nothing else changes: a
+remote Ollama speaks the same `/api/chat` as a local one. That is why the
+client stayed Ollama-shaped instead of becoming an OpenAI-compatible one --
+"put the model on the GPU box" should be a hostname, not a rewrite.
+
+What does NOT move with the hostname is the boundary at the top of this file.
+A server makes the tempting design cheaper (the latency argument goes away) and
+no more correct: a page whose wording came from a live call is a page nobody
+can redraw. See `docs/llm-in-pipeline.md` for the design that gets per-page
+LLM variety and keeps a run reproducible -- it works by writing the model's
+decisions down BEFORE the render rather than by calling from inside it.
+
+The default is still loopback, and the reasons that put it there stand: no key
+leaves the machine, no run depends on a service being up. The cost is quality
+and speed -- a 7B at 4-bit on CPU runs about 5 tokens a second and writes
+`Dầu-tahini` when asked for groceries. Which is why every generator in this
+package validates what comes back and reports what it threw away, rather than
+trusting it.
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
+import os
 import time
 import urllib.error
 import urllib.request
@@ -61,16 +74,40 @@ from pathlib import Path
 TOOLS_ROOT = Path(__file__).resolve().parent
 PROMPT_DIR = TOOLS_ROOT / "prompts"
 
-# The default host and model. Both overridable per call, because a machine with
-# a GPU should be able to point this at a bigger model without editing code.
-HOST = "http://127.0.0.1:11434"
-MODEL = "qwen2.5:7b-instruct"
+# Where the weights are, and which ones. Both are read from the environment so
+# a machine with a GPU -- or a shared server with a 70B on it -- is pointed at
+# without editing code and without a second config file:
+#
+#     VLM_LLM_HOST   http://gpu-box.lan:11434     (default: loopback)
+#     VLM_LLM_MODEL  qwen2.5:32b-instruct         (default: the 7B below)
+#     VLM_LLM_TOKEN  a bearer token, when the server sits behind auth
+#
+# The protocol is Ollama's `/api/chat` either way. A remote Ollama speaks the
+# same thing as a local one, so "run it on the server" is a hostname and not a
+# rewrite -- which is why this stayed Ollama rather than becoming an
+# OpenAI-compatible client that would have to grow its own auth, its own error
+# shapes and its own streaming.
+HOST = os.environ.get("VLM_LLM_HOST", "http://127.0.0.1:11434").rstrip("/")
+MODEL = os.environ.get("VLM_LLM_MODEL", "qwen2.5:7b-instruct")
+TOKEN = os.environ.get("VLM_LLM_TOKEN", "")
 
-# Ollama is on loopback and the container routes everything else through an
-# agent proxy, so a request built from the environment's proxy settings goes to
-# the proxy and fails. An empty ProxyHandler is how this file says "no proxy,
-# ever" without touching the environment other code shares.
-_OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+# Loopback must NOT go through a proxy, and a remote host generally must.
+#
+# This container routes outbound traffic through an agent proxy, so a request
+# to 127.0.0.1 built from the environment's proxy settings goes to the proxy
+# and fails. It used to be "no proxy, ever", which was right while the only
+# host was loopback and becomes wrong the moment `VLM_LLM_HOST` names a server
+# on another machine. So there are two openers and `_opener_for` picks by host.
+_DIRECT = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+_PROXIED = urllib.request.build_opener()
+
+
+def _is_local(host: str) -> bool:
+    return any(mark in host for mark in ("127.0.0.1", "localhost", "[::1]"))
+
+
+def _opener_for(host: str):
+    return _DIRECT if _is_local(host) else _PROXIED
 
 
 class LLMError(RuntimeError):
@@ -95,16 +132,27 @@ class Reply:
         return self.tokens / self.seconds if self.seconds else 0.0
 
 
-def _call(path: str, payload: dict | None, timeout: float) -> dict:
+def _call(path: str, payload: dict | None, timeout: float,
+          host: str = "") -> dict:
     """One request. `payload=None` is a GET -- `/api/tags` only answers to one,
-    and sending it a body gets a 405 that reads exactly like a missing model."""
+    and sending it a body gets a 405 that reads exactly like a missing model.
+
+    `host` defaults to `HOST` rather than being read from it directly, because
+    it used to BE read directly: `Model(host=...)` set an attribute that this
+    function never looked at, so pointing a Model at another server silently
+    asked the default one. The parameter is how that cannot happen again.
+    """
+    host = (host or HOST).rstrip("/")
+    headers = {} if payload is None else {"Content-Type": "application/json"}
+    if TOKEN:
+        headers["Authorization"] = f"Bearer {TOKEN}"
     request = urllib.request.Request(
-        HOST + path if path.startswith("/") else path,
+        host + path if path.startswith("/") else path,
         data=None if payload is None else json.dumps(payload).encode("utf-8"),
-        headers={} if payload is None else {"Content-Type": "application/json"},
+        headers=headers,
     )
     try:
-        with _OPENER.open(request, timeout=timeout) as response:
+        with _opener_for(host).open(request, timeout=timeout) as response:
             return json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as error:
         # The server IS there and said no, which is a different problem and
@@ -125,8 +173,10 @@ def _call(path: str, payload: dict | None, timeout: float) -> dict:
             "Warm it with a one-word request and a long timeout, then retry."
         ) from error
     except urllib.error.URLError as error:
+        where = ("the local model at " + host if _is_local(host)
+                 else f"the model server at {host} (VLM_LLM_HOST)")
         raise LLMError(
-            f"cannot reach the local model at {HOST} ({error}).\n"
+            f"cannot reach {where} ({error}).\n"
             "Start it with:  ollama serve &\n"
             "and pull the weights with:  ollama pull " + MODEL + "\n"
             "See tools/llm/README.md. Nothing here falls back to a hosted "
@@ -170,7 +220,7 @@ class Model:
         tag is only how a human recognises it.
         """
         if not self._digest:
-            listing = _call("/api/tags", None, timeout=30)
+            listing = _call("/api/tags", None, timeout=30, host=self.host)
             for item in listing.get("models", []):
                 if item.get("name") == self.name:
                     self._digest = str(item.get("digest", ""))[:16]
@@ -209,7 +259,7 @@ class Model:
                         "num_predict": num_predict},
             "messages": [{"role": "system", "content": system},
                          {"role": "user", "content": user}],
-        }, timeout=timeout)
+        }, timeout=timeout, host=self.host)
         elapsed = time.monotonic() - started
         text = ((reply.get("message") or {}).get("content") or "").strip()
         if not text:
@@ -283,4 +333,5 @@ def lines_of(text: str) -> list[str]:
     return out
 
 
-__all__ = ["HOST", "MODEL", "LLMError", "Model", "Reply", "lines_of", "prompt"]
+__all__ = ["HOST", "MODEL", "TOKEN", "LLMError", "Model", "Reply", "lines_of",
+           "prompt"]
