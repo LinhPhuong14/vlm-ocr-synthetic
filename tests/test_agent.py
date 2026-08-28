@@ -326,3 +326,28 @@ def test_disabling_a_step_keeps_the_augmentation_it_came_from(built):
     rules, _ = built
     shipped = {option.id for option in load_rules()["augmentation"]}
     assert {option.id for option in rules["augmentation"]} == shipped
+
+
+def test_a_till_roll_never_wears_a_dressing_that_sets_page_margins(built):
+    """A roll is about 80 mm across and sets its own width in `till.py`.
+
+    16 mm of margin each side leaves the item table too little to lay out in and
+    the columns spill past the paper -- measured as a box seven pixels outside a
+    606 px frame on `market_barcode`, which is a label describing ink that is not
+    on the page. There is no millimetre value that is both a wide margin on A4
+    and survivable on a roll, so the rules refuse the pairing instead.
+    """
+    rules, _ = built
+    on_a_roll = frozenset({"aug_free", agent_rules.TILL_TAG})
+    for option in rules[agent_rules.ATTRIBUTE]:
+        if option.params.get("axes", {}).get("structure") in variants.WIDE_ONLY_STRUCTURE:
+            assert not option.allowed(on_a_roll), option.id
+
+
+def test_a_roll_still_has_plenty_to_wear(built):
+    """The exclusion must not starve the five till layouts into one dressing."""
+    rules, _ = built
+    on_a_roll = frozenset({"aug_free", agent_rules.TILL_TAG})
+    drawable = [o for o in rules[agent_rules.ATTRIBUTE] if o.allowed(on_a_roll)]
+    every = rules[agent_rules.ATTRIBUTE]
+    assert len(drawable) > 0.8 * len(every), f"{len(drawable)} of {len(every)}"

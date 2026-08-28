@@ -264,6 +264,20 @@ def _structure() -> Axis:
     })
 
 
+# Structure values that set the page's own margins in millimetres, and so can
+# only be worn by a sheet wide enough to give them away. A thermal till roll is
+# about 80 mm across and `till.py` sets its width itself; 16 mm of margin on
+# each side leaves the item table too little to lay out in and the columns spill
+# past the paper -- measured, as a box seven pixels outside a 606 px frame on
+# `market_barcode`. It is also simply not a thing that happens: a roll printed
+# at the counter has no design margins to vary.
+#
+# Expressed as a tag rather than as a safer number because there is no number
+# that is both a wide margin on A4 and a survivable one on a roll -- and
+# percentage padding resolves against the containing block, not the sheet, so it
+# would not fix it either.
+WIDE_ONLY_STRUCTURE = frozenset({"le_rong", "le_hep_tieu_de_lon"})
+
 AXES: tuple[Axis, ...] = (_stock(), _rule(), _band(), _zebra(),
                           _type(), _density(), _mark(), _structure())
 
@@ -280,6 +294,11 @@ class Variant:
     css: str
     axes: dict[str, str]
     moves: tuple = ()
+
+    @property
+    def wide_only(self) -> bool:
+        """Whether this dressing needs a sheet wider than a till roll."""
+        return self.axes.get("structure", "") in WIDE_ONLY_STRUCTURE
 
 
 def _compose(picks: dict[str, str], level: str, axes: tuple[Axis, ...]) -> Variant:
@@ -353,5 +372,5 @@ def space() -> dict[str, int]:
     return {"livery": livery, "free": free}
 
 
-__all__ = ["AXES", "LIVERY_AXES", "MONO", "SANS", "SERIF", "Axis", "Variant",
-           "build", "space"]
+__all__ = ["AXES", "LIVERY_AXES", "MONO", "SANS", "SERIF", "WIDE_ONLY_STRUCTURE",
+           "Axis", "Variant", "build", "space"]
