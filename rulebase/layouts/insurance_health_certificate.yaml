@@ -1,0 +1,41 @@
+# GCN bảo hiểm sức khoẻ — cột trái màu (thẻ hội viên) + bảng quyền lợi theo
+# nhóm (A/B/C), A4 dọc.
+#
+# `table.group_span: 2` = đúng số cột của bảng (name + amount), nên
+# `_group_row` (generators/html/sheets/base.py) vẽ dòng tiêu đề nhóm chạy hết
+# bề rộng, không còn cột nào để điền sums -- xem
+# `rulebase/content.py::_build_grouped_items`.
+id: insurance_health_certificate
+name: Health-insurance certificate — coloured sidebar, grouped benefit table
+source: "samples/insurance-templates/insurance_health_certificate.html (LO-06)"
+family: insurance
+composition: health_cert
+
+width: [92, 104]
+gutter: 2
+rule_char: "-"
+
+sheet: a4
+
+rules: marks
+
+sections: [letterhead, doctitle, parties, table, notes, signatures, footer]
+
+letterhead:
+  frame: false
+  labels: {address: "", tax_code: "", phone: "", account: "", branch: "", form_no: "", serial: "", number: "Số thẻ hội viên:"}
+
+parties:
+  style: stacked
+
+columns:
+  - {key: name, label: "Quyền lợi", width: 0, align: left}
+  - {key: amount, label: "Giới hạn / năm", width: 24, align: right}
+
+table:
+  group_span: 2
+
+item:
+  rows:
+    - - {col: name, from: name}
+      - {col: amount, from: amount}

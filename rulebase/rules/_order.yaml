@@ -25,13 +25,15 @@ order:
   # thì nét bút sẽ sắc nét nằm trên một trang đã cũ — một cảnh khác hẳn.
   - handwriting
   - augmentation
-  # Cái máy đã in hoặc đã sao tờ này, tách làm ba bộ phận hỏng độc lập với
-  # nhau. Đứng SAU `augmentation` vì chúng là thứ xảy ra SAU CÙNG: tờ giấy đã
-  # in, đã cũ đi, rồi mới đi qua cái máy sinh ra tệp ảnh này.
+  # Cái máy đã in hoặc đã sao tờ này -- "cái copier" -- tách làm ba bộ phận
+  # hỏng độc lập với nhau. Đứng SAU `augmentation` vì chúng là thứ xảy ra SAU
+  # CÙNG: tờ giấy đã in, đã cũ đi, rồi mới đi qua cái máy sinh ra tệp ảnh này.
   #
-  # `toner` trước hai cái kia, và không phải chuyện thẩm mỹ: nó đặt thẻ
-  # `worn_machine`, mà mức nặng nhất của `drum` và `rollers` đều `requires` thẻ
-  # ấy. Đảo lại thì hai giá trị ấy không bao giờ bốc được.
+  # Cả ba đang TẮT (mỗi file chỉ còn giá trị `no_*` của nó, xem toner.yaml) nên
+  # thứ tự `toner` trước hai cái kia không còn ràng buộc gì bốc được lúc này --
+  # nhưng giữ nguyên vị trí, vì đây vẫn là chỗ đúng cho cả ba nếu bật lại: lúc
+  # đó `toner` lại cần đứng trước, để đặt thẻ `worn_machine` mà mức nặng nhất
+  # của `drum`/`rollers` từng `requires`.
   - toner
   - drum
   - rollers

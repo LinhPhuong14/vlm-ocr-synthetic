@@ -4,7 +4,7 @@
 #   paper_texture      dán trang giấy lên texture giấy thật
 #   phantom_character  dán mảng mực thừa vào rìa chữ
 #
-# ---- BẢY GIÁ TRỊ ĐANG TẮT, VÀ VÌ SAO ----
+# ---- BẢY GIÁ TRỊ ĐANG TẮT, VÀ MỘT MÔ HÌNH ĐÃ RÚT KHỎI MỌI CHUỖI ----
 #
 # `enabled: false` = có mặt, không bao giờ bốc trúng, vẫn dựng lại được khi gọi
 # đích danh (`--force augmentation=stains`). Cùng một chữ mà
@@ -34,13 +34,32 @@
 # trị ĐANG BẬT nào gọi tới thì phải khai trong `degradation.SWITCHED_OFF`, và
 # `make check-rules` soát hai chiều.
 #
-# `paper_overlay` khác `paper_texture` ở CHỖ ĐỨNG trong chuỗi, không ở ảnh dùng:
-# `paper_texture` chạy ĐẦU chuỗi và NHÂN chứ không hoà, nên tờ giấy hiện dưới
-# chữ mà không làm bệt nét mực (`alpha` chỉ làm tối; `grain` và `creases` thì
-# hai chiều — nếp gấp bắt sáng thì sáng hơn mặt giấy quanh nó);
-# `paper_overlay` chạy CUỐI, phủ ảnh chụp giấy thật của
-# SynthDoG (`augmentations/data/image/`) lên trên tất cả — cả mực. Qua cả hai
-# thì trang giấy trông như được IN LÊN giấy, chứ không phải dán lên ảnh giấy.
+# ---- `paper_overlay`: RÚT RỒI BẬT LẠI, và cái đã đo được ----
+#
+# Nó phủ ảnh chụp giấy thật của SynthDoG (`augmentations/data/image/`) lên TRÊN
+# CÙNG mọi thứ, kể cả mực — khác `paper_texture` ở CHỖ ĐỨNG trong chuỗi chứ
+# không ở ảnh dùng. Qua cả hai thì trang giấy trông như được IN LÊN giấy, chứ
+# không phải dán lên ảnh giấy.
+#
+# Ngày 27/08 nó bị rút khỏi cả bảy chuỗi, vì một lý do ĐO ĐƯỢC: sáu tấm ảnh
+# nguồn là giấy nhàu, mờ, nền xám loang lổ diện tích lớn, và ở alpha 0,22–0,34
+# trên một trang A4 thì cả nửa dưới trang chìm trong mảng xám mất chi tiết —
+# phát hiện trên một trang `insurance_health_id_card`. Nay **bật lại theo yêu
+# cầu**, đúng bảy chuỗi và đúng alpha cũ.
+#
+# Nếu mảng xám ấy quay lại thì đây là hai cái núm, theo thứ tự nên vặn:
+#
+#   1. **Đổi ảnh nguồn.** Đó mới là gốc của vấn đề: sáu tấm ảnh kia chụp giấy
+#      đã nhàu sẵn, không phải giấy phẳng. Một tấm giấy A4 trắng chụp đều sáng
+#      sẽ cho đúng hiệu ứng "in lên giấy" mà không mang theo nếp nhàu của tờ
+#      giấy khác.
+#   2. **Hạ `alpha`** trong từng chuỗi dưới đây. Nó nhân, nên 0,15 vẫn thấy
+#      được vân giấy mà không lấp mất chữ.
+#
+# `paper_texture` không liên quan: nó chạy ĐẦU chuỗi và NHÂN chứ không hoà,
+# nên tờ giấy hiện dưới chữ mà không làm bệt nét mực (`alpha` chỉ làm tối;
+# `grain` và `creases` thì hai chiều — nếp gấp bắt sáng thì sáng hơn mặt giấy
+# quanh nó). Đây vẫn là lớp "giấy" mặc định của mọi thuộc tính có texture.
 #
 # Bốc sau cùng, nên chỗ này thấy được mọi thẻ phía trên. Ví dụ trang in nhiệt
 # không bao giờ bị "bleed-through" vì giấy nhiệt chỉ in một mặt.
@@ -338,6 +357,7 @@ options:
       chain:
         - [paper_texture, {alpha: 0.28, grain: 0.4}]
         - [ink_degradation, {level: 2}]
+        - [paper_overlay, {alpha: 0.26, lighten: 0.32}]
         # Người đọc tô mấy dòng LIỀN NHAU, không tô ba dòng cách quãng.
         - [by_box, {effect: markup, params: {style: highlight, opacity: 0.7},
                     select: {policy: run, fraction: 0.08}}]
@@ -347,7 +367,6 @@ options:
         - [by_box, {effect: markup, params: {style: circle, colour: red},
                     select: {policy: kind, kinds: [total], fraction: 0.6}}]
         - [blur_zones, {radius: 1.0, zones: 1, coverage: 0.12}]
-        - [paper_overlay, {alpha: 0.26, lighten: 0.32}]
 
   - id: scribbled
     weight: 3
@@ -387,12 +406,12 @@ options:
     params:
       chain:
         - [paper_texture, {alpha: 0.22, grain: 0.3}]
+        - [paper_overlay, {alpha: 0.24, lighten: 0.34}]
         # Delaunay là đối ngẫu của Voronoi trên cùng tập điểm sinh, nhưng phủ
         # lên trang thì đọc ra khác hẳn: mảng tam giác nhọn giống nền in trang
         # trí, ô Voronoi giống thớ giấy. Giữ cả hai để một lượt chạy so được.
         - [delaunay_tessellation, {scale: 42, alpha: 0.13, contrast: 0.5}]
         - [ink_degradation, {level: 2}]
-        - [paper_overlay, {alpha: 0.24, lighten: 0.34}]
 
   # Ảnh chụp LẠI MÀN HÌNH. Hoá đơn điện tử mở trên máy tính rồi chụp bằng điện
   # thoại — loại ảnh đang tăng nhanh nhất, và trước đợt này không mô hình nào
@@ -422,10 +441,10 @@ options:
     params:
       chain:
         - [paper_texture, {alpha: 0.3, grain: 0.45}]
+        - [paper_overlay, {alpha: 0.28, lighten: 0.3}]
         # `radial: 1` là quang sai ống kính — lệch tăng dần theo bán kính, giữa
         # ảnh chồng khít còn bốn góc lệch nhất. `radial: 0` là lệch bản in, đều
         # khắp tờ. Hai cơ chế khác nhau, và đây là cái của ống kính.
         - [color_shift, {shift: 2.0, radial: 1.0, blur: 0.5}]
         - [ink_degradation, {level: 2}]
         - [blur_zones, {radius: 1.2, zones: 2, coverage: 0.16}]
-        - [paper_overlay, {alpha: 0.28, lighten: 0.3}]

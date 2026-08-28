@@ -238,6 +238,59 @@ blanks:
     layout: magazine_qa_interview
     sheet: samples/periodical-templates/magazine_qa_interview.html
 
+  # ------------------------------------------------------------------
+  # Mười phôi bảo hiểm (LO-01..LO-10), lưu ở `samples/insurance-templates/`
+  # dưới tên slug tiếng Anh — xem README trong thư mục đó.
+  insurance_moto_certificate:
+    source: "samples/insurance-templates/insurance_moto_certificate.html (LO-01)"
+    layout: insurance_moto_certificate
+    sheet: samples/insurance-templates/insurance_moto_certificate.html
+
+  insurance_auto_certificate:
+    source: "samples/insurance-templates/insurance_auto_certificate.html (LO-02)"
+    layout: insurance_auto_certificate
+    sheet: samples/insurance-templates/insurance_auto_certificate.html
+
+  insurance_life_schedule:
+    source: "samples/insurance-templates/insurance_life_policy_schedule.html (LO-03)"
+    layout: insurance_life_schedule
+    sheet: samples/insurance-templates/insurance_life_policy_schedule.html
+
+  insurance_application_form:
+    source: "samples/insurance-templates/insurance_application_form.html (LO-04)"
+    layout: insurance_application_form
+    sheet: samples/insurance-templates/insurance_application_form.html
+
+  insurance_health_id_card:
+    source: "samples/insurance-templates/insurance_health_id_card.html (LO-05)"
+    layout: insurance_health_id_card
+    sheet: samples/insurance-templates/insurance_health_id_card.html
+
+  insurance_health_certificate:
+    source: "samples/insurance-templates/insurance_health_certificate.html (LO-06)"
+    layout: insurance_health_certificate
+    sheet: samples/insurance-templates/insurance_health_certificate.html
+
+  insurance_cargo_policy:
+    source: "samples/insurance-templates/insurance_cargo_policy.html (LO-07)"
+    layout: insurance_cargo_policy
+    sheet: samples/insurance-templates/insurance_cargo_policy.html
+
+  insurance_fire_certificate:
+    source: "samples/insurance-templates/insurance_fire_certificate.html (LO-08)"
+    layout: insurance_fire_certificate
+    sheet: samples/insurance-templates/insurance_fire_certificate.html
+
+  insurance_travel_certificate:
+    source: "samples/insurance-templates/insurance_travel_certificate.html (LO-09)"
+    layout: insurance_travel_certificate
+    sheet: samples/insurance-templates/insurance_travel_certificate.html
+
+  insurance_property_contract:
+    source: "samples/insurance-templates/insurance_property_contract.html (LO-10)"
+    layout: insurance_property_contract
+    sheet: samples/insurance-templates/insurance_property_contract.html
+
 # Phôi mà mỗi document được phép dựng từ. Thứ tự không quan trọng.
 documents:
   pub_eatery: [eatery_indexed, eatery_ascii, eatery_indexed_b]
@@ -275,3 +328,13 @@ documents:
   newspaper_classifieds: [newspaper_classifieds]
   magazine_contents: [magazine_contents]
   magazine_qa_interview: [magazine_qa_interview]
+  insurance_moto_certificate: [insurance_moto_certificate]
+  insurance_auto_certificate: [insurance_auto_certificate]
+  insurance_life_schedule: [insurance_life_schedule]
+  insurance_application_form: [insurance_application_form]
+  insurance_health_id_card: [insurance_health_id_card]
+  insurance_health_certificate: [insurance_health_certificate]
+  insurance_cargo_policy: [insurance_cargo_policy]
+  insurance_fire_certificate: [insurance_fire_certificate]
+  insurance_travel_certificate: [insurance_travel_certificate]
+  insurance_property_contract: [insurance_property_contract]
