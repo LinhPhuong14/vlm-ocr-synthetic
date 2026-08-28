@@ -109,3 +109,14 @@ data/*/logs/
 data/*/plan.json
 data/*/manifest.json
 data/*/timings.json
+
+# An agent run (`tools/agent_dataset.py`) writes 5000 pages and a proof beside
+# every one of them -- about 1.5 GB. The images stay on disk and out of git;
+# what gets committed is everything needed to REBUILD them: `agent_plan.json`
+# (a force + seed per page), `agent_report.json`, `rules/` (the run's own
+# rule-base, variant attribute and all) and `dataset.json`. Plus `sample/`,
+# a few pages and their proofs so a reader can see what came out without
+# cloning a gigabyte.
+#   python tools/agent_dataset.py -o data/5k_llm -n 5000 --workers 3
+data/5k_llm/html/
+data/5k_llm/proof/

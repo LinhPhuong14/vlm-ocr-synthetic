@@ -45,7 +45,7 @@ always was.
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -58,12 +58,20 @@ LAYOUT_STRIDE = 1_000
 
 @dataclass(frozen=True)
 class Run:
-    """One invocation of a renderer: consecutive seeds, one layout."""
+    """One invocation of a renderer: consecutive seeds, one layout.
+
+    `force` pins attributes for this run alone, on top of whatever the whole
+    job pins. Empty for a plan built the ordinary way -- the quota decides the
+    layout and the sampler decides the rest. An agent-planned run sets all of
+    them and takes `count: 1`, which is how "the model chose this page" is
+    said in the vocabulary the renderers already read (`worklist.Job.force`).
+    """
 
     layout: str
     seed: int          # the first seed; the renderer walks seed..seed+count-1
     count: int
     first_index: int   # position of the first image in the backend's numbering
+    force: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
@@ -176,6 +184,14 @@ def shard_runs(runs: list[Run], backend: str, size: int,
     A run is split across shards when it has to be. That is what allows a shard
     to hold the tail of one layout and the head of the next, which is the whole
     point of not cutting by layout.
+
+    **Every field of the run survives the cut, `force` included.** It did not,
+    once: this rebuilt each piece from `layout`, `seed`, `count` and
+    `first_index` and dropped the rest, which was invisible while `force` was
+    the only other field and was always empty. An agent-planned run puts all
+    eight attributes there, and the pages came out drawn from the layout pin
+    alone -- correct-looking pages, a plan that described none of them, and
+    nothing anywhere that said so. `tests/test_plan.py` now says so.
     """
     shards: list[Shard] = []
     current = Shard(index=start_index + len(shards), backend=backend)
@@ -184,8 +200,8 @@ def shard_runs(runs: list[Run], backend: str, size: int,
         taken = 0
         while taken < run.count:
             take = min(room, run.count - taken)
-            current.runs.append(Run(
-                layout=run.layout,
+            current.runs.append(replace(
+                run,
                 seed=run.seed + taken,
                 count=take,
                 first_index=run.first_index + taken,
@@ -210,12 +226,18 @@ def pinned_layout(force) -> str | None:
     return None
 
 
-def build_plan(config, layouts: list[str]) -> dict[str, Any]:
+def build_plan(config, layouts: list[str],
+               runs: dict[str, list[Run]] | None = None) -> dict[str, Any]:
     """The full plan: shards, seeds, names. No absolute paths anywhere.
 
     `plan.json` is what reproduces a dataset on another machine, so a path from
     this one has no business in it. The output directory lives in the config and
     is supplied at run time.
+
+    `runs` hands the plan a list somebody else built -- the agent planner, which
+    decides every attribute of every page and so cannot express itself as a
+    quota over layouts. Left None, the quota builds them, which is every other
+    caller and every committed dataset.
     """
     pairing = getattr(config, "pairing", "paired")
 
@@ -236,9 +258,15 @@ def build_plan(config, layouts: list[str]) -> dict[str, Any]:
             )
         layouts = [pinned]
     runs_by_backend: dict[str, list[Run]] = {}
-    for backend_index, backend in enumerate(config.backends):
-        runs_by_backend[backend] = backend_runs(
-            backend_index, config.per_backend, config.seed, layouts, pairing)
+    if runs is not None:
+        missing = [b for b in config.backends if b not in runs]
+        if missing:
+            raise ValueError(f"prepared runs are missing backend(s) {missing}")
+        runs_by_backend = {backend: list(runs[backend]) for backend in config.backends}
+    else:
+        for backend_index, backend in enumerate(config.backends):
+            runs_by_backend[backend] = backend_runs(
+                backend_index, config.per_backend, config.seed, layouts, pairing)
 
     overlaps = disjoint_seeds(runs_by_backend, pairing)
     if overlaps:
