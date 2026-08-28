@@ -48,10 +48,10 @@ giấy *quét vào* đọc lên giống hệt nhau.
 | Thành phần | Vai trò trong hệ thống | Trạng thái |
 | :--- | :--- | :--- |
 | **Chromium** (Playwright) — [`generators/html/`](generators/html) | Renderer **duy nhất** sinh dataset: dàn trang bằng CSS thật, chụp màn hình, đọc hộp từ chính DOM vừa dàn. | **Bắt buộc (Required)** |
-| **Rule-base** — [`rulebase/`](rulebase/README.md) | 10 thuộc tính có trọng số + ràng buộc thẻ, quyết định *tờ giấy nói gì*: loại chứng từ, bố cục, nội dung, hình thức, màu, hoạ tiết, cách làm cũ, và ba bộ phận của cái máy đã sao nó. | **Bắt buộc (Required)** |
+| **Rule-base** — [`rulebase/`](rulebase/README.md) | 11 thuộc tính có trọng số + ràng buộc thẻ, quyết định *tờ giấy nói gì*: loại chứng từ, bố cục, nội dung, hình thức, màu, hoạ tiết, **mực bút**, cách làm cũ, và ba bộ phận của cái máy đã sao nó. | **Bắt buộc (Required)** |
 | **Degradation** — [`degradation/`](degradation/README.md) | 26 mô hình xuống cấp (**3 đang tắt**: `gradient_domain`, `holes`, `dirty_rollers` — xem `degradation.SWITCHED_OFF`): 8 chuyển thể từ **DocCreator** (LaBRI Bordeaux) — vân giấy, mực mòn, thấm mặt sau, nhoè vùng, rách, bóng gáy; 12 từ **Augraphy** — máy photo hỏng, trống mực bẩn, in kim, in typo, chữ rỗng ruột, bút đánh dấu, nền chia ô, lệch kênh màu; 6 của repo — halftone, sọc quét, JPEG, dấu đóng, ảnh giấy phủ. Cộng `by_box`: bọc mô hình bất kỳ để nó chỉ ăn vào vài ô chữ. | **Bắt buộc (Required)** |
 | **Pipeline** — [`pipeline/`](pipeline) | Một lượt chạy được **khai báo, chia shard, chạy song song và resume được**, kèm bất biến từng ảnh và đo trôi phân phối. | **Bắt buộc (Required)** |
-| **Chữ viết tay** — [`generators/html/handwriting.py`](generators/html/handwriting.py), [`docs/handwriting-html.md`](docs/handwriting-html.md) | Điền ô trống của biểu mẫu bằng **nét bút chứ không phải font in bị rung**. Hai nguồn mực, **không thay thế nhau**: `font` phủ hết mọi ô nhưng một trang chỉ một nét chữ; `model` là [WriteViT](docs/writevit.md) ([`tools/writevit/`](tools/writevit)), nét mỗi lần một khác nhưng không viết được chữ số. | *Mở rộng (Handwriting)* |
+| **Chữ viết tay** — [`generators/html/handwriting.py`](generators/html/handwriting.py), [`docs/handwriting-html.md`](docs/handwriting-html.md) | Điền ô trống của biểu mẫu bằng **nét bút chứ không phải font in bị rung**. Là **thuộc tính 7** của rule-base kể từ nay, nên một lượt chạy ra tập TRỘN — trang đánh máy lẫn trang điền tay — thay vì được-cả-hoặc-không như hồi còn là cờ dòng lệnh. Hai nguồn mực, **không thay thế nhau**: `font` phủ hết mọi ô nhưng một trang chỉ một nét chữ; `model` là [WriteViT](docs/writevit.md) ([`tools/writevit/`](tools/writevit)), nét mỗi lần một khác nhưng không viết được chữ số. | **Bắt buộc (Required)** |
 | **Chữ ký** — [`generators/html/signature.py`](generators/html/signature.py), [`docs/chu-ky.md`](docs/chu-ky.md) | Ký vào khối chữ ký — ô trống cuối cùng của tờ mẫu. Lấy chữ thật (từ `fonts/hand/` hoặc từ WriteViT, **trace thành contour**) rồi kéo giãn thành dấu ký: chữ đầu phóng to, phần thân tan thành nét lượn, nét cuối hất lên, paraph. Mực **không mang nhãn** — nó phải nằm trên trang và nằm ngoài nhãn. | *Mở rộng (Signature)* |
 | **Tesseract 5 (`vie`)** — [`tools/ocr_proof.py`](tools/ocr_proof.py) | Đọc ngược dataset và chấm điểm **không phụ thuộc thứ tự đọc**, để chứng minh ảnh đọc được và nhãn khớp pixel. | *Mở rộng (Kiểm chứng)* |
 | **synthtiger / WeasyPrint** — [`docs/renderers.md`](docs/renderers.md) | Hai renderer cũ. **Đã nghỉ phần sinh**, giữ nguyên phần đọc: các bộ chúng đã vẽ vẫn được commit và vẫn kiểm tra được. | *Nghỉ (Retired)* |
@@ -76,12 +76,12 @@ flowchart TD
     seed(["seed + tuỳ chọn --force ATTR=ID"]) --> A
 
     subgraph S1 ["Bước 1: Nội dung — rulebase/"]
-        A["1 · rulebase.make<br/>bốc 10 thuộc tính, điền trường, dàn ô chữ + nét vẽ"]
+        A["1 · rulebase.make<br/>bốc 11 thuộc tính, điền trường, dàn ô chữ + nét vẽ"]
     end
 
     subgraph S2 ["Bước 2-3: Dựng pixel — generators/html/"]
         A --> D2["2 · tờ CSS<br/>sheets/ — A4 có khung, bảng, chữ ký"]
-        D2 --> D3["3 · điền tay (tuỳ chọn)<br/>handwriting.py — nguồn font hoặc WriteViT"]
+        D2 --> D3["3 · điền tay<br/>handwriting.py — thuộc tính 7 quyết định, không phải cờ dòng lệnh"]
     end
 
     subgraph S3 ["Bước 4-6: Hoạ tiết, làm cũ & hình học"]
@@ -96,7 +96,7 @@ flowchart TD
     end
 ```
 
-### Thứ tự mười thuộc tính không phải chuyện thẩm mỹ
+### Thứ tự mười một thuộc tính không phải chuyện thẩm mỹ
 
 Mỗi thuộc tính **nhìn thấy thẻ (`tags`) mà các thuộc tính trước đã đặt**, và
 một giá trị chỉ được `require` thẻ do thuộc tính **trước** nó đặt. Nên thứ tự
@@ -106,8 +106,8 @@ này quyết định *ràng buộc nào viết ra được*. Nó theo nhân qu�
 ```mermaid
 flowchart LR
     d["1 document<br/>loại chứng từ"] --> l["2 layout<br/>bố cục"] --> c["3 content<br/>nội dung"] --> v["4 visual<br/>font, mực, giấy"]
-    v --> col["5 color<br/>màu mực, nền"] --> orn["6 ornament<br/>dấu, hoa văn"] --> a["7 augmentation<br/>chuỗi làm cũ"]
-    a --> t["8 toner<br/>hộp mực"] --> dr["9 drum<br/>trống mực"] --> ro["10 rollers<br/>trục lăn"]
+    v --> col["5 color<br/>màu mực, nền"] --> orn["6 ornament<br/>dấu, hoa văn"] --> hw["7 handwriting<br/>mực bút"]
+    hw --> a["8 augmentation<br/>chuỗi làm cũ"] --> t["9 toner<br/>hộp mực"] --> dr["10 drum<br/>trống mực"] --> ro["11 rollers<br/>trục lăn"]
 ```
 
 Ba thuộc tính cuối là **ba bộ phận của cái máy đã in hoặc đã sao tờ giấy**, và
@@ -125,10 +125,11 @@ bật; số này đo lại sau khi tắt nó, không phải chép lại từ l�
 | 4 | `visual` | font, cỡ chữ, độ đậm mực, lề, khổ giấy | [`rules/visual.yaml`](rulebase/rules/visual.yaml) |
 | 5 | `color` | màu mực, sắc nền, màu nhấn | [`rules/color.yaml`](rulebase/rules/color.yaml) |
 | 6 | `ornament` | **mực không phải chữ**: con dấu tròn, dấu vuông, hoa văn chìm, nẹp sóng, QR. Đóng lên trang bởi [`generators/html/ornament.py`](generators/html/ornament.py), theo **vị trí có nghĩa** (`signature_seller`, `letterhead`…) đọc từ chính box của trang | [`rules/ornament.yaml`](rulebase/rules/ornament.yaml) |
-| 7 | `augmentation` | chuỗi làm cũ chạy sau khi vẽ | [`rules/augmentation.yaml`](rulebase/rules/augmentation.yaml) |
-| 8 | `toner` | hộp mực của cái máy đã sao tờ này — bụi mực bám mảng, mảng cháy trắng | [`rules/toner.yaml`](rulebase/rules/toner.yaml) |
-| 9 | `drum` | trống mực — sọc **dọc** theo hướng giấy đi | [`rules/drum.yaml`](rulebase/rules/drum.yaml) |
-| 10 | `rollers` | trục lăn — **đang tắt**, chỉ còn `no_rollers` | [`rules/rollers.yaml`](rulebase/rules/rollers.yaml) |
+| 7 | `handwriting` | **ô trống điền bằng nét bút hay chữ in**. `typed` hoặc `hand_font`; `hand_model`/`hand_both` (WriteViT) có mặt nhưng `enabled: false` vì checkpoint 294 MB không nằm trong kho. Đứng **trước** `augmentation` nên nét bút bị làm cũ y như chữ in | [`rules/handwriting.yaml`](rulebase/rules/handwriting.yaml) |
+| 8 | `augmentation` | chuỗi làm cũ chạy sau khi vẽ | [`rules/augmentation.yaml`](rulebase/rules/augmentation.yaml) |
+| 9 | `toner` | hộp mực của cái máy đã sao tờ này — bụi mực bám mảng, mảng cháy trắng | [`rules/toner.yaml`](rulebase/rules/toner.yaml) |
+| 10 | `drum` | trống mực — sọc **dọc** theo hướng giấy đi | [`rules/drum.yaml`](rulebase/rules/drum.yaml) |
+| 11 | `rollers` | trục lăn — **đang tắt**, chỉ còn `no_rollers` | [`rules/rollers.yaml`](rulebase/rules/rollers.yaml) |
 
 ### Hai đường dựng trang, và cái nối chúng
 
@@ -186,7 +187,7 @@ tính, thứ tự đọc phẳng thì sang `synthesis.json` — nơi tham số c
 
 ```mermaid
 flowchart LR
-    R["Recipe<br/>10 thuộc tính + seed"] --> RC["Receipt"]
+    R["Recipe<br/>11 thuộc tính + seed"] --> RC["Receipt"]
     RC --> GT["extracted<br/>nhãn CORD"]
     RC --> G["Grid"]
     G --> PX["pixel"]
@@ -282,7 +283,7 @@ Xong một lượt, thư mục ra gồm **năm thứ, mỗi thứ trả lời m�
 | File | Trả lời | So sánh được? |
 | :--- | :--- | :--- |
 | `<backend>/html_000.jpg` + `.json` | ảnh và bản ghi của nó: hộp, chữ, ground truth | có — sha256 từng file |
-| `<backend>/synthesis.json` | **config từng ảnh**: bố cục nào, mười thuộc tính augment nào, seed nào | có — băm bởi [`tools/baseline.py`](tools/baseline.py) |
+| `<backend>/synthesis.json` | **config từng ảnh**: bố cục nào, mười một thuộc tính augment nào, seed nào | có — băm bởi [`tools/baseline.py`](tools/baseline.py) |
 | `<backend>/imagetimes.jsonl` | **thời gian sinh từng ảnh**, kèm chặng `draw`/`write` | không, và cố tình thế |
 | `timings.json` | tổng thời gian, theo shard và tóm tắt theo ảnh | không |
 | `report.json` | **pass/fail**: mỗi shard một case, mỗi cổng kiểm tra một case | không |
@@ -431,7 +432,7 @@ cột, tiêu đề hai băng với `rowspan`/`colspan`, dòng theo nhóm — d�
 ```
 vlm-ocr-synthetic/
 ├── rulebase/                       # LUẬT SINH — nguồn sự thật duy nhất về nội dung
-│   ├── rules/                      # 10 thuộc tính, mỗi thuộc tính một file YAML
+│   ├── rules/                      # 11 thuộc tính, mỗi thuộc tính một file YAML
 │   ├── layouts/                    # 42 file — 32 đang bật, 10 tắt (root Form)
 │   │                               #   biến thể (`source:` mỗi file ghi từ đâu ra)
 │   ├── corpus/vi/ · corpus/en/     # các chuỗi tờ giấy in ra

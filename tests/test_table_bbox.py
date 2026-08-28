@@ -234,8 +234,13 @@ def test_every_box_with_text_sits_on_visible_ink(tmp_path):
     cell (row 2's `bg="#fff3cd"`) is judged against its own background and
     not against the white of the rest of the sheet.
     """
-    import numpy as np
-    from PIL import Image
+    # The imaging half of this test, skipped rather than failed where it is not
+    # installed: the dependency-free CI job runs the whole suite on pytest and
+    # PyYAML alone, and a test that fails there for want of numpy teaches
+    # everyone to read a red suite as normal. `_browser_ready` above skips for
+    # the same reason one line up.
+    np = pytest.importorskip("numpy")
+    Image = pytest.importorskip("PIL.Image")
 
     table, boxes, sheet, shot = _render_and_extract(tmp_path)
     image = np.array(Image.open(shot).convert("L"))

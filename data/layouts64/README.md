@@ -26,29 +26,50 @@ trí nào có hai ảnh cùng bố cục đứng cạnh nhau** — kể cả ch�
 
 **Hai — hoạ tiết được in ra thật.** `ornament` là thuộc tính từng được bốc, được
 ghi vào `synthesis.json` và **không renderer nào vẽ**; `generators/html/ornament.py`
-là nửa còn thiếu ấy. Trong tập này: **48 dấu trên 33 / 64 trang**, trong đó 31
-dấu đặt theo box thật của trang (`"placed": "boxes"`) và 17 rơi vào vị trí dự
+là nửa còn thiếu ấy. Trong tập này: **52 dấu trên 37 / 64 trang**, trong đó 31
+dấu đặt theo box thật của trang (`"placed": "boxes"`) và 21 rơi vào vị trí dự
 phòng vì bố cục ấy không có khối tương ứng.
+
+**Ba — mực bút do LUẬT bốc, không do cờ dòng lệnh.** `handwriting` là thuộc tính
+7 kể từ nay, nên tập ra **trộn**: **14 / 64 trang điền tay, 224 ô có nét bút**,
+50 trang còn lại đánh máy. Trước đó `--handwriting` là công tắc cho cả lượt
+chạy — hoặc mọi trang đều viết tay, hoặc không trang nào — mà không tập thật nào
+trông như thế. Thuộc tính đứng **trước** `augmentation`, nên nét bút mờ đi và
+nhoè ra y như chữ in trên cùng trang ấy.
+
+**Bốn — hệ làm cũ mới.** Bảy giá trị `augmentation` đang tắt: `stains`,
+`crumpled` (dùng `gradient_domain`), `torn_edges`, `punched` (dùng `holes`), và
+cả ba kịch bản bản-photo `photocopy`, `photocopy_screened`, `photocopy_stamped`.
+Còn **15 giá trị** bốc được. Ảnh cũng rẻ đi hẳn: **1,43 s/ảnh** so với 2,59 s
+của bản trước — ba chuỗi photocopy và Poisson blending là phần đắt nhất.
 
 | | |
 | --- | --- |
 | renderer | `html` (Chromium), page model `--template auto` |
 | bố cục | **32 / 32 đang bật**, mỗi bố cục 2 trang |
-| box | **5 530** |
+| box | **5 555** |
 | hạt giống phân biệt | 64 / 64 |
 | nhãn phân biệt | **64 / 64** |
-| làm cũ | 17 giá trị `augmentation`, 7 `visual`, 4 `toner`, 3 `drum` |
-| hoạ tiết in ra | 48 dấu / 33 trang, 15 giá trị `ornament` |
+| làm cũ | **15 giá trị `augmentation`** (7 đang tắt), 7 `visual`, 4 `toner`, 3 `drum` |
+| hoạ tiết in ra | 52 dấu / 37 trang, 16 giá trị `ornament` |
+| mực bút | **14 / 64 trang điền tay, 224 ô**, nguồn `hand_font` |
 | pairing | `paired` |
 | verdict | **PASS** — 4/4 shard, 4/4 cổng kiểm tra |
 
 ```json
-"ornament": {"ornament": "qr_and_seal", "marks": [
-  {"pattern": "qr_verify_sample", "anchor": "letterhead",
-   "placed": "boxes", "box": [72, 72, 941, 148], "from_receipt": false},
-  {"pattern": "seal_name_block_chief", "anchor": "signature_seller",
-   "placed": "boxes", "box": [463, 549, 551, 564]}]}
+"ornament": {"ornament": "branded_teal", "marks": [
+  {"pattern": "wave_band_teal",      "anchor": "header_band",  "placed": "fallback",
+   "box": [0, 0, 1020, 146]},
+  {"pattern": "guilloche_teal",      "anchor": "table_back",   "placed": "fallback",
+   "box": [82, 437, 938, 1021]},
+  {"pattern": "corner_bracket_teal", "anchor": "corner_bl",    "placed": "fallback",
+   "box": [20, 1225, 204, 1429]},
+  {"pattern": "rect_grid_teal",      "anchor": "footer_band",  "placed": "boxes",
+   "box": [77, 1287, 770, 1326]}]}
 ```
+
+(nguyên văn `html_000.jpg` trong tập này — bốn hoạ tiết một trang, ba đặt theo
+vị trí hình học và một đặt theo khối chân trang thật của bố cục.)
 
 `"from_receipt": false` là khoảng cách được khai chứ không giấu: luật muốn mã
 vạch/QR mã hoá **số hoá đơn của chính trang này**, còn `textures/ornament/` mới
@@ -79,11 +100,11 @@ bài là đổi **thứ tự**, không đổi một trang nào.
 
 | | giây |
 | --- | ---: |
-| trung bình mỗi ảnh | 2,28 |
-| trung vị | 2,08 |
-| p95 | 4,42 |
-| chậm nhất (`html_060`, `medical_statement`) | 7,25 |
-| thời gian thực của lượt chạy, 4 worker, 4 shard | **48,3** |
+| trung bình mỗi ảnh | 1,43 |
+| trung vị | 1,32 |
+| p95 | 2,34 |
+| chậm nhất (`html_028`, `medical_statement`) | 5,02 |
+| thời gian thực của lượt chạy, 4 worker, 4 shard | **31,1** |
 
 Con số này là **thuộc tính của cái máy đã vẽ**, không phải của tập dữ liệu: nó
 không lặp lại được và không có gì so sánh nó giữa hai lượt chạy. Đó cũng là lý
