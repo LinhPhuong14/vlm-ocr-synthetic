@@ -67,6 +67,11 @@ FREE_WEIGHT = 2.5
 # time than it buys variety.
 DISABLED_DEGRADATIONS = ("gradient_domain", "holes")
 
+# The tag `rules/layout.yaml` puts on the thermal-roll family. A dressing that
+# sets the page's own margins in millimetres cannot be worn by a roll about
+# 80 mm across; naming the tag here keeps that one fact in one place.
+TILL_TAG = "till_receipt"
+
 
 class RulesError(ValueError):
     """The agent's rules cannot be built from the shipped ones."""
@@ -102,6 +107,11 @@ def variant_options(catalogue: list, policy) -> list[Option]:
             constraint = {"excludes": [tags["locked"]]}
         elif dressing.level == "free":
             constraint = {"requires": [tags["free"]]}
+            if dressing.wide_only:
+                # `till_receipt` is set by the `retail_receipt` layout group, and
+                # `layout` is drawn before `variant`, so the tag is in hand by
+                # the time this is filtered. See variants.WIDE_ONLY_STRUCTURE.
+                constraint["excludes"] = [TILL_TAG]
         else:
             raise RulesError(
                 f"dressing {dressing.id!r} has level {dressing.level!r}; "
@@ -204,6 +214,6 @@ def reachable(rules: dict[str, list[Option]], policy) -> dict[str, list[str]]:
     }
 
 
-__all__ = ["AFTER", "ATTRIBUTE", "DISABLED_DEGRADATIONS", "FREE_WEIGHT",
+__all__ = ["AFTER", "ATTRIBUTE", "DISABLED_DEGRADATIONS", "FREE_WEIGHT", "TILL_TAG",
            "NONE_ID", "NONE_WEIGHT", "RulesError",
            "activate", "compose", "materialise", "reachable", "variant_options"]
