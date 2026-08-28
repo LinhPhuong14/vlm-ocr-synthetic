@@ -271,8 +271,17 @@ Three things these add that nothing here had:
 
 ## The machine is three attributes, not one scenario
 
-The first three models above are the only ones here that are not reached from
-`rules/augmentation.yaml`. They have a rule-base **attribute each** —
+**Currently switched off.** `toner.yaml`, `drum.yaml` and `rollers.yaml` each
+kept only their `no_*` value; `bad_photocopy`, `dirty_drum` and `dirty_rollers`
+are unregistered in `degradation/__init__.py`'s `DEGRADATIONS` table, so no
+chain in `rules/` can reach them any more. The 25.2%-of-pages figure below is
+what this used to draw, not what it draws today. The three functions
+themselves are untouched -- re-enabling means restoring an option to each of
+the three YAML files (git history has the old ones) and putting their three
+`DEGRADATIONS` entries back.
+
+The first three models above are the only ones here that were not reached
+from `rules/augmentation.yaml`. They had a rule-base **attribute each** —
 [`toner.yaml`](../rulebase/rules/toner.yaml),
 [`drum.yaml`](../rulebase/rules/drum.yaml),
 [`rollers.yaml`](../rulebase/rules/rollers.yaml) — and a file each, for the same
@@ -285,21 +294,28 @@ than the sum. As attributes they compose for free: a page draws one value from
 each, `chain_of` concatenates them in draw order, and the marks land after the
 sheet has been aged rather than under it.
 
-They are not quite independent, and one tag says so. `toner`'s worn values set
-`worn_machine`; `drum_scored` and `rollers_worn` require it, so the severe
-grades only appear on a machine that is already dirty. Drawing all three freely
-would produce pages with a shredded drum and a brand-new cartridge — possible,
-but not at the rate independence would give.
+They were not quite independent, and one tag said so. `toner`'s worn values
+set `worn_machine`; `drum_scored` and `rollers_worn` required it, so the
+severe grades only appeared on a machine that was already dirty. Drawing all
+three freely would produce pages with a shredded drum and a brand-new
+cartridge — possible, but not at the rate independence would give. The tag
+itself is gone now along with the values that set and required it; restoring
+the old options (see `tests/test_spec.py`'s git history for the ordering test
+that checked this) brings it back too.
 
-Measured over 3,000 draws: **25.2%** of pages carry at least one machine mark.
+Measured over 3,000 draws, back when all three were live: **25.2%** of pages
+carried at least one machine mark.
 
-Two consequences worth knowing:
+Two consequences worth knowing, from when the three carried real chains:
 
-* **`--clean` pins all four.** `pipeline.invariants.CLEAN_FORCES` names the
+* **`--clean` pinned all four.** `pipeline.invariants.CLEAN_FORCES` names the
   empty value of every chain-bearing attribute. A clean run that pinned only
   `augmentation` would have gone on calling itself clean with a drum streak
   drawn across it — and the clean set is the ceiling every ageing number is
-  measured against, so that moves the baseline silently.
+  measured against, so that moves the baseline silently. The dict still names
+  `toner`/`drum`/`rollers`'s clean values today, harmlessly -- `make
+  preflight`'s check (next bullet) only requires a chain-bearing attribute to
+  be named, never forbids naming one that no longer chains.
 * **`make preflight` checks that dict against the rules both ways**: every
   chain-bearing attribute must be named in it, and every value it names must
   have an empty chain. Rename a value in the YAML and preflight fails.

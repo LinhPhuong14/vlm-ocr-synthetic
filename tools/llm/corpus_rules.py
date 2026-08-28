@@ -186,6 +186,14 @@ def envelope(text: str, column: int = 0) -> Envelope:
 PRICE_MIN, PRICE_MAX = 340, 45_000_000
 SPREAD_MAX = 16.0
 
+# An insurance sum is not a purchase price: a travel benefit cap and a
+# factory's rebuild cost are both real, both `catalogue`-shaped, and four
+# orders of magnitude apart -- neither fits the 340..45M band this file's own
+# comment says was measured over retail items and a hospital bill's line
+# items. Filed as its own, much wider band rather than raising `PRICE_MAX`
+# globally, which would silently stop catching a garbled retail price too.
+INSURANCE_PRICE_MIN, INSURANCE_PRICE_MAX = 300, 40_000_000_000
+
 # How many digits a bare-number cell may have outside a price column. Two: a
 # Vietnamese district is `1` or `12`, and anything longer in a name column is
 # an id somebody pasted where a word goes.
@@ -291,12 +299,18 @@ def _repeated_phrase(name: str) -> str:
     return ""
 
 
-def check_price(low: str, high: str) -> str:
+def check_price(low: str, high: str, *, stem: str = "") -> str:
     if not (low.isdigit() and high.isdigit()):
         return "prices must be plain integers, no separators and no đ"
     lo, hi = int(low), int(high)
-    if not PRICE_MIN <= lo <= PRICE_MAX or not PRICE_MIN <= hi <= PRICE_MAX:
-        return f"price outside {PRICE_MIN}..{PRICE_MAX}"
+    # `catalogue_insurance_*` -- a coverage sum, not a purchase price. See
+    # `INSURANCE_PRICE_MIN`/`_MAX`'s own comment.
+    price_min, price_max = (
+        (INSURANCE_PRICE_MIN, INSURANCE_PRICE_MAX) if "insurance" in stem
+        else (PRICE_MIN, PRICE_MAX)
+    )
+    if not price_min <= lo <= price_max or not price_min <= hi <= price_max:
+        return f"price outside {price_min}..{price_max}"
     if lo >= hi:
         return "the low price is not below the high one"
     if hi / lo > SPREAD_MAX:
@@ -304,7 +318,8 @@ def check_price(low: str, high: str) -> str:
     return ""
 
 
-def check(line: str, shape: Shape, sizes: dict[int, Envelope] | None = None) -> str:
+def check(line: str, shape: Shape, sizes: dict[int, Envelope] | None = None, *,
+         stem: str = "") -> str:
     """One candidate line against its file's shape. '' means keep it."""
     sizes = sizes or {}
     if line != line.strip() or "\t\t" in line:
@@ -317,7 +332,7 @@ def check(line: str, shape: Shape, sizes: dict[int, Envelope] | None = None) -> 
     if problem:
         return problem
     if shape.prices and len(parts) == 3:
-        return check_price(parts[1], parts[2])
+        return check_price(parts[1], parts[2], stem=stem)
     # A branch, a district, a city: measured in its own right, and never held
     # to the first column's casing -- a branch on a receipt is often shouted.
     for index, extra in enumerate(parts[1:], start=1):
@@ -405,7 +420,7 @@ def audit(root: Path = CORPUS_ROOT) -> tuple[int, list[Rejected]]:
         sizes = envelopes(text)
         for line in rows_of(path):
             total += 1
-            problem = check(line, shape, sizes)
+            problem = check(line, shape, sizes, stem=path.stem)
             if problem:
                 thrown.append(Rejected(f"{path.name}: {line[:60]}", problem))
     return total, thrown
@@ -438,7 +453,8 @@ def main() -> int:
     return 1 if thrown else 0
 
 
-__all__ = ["DISTRICT_DIGITS", "FALLBACK", "MIN_SAMPLE", "PRICE_MAX", "PRICE_MIN", "PUNCTUATION",
+__all__ = ["DISTRICT_DIGITS", "FALLBACK", "INSURANCE_PRICE_MAX", "INSURANCE_PRICE_MIN",
+           "MIN_SAMPLE", "PRICE_MAX", "PRICE_MIN", "PUNCTUATION",
            "SHAPES", "SLACK", "SPREAD_MAX", "Envelope", "Rejected", "Shape",
            "audit", "check", "check_name", "check_price", "envelope", "envelopes",
            "family_of", "foreign_batch", "key", "rows_of", "shape_of", "sift"]

@@ -59,6 +59,8 @@ def test_line_amounts_are_quantity_times_price():
                 continue  # priced by weight; the rounding is checked below
             if item.is_group:
                 continue          # a block heading repeats sums, it prices nothing
+            if item.independent_price:
+                continue          # sum insured and premium: two facts, not a line total
             assert item.amount == item.unit_price * item.qty, (
                 f"seed={seed}: {item.name!r} {item.qty} x {item.unit_price} "
                 f"!= {item.amount}"
@@ -117,7 +119,15 @@ def test_there_is_always_something_on_the_receipt():
             inv = receipt.invoice
             assert inv is not None and (inv.left or inv.right), f"seed={seed}: no field block"
             assert inv.notes, f"seed={seed}: no declaration text"
-        assert receipt.totals, f"seed={seed}: no totals"
+        # `no_totals` (rulebase/content.py): a schedule of independent
+        # coverage limits has no meaningful sum, so `totals` is deliberately
+        # empty too -- for four of the insurance root's certificates,
+        # alongside `no_items` as well. What must never be empty is all
+        # three at once: a real item table, a real total, or (checked above)
+        # a field block with declaration text is "something on the receipt";
+        # a receipt with none of them is the bug this test exists to catch.
+        has_notes = bool(receipt.invoice and receipt.invoice.notes)
+        assert receipt.totals or receipt.items or has_notes, f"seed={seed}: nothing on the receipt"
         assert receipt.store.name, f"seed={seed}: no shop name"
 
 
