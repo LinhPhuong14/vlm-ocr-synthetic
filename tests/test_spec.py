@@ -406,6 +406,16 @@ def test_the_ageing_attributes_are_drawn_after_everything_on_the_paper():
     describes what happened to a page AFTER it was printed, so all of them come
     after every attribute that decides what is printed. Splitting the copier
     into `toner`, `drum` and `rollers` is what made the difference visible.
+
+    `toner`/`drum`/`rollers` themselves currently carry no chain at all --
+    every worn-machine option was pulled from all three (see toner.yaml) -- so
+    checking "the chain-bearing attributes are exactly one contiguous suffix"
+    would now fail on a fact that is deliberate, not a reordering mistake:
+    `augmentation` chains, the copier's three parts sit right after it in
+    `_order.yaml` and do not. They are still the same post-print domain
+    `POST_PRINT` names below, on paper (`_order.yaml`'s own comment) even
+    while switched off, which is the fact this test must not mistake for one
+    of them having drifted out of place.
     """
     from rulebase import load_rules
 
@@ -417,17 +427,24 @@ def test_the_ageing_attributes_are_drawn_after_everything_on_the_paper():
     # Everything from the first ageing attribute onwards must either age the
     # page or do NOTHING to it.
     #
-    # It read `== ageing` -- a strict suffix -- until `rollers` was switched
-    # off. That attribute now has one value, `no_rollers`, which carries no
-    # params at all: it sits at the end of the order applying nothing. Deleting
-    # it instead would have been tidier and much worse, because every committed
-    # record names `rollers` and `rulebase.make(force=...)` refuses an unknown
-    # attribute -- `tools/check_boxes.py` would stop re-deriving every page in
-    # `data/`, not just the ones that drew a roller mark.
+    # It read `== ageing` -- a strict suffix -- and that stopped being true
+    # twice over, for two deliberate reasons: `rollers` was switched off and
+    # then the whole copier was, so `toner`, `drum` and `rollers` now carry one
+    # value each and no chain at all. They still sit after `augmentation` in
+    # `_order.yaml`, where the post-print domain belongs, and the suffix form
+    # would call that a reordering mistake.
     #
-    # So the rule is stated as what it always meant: an attribute drawn after
-    # the ageing has begun may not put anything on the sheet except through a
-    # chain, because the chain is the only thing that runs in draw order.
+    # A hand-written set of "the attributes allowed to be there" would work and
+    # would have to be re-earned by whoever adds the next one. This says what
+    # the rule always meant instead: an attribute drawn after the ageing has
+    # begun may not put ANYTHING on the sheet except through a chain, because
+    # the chain is the only thing that runs in draw order. A switched-off
+    # copier carries no params and passes; a copier that started printing
+    # something without a chain would not.
+    #
+    # `handwriting` is the case that makes the distinction matter. It does put
+    # ink on the page, and it is drawn BEFORE `augmentation` for exactly that
+    # reason -- so the pen ages with the print.
     for name in ATTRIBUTES[first_ageing:]:
         if name in ageing:
             continue
@@ -435,25 +452,6 @@ def test_the_ageing_attributes_are_drawn_after_everything_on_the_paper():
             f"{name} is drawn after the ageing starts and carries params that "
             f"are not a chain; that step would land on a sheet whose own "
             f"appearance had already been decided")
-
-
-def test_toner_is_drawn_before_the_parts_that_require_its_tag():
-    """`drum_scored` and `rollers_worn` require `worn_machine`, which `toner` sets.
-
-    A value can only require a tag an EARLIER attribute sets, so reordering
-    these three in `_order.yaml` does not fail loudly -- it makes two values
-    undrawable, which is the exact silent failure `_order.yaml` exists to stop.
-    """
-    from rulebase import load_rules
-
-    rules = load_rules()
-    setters = {name for name in ATTRIBUTES
-               for option in rules[name] if "worn_machine" in option.tags}
-    needers = {name for name in ATTRIBUTES
-               for option in rules[name] if "worn_machine" in option.requires}
-    assert setters and needers, "the tag that ties the machine together is gone"
-    assert max(ATTRIBUTES.index(name) for name in setters) < \
-        min(ATTRIBUTES.index(name) for name in needers)
 
 
 def test_a_rules_file_the_manifest_forgets_is_an_error(tmp_path):

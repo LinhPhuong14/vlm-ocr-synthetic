@@ -1,0 +1,42 @@
+# Đơn yêu cầu bảo hiểm — biểu mẫu ô vuông (comb box), A4 dọc.
+#
+# `field_keys` là các khoá thô của `party_fields.left`, theo đúng thứ tự, để
+# `insurance.py::_build_application_form` biết ô nào vẽ bằng `comb_box()`
+# (tên/ngày sinh/CCCD) và ô nào vẽ bằng `field_line()` thường.
+id: insurance_application_form
+name: Insurance application form — comb-box fields, product table, health declaration
+source: "samples/insurance-templates/insurance_application_form.html (LO-04)"
+family: insurance
+composition: application_form
+
+width: [92, 104]
+gutter: 2
+rule_char: "-"
+
+sheet: a4
+
+rules: marks
+
+sections: [letterhead, doctitle, parties, table, notes, signatures, footer]
+
+letterhead:
+  frame: false
+  labels: {address: "", tax_code: "", phone: "", account: "", branch: "", form_no: "Mẫu số:", serial: "", number: "Số hồ sơ:"}
+
+parties:
+  style: stacked
+
+field_keys: [applicant_name, applicant_dob, applicant_id, applicant_phone, residence, profession]
+
+columns:
+  - {key: name, label: "Tên sản phẩm", width: 0, align: left}
+  - {key: unit, label: "Thời hạn", width: 14, align: center}
+  - {key: unit_price, label: "Số tiền bảo hiểm", width: 22, align: right}
+  - {key: amount, label: "Định kỳ phí", width: 18, align: right}
+
+item:
+  rows:
+    - - {col: name, from: name}
+      - {col: unit, from: unit}
+      - {col: unit_price, from: unit_price}
+      - {col: amount, from: amount}

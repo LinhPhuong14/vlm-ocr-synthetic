@@ -341,3 +341,66 @@ groups:
         weight: 2
         requires: [periodical_qa]
         tags: [qa_transcript, two_column, full_bleed_photo]
+
+  # ------------------------------------------------------------------------
+  - id: insurance_page
+    label: "Bảo hiểm — chứng nhận, hợp đồng, đơn từ, thẻ"
+    # Mười layout, mười `composition:` riêng trong `family: insurance`
+    # (`generators/html/sheets/insurance.py`) -- nhưng vẫn `requires:
+    # [doc_invoice]` ở đây, giống `administrative_form` phía trên, KHÔNG
+    # giống `periodical_page`: mỗi document bảo hiểm vẫn đặt `invoice: true`
+    # và dựng một `Invoice` thật (`rulebase/content.py`), không phải một mô
+    # hình nội dung mới. `sheet: a4` trên cả mười layout (kể cả những tờ
+    # thật sự khổ ngang/nhỏ hơn) là quy ước đã lập từ `periodical_page`.
+    requires: [doc_invoice]
+    tags: [insurance]
+    options:
+      - id: insurance_moto_certificate
+        weight: 2
+        requires: [insurance_moto_cert]
+        tags: [tiny_card, landscape, fillable]
+
+      - id: insurance_auto_certificate
+        weight: 2
+        requires: [insurance_auto_cert]
+        tags: [table_form, landscape, fillable]
+
+      - id: insurance_life_schedule
+        weight: 2
+        requires: [insurance_life_schedule]
+        tags: [priced_table, boxed_note, fillable]
+
+      - id: insurance_application_form
+        weight: 2
+        requires: [insurance_application_form]
+        tags: [comb_box, checklist_table, fillable]
+
+      - id: insurance_health_id_card
+        weight: 2
+        requires: [insurance_health_id_card]
+        tags: [id_card, landscape, two_faces, fillable]
+
+      - id: insurance_health_certificate
+        weight: 2
+        requires: [insurance_health_cert]
+        tags: [sidebar, grouped_rows, fillable]
+
+      - id: insurance_cargo_policy
+        weight: 2
+        requires: [insurance_cargo_policy]
+        tags: [bilingual, bare_kv, fillable]
+
+      - id: insurance_fire_certificate
+        weight: 2
+        requires: [insurance_fire_cert]
+        tags: [roman_sections, priced_table, fillable]
+
+      - id: insurance_travel_certificate
+        weight: 2
+        requires: [insurance_travel_cert]
+        tags: [bilingual, landscape, priced_table, fillable]
+
+      - id: insurance_property_contract
+        weight: 2
+        requires: [insurance_property_contract]
+        tags: [two_party, priced_table, fillable]

@@ -1,0 +1,6 @@
+# Quyền lợi điều trị ngoại trú (tuỳ chọn) — nhóm B của bảng quyền lợi.
+# Định dạng: tên quyền lợi<TAB>giới hạn tối thiểu<TAB>tối đa   (đơn vị VND/năm)
+Khám bệnh, xét nghiệm, chẩn đoán hình ảnh	15000000	25000000
+Vật lý trị liệu theo chỉ định	3000000	8000000
+Thuốc theo đơn ngoại trú	5000000	12000000
+Tiêm chủng, xét nghiệm định kỳ	3000000	7000000

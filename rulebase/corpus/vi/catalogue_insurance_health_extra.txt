@@ -1,0 +1,6 @@
+# Quyền lợi bổ sung — nhóm C của bảng quyền lợi bảo hiểm sức khoẻ.
+# Định dạng: tên quyền lợi<TAB>giới hạn tối thiểu<TAB>tối đa   (đơn vị VND/năm)
+Nha khoa cơ bản	4000000	8000000
+Thai sản	20000000	40000000
+Kính mắt, chỉnh hình	2000000	5000000
+Khám sức khoẻ định kỳ hằng năm	2000000	4000000

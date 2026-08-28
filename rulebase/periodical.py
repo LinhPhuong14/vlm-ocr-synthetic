@@ -383,8 +383,31 @@ class TocPage:
 
 
 def _build_toc(rng: random.Random, document: dict) -> TocPage:
-    source = rng.choice(corpus.periodical("toc", _LANG))
-    hero = source.get("hero", {})
+    """A contents page RECOMBINED from the corpus, not copied out of it.
+
+    It used to be `rng.choice(...)` and then a verbatim copy of the whole
+    document, and the corpus holds six of them: **six distinct pages over 200
+    seeds**, measured. Every other builder in this file already recombines --
+    `_build_lead_sidebar` shuffles a pool, draws its own dateline, its own
+    issue number, its own byline -- and all three of them give 200 distinct
+    pages over the same 200 seeds. This one was the odd one out, and it showed
+    up as an 84-image run reporting 83 distinct labels twice in a row.
+
+    What varies now: which hero, which sections, in what order, which entries
+    under each, and the page number each entry points at. The page numbers are
+    redrawn rather than carried, because a contents list whose numbers do not
+    ascend down the page reads as wrong even when every line is real.
+    """
+    sources = list(corpus.periodical("toc", _LANG))
+    hero = dict(rng.choice(sources).get("hero", {}))
+
+    # Every section any of the six documents offers, deduplicated by name --
+    # the corpus is written as six magazines and this reads it as one library.
+    by_name: dict[str, list[dict]] = {}
+    for source in sources:
+        for section in source.get("sections", []):
+            by_name.setdefault(section["name"], []).extend(section.get("entries", []))
+
     page = TocPage(
         masthead=document.get("masthead", ""), issue_label=document.get("issue_label", ""),
         footer_left=document.get("footer_left", ""), footer_right=document.get("footer_right", ""),
@@ -392,11 +415,30 @@ def _build_toc(rng: random.Random, document: dict) -> TocPage:
         hero_headline=hero.get("headline", ""), hero_teaser=hero.get("teaser", ""),
         hero_byline=hero.get("byline", ""),
     )
-    for section in source.get("sections", []):
-        page.sections.append(TocSection(
-            name=section["name"],
-            entries=[TocEntry(**entry) for entry in section.get("entries", [])],
-        ))
+
+    names = list(by_name)
+    rng.shuffle(names)
+    wanted = min(len(names), rng.randrange(4, 7))
+    # Page numbers ascend down the whole page, across sections: a magazine's
+    # contents is a map of one issue, and the same number appearing under two
+    # headings is the kind of detail a reader notices before the layout.
+    page_no = rng.randrange(4, 10)
+    for name in names[:wanted]:
+        entries = list(by_name[name])
+        rng.shuffle(entries)
+        chosen = entries[:min(len(entries), rng.randrange(2, 5))]
+        rows = []
+        for entry in chosen:
+            row = dict(entry)
+            row["page_no"] = str(page_no)
+            page_no += rng.randrange(2, 7)
+            rows.append(TocEntry(**row))
+        page.sections.append(TocSection(name=name, entries=rows))
+    # The hero is one of the articles the page lists, so its page number has to
+    # be one of the numbers printed below it rather than a seventh one.
+    if page.sections:
+        section = rng.choice(page.sections)
+        page.hero_page_no = rng.choice(section.entries).page_no
     return page
 
 

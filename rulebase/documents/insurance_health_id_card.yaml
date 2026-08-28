@@ -1,0 +1,28 @@
+profile: insurance
+invoice: true
+no_items: true
+no_totals: true
+show_serial: false
+show_vat: false
+show_issuer_unit: false
+show_seller_address: false
+show_seller_phone: false
+show_subtotal: false
+show_payment: false
+show_amount_words: false
+show_seller_tax_code: false
+show_seller_website: false
+show_seller_account: false
+titles:
+  - "Thẻ bảo hiểm y tế"
+party_fields:
+  left:
+    - [buyer_name, "Họ và tên"]
+    - [date, "Giá trị từ ngày"]
+    - [due_date, "Giá trị đến ngày"]
+notes:
+  - "Những điều cần chú ý:"
+  - "Xuất trình thẻ bảo hiểm y tế cùng giấy tờ tuỳ thân có ảnh khi đi khám bệnh, chữa bệnh; trẻ em dưới 6 tuổi chỉ cần xuất trình thẻ."
+  - "Trường hợp cấp cứu được khám, chữa bệnh tại bất kỳ cơ sở nào và phải xuất trình thẻ trước khi ra viện."
+  - "Thẻ không có giá trị sử dụng khi bị tẩy xoá, sửa chữa, hoặc người sử dụng không đúng chủ thẻ."
+  - "Tổng đài hỗ trợ 1900 0000"

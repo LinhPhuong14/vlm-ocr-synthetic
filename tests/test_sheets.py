@@ -237,7 +237,7 @@ def test_what_the_label_says_the_page_prints(layout):
     character grid is held to. A till roll has no column for a barcode on
     either path; an invoice has room for everything it is given on both.
     """
-    from pipeline.invariants import SUPPRESSED
+    from pipeline.invariants import SUPPRESSED, _tight
 
     allowed = SUPPRESSED.get(layout, frozenset())
     for seed in SEEDS:
@@ -255,7 +255,16 @@ def test_what_the_label_says_the_page_prints(layout):
             if field in allowed:
                 continue
             wanted = " ".join(value.split())
-            assert wanted in printed or any(wanted in text for text in joined.values()), (
+            if wanted in printed or any(wanted in text for text in joined.values()):
+                continue
+            # `comb_box()` (base.py) prints one character per `data-kind` run
+            # rather than one run for the whole value -- see its own
+            # docstring on why -- so the space-sensitive check above rejoins
+            # it as "T r ầ n" rather than "Trần". The same whitespace-
+            # insensitive fallback `pipeline/invariants.py::_printed()`
+            # already applies to a wrapped-at-a-hyphen run applies here too.
+            tight = _tight(wanted)
+            assert any(tight in _tight(text) for text in joined.values()), (
                 f"{layout} seed {seed}: {name} {wanted!r} is in the label and on no run")
 
 

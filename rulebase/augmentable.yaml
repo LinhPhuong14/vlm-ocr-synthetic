@@ -28,8 +28,10 @@
 #            đặt khối tổng. Không đổi được: những trường mà quy định bắt phải
 #            có mặt.
 #
-#   free     Không quy định nào ràng buộc hình thức. Càng nhiều biến thể càng
-#            tốt — đây là chỗ để model làm việc nhiều nhất.
+#   free     Không quy định nào ràng buộc HÌNH THỨC (nội dung thì vẫn có thể
+#            bị ràng buộc — một hợp đồng bảo hiểm có điều khoản bắt buộc,
+#            nhưng không mẫu nào bắt nó phải trình bày ra sao). Càng nhiều biến
+#            thể càng tốt — đây là chỗ để model làm việc nhiều nhất.
 #
 # `unknown` (không có trong file này) được đối xử như `fixed`. Mặc định phải là
 # mức CHẶT NHẤT: quên khai một loại chứng từ mới thì hậu quả là "không được
@@ -53,6 +55,16 @@ documents:
   # thứ tự của chúng theo thông lệ quốc tế chứ không theo ý người in.
   export_invoice: fixed
 
+  # Bảo hiểm BẮT BUỘC: mẫu giấy chứng nhận do nghị định/thông tư ban hành, và
+  # đó là tờ giấy cảnh sát giao thông hoặc cơ quan PCCC đọc. Biến thể của nó
+  # không phải "một công ty bảo hiểm khác" — nó là một giấy tờ không tồn tại.
+  insurance_auto_certificate: fixed
+  insurance_moto_certificate: fixed
+  insurance_fire_certificate: fixed
+  # Thẻ BHYT do cơ quan bảo hiểm xã hội phát hành: mã thẻ, nơi khám ban đầu,
+  # thời hạn — hình thức là của nhà nước, không của ai in nó.
+  insurance_health_id_card: fixed
+
   # ---- styled: cửa hàng tự thiết kế -----------------------------------------
   #
   # Giấy tính tiền của quán và siêu thị: máy POS nào cũng in một kiểu khác
@@ -74,7 +86,19 @@ documents:
   # nơi soạn một kiểu, miễn đủ hai bên, nội dung uỷ quyền và chữ ký.
   authorisation_letter: styled
 
+  # Bảo hiểm THƯƠNG MẠI: nội dung bị Luật Kinh doanh bảo hiểm ràng buộc, còn
+  # tờ giấy thì mỗi doanh nghiệp một kiểu — đúng định nghĩa của `styled`.
+  insurance_life_schedule: styled
+  insurance_cargo_policy: styled
+  insurance_travel_certificate: styled
+  insurance_health_certificate: styled
+  insurance_application_form: styled
+
   # ---- free: hình thức là của người làm báo ---------------------------------
+  # Hợp đồng: điều khoản bị ràng buộc, hình thức thì không — mỗi nơi soạn một
+  # kiểu, và càng nhiều kiểu càng tốt cho một mô hình phải đọc hợp đồng thật.
+  insurance_property_contract: free
+
   newspaper_front_broadsheet: free
   newspaper_classifieds: free
   magazine_contents: free

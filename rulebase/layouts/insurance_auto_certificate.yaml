@@ -1,0 +1,27 @@
+# GCN bảo hiểm bắt buộc TNDS ô tô — bố cục bảng, khổ A5 nằm ngang.
+#
+# `sections` phục vụ lưới ký tự, không phải cột chữ thật -- xem chú thích
+# trong `insurance_moto_certificate.yaml`. `sheet: a4` giữ nguyên bất kể khổ
+# giấy thật (A5_LANDSCAPE).
+id: insurance_auto_certificate
+name: Compulsory motor-liability certificate — car, A5-landscape table
+source: "samples/insurance-templates/insurance_auto_certificate.html (LO-02)"
+family: insurance
+composition: auto_cert
+
+width: [92, 104]
+gutter: 2
+rule_char: "-"
+
+sheet: a4
+
+rules: marks
+
+sections: [letterhead, doctitle, parties, notes, signatures, footer]
+
+letterhead:
+  frame: false
+  labels: {address: "", tax_code: "", phone: "", account: "", branch: "", form_no: "", serial: "", number: "Số GCN:"}
+
+parties:
+  style: stacked

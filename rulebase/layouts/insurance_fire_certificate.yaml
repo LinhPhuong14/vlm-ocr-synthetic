@@ -1,0 +1,37 @@
+# GCN bảo hiểm cháy, nổ bắt buộc — bố cục toàn bảng theo mục La Mã, A4 dọc.
+#
+# Mục III của tờ mẫu (phí bảo hiểm, mức khấu trừ, thời hạn) không có chỗ
+# tương ứng trên `Invoice` (chỉ có một cặp left/right, còn mục III nằm giữa
+# hai mục dùng field khác) -- hạ xuống thành văn xuôi trong `notes`, xem kế
+# hoạch gốc và `rulebase/documents/insurance_fire_certificate.yaml`.
+id: insurance_fire_certificate
+name: Mandatory fire/explosion insurance certificate — full-table, roman sections
+source: "samples/insurance-templates/insurance_fire_certificate.html (LO-08)"
+family: insurance
+composition: fire_cert
+
+width: [92, 104]
+gutter: 2
+rule_char: "-"
+
+sheet: a4
+
+rules: marks
+
+sections: [letterhead, doctitle, parties, table, totals, notes, signatures, footer]
+
+letterhead:
+  frame: false
+  labels: {address: "", tax_code: "", phone: "", account: "", branch: "", form_no: "", serial: "", number: "Số:"}
+
+parties:
+  style: stacked
+
+columns:
+  - {key: name, label: "Hạng mục tài sản", width: 0, align: left}
+  - {key: amount, label: "Số tiền bảo hiểm (đồng)", width: 26, align: right}
+
+item:
+  rows:
+    - - {col: name, from: name}
+      - {col: amount, from: amount}

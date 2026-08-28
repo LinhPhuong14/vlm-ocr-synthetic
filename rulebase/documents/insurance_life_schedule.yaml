@@ -1,0 +1,34 @@
+profile: insurance
+invoice: true
+catalogue: insurance_life
+num_items: [3, 4]
+premium_rate: [0.008, 0.018]
+price_step: 500000
+terms: ["25 năm", "20 năm", "15 năm", "10 năm"]
+show_serial: false
+show_vat: false
+show_issuer_unit: false
+show_seller_address: false
+show_seller_phone: false
+show_subtotal: false
+show_payment: false
+show_amount_words: false
+show_seller_tax_code: false
+show_seller_account: false
+titles:
+  - "Trang hợp đồng bảo hiểm nhân thọ (Policy Schedule)"
+subtitle: "Bản thông tin chi tiết hợp đồng bảo hiểm nhân thọ — đính kèm và là một phần không tách rời của Bộ hợp đồng"
+total_labels:
+  grand: "Tổng phí bảo hiểm định kỳ"
+party_fields:
+  left:
+    - [buyer_name, "Bên mua bảo hiểm"]
+    - [buyer_address, "Địa chỉ liên hệ"]
+    - [buyer_phone, "Điện thoại"]
+    - [buyer_code, "Số giấy tờ tuỳ thân"]
+notes:
+  - "Thời gian cân nhắc 21 ngày:"
+  - "Trong vòng 21 ngày kể từ ngày nhận được Bộ hợp đồng, Bên mua bảo hiểm có quyền từ chối tiếp tục tham gia và được hoàn lại phí bảo hiểm đã đóng sau khi trừ chi phí khám sức khoẻ (nếu có). Sau thời hạn này, hợp đồng có hiệu lực theo các điều khoản đã giao kết."
+signature_labels:
+  - ["Bên mua bảo hiểm", "(Ký, ghi rõ họ tên)"]
+  - ["Doanh nghiệp bảo hiểm", "(Ký, đóng dấu)"]
