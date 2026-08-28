@@ -1,21 +1,18 @@
-"""Tab 2: con dấu bằng synthtiger (thử nghiệm), cạnh `tools/make_ornaments.py`'s
-PIL bản có sẵn.
+"""Tab 2: con dấu vẽ bằng PIL (`tools/make_ornaments.py`), với màu sắc, hình
+dạng, nội dung ở giữa và một lớp "mòn/kiểu đóng" chỉnh được ngay trên UI.
 
-See `generators/synthdog/tools/stamp_experiment.py`'s own docstring for why
-this repo draws seals with PIL today and what the synthtiger attempt can and
-cannot do (`CurveLayout`'s parabola vs. a true circle, no ellipse primitive).
-This tab is a side-by-side, not a replacement -- the PIL column always
-renders (in-process, no venv needed); the synthtiger column needs
-`generators/synthdog/.venv`, checked fresh on every click so it starts
-working the moment that venv is fixed, with no app restart needed.
+Từng là một cột PIL cạnh một cột thử nghiệm bằng synthtiger, để so hai cách
+vẽ con dấu -- xem lịch sử git nếu cần lại bản đó. synthtiger không vẽ được
+chữ cong theo đúng một vòng tròn (`CurveLayout` chỉ uốn theo parabola), nên
+`make_ornaments.py`'s `_arc_text` (dựng bằng toạ độ cực, không qua synthtiger)
+vẫn là -- và luôn là -- thứ thật sự tạo ra con dấu; cột kia chỉ minh hoạ vì
+sao. Tab này giữ lại đúng nửa thật, và mở rộng nó thay vì diễn lại phép so
+sánh mỗi lần bấm nút.
 """
 
 from __future__ import annotations
 
-import platform
-import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 import gradio as gr
@@ -25,103 +22,107 @@ for _extra in (REPO_ROOT, REPO_ROOT / "tools"):
     if str(_extra) not in sys.path:
         sys.path.insert(0, str(_extra))
 
-from make_ornaments import rectangular_seal, round_seal  # noqa: E402
-from paths import VENVS, venv_python  # noqa: E402
+from make_ornaments import (  # noqa: E402
+    _ring_only, double_strike, edge_seal, rectangular_seal, round_seal,
+)
 
-SCRIPT = REPO_ROOT / "generators" / "synthdog" / "tools" / "stamp_experiment.py"
+# Khoảng `coverage` truyền vào `_ink()` -- thấp hơn nghĩa là mực mòn/nhạt hơn.
+# Xem `round_seal`'s docstring cho ý nghĩa của tham số `wear`.
+WEAR = {
+    "sắc nét": (0.90, 0.97),
+    "bình thường": (0.78, 0.93),
+    "mòn / nhạt": (0.55, 0.72),
+}
 
+# Hậu xử lý áp lên ảnh con dấu ĐÃ vẽ xong -- "lớp" theo đúng nghĩa augment:
+# mỗi lựa chọn là một bước riêng, không phải một tham số của chính `round_seal`
+# / `rectangular_seal`. `None` nghĩa là không thêm bước nào.
+STRIKE = {
+    "một lần (bình thường)": None,
+    "đóng hai lần (double strike)": "double",
+    "mờ vành, rỗng ruột (mặt dấu vồng)": "faint",
+    "giáp lai (chỉ giữ một nửa mép)": "edge",
+}
 
-def _synthdog_ready() -> tuple[bool, str]:
-    """Fresh on every call -- not cached, so fixing the venv works without
-    restarting the app (the whole point of checking this per click)."""
-    if venv_python(VENVS["synthdog"]).exists():
-        return True, ""
-    return False, (
-        f"cần Python 3.8-3.11 cho synthdog (máy này đang chạy "
-        f"{platform.python_version()}). Cài rồi dựng lại venv -- trên Ubuntu "
-        f"24.04+ (noble) python3.11 không còn trong repo mặc định, cần thêm "
-        f"deadsnakes trước:\n"
-        f"  sudo add-apt-repository ppa:deadsnakes/ppa && sudo apt update\n"
-        f"  sudo apt install python3.11 python3.11-venv\n"
-        f"  python3.11 tasks.py setup-synthdog"
-    )
-
-
-def _pil_stamp(shape: str, top: str, bottom: str, middle: list[str], seed: int):
-    """`tools/make_ornaments.py`'s existing PIL functions -- in-process, no
-    venv, always available."""
-    if shape == "square":
-        lines = middle or [top or "CONG TY TNHH VI DU"]
-        return rectangular_seal(lines, seed=seed)
-    return round_seal(top or "CONG TY TNHH VI DU", bottom, middle, seed=seed)
-
-
-def _synthtiger_stamp(shape: str, top: str, bottom: str, middle: list[str], seed: int):
-    ready, message = _synthdog_ready()
-    if not ready:
-        return None, f"⚠️ chưa sẵn sàng -- {message}"
-
-    with tempfile.TemporaryDirectory() as scratch:
-        out = Path(scratch) / "stamp.png"
-        command = [str(venv_python(VENVS["synthdog"])), str(SCRIPT),
-                  "--shape", shape, "--top", top or "", "--bottom", bottom or "",
-                  "--seed", str(seed), "--out", str(out)]
-        for line in middle:
-            command += ["--middle", line]
-        try:
-            result = subprocess.run(command, capture_output=True, text=True, timeout=60)
-        except subprocess.TimeoutExpired:
-            return None, "lỗi: quá 60s, dừng lại"
-        if result.returncode != 0:
-            # Same "last 15 lines" shape `pipeline/worker.py` uses for a
-            # failed renderer subprocess -- enough to see what broke.
-            tail = "\n".join((result.stderr.strip() + "\n" + result.stdout.strip())
-                             .strip().splitlines()[-15:])
-            return None, f"lỗi (exit {result.returncode}):\n```\n{tail}\n```"
-
-        from PIL import Image
-        return Image.open(out).convert("RGBA").copy(), "OK"
+CENTRE = {
+    "ngôi sao": "star",
+    "chữ (dòng giữa)": "text",
+    "cả hai (sao trên, chữ dưới)": "both",
+    "để trống": "none",
+}
 
 
-def generate(shape: str, top: str, bottom: str, middle_text: str, seed: float):
+def _hex_to_rgb(value: str) -> tuple[int, int, int]:
+    value = (value or "#C41E26").lstrip("#")
+    if len(value) != 6:
+        value = "C41E26"
+    return tuple(int(value[i:i + 2], 16) for i in (0, 2, 4))
+
+
+def _apply_strike(image, strike_label: str, seed: int):
+    kind = STRIKE.get(strike_label)
+    if kind == "double":
+        return double_strike(image, seed=seed)
+    if kind == "faint":
+        return _ring_only(image)
+    if kind == "edge":
+        return edge_seal(image)
+    return image
+
+
+def generate(shape: str, colour_hex: str, centre_label: str, top: str, bottom: str,
+            middle_text: str, wear_label: str, strike_label: str, seed: float):
+    colour = _hex_to_rgb(colour_hex)
     middle = [line for line in (middle_text or "").splitlines() if line.strip()]
     seed = int(seed)
-    pil_image = _pil_stamp(shape, top, bottom, middle, seed)
-    synth_image, note = _synthtiger_stamp(shape, top, bottom, middle, seed)
-    return pil_image, synth_image, note
+    lo, hi = WEAR.get(wear_label, WEAR["bình thường"])
+
+    if shape == "square":
+        lines = middle or [top or "CONG TY TNHH VI DU"]
+        image = rectangular_seal(lines, seed=seed, colour=colour, wear=(lo, hi))
+    else:
+        image = round_seal(top or "CONG TY TNHH VI DU", bottom, middle, seed=seed,
+                           colour=colour, centre_kind=CENTRE.get(centre_label, "star"),
+                           wear=(lo, hi))
+
+    return _apply_strike(image, strike_label, seed)
+
+
+def _toggle_centre(shape: str):
+    """Nội dung giữa chỉ có ý nghĩa với dấu tròn -- `rectangular_seal` không
+    có khái niệm sao/chữ riêng, `lines` của nó LÀ toàn bộ nội dung dấu."""
+    return gr.update(visible=(shape == "round"))
 
 
 def build_tab() -> None:
-    with gr.Tab("Con dấu (synthtiger)"):
-        ready, message = _synthdog_ready()
+    with gr.Tab("Con dấu"):
         gr.Markdown(
-            "Thử vẽ con dấu bằng synthtiger, cạnh bản PIL sẵn có trong "
-            "`tools/make_ornaments.py`. Dấu **vuông** không cần gì synthtiger "
-            "thiếu; dấu **tròn** dùng `CurveLayout` uốn theo **parabola**, "
-            "không phải một hình tròn thật -- xem lệch rõ nhất ở hai đầu cung."
+            "Vẽ con dấu bằng PIL (`tools/make_ornaments.py`) -- cùng mã nguồn "
+            "sinh ra mọi con dấu trong `textures/ornament/`. Đổi màu, hình dạng, "
+            "nội dung giữa và độ mòn/kiểu đóng, xem ngay kết quả."
         )
-        if not ready:
-            gr.Markdown(f"⚠️ **synthdog chưa sẵn sàng** -- {message}")
-
-        shape = gr.Radio(["square", "round"], value="square", label="Hình dạng")
+        with gr.Row():
+            shape = gr.Radio(["round", "square"], value="round", label="Hình dạng")
+            colour = gr.ColorPicker(value="#C41E26", label="Màu mực")
         with gr.Row():
             top = gr.Textbox(label="Dòng trên (round) / dùng khi Dòng giữa trống (square)",
                              value="CONG TY TNHH VI DU")
             bottom = gr.Textbox(label="Dòng dưới (chỉ round)", value="MST 0123456789")
-        middle = gr.Textbox(
-            label="Dòng giữa -- mỗi dòng một ô (round: chữ giữa vành; "
-                 "square: TOÀN BỘ nội dung con dấu, mỗi dòng một hàng)",
-            lines=2, value="DA THU TIEN")
-        seed = gr.Number(label="Seed", value=0, precision=0)
-        go = gr.Button("Vẽ thử", variant="primary")
-        note = gr.Markdown("")
         with gr.Row():
-            with gr.Column():
-                gr.Markdown("### PIL — đã có (`make_ornaments.py`)")
-                pil_out = gr.Image(label="PIL", type="pil")
-            with gr.Column():
-                gr.Markdown("### synthtiger — thử nghiệm")
-                synth_out = gr.Image(label="synthtiger", type="pil")
+            centre = gr.Radio(list(CENTRE), value="ngôi sao",
+                              label="Nội dung giữa (chỉ dấu tròn)")
+            middle = gr.Textbox(
+                label="Dòng giữa -- mỗi dòng một ô (round: dùng khi Nội dung giữa "
+                     "là 'chữ' hoặc 'cả hai'; square: TOÀN BỘ nội dung con dấu)",
+                lines=2, value="DA THU TIEN")
+        with gr.Row():
+            wear = gr.Radio(list(WEAR), value="bình thường", label="Mòn mực")
+            strike = gr.Dropdown(list(STRIKE), value="một lần (bình thường)",
+                                 label="Kiểu đóng")
+        seed = gr.Number(label="Seed", value=0, precision=0)
+        go = gr.Button("Vẽ", variant="primary")
+        out = gr.Image(label="Con dấu", type="pil")
 
-        go.click(generate, inputs=[shape, top, bottom, middle, seed],
-                 outputs=[pil_out, synth_out, note])
+        shape.change(_toggle_centre, inputs=[shape], outputs=[centre])
+        go.click(generate, inputs=[shape, colour, centre, top, bottom, middle, wear, strike, seed],
+                 outputs=[out])

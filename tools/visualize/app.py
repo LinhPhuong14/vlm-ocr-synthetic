@@ -6,20 +6,24 @@ Three tabs, independent of each other:
 
 * **Sinh ảnh** -- drive `pipeline.run.execute()`, watching images land in a
   gallery one at a time instead of waiting for a whole run to finish.
-* **Con dấu (synthtiger)** -- an experimental stamp generator built on
-  synthtiger, shown beside `tools/make_ornaments.py`'s existing PIL one.
+* **Con dấu** -- `tools/make_ornaments.py`'s PIL stamp generator, with colour,
+  shape, centre content (star / text / both / none) and a wear/strike-style
+  layer all adjustable from the UI. Used to compare against an experimental
+  synthtiger renderer, side by side; that comparison is retired (synthtiger
+  cannot draw text on a true circular arc -- see git history and
+  `docs/co-che-sinh-con-dau.md` for why), and this tab now only drives the
+  PIL half that actually ships in `textures/ornament/`.
 * **Viết tay (hybrid)** -- `BothHands` (production, per-field) next to
   `HybridHand` (new, per-word) on the same input text.
 
 Run from `generators/html/.venv` (`make visualize` / `python tasks.py
 visualize` do this for you): that venv already has everything the html
-renderer needs, which is also everything this tool needs in-process. The two
-exceptions cross a venv boundary on their own, the same way the rest of the
-pipeline does -- `tools/writevit/serve.py` for the WriteViT half of Tab 3, and
-`generators/synthdog/.venv` as a subprocess for Tab 2's actual rendering.
+renderer needs, which is also everything this tool needs in-process. Tab 3's
+WriteViT half is the one exception, crossing a venv boundary on its own via
+`tools/writevit/serve.py`, the same way the rest of the pipeline does.
 
-Not this tool's job to install any of that; each tab says plainly when its
-half of the machinery is missing and how to build it.
+Not this tool's job to install that: the tab says plainly when it is missing
+and how to build it (`python tasks.py setup-writevit`).
 """
 
 from __future__ import annotations
