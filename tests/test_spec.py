@@ -396,7 +396,62 @@ def test_order_manifest_drives_the_attribute_list():
 
     assert tuple(ATTRIBUTES) == attribute_order()
     assert ATTRIBUTES[0] == "document", "document must be drawn first"
-    assert ATTRIBUTES[-1] == "augmentation", "augmentation must be drawn last"
+
+
+def test_the_ageing_attributes_are_drawn_after_everything_on_the_paper():
+    """Ageing comes last, and `augmentation` is no longer the only one of it.
+
+    This used to read `ATTRIBUTES[-1] == "augmentation"`, which was a name
+    standing in for a rule. The rule is that an attribute carrying a `chain`
+    describes what happened to a page AFTER it was printed, so all of them come
+    after every attribute that decides what is printed. Splitting the copier
+    into `toner`, `drum` and `rollers` is what made the difference visible.
+
+    `toner`/`drum`/`rollers` themselves currently carry no chain at all --
+    every worn-machine option was pulled from all three (see toner.yaml) -- so
+    checking "the chain-bearing attributes are exactly one contiguous suffix"
+    would now fail on a fact that is deliberate, not a reordering mistake:
+    `augmentation` chains, the copier's three parts sit right after it in
+    `_order.yaml` and do not. They are still the same post-print domain
+    `POST_PRINT` names below, on paper (`_order.yaml`'s own comment) even
+    while switched off, which is the fact this test must not mistake for one
+    of them having drifted out of place.
+    """
+    from rulebase import load_rules
+
+    rules = load_rules()
+    ageing = [name for name in ATTRIBUTES
+              if any(option.params.get("chain") for option in rules[name])]
+    assert ageing, "something has to carry the ageing chain"
+    first_ageing = ATTRIBUTES.index(ageing[0])
+    # Everything from the first ageing attribute onwards must either age the
+    # page or do NOTHING to it.
+    #
+    # It read `== ageing` -- a strict suffix -- and that stopped being true
+    # twice over, for two deliberate reasons: `rollers` was switched off and
+    # then the whole copier was, so `toner`, `drum` and `rollers` now carry one
+    # value each and no chain at all. They still sit after `augmentation` in
+    # `_order.yaml`, where the post-print domain belongs, and the suffix form
+    # would call that a reordering mistake.
+    #
+    # A hand-written set of "the attributes allowed to be there" would work and
+    # would have to be re-earned by whoever adds the next one. This says what
+    # the rule always meant instead: an attribute drawn after the ageing has
+    # begun may not put ANYTHING on the sheet except through a chain, because
+    # the chain is the only thing that runs in draw order. A switched-off
+    # copier carries no params and passes; a copier that started printing
+    # something without a chain would not.
+    #
+    # `handwriting` is the case that makes the distinction matter. It does put
+    # ink on the page, and it is drawn BEFORE `augmentation` for exactly that
+    # reason -- so the pen ages with the print.
+    for name in ATTRIBUTES[first_ageing:]:
+        if name in ageing:
+            continue
+        assert not any(option.params for option in rules[name]), (
+            f"{name} is drawn after the ageing starts and carries params that "
+            f"are not a chain; that step would land on a sheet whose own "
+            f"appearance had already been decided")
 
 
 def test_a_rules_file_the_manifest_forgets_is_an_error(tmp_path):
@@ -490,10 +545,13 @@ def test_forcing_maps_distinct_seeds_to_distinct_recipes(real_rules):
     Two hundred seeds is enough to catch it without slowing the suite: the old
     code gave 30 here for `market_vat` and 114 for the least affected layout.
     """
-    from rulebase import available_layouts
+    from conftest import force_for
 
-    for layout in available_layouts():
-        seeds = [sample_recipe(seed=k, rules=real_rules, force={"layout": layout}).seed
+    from rulebase import every_layout
+
+    for layout in every_layout():
+        force = force_for(layout)
+        seeds = [sample_recipe(seed=k, rules=real_rules, force=force).seed
                  for k in range(200)]
         assert len(set(seeds)) == 200, (
             f"{layout}: {len(set(seeds))} distinct recipes from 200 seeds")
@@ -501,11 +559,14 @@ def test_forcing_maps_distinct_seeds_to_distinct_recipes(real_rules):
 
 def test_a_forced_recipe_reports_the_seed_it_was_asked_for(real_rules):
     """Everything that rebuilds a page from `recipe.seed` depends on this."""
-    from rulebase import available_layouts
+    from conftest import force_for
 
-    for layout in available_layouts():
+    from rulebase import every_layout
+
+    for layout in every_layout():
+        force = force_for(layout)
         for seed in range(0, 200, 7):
-            recipe = sample_recipe(seed=seed, rules=real_rules, force={"layout": layout})
+            recipe = sample_recipe(seed=seed, rules=real_rules, force=force)
             assert recipe.seed == seed
 
 
@@ -595,3 +656,72 @@ def test_an_unforced_failure_is_reported_directly_not_as_an_unlucky_seed():
     message = str(caught.value)
     assert message.startswith("layout: nothing satisfies"), message
     assert "unlucky" not in message and "last clash" not in message, message
+
+
+# ------------------------------------------------- a value switched off
+
+
+def _with_disabled(tmp_path: Path) -> Path:
+    spec = {name: [{"id": f"{name}1", "weight": 1}] for name in ATTRIBUTES}
+    spec["visual"] = [
+        {"id": "kept", "weight": 1},
+        {"id": "shelved", "weight": 5, "enabled": False},
+    ]
+    return write_rules_dir(tmp_path / "rules", spec, order=list(ATTRIBUTES))
+
+
+def test_a_disabled_value_is_never_drawn_however_heavy(tmp_path):
+    """`enabled: false` beats the weight, and beats it silently on purpose.
+
+    Weight 0 says the same thing and `validate` calls it dead rules -- almost
+    always a typo in a tag name. This is the DECLARED form of the same state,
+    so a value that is off on purpose can be told apart from one that is off by
+    accident.
+    """
+    rules = load_rules(_with_disabled(tmp_path))
+    drawn = {sample_recipe(seed=seed, rules=rules).ids()["visual"] for seed in range(200)}
+
+    assert drawn == {"kept"}
+
+
+def test_a_disabled_value_is_still_drawable_by_name(tmp_path):
+    """The whole point of not deleting it: a committed page that drew this
+    value has to stay redrawable, and switching it back on has to be one line."""
+    rules = load_rules(_with_disabled(tmp_path))
+    recipe = sample_recipe(seed=3, rules=rules, force={"visual": "shelved"})
+
+    assert recipe.ids()["visual"] == "shelved"
+
+
+def test_a_disabled_value_is_not_reported_as_dead_rules(tmp_path):
+    rules = load_rules(_with_disabled(tmp_path))
+    assert validate(rules) == []
+
+    # ...but weight 0 without the declaration still is: that is the typo case.
+    rules["visual"][0] = rules["visual"][0].__class__(id="kept", weight=0)
+    assert any("weight 0" in problem for problem in validate(rules))
+
+
+def test_an_attribute_with_nothing_drawable_is_reported(tmp_path):
+    rules = load_rules(_with_disabled(tmp_path))
+    rules["visual"] = [option for option in rules["visual"] if option.id == "shelved"]
+    problems = validate(rules)
+
+    assert any("no option is drawable" in problem for problem in problems)
+
+
+def test_a_disabled_value_supplies_no_tag_either(tmp_path):
+    """It is not drawn, so nothing downstream may `require` what it would set.
+
+    Without this the sampler would offer a value whose tag can never arrive and
+    then clash on every seed -- the failure mode `tools/rules_report.py` now
+    draws every document and layout to catch.
+    """
+    spec = {name: [{"id": f"{name}1", "weight": 1}] for name in ATTRIBUTES}
+    spec["visual"] = [{"id": "off", "weight": 1, "enabled": False, "tags": ["ghost"]},
+                      {"id": "on", "weight": 1}]
+    spec["color"] = [{"id": "needs_ghost", "weight": 1, "requires": ["ghost"]}]
+    rules = load_rules(write_rules_dir(tmp_path / "rules", spec, order=list(ATTRIBUTES)))
+
+    with pytest.raises(RuleError):
+        sample_recipe(seed=1, rules=rules, attempts=50)

@@ -1,0 +1,38 @@
+# TẮT — không lượt chạy nào bốc bố cục này nữa.
+#
+# `enabled: false` là công tắc của riêng file bố cục: `rulebase.available_layouts()`
+# bỏ qua nó, nên `layouts: []` trong `pipeline.yaml` (nghĩa là "mọi bố cục") và
+# `per_backend: auto` đều không còn thấy nó. File VẪN ở đây, vẫn được
+# `rulebase/rules/layout.yaml` khai, nên `rulebase.make(force={'layout': ...})`
+# vẫn dựng lại được những trang đã commit từng vẽ bằng nó, và các test vẫn soi
+# nó qua `rulebase.every_layout()`. Bật lại = xoá đúng một dòng.
+#
+# Đây là một trong mười bố cục của ROOT 3 (Form / Application),
+# `docs/root-document-taxonomy.md` § 3.3 — cả mười tắt cùng một lượt.
+enabled: false
+
+# FORM-09 — Đơn hành chính nhà nước: quốc hiệu/tiêu ngữ trên đỉnh trang,
+# rồi các trường dân sự dày đặc.
+#
+# Dùng `form_dense` (§ xem tài liệu, chung với FORM-10). `header.masthead:
+# govt` là điểm khác duy nhất với `form_dense_registration.yaml` —
+# "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM / Độc lập - Tự do - Hạnh phúc" là
+# quốc hiệu/tiêu ngữ CHUNG mọi biểu mẫu nhà nước Việt Nam đều in giống hệt
+# nhau (`NATIONAL_MASTHEAD` trong form.py) — không phải logo/quốc huy của
+# một cơ quan cụ thể nào, nên không có rủi ro mạo danh.
+id: form_government_app
+name: Government application — national masthead, dense civil fields
+source: "LuatVietnam.vn (mẫu giấy khai sinh) — quốc hiệu, khung CHXHCNVN, dày trường hộ tịch (họ tên, ngày sinh, dân tộc, quốc tịch, nơi sinh, quê quán, số định danh, cha/mẹ...)"
+family: form
+
+width: [85, 95]
+gutter: 2
+rule_char: "-"
+sheet: a4
+rules: marks
+
+sections: [header, parties, notes, signatures, footer]
+
+header:
+  masthead: govt
+  title: true

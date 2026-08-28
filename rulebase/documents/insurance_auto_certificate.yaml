@@ -1,0 +1,34 @@
+profile: insurance
+invoice: true
+no_items: true
+no_totals: true
+vehicle_fields: true
+vehicle_kind: car
+vehicle_types: ["Ô tô con", "Ô tô tải", "Ô tô khách"]
+show_serial: false
+show_vat: false
+show_issuer_unit: false
+show_seller_address: false
+show_seller_phone: false
+show_subtotal: false
+show_payment: false
+show_amount_words: false
+show_seller_tax_code: false
+show_seller_account: false
+titles:
+  - "Giấy chứng nhận bảo hiểm bắt buộc trách nhiệm dân sự của chủ xe cơ giới"
+subtitle: "Áp dụng cho xe ô tô · Ban hành theo Nghị định số 67/2023/NĐ-CP"
+party_fields:
+  left:
+    - [buyer_name, "Chủ xe cơ giới"]
+    - [buyer_address, "Địa chỉ · Điện thoại"]
+    - [plate_number, "Biển số xe"]
+    - [chassis_number, "Số khung"]
+    - [vehicle_type, "Loại xe"]
+    - [engine_number, "Số máy"]
+notes:
+  - "Giới hạn trách nhiệm đối với người thứ ba: về sức khoẻ, tính mạng 150.000.000 đồng/người/vụ; về tài sản 100.000.000 đồng/vụ."
+  - "Thời hạn bảo hiểm 1 năm kể từ ngày cấp. Phí bảo hiểm thanh toán một lần trước khi cấp Giấy chứng nhận."
+  - "Chủ xe, người lái xe phải thông báo ngay cho doanh nghiệp bảo hiểm theo đường dây nóng 1900 0000 (24/7), giữ nguyên hiện trường, tích cực cứu chữa và hạn chế thiệt hại phát sinh."
+signature_labels:
+  - ["Doanh nghiệp bảo hiểm", ""]

@@ -1,0 +1,36 @@
+# THAM SỐ NỘI DUNG — invoice_plain
+#
+# Nửa còn lại của loại document này. Không gian lấy mẫu (weight, tags,
+# họ) nằm ở `rules/document.yaml`; những gì `rulebase.content.build`
+# đọc thì nằm đây.
+#
+# "Trơn": không khối bên mua/bên nhận hàng, không dòng chuyển khoản, không
+# số tiền bằng chữ, không ô chữ ký — chỉ số/ngày (in trong khối tiêu đề)
+# và bảng hàng. Tài liệu này CỐ Ý để trống mọi trường mà năm bố cục dùng nó
+# (invoice_header_table, invoice_logo_center, invoice_dense_table,
+# invoice_minimalist, invoice_multipage) không liệt trong `sections:` —
+# `pipeline/invariants.py` coi một trường có giá trị mà không có box nào vẽ
+# nó là lỗi ngay trên ảnh đầu tiên, không phải một tỉ lệ được phép trượt.
+
+profile: invoice
+invoice: true
+titles: ["HOÁ ĐƠN BÁN HÀNG", "HOÁ ĐƠN GIÁ TRỊ GIA TĂNG", "HOÁ ĐƠN"]
+num_items: [3, 9]
+price_step: 1000
+vat_rates: [5, 8, 10]
+# Không bố cục nào trong nhóm "trơn" có cột thuế suất riêng từng dòng (một
+# hoá đơn tự thiết kế thường chỉ ghi MỘT dòng thuế GTGT ở khối tổng, không
+# ghi lại tỉ lệ trên từng dòng hàng) — tắt ở đây để `menu.vatrate` không
+# xuất hiện trong nhãn mà không bố cục nào có cột để in nó.
+item_vat: false
+show_form_no: false
+show_seller_account: true
+units: ["Cái", "Bộ", "Chiếc", "Kg", "Gói", "Thùng", "Hộp", "Lượt", "m2"]
+period_format: "Ngày {date}"
+total_labels:
+  subtotal: "Tạm tính"
+  vat: "Thuế GTGT"
+  grand: "Tổng cộng thanh toán"
+# Không layout nào trong nhóm "trơn" liệt `words` trong `sections:` — tắt hẳn
+# ở đây, không phải đặt `False` ở từng bố cục và trông chờ mỗi nơi nhớ đúng.
+show_amount_words: false

@@ -315,13 +315,13 @@ def write_vector(vector: dict, directory: Path) -> Path:
 def forced_for(shard: dict, plan: dict) -> list[dict[str, str]]:
     """The `force` each of a shard's runs was rendered with, and its weight.
 
-    A run pins the layout; `--clean` pins the augmentation; `--force` pins
-    whatever the caller asked for; an agent-planned run pins **every** attribute
-    on the run itself. The expectation has to carry the same pins or it is an
-    expectation for a different job -- and `run["force"]` was the one it did not
-    carry, so every agent shard was compared against the mix the *weights*
-    predict rather than the mix the plan asked for, and warned by 0.29 for
-    doing exactly what it was told.
+    A run pins the layout; `--clean` pins every chain-bearing attribute;
+    `--force` pins whatever the caller asked for; an agent-planned run pins
+    **every** attribute on the run itself. The expectation has to carry the same
+    pins or it is an expectation for a different job -- and `run["force"]` was
+    the one it did not carry, so every agent shard was compared against the mix
+    the *weights* predict rather than the mix the plan asked for, and warned by
+    0.29 for doing exactly what it was told.
 
     The run's own pins win the merge, the same way `worklist.Job.pins` puts them
     last: the narrower statement should.
@@ -331,8 +331,9 @@ def forced_for(shard: dict, plan: dict) -> list[dict[str, str]]:
         name, _, value = str(item).partition("=")
         if value:
             pinned[name] = value
-    if plan.get("clean") and "augmentation" not in pinned:
-        pinned["augmentation"] = invariants.CLEAN_AUGMENTATION
+    if plan.get("clean"):
+        for attribute, value in invariants.CLEAN_FORCES.items():
+            pinned.setdefault(attribute, value)
     return [{**pinned, **(run.get("force") or {}),
              "layout": run["layout"], "_count": run["count"]}
             for run in shard.get("runs", [])]

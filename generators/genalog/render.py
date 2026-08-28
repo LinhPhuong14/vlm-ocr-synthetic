@@ -556,7 +556,11 @@ class GenalogReceiptRenderer:
         # chain would shift every box while the image still looked right.
         before = image.shape[:2]
         with profiling.stage("degradation"):
-            aged = apply_recipe(image, recipe, seed=seed)
+            # `boxes` too, and after the resize above rather than before: they
+            # are what `by_box` reads to find the text. Retired backend, but the
+            # three of them have to age identically or a chain means one thing
+            # here and another there.
+            aged = apply_recipe(image, recipe, seed=seed, boxes=boxes)
         if aged.shape[:2] != before:
             raise RuntimeError(
                 f"a degradation resized the page ({before} -> {aged.shape[:2]}); "
@@ -610,7 +614,11 @@ class GenalogReceiptRenderer:
 
         before = image.shape[:2]
         with profiling.stage("degradation"):
-            aged = apply_recipe(image, recipe, seed=seed)
+            # `boxes` too, and after the resize above rather than before: they
+            # are what `by_box` reads to find the text. Retired backend, but the
+            # three of them have to age identically or a chain means one thing
+            # here and another there.
+            aged = apply_recipe(image, recipe, seed=seed, boxes=boxes)
         if aged.shape[:2] != before:
             raise RuntimeError(
                 f"a degradation resized the page ({before} -> {aged.shape[:2]}); "
@@ -712,10 +720,11 @@ def main() -> int:
         choices=["font"], metavar="SOURCE",
         help="fill the fields a person fills in with handwriting instead of "
              "type, from a licensed handwriting typeface (fonts/hand/). Only "
-             "with --template. The WriteViT `model` source the browser backend "
-             "also offers is NOT available here: it pastes an image of ink, "
-             "which puts no glyphs in the PDF, and match_runs recovers boxes by "
-             "walking the runs beside that glyph layer",
+             "with --template. The browser backend's other two sources -- "
+             "`model` and `both` -- are NOT available here, and for one "
+             "reason: both paste an image of ink, which puts no glyphs in the "
+             "PDF, and match_runs recovers boxes by walking the runs beside "
+             "that glyph layer",
     )
     parser.add_argument(
         "--profile", metavar="JSON",

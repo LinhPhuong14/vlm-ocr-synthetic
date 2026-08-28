@@ -12,6 +12,7 @@
 id: invoice_tax_en
 name: Tax invoice (English) — ship-to and billed-to, right-hand totals
 source: "photo of an Australian tax invoice, ABN 1234, invoiced 28/06/2017"
+family: modern
 
 width: [72, 84]
 gutter: 2

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LO-04 · Đơn yêu cầu bảo hiểm – biểu mẫu ô vuông (comb box) A4 dọc</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#6d716a;font-family:Arial,Helvetica,sans-serif;color:#111}
+  @page{size:A4 portrait;margin:0}
+  .sheet{width:210mm;min-height:297mm;background:#fff;margin:10mm auto;position:relative;
+         box-shadow:0 2mm 8mm rgba(0,0,0,.35);padding:10mm 12mm 14mm}
+
+  header{display:grid;grid-template-columns:1fr auto;gap:6mm;align-items:start;
+         border-bottom:.9mm solid #111;padding-bottom:2.5mm}
+  .brand{font-size:4.6mm;font-weight:800;letter-spacing:-.2mm;color:#0d3b66}
+  .brand small{display:block;font-weight:400;font-size:2.5mm;color:#555;letter-spacing:.4mm;text-transform:uppercase}
+  .formmeta{text-align:right;font-size:2.5mm;color:#444;line-height:1.5}
+  .formmeta b{font-family:"Courier New",monospace;font-size:3mm;color:#111}
+
+  h1{text-align:center;font-size:5.4mm;font-weight:800;text-transform:uppercase;margin:5mm 0 1mm;letter-spacing:.3mm}
+  .h1sub{text-align:center;font-size:2.8mm;font-style:italic;color:#555;margin-bottom:5mm}
+
+  .sec{margin-bottom:4mm;break-inside:avoid}
+  .sec>.t{background:#111;color:#fff;font-size:3mm;font-weight:700;text-transform:uppercase;
+          padding:1.4mm 2.5mm;letter-spacing:.4mm;display:flex;justify-content:space-between}
+  .sec>.b{border:.3mm solid #111;border-top:0;padding:3mm 3mm 3.5mm}
+
+  .line{display:flex;align-items:center;gap:2mm;margin-bottom:2.6mm;font-size:2.9mm;flex-wrap:wrap}
+  .lab{white-space:nowrap;color:#222}
+  /* ô vuông ghi từng ký tự – đặc trưng của biểu mẫu VN */
+  .comb{display:flex;gap:.7mm}
+  .comb i{width:4.6mm;height:5.6mm;border:.25mm solid #444;display:flex;align-items:center;justify-content:center;
+          font-family:"Courier New",monospace;font-size:3.1mm;font-weight:700;font-style:normal;background:#fcfcfa}
+  .comb i.sp{border:0;background:transparent;width:2mm}
+  .dot{flex:1;border-bottom:.25mm dotted #444;height:5mm;min-width:20mm;
+       font-family:"Courier New",monospace;font-size:3mm;font-weight:700;padding:0 1mm;color:#12233a}
+  .cb{display:inline-flex;align-items:center;gap:1.4mm;font-size:2.9mm;margin-right:5mm}
+  .cb u{width:4mm;height:4mm;border:.3mm solid #333;display:inline-block;text-decoration:none;
+        text-align:center;line-height:3.4mm;font-weight:800;font-size:3mm}
+
+  table{width:100%;border-collapse:collapse;font-size:2.75mm}
+  th,td{border:.25mm solid #444;padding:1.6mm 2mm;vertical-align:top}
+  thead th{background:#eceff2;font-weight:700;text-align:left}
+  .yn{width:9mm;text-align:center}
+  .yn u{width:3.6mm;height:3.6mm;border:.3mm solid #333;display:inline-block;text-decoration:none}
+
+  .decl{border:.4mm double #111;padding:3mm 3.5mm;font-size:2.7mm;line-height:1.55;text-align:justify;margin-top:1mm}
+  .decl b{text-transform:uppercase}
+
+  .sigs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6mm;margin-top:6mm;text-align:center;font-size:2.7mm}
+  .sigs .r{font-weight:800;text-transform:uppercase}
+  .sigs .h{font-style:italic;color:#555;font-size:2.4mm}
+  .sigs .sp{height:17mm;border-bottom:.25mm solid #666;margin-bottom:1mm}
+
+  .officeonly{margin-top:5mm;border:.3mm dashed #888;background:#f6f6f3;padding:2.5mm 3mm;font-size:2.5mm;color:#444}
+  .officeonly b{text-transform:uppercase;letter-spacing:.4mm;color:#111}
+  .footnote{position:absolute;left:12mm;right:12mm;bottom:6mm;font-size:2.3mm;color:#777;
+            display:flex;justify-content:space-between;border-top:.2mm solid #ccc;padding-top:1.5mm}
+  @media print{html,body{background:#fff}.sheet{margin:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header>
+    <div class="brand">MINH HOẠ LIFE<small>Bảo hiểm nhân thọ Minh Hoạ Việt Nam</small></div>
+    <div class="formmeta">
+      Mẫu số: <b>ĐYCBH-01/2026</b><br>
+      Số hồ sơ: <b>HS 2026 00842</b><br>
+      Ngày nhận: ...... / ...... / 2026
+    </div>
+  </header>
+
+  <h1>Đơn yêu cầu bảo hiểm</h1>
+  <div class="h1sub">Vui lòng viết chữ IN HOA, mỗi ô một ký tự · Đánh dấu ✗ vào ô lựa chọn</div>
+
+  <div class="sec">
+    <div class="t"><span>Phần A · Thông tin bên mua bảo hiểm</span><span>A</span></div>
+    <div class="b">
+      <div class="line">
+        <span class="lab">Họ và tên</span>
+        <span class="comb">
+          <i>N</i><i>G</i><i>U</i><i>Y</i><i>Ễ</i><i>N</i><i class="sp"></i><i>V</i><i>Ă</i><i>N</i><i class="sp"></i><i>A</i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </span>
+      </div>
+      <div class="line">
+        <span class="lab">Ngày sinh</span>
+        <span class="comb"><i>1</i><i>2</i><i class="sp"></i><i>0</i><i>5</i><i class="sp"></i><i>1</i><i>9</i><i>8</i><i>8</i></span>
+        <span class="lab" style="margin-left:5mm">Giới tính</span>
+        <span class="cb"><u>✗</u> Nam</span><span class="cb"><u></u> Nữ</span>
+      </div>
+      <div class="line">
+        <span class="lab">Số CCCD</span>
+        <span class="comb"><i>0</i><i>0</i><i>1</i><i>0</i><i>8</i><i>8</i><i>0</i><i>0</i><i>0</i><i>0</i><i>0</i><i>0</i></span>
+        <span class="lab" style="margin-left:4mm">Điện thoại</span>
+        <span class="comb"><i>0</i><i>9</i><i>0</i><i>0</i><i>0</i><i>0</i><i>0</i><i>0</i><i>0</i><i>0</i></span>
+      </div>
+      <div class="line"><span class="lab">Địa chỉ thường trú</span><span class="dot">Số 12, Phố Mẫu, Phường Mẫu, TP. Hà Nội</span></div>
+      <div class="line">
+        <span class="lab">Nghề nghiệp</span><span class="dot">Nhân viên văn phòng</span>
+        <span class="lab">Thu nhập/năm</span><span class="dot" style="max-width:38mm">300.000.000 đ</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="t"><span>Phần B · Người được bảo hiểm</span><span>B</span></div>
+    <div class="b">
+      <div class="line">
+        <span class="cb"><u>✗</u> Chính là Bên mua bảo hiểm</span>
+        <span class="cb"><u></u> Người khác (kê khai dưới đây)</span>
+      </div>
+      <div class="line"><span class="lab">Họ và tên</span><span class="dot"></span>
+        <span class="lab">Quan hệ</span><span class="dot" style="max-width:40mm"></span></div>
+      <div class="line">
+        <span class="lab">Chiều cao</span><span class="comb"><i>1</i><i>7</i><i>2</i></span><span class="lab">cm</span>
+        <span class="lab" style="margin-left:5mm">Cân nặng</span><span class="comb"><i>6</i><i>8</i></span><span class="lab">kg</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="t"><span>Phần C · Sản phẩm yêu cầu tham gia</span><span>C</span></div>
+    <div class="b" style="padding-bottom:2mm">
+      <table>
+        <thead><tr><th style="width:9mm">STT</th><th>Tên sản phẩm</th><th style="width:24mm">Thời hạn</th><th style="width:36mm">Số tiền bảo hiểm</th><th style="width:24mm">Định kỳ phí</th></tr></thead>
+        <tbody>
+          <tr><td>01</td><td>An Tâm Trọn Đời (sản phẩm chính)</td><td>25 năm</td><td>1.000.000.000 đ</td><td>Nửa năm</td></tr>
+          <tr><td>02</td><td>Bảo hiểm bệnh hiểm nghèo</td><td>25 năm</td><td>300.000.000 đ</td><td>Nửa năm</td></tr>
+          <tr><td>03</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="t"><span>Phần D · Thẩm định sức khoẻ</span><span>D</span></div>
+    <div class="b" style="padding-bottom:2mm">
+      <table>
+        <thead><tr><th>Trong 5 năm gần đây, Người được bảo hiểm có:</th><th class="yn">Có</th><th class="yn">Không</th><th style="width:52mm">Nếu “Có”, ghi rõ chi tiết</th></tr></thead>
+        <tbody>
+          <tr><td>1. Từng nằm viện, phẫu thuật hoặc điều trị nội trú?</td><td class="yn"><u></u></td><td class="yn"><u>✗</u></td><td></td></tr>
+          <tr><td>2. Đang dùng thuốc theo chỉ định dài ngày?</td><td class="yn"><u></u></td><td class="yn"><u>✗</u></td><td></td></tr>
+          <tr><td>3. Hút thuốc lá / sử dụng đồ uống có cồn thường xuyên?</td><td class="yn"><u>✗</u></td><td class="yn"><u></u></td><td>Hút 5 điếu/ngày</td></tr>
+          <tr><td>4. Tham gia hoạt động, nghề nghiệp có tính rủi ro cao?</td><td class="yn"><u></u></td><td class="yn"><u>✗</u></td><td></td></tr>
+          <tr><td>5. Đã từng bị từ chối / tăng phí / loại trừ khi tham gia bảo hiểm?</td><td class="yn"><u></u></td><td class="yn"><u>✗</u></td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="decl">
+    <b>Cam kết của người yêu cầu bảo hiểm.</b> Tôi xác nhận mọi thông tin kê khai trong Đơn này là
+    đầy đủ, trung thực và chính xác; đây là căn cứ để doanh nghiệp bảo hiểm xem xét chấp nhận
+    bảo hiểm và phát hành hợp đồng. Tôi hiểu rằng việc kê khai không trung thực có thể dẫn đến
+    hợp đồng bị đình chỉ hoặc chấm dứt theo quy định của pháp luật. Tôi đồng ý cho doanh nghiệp
+    bảo hiểm thu thập, xác minh thông tin sức khoẻ và tài chính phục vụ việc thẩm định.
+  </div>
+
+  <div class="sigs">
+    <div><div class="r">Bên mua bảo hiểm</div><div class="h">(Ký, ghi rõ họ tên)</div><div class="sp"></div>Nguyễn Văn A</div>
+    <div><div class="r">Người được bảo hiểm</div><div class="h">(Nếu khác Bên mua)</div><div class="sp"></div>&nbsp;</div>
+    <div><div class="r">Tư vấn viên</div><div class="h">(Ký, ghi mã số)</div><div class="sp"></div>Mã TV: 0098231</div>
+  </div>
+
+  <div class="officeonly">
+    <b>Phần dành cho doanh nghiệp bảo hiểm</b> — Ngày nhận hồ sơ: ......../......../2026 ·
+    Kết quả thẩm định: <span class="cb"><u></u> Chấp nhận chuẩn</span>
+    <span class="cb"><u></u> Tăng phí</span>
+    <span class="cb"><u></u> Loại trừ</span>
+    <span class="cb"><u></u> Từ chối</span> · Cán bộ thẩm định: ..............................
+  </div>
+
+  <div class="footnote"><span>Mẫu ĐYCBH-01/2026</span><span>Trang 1/2 · Vui lòng ký đầy đủ ở tất cả các trang</span></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>N-06 · Trang mục lục tạp chí (A4 dọc)</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#5d6158;font-family:"Segoe UI",Arial,Helvetica,sans-serif;color:#1c1b18}
+  @page{size:A4 portrait;margin:0}
+  .sheet{width:210mm;height:297mm;background:#fbf8f1;margin:10mm auto;position:relative;overflow:hidden;
+         box-shadow:0 3mm 12mm rgba(0,0,0,.4);padding:14mm 14mm 12mm;display:flex;flex-direction:column}
+
+  .ph{position:relative;background:
+      radial-gradient(circle at 50% 50%, rgba(0,0,0,.42) 0 .24mm, transparent .25mm) 0 0/.85mm .85mm,
+      linear-gradient(150deg,#c9c2b2 0%,#8f887a 52%,#544f46 100%)}
+  .ph::after{content:"ẢNH";position:absolute;right:1.4mm;bottom:1mm;font-size:2.1mm;letter-spacing:.7mm;
+      color:rgba(255,255,255,.8)}
+
+  header{display:flex;justify-content:space-between;align-items:flex-end;gap:8mm;
+         border-bottom:1mm solid #1c1b18;padding-bottom:3mm}
+  header h1{font-family:Georgia,serif;font-size:16mm;font-weight:700;letter-spacing:-.6mm;line-height:.9;
+            text-transform:uppercase}
+  header .meta{text-align:right;font-size:2.6mm;letter-spacing:1.2mm;text-transform:uppercase;
+               color:#6a6558;line-height:1.8}
+  header .meta b{display:block;font-family:Georgia,serif;font-size:4.6mm;letter-spacing:0;
+                 text-transform:none;color:#1c1b18}
+
+  /* ---- bài đinh: ảnh lớn + số trang cỡ đại ---- */
+  .hero{display:grid;grid-template-columns:1fr 62mm;gap:7mm;padding:6mm 0;border-bottom:.3mm solid #cfc8b8}
+  .hero .ph{height:56mm}
+  .hero .n{font-family:Georgia,serif;font-size:24mm;font-weight:700;line-height:.85;color:#b8532f}
+  .hero .k{font-size:2.4mm;letter-spacing:1.6mm;text-transform:uppercase;color:#b8532f;margin-bottom:1.6mm}
+  .hero h2{font-family:Georgia,serif;font-size:9.4mm;line-height:1.08;margin-bottom:2.5mm}
+  .hero p{font-size:3.1mm;line-height:1.5;color:#4a463c}
+  .hero .by{font-size:2.5mm;letter-spacing:.8mm;text-transform:uppercase;color:#6a6558;margin-top:2.5mm}
+
+  /* ---- lưới mục ---- */
+  /* min-height:0 -- sửa hành vi flex mặc định, không phải thiết kế; xem
+     README.md, mục "Một dòng CSS được thêm vào bốn file". Cột phải vẫn tràn
+     xuống dưới trang sau khi sửa -- đó là phần KHÔNG sửa được bằng CSS, xem
+     cùng mục. */
+  .cols{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:0 8mm;padding-top:5mm}
+  .col+.col{border-left:.25mm solid #cfc8b8;padding-left:8mm}
+  .sec{margin-bottom:5mm}
+  .sec>.h{font-size:2.6mm;letter-spacing:2.2mm;text-transform:uppercase;color:#b8532f;
+          border-bottom:.35mm solid #1c1b18;padding-bottom:1.4mm;margin-bottom:2.5mm}
+  .it{display:grid;grid-template-columns:11mm 1fr;gap:3mm;padding:2.2mm 0;border-bottom:.2mm dotted #b9b1a0;
+      align-items:baseline}
+  .it:last-child{border-bottom:0}
+  .it .pg{font-family:Georgia,serif;font-size:6mm;font-weight:700;color:#b8532f;line-height:1}
+  .it h3{font-family:Georgia,serif;font-size:4.4mm;line-height:1.2;margin-bottom:.8mm}
+  .it p{font-size:2.7mm;line-height:1.4;color:#5c574c}
+
+  /* ---- mục có ảnh nhỏ ---- */
+  .itp{display:grid;grid-template-columns:11mm 22mm 1fr;gap:3mm;padding:2.6mm 0;border-bottom:.2mm dotted #b9b1a0}
+  .itp .ph{height:22mm}
+
+  .foot{border-top:.3mm solid #1c1b18;padding-top:2.5mm;display:flex;justify-content:space-between;
+        font-size:2.5mm;letter-spacing:.6mm;color:#6a6558}
+  @media print{html,body{background:#fff}.sheet{margin:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header>
+    <h1>Mục lục</h1>
+    <div class="meta">Tạp chí Bến<b>Số 84 · Tháng 9 · 2026</b></div>
+  </header>
+
+  <div class="hero">
+    <div class="ph"></div>
+    <div>
+      <div class="k">Bài đinh</div>
+      <div class="n">24</div>
+      <h2>Ba mươi năm một cây cầu</h2>
+      <p>Mười bảy hộ dân góp tiền dựng cầu năm 1996. Ba mươi năm sau, quyển sổ ghi chép của họ đã dày lên
+        theo từng mùa nước — và năm nay, cây cầu lần đầu có tên trong danh mục đầu tư công.</p>
+      <div class="by">Bài: Minh Khuê · Ảnh: Trần Hải</div>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div class="col">
+      <div class="sec">
+        <div class="h">Thường kỳ</div>
+        <div class="it"><span class="pg">06</span><div><h3>Thư toà soạn</h3><p>Vì sao số này chúng tôi dành mười hai trang cho một cây cầu gỗ.</p></div></div>
+        <div class="it"><span class="pg">08</span><div><h3>Thư bạn đọc</h3><p>Phản hồi về loạt bài làng nghề tháng trước.</p></div></div>
+        <div class="it"><span class="pg">10</span><div><h3>Ống kính tháng này</h3><p>Sáu bức ảnh gửi về từ mùa nước nổi.</p></div></div>
+      </div>
+
+      <div class="sec">
+        <div class="h">Hồ sơ</div>
+        <div class="itp"><span class="pg">24</span><div class="ph"></div><div><h3>Ba mươi năm một cây cầu</h3><p>Phóng sự dài kỳ từ rạch Mẫu.</p></div></div>
+        <div class="itp"><span class="pg">38</span><div class="ph"></div><div><h3>Những con đê chờ mùa nước lớn</h3><p>Bốn mươi bảy điểm xung yếu và sáu điểm đã xử lý.</p></div></div>
+      </div>
+
+      <div class="sec">
+        <div class="h">Chân dung</div>
+        <div class="itp"><span class="pg">50</span><div class="ph"></div><div><h3>Người vẽ lại bản đồ làng gốm</h3><p>Bà thợ cả 68 tuổi và lớp học không thu học phí.</p></div></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="sec">
+        <div class="h">Đời sống</div>
+        <div class="itp"><span class="pg">62</span><div class="ph"></div><div><h3>Mười hai món ăn của mùa nước nổi</h3><p>Từ bông điên điển tới cá linh non.</p></div></div>
+        <div class="it"><span class="pg">72</span><div><h3>Chợ nổi họp lại sau mười một ngày</h3><p>Ghi chép một buổi sáng ở cửa sông.</p></div></div>
+        <div class="it"><span class="pg">78</span><div><h3>Nghề đóng ghe và lớp thợ trẻ trở về</h3><p>Vì sao mức công nhật ở xưởng cao hơn nghề thời vụ.</p></div></div>
+      </div>
+
+      <div class="sec">
+        <div class="h">Kiến trúc &amp; thiết kế</div>
+        <div class="itp"><span class="pg">84</span><div class="ph"></div><div><h3>Nhà nổi: sống chung với lũ, kiểu mới</h3><p>Ba phương án đã qua thử nghiệm thực địa.</p></div></div>
+        <div class="it"><span class="pg">92</span><div><h3>Vật liệu tái sử dụng từ đê cũ</h3><p>Chuyện từ một công trường nhỏ.</p></div></div>
+      </div>
+
+      <div class="sec">
+        <div class="h">Đọc chậm</div>
+        <div class="it"><span class="pg">98</span><div><h3>Vì sao chúng ta thích nghe kể chuyện dài</h3><p>Tiểu luận của Hoàng Vân.</p></div></div>
+        <div class="it"><span class="pg">104</span><div><h3>Giá sách tháng này</h3><p>Năm cuốn về sông nước và di dân.</p></div></div>
+        <div class="it"><span class="pg">110</span><div><h3>Trang cuối</h3><p>Một tấm ảnh và một đoạn ghi chép.</p></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>Bìa: Ảnh chụp tại rạch Mẫu, tháng 8 · 2026</span>
+    <span>Bến · Số 84 · Trang 4</span>
+  </div>
+</div>
+</body>
+</html>

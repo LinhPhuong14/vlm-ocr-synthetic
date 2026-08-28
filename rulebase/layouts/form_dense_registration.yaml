@@ -1,0 +1,38 @@
+# TẮT — không lượt chạy nào bốc bố cục này nữa.
+#
+# `enabled: false` là công tắc của riêng file bố cục: `rulebase.available_layouts()`
+# bỏ qua nó, nên `layouts: []` trong `pipeline.yaml` (nghĩa là "mọi bố cục") và
+# `per_backend: auto` đều không còn thấy nó. File VẪN ở đây, vẫn được
+# `rulebase/rules/layout.yaml` khai, nên `rulebase.make(force={'layout': ...})`
+# vẫn dựng lại được những trang đã commit từng vẽ bằng nó, và các test vẫn soi
+# nó qua `rulebase.every_layout()`. Bật lại = xoá đúng một dòng.
+#
+# Đây là một trong mười bố cục của ROOT 3 (Form / Application),
+# `docs/root-document-taxonomy.md` § 3.3 — cả mười tắt cùng một lượt.
+enabled: false
+
+# FORM-10 — Đăng ký dày đặc: khung dán ảnh góc trang, rồi các trường dân
+# sự liên tiếp.
+#
+# Dùng `form_dense` (§ xem tài liệu, chung với FORM-09) — cùng nội dung,
+# khác cách trình bày: `page.photobox: true` thay cho `header.masthead:
+# govt` (xem file đó) — đúng dáng một mẫu sơ yếu lý lịch tự khai (không có
+# quốc hiệu ở đầu) so với một đơn hành chính nhà nước chính thức.
+id: form_dense_registration
+name: Dense registration form — photo box, then field after field
+source: "Cục QLLĐ ngoài nước — Bộ Nội vụ (Sơ yếu lý lịch tự thuật, trang đầu) — khung dán ảnh, gần 20 trường nhãn-giá trị, mục 'Hoàn cảnh gia đình'"
+family: form
+
+width: [85, 95]
+gutter: 2
+rule_char: "-"
+sheet: a4
+rules: marks
+
+sections: [header, parties, notes, signatures, footer]
+
+page:
+  photobox: true
+
+header:
+  title: true

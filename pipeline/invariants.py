@@ -79,10 +79,26 @@ UNCHECKED = "unchecked:"
 # so `pipeline/drift.py` can read it without importing the module that writes it.
 INVARIANTS_NAME = "invariants.json"
 
-# The augmentation value whose chain is empty -- what `--clean` pins. Named
-# rather than inlined so renaming it in rules/augmentation.yaml fails loudly
-# instead of silently producing an aged "clean" set.
-CLEAN_AUGMENTATION = "pristine"
+# What `--clean` pins: for EVERY attribute that can add steps to the ageing
+# chain, the value whose chain is empty.
+#
+# It used to be one name, because `augmentation` used to be the only attribute
+# that carried a chain. Splitting the copier into `toner`, `drum` and `rollers`
+# ended that, and a clean run that pinned only `augmentation` would have gone
+# on calling itself clean while a drum streak was drawn across it. The clean
+# set is the CEILING every ageing number is measured against, so that is not a
+# cosmetic bug -- it moves the baseline and nothing says so.
+#
+# `tools/rules_report.py` checks this dict against the rules both ways: every
+# chain-bearing attribute must be named here, and every value named here must
+# have an empty chain. Rename a value in the YAML and preflight fails, which is
+# the whole reason these live in a constant rather than inline.
+CLEAN_FORCES: dict[str, str] = {
+    "augmentation": "pristine",
+    "toner": "no_toner",
+    "drum": "no_drum",
+    "rollers": "no_rollers",
+}
 
 # Characters that mean a font had nothing to draw. They reach the label only
 # through a corpus or a font change, and both are worth stopping for.
@@ -105,6 +121,7 @@ MISSING_GLYPH = "□"
 # near 100% and is nowhere close to it.
 BUDGETS: dict[str, float] = {
     "menu.barcode": 0.05,
+    "menu.discountprice": 0.05,
     "menu.unitprice": 0.05,
     "menu.unitprice_per_unit": 0.05,
     "menu.vatrate": 0.05,
@@ -149,7 +166,46 @@ SUPPRESSED: dict[str, frozenset[str]] = {
         "menu.weight",               # 100%
         "store.branch",              # 100%
     }),
+    "notebook_ledger": frozenset({
+        # A book kept by hand carries what a person writes, and nobody copies
+        # a thirteen-digit barcode into a ledger. Everything else the content
+        # model produces IS written -- the weight, the price per kilo, the
+        # quantity -- because those are the numbers somebody works the line out
+        # from. Suppressed rather than excluded by tag: the barcode is attached
+        # to a market item by `rulebase/content.py` whatever the document's
+        # tags say, so a tag rule would not have removed it.
+        "menu.barcode",
+        # A promotional discount is a second, ruled row under the priced line
+        # on a printed receipt (`base.py::_item_extras`, gated on a layout's
+        # own `item.discount_row` setting) -- a shape `notebook_ledger.yaml`'s
+        # two columns (name, amount) have no line to spare for.
+        # `rulebase/content.py` attaches `discount`/`discountprice` to a
+        # market item unconditionally, same as the barcode above, so this is
+        # found on the rare seed that happens to draw a discounted item for
+        # this layout rather than on every draw.
+        "menu.discountprice",
+    }),
     "eatery_indexed": frozenset(),   # prints everything it is given
+
+    # Root 3 (Form / Application): none of these four rule a distinct "đơn
+    # giá" column at all -- an activity record, a technical-parameter table,
+    # a project data table and a timesheet's allowance column each print one
+    # money value per row (`amount`), not two. `menu.unitprice` is a real
+    # leaf on every item regardless (the rule-base's item model is shared
+    # with every invoice), so it is suppressed here on purpose rather than
+    # by omission -- see `rulebase/layouts/form_multi_section.yaml`'s own
+    # comment on why `amount` is the column these tables print instead.
+    # `total` is deliberately NOT suppressed anywhere -- an unprinted total
+    # is always a bug (see `test_an_unprinted_total_is_an_error_not_a_budget_
+    # line` in `tests/test_invariants.py`), and `menu.unit`/`menu.unitprice`
+    # are the only leaves not in `BUDGETS` a `SUPPRESSED` entry may name (see
+    # `test_every_suppressed_pair_names_a_field_that_has_a_budget`); these
+    # four layouts print their own `totals` section and a "Đơn vị" column
+    # instead of suppressing either.
+    "form_activity_signature": frozenset({"menu.unitprice"}),   # 100%
+    "form_multi_section": frozenset({"menu.unitprice"}),        # 100%
+    "form_table_based": frozenset({"menu.unitprice"}),          # 100%
+    "form_timesheet_grid": frozenset({"menu.unitprice"}),       # 100%
 }
 
 # A budget is only consulted once this many values of that field failed to
@@ -279,6 +335,29 @@ class Observation:
     unchecked: list[str] = field(default_factory=list)
 
 
+def _tight(text: str) -> str:
+    """`text` with every space removed. For the one comparison that needs it.
+
+    Joining a wrapped run back together puts a space at each break, which is
+    right when the browser broke at a space and wrong when it broke anywhere
+    else. A hyphen is the case that actually happens: `ÁO SƠ MI NAM DÀI TAY
+    (MEN'S LONG-SLEEVE SHIRT)` is too wide for its column, the browser breaks
+    after the hyphen -- which is what a hyphen is for -- and the two boxes
+    rejoin as `LONG- SLEEVE`, which the label's `LONG-SLEEVE` is not a
+    substring of.
+
+    So the value is on the page, the boxes are right, the label is right, and
+    the check said the field was missing. It said so on `invoice_export` at
+    seed 6026, which was enough to fail a whole shard and had been blocking
+    every golden-baseline recapture since.
+
+    Used only as a **fallback**, and only within one box kind: matching the
+    whole page with its spaces removed would let `A B` in one field satisfy a
+    label reading `AB` in another.
+    """
+    return "".join(text.split())
+
+
 def _printed(boxes: list[dict]) -> tuple[str, dict[str, str]]:
     """The page as one string, and one string per box kind.
 
@@ -294,32 +373,6 @@ def _printed(boxes: list[dict]) -> tuple[str, dict[str, str]]:
         if isinstance(box, dict):
             by_kind.setdefault(str(box.get("kind", "?")), []).append(box.get("text", ""))
     return page, {kind: " ".join(" ".join(v).split()) for kind, v in by_kind.items()}
-
-
-def dehyphen(text: str) -> str:
-    """Rejoin a word the engine broke *after* a hyphen it already had.
-
-    `_printed` joins the boxes of one kind with a space, which is right for the
-    break a wrap makes at a space and wrong for the one a browser makes after a
-    hyphen: "MEN'S LONG-SLEEVE SHIRT" comes back as "LONG-" and "SLEEVE SHIRT",
-    joins to "LONG- SLEEVE SHIRT", and the label -- which is correct, and whose
-    pixels are correct -- is then reported as printed nowhere.
-
-    Applied to both sides of the comparison and nowhere else. A page that
-    genuinely prints "- " loses the distinction here, which costs a missing box
-    that no layout has ever produced; the alternative cost was every bilingual
-    export invoice failing its shard.
-    """
-    return re.sub(r"-\s+", "-", text)
-
-
-def appears(wanted: str, page: str, by_kind: dict[str, str]) -> bool:
-    """Whether a label value was printed, once hyphen breaks are allowed for."""
-    if wanted in page or any(wanted in text for text in by_kind.values()):
-        return True
-    wanted = dehyphen(wanted)
-    return (wanted in dehyphen(page)
-            or any(wanted in dehyphen(text) for text in by_kind.values()))
 
 
 def _check_arithmetic(gt: dict, style: str, labels: dict, out: Observation) -> None:
@@ -504,7 +557,7 @@ def inspect(item: dict[str, Any], *, order: tuple[str, ...] | list[str],
     # --- the label against what was drawn
     gt: dict[str, Any] = record.extracted(item)
     for name, value in leaves(gt):
-        if not value.strip() or value.startswith("receipt_"):
+        if not value.strip() or name == "doc_type":
             continue          # doc_type is a class, not text on the page
         out.values += 1
         if REPLACEMENT in value or MISSING_GLYPH in value:
@@ -516,7 +569,19 @@ def inspect(item: dict[str, Any], *, order: tuple[str, ...] | list[str],
         if name in BUDGETS:
             out.occurrences[name] = out.occurrences.get(name, 0) + 1
         wanted = " ".join(value.split())
-        if appears(wanted, page, by_kind):
+        # A run wraps at a hyphen as well as at a space: the browser breaks
+        # "LONG-SLEEVE" after "LONG-", and the per-kind join above then puts a
+        # space where the paper has none. The collapsed variant is tried
+        # second, and only against the per-kind joins, so a value that really
+        # contains "- " still matches the page that printed it.
+        if wanted in page or any(
+                wanted in text or wanted in text.replace("- ", "-")
+                for text in by_kind.values()):
+            continue
+        # ... and once more with the spaces taken out, for a run that wrapped
+        # at something other than a space. See `_tight`.
+        tight = _tight(wanted)
+        if any(tight in _tight(text) for text in by_kind.values()):
             continue
         if name in BUDGETS:
             out.unprinted[name] = out.unprinted.get(name, 0) + 1
@@ -732,7 +797,7 @@ def attribute_names() -> tuple[str, ...]:
 
 __all__ = [
     "BUDGETS",
-    "CLEAN_AUGMENTATION",
+    "CLEAN_FORCES",
     "INVARIANTS_NAME",
     "MIN_COUNT",
     "SUPPRESSED",

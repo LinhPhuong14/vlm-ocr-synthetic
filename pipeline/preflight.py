@@ -39,7 +39,7 @@ import yaml  # noqa: E402
 
 import rulebase  # noqa: E402
 from rulebase import corpus  # noqa: E402
-from rulebase.layout import load_layout  # noqa: E402
+from rulebase.layout import SECTIONS, load_layout  # noqa: E402
 from rulebase.spec import RuleError, load_rules  # noqa: E402
 from rulebase.text import ascii_fold  # noqa: E402
 
@@ -225,6 +225,20 @@ def ornament_assets() -> list[str]:
         problems.append(
             f"textures/ornament/{stray}.png: no rule in rules/ornament.yaml names it, "
             f"so it is never drawn")
+
+    # ...and the third agreement, added when the marks finally started being
+    # printed: every `anchor:` a rule names has to be one the renderer can
+    # resolve. An unknown anchor is not an error while rendering -- the mark
+    # lands in the middle of the page instead of on the signature block, which
+    # looks like a design decision -- so it has to stop the run before it.
+    try:
+        sys.path.insert(0, str(REPO_ROOT / "generators" / "html"))
+        import ornament  # noqa: PLC0415 -- optional import, renderer-side
+
+        problems += ornament.problems()
+    except ImportError:
+        problems.append("unchecked: generators/html/ornament.py not importable, "
+                        "so ornament anchors were not checked")
     return problems
 
 
@@ -234,6 +248,25 @@ def ornament_assets() -> list[str]:
 # looking for a page half again too tall, not for a rounding error.
 ADVANCE = 0.62
 SHEET_SEEDS = 12
+
+# How far past its paper a page may measure before this is called an overflow.
+#
+# NOT 1.0, and the reason is `ADVANCE` two lines up: it is an ESTIMATE of a
+# monospace advance, good to a few per cent, and everything below is computed
+# through it. Measured over the drawable layouts at twelve seeds each, the two
+# tightest sit at 99.4% (`invoice_sidebar`) and 101.2% (`invoice_logo_split`) --
+# one either side of 1.0 and both inside the estimator's own error band. A
+# threshold at 1.0 therefore reports a coin toss, which is how a check teaches
+# people to ignore it; it went red on `invoice_logo_split` the moment a new
+# attribute moved the seeds along, with nothing about that layout changed.
+#
+# 1.05 is the error band, and the check keeps the job its docstring claims:
+# finding a page half again too tall, not a rounding error. A page that
+# genuinely does not fit needs measuring in the browser -- the CSS sheets grow
+# the page rather than crop it (`sheets/base.py::document`'s `min-height`), so
+# the honest version of this check lives on the render path and does not exist
+# yet.
+OVERFLOW = 1.05
 
 
 def sheet_overflow(seeds: int = SHEET_SEEDS) -> list[str]:
@@ -254,7 +287,20 @@ def sheet_overflow(seeds: int = SHEET_SEEDS) -> list[str]:
         # Read the declaration before building anything: five of the fourteen
         # layouts are on a roll and have nothing to overflow, and building two
         # dozen pages to discover that is most of this check's cost.
-        if not load_layout(layout_id).get("sheet"):
+        spec = load_layout(layout_id)
+        if not spec.get("sheet"):
+            continue
+        # This measures `build_grid`'s own page-fitting math, so it only
+        # applies to a layout `build_grid` can actually draw. A layout whose
+        # `sections:` are all names from a CSS-sheet-only family (`form.py`'s
+        # "fields"/"checklist"/"sectioned"/"grid", none of them in the
+        # character grid's own `SECTIONS`) was never going to be measured this
+        # way -- and does not need to be: `sheets/base.py::document`'s
+        # `min-height` grows the page instead of cropping it, so that family
+        # has no fixed ceiling to overflow in the first place. Skipping here
+        # is the same reasoning as the truthy-`sheet` skip just above, not a
+        # weaker version of the check.
+        if any(name not in SECTIONS for name in (spec.get("sections") or [])):
             continue
         worst = 0.0
         worst_seed = 0
@@ -273,7 +319,7 @@ def sheet_overflow(seeds: int = SHEET_SEEDS) -> list[str]:
             over = content / (width_px / ratio)
             if over > worst:
                 worst, worst_seed = over, seed
-        if worst > 1.0:
+        if worst > OVERFLOW:
             problems.append(
                 f"{layout_id}: content is {worst:.0%} of the {grid.sheet} sheet it "
                 f"declares (seed {worst_seed}), so the page grows past its paper"

@@ -173,7 +173,8 @@ def ornaments(args) -> None:
 
 @task("templates", "print the reference sheets in samples/")
 def templates(args) -> None:
-    for directory in ("invoice-templates", "form-templates"):
+    for directory in ("invoice-templates", "form-templates", "insurance-templates",
+                      "periodical-templates"):
         run([first_available_python(),
              REPO_ROOT / "samples" / directory / "render.py"])
 
@@ -186,14 +187,19 @@ def blanks(args) -> None:
 
 @task("dataset", "labelled dataset with the html renderer (-n images)")
 def dataset(args) -> None:
+    # `--template auto`: every shipped layout already has a real entry in
+    # generators/html/sheets/FAMILIES, so this draws through the CSS-sheet
+    # family every layout was actually designed against, not the
+    # character-grid fallback. See tools/baseline.py::arguments()'s docstring.
     run([first_available_python(), REPO_ROOT / "tools" / "generate_dataset.py",
-         "-o", args.out, "-n", str(args.count)])
+         "-o", args.out, "-n", str(args.count or "auto"), "--template", "auto"])
 
 
 @task("dataset-clean", "the same dataset with no ageing and no distortion")
 def dataset_clean(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "generate_dataset.py",
-         "-o", f"{args.out}_clean", "-n", str(args.count), "--clean"])
+         "-o", f"{args.out}_clean", "-n", str(args.count or "auto"),
+         "--clean", "--template", "auto"])
 
 
 @task("tables", "table-structure images, from the html backend")
@@ -202,7 +208,7 @@ def tables(args) -> None:
     # backend: same Chromium, same boxes off the same laid-out DOM. There is no
     # fourth environment to build any more.
     run([venv_python(VENVS["html"]), REPO_ROOT / "tools" / "generate_tables.py",
-         "-o", args.out, "-n", str(args.count)])
+         "-o", args.out, "-n", str(args.count or 60)])
 
 
 @task("handwriting", "regenerate data/hand12: every field a person fills in, in ink")
@@ -270,7 +276,7 @@ def proof(args) -> None:
 @task("profile", "time every stage of every renderer and write a cost model")
 def profile(args) -> None:
     run([first_available_python(), REPO_ROOT / "tools" / "profile_pipeline.py",
-         "-c", str(args.count), "-o", args.out])
+         "-c", str(args.count or 8), "-o", args.out])
 
 
 @task("check-boxes", "verify every renderer's boxes still land on its text")
@@ -318,6 +324,17 @@ def preview_grid(args) -> None:
     run(command)
 
 
+@task("visualize", "local Gradio app: sinh ảnh, thử con dấu, thử viết tay hybrid")
+def visualize(args) -> None:
+    # The html backend's interpreter: the live-gallery tab drives
+    # `pipeline.run.execute()` in-process, and the handwriting tab imports
+    # `generators/html/handwriting.py` directly -- both need what that venv
+    # already has. The stamp tab's own synthtiger half crosses into
+    # `generators/synthdog/.venv` as a subprocess, the same way a real run's
+    # renderer dispatch does.
+    run([venv_python(VENVS["html"]), REPO_ROOT / "tools" / "visualize" / "app.py"])
+
+
 # -------------------------------------------------------------- the rules
 
 
@@ -349,6 +366,29 @@ def monitor(args) -> None:
     command = [first_available_python(), REPO_ROOT / "tools" / "monitor.py"]
     command += [args.run] if getattr(args, "run", None) else ["--static"]
     run(command)
+
+
+@task("figures-stamp", "rebuild the figures in docs/co-che-sinh-con-dau.md")
+def figures_stamp(args) -> None:
+    """Documentation code, not the pipeline.
+
+    Each figure re-runs the measurement the document quotes and draws the
+    result, so a number in the prose and the picture beside it come from the
+    same run and cannot drift apart.
+    """
+    run([first_available_python(), REPO_ROOT / "docs" / "figures" / "make_stamp_figures.py"])
+
+
+@task("legibility", "does a chain age the text out of its own label boxes?")
+def legibility(args) -> None:
+    """The check `docs/lam-cu-de-xuat.md` ranks first, ahead of any new model.
+
+    A box says there is text there. A chain that ages the text away while the
+    label still claims it is not hard data, it is poisoned data -- and until
+    this existed nothing in the repository measured it. Exit 1 if any chain
+    loses 5% or more of its boxes.
+    """
+    run([first_available_python(), REPO_ROOT / "tools" / "legibility.py"])
 
 
 @task("list-degradations", "names usable in an augmentation chain")
@@ -420,6 +460,7 @@ def clean(args) -> None:
         REPO_ROOT / ".ruff_cache",
         REPO_ROOT / ".pytest_cache",
         SYNTHDOG / "outputs",
+        REPO_ROOT / "data" / "visualize_runs",
     ]
     targets += [
         path for path in REPO_ROOT.rglob("__pycache__")
@@ -441,8 +482,14 @@ def main() -> int:
     parser.add_argument("task", nargs="?", choices=sorted(TASKS), help="task to run")
     parser.add_argument("-o", "--out", default=str(Path("data") / "dataset60"),
                         help="output directory (dataset, dataset-clean, preview)")
-    parser.add_argument("-n", "--count", type=int, default=20,
-                        help="images per renderer (dataset, dataset-clean)")
+    # No default here: each task below states its own, because they are not the
+    # same number and never were -- a dataset wants one image of every layout
+    # (`auto`), a table run wants 60, the profiler wants 8.
+    parser.add_argument("-n", "--count", default=None,
+                        help="images to make (dataset, dataset-clean, tables, "
+                             "profile). For a dataset, `auto` -- the default -- "
+                             "is one image of every layout there is, which is "
+                             "also the floor any number has to clear")
     parser.add_argument("--dataset", default=str(Path("data") / "dataset60"),
                         help="dataset to score (proof)")
     parser.add_argument("--layout", help="pin one bố cục (preview-grid)")

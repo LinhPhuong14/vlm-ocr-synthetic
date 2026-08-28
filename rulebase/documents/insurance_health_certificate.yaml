@@ -1,0 +1,33 @@
+profile: insurance
+invoice: true
+no_totals: true
+show_serial: false
+show_vat: false
+show_issuer_unit: false
+show_seller_address: false
+show_seller_phone: false
+show_subtotal: false
+show_payment: false
+show_amount_words: false
+show_seller_tax_code: false
+show_seller_account: false
+titles:
+  - "Bảo hiểm sức khoẻ toàn diện"
+groups:
+  - {title: "A · Điều trị nội trú", catalogue: insurance_health_inpatient, num_lines: [2, 3]}
+  - {title: "B · Điều trị ngoại trú (tuỳ chọn)", catalogue: insurance_health_outpatient, num_lines: [1, 2]}
+  - {title: "C · Quyền lợi bổ sung", catalogue: insurance_health_extra, num_lines: [1, 2]}
+price_step: 1000000
+party_fields:
+  left:
+    - [buyer_name, "Họ và tên"]
+  right:
+    - [date, "Hiệu lực từ"]
+    - [due_date, "Hiệu lực đến"]
+notes:
+  - "Điều kiện chi trả:"
+  - "Quyền lợi chỉ áp dụng cho chi phí y tế cần thiết, hợp lý, phát sinh trong thời hạn bảo hiểm và sau khi kết thúc thời gian chờ tương ứng của từng quyền lợi."
+  - "Điểm loại trừ:"
+  - "Bệnh có sẵn trước ngày hiệu lực đầu tiên; điều trị mang tính thẩm mỹ không do tai nạn; chi phí phát sinh ngoài phạm vi lãnh thổ đã đăng ký."
+signature_labels:
+  - ["Doanh nghiệp bảo hiểm", "(Giám đốc nghiệp vụ)"]

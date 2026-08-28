@@ -1,8 +1,9 @@
 # The order the attributes are drawn in, and the only place it is written down.
 #
 # Causal, not alphabetical: each attribute sees the tags of the ones before it,
-# so `document` is the widest choice and `augmentation` the narrowest. A shop
-# decides what it prints long before the paper decides how it will crease.
+# so `document` is the widest choice and the machine at the end the narrowest.
+# A shop decides what it prints long before the paper decides how it will
+# crease, and long before anyone photocopies the result.
 # Reordering this file changes which constraints can be expressed at all -- a
 # value can only `require` a tag an EARLIER attribute sets.
 #
@@ -19,4 +20,20 @@ order:
   - visual
   - color
   - ornament
+  # Mực bút TRƯỚC khi làm cũ: người ta điền vào tờ giấy rồi tờ giấy mới bị
+  # photo, nên nét bút phải mờ và nhoè y như chữ in. Đặt sau `augmentation`
+  # thì nét bút sẽ sắc nét nằm trên một trang đã cũ — một cảnh khác hẳn.
+  - handwriting
   - augmentation
+  # Cái máy đã in hoặc đã sao tờ này -- "cái copier" -- tách làm ba bộ phận
+  # hỏng độc lập với nhau. Đứng SAU `augmentation` vì chúng là thứ xảy ra SAU
+  # CÙNG: tờ giấy đã in, đã cũ đi, rồi mới đi qua cái máy sinh ra tệp ảnh này.
+  #
+  # Cả ba đang TẮT (mỗi file chỉ còn giá trị `no_*` của nó, xem toner.yaml) nên
+  # thứ tự `toner` trước hai cái kia không còn ràng buộc gì bốc được lúc này --
+  # nhưng giữ nguyên vị trí, vì đây vẫn là chỗ đúng cho cả ba nếu bật lại: lúc
+  # đó `toner` lại cần đứng trước, để đặt thẻ `worn_machine` mà mức nặng nhất
+  # của `drum`/`rollers` từng `requires`.
+  - toner
+  - drum
+  - rollers

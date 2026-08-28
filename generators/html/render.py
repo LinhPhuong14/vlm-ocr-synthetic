@@ -22,7 +22,9 @@ import argparse
 import html
 import random
 import sys
+import time
 from pathlib import Path
+from typing import Any
 
 import cv2
 import numpy as np
@@ -34,6 +36,7 @@ sys.path.insert(0, str(REPO_ROOT))
 # The browser, the fonts and the two box-reading snippets live in `page.py`:
 # two producers sit on this backend now -- receipts here, tables in
 # `tables.py` -- and both need all four.
+import ornament  # noqa: E402
 import sheets  # noqa: E402
 from page import (  # noqa: E402
     CELL_RECTS_JS,
@@ -47,7 +50,7 @@ import profiling  # noqa: E402
 import rulebase  # noqa: E402
 import worklist  # noqa: E402
 from degradation.pipeline import apply_recipe  # noqa: E402
-from pipeline import record, synthesis  # noqa: E402
+from pipeline import imagetimes, record, synthesis  # noqa: E402
 
 
 def _sheet_css(grid, line_px: float, padding_px: float) -> str:
@@ -248,15 +251,14 @@ class HtmlReceiptRenderer:
     """Keeps one browser alive across a run -- launching costs ~300 ms each time."""
 
     def __init__(self, scale: float = 2.0, short_size: tuple[int, int] = (960, 1400),
-                 template: str | None = None, hand=None,
-                 sign: str | None = None):
+                 template: str | None = None, sign: str | None = None):
         self.scale = scale
         self.short_size = short_size
-        # An open `handwriting.Hand`, or None to type every value as before.
-        # It is passed in rather than built here because it holds a WriteViT
-        # process that costs 11 s to start and must outlive one page, exactly
-        # like the browser below.
-        self.hand = hand
+        # name -> open source, filled in as pages ask for one. Lazy for the
+        # same reason `hand` is passed in: a run whose rules never draw
+        # `hand_model` must not pay for a checkpoint it will not use, and a run
+        # that draws it on page 40 must not pay again on page 41.
+        self._ink: dict[str, Any] = {}
         # Which ink signs, or None. A name rather than an object, unlike
         # `hand`: the font source opens and closes a face per page, which costs
         # a parse and no process. The model source needs a worker, and rather
@@ -292,6 +294,40 @@ class HtmlReceiptRenderer:
             self._browser.close()
         if self._playwright:
             self._playwright.stop()
+        # Whatever `_pen` opened along the way -- at most one WriteViT worker
+        # and one font source, however many pages asked for them.
+        for pen in self._ink.values():
+            pen.close()
+        self._ink.clear()
+
+    # Attribute value -> the ink source that draws it. `typed` is not in the
+    # table: it is the absence of a pen, and mapping it to something would make
+    # "this page was typed" indistinguishable from "this page asked for ink and
+    # got none", which is the one distinction `hand_report` exists to record.
+    PENS = {"hand_font": "font", "hand_model": "model", "hand_both": "both"}
+
+    def _pen(self, recipe):
+        """The open ink source this page's `handwriting` attribute asks for.
+
+        Opened on first use and kept: the model source starts a WriteViT
+        process (11 s), so a run that draws it on one page in eight must not
+        pay that per page -- and a run whose rules never draw it must not pay
+        at all, which is why this is not opened up front with the browser.
+
+        A missing checkpoint raises here rather than printing a typed page.
+        A page that asked for ink and silently got print is a label that says
+        `hand_font` over pixels that are not, and nothing downstream could tell.
+        """
+        option = recipe.choices.get("handwriting")
+        name = self.PENS.get(option.id if option else "")
+        if name is None:
+            return None
+        if name not in self._ink:
+            import handwriting
+
+            with profiling.stage("startup"):
+                self._ink[name] = handwriting.source(name).open()
+        return self._ink[name]
 
     def render(self, seed: int, force: dict[str, str] | None = None):
         # A sheet is built from the contents alone: laying a character grid over
@@ -309,31 +345,47 @@ class HtmlReceiptRenderer:
 
                 override = None if self.template == "auto" else self.template
                 markup = build_sheet(recipe, receipt, override)
+                # Which pen this page draws, decided by attribute 7 and opened
+                # once per run. Resolved BEFORE the signature block, because a
+                # signature drawn from the model can borrow this page's worker
+                # instead of standing up a second checkpoint.
+                pen = self._pen(recipe)
                 if self.sign:
                     # Signed BEFORE the fields are filled in, which is not the
                     # order a person does it in but is the order the markup
                     # requires: `handwriting.fill` can replace a `sign.name`
                     # run with an `<img>` of ink, and `signature.WHO` will not
                     # match a run containing markup. See `signature.fill`.
+                    import handwriting
                     import signature
 
                     markup, sign_report = signature.fill(
                         markup, seed=seed, names=signers(seed),
                         source=self.sign,
-                        # The same worker `--handwriting model` already keeps
-                        # alive, when both are on: one checkpoint load a run,
-                        # not one per signature block.
-                        hand=self.hand if getattr(
-                            self.hand, "source", "") == "model" else None)
-                if self.hand is not None:
+                        # The worker this page's own ink already keeps alive,
+                        # when the page draws model ink at all: one checkpoint
+                        # load a run, not one per signature block. `model_of`
+                        # reaches through `hand_both`, which keeps its worker a
+                        # layer down, and answers None for a typed page -- and
+                        # then `signature.fill` opens its own.
+                        hand=handwriting.model_of(pen))
+                if pen is not None:
                     # After the sheet is built and before a pixel is drawn:
                     # the form is printed first and filled in second, which is
                     # also the order that keeps every family able to be
                     # hand-filled without one of them knowing about ink.
                     import handwriting
 
+                    # Which runs the pen reaches is the LAYOUT's answer, not
+                    # this renderer's: a printed form is filled in, and a
+                    # school exercise book was never printed at all. The
+                    # default is the printed-form answer, passed in rather
+                    # than imported so `sheets/` keeps knowing nothing of ink.
                     markup, hand_report = handwriting.fill(
-                        markup, self.hand, seed=seed)
+                        markup, pen, seed=seed,
+                        kinds=sheets.hand_kinds(
+                            override or recipe.layout.id,
+                            handwriting.HAND_KINDS))
                 markup = markup.replace("{FONT_FACES}", font_faces())
             else:
                 markup = build_html(grid, recipe, receipt)
@@ -386,14 +438,30 @@ class HtmlReceiptRenderer:
         # rather than assumed: a resize slipped into the chain would shift every
         # box without changing anything visible about the image.
         before = image.shape[:2]
+        # The seal, the watermark, the QR: struck on the paper BEFORE it is aged,
+        # because that is the order the world does it in and the order
+        # `rules/_order.yaml` draws them in. Needs the boxes, which is why it
+        # waits until here -- a rule says "on the seller's signature block" and
+        # only the measured page knows where that is. See ornament.py: this
+        # attribute has been drawn and recorded since the beginning and until
+        # now no renderer printed it.
+        with profiling.stage("ornament"):
+            image, mark_report = ornament.stamp(image, recipe, boxes, seed=seed)
         with profiling.stage("degradation"):
-            aged = apply_recipe(image, recipe, seed=seed)
+            # The boxes go in as well as the image: `by_box` puts a model on a
+            # few text boxes rather than on the whole sheet, and the boxes are
+            # the only thing that says where those are. Computed just above, so
+            # they describe THIS page rather than the one before ageing shifted
+            # anything -- which is also why nothing in the chain may move a
+            # pixel. See degradation/regions.py.
+            aged = apply_recipe(image, recipe, seed=seed, boxes=boxes)
         if aged.shape[:2] != before:
             raise RuntimeError(
                 f"a degradation resized the page ({before} -> {aged.shape[:2]}); "
                 "the boxes no longer describe it"
             )
-        return recipe, receipt, grid, aged, boxes, cells, hand_report, sign_report
+        return (recipe, receipt, grid, aged, boxes, cells, hand_report,
+                sign_report, mark_report)
 
 
 def signers(seed: int, count: int = 6) -> list[str]:
@@ -431,6 +499,62 @@ def structure_from_cells(cells: list[dict]) -> list[str]:
     return structure_tokens(ordered)
 
 
+def _emit_page(args, name, recipe, receipt, image, boxes, cells,
+               hand_report, sign_report, mark_report, seed, notes) -> None:
+    """Everything an image costs after it is drawn: the JPEG, the record, the
+    provenance line.
+
+    Lifted out of the render loop unchanged so the loop can time it as one
+    thing. `imagetimes` splits an image into `draw` and `write` because those
+    answer different questions -- a run that has got slow is one or the other --
+    and that split is only expressible if the second half is one call.
+    """
+    with profiling.stage("export"):
+        cv2.imwrite(str(args.out / name), image, [cv2.IMWRITE_JPEG_QUALITY, 90])
+    with profiling.stage("annotation"):
+        # Which page model drew THIS image. At set level in `dataset.json` it
+        # could not say whether a set was mixed; per image it can, and a reader
+        # no longer has to infer it from the pixels.
+        extra = {"page_model": args.template or sheets.GRID}
+        if hand_report is not None:
+            # What was written and what refused, per page. A sheet that asked
+            # for handwriting and got two inked fields is a fact about the
+            # checkpoint, and it belongs in the record beside the blocks rather
+            # than in a log nobody keeps -- see docs/handwriting-html.md.
+            extra["handwriting"] = hand_report
+        if mark_report and mark_report.get("marks"):
+            # Which ornament was struck, where, and whether the place came from
+            # the page's own boxes or from the fallback. A seal that landed by
+            # fallback on a layout with no signature block is a fact about that
+            # layout, and this is where somebody finds it without opening 84
+            # images.
+            extra["ornament"] = mark_report
+        if sign_report is not None:
+            # The style of every mark on the page, and every block that went
+            # unsigned. A signature carries no box and no text, so this record
+            # is the only place it exists in the label at all -- and a set that
+            # wanted signatures and drew none should say so here.
+            extra["signature"] = sign_report
+        if cells:
+            # Additive, and only for a template render: the structure half of
+            # the label, so a merged cell is recoverable. The blocks are
+            # untouched, so every existing loader keeps working.
+            extra["cells"] = cells
+            extra["structure"] = structure_from_cells(cells)
+        item = record.build(
+            filename=name, width=image.shape[1], height=image.shape[0],
+            parser="html", boxes=boxes, extracted=receipt.ground_truth(),
+            seed=seed, layout=recipe.layout.id)
+    with profiling.stage("export"):
+        # The record beside its image, and the provenance streamed into the one
+        # file for the set -- so a shard's memory does not grow with its size
+        # and the two stay in step page for page.
+        record.write_one(item, args.out, strict=False)
+        notes.add(name, job_id=item["job_id"], layout=recipe.layout.id,
+                  recipe=recipe.to_dict(),
+                  text_sequence=receipt.text_sequence(), extra=extra)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("-o", "--out", type=Path, default=Path("outputs"))
@@ -448,14 +572,21 @@ def main() -> int:
     )
     parser.add_argument(
         "--handwriting", nargs="?", const="model", default=None,
-        choices=["model", "font"], metavar="SOURCE",
+        choices=["model", "font", "both"], metavar="SOURCE",
         help="fill the fields a person fills in with handwriting instead of "
              "type. `model` (the default) is the WriteViT checkpoint -- real "
              "generated ink, but it cannot write digits or ALL-CAPS and so "
              "reaches 42%% of the fields at best. `font` is a licensed "
              "handwriting typeface from fonts/hand/, which fills every field "
-             "but repeats: one hand per face, every `a` the same `a`. Only "
-             "with --template. See generators/html/handwriting.py",
+             "but repeats: one hand per face, every `a` the same `a`. `both` "
+             "gives the model what it can write and the typeface the rest, so "
+             "no run is left in type -- at the cost of two hands on one page, "
+             "counted in the record. Only with --template.\n"
+             "Since handwriting became attribute 7 this is a PIN, not a "
+             "switch: it forces `handwriting=hand_<source>` on every page, so "
+             "the record says what the pixels are. Left off, the rules draw "
+             "it per page and a run comes out mixed, which is what a dataset "
+             "wants. See generators/html/handwriting.py",
     )
     parser.add_argument(
         "--signature", nargs="?", const="font", default=None,
@@ -507,81 +638,55 @@ def main() -> int:
     forces = {job: rulebase.parse_force(job.pins(args.force), job.layout)
               for job in jobs}
 
-    hand = None
+    # `--handwriting X` is a pin on the attribute, not a second mechanism.
+    #
+    # It used to open one ink source and hand it to the renderer, which inked
+    # every page while `synthesis.json` recorded whatever the rules had drawn.
+    # Once handwriting became an attribute that stopped being a shortcut and
+    # started being a lie: a page whose record says `typed` and whose fields
+    # are in ink is exactly the label/pixel mismatch this repository is built
+    # to prevent. Written as a force, the record and the page agree by
+    # construction -- and the pin is checked against the rules like any other,
+    # so `--handwriting model` on a run pinned to a till roll fails with the
+    # tag that forbids it instead of drawing nothing.
     if args.handwriting:
-        import handwriting
-
-        with profiling.stage("startup"):
-            # Opened before the browser and closed after it, so a failure to
-            # find the checkpoint costs nothing: there is no fallback that
-            # draws letters, so a run asking for ink and not getting it must
-            # stop rather than quietly produce printed pages. A missing clone
-            # is a setup mistake and reads as one -- the traceback above it
-            # says nothing a person needs.
-            try:
-                hand = handwriting.source(args.handwriting).open()
-            except RuntimeError as error:
-                parser.error(str(error))
-        print(f"[hand] {args.handwriting} on {hand.device}")
+        args.force = list(args.force) + [f"handwriting=hand_{args.handwriting}"]
+        print(f"[hand] every page pinned to hand_{args.handwriting}")
 
     with profiling.stage("startup"):
         renderer = HtmlReceiptRenderer(scale=args.scale, template=args.template,
-                                       hand=hand, sign=args.signature)
+                                       sign=args.signature)
         renderer.__enter__()
     try:
         # Streamed, not collected: a job list may be a whole shard, and a record
         # carries every box on the page. Written in page order, which is the
         # order the caller listed the jobs in -- `pipeline/worker.py` walks the
         # runs in that order to name the files.
-        with synthesis.Writer(synthesis.beside(args.out), "html") as notes:
+        # How long each page took, written beside it as it goes. NOT into
+        # `synthesis.json`: that file is fingerprinted by `tools/baseline.py`
+        # and a duration in it would make the check fail on every machine --
+        # see `pipeline/imagetimes.py`, which says so at length.
+        with synthesis.Writer(synthesis.beside(args.out), "html") as notes, \
+                imagetimes.Log(args.out) as clock:
             for index, job, seed in worklist.pages(jobs):
-                recipe, receipt, _grid, image, boxes, cells, hand_report, sign_report = (
-                    renderer.render(seed, forces[job]))
                 name = f"html_{index:03d}.jpg"
-                with profiling.stage("export"):
-                    cv2.imwrite(str(args.out / name), image,
-                                [cv2.IMWRITE_JPEG_QUALITY, 90])
-                with profiling.stage("annotation"):
-                    # Which page model drew THIS image. At set level in
-                    # `dataset.json` it could not say whether a set was mixed;
-                    # per image it can, and a reader no longer has to infer it
-                    # from the pixels.
-                    extra = {"page_model": args.template or sheets.GRID}
-                    if hand_report is not None:
-                        # What was written and what refused, per page. A sheet
-                        # that asked for handwriting and got two inked fields
-                        # is a fact about the checkpoint, and it belongs in the
-                        # record beside the blocks rather than in a log nobody
-                        # keeps -- see docs/handwriting-html.md.
-                        extra["handwriting"] = hand_report
-                    if sign_report is not None:
-                        # The style of every mark on the page, and every block
-                        # that went unsigned. A signature carries no box and no
-                        # text, so this record is the only place it exists in
-                        # the label at all -- and a set that wanted signatures
-                        # and drew none should say so here.
-                        extra["signature"] = sign_report
-                    if cells:
-                        # Additive, and only for a template render: the
-                        # structure half of the label, so a merged cell is
-                        # recoverable. The blocks are untouched, so every
-                        # existing loader keeps working.
-                        extra["cells"] = cells
-                        extra["structure"] = structure_from_cells(cells)
-                    item = record.build(
-                        filename=name, width=image.shape[1], height=image.shape[0],
-                        parser="html", boxes=boxes,
-                        extracted=receipt.ground_truth(),
-                        seed=seed, layout=recipe.layout.id)
-                with profiling.stage("export"):
-                    # The record beside its image, and the provenance streamed
-                    # into the one file for the set -- so a shard's memory does
-                    # not grow with its size and the two stay in step page for
-                    # page.
-                    record.write_one(item, args.out, strict=False)
-                    notes.add(name, job_id=item["job_id"], layout=recipe.layout.id,
-                              recipe=recipe.to_dict(),
-                              text_sequence=receipt.text_sequence(), extra=extra)
+                # The name is chosen before the timer starts so a page that
+                # raises still leaves a row saying which page it was.
+                with clock.time(name, layout=job.layout or "") as timed:
+                    drawing = time.monotonic()
+                    (recipe, receipt, _grid, image, boxes, cells, hand_report,
+                     sign_report, mark_report) = renderer.render(seed, forces[job])
+                    # Two stages, because they answer different questions: `draw`
+                    # is the renderer and `write` is the disk, and a run that has
+                    # got slow is one or the other.
+                    timed.stages["draw"] = time.monotonic() - drawing
+                    # Known only now, when the job pinned no layout.
+                    timed.layout = recipe.layout.id
+                    writing = time.monotonic()
+                    _emit_page(
+                        args, name, recipe, receipt, image, boxes, cells,
+                        hand_report, sign_report, mark_report, seed, notes)
+                    timed.stages["write"] = time.monotonic() - writing
                 inked = len(hand_report["inked"]) if hand_report else 0
                 signed = len(sign_report["marks"]) if sign_report else 0
                 print(f"[ok] {name}  {image.shape[1]}x{image.shape[0]}  "
@@ -591,8 +696,6 @@ def main() -> int:
     finally:
         with profiling.stage("startup"):
             renderer.__exit__(None, None, None)
-            if hand is not None:
-                hand.close()
 
     if profile:
         profiling.dump(profile, {"backend": "html", "images": worklist.total(jobs),

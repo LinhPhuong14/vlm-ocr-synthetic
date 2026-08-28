@@ -1,0 +1,11 @@
+# Quyền lợi bảo hiểm du lịch quốc tế — bảng quyền lợi không có dòng tổng
+# (mỗi quyền lợi là một hạn mức độc lập, cộng lại vô nghĩa).
+# Định dạng: tên quyền lợi<TAB>hạn mức tối thiểu<TAB>tối đa   (đơn vị EUR,
+# đặt trong tiêu đề cột chứ không phải trên từng dòng — xem insurance.py)
+Chi phí y tế và nằm viện do ốm đau, tai nạn	30000	60000
+Tử vong, thương tật vĩnh viễn do tai nạn	20000	40000
+Huỷ, rút ngắn hoặc gián đoạn chuyến đi	1000	3000
+Mất, thất lạc hoặc hư hỏng hành lý	500	1500
+Mất giấy tờ thông hành	300	800
+Trách nhiệm cá nhân đối với bên thứ ba	10000	30000
+Chi phí răng cấp cứu	500	1500

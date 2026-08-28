@@ -1,0 +1,29 @@
+# THUỘC TÍNH 8/10 — HỘP MỰC
+#
+# Cái máy đã in hoặc đã sao tờ này (Augraphy gọi ba mô hình dưới đây là
+# "copier") để lại ba loại vết, do ba bộ phận khác nhau gây ra, và ba bộ phận
+# ấy hỏng độc lập với nhau:
+#
+#   toner    (file này)   hộp mực   -> bụi mực bám mảng, mảng cháy trắng
+#   drum     drum.yaml    trống mực -> sọc DỌC theo hướng giấy đi
+#   rollers  rollers.yaml trục lăn  -> dải NGANG, vuông góc hướng giấy
+#
+# CẢ BA ĐANG TẮT: mỗi file chỉ còn giá trị `no_*` của nó, nên "cái copier" này
+# không còn để lại vết nào trên trang sinh ra nữa -- xem lịch sử git để biết
+# ba mức mỗi thuộc tính (`toner_dust`/`_blotched`/`_burnt` ở đây,
+# `drum_faint`/`_streaked`/`_scored`, `rollers_faint`/`_banded`/`_worn`) từng
+# gọi mô hình nào với tham số gì. `degradation.bad_photocopy` (mô hình file
+# này từng gọi) vẫn còn nguyên, chỉ không được đăng ký vào
+# `degradation.DEGRADATIONS` nữa -- xem `degradation/__init__.py`. Bật lại thì
+# thêm option vào cả ba file này VÀ đăng ký lại cả ba mô hình.
+#
+# Vẫn giữ ba thuộc tính (không gộp lại, không xoá file) dù giờ mỗi file một
+# giá trị: đó mới đúng cách chúng hỏng khi bật lại -- một cái máy có thể sọc
+# trống mà mực vẫn đủ, hoặc ngược lại -- và xoá hẳn thuộc tính sẽ kéo theo sửa
+# `_order.yaml`, `ATTRIBUTES` và mọi chỗ khác đặt tên `toner`/`drum`/`rollers`,
+# một việc lớn hơn hẳn việc tắt ba mô hình.
+
+options:
+  - id: no_toner
+    weight: 17
+    tags: [toner_clean]

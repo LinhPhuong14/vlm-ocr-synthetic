@@ -1,0 +1,33 @@
+profile: insurance
+invoice: true
+no_items: true
+no_totals: true
+fixed_amount: [1500000000, 8000000000]
+show_serial: false
+show_vat: false
+show_issuer_unit: false
+show_seller_address: false
+show_seller_phone: false
+show_subtotal: false
+show_payment: false
+show_amount_words: false
+show_seller_tax_code: false
+show_seller_account: false
+titles:
+  - "Đơn bảo hiểm hàng hoá"
+party_fields:
+  left:
+    - [buyer_company, "Người được bảo hiểm"]
+    - [buyer_address, "Địa chỉ"]
+    - [transporter, "Phương tiện vận chuyển"]
+    - [container_no, "Ký mã hiệu"]
+    - [place_of_delivery, "Từ"]
+    - [place_of_destination, "Đến"]
+    - [refund_amount, "Số tiền bảo hiểm"]
+notes:
+  - "Conditions of insurance / Điều kiện bảo hiểm:"
+  - "Institute Cargo Clauses (A) 1/1/09 · Institute War Clauses (Cargo) 1/1/09 · Institute Strikes Clauses (Cargo) 1/1/09. Bảo hiểm theo điều kiện A, bao gồm rủi ro chiến tranh và đình công, có hiệu lực từ kho đến kho."
+  - "Claims payable at / Nơi giải quyết bồi thường:"
+  - "Đại lý giám định do doanh nghiệp bảo hiểm chỉ định. Thông báo tổn thất trong vòng 03 ngày kể từ khi phát hiện."
+signature_labels:
+  - ["For and on behalf of the Insurer", ""]

@@ -1,0 +1,16 @@
+# THUỘC TÍNH 9/10 — TRỐNG MỰC
+#
+# Sọc DỌC theo hướng giấy đi. Một vết xước hoặc một chỗ bám mực trên chu vi
+# trống in lại vào đúng một vị trí ngang mỗi vòng quay, nên nó ra **sọc liền
+# suốt chiều dài tờ giấy** chứ không ra vệt đứt quãng. Giữ đúng hình dạng ấy là
+# việc chính của mô hình: một sọc đứt quãng ngẫu nhiên là nhiễu, một sọc liền
+# là cái trống.
+#
+# ĐANG TẮT, cùng với `toner` và `rollers` -- đọc `toner.yaml` trước, nó giải
+# thích vì sao "cái copier" là ba thuộc tính chứ không phải một, và tình trạng
+# tắt hiện tại của cả ba.
+
+options:
+  - id: no_drum
+    weight: 17
+    tags: [drum_clean]

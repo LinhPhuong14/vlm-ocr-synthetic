@@ -1,0 +1,29 @@
+# GCN bảo hiểm bắt buộc TNDS xe máy — tờ nhỏ, khổ 148×105mm nằm ngang.
+#
+# `sections` phục vụ lưới ký tự (`build_grid`/`preflight`/`test_layout.py`)
+# chứ không phải cột chữ thật -- `insurance.py::_build_moto_cert` vẽ không
+# điều kiện theo `sections`, cùng quy ước `newspaper_*.yaml` đã lập.
+# `sheet: a4` giữ nguyên bất kể khổ giấy thật (A6_LANDSCAPE) -- xem kế hoạch
+# gốc, cùng lý do `newspaper_front_broadsheet.yaml` giữ `sheet: a4`.
+id: insurance_moto_certificate
+name: Compulsory motor-liability certificate — motorcycle, A6-landscape card
+source: "samples/insurance-templates/insurance_moto_certificate.html (LO-01)"
+family: insurance
+composition: moto_cert
+
+width: [92, 104]
+gutter: 2
+rule_char: "-"
+
+sheet: a4
+
+rules: marks
+
+sections: [letterhead, doctitle, parties, notes, signatures, footer]
+
+letterhead:
+  frame: false
+  labels: {address: "", tax_code: "", phone: "", account: "", branch: "", form_no: "", serial: "", number: "Số GCN:"}
+
+parties:
+  style: stacked
