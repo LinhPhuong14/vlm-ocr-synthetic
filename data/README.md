@@ -8,6 +8,7 @@
 | [`forms16/`](forms16) | 16 | the two documents that are **not a sale**: a hospital's statement of treatment costs and an authorisation to collect money — see its own [README](forms16/README.md) |
 | [`hand12/`](hand12) | 12 | **điền tay** — every value a person fills in is handwriting rather than type, 159 fields and none left printed, from the licensed faces in `fonts/hand/`; see its own [README](hand12/README.md) and [`docs/handwriting-html.md`](../docs/handwriting-html.md) |
 | [`hand18_model/`](hand18_model) | 18 | **mực của mô hình, đo trên mọi bố cục** — one page per layout with `--handwriting model`. A measurement, not a training set: 30 of 191 runs inked (16 %) and **eight pages with no ink at all**, for two different reasons its README separates — see its own [README](hand18_model/README.md) |
+| [`layouts_all/`](layouts_all) | 84 | **mọi bố cục đang bật, hai lần, không hai ảnh liền kề cùng bố cục** — 42 layouts × 2 (mười trong số đó là bảo hiểm), 6 241 boxes, 60 con dấu/hoa văn được in ra thật, 12 trang điền tay. Tập đầu tiên PASS sạch với 84/84 nhãn phân biệt, sau khi `magazine_contents` thôi chép nguyên một trong sáu mục lục của corpus — xem [README](layouts_all/README.md) |
 | [`dataset_test/`](dataset_test) | 45 | a **scratch set for looking at**, one image per working layout per renderer. Regenerated whenever the ageing is retuned, and not a fixed comparison point — see below |
 
 20 images per renderer (synthdog / html / genalog) in each `dataset60*` set,

@@ -35,7 +35,14 @@ BACKENDS = ("html",)
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("-o", "--out", type=Path, default=REPO_ROOT / "data" / "dataset60")
-    parser.add_argument("-n", "--per-framework", type=int, default=20)
+    # `auto` -- a number here is a floor as well as a count: every layout in
+    # the run must get at least one image or the run refuses to start, so a
+    # hardcoded default expires the day somebody adds a layout. `-n 20` was the
+    # default at 18 layouts and refuses to run at 42. See
+    # `pipeline/config.py::resolve_per_backend`.
+    parser.add_argument("-n", "--per-framework", default="auto",
+                        help="images per renderer, or 'auto' for one of every "
+                             "layout in the run (the default)")
     parser.add_argument("--seed", type=int, default=2026)
     parser.add_argument(
         "--frameworks", nargs="+", default=list(BACKENDS),
@@ -78,6 +85,16 @@ def main() -> int:
     from pipeline.config import Config
     from pipeline.run import execute
 
+    # One shard per backend on this path, so the shard has to be at least as
+    # big as the run. Under `auto` that size is the layout count, which is the
+    # one number `Config` cannot work out for itself.
+    auto = str(args.per_framework).strip().lower() == "auto"
+    if auto:
+        from rulebase import available_layouts
+        images = len(args.layouts or available_layouts())
+    else:
+        images = int(args.per_framework)
+
     config = Config.from_dict({
         "run": {
             # Absolute, and it stays absolute now that only `html` draws. A
@@ -86,7 +103,7 @@ def main() -> int:
             # path then lands inside the generator instead, silently, since it
             # creates the directory it writes to.
             "out": str(args.out.resolve()),
-            "per_backend": args.per_framework,
+            "per_backend": "auto" if auto else images,
             "seed": args.seed,
             "workers": args.workers,
             "clean": bool(args.clean),
@@ -99,7 +116,7 @@ def main() -> int:
         # One shard per backend. This is the small-job path -- `make dataset
         # N=20` is twenty images -- and splitting further would only add process
         # startup. `pipeline.yaml` is where a long job sets a real shard size.
-        "shard": {"size": max(args.per_framework, 1)},
+        "shard": {"size": max(images, 1)},
     })
     return execute(config)
 

@@ -218,8 +218,14 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
                                        str(plan.get("template") or ""))
             if log:
                 log.write(f"$ {' '.join(command)}\n")
+                # Images PER PROCESS, which is the number W3b was about, and it
+                # is the whole shard: one renderer process draws all of it. The
+                # job count is a separate fact and is one job per image since
+                # the layouts are dealt rather than blocked (`plan.py::deal`) --
+                # printing images-per-JOB here would read as the 1.43 regression
+                # this line was written to watch for.
                 log.write(f"  {len(jobs)} job(s), {worklist.total(jobs)} image(s), "
-                          f"{worklist.total(jobs) / len(jobs):.2f} per process\n")
+                          f"1 process, {worklist.total(jobs)} per process\n")
                 log.flush()
             result = subprocess.run(command, cwd=cwd, env=environment,
                                     capture_output=True, text=True)

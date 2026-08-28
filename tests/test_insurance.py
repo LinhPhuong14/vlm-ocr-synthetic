@@ -163,8 +163,24 @@ def test_cargo_and_travel_certificates_print_both_languages():
 
 
 def test_vehicle_certificates_carry_a_plausible_plate_chassis_engine():
+    """The label is looked up FOLDED, because the page may be printed in ASCII.
+
+    `content` has an `invoice_ascii` value -- a page with the diacritics
+    stripped and the text upper-cased, which is what a roadside seller's old
+    printer produces -- and every insurance document carries `doc_invoice`, so
+    it can draw one. Seed 2 does, since `handwriting` became attribute 7 and
+    moved every draw along the stream: the label came back as `BIEN SO XE:` and
+    a lookup spelled `Biển số xe:` found nothing.
+
+    That is the page being right and the test being brittle. The claim worth
+    keeping is "the plate reads like a plate", so the lookup folds and the
+    assertion does not move.
+    """
+    from rulebase.text import ascii_fold
+
     for layout in ("insurance_moto_certificate", "insurance_auto_certificate"):
         receipt, _grid = _forced(layout, 2)
-        by_label = dict(receipt.invoice.left)
-        plate = by_label.get("Biển số xe:") or by_label.get("Biển số xe")
+        by_label = {ascii_fold(label).lower().rstrip(":"): value
+                    for label, value in receipt.invoice.left}
+        plate = by_label.get("bien so xe")
         assert plate and "-" in plate, (layout, by_label)
