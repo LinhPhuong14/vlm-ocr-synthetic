@@ -315,6 +315,7 @@ def _grid_items_table(spec: dict, receipt, parse: dict, rows) -> str:
     boxes joined by a literal `<br>`, never one span holding markup.
     """
     from components.table import Border, Cell, Column, Row, TableSpec, render_table
+
     from rulebase.layout import item_values
 
     columns = base.columns_of(spec, base.ncols_of(spec))

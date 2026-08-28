@@ -400,18 +400,18 @@ def _build_health_cert(recipe, receipt, spec: dict, parse: dict, rng: random.Ran
         '</main>'
     )
     body = f'<div class="sidebar-wrap">{sidebar}{main}</div>{base.footer_block(parse)}'
-    css = _SHARED_CSS + f"""
-.sidebar-wrap{{display:flex;margin:-14mm -14mm 0;min-height:calc(100% + 14mm);}}
-aside{{width:34%;flex:none;background:#06584f;color:#eafaf6;padding:14mm 8mm;box-sizing:border-box;}}
-aside .brand{{font-size:11pt;font-weight:800;margin-bottom:6mm;}}
-aside .f{{font-size:7.6pt;color:#eafaf6;}}
-aside .f .k{{color:#bfe3da;}} aside .f .v{{color:#fff;}}
-.memcard{{background:linear-gradient(140deg,#0b7a6c,#0f9a86);border-radius:2.5mm;padding:4mm;
-         margin-bottom:6mm;}}
-.memcard .lbl{{font-size:6.4pt;letter-spacing:.5mm;text-transform:uppercase;opacity:.85;}}
-.memcard .no{{font-family:"Courier New",monospace;font-size:9pt;font-weight:700;margin:1mm 0;}}
-.memcard .nm{{font-size:8pt;font-weight:700;text-transform:uppercase;}}
-main{{flex:1;padding:14mm;box-sizing:border-box;}}
+    css = _SHARED_CSS + """
+.sidebar-wrap{display:flex;margin:-14mm -14mm 0;min-height:calc(100% + 14mm);}
+aside{width:34%;flex:none;background:#06584f;color:#eafaf6;padding:14mm 8mm;box-sizing:border-box;}
+aside .brand{font-size:11pt;font-weight:800;margin-bottom:6mm;}
+aside .f{font-size:7.6pt;color:#eafaf6;}
+aside .f .k{color:#bfe3da;} aside .f .v{color:#fff;}
+.memcard{background:linear-gradient(140deg,#0b7a6c,#0f9a86);border-radius:2.5mm;padding:4mm;
+         margin-bottom:6mm;}
+.memcard .lbl{font-size:6.4pt;letter-spacing:.5mm;text-transform:uppercase;opacity:.85;}
+.memcard .no{font-family:"Courier New",monospace;font-size:9pt;font-weight:700;margin:1mm 0;}
+.memcard .nm{font-size:8pt;font-weight:700;text-transform:uppercase;}
+main{flex:1;padding:14mm;box-sizing:border-box;}
 """
     return base.document(body, css, paper="A4", padding="14mm", font=base.SANS)
 
