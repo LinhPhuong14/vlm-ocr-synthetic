@@ -440,7 +440,7 @@ def check_family(variant: dict, parent_yaml: dict) -> list[str]:
     want = str(parent_yaml.get("family", "")).strip()
     got = str(variant.get("family", "")).strip()
     if not want:
-        return [f"the parent has no `family:` key, so there is nothing to inherit"]
+        return ["the parent has no `family:` key, so there is nothing to inherit"]
     if got != want:
         return [f"family is {got!r}, but the parent is dressed by {want!r}; "
                 "a variant is the same document and belongs in the same family"]

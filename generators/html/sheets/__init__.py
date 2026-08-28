@@ -42,8 +42,18 @@ from __future__ import annotations
 
 from html.parser import HTMLParser
 
-from . import (form, insurance, lodging, medical, modern, notebook, periodical,
-              statement, statutory, till)
+from . import (
+    form,
+    insurance,
+    lodging,
+    medical,
+    modern,
+    notebook,
+    periodical,
+    statement,
+    statutory,
+    till,
+)
 from .base import EVERY_RUN, structure_tokens
 
 # Module name (as it appears in a layout file's own `family:` key) -> the
@@ -84,10 +94,14 @@ def _families() -> dict:
     """
     global _families_cache
     if _families_cache is None:
-        from rulebase import available_layouts, load_layout
+        # EVERY layout file, not just the drawable ones: a layout switched
+        # off with `enabled: false` still has to be dressable, or
+        # `rulebase.make(force={'layout': ...})` could no longer redraw the
+        # committed pages that drew it before it was switched off.
+        from rulebase import every_layout, load_layout
 
         out = {}
-        for layout_id in available_layouts():
+        for layout_id in every_layout():
             name = load_layout(layout_id).get("family")
             if name not in _MODULES:
                 raise KeyError(
