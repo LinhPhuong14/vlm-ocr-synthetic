@@ -170,6 +170,7 @@ def _item_table(spec: dict, receipt, parse: dict, rows) -> str:
     still carries every value's ground truth.
     """
     from components.table import Border, Cell, Column, Row, TableSpec, render_table
+
     from rulebase.layout import item_values
 
     columns = base.columns_of(spec, base.ncols_of(spec))
@@ -215,6 +216,7 @@ def _roster_table(spec: dict, receipt, parse: dict, rows, rng: random.Random) ->
     the page rather than drifting between two runs of the same seed.
     """
     from components.table import Border, Cell, Column, Row, TableSpec, render_table
+
     from rulebase.layout import item_values
 
     columns = base.columns_of(spec, base.ncols_of(spec))

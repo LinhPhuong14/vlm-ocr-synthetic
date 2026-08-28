@@ -912,7 +912,10 @@ __all__ = [
     "document", "esc", "field_line",
     "footer_block", "initials", "item_rows", "items_table", "key_strip",
     "ncols_of", "notes_blocks", "ornament_url", "party_pairs", "party_rows",
-    "qr_svg", "rng_for", "safe_align", "signature_block", "signed_lines",
+    # No `signed_lines` -- 459dfd4 deleted the function (zero callers) and
+    # took it out of this list; a later rewrite of the list put the name
+    # back without the function, so `from base import *` raised.
+    "qr_svg", "rng_for", "safe_align", "signature_block",
     "span", "stamp", "structure_tokens",
     "totals_block", "words_block",
 ]
