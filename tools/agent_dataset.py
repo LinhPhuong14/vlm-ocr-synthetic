@@ -98,6 +98,14 @@ def main() -> int:
     parser.add_argument("--no-proof", action="store_true")
     parser.add_argument("--plan-only", action="store_true",
                         help="decide and report, draw nothing")
+    parser.add_argument(
+        "--render-upto", type=int, default=0, metavar="N",
+        help="plan all --count pages but draw only the first N of them. The "
+             "plan is unchanged, so the coverage objective still balances over "
+             "the whole run; raising N on the next invocation resumes -- the "
+             "shards already carrying a DONE are skipped. This is how a long "
+             "run is delivered in batches without the batches each becoming a "
+             "differently-balanced dataset")
     args = parser.parse_args()
 
     out: Path = args.out.resolve()
@@ -141,6 +149,13 @@ def main() -> int:
           f"document|layout|variant khác nhau, "
           f"{summary['by']['llm']} do llm chọn")
 
+    # The plan stays whole; only the drawing is cut short. `agent_plan.json`
+    # therefore describes 5000 pages whether 1000 or 5000 of them exist yet,
+    # which is what makes the batches one dataset rather than five.
+    drawing = decisions[:args.render_upto] if args.render_upto else decisions
+    if args.render_upto:
+        print(f"[agent] vẽ {len(drawing)}/{len(decisions)} trang trong lượt này")
+
     if args.plan_only:
         report(out, decisions, rules, pol, catalogue, clock)
         return 0
@@ -152,7 +167,7 @@ def main() -> int:
     config = Config.from_dict({
         "run": {
             "out": str(out),
-            "per_backend": len(decisions),
+            "per_backend": len(drawing),
             "seed": args.seed,
             "workers": args.workers,
             "clean": bool(args.clean),
@@ -165,7 +180,7 @@ def main() -> int:
         "shard": {"size": max(args.shard, 1)},
     })
     started = time.time()
-    code = execute(config, runs={"html": planner.to_runs(decisions)})
+    code = execute(config, runs={"html": planner.to_runs(drawing)})
     clock["render"] = round(time.time() - started, 2)
     if code != 0:
         report(out, decisions, rules, pol, catalogue, clock)
@@ -173,14 +188,14 @@ def main() -> int:
 
     # 4b. What was drawn, against what was decided. The one check that catches a
     # plan which never reached the renderer -- a failure with no other symptom.
-    drifted = planner.audit_drawn(out, decisions)
+    drifted = planner.audit_drawn(out, drawing)
     if drifted:
         print(f"[agent] {len(drifted)} trang được vẽ KHÁC với kế hoạch:")
         for problem in drifted[:10]:
             print(f"  - {problem}")
         report(out, decisions, rules, pol, catalogue, clock)
         return 1
-    print(f"[agent] {len(decisions)} trang: thuộc tính đã vẽ khớp kế hoạch")
+    print(f"[agent] {len(drawing)} trang: thuộc tính đã vẽ khớp kế hoạch")
 
     # 5. A proof beside every page.
     if not args.no_proof:

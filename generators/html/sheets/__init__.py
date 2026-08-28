@@ -144,7 +144,9 @@ def build(recipe, receipt, template: str | None = None) -> str:
     from rulebase import load_layout
 
     layout_id = template or recipe.layout.id
-    spec = load_layout(layout_id)
+    # The variant may reorder the blocks of the phôi before the family draws
+    # them -- that is the half of a dressing which is layout rather than paint.
+    spec = variant.restructure(load_layout(layout_id), recipe)
     markup = family_of(layout_id).build(recipe, receipt, spec, receipt.ground_truth())
     # The `variant` attribute exists only in a rules root a run materialised
     # for itself, so this is a no-op under the shipped rules -- which is what

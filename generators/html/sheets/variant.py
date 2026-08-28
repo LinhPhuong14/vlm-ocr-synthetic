@@ -80,6 +80,48 @@ def css_of(recipe) -> str:
     return str((getattr(option, "params", None) or {}).get("css") or "")
 
 
+def moves_of(recipe) -> tuple:
+    option = chosen(recipe)
+    raw = (getattr(option, "params", None) or {}).get("moves") or ()
+    return tuple(tuple(move) for move in raw)
+
+
+def restructure(spec: dict, recipe) -> dict:
+    """The layout spec with this variant's block moves applied to `sections`.
+
+    `sections:` is the list every sheet family loops over to decide which block
+    of the phôi comes next, so reordering it is the one thing a variant can do
+    that is a change of *layout* rather than of paint. Five of the six families
+    read it and eleven of the sixteen layouts declare it.
+
+    A move naming a block this layout does not have is a no-op, which is what
+    lets one dressing be worn by a hotel folio and a hospital bill alike. The
+    list is copied before it is touched: `load_layout` re-reads the YAML per
+    call today, and a mutation that relied on that would break silently the day
+    somebody put an `lru_cache` on it.
+    """
+    moves = moves_of(recipe)
+    sections = list(spec.get("sections") or ())
+    if not moves or not sections:
+        return spec
+    for move in moves:
+        if len(move) != 3:
+            raise ValueError(f"a section move is (kind, block, anchor), got {move!r}")
+        kind, block, anchor = move
+        if block not in sections or anchor not in sections or block == anchor:
+            continue
+        if kind == "swap":
+            here, there = sections.index(block), sections.index(anchor)
+            sections[here], sections[there] = sections[there], sections[here]
+        elif kind in ("before", "after"):
+            sections.remove(block)
+            at = sections.index(anchor) + (1 if kind == "after" else 0)
+            sections.insert(at, block)
+        else:
+            raise ValueError(f"unknown section move {kind!r}; have swap, before, after")
+    return {**spec, "sections": sections}
+
+
 def apply(markup: str, recipe) -> str:
     """The same page, wearing the variant this recipe drew."""
     option = chosen(recipe)
@@ -98,4 +140,5 @@ def apply(markup: str, recipe) -> str:
     return markup[:index] + head + css + "\n" + markup[index:]
 
 
-__all__ = ["CLOSE", "FORBIDDEN", "apply", "chosen", "css_of", "forbidden"]
+__all__ = ["CLOSE", "FORBIDDEN", "apply", "chosen", "css_of", "forbidden",
+           "moves_of", "restructure"]

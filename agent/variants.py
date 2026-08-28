@@ -50,11 +50,17 @@ ITEM = f"{S} table.items th,{S} table.items td"
 
 @dataclass(frozen=True)
 class Axis:
-    """One thing about a sheet that can differ, and the ways it can differ."""
+    """One thing about a sheet that can differ, and the ways it can differ.
+
+    A value is `(label, css)` or `(label, css, moves)`. `moves` is what makes
+    `structure` different in kind from the other six: the others hand the family
+    a stylesheet, that one hands it a **different layout spec** -- the blocks of
+    the phôi in another order. See `_structure`.
+    """
 
     name: str
     level: str               # livery | free -- the widest class that may use it
-    values: dict[str, tuple[str, str]] = field(default_factory=dict)  # id -> (label, css)
+    values: dict[str, tuple] = field(default_factory=dict)
 
 
 def _stock() -> Axis:
@@ -185,34 +191,113 @@ def _mark() -> Axis:
     })
 
 
+def _structure() -> Axis:
+    """Dựng lại tờ giấy, không phải sơn lại nó.
+
+    The six axes above hand the family a stylesheet. This one hands it a
+    different `sections:` -- the list every sheet family loops over to decide
+    which block of the phôi comes next -- so the page comes out with its parts
+    in another order, which is what "many layouts from one phôi" has to mean if
+    it means anything. Eleven of the sixteen layouts declare `sections:` and
+    five of the six families read it.
+
+    Every move is attested rather than invented. Three layouts print
+    `letterhead` above `doctitle` and two print it below, so swapping them is
+    something Vietnamese paper actually does; `words` sits above the signatures
+    on some forms and below on others; a footer note above the signature block
+    is ordinary on a printed form. A move whose blocks are not in this layout is
+    a no-op, so one value works across every family.
+
+    The CSS half moves geometry the section list cannot: margins, the width of
+    the text block, where the signature and total blocks sit, how big the title
+    is. All of it reflows -- nothing is clipped -- because `#sheet` has a
+    `min-height` and no maximum, so a page that grows stays a taller page and
+    every box is still measured off the laid-out DOM.
+    """
+    return Axis("structure", "free", {
+        "nguyen_phoi": ("giữ nguyên phôi", "", ()),
+
+        "dao_dau_trang": (
+            "đảo letterhead và tiêu đề",
+            f"{S} .head > div{{padding-bottom:1mm;}}",
+            (("swap", "letterhead", "doctitle"),)),
+
+        "chu_ky_cuoi": (
+            "số tiền bằng chữ xuống dưới chữ ký",
+            f"{S} .signs{{padding-top:5mm;}}",
+            (("after", "words", "signatures"),)),
+
+        "ghi_chu_len_dau": (
+            "ghi chú lên trước bảng, chữ ký dồn phải",
+            f"{S} .signs{{width:56%;margin-left:auto;}}",
+            (("before", "notes", "table"), ("after", "footer", "signatures"))),
+
+        "le_rong": (
+            "lề rộng, bảng thu hẹp",
+            f"{S}{{padding:17mm 16mm;}}\n{S} table.items{{width:94%;}}",
+            ()),
+
+        "le_hep_tieu_de_lon": (
+            "lề hẹp, tiêu đề phóng to",
+            f"{S}{{padding:5mm 5mm;}}\n"
+            f"{S} .t1,{S} .title{{font-size:20pt;letter-spacing:.4pt;}}",
+            ()),
+
+        "dau_trang_xep_chong": (
+            "letterhead xếp chồng thay vì ba cột",
+            f"{S} .head{{display:block;}}\n"
+            f"{S} .head > div{{display:block;width:auto;text-align:left;"
+            f"padding-bottom:1.5mm;}}",
+            (("swap", "letterhead", "doctitle"),)),
+
+        "khong_khung_bang_hep": (
+            "bỏ khung ngoài, bảng không hết bề ngang",
+            f"{S} .frame{{border:0;padding:0;}}\n{S} .inner{{border:0;}}\n"
+            f"{S} table.items{{width:88%;margin-left:auto;margin-right:auto;}}",
+            ()),
+
+        "tong_va_ky_doi_ben": (
+            "khối tổng dồn trái, chữ ký dồn phải, chân trang lên trên",
+            f"{S} .signs{{width:52%;margin-left:auto;}}\n"
+            f"{S} .foot{{text-align:left;}}",
+            (("before", "footer", "signatures"),)),
+    })
+
+
 AXES: tuple[Axis, ...] = (_stock(), _rule(), _band(), _zebra(),
-                          _type(), _density(), _mark())
+                          _type(), _density(), _mark(), _structure())
 
 LIVERY_AXES = tuple(axis for axis in AXES if axis.level == "livery")
 
 
 @dataclass(frozen=True)
 class Variant:
-    """One dressing: an id, what a person would call it, and the CSS."""
+    """One dressing: an id, what a person would call it, the CSS, the moves."""
 
     id: str
     level: str
     label: str
     css: str
     axes: dict[str, str]
+    moves: tuple = ()
 
 
 def _compose(picks: dict[str, str], level: str, axes: tuple[Axis, ...]) -> Variant:
     by_name = {axis.name: axis for axis in axes}
     parts, labels = [], []
+    moves: list = []
     for name, value in picks.items():
-        label, css = by_name[name].values[value]
+        entry = by_name[name].values[value]
+        label, css = entry[0], entry[1]
         if css.strip():
             parts.append(css)
+        if len(entry) > 2:
+            moves.extend(entry[2])
         labels.append(label)
     ident = f"{level[0]}_" + "_".join(picks[axis.name] for axis in axes if axis.name in picks)
     return Variant(id=ident, level=level, label=", ".join(labels),
-                   css="\n".join(parts), axes=dict(picks))
+                   css="\n".join(parts), axes=dict(picks),
+                   moves=tuple(tuple(move) for move in moves))
 
 
 def build(count: int = 48, seed: int = 2026, livery_share: float = 0.35) -> list[Variant]:
