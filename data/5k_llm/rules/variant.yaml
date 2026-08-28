@@ -1,0 +1,1441 @@
+options:
+- id: none
+  weight: 6.0
+  params:
+    label: không dựng lại — giữ nguyên phôi
+    level: locked
+    css: ''
+- id: l_hong_khung_ngoai_xam_xam
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: liên hồng, chỉ khung ngoài đậm, tiêu đề nền xám, sọc xám
+    level: livery
+    axes:
+      stock: hong
+      rule: khung_ngoai
+      band: xam
+      zebra: xam
+    css: '#sheet{background:#fdf4f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.2mm;}
+
+      #sheet table.items{outline:.55mm solid #333;outline-offset:0;}
+
+      #sheet table.items th{background:#ececea;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}'
+- id: l_xanh_luc_chuan_lam_xam
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: liên xanh lục, nét chuẩn, tiêu đề nền lam, sọc xám
+    level: livery
+    axes:
+      stock: xanh_luc
+      rule: chuan
+      band: lam
+      zebra: xam
+    css: '#sheet{background:#f2faf4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;}
+
+      #sheet table.items th{background:#e4ecf6;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}'
+- id: l_xanh_lam_muc_den_trong_xam
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: liên xanh lam, nét mực đen, tiêu đề không nền, sọc xám
+    level: livery
+    axes:
+      stock: xanh_lam
+      rule: muc_den
+      band: trong
+      zebra: xam
+    css: '#sheet{background:#f3f7fc;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;border-color:#1c1c1c;}
+
+      #sheet table.items th{background:transparent;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}'
+- id: l_xanh_lam_nhat_trong_xam
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: liên xanh lam, nét nhạt, tiêu đề không nền, sọc xám
+    level: livery
+    axes:
+      stock: xanh_lam
+      rule: nhat
+      band: trong
+      zebra: xam
+    css: '#sheet{background:#f3f7fc;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.25mm;border-color:#8d8d8d;}
+
+      #sheet table.items th{background:transparent;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}'
+- id: l_xam_dam_gach_chan_xam
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: giấy xám nhạt, nét đậm, tiêu đề gạch chân dày, sọc xám
+    level: livery
+    axes:
+      stock: xam
+      rule: dam
+      band: gach_chan
+      zebra: xam
+    css: '#sheet{background:#f6f6f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.5mm;}
+
+      #sheet table.items th{background:transparent;border-bottom-width:.7mm;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}'
+- id: l_hong_chuan_luc_khong
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: liên hồng, nét chuẩn, tiêu đề nền lục, không sọc
+    level: livery
+    axes:
+      stock: hong
+      rule: chuan
+      band: luc
+      zebra: khong
+    css: '#sheet{background:#fdf4f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;}
+
+      #sheet table.items th{background:#e3f1e6;}'
+- id: l_xam_chuan_xam_dam_nhat
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: giấy xám nhạt, nét chuẩn, tiêu đề nền xám đậm, sọc rất nhạt
+    level: livery
+    axes:
+      stock: xam
+      rule: chuan
+      band: xam_dam
+      zebra: nhat
+    css: '#sheet{background:#f6f6f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;}
+
+      #sheet table.items th{background:#d8d8d5;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}'
+- id: l_xanh_luc_khung_ngoai_lam_nhat
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: liên xanh lục, chỉ khung ngoài đậm, tiêu đề nền lam, sọc rất nhạt
+    level: livery
+    axes:
+      stock: xanh_luc
+      rule: khung_ngoai
+      band: lam
+      zebra: nhat
+    css: '#sheet{background:#f2faf4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.2mm;}
+
+      #sheet table.items{outline:.55mm solid #333;outline-offset:0;}
+
+      #sheet table.items th{background:#e4ecf6;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}'
+- id: l_trang_khung_ngoai_luc_nhat
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: giấy trắng, chỉ khung ngoài đậm, tiêu đề nền lục, sọc rất nhạt
+    level: livery
+    axes:
+      stock: trang
+      rule: khung_ngoai
+      band: luc
+      zebra: nhat
+    css: '#sheet{background:#ffffff;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.2mm;}
+
+      #sheet table.items{outline:.55mm solid #333;outline-offset:0;}
+
+      #sheet table.items th{background:#e3f1e6;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}'
+- id: l_xanh_luc_muc_den_xam_dam_khong
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: liên xanh lục, nét mực đen, tiêu đề nền xám đậm, không sọc
+    level: livery
+    axes:
+      stock: xanh_luc
+      rule: muc_den
+      band: xam_dam
+      zebra: khong
+    css: '#sheet{background:#f2faf4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;border-color:#1c1c1c;}
+
+      #sheet table.items th{background:#d8d8d5;}'
+- id: l_xanh_luc_khung_ngoai_gach_chan_xam
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: liên xanh lục, chỉ khung ngoài đậm, tiêu đề gạch chân dày, sọc xám
+    level: livery
+    axes:
+      stock: xanh_luc
+      rule: khung_ngoai
+      band: gach_chan
+      zebra: xam
+    css: '#sheet{background:#f2faf4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.2mm;}
+
+      #sheet table.items{outline:.55mm solid #333;outline-offset:0;}
+
+      #sheet table.items th{background:transparent;border-bottom-width:.7mm;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}'
+- id: l_xanh_lam_khung_ngoai_luc_nhat
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: liên xanh lam, chỉ khung ngoài đậm, tiêu đề nền lục, sọc rất nhạt
+    level: livery
+    axes:
+      stock: xanh_lam
+      rule: khung_ngoai
+      band: luc
+      zebra: nhat
+    css: '#sheet{background:#f3f7fc;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.2mm;}
+
+      #sheet table.items{outline:.55mm solid #333;outline-offset:0;}
+
+      #sheet table.items th{background:#e3f1e6;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}'
+- id: l_nga_nhat_xam_dam_xam
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: giấy ngà, nét nhạt, tiêu đề nền xám đậm, sọc xám
+    level: livery
+    axes:
+      stock: nga
+      rule: nhat
+      band: xam_dam
+      zebra: xam
+    css: '#sheet{background:#fbf7ee;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.25mm;border-color:#8d8d8d;}
+
+      #sheet table.items th{background:#d8d8d5;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}'
+- id: l_xanh_lam_khung_ngoai_gach_chan_xam
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: liên xanh lam, chỉ khung ngoài đậm, tiêu đề gạch chân dày, sọc xám
+    level: livery
+    axes:
+      stock: xanh_lam
+      rule: khung_ngoai
+      band: gach_chan
+      zebra: xam
+    css: '#sheet{background:#f3f7fc;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.2mm;}
+
+      #sheet table.items{outline:.55mm solid #333;outline-offset:0;}
+
+      #sheet table.items th{background:transparent;border-bottom-width:.7mm;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}'
+- id: l_trang_khung_ngoai_trong_nhat
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: giấy trắng, chỉ khung ngoài đậm, tiêu đề không nền, sọc rất nhạt
+    level: livery
+    axes:
+      stock: trang
+      rule: khung_ngoai
+      band: trong
+      zebra: nhat
+    css: '#sheet{background:#ffffff;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.2mm;}
+
+      #sheet table.items{outline:.55mm solid #333;outline-offset:0;}
+
+      #sheet table.items th{background:transparent;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}'
+- id: l_hong_manh_xam_xam
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: liên hồng, nét mảnh, tiêu đề nền xám, sọc xám
+    level: livery
+    axes:
+      stock: hong
+      rule: manh
+      band: xam
+      zebra: xam
+    css: '#sheet{background:#fdf4f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.18mm;}
+
+      #sheet table.items th{background:#ececea;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}'
+- id: l_xam_chuan_trong_xam
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: giấy xám nhạt, nét chuẩn, tiêu đề không nền, sọc xám
+    level: livery
+    axes:
+      stock: xam
+      rule: chuan
+      band: trong
+      zebra: xam
+    css: '#sheet{background:#f6f6f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;}
+
+      #sheet table.items th{background:transparent;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}'
+- id: f_xanh_lam_manh_trong_xam_hien_dai_nen_vet_cheo
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: liên xanh lam, nét mảnh, tiêu đề không nền, sọc xám, chữ không chân, nén
+      dòng, vệt loang chéo
+    level: free
+    axes:
+      stock: xanh_lam
+      rule: manh
+      band: trong
+      zebra: xam
+      type: hien_dai
+      density: nen
+      mark: vet_cheo
+    css: '#sheet{background:#f3f7fc;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.18mm;}
+
+      #sheet table.items th{background:transparent;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet table.items th,#sheet table.items td{padding:.55mm .9mm;}
+
+      #sheet{line-height:1.18;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:-10%;top:-10%;width:120%;height:120%;opacity:.05;background:linear-gradient(28deg,transparent
+      42%,#213a5c 50%,transparent 58%);}'
+- id: f_xanh_lam_muc_den_gach_chan_xam_gian_chu_chuan_bang_dinh
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: liên xanh lam, nét mực đen, tiêu đề gạch chân dày, sọc xám, chữ giãn, dòng
+      chuẩn, băng đỉnh trang
+    level: free
+    axes:
+      stock: xanh_lam
+      rule: muc_den
+      band: gach_chan
+      zebra: xam
+      type: gian_chu
+      density: chuan
+      mark: bang_dinh
+    css: '#sheet{background:#f3f7fc;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;border-color:#1c1c1c;}
+
+      #sheet table.items th{background:transparent;border-bottom-width:.7mm;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;letter-spacing:.22pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1mm 1.2mm;}
+
+      #sheet{line-height:1.3;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;right:0;top:0;height:3mm;background:linear-gradient(90deg,#1f6f4a,#7cc0a1);}'
+- id: f_xanh_luc_muc_den_xam_dam_khong_tieu_de_khong_chan_nen_vet_cheo
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: liên xanh lục, nét mực đen, tiêu đề nền xám đậm, không sọc, thân có chân,
+      tiêu đề không chân, nén dòng, vệt loang chéo
+    level: free
+    axes:
+      stock: xanh_luc
+      rule: muc_den
+      band: xam_dam
+      zebra: khong
+      type: tieu_de_khong_chan
+      density: nen
+      mark: vet_cheo
+    css: '#sheet{background:#f2faf4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;border-color:#1c1c1c;}
+
+      #sheet table.items th{background:#d8d8d5;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;}
+
+      #sheet table.items th{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu
+      Sans'',sans-serif;letter-spacing:.15pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:.55mm .9mm;}
+
+      #sheet{line-height:1.18;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:-10%;top:-10%;width:120%;height:120%;opacity:.05;background:linear-gradient(28deg,transparent
+      42%,#213a5c 50%,transparent 58%);}'
+- id: f_nga_manh_lam_khong_so_may_thoang_vet_cheo
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: giấy ngà, nét mảnh, tiêu đề nền lam, không sọc, chữ không chân, cột số
+      kiểu máy in, dòng thoáng, vệt loang chéo
+    level: free
+    axes:
+      stock: nga
+      rule: manh
+      band: lam
+      zebra: khong
+      type: so_may
+      density: thoang
+      mark: vet_cheo
+    css: '#sheet{background:#fbf7ee;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.18mm;}
+
+      #sheet table.items th{background:#e4ecf6;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet td.r,#sheet th.r{font-family:''LiberationMono'',''Cousine'',monospace;letter-spacing:-.1pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1.5mm 1.7mm;}
+
+      #sheet{line-height:1.42;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:-10%;top:-10%;width:120%;height:120%;opacity:.05;background:linear-gradient(28deg,transparent
+      42%,#213a5c 50%,transparent 58%);}'
+- id: f_xanh_luc_muc_den_luc_xam_so_may_thoang_luoi_chan
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: liên xanh lục, nét mực đen, tiêu đề nền lục, sọc xám, chữ không chân, cột
+      số kiểu máy in, dòng thoáng, lưới mờ chân trang
+    level: free
+    axes:
+      stock: xanh_luc
+      rule: muc_den
+      band: luc
+      zebra: xam
+      type: so_may
+      density: thoang
+      mark: luoi_chan
+    css: '#sheet{background:#f2faf4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;border-color:#1c1c1c;}
+
+      #sheet table.items th{background:#e3f1e6;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet td.r,#sheet th.r{font-family:''LiberationMono'',''Cousine'',monospace;letter-spacing:-.1pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1.5mm 1.7mm;}
+
+      #sheet{line-height:1.42;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;right:0;bottom:0;height:14mm;opacity:.09;background:repeating-linear-gradient(0deg,#333
+      0 .25mm,transparent .25mm 2mm);}'
+- id: f_xanh_lam_nhat_xam_xam_so_may_nen_vach_gay
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: liên xanh lam, nét nhạt, tiêu đề nền xám, sọc xám, chữ không chân, cột
+      số kiểu máy in, nén dòng, vạch gáy trái
+    level: free
+    axes:
+      stock: xanh_lam
+      rule: nhat
+      band: xam
+      zebra: xam
+      type: so_may
+      density: nen
+      mark: vach_gay
+    css: '#sheet{background:#f3f7fc;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.25mm;border-color:#8d8d8d;}
+
+      #sheet table.items th{background:#ececea;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet td.r,#sheet th.r{font-family:''LiberationMono'',''Cousine'',monospace;letter-spacing:-.1pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:.55mm .9mm;}
+
+      #sheet{line-height:1.18;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;top:0;bottom:0;width:3.2mm;background:linear-gradient(90deg,#2f5d8a,#2f5d8a55);}'
+- id: f_nga_khung_ngoai_luc_khong_co_dien_chuan_vet_cheo
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: giấy ngà, chỉ khung ngoài đậm, tiêu đề nền lục, không sọc, chữ có chân,
+      dòng chuẩn, vệt loang chéo
+    level: free
+    axes:
+      stock: nga
+      rule: khung_ngoai
+      band: luc
+      zebra: khong
+      type: co_dien
+      density: chuan
+      mark: vet_cheo
+    css: '#sheet{background:#fbf7ee;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.2mm;}
+
+      #sheet table.items{outline:.55mm solid #333;outline-offset:0;}
+
+      #sheet table.items th{background:#e3f1e6;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;}
+
+      #sheet table.items th,#sheet table.items td{padding:1mm 1.2mm;}
+
+      #sheet{line-height:1.3;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:-10%;top:-10%;width:120%;height:120%;opacity:.05;background:linear-gradient(28deg,transparent
+      42%,#213a5c 50%,transparent 58%);}'
+- id: f_xanh_lam_manh_luc_khong_hien_dai_thoang_vet_cheo
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: liên xanh lam, nét mảnh, tiêu đề nền lục, không sọc, chữ không chân, dòng
+      thoáng, vệt loang chéo
+    level: free
+    axes:
+      stock: xanh_lam
+      rule: manh
+      band: luc
+      zebra: khong
+      type: hien_dai
+      density: thoang
+      mark: vet_cheo
+    css: '#sheet{background:#f3f7fc;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.18mm;}
+
+      #sheet table.items th{background:#e3f1e6;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet table.items th,#sheet table.items td{padding:1.5mm 1.7mm;}
+
+      #sheet{line-height:1.42;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:-10%;top:-10%;width:120%;height:120%;opacity:.05;background:linear-gradient(28deg,transparent
+      42%,#213a5c 50%,transparent 58%);}'
+- id: f_xam_muc_den_trong_nhat_tieu_de_khong_chan_thoang_bang_dinh
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: giấy xám nhạt, nét mực đen, tiêu đề không nền, sọc rất nhạt, thân có chân,
+      tiêu đề không chân, dòng thoáng, băng đỉnh trang
+    level: free
+    axes:
+      stock: xam
+      rule: muc_den
+      band: trong
+      zebra: nhat
+      type: tieu_de_khong_chan
+      density: thoang
+      mark: bang_dinh
+    css: '#sheet{background:#f6f6f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;border-color:#1c1c1c;}
+
+      #sheet table.items th{background:transparent;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;}
+
+      #sheet table.items th{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu
+      Sans'',sans-serif;letter-spacing:.15pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1.5mm 1.7mm;}
+
+      #sheet{line-height:1.42;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;right:0;top:0;height:3mm;background:linear-gradient(90deg,#1f6f4a,#7cc0a1);}'
+- id: f_trang_khung_ngoai_trong_khong_so_may_thoang_luoi_chan
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: giấy trắng, chỉ khung ngoài đậm, tiêu đề không nền, không sọc, chữ không
+      chân, cột số kiểu máy in, dòng thoáng, lưới mờ chân trang
+    level: free
+    axes:
+      stock: trang
+      rule: khung_ngoai
+      band: trong
+      zebra: khong
+      type: so_may
+      density: thoang
+      mark: luoi_chan
+    css: '#sheet{background:#ffffff;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.2mm;}
+
+      #sheet table.items{outline:.55mm solid #333;outline-offset:0;}
+
+      #sheet table.items th{background:transparent;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet td.r,#sheet th.r{font-family:''LiberationMono'',''Cousine'',monospace;letter-spacing:-.1pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1.5mm 1.7mm;}
+
+      #sheet{line-height:1.42;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;right:0;bottom:0;height:14mm;opacity:.09;background:repeating-linear-gradient(0deg,#333
+      0 .25mm,transparent .25mm 2mm);}'
+- id: f_xam_dam_trong_xam_so_may_chuan_luoi_chan
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: giấy xám nhạt, nét đậm, tiêu đề không nền, sọc xám, chữ không chân, cột
+      số kiểu máy in, dòng chuẩn, lưới mờ chân trang
+    level: free
+    axes:
+      stock: xam
+      rule: dam
+      band: trong
+      zebra: xam
+      type: so_may
+      density: chuan
+      mark: luoi_chan
+    css: '#sheet{background:#f6f6f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.5mm;}
+
+      #sheet table.items th{background:transparent;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet td.r,#sheet th.r{font-family:''LiberationMono'',''Cousine'',monospace;letter-spacing:-.1pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1mm 1.2mm;}
+
+      #sheet{line-height:1.3;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;right:0;bottom:0;height:14mm;opacity:.09;background:repeating-linear-gradient(0deg,#333
+      0 .25mm,transparent .25mm 2mm);}'
+- id: f_xam_khung_ngoai_gach_chan_khong_so_may_chuan_vet_cheo
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: giấy xám nhạt, chỉ khung ngoài đậm, tiêu đề gạch chân dày, không sọc, chữ
+      không chân, cột số kiểu máy in, dòng chuẩn, vệt loang chéo
+    level: free
+    axes:
+      stock: xam
+      rule: khung_ngoai
+      band: gach_chan
+      zebra: khong
+      type: so_may
+      density: chuan
+      mark: vet_cheo
+    css: '#sheet{background:#f6f6f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.2mm;}
+
+      #sheet table.items{outline:.55mm solid #333;outline-offset:0;}
+
+      #sheet table.items th{background:transparent;border-bottom-width:.7mm;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet td.r,#sheet th.r{font-family:''LiberationMono'',''Cousine'',monospace;letter-spacing:-.1pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1mm 1.2mm;}
+
+      #sheet{line-height:1.3;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:-10%;top:-10%;width:120%;height:120%;opacity:.05;background:linear-gradient(28deg,transparent
+      42%,#213a5c 50%,transparent 58%);}'
+- id: f_hong_chuan_gach_chan_nhat_tieu_de_khong_chan_thoang_goc_vuong
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: liên hồng, nét chuẩn, tiêu đề gạch chân dày, sọc rất nhạt, thân có chân,
+      tiêu đề không chân, dòng thoáng, nẹp góc trên phải
+    level: free
+    axes:
+      stock: hong
+      rule: chuan
+      band: gach_chan
+      zebra: nhat
+      type: tieu_de_khong_chan
+      density: thoang
+      mark: goc_vuong
+    css: '#sheet{background:#fdf4f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;}
+
+      #sheet table.items th{background:transparent;border-bottom-width:.7mm;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;}
+
+      #sheet table.items th{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu
+      Sans'',sans-serif;letter-spacing:.15pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1.5mm 1.7mm;}
+
+      #sheet{line-height:1.42;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;right:4mm;top:4mm;width:16mm;height:16mm;border-top:.8mm
+      solid #b4482f;border-right:.8mm solid #b4482f;}'
+- id: f_xanh_lam_dam_lam_khong_tieu_de_khong_chan_chuan_luoi_chan
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: liên xanh lam, nét đậm, tiêu đề nền lam, không sọc, thân có chân, tiêu
+      đề không chân, dòng chuẩn, lưới mờ chân trang
+    level: free
+    axes:
+      stock: xanh_lam
+      rule: dam
+      band: lam
+      zebra: khong
+      type: tieu_de_khong_chan
+      density: chuan
+      mark: luoi_chan
+    css: '#sheet{background:#f3f7fc;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.5mm;}
+
+      #sheet table.items th{background:#e4ecf6;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;}
+
+      #sheet table.items th{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu
+      Sans'',sans-serif;letter-spacing:.15pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1mm 1.2mm;}
+
+      #sheet{line-height:1.3;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;right:0;bottom:0;height:14mm;opacity:.09;background:repeating-linear-gradient(0deg,#333
+      0 .25mm,transparent .25mm 2mm);}'
+- id: f_xanh_luc_nhat_luc_khong_co_dien_nen_vet_cheo
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: liên xanh lục, nét nhạt, tiêu đề nền lục, không sọc, chữ có chân, nén dòng,
+      vệt loang chéo
+    level: free
+    axes:
+      stock: xanh_luc
+      rule: nhat
+      band: luc
+      zebra: khong
+      type: co_dien
+      density: nen
+      mark: vet_cheo
+    css: '#sheet{background:#f2faf4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.25mm;border-color:#8d8d8d;}
+
+      #sheet table.items th{background:#e3f1e6;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;}
+
+      #sheet table.items th,#sheet table.items td{padding:.55mm .9mm;}
+
+      #sheet{line-height:1.18;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:-10%;top:-10%;width:120%;height:120%;opacity:.05;background:linear-gradient(28deg,transparent
+      42%,#213a5c 50%,transparent 58%);}'
+- id: f_xanh_luc_nhat_lam_xam_gian_chu_nen_guilloche
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: liên xanh lục, nét nhạt, tiêu đề nền lam, sọc xám, chữ giãn, nén dòng,
+      nền hoa văn chìm
+    level: free
+    axes:
+      stock: xanh_luc
+      rule: nhat
+      band: lam
+      zebra: xam
+      type: gian_chu
+      density: nen
+      mark: guilloche
+    css: '#sheet{background:#f2faf4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.25mm;border-color:#8d8d8d;}
+
+      #sheet table.items th{background:#e4ecf6;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;letter-spacing:.22pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:.55mm .9mm;}
+
+      #sheet{line-height:1.18;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;right:0;top:0;bottom:0;opacity:.055;background:repeating-linear-gradient(38deg,#20406b
+      0 .5mm,transparent .5mm 2.6mm),repeating-linear-gradient(-38deg,#20406b 0 .5mm,transparent
+      .5mm 2.6mm);}'
+- id: f_xanh_lam_nhat_xam_nhat_co_dien_nen_guilloche
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: liên xanh lam, nét nhạt, tiêu đề nền xám, sọc rất nhạt, chữ có chân, nén
+      dòng, nền hoa văn chìm
+    level: free
+    axes:
+      stock: xanh_lam
+      rule: nhat
+      band: xam
+      zebra: nhat
+      type: co_dien
+      density: nen
+      mark: guilloche
+    css: '#sheet{background:#f3f7fc;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.25mm;border-color:#8d8d8d;}
+
+      #sheet table.items th{background:#ececea;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;}
+
+      #sheet table.items th,#sheet table.items td{padding:.55mm .9mm;}
+
+      #sheet{line-height:1.18;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;right:0;top:0;bottom:0;opacity:.055;background:repeating-linear-gradient(38deg,#20406b
+      0 .5mm,transparent .5mm 2.6mm),repeating-linear-gradient(-38deg,#20406b 0 .5mm,transparent
+      .5mm 2.6mm);}'
+- id: f_nga_muc_den_luc_xam_so_may_nen_guilloche
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: giấy ngà, nét mực đen, tiêu đề nền lục, sọc xám, chữ không chân, cột số
+      kiểu máy in, nén dòng, nền hoa văn chìm
+    level: free
+    axes:
+      stock: nga
+      rule: muc_den
+      band: luc
+      zebra: xam
+      type: so_may
+      density: nen
+      mark: guilloche
+    css: '#sheet{background:#fbf7ee;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;border-color:#1c1c1c;}
+
+      #sheet table.items th{background:#e3f1e6;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet td.r,#sheet th.r{font-family:''LiberationMono'',''Cousine'',monospace;letter-spacing:-.1pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:.55mm .9mm;}
+
+      #sheet{line-height:1.18;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;right:0;top:0;bottom:0;opacity:.055;background:repeating-linear-gradient(38deg,#20406b
+      0 .5mm,transparent .5mm 2.6mm),repeating-linear-gradient(-38deg,#20406b 0 .5mm,transparent
+      .5mm 2.6mm);}'
+- id: f_xanh_lam_dam_trong_khong_co_dien_nen_goc_vuong
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: liên xanh lam, nét đậm, tiêu đề không nền, không sọc, chữ có chân, nén
+      dòng, nẹp góc trên phải
+    level: free
+    axes:
+      stock: xanh_lam
+      rule: dam
+      band: trong
+      zebra: khong
+      type: co_dien
+      density: nen
+      mark: goc_vuong
+    css: '#sheet{background:#f3f7fc;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.5mm;}
+
+      #sheet table.items th{background:transparent;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;}
+
+      #sheet table.items th,#sheet table.items td{padding:.55mm .9mm;}
+
+      #sheet{line-height:1.18;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;right:4mm;top:4mm;width:16mm;height:16mm;border-top:.8mm
+      solid #b4482f;border-right:.8mm solid #b4482f;}'
+- id: f_hong_khung_ngoai_xam_dam_nhat_co_dien_chuan_vet_cheo
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: liên hồng, chỉ khung ngoài đậm, tiêu đề nền xám đậm, sọc rất nhạt, chữ
+      có chân, dòng chuẩn, vệt loang chéo
+    level: free
+    axes:
+      stock: hong
+      rule: khung_ngoai
+      band: xam_dam
+      zebra: nhat
+      type: co_dien
+      density: chuan
+      mark: vet_cheo
+    css: '#sheet{background:#fdf4f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.2mm;}
+
+      #sheet table.items{outline:.55mm solid #333;outline-offset:0;}
+
+      #sheet table.items th{background:#d8d8d5;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;}
+
+      #sheet table.items th,#sheet table.items td{padding:1mm 1.2mm;}
+
+      #sheet{line-height:1.3;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:-10%;top:-10%;width:120%;height:120%;opacity:.05;background:linear-gradient(28deg,transparent
+      42%,#213a5c 50%,transparent 58%);}'
+- id: f_trang_nhat_luc_nhat_hien_dai_chuan_vet_cheo
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: giấy trắng, nét nhạt, tiêu đề nền lục, sọc rất nhạt, chữ không chân, dòng
+      chuẩn, vệt loang chéo
+    level: free
+    axes:
+      stock: trang
+      rule: nhat
+      band: luc
+      zebra: nhat
+      type: hien_dai
+      density: chuan
+      mark: vet_cheo
+    css: '#sheet{background:#ffffff;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.25mm;border-color:#8d8d8d;}
+
+      #sheet table.items th{background:#e3f1e6;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet table.items th,#sheet table.items td{padding:1mm 1.2mm;}
+
+      #sheet{line-height:1.3;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:-10%;top:-10%;width:120%;height:120%;opacity:.05;background:linear-gradient(28deg,transparent
+      42%,#213a5c 50%,transparent 58%);}'
+- id: f_xam_muc_den_xam_khong_gian_chu_thoang_khong
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: giấy xám nhạt, nét mực đen, tiêu đề nền xám, không sọc, chữ giãn, dòng
+      thoáng, không hoạ tiết
+    level: free
+    axes:
+      stock: xam
+      rule: muc_den
+      band: xam
+      zebra: khong
+      type: gian_chu
+      density: thoang
+      mark: khong
+    css: '#sheet{background:#f6f6f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;border-color:#1c1c1c;}
+
+      #sheet table.items th{background:#ececea;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;letter-spacing:.22pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1.5mm 1.7mm;}
+
+      #sheet{line-height:1.42;}'
+- id: f_xam_muc_den_luc_nhat_tieu_de_khong_chan_chuan_goc_vuong
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: giấy xám nhạt, nét mực đen, tiêu đề nền lục, sọc rất nhạt, thân có chân,
+      tiêu đề không chân, dòng chuẩn, nẹp góc trên phải
+    level: free
+    axes:
+      stock: xam
+      rule: muc_den
+      band: luc
+      zebra: nhat
+      type: tieu_de_khong_chan
+      density: chuan
+      mark: goc_vuong
+    css: '#sheet{background:#f6f6f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;border-color:#1c1c1c;}
+
+      #sheet table.items th{background:#e3f1e6;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;}
+
+      #sheet table.items th{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu
+      Sans'',sans-serif;letter-spacing:.15pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1mm 1.2mm;}
+
+      #sheet{line-height:1.3;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;right:4mm;top:4mm;width:16mm;height:16mm;border-top:.8mm
+      solid #b4482f;border-right:.8mm solid #b4482f;}'
+- id: f_xanh_lam_manh_gach_chan_khong_gian_chu_chuan_bang_dinh
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: liên xanh lam, nét mảnh, tiêu đề gạch chân dày, không sọc, chữ giãn, dòng
+      chuẩn, băng đỉnh trang
+    level: free
+    axes:
+      stock: xanh_lam
+      rule: manh
+      band: gach_chan
+      zebra: khong
+      type: gian_chu
+      density: chuan
+      mark: bang_dinh
+    css: '#sheet{background:#f3f7fc;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.18mm;}
+
+      #sheet table.items th{background:transparent;border-bottom-width:.7mm;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;letter-spacing:.22pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1mm 1.2mm;}
+
+      #sheet{line-height:1.3;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;right:0;top:0;height:3mm;background:linear-gradient(90deg,#1f6f4a,#7cc0a1);}'
+- id: f_xam_nhat_lam_nhat_co_dien_chuan_khong
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: giấy xám nhạt, nét nhạt, tiêu đề nền lam, sọc rất nhạt, chữ có chân, dòng
+      chuẩn, không hoạ tiết
+    level: free
+    axes:
+      stock: xam
+      rule: nhat
+      band: lam
+      zebra: nhat
+      type: co_dien
+      density: chuan
+      mark: khong
+    css: '#sheet{background:#f6f6f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.25mm;border-color:#8d8d8d;}
+
+      #sheet table.items th{background:#e4ecf6;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;}
+
+      #sheet table.items th,#sheet table.items td{padding:1mm 1.2mm;}
+
+      #sheet{line-height:1.3;}'
+- id: f_xanh_lam_dam_lam_xam_gian_chu_nen_luoi_chan
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: liên xanh lam, nét đậm, tiêu đề nền lam, sọc xám, chữ giãn, nén dòng, lưới
+      mờ chân trang
+    level: free
+    axes:
+      stock: xanh_lam
+      rule: dam
+      band: lam
+      zebra: xam
+      type: gian_chu
+      density: nen
+      mark: luoi_chan
+    css: '#sheet{background:#f3f7fc;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.5mm;}
+
+      #sheet table.items th{background:#e4ecf6;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;letter-spacing:.22pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:.55mm .9mm;}
+
+      #sheet{line-height:1.18;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;right:0;bottom:0;height:14mm;opacity:.09;background:repeating-linear-gradient(0deg,#333
+      0 .25mm,transparent .25mm 2mm);}'
+- id: f_xam_muc_den_trong_khong_so_may_nen_guilloche
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: giấy xám nhạt, nét mực đen, tiêu đề không nền, không sọc, chữ không chân,
+      cột số kiểu máy in, nén dòng, nền hoa văn chìm
+    level: free
+    axes:
+      stock: xam
+      rule: muc_den
+      band: trong
+      zebra: khong
+      type: so_may
+      density: nen
+      mark: guilloche
+    css: '#sheet{background:#f6f6f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;border-color:#1c1c1c;}
+
+      #sheet table.items th{background:transparent;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet td.r,#sheet th.r{font-family:''LiberationMono'',''Cousine'',monospace;letter-spacing:-.1pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:.55mm .9mm;}
+
+      #sheet{line-height:1.18;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;right:0;top:0;bottom:0;opacity:.055;background:repeating-linear-gradient(38deg,#20406b
+      0 .5mm,transparent .5mm 2.6mm),repeating-linear-gradient(-38deg,#20406b 0 .5mm,transparent
+      .5mm 2.6mm);}'
+- id: f_trang_dam_luc_nhat_so_may_nen_luoi_chan
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: giấy trắng, nét đậm, tiêu đề nền lục, sọc rất nhạt, chữ không chân, cột
+      số kiểu máy in, nén dòng, lưới mờ chân trang
+    level: free
+    axes:
+      stock: trang
+      rule: dam
+      band: luc
+      zebra: nhat
+      type: so_may
+      density: nen
+      mark: luoi_chan
+    css: '#sheet{background:#ffffff;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.5mm;}
+
+      #sheet table.items th{background:#e3f1e6;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet td.r,#sheet th.r{font-family:''LiberationMono'',''Cousine'',monospace;letter-spacing:-.1pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:.55mm .9mm;}
+
+      #sheet{line-height:1.18;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;right:0;bottom:0;height:14mm;opacity:.09;background:repeating-linear-gradient(0deg,#333
+      0 .25mm,transparent .25mm 2mm);}'
+- id: f_xam_dam_luc_xam_so_may_nen_goc_vuong
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: giấy xám nhạt, nét đậm, tiêu đề nền lục, sọc xám, chữ không chân, cột số
+      kiểu máy in, nén dòng, nẹp góc trên phải
+    level: free
+    axes:
+      stock: xam
+      rule: dam
+      band: luc
+      zebra: xam
+      type: so_may
+      density: nen
+      mark: goc_vuong
+    css: '#sheet{background:#f6f6f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.5mm;}
+
+      #sheet table.items th{background:#e3f1e6;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet td.r,#sheet th.r{font-family:''LiberationMono'',''Cousine'',monospace;letter-spacing:-.1pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:.55mm .9mm;}
+
+      #sheet{line-height:1.18;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;right:4mm;top:4mm;width:16mm;height:16mm;border-top:.8mm
+      solid #b4482f;border-right:.8mm solid #b4482f;}'
+- id: f_xanh_lam_muc_den_luc_khong_gian_chu_chuan_bang_dinh
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: liên xanh lam, nét mực đen, tiêu đề nền lục, không sọc, chữ giãn, dòng
+      chuẩn, băng đỉnh trang
+    level: free
+    axes:
+      stock: xanh_lam
+      rule: muc_den
+      band: luc
+      zebra: khong
+      type: gian_chu
+      density: chuan
+      mark: bang_dinh
+    css: '#sheet{background:#f3f7fc;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;border-color:#1c1c1c;}
+
+      #sheet table.items th{background:#e3f1e6;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;letter-spacing:.22pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1mm 1.2mm;}
+
+      #sheet{line-height:1.3;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;right:0;top:0;height:3mm;background:linear-gradient(90deg,#1f6f4a,#7cc0a1);}'
+- id: f_hong_manh_xam_dam_nhat_so_may_thoang_guilloche
+  weight: 1.0
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  params:
+    label: liên hồng, nét mảnh, tiêu đề nền xám đậm, sọc rất nhạt, chữ không chân,
+      cột số kiểu máy in, dòng thoáng, nền hoa văn chìm
+    level: free
+    axes:
+      stock: hong
+      rule: manh
+      band: xam_dam
+      zebra: nhat
+      type: so_may
+      density: thoang
+      mark: guilloche
+    css: '#sheet{background:#fdf4f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.18mm;}
+
+      #sheet table.items th{background:#d8d8d5;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet td.r,#sheet th.r{font-family:''LiberationMono'',''Cousine'',monospace;letter-spacing:-.1pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1.5mm 1.7mm;}
+
+      #sheet{line-height:1.42;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;right:0;top:0;bottom:0;opacity:.055;background:repeating-linear-gradient(38deg,#20406b
+      0 .5mm,transparent .5mm 2.6mm),repeating-linear-gradient(-38deg,#20406b 0 .5mm,transparent
+      .5mm 2.6mm);}'
