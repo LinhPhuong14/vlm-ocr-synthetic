@@ -7,10 +7,11 @@ quyết định nằm trong [`agent/README.md`](../../agent/README.md).
 python tools/agent_dataset.py -o data/5k_llm -n 5000 --seed 2026 --workers 3
 ```
 
-## Cái gì được commit, cái gì không
+## Cái gì nằm trong đây
 
-Ảnh **không** nằm trong git: 5000 trang cộng 5000 ảnh proof là khoảng 3,5 GB.
-Thứ được commit là mọi thứ cần để **dựng lại** chúng:
+Toàn bộ, ảnh và tất cả — 5000 trang cộng 5000 ảnh proof, khoảng 1,4 GB — theo
+yêu cầu của chủ kho. Bộ được sinh thành **năm lô 1000 trang**, mỗi lô một
+commit, để xem được trước khi lô sau vẽ.
 
 | File | Nội dung |
 | :--- | :--- |
@@ -18,10 +19,11 @@ Thứ được commit là mọi thứ cần để **dựng lại** chúng:
 | `rules/` | bộ luật của riêng lượt này: 7 thuộc tính gốc + `variant`, và thẻ hạng trên từng document |
 | `agent_report.json` | phủ theo từng thuộc tính, chính sách, kho biến thể, thời gian từng chặng |
 | `dataset.json` | bộ đã lắp, đúng schema mọi bộ khác trong kho |
-| `sample/` | vài chục trang kèm ảnh proof, để xem mà không phải tải một gigabyte |
+| `html/` | 5000 ảnh + 5000 bản ghi + `synthesis.json` |
+| `proof/` | 5000 ảnh proof — hộp nhãn vẽ đè, tô màu theo họ trường |
 
-`html/` (ảnh + bản ghi) và `proof/` bị `.gitignore` bỏ qua. Chạy lại lệnh trên
-là có lại đúng bộ ấy — `seed` cố định và `force` ghi sẵn từng trang.
+Chạy lại lệnh trên là có lại đúng bộ ấy — `seed` cố định và `force` ghi sẵn cho
+từng trang.
 
 ## Dựng lại một trang bất kỳ
 
