@@ -46,9 +46,26 @@ ATTRIBUTE = "variant"
 NONE_ID = "none"
 
 # How much of the mix draws no dressing at all. The undressed sheet is the one
-# every committed dataset holds, so it stays the single most common page rather
-# than becoming a rarity in a set that is supposed to extend those.
-NONE_WEIGHT = 6.0
+# every committed dataset holds, so it stays common -- but not dominant: at 6.0
+# it was, and a fifth of the run came out as the plain phôi while another two
+# fifths wore a paint-only dressing, which is a set that varies in colour and
+# not much else.
+NONE_WEIGHT = 2.5
+
+# A `free` document can draw a `livery` dressing too -- a commercial invoice
+# printed with nothing but a different ink is a real page. It should not be the
+# usual one, though: without this the 31 full dressings and the 17 paint-only
+# ones split a free document's draws almost evenly, and the run reads as a
+# colour sweep. Weighted, roughly three in four free pages are restructured.
+FREE_WEIGHT = 2.5
+
+# Degradations this run does not use, stripped from every augmentation chain.
+# Not deleted from `rules/augmentation.yaml`: the value is still the value, and
+# other branches want it. `holes` punches the page through -- it removes label
+# text that the record still claims -- and `gradient_domain` Poisson-blends a
+# stain whose gradients follow the page's own, which at this volume costs more
+# time than it buys variety.
+DISABLED_DEGRADATIONS = ("gradient_domain", "holes")
 
 
 class RulesError(ValueError):
@@ -91,12 +108,44 @@ def variant_options(catalogue: list, policy) -> list[Option]:
                 f"expected 'livery' or 'free'")
         out.append(Option.from_dict({
             "id": dressing.id,
-            "weight": 1.0,
+            "weight": FREE_WEIGHT if dressing.level == "free" else 1.0,
             "tags": [f"dressed_{dressing.level}"],
             **constraint,
             "params": {"label": dressing.label, "level": dressing.level,
-                       "axes": dressing.axes, "css": dressing.css},
+                       "axes": dressing.axes, "css": dressing.css,
+                       "moves": [list(move) for move in dressing.moves]},
         }, ATTRIBUTE))
+    return out
+
+
+def _without_disabled(options: list[Option]) -> list[Option]:
+    """Every augmentation, with the steps this run does not use taken out.
+
+    A chain that loses every step is left as a chain of nothing, which is what
+    `pristine` already is -- the value keeps its id, its weight and its tags, so
+    the mix and the records still name it and nothing downstream has to learn a
+    special case.
+    """
+    out = []
+    for option in options:
+        chain = option.params.get("chain")
+        if not isinstance(chain, list):
+            out.append(option)
+            continue
+        kept = [step for step in chain
+                if not (isinstance(step, list) and step
+                        and str(step[0]) in DISABLED_DEGRADATIONS)]
+        if len(kept) == len(chain):
+            out.append(option)
+            continue
+        out.append(Option.from_dict({
+            "id": option.id,
+            "weight": option.weight,
+            "tags": sorted(option.tags),
+            "requires": sorted(option.requires),
+            "excludes": sorted(option.excludes),
+            "params": {**option.params, "chain": kept},
+        }, "augmentation"))
     return out
 
 
@@ -110,8 +159,12 @@ def compose(catalogue: list, policy=None) -> dict[str, list[Option]]:
 
     out: dict[str, list[Option]] = {}
     for name in ATTRIBUTES:
-        out[name] = _tagged_documents(shipped[name], policy) if name == "document" \
-            else list(shipped[name])
+        if name == "document":
+            out[name] = _tagged_documents(shipped[name], policy)
+        elif name == "augmentation":
+            out[name] = _without_disabled(shipped[name])
+        else:
+            out[name] = list(shipped[name])
         if name == AFTER:
             out[ATTRIBUTE] = variant_options(catalogue, policy)
     if ATTRIBUTE not in out:
@@ -151,5 +204,6 @@ def reachable(rules: dict[str, list[Option]], policy) -> dict[str, list[str]]:
     }
 
 
-__all__ = ["AFTER", "ATTRIBUTE", "NONE_ID", "NONE_WEIGHT", "RulesError",
+__all__ = ["AFTER", "ATTRIBUTE", "DISABLED_DEGRADATIONS", "FREE_WEIGHT",
+           "NONE_ID", "NONE_WEIGHT", "RulesError",
            "activate", "compose", "materialise", "reachable", "variant_options"]

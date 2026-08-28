@@ -260,3 +260,69 @@ def test_a_server_that_is_not_there_is_a_mode_and_not_a_crash(built):
     assert dead.alive() is False
     decisions = planner.plan(5, seed=2, rules=rules, policy=pol, llm=dead, block=2)
     assert all(d.by == "coverage" for d in decisions)
+
+
+# ------------------------------------- dressing the layout, not just painting it
+
+
+def test_a_move_reorders_the_blocks_of_the_phoi():
+    """`sections:` is the list every family loops over, so reordering it is the
+    one thing a variant can do that is a change of layout rather than of paint.
+    """
+    import sheets
+
+    option = type("O", (), {"id": "x", "params": {
+        "css": "", "moves": [["swap", "letterhead", "doctitle"],
+                             ["after", "words", "signatures"]]}})()
+    recipe = type("R", (), {"choices": {"variant": option}})()
+    spec = {"sections": ["letterhead", "doctitle", "parties", "table", "totals",
+                         "words", "signatures", "footer"]}
+    out = sheets.variant.restructure(spec, recipe)
+    assert out["sections"] == ["doctitle", "letterhead", "parties", "table",
+                               "totals", "signatures", "words", "footer"]
+    assert spec["sections"][0] == "letterhead", "the caller's spec was mutated"
+
+
+def test_a_move_naming_a_block_this_phoi_lacks_is_a_no_op():
+    """One dressing has to be wearable by a hotel folio and a hospital bill."""
+    import sheets
+
+    option = type("O", (), {"id": "x", "params": {
+        "css": "", "moves": [["after", "words", "signatures"]]}})()
+    recipe = type("R", (), {"choices": {"variant": option}})()
+    spec = {"sections": ["doctitle", "table", "footer"]}
+    assert sheets.variant.restructure(spec, recipe)["sections"] == spec["sections"]
+
+
+def test_a_dressing_with_no_moves_leaves_the_phoi_alone():
+    import sheets
+
+    recipe = type("R", (), {"choices": {}})()
+    spec = {"sections": ["doctitle", "table"]}
+    assert sheets.variant.restructure(spec, recipe) is spec
+
+
+def test_some_dressings_actually_restructure(built):
+    rules, _ = built
+    moved = [o for o in rules[agent_rules.ATTRIBUTE] if o.params.get("moves")]
+    assert moved, "no dressing reorders anything, so `structure` is decorative"
+
+
+# ------------------------------------------------- degradations this run drops
+
+
+def test_the_disabled_degradations_are_gone_from_every_chain(built):
+    rules, _ = built
+    for option in rules["augmentation"]:
+        for step in option.params.get("chain") or []:
+            assert str(step[0]) not in agent_rules.DISABLED_DEGRADATIONS, option.id
+
+
+def test_disabling_a_step_keeps_the_augmentation_it_came_from(built):
+    """The value keeps its id, weight and tags -- only the step list is shorter,
+    so the mix and the records still name it and nothing downstream changes."""
+    from rulebase.spec import load_rules
+
+    rules, _ = built
+    shipped = {option.id for option in load_rules()["augmentation"]}
+    assert {option.id for option in rules["augmentation"]} == shipped
