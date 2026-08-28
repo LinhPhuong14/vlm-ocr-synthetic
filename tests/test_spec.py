@@ -406,37 +406,32 @@ def test_the_ageing_attributes_are_drawn_after_everything_on_the_paper():
     describes what happened to a page AFTER it was printed, so all of them come
     after every attribute that decides what is printed. Splitting the copier
     into `toner`, `drum` and `rollers` is what made the difference visible.
+
+    `toner`/`drum`/`rollers` themselves currently carry no chain at all --
+    every worn-machine option was pulled from all three (see toner.yaml) -- so
+    checking "the chain-bearing attributes are exactly one contiguous suffix"
+    would now fail on a fact that is deliberate, not a reordering mistake:
+    `augmentation` chains, the copier's three parts sit right after it in
+    `_order.yaml` and do not. They are still the same post-print domain
+    `POST_PRINT` names below, on paper (`_order.yaml`'s own comment) even
+    while switched off, which is the fact this test must not mistake for one
+    of them having drifted out of place.
     """
     from rulebase import load_rules
 
+    POST_PRINT = {"augmentation", "toner", "drum", "rollers"}
     rules = load_rules()
     ageing = [name for name in ATTRIBUTES
               if any(option.params.get("chain") for option in rules[name])]
     assert ageing, "something has to carry the ageing chain"
     first_ageing = ATTRIBUTES.index(ageing[0])
-    assert [name for name in ATTRIBUTES[first_ageing:]] == ageing, (
-        "an attribute that does not age a page is drawn after one that does; "
-        "the ageing chain runs in draw order, so that step would land on a "
-        "sheet whose own appearance had not been decided yet")
-
-
-def test_toner_is_drawn_before_the_parts_that_require_its_tag():
-    """`drum_scored` and `rollers_worn` require `worn_machine`, which `toner` sets.
-
-    A value can only require a tag an EARLIER attribute sets, so reordering
-    these three in `_order.yaml` does not fail loudly -- it makes two values
-    undrawable, which is the exact silent failure `_order.yaml` exists to stop.
-    """
-    from rulebase import load_rules
-
-    rules = load_rules()
-    setters = {name for name in ATTRIBUTES
-               for option in rules[name] if "worn_machine" in option.tags}
-    needers = {name for name in ATTRIBUTES
-               for option in rules[name] if "worn_machine" in option.requires}
-    assert setters and needers, "the tag that ties the machine together is gone"
-    assert max(ATTRIBUTES.index(name) for name in setters) < \
-        min(ATTRIBUTES.index(name) for name in needers)
+    tail = ATTRIBUTES[first_ageing:]
+    stray = set(tail) - POST_PRINT
+    assert not stray, (
+        f"{sorted(stray)} drawn after an attribute that ages the page, but "
+        f"not one of {sorted(POST_PRINT)}; the ageing chain runs in draw "
+        "order, so that step would land on a sheet whose own appearance had "
+        "not been decided yet")
 
 
 def test_a_rules_file_the_manifest_forgets_is_an_error(tmp_path):
