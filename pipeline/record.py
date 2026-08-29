@@ -197,9 +197,39 @@ STANDALONE = {"Title", "Section-header", "Picture"}
 # Labels to a markdown prefix. Everything not listed is written as it stands.
 MARKDOWN_PREFIX = {"Title": "# ", "Section-header": "## "}
 
-# ...and to the HTML element that holds it.
-HTML_TAG = {"Title": "h1", "Section-header": "h2", "Page-header": "p",
-            "Page-footer": "p", "Table": "p", "Text": "p", "Picture": "p"}
+# The HTML element vocabulary the converter's own HTML consumer accepts.
+# `HTML_TAG` below may only pick from here -- checked by
+# `test_every_html_tag_is_one_the_converter_allows` rather than left as a
+# comment, so a future label cannot quietly pick a tag nothing downstream
+# renders.
+ALLOWED_TAGS = frozenset({
+    "math", "br", "i", "b", "u", "del", "sup", "sub", "table", "tr", "td",
+    "p", "th", "div", "pre", "h1", "h2", "h3", "h4", "h5", "ul", "ol", "li",
+    "input", "a", "span", "img", "hr", "tbody", "small", "caption", "strong",
+    "thead", "big", "code", "chem",
+})
+
+# ...and to the HTML element that holds it. The tag names the box's ROLE on
+# the page -- what a heading, a footnote, a formula *are* -- never what the
+# box happens to say; two "Text" blocks with unrelated content still both get
+# `<p>`. `Page-header` and `Page-footer` are page furniture rather than prose,
+# not `<p>` with running text, and `ALLOWED_TAGS` has no `<header>`/`<footer>`
+# to give them instead, so they get the generic block container, `<div>`.
+# Every label in `PAGE_LABELS` has an entry here now, so nothing falls through
+# to the `.get(..., "p")` fallback below by accident.
+HTML_TAG = {
+    "Title": "h1",
+    "Section-header": "h2",
+    "Caption": "caption",
+    "Footnote": "small",
+    "Formula": "math",
+    "List-item": "li",
+    "Page-header": "div",
+    "Page-footer": "div",
+    "Picture": "div",
+    "Table": "table",
+    "Text": "p",
+}
 
 # ------------------------------------------------------------------- settings
 

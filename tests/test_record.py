@@ -110,6 +110,19 @@ def test_every_label_is_one_the_converter_knows():
     assert R.DEFAULT_LABEL in R.PAGE_LABELS
 
 
+def test_every_html_tag_is_one_the_converter_allows():
+    """Every layout label has its own tag, and none of them invented one.
+
+    `HTML_TAG` names the box's ROLE (a heading, a footnote, a formula), not
+    its content, and it may only pick from `ALLOWED_TAGS` -- the element
+    vocabulary this consumer actually renders. A label with no entry would
+    fall back to `<p>` in `html_of` without anyone noticing; that fallback is
+    for `get`'s benefit, not a second definition of the mapping.
+    """
+    assert set(R.HTML_TAG) == R.PAGE_LABELS
+    assert set(R.HTML_TAG.values()) <= R.ALLOWED_TAGS
+
+
 def test_every_kind_in_every_committed_dataset_is_mapped():
     """The one that catches a field kind added without a label.
 
