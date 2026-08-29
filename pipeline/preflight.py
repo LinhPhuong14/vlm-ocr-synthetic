@@ -184,7 +184,16 @@ def ornament_assets() -> list[str]:
     * a PNG no rule names is dead weight that looks like an asset. Almost
       always it is a rename half-done, and the rule still points at the old
       stem -- which is the first failure wearing a disguise.
+
+    Only true of the `flourish` group now. The `seal` group's `marks` stopped
+    naming files the day `generators/html/sheets/base.py::render_ornament_
+    marks()` started drawing them fresh per document (colour, shape and text
+    all from the recipe, not a fixed PNG) -- `tools/make_ornaments.py::
+    SEAL_KINDS` is the set of stems that mean, not a filename, and this check
+    has to know not to go looking for them in `textures/ornament/`.
     """
+    from make_ornaments import SEAL_KINDS  # noqa: PLC0415 -- tools/ is on sys.path
+
     problems: list[str] = []
     try:
         options = load_rules().get("ornament") or []
@@ -198,6 +207,8 @@ def ornament_assets() -> list[str]:
     for option in options:
         for mark in option.params.get("marks") or []:
             stem = str((list(mark) + [""])[0])
+            if stem in SEAL_KINDS:
+                continue           # drawn per document now, not a file
             named.add(stem)
             if stem not in on_disk:
                 problems.append(
