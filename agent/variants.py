@@ -217,60 +217,19 @@ def _structure() -> Axis:
     return Axis("structure", "free", {
         # No "leave it alone" value. A `free` document is one whose dáng nobody
         # prescribes, and the run is measured on how far its pages sit from the
-        # phôi; a dressing that changes nothing is a page that fails that
-        # measurement by construction. `variant=none` is still there for a
-        # document that may not be restructured at all.
-
-        "dao_dau_trang": (
-            "đảo letterhead và tiêu đề",
-            f"{S} .head > div{{padding-bottom:1mm;}}",
-            (("swap", "letterhead", "doctitle"),)),
-
-        "chu_ky_cuoi": (
-            "số tiền bằng chữ xuống dưới chữ ký",
-            f"{S} .signs{{padding-top:5mm;}}",
-            (("after", "words", "signatures"),)),
-
-        "ghi_chu_len_dau": (
-            "ghi chú lên trước bảng, chữ ký dồn phải",
-            f"{S} .signs{{width:56%;margin-left:auto;}}",
-            (("before", "notes", "table"), ("after", "footer", "signatures"))),
-
-        "le_rong": (
-            "lề rộng, bảng thu hẹp",
-            f"{S}{{padding:17mm 16mm;}}\n{S} table.items{{width:94%;}}",
-            ()),
-
-        "le_hep_tieu_de_lon": (
-            "lề hẹp, tiêu đề phóng to",
-            f"{S}{{padding:5mm 5mm;}}\n"
-            f"{S} .t1,{S} .title{{font-size:20pt;letter-spacing:.4pt;}}",
-            ()),
-
-        "dau_trang_xep_chong": (
-            "letterhead xếp chồng thay vì ba cột",
-            f"{S} .head{{display:block;}}\n"
-            f"{S} .head > div{{display:block;width:auto;text-align:left;"
-            f"padding-bottom:1.5mm;}}",
-            (("swap", "letterhead", "doctitle"),)),
-
-        "khong_khung_bang_hep": (
-            "bỏ khung ngoài, bảng không hết bề ngang",
-            f"{S} .frame{{border:0;padding:0;}}\n{S} .inner{{border:0;}}\n"
-            f"{S} table.items{{width:88%;margin-left:auto;margin-right:auto;}}",
-            ()),
-
-        "tong_va_ky_doi_ben": (
-            "khối tổng dồn trái, chữ ký dồn phải, chân trang lên trên",
-            f"{S} .signs{{width:52%;margin-left:auto;}}\n"
-            f"{S} .foot{{text-align:left;}}",
-            (("before", "footer", "signatures"),)),
-
-        # ---- the heavy ones. Each moves several blocks AND the geometry they
-        # sit in, because one alone leaves too much of the page where it was.
-
+        # phôi; a dressing that changes nothing fails that by construction.
+        # `variant=none` is still there for a document that may not be
+        # restructured at all.
+        #
+        # Eight values, and every one of them moves blocks AND the geometry the
+        # blocks sit in. That pairing is not decoration: measured over 83
+        # dressings on five phôi, the values that only reordered sections
+        # averaged 0.53-0.62 -- a swapped letterhead leaves the other eight
+        # blocks exactly where they were -- while the ones that did both
+        # averaged 0.69-0.90. The light values are gone and their moves are
+        # folded into these.
         "truong_hai_cot": (
-            "khối trường xếp hai cột, lề rộng",
+            "khối trường xếp hai cột, lề rộng, ký cuối",
             f"{S}{{padding:15mm 14mm;}}\n"
             f"{S} .f{{display:inline-table;width:48%;vertical-align:top;}}\n"
             f"{S} .block .f:nth-child(odd){{padding-right:2mm;}}\n"
@@ -285,16 +244,8 @@ def _structure() -> Axis:
             (("before", "table", "parties"), ("after", "words", "signatures"),
              ("before", "footer", "signatures"))),
 
-        "dao_nguoc_chan_trang": (
-            "chân trang và chữ ký đảo lên trên khối tổng",
-            f"{S}{{padding:12mm 6mm;}}\n"
-            f"{S} .signs{{width:100%;padding-top:2mm;}}\n"
-            f"{S} .foot{{text-align:right;padding-top:1mm;}}",
-            (("before", "signatures", "totals"), ("before", "footer", "signatures"),
-             ("swap", "letterhead", "doctitle"))),
-
         "dan_lai_toan_bo": (
-            "dàn lại cả trang: đầu trang xếp chồng, bảng hẹp, ký giữa",
+            "dàn lại cả trang: đầu trang xếp chồng, bảng hẹp giữa, ký giữa",
             f"{S}{{padding:16mm 15mm;}}\n"
             f"{S} .head{{display:block;}}\n"
             f"{S} .head > div{{display:block;width:auto;text-align:left;}}\n"
@@ -303,24 +254,62 @@ def _structure() -> Axis:
             f"{S} .frame{{border:0;padding:0;}}\n{S} .inner{{border:0;}}",
             (("swap", "letterhead", "doctitle"), ("before", "notes", "table"),
              ("after", "words", "signatures"))),
+
+        "ky_len_tren_tong": (
+            "chữ ký và chân trang đảo lên trên khối tổng, lề hẹp",
+            f"{S}{{padding:11mm 6mm;}}\n"
+            f"{S} .signs{{width:100%;padding-top:2mm;}}\n"
+            f"{S} .foot{{text-align:right;padding-top:1mm;}}\n"
+            f"{S} table.items{{width:96%;}}",
+            (("before", "signatures", "totals"), ("before", "footer", "signatures"),
+             ("swap", "letterhead", "doctitle"))),
+
+        "le_rong_dao_khoi": (
+            "lề rộng, đầu trang xếp chồng, ghi chú lên trước bảng",
+            f"{S}{{padding:18mm 17mm;}}\n"
+            f"{S} .head{{display:block;}}\n"
+            f"{S} .head > div{{display:block;width:auto;text-align:left;}}\n"
+            f"{S} table.items{{width:94%;}}",
+            (("before", "notes", "table"), ("swap", "letterhead", "doctitle"),
+             ("after", "words", "signatures"))),
+
+        "le_hep_tieu_de_lon": (
+            "lề hẹp, tiêu đề phóng to, chân trang lên trước chữ ký",
+            f"{S}{{padding:5mm 5mm;}}\n"
+            f"{S} .t1,{S} .title{{font-size:20pt;letter-spacing:.4pt;}}\n"
+            f"{S} table.items{{width:100%;}}\n"
+            f"{S} .signs{{width:60%;margin-left:auto;}}",
+            (("before", "footer", "signatures"), ("before", "notes", "table"))),
+
+        "tong_trai_ky_phai": (
+            "khối tổng dồn trái, chữ ký dồn phải, bảng thu hẹp",
+            f"{S}{{padding:13mm 12mm;}}\n"
+            f"{S} .signs{{width:50%;margin-left:auto;}}\n"
+            f"{S} .foot{{text-align:left;}}\n"
+            f"{S} table.items{{width:86%;}}\n"
+            f"{S} .frame{{border:0;padding:0;}}\n{S} .inner{{border:0;}}",
+            (("before", "footer", "signatures"), ("swap", "letterhead", "doctitle"),
+             ("after", "words", "signatures"))),
+
+        "bang_giua_ky_trai": (
+            "bảng canh giữa hẹp, chữ ký dồn trái, ghi chú lên đầu",
+            f"{S}{{padding:14mm 9mm;}}\n"
+            f"{S} table.items{{width:78%;margin-left:auto;margin-right:auto;}}\n"
+            f"{S} .signs{{width:58%;margin-right:auto;margin-left:0;}}\n"
+            f"{S} .head{{display:block;}}\n"
+            f"{S} .head > div{{display:block;width:auto;}}",
+            (("before", "notes", "table"), ("before", "signatures", "totals"),
+             ("after", "words", "signatures"))),
     })
 
 
-# Structure values that set the page's own margins in millimetres, and so can
-# only be worn by a sheet wide enough to give them away. A thermal till roll is
-# about 80 mm across and `till.py` sets its width itself; 16 mm of margin on
-# each side leaves the item table too little to lay out in and the columns spill
-# past the paper -- measured, as a box seven pixels outside a 606 px frame on
-# `market_barcode`. It is also simply not a thing that happens: a roll printed
-# at the counter has no design margins to vary.
-#
-# Expressed as a tag rather than as a safer number because there is no number
-# that is both a wide margin on A4 and a survivable one on a roll -- and
-# percentage padding resolves against the containing block, not the sheet, so it
-# would not fix it either.
+# Every structure value sets the page's own margins in millimetres now, so all
+# of them are wide-only: a thermal roll about 80 mm across has no design margins
+# to vary, and `till.py` sets its width itself after `base.document`.
 WIDE_ONLY_STRUCTURE = frozenset({
-    "le_rong", "le_hep_tieu_de_lon", "truong_hai_cot", "dao_nguoc_chan_trang",
-    "dan_lai_toan_bo", "bang_len_truoc",
+    "truong_hai_cot", "bang_len_truoc", "dan_lai_toan_bo", "ky_len_tren_tong",
+    "le_rong_dao_khoi", "le_hep_tieu_de_lon", "tong_trai_ky_phai",
+    "bang_giua_ky_trai",
 })
 
 AXES: tuple[Axis, ...] = (_stock(), _rule(), _band(), _zebra(),
