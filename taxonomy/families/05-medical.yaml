@@ -1,0 +1,44 @@
+# 5. MEDICAL / HEALTHCARE DOCUMENT
+#
+# Half of this family is grid-shaped -- a prescription, a lab report and a test
+# result are a header block plus a table -- which makes it the most valuable
+# family to build second. The other half is prose.
+
+id: medical
+number: 5
+name: Medical / Healthcare Document
+name_vi: Tài liệu y tế
+engine: grid
+status: planned
+notes: >
+  Vietnamese hospital paperwork is highly standardised (Bộ Y tế forms), so
+  layouts here can be measured off published templates rather than invented --
+  the same method `rulebase/layouts/` already documents with `source:`.
+  Generate no real patient data: names, numbers and diagnoses all come from the
+  corpus, and the corpus is invented.
+
+children:
+  - id: report
+    name: Medical Report
+    name_vi: Báo cáo y tế
+    engine: flow
+  - id: record
+    name: Medical Record
+    name_vi: Bệnh án
+    engine: flow
+  - id: prescription
+    name: Prescription
+    name_vi: Đơn thuốc
+    notes: >
+      The best candidate for the second document type in this repository: a
+      header, a four-column table (drug, dose, quantity, instructions) and a
+      signature line. Everything the grid engine already does.
+  - {id: laboratory_report, name: Laboratory Report, name_vi: Phiếu xét nghiệm}
+  - {id: test_result,       name: Test Result,       name_vi: Kết quả xét nghiệm}
+  - id: discharge_summary
+    name: Discharge Summary
+    name_vi: Giấy ra viện
+    engine: flow
+  - {id: referral,       name: Referral Form,    name_vi: Giấy chuyển tuyến}
+  - {id: insurance_claim, name: Insurance Claim, name_vi: Hồ sơ yêu cầu bảo hiểm}
+  - {id: clinical_form,   name: Clinical Form,   name_vi: Biểu mẫu lâm sàng}

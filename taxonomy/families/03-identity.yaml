@@ -1,0 +1,44 @@
+# 3. IDENTITY & OFFICIAL DOCUMENT
+#
+# Two different things under one heading, and the `engine` field is where the
+# difference shows: a card is millimetres from a published specification, a
+# government letter is a page of prose. Both are declared here because that is
+# how the hierarchy was given; neither is drawable by the grid engine.
+
+id: identity
+number: 3
+name: Identity & Official Document
+name_vi: Giấy tờ tuỳ thân và giấy tờ chính thức
+engine: card
+status: planned
+notes: >
+  Synthetic identity documents are the one branch of this tree with a legal
+  edge to it. Generate them as obviously synthetic -- invented issuing
+  authorities, invented numbers, a visible SYNTHETIC overprint -- or not at all.
+  The repository has no such guard yet, which is a reason to build this family
+  late rather than early.
+
+children:
+  - {id: id_card,        name: ID Card,        name_vi: Căn cước công dân}
+  - {id: passport,       name: Passport,       name_vi: Hộ chiếu}
+  - {id: driver_license, name: Driver License, name_vi: Giấy phép lái xe}
+  - id: certificate
+    name: Certificate
+    name_vi: Giấy chứng nhận
+    notes: >
+      The canonical Certificate. `academic.certificate` is the same artefact
+      awarded by a school rather than by an authority, and declares `same_as`
+      pointing here.
+  - {id: permit,     name: Permit,              name_vi: Giấy phép}
+  - id: government
+    name: Government Document
+    name_vi: Văn bản nhà nước
+    engine: flow
+  - id: official_letter
+    name: Official Letter
+    name_vi: Công văn
+    engine: flow
+    notes: >
+      The canonical Official Letter; `communication.official_letter` points here.
+      Filed under both because an issuing ministry and a mail room mean the same
+      sheet of paper.

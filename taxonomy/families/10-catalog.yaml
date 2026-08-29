@@ -1,0 +1,38 @@
+# 10. LIST / CATALOG / DIRECTORY
+#
+# Rows of the same shape, repeated until the page ends. After family 1 this is
+# the most grid-shaped family in the tree: a price list is an item table with
+# the money column kept and the totals dropped, and `rulebase/layout.py` already
+# emits exactly that. Two leaves break the pattern -- a product catalogue and a
+# brochure-style menu are laid out around photographs.
+
+id: catalog
+number: 10
+name: List / Catalog / Directory
+name_vi: Danh mục và danh sách
+engine: grid
+status: planned
+notes: >
+  Long lists are where a page becomes multi-page: a 200-row inventory does not
+  fit on one sheet, and continuing a table across pages with repeated headers is
+  a `flow` problem even though each page is a grid. Until the flow engine
+  exists, generate single-page extracts and say so in the label.
+
+children:
+  - id: product_catalog
+    name: Product Catalog
+    name_vi: Catalogue sản phẩm
+    engine: canvas
+  - {id: price_list,     name: Price List,     name_vi: Bảng giá}
+  - {id: inventory_list, name: Inventory List, name_vi: Danh sách tồn kho}
+  - {id: employee_list,  name: Employee List,  name_vi: Danh sách nhân viên}
+  - {id: contact_list,   name: Contact List,   name_vi: Danh bạ liên hệ}
+  - {id: schedule,       name: Schedule,       name_vi: Lịch biểu}
+  - id: menu
+    name: Menu
+    name_vi: Thực đơn
+    notes: >
+      Shares its corpus with `business.receipt.restaurant` -- the same dishes at
+      the same prices, printed by the kitchen instead of by the till. The first
+      type that will reuse an existing corpus rather than needing a new one.
+  - {id: directory,      name: Directory,      name_vi: Danh bạ}
