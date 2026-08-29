@@ -287,7 +287,6 @@ def apply_chain(
 # sheet that already exists.
 DEFAULT_CHAIN: list[tuple[str, dict[str, Any]]] = [
     ("paper_texture", {"alpha": 0.35, "grain": 0.5}),
-    ("ink_degradation", {"level": 5}),
     ("bleed_through", {"intensity": 0.55, "nb_iter": 6}),
     ("blur_zones", {"radius": 1.8, "zones": 3, "coverage": 0.2}),
     ("shadow_binding", {"border": "left", "distance_ratio": 0.12, "intensity": 0.45}),

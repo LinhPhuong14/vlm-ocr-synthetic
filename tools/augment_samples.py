@@ -34,17 +34,14 @@ CHAINS = {
     # empty cells and reads as a double exposure rather than as ink. What is
     # left is a printed table that went through a copier.
     "tables": [
-        ("ink_degradation", {"level": 3}),
         ("blur_zones", {"radius": 1.1, "zones": 2, "coverage": 0.18}),
         ("shadow_binding", {"border": "top", "distance_ratio": 0.07, "intensity": 0.3}),
     ],
     "synthdog": [
-        ("ink_degradation", {"level": 6}),
         ("blur_zones", {"radius": 1.6, "zones": 2, "coverage": 0.18}),
         ("shadow_binding", {"border": "bottom", "distance_ratio": 0.10, "intensity": 0.4}),
     ],
     "genalog": [
-        ("ink_degradation", {"level": 4}),
         ("bleed_through", {"intensity": 0.6, "nb_iter": 8}),
         ("blur_zones", {"radius": 2.0, "zones": 3, "coverage": 0.22}),
         ("shadow_binding", {"border": "left", "distance_ratio": 0.14, "intensity": 0.5}),
