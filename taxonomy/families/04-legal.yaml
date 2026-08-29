@@ -1,0 +1,31 @@
+# 4. LEGAL DOCUMENT
+#
+# Prose with numbered clauses, signature blocks and pagination that matters --
+# "page 3 of 7" is part of the document, not decoration. Nothing here is
+# tabular, so nothing here is reachable with the engine that exists.
+
+id: legal
+number: 4
+name: Legal Document
+name_vi: Văn bản pháp lý
+engine: flow
+status: planned
+notes: >
+  The label schema for this family is the interesting part: a contract's ground
+  truth is a clause tree (numbering, nesting, cross-references), not a flat list
+  of fields. Design it with the `flow` engine, not after it.
+
+children:
+  - {id: contract,             name: Contract,           name_vi: Hợp đồng}
+  - {id: agreement,            name: Agreement,          name_vi: Thoả thuận}
+  - {id: terms,                name: Terms & Conditions, name_vi: Điều khoản và điều kiện}
+  - {id: notice,               name: Legal Notice,       name_vi: Thông báo pháp lý}
+  - {id: policy,               name: Policy Document,    name_vi: Văn bản chính sách}
+  - {id: authorization_letter, name: Authorization Letter, name_vi: Giấy uỷ quyền}
+  - id: form
+    name: Legal Form
+    name_vi: Biểu mẫu pháp lý
+    engine: grid
+    notes: >
+      The one grid-shaped leaf in a flow-shaped family: a pre-printed legal
+      form is boxes to fill in, like family 2, not running prose.

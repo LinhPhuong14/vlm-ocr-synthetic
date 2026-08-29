@@ -1,0 +1,60 @@
+# The root of the document hierarchy, and the vocabulary the family files use.
+#
+# The tree itself lives one file per family in `families/`; this file declares
+# what a node is allowed to say. Both halves are read by `taxonomy/__init__.py`
+# and by nothing else -- no Python anywhere in this repository hard-codes a
+# document type, which is the whole point of keeping the hierarchy as data.
+
+version: "1.0"
+
+root:
+  name: Document
+  name_vi: Tài liệu
+
+# How far a type has got. A dataset is only as honest as this field: a type
+# that says `ready` and generates nothing is the failure this repository keeps
+# designing against, so `make taxonomy` cross-checks every one of them against
+# the rules and the builders.
+statuses:
+  ready:   Rules and a builder exist; `make dataset` can produce it today.
+  draft:   Rules exist and it renders, but nothing has been measured against a real page.
+  planned: Declared here and nowhere else. Named so coverage can count what is missing.
+
+# Which layout engine a type needs to become pixels. This is the field that
+# turns "add 100 document types" into three sized pieces of work instead of one
+# unbounded one: everything under `grid` is corpus and YAML, everything else
+# needs an engine first.
+engines:
+  grid:
+    name: Fixed-width cell grid
+    built: true
+    description: >
+      Text placed at (row, column) in character units, the way a till, a
+      dot-matrix printer or any monospaced form prints. This is the engine the
+      three renderers already share -- `rulebase/layout.py` builds the grid and
+      synthdog, html and genalog each draw it. Tabular, fixed-width, no
+      pagination.
+  flow:
+    name: Paginated text flow
+    built: false
+    description: >
+      Headings, paragraphs that reflow, tables that break across pages, page
+      numbers. Anything read as prose rather than scanned as a table. WeasyPrint
+      and Chromium can both already do this -- what is missing is a content
+      model above the grid and a label schema for running text.
+  card:
+    name: Fixed-geometry card
+    built: false
+    description: >
+      Small, rigidly positioned artefacts with photographs, stamps and security
+      patterns: identity cards, passports, licences, certificates. Different
+      enough from a page that the grid is the wrong abstraction -- the geometry
+      is millimetres from a specification, not columns of characters.
+  canvas:
+    name: Free graphic composition
+    built: false
+    description: >
+      Posters, flyers, infographics, charts, maps: images and text placed
+      anywhere, where the reading order is a design decision rather than a
+      consequence of the layout. Needs a composition model and a label schema
+      that can say "this text belongs to that figure".
