@@ -222,6 +222,39 @@ def summary(state: RunState) -> str:
 # ------------------------------------------------------------------ detail
 
 
+def annotations_for(result: dict) -> tuple[str, list[tuple[tuple[int, int, int, int], str]]]:
+    """One image's boxes, shaped for `gr.AnnotatedImage`'s `(image,
+    [((x1, y1, x2, y2), label), ...])` value -- `record.boxes()` already
+    carries `bbox`/`kind` per block, this just picks them apart."""
+    boxes = record.boxes(result["record"])
+    marks = []
+    for box in boxes:
+        bbox = box.get("bbox") or {}
+        marks.append((
+            (int(bbox.get("x1", 0)), int(bbox.get("y1", 0)),
+             int(bbox.get("x2", 0)), int(bbox.get("y2", 0))),
+            str(box.get("kind", "?")),
+        ))
+    return str(result["path"]), marks
+
+
+def box_detail(result: dict, index: int) -> str:
+    """One box's kind/text/coordinates, for the click-a-box detail panel."""
+    boxes = record.boxes(result["record"])
+    if index < 0 or index >= len(boxes):
+        return "_(hộp không hợp lệ)_"
+    box = boxes[index]
+    bbox = box.get("bbox") or {}
+    lines = [
+        f"**hộp #{index}** -- `{box.get('kind', '?')}`",
+        f"toạ độ: ({bbox.get('x1', '?')}, {bbox.get('y1', '?')}) -- "
+        f"({bbox.get('x2', '?')}, {bbox.get('y2', '?')})",
+        "",
+        box.get("text") or "_(không có text)_",
+    ]
+    return "\n".join(lines)
+
+
 def detail_markdown(result: dict) -> str:
     """Everything known about one generated image, for the click-for-detail panel."""
     item = result["record"]
