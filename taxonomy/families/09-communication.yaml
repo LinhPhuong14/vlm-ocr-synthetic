@@ -1,0 +1,29 @@
+# 9. COMMUNICATION DOCUMENT
+#
+# Short prose with a rigid frame: sender, recipient, date, subject, body,
+# signature. The frame is what a model has to learn, and it is nearly identical
+# across the seven leaves -- which makes this family a good early candidate for
+# the flow engine, since one template covers most of it.
+
+id: communication
+number: 9
+name: Communication Document
+name_vi: Tài liệu giao tiếp
+engine: flow
+status: planned
+
+children:
+  - {id: letter, name: Letter, name_vi: Thư}
+  - id: official_letter
+    name: Official Letter
+    same_as: identity.official_letter
+  - {id: memo,            name: Memo,            name_vi: Bản ghi nhớ}
+  - {id: notice,          name: Notice,          name_vi: Thông báo}
+  - {id: announcement,    name: Announcement,    name_vi: Thông cáo}
+  - id: email
+    name: Email
+    name_vi: Thư điện tử
+    notes: >
+      A screenshot of a mail client, not a sheet of paper: the page furniture is
+      a user interface. Closer to family 12 than to the rest of this one.
+  - {id: meeting_minutes, name: Meeting Minutes, name_vi: Biên bản họp}

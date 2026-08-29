@@ -1,0 +1,89 @@
+# 1. STRUCTURED BUSINESS DOCUMENT
+#
+# The only family with a level of its own between the family and the leaf:
+# `Invoice` and `Receipt` are kinds of document, not documents, and the four
+# leaves under each differ in what they are *for* rather than in how they are
+# drawn. The loader does not care -- depth is per branch, not global -- and the
+# ids stay honest: `business.receipt.retail`, not `business.retail`.
+#
+# This is also the only family that generates anything today. Everything the
+# repository could do before the hierarchy existed lives under `receipt`.
+
+id: business
+number: 1
+name: Structured Business Document
+name_vi: Chứng từ kinh doanh có cấu trúc
+engine: grid
+status: planned            # inherited by every child that does not say otherwise
+
+children:
+  - id: invoice
+    name: Invoice
+    name_vi: Hoá đơn
+    notes: >
+      An invoice is a demand for payment and a receipt is proof of it. They
+      print almost the same table, which is why they sit in one family, and
+      they carry different mandatory fields, which is why they are not one type.
+    children:
+      - {id: commercial, name: Commercial Invoice, name_vi: Hoá đơn thương mại}
+      - {id: tax,        name: Tax Invoice,        name_vi: Hoá đơn giá trị gia tăng}
+      - {id: proforma,   name: Proforma Invoice,   name_vi: Hoá đơn chiếu lệ}
+      - {id: service,    name: Service Invoice,    name_vi: Hoá đơn dịch vụ}
+
+  - id: receipt
+    name: Receipt
+    name_vi: Biên lai
+    children:
+      - id: retail
+        name: Retail Receipt
+        name_vi: Hoá đơn bán lẻ
+        status: ready
+        notes: >
+          Supermarket and convenience-store tills. Realised by the `supermarket`,
+          `convenience_store` and `supermarket_vat` values in
+          rules/document/business.yaml, drawn with the `market_*` layouts.
+      - id: restaurant
+        name: Restaurant Receipt
+        name_vi: Phiếu tính tiền nhà hàng
+        status: ready
+        notes: >
+          Eateries, from a street stall to a restaurant printing VAT. Realised by
+          `pub_eatery`, `street_eatery` and `restaurant_vat`, drawn with the
+          `eatery_*` layouts.
+      - id: payment
+        name: Payment Receipt
+        name_vi: Biên lai thanh toán
+        notes: >
+          A bank or utility counter receipt: no item table at all, a handful of
+          labelled amounts and a stamp. Closest unbuilt type to what exists --
+          the grid engine already covers it, only corpus and a layout are missing.
+      - id: atm
+        name: ATM Receipt
+        name_vi: Biên lai ATM
+        notes: >
+          Narrow thermal roll, machine-printed, balance masked. Same paper and
+          same ageing as a retail receipt; different fields entirely.
+
+  - id: purchase_sales
+    name: Purchase / Sales
+    name_vi: Mua bán
+    children:
+      - {id: purchase_order, name: Purchase Order, name_vi: Đơn đặt hàng}
+      - {id: sales_order,    name: Sales Order,    name_vi: Đơn bán hàng}
+      - {id: quotation,      name: Quotation,      name_vi: Báo giá}
+      - {id: delivery_note,  name: Delivery Note,  name_vi: Phiếu giao hàng}
+
+  - id: financial
+    name: Financial
+    name_vi: Tài chính
+    children:
+      - {id: bank_statement,        name: Bank Statement,        name_vi: Sao kê ngân hàng}
+      - {id: transaction_statement, name: Transaction Statement, name_vi: Sao kê giao dịch}
+      - {id: payment_slip,          name: Payment Slip,          name_vi: Giấy nộp tiền}
+      - id: financial_report
+        name: Financial Report
+        name_vi: Báo cáo tài chính
+        notes: >
+          The same artefact as `report.financial_report`, filed twice because a
+          finance department and a reporting pipeline both own it. `same_as` on
+          the other node says so; this one is where it is generated from.
