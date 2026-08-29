@@ -249,61 +249,51 @@ groups:
       # cho invoice_plain/invoice_detailed. Vẽ qua họ `form` mới,
       # `generators/html/sheets/form.py`.
       - id: form_questionnaire
-        enabled: false      # xem rulebase/layouts/form_questionnaire.yaml
         weight: 2
         requires: [bare_kv]
         tags: [field_form, fillable]
 
       - id: form_timesheet_grid
-        enabled: false      # xem rulebase/layouts/form_timesheet_grid.yaml
         weight: 1
         requires: [roster]
         tags: [ruled_table, grid_form]
 
       - id: form_project_kv
-        enabled: false      # xem rulebase/layouts/form_project_kv.yaml
         weight: 2
         requires: [bare_kv]
         tags: [field_form, fillable]
 
       - id: form_two_column
-        enabled: false      # xem rulebase/layouts/form_two_column.yaml
         weight: 1
         requires: [symmetric]
         tags: [field_form, two_column, fillable]
 
       - id: form_multi_section
-        enabled: false      # xem rulebase/layouts/form_multi_section.yaml
         weight: 1
         requires: [sectioned]
         tags: [ruled_table, field_form, fillable]
 
       - id: form_checkbox_heavy
-        enabled: false      # xem rulebase/layouts/form_checkbox_heavy.yaml
         weight: 1
         requires: [checklist]
         tags: [checkbox_form, fillable]
 
       - id: form_activity_signature
-        enabled: false      # xem rulebase/layouts/form_activity_signature.yaml
         weight: 1
         requires: [activity]
         tags: [ruled_table, field_form]
 
       - id: form_table_based
-        enabled: false      # xem rulebase/layouts/form_table_based.yaml
         weight: 1
         requires: [checklist_table]
         tags: [ruled_table, checkbox_form]
 
       - id: form_government_app
-        enabled: false      # xem rulebase/layouts/form_government_app.yaml
         weight: 1
         requires: [dense_registry]
         tags: [field_form, govt_masthead, fillable]
 
       - id: form_dense_registration
-        enabled: false      # xem rulebase/layouts/form_dense_registration.yaml
         weight: 1
         requires: [dense_registry]
         tags: [field_form, fillable]

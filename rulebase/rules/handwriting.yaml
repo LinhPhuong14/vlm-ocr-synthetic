@@ -39,23 +39,28 @@ options:
   # Mặt chữ viết tay có bản quyền trong `fonts/hand/`. Phủ được MỌI ô — chữ
   # số, chữ hoa, dấu câu — nhưng cả trang chỉ một nét chữ, vì một mặt chữ là
   # một người viết.
+  # TẮT theo yêu cầu: đây là "font ngay từ đầu", model không tham gia. Mực font
+  # vẫn có mặt trên trang qua `hand_both`, chỉ khác là nó chỉ được gọi tới khi
+  # WriteViT không viết nổi ô ấy. Bật lại = xoá dòng `enabled: false`.
   - id: hand_font
-    weight: 3
+    weight: 1
+    enabled: false
     requires: [fillable]
     tags: [hand_filled, ink_font]
 
   # ------------------------------------------------------------------------
-  # HAI GIÁ TRỊ DƯỚI ĐÂY ĐANG TẮT
+  # HAI GIÁ TRỊ DƯỚI ĐÂY ĐÃ BẬT LẠI
   #
-  # `enabled: false` nghĩa là: có mặt, không bao giờ bốc trúng, nhưng vẫn gọi
-  # được đích danh — `--force handwriting=hand_model`, hoặc bật lại bằng cách
-  # xoá đúng dòng ấy. Cùng một chữ mà `rulebase/layouts/*.yaml` đang dùng.
+  # Chủ kho yêu cầu: mực bút phải là WriteViT, font chỉ đỡ khi model không viết
+  # nổi — chứ không dùng font ngay từ đầu. `hand_both` chính là chính sách ấy,
+  # nên nó thành giá trị chính; `hand_font` (font từ đầu, model không tham gia)
+  # tắt lại theo đúng yêu cầu đó.
   #
-  # Tắt vì WriteViT là **294 MB trọng số không nằm trong kho**
-  # (`python tools/writevit/setup.py` mới có). Bốc được nó nghĩa là mọi người
-  # clone kho về đều phải tải chừng ấy trước khi chạy được lượt đầu tiên, hoặc
-  # preflight từ chối chạy — cái giá quá đắt cho một giá trị mà 3/4 số lượt
-  # chạy không cần.
+  # CÁI GIÁ, và nó có thật: WriteViT là **294 MB trọng số không nằm trong kho**.
+  # Ai clone kho về cũng phải chạy `python tools/writevit/setup.py` trước lượt
+  # đầu tiên, nếu không preflight sẽ từ chối. Đó là lý do hai giá trị này từng
+  # bị tắt; nay đổi lại vì bộ dữ liệu cần nét bút thật hơn là cần lượt chạy đầu
+  # tiên chạy được ngay.
   #
   # Đo trên `data/hand18_model`: nguồn `model` chỉ phủ 30/191 ô được mời viết
   # (16 %), vì bảng chữ của checkpoint không có chữ số, không có chữ HOA và
@@ -63,14 +68,15 @@ options:
   # mỗi lần một khác, và đó là lý do `hand_both` tồn tại.
   - id: hand_model
     weight: 2
-    enabled: false
     requires: [fillable]
     tags: [hand_filled, ink_model]
 
   # Model viết được gì thì model viết, phần còn lại để mặt chữ viết. Chiều cao
   # nét khớp nhau qua `sxHeight` của OS/2 — xem `handwriting.BothHands`.
+  # Giá trị chính của thuộc tính này: model viết được gì thì model viết, phần
+  # còn lại — chữ số, chữ HOA, dấu câu, tức 84% số ô theo đo đạc ở trên — để
+  # mặt chữ viết. Đây là "WriteViT trước, font đỡ" viết thành luật.
   - id: hand_both
-    weight: 2
-    enabled: false
+    weight: 6
     requires: [fillable]
     tags: [hand_filled, ink_font, ink_model]

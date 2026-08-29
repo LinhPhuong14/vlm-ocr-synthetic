@@ -60,6 +60,7 @@ from pathlib import Path
 from typing import Any, Iterable, Sequence
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+ORNAMENT_DIR = REPO_ROOT / "textures" / "ornament"
 
 # kind prefixes that make up each semantic anchor, and the fraction of the page
 # to fall back to when a layout has none of them: (x0, y0, x1, y1), relative.
@@ -136,6 +137,99 @@ def anchor(name: str, boxes: Sequence[dict], width: int, height: int):
     return (x0 * width, y0 * height, x1 * width, y1 * height, "fallback")
 
 
+def _overlap(rect, boxes: Sequence[dict]) -> float:
+    """Area of `rect` covered by labelled runs. Zero is clear paper."""
+    x0, y0, x1, y1 = rect
+    total = 0.0
+    for box in boxes:
+        quad = box.get("quad")
+        if not quad:
+            continue
+        bx0, by0, bx1, by1 = _rect(quad)
+        wide = min(x1, bx1) - max(x0, bx0)
+        tall = min(y1, by1) - max(y0, by0)
+        if wide > 0 and tall > 0:
+            total += wide * tall
+    return total
+
+
+def clearest(rect, boxes: Sequence[dict], size: tuple[float, float],
+             steps: int = 5, page: tuple[int, int] | None = None):
+    """Where inside `rect` a mark of `size` covers the least text.
+
+    A mark is composited by multiplying, so ordinary ink under a seal still
+    reads through it -- that is the design and it holds for a seal. It does not
+    hold for a QR code, which is half solid black by construction: multiplied
+    over a title, the title is gone while the label still says every word of it
+    is there. Measured on `insurance_property_contract`, whose `letterhead`
+    anchor resolves to the hull of the party names in the middle of the page
+    and dropped the verification QR straight over `HỢP ĐỒNG BẢO HIỂM TÀI SẢN`.
+
+    So the mark is placed rather than centred: candidate positions on a coarse
+    grid inside the anchor, scored by how much labelled text each would cover,
+    and the emptiest wins. Coarse on purpose -- this runs per mark per page, and
+    the difference between the best spot and the fifth-best is not worth a
+    search. Ties keep the centre, which is where a stamp belongs when the whole
+    anchor is equally busy.
+    """
+    x0, y0, x1, y1 = rect
+    mark_w, mark_h = size
+    room_x, room_y = (x1 - x0) - mark_w, (y1 - y0) - mark_h
+    centre = ((x0 + x1 - mark_w) / 2, (y0 + y1 - mark_h) / 2)
+    if room_x <= 1 and room_y <= 1:
+        return (*centre, centre[0] + mark_w, centre[1] + mark_h)
+
+    def search(rect):
+        rx0, ry0, rx1, ry1 = rect
+        rx, ry = (rx1 - rx0) - mark_w, (ry1 - ry0) - mark_h
+        found, score_of = None, None
+        for row in range(steps):
+            for col in range(steps):
+                px = rx0 + (rx * col / (steps - 1) if rx > 0 and steps > 1 else 0)
+                py = ry0 + (ry * row / (steps - 1) if ry > 0 and steps > 1 else 0)
+                here = (px, py, px + mark_w, py + mark_h)
+                # Distance from the anchor's centre breaks ties, so a clear
+                # anchor still stamps where a person would stamp.
+                tie = abs(px - centre[0]) + abs(py - centre[1])
+                score = (_overlap(here, boxes), tie)
+                if score_of is None or score < score_of:
+                    found, score_of = here, score
+        return found, score_of
+
+    best, best_score = search(rect)
+    # A letterhead anchor is the hull of the store block, and on a dense form
+    # every position inside it is on text -- searching there can only pick the
+    # least bad. When that is still most of the mark, widen to the page band at
+    # the anchor's own height: the margins beside a letterhead are where a real
+    # QR goes anyway, and it is the difference between less overlap and none.
+    if best_score and best_score[0] > 0.15 * mark_w * mark_h and page is not None:
+        page_w, page_h = page
+        band = (0.0, max(0.0, y0 - mark_h * 0.5),
+                float(page_w), min(float(page_h), y1 + mark_h * 0.5))
+        wider, wider_score = search(band)
+        if wider_score and wider_score[0] < best_score[0]:
+            best, best_score = wider, wider_score
+    return best
+
+
+def mark_size(stem: str, scale: float, width: int, height: int,
+              directory: Path) -> tuple[float, float] | None:
+    """The footprint `pattern_overlay` will give this mark, or None if unknown."""
+    path = Path(directory) / f"{stem}.png"
+    if not path.exists():
+        return None
+    try:
+        import cv2
+
+        art = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
+    except Exception:                                   # noqa: BLE001
+        return None
+    if art is None or not art.shape[0]:
+        return None
+    mark_w = max(1.0, scale * width)
+    return mark_w, mark_w * art.shape[0] / max(art.shape[1], 1)
+
+
 def _number(value: Any, rng: random.Random, default: float) -> float:
     """A rule may write a number or a `[low, high]` range. Both mean one number.
 
@@ -207,9 +301,19 @@ def stamp(image, recipe, boxes: Sequence[dict], seed: int = 0):
             # labels the code), but a set whose barcodes do not decode to their
             # own invoices should say so where somebody will find it.
             entry["from_receipt"] = False
+        scale = _number(params.get("scale"), rng, 0.26)
+        # Move the mark off the text where the anchor leaves room for it.
+        size = mark_size(stem, scale, width, height, ORNAMENT_DIR)
+        if size is not None and boxes:
+            placed = clearest((x0, y0, x1, y1), boxes, size,
+                              page=(width, height))
+            if placed is not None:
+                x0, y0, x1, y1 = placed
+                entry["box"] = [round(x0), round(y0), round(x1), round(y1)]
+                entry["moved_off_text"] = True
         out = apply_one(out, "pattern_overlay", {
             "pattern": stem,
-            "scale": _number(params.get("scale"), rng, 0.26),
+            "scale": scale,
             "opacity": _number(params.get("opacity"), rng, 0.8),
             "rotate": _number(params.get("rotate"), rng, 0.0),
             "box": (x0, y0, x1, y1),
