@@ -375,7 +375,7 @@ ROOT_FORM = ("form_activity_signature", "form_checkbox_heavy",
              "form_table_based", "form_timesheet_grid", "form_two_column")
 
 
-def test_a_switched_off_layout_leaves_the_drawable_list_and_not_the_disk():
+def test_the_two_lists_agree_when_nothing_is_switched_off():
     """`enabled: false` means "no run draws it", not "it is gone".
 
     The two lists are the whole mechanism: `available()` is what a run takes
@@ -383,34 +383,36 @@ def test_a_switched_off_layout_leaves_the_drawable_list_and_not_the_disk():
     that left both would take its committed pages with it -- nothing could
     redraw them, because `rulebase.make(force=...)` needs the rules entry and
     `sheets.FAMILIES` needs the file.
+
+    Root 3 is back on at the owner's request, so nothing is switched off today
+    and the two lists coincide. The assertion is the *difference*, not a fixed
+    list: whichever way the switch goes, a layout that leaves `available()`
+    without leaving the disk is the thing being checked, and a layout that
+    leaves both is the failure.
     """
     drawable = set(rulebase.available_layouts())
     on_disk = set(every_layout())
 
     assert set(ROOT_FORM) <= on_disk
-    assert not (set(ROOT_FORM) & drawable)
-    assert on_disk - drawable == set(ROOT_FORM), (
-        "something else was switched off without this test being told")
+    assert drawable <= on_disk, "a run can draw a layout that is not on disk"
+    for switched_off in sorted(on_disk - drawable):
+        assert rulebase.load_layout(switched_off), (
+            f"{switched_off} left the drawable list AND the disk")
 
 
-def test_a_switched_off_layout_still_draws_when_it_is_named():
-    """The committed pages that drew one have to stay redrawable.
+def test_a_root_form_layout_draws_when_it_is_named():
+    """The pages that drew one have to stay drawable, switch or no switch.
 
     With its DOCUMENT named too, which is what a redraw does anyway --
-    `tools/check_boxes.py` forces every attribute off the record. The eight
-    `doc_form` documents were switched off with these ten layouts (a document
-    whose every layout is off cannot be drawn at all), so the layout alone
-    leaves the sampler with nothing that produces the tag it requires.
+    `tools/check_boxes.py` forces every attribute off the record. `form_two_column`
+    requires a tag only the `doc_form` documents set, so naming the layout alone
+    is refused loudly rather than quietly drawing something else; that half of
+    the behaviour is unchanged by root 3 coming back on.
     """
     recipe, _receipt, grid = rulebase.make(
         seed=11, force={"document": "form_symmetric", "layout": "form_two_column"})
     assert grid.layout_id == "form_two_column"
     assert recipe.layout.id == "form_two_column"
-
-    # ...and the layout alone is refused, loudly, rather than drawing something
-    # else: `force_for` in conftest is the helper that pairs the two.
-    with pytest.raises(rulebase.RuleError):
-        rulebase.make(seed=11, force={"layout": "form_two_column"})
 
 
 def test_a_switched_off_layout_still_has_a_sheet_to_be_dressed_in():
