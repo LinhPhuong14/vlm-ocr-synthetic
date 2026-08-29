@@ -639,6 +639,13 @@ từng bộ và schema nhãn nằm trong **[`data/README.md`](data/README.md)**.
 | [`docs/huong-dan-va-giai-thich.md`](docs/huong-dan-va-giai-thich.md) | giải thích từng dòng của renderer, kèm Q&A |
 | [`docs/co-che-sinh-con-dau.md`](docs/co-che-sinh-con-dau.md) | cơ chế sinh con dấu, viết dạng paper: mô hình raster của Pillow (nguyên thuỷ hình học **không** khử răng cưa, chữ thì có), siêu lấy mẫu, chữ trên cung tròn, mô hình mực — kèm ngân sách sai số đo được |
 | [`docs/khao-sat-root-document-ocr.md`](docs/khao-sat-root-document-ocr.md) | khảo sát 6 root document phổ biến cho OCR/eKYC ngoài phạm vi hiện tại (CCCD/CMND, hộ chiếu, GPLX, sao kê ngân hàng, CV, hợp đồng) — mỗi root kèm từ khoá và 10 bố cục có link ảnh mẫu |
+| [`docs/README.md`](docs/README.md) | **bắt đầu từ đây cho mảng tự động hoá bằng LLM**: ba tài liệu thiết kế nói gì, mười quyết định quan trọng, bốn quyết định đã sửa và vì sao, số đo đứng sau, và một kế hoạch gộp |
+| [`docs/tu-dong-hoa-bang-llm.md`](docs/tu-dong-hoa-bang-llm.md) | thiết kế tự động hoá: một LLM trong vòng lặp *viết luật* thay vì vẽ pixel — khảo sát hiện trạng sinh chứng từ tổng hợp, chỉ ra mô hình một-trang-một-nét đang chặn form viết tay, đề xuất thuộc tính thứ tám và một lớp `ink/` |
+| [`docs/muc-tieu.md`](docs/muc-tieu.md) | mảng tự động hoá để làm gì: bốn năng lực nó thêm, năm phát biểu kiểm được cho "xong", việc dự án KHÔNG nhắm tới, và bốn cách nó vẫn thất bại dù mọi task đều xong |
+| [`docs/ke-hoach.md`](docs/ke-hoach.md) | việc được chia thành mười task: mỗi task kèm mục tiêu, các file đụng tới, các bước, định nghĩa "xong" kiểm được, những cổng phải giữ xanh, và các bẫy đã biết |
+| [`docs/brief-plan-run.md`](docs/brief-plan-run.md) | lệnh làm việc cho người nhận task đầu tiên: schema input đã đo, đúng hai lượt gọi SDK, những gì model được và không được đặt, mười test cần viết, và một checklist nghiệm thu |
+| [`docs/duong-ong.md`](docs/duong-ong.md) | pipeline vẽ từ đầu đến cuối cho một tờ giấy: ranh giới lúc soạn / lúc vẽ, mười giai đoạn, vòng đời một bounding box, và vì sao hình học luôn thuộc về engine dàn chữ chứ không phải một model |
+| [`docs/tang-cuong-bo-cuc.md`](docs/tang-cuong-bo-cuc.md) | nhân một bố cục đã đo thành hàng trăm biến thể hợp lệ: một cây cột ngữ nghĩa, tám nước đi hợp lệ, `compose:` cho cột gộp, và ba lớp giữ nội dung hợp lý |
 | [`docs/python-versions.md`](docs/python-versions.md) · [`docs/windows.md`](docs/windows.md) | vì sao có mốc chặn phiên bản; cài trên Windows |
 | [`fonts/README.md`](fonts/README.md) | font nào, giấy phép nào, vì sao phải kiểm độ phủ |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | môi trường nào cho việc gì, và các kiểm tra phải chạy trước khi push |
