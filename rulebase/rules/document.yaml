@@ -200,42 +200,34 @@ groups:
     # Tắt chứ không xoá, giống mọi chỗ khác: bật lại là xoá tám dòng
     # `enabled: false` ở đây và mười dòng ở `rules/layout.yaml`.
     - id: form_brief
-      enabled: false
       weight: 2
       tags: [doc_invoice, doc_form, bare_kv]
 
     - id: form_symmetric
-      enabled: false
       weight: 1
       tags: [doc_invoice, doc_form, symmetric]
 
     - id: form_activity
-      enabled: false
       weight: 1
       tags: [doc_invoice, doc_form, activity]
 
     - id: form_checklist
-      enabled: false
       weight: 1
       tags: [doc_invoice, doc_form, checklist]
 
     - id: form_checklist_table
-      enabled: false
       weight: 1
       tags: [doc_invoice, doc_form, checklist_table]
 
     - id: form_sectioned
-      enabled: false
       weight: 1
       tags: [doc_invoice, doc_form, sectioned]
 
     - id: form_roster
-      enabled: false
       weight: 1
       tags: [doc_invoice, doc_form, roster]
 
     - id: form_dense
-      enabled: false
       weight: 2
       tags: [doc_invoice, doc_form, dense_registry]
 
