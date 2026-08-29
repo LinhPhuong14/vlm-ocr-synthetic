@@ -71,6 +71,8 @@ def report(out: Path, decisions, rules, pol, catalogue, elapsed: dict) -> dict:
         },
         "coverage": planner.coverage(decisions, rules),
         "never_drawn": planner.unused(decisions, rules),
+        # Drawable on paper and impossible in practice -- see planner.unreachable.
+        "unreachable": planner.unreachable(rules),
         "elapsed_seconds": elapsed,
     }
     (out / REPORT_NAME).write_text(

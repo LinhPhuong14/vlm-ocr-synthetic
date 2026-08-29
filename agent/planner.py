@@ -63,6 +63,11 @@ BARE_ID = "no_ornament"
 # it never saw.
 DEFAULT_PRESSURE = 0.72
 
+# How many times a page may be redrawn when a walk dead-ends. `sample_recipe`
+# uses the same idea for a pin that does not fit; a handful is plenty, because
+# the dead ends are a property of a few documents rather than of the draw.
+ATTEMPTS = 24
+
 
 @dataclass
 class Decision:
@@ -82,6 +87,15 @@ class Decision:
         return asdict(self)
 
 
+class Clash(RuntimeError):
+    """This walk reached an attribute with nothing left to draw.
+
+    Not a fault in the rules: a document can be legal while every layout it
+    admits is switched off, and `sample_recipe` answers that by redrawing the
+    whole recipe rather than by failing. So does `decide_one` -- see its retry.
+    """
+
+
 class Chooser:
     """Weighted choice that remembers, over one attribute at a time."""
 
@@ -96,14 +110,20 @@ class Chooser:
     def legal(self, attribute: str, tags: frozenset[str]) -> list[Option]:
         """Drawable values: allowed by the tags, and not switched off.
 
-        `weight: 0` is how the rules switch a value off -- `_weighted_choice`
-        has always read it that way. The coverage score divides by usage and
-        floors at a tiny positive number, so without this a switched-off value
-        would be picked the moment everything else had been used once, which is
-        the opposite of off.
+        The rules switch a value off two ways and `_draw_once` reads both:
+        `weight: 0` is the accidental one and `enabled: false` the deliberate
+        one -- `stains`, `crumpled`, `torn_edges` and `punched` are all off that
+        way today, because their chains carry `gradient_domain` and `holes`.
+
+        The coverage score divides by usage and floors at a tiny positive
+        number, so a chooser that checked neither would pick a switched-off
+        value the moment everything else had been used once, which is the
+        opposite of off. Checking only `weight` would still have drawn all four
+        of those, and drawn holes punched through pages the label says are
+        whole.
         """
         return [option for option in self.rules[attribute]
-                if option.weight > 0 and option.allowed(tags)]
+                if option.weight > 0 and option.enabled and option.allowed(tags)]
 
     def _score(self, attribute: str, option: Option, bare_penalty: float) -> float:
         used = self.used[attribute].get(option.id, 0)
@@ -113,15 +133,15 @@ class Chooser:
         return max(score, 1e-9)
 
     def take(self, attribute: str, tags: frozenset[str],
-             bare_penalty: float = 1.0) -> Option:
+             bare_penalty: float = 1.0, record: bool = True) -> Option:
         options = self.legal(attribute, tags)
         if not options:
-            raise ValueError(
-                f"{attribute}: nothing is drawable under tags {sorted(tags)}; "
-                f"the rules cannot produce a page here")
+            raise Clash(
+                f"{attribute}: nothing is drawable under tags {sorted(tags)}")
         weights = [self._score(attribute, option, bare_penalty) for option in options]
         option = self.rng.choices(options, weights=weights, k=1)[0]
-        self.record(attribute, option.id)
+        if record:
+            self.record(attribute, option.id)
         return option
 
     def record(self, attribute: str, option_id: str) -> None:
@@ -144,34 +164,47 @@ def decide_one(chooser: Chooser, policy, index: int, seed: int,
                proposal: dict[str, str] | None = None) -> Decision:
     """One page: the model's ids where they are legal, the objective elsewhere."""
     proposal = proposal or {}
-    tags: frozenset[str] = frozenset()
-    force: dict[str, str] = {}
-    from_model: list[str] = []
-    rejected: list[str] = []
-    penalty = 1.0
-
-    for attribute in chooser.order:
-        wanted = str(proposal.get(attribute, "") or "")
-        option = chooser.find(attribute, wanted, tags) if wanted else None
-        if wanted and option is None:
-            rejected.append(f"{attribute}={wanted}")
-        if option is not None:
-            chooser.record(attribute, option.id)
-            from_model.append(attribute)
-        else:
-            option = chooser.take(attribute, tags, bare_penalty=penalty)
-        force[attribute] = option.id
-        tags = tags | option.tags
-        if attribute == "document":
-            # Read once the document is known, and used when `ornament` comes
-            # round several attributes later.
-            penalty = _bare_penalty(policy, option.id)
-
-    by = "llm" if from_model else "coverage"
-    note = ""
-    if rejected:
-        note = "rules refused " + ", ".join(rejected)
-    return Decision(index=index, seed=seed, force=force, by=by, note=note)
+    last: Clash | None = None
+    # A walk can dead-end: `form_project_kv` is a legal document whose every
+    # layout is `enabled: false`, and nothing about the document says so. The
+    # sampler answers that by redrawing the whole recipe from the same rng, and
+    # so does this -- usage is committed only when a walk finishes, or a
+    # dead-ended walk would bias the counts toward the choices that led into it.
+    for _ in range(ATTEMPTS):
+        tags: frozenset[str] = frozenset()
+        force: dict[str, str] = {}
+        taken: list[tuple[str, str]] = []
+        from_model: list[str] = []
+        rejected: list[str] = []
+        penalty = 1.0
+        try:
+            for attribute in chooser.order:
+                wanted = str(proposal.get(attribute, "") or "")
+                option = chooser.find(attribute, wanted, tags) if wanted else None
+                if wanted and option is None:
+                    rejected.append(f"{attribute}={wanted}")
+                if option is not None:
+                    from_model.append(attribute)
+                else:
+                    option = chooser.take(attribute, tags, bare_penalty=penalty,
+                                          record=False)
+                force[attribute] = option.id
+                taken.append((attribute, option.id))
+                tags = tags | option.tags
+                if attribute == "document":
+                    # Read once the document is known, and used when `ornament`
+                    # comes round several attributes later.
+                    penalty = _bare_penalty(policy, option.id)
+        except Clash as clash:
+            last = clash
+            continue
+        for attribute, option_id in taken:
+            chooser.record(attribute, option_id)
+        by = "llm" if from_model else "coverage"
+        note = "rules refused " + ", ".join(rejected) if rejected else ""
+        return Decision(index=index, seed=seed, force=force, by=by, note=note)
+    raise ValueError(
+        f"image {index}: no legal page after {ATTEMPTS} attempts ({last})")
 
 
 # ------------------------------------------------------------------ the model
@@ -348,14 +381,48 @@ def coverage(decisions: list[Decision], rules: dict[str, list[Option]]
 
 
 def unused(decisions: list[Decision], rules: dict[str, list[Option]]) -> dict[str, list[str]]:
-    """Values the rules define that the plan never draws. Should be empty-ish."""
+    """Drawable values the plan never draws. Empty is the healthy answer.
+
+    Values switched off -- `weight: 0` or `enabled: false` -- are not counted.
+    A report that listed `torn_edges` as never drawn would be reporting that the
+    rules did what they say, every run, forever, which is noise that hides the
+    one line that means something.
+    """
     seen: dict[str, set[str]] = {}
     for decision in decisions:
         for attribute, value in decision.force.items():
             seen.setdefault(attribute, set()).add(value)
-    return {name: sorted({o.id for o in options} - seen.get(name, set()))
-            for name, options in rules.items()
-            if {o.id for o in options} - seen.get(name, set())}
+    dead = set(unreachable(rules).get("document") or ())
+    out = {}
+    for name, options in rules.items():
+        drawable = {o.id for o in options if o.weight > 0 and o.enabled}
+        if name == "document":
+            drawable -= dead
+        missing = sorted(drawable - seen.get(name, set()))
+        if missing:
+            out[name] = missing
+    return out
+
+
+def unreachable(rules: dict[str, list[Option]]) -> dict[str, list[str]]:
+    """Documents that pass every option check and still cannot make a page.
+
+    A document is drawable -- positive weight, `enabled: true` -- and every
+    layout its tags admit is switched off. Nothing about the document says so,
+    and the walk simply dead-ends on `layout` every time. Worth naming: it is
+    almost always a layout switched off without anyone checking who was left
+    depending on it, and the symptom otherwise is a document that quietly never
+    appears in any dataset.
+    """
+    def live(options):
+        return [o for o in options if o.weight > 0 and o.enabled]
+
+    out: list[str] = []
+    for document in live(rules.get("document") or []):
+        if not any(option.allowed(document.tags)
+                   for option in live(rules.get("layout") or [])):
+            out.append(document.id)
+    return {"document": sorted(out)} if out else {}
 
 
 def to_runs(decisions: list[Decision]) -> list:
@@ -377,4 +444,4 @@ def write(path, decisions: list[Decision]) -> Any:
 
 __all__ = ["BARE_ID", "BARE_PENALTY", "DEFAULT_PRESSURE", "Chooser", "Decision",
            "SYSTEM", "audit_drawn", "coverage", "decide_one", "plan", "propose",
-           "schema", "to_runs", "unused", "verify", "write"]
+           "schema", "to_runs", "unreachable", "unused", "verify", "write"]

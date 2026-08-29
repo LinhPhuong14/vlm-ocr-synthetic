@@ -167,6 +167,7 @@ def test_coverage_beats_independent_draws_on_the_tail(built):
     rules, pol = built
     balanced = planner.plan(400, seed=4, rules=rules, policy=pol, pressure=0.72)
     independent = planner.plan(400, seed=4, rules=rules, policy=pol, pressure=0.0)
+    # `unused` counts only drawable values, so a switched-off one is not a miss.
     assert planner.unused(balanced, rules) == {}
     assert planner.unused(independent, rules) != {}
 
@@ -308,24 +309,20 @@ def test_some_dressings_actually_restructure(built):
     assert moved, "no dressing reorders anything, so `structure` is decorative"
 
 
-# ------------------------------------------------- degradations this run drops
+# ------------------------------------- a value the rules switched off, either way
 
 
-def test_the_disabled_degradations_are_gone_from_every_chain(built):
-    rules, _ = built
-    for option in rules["augmentation"]:
-        for step in option.params.get("chain") or []:
-            assert str(step[0]) not in agent_rules.DISABLED_DEGRADATIONS, option.id
-
-
-def test_disabling_a_step_keeps_the_augmentation_it_came_from(built):
-    """The value keeps its id, weight and tags -- only the step list is shorter,
-    so the mix and the records still name it and nothing downstream changes."""
-    from rulebase.spec import load_rules
-
-    rules, _ = built
-    shipped = {option.id for option in load_rules()["augmentation"]}
-    assert {option.id for option in rules["augmentation"]} == shipped
+def test_the_chooser_reads_both_ways_a_value_is_switched_off(built):
+    """`weight: 0` is the accidental switch-off and `enabled: false` the
+    deliberate one. `_draw_once` reads both, so the chooser must too -- checking
+    only `weight` would still have drawn `torn_edges` and `punched`, and punched
+    holes through pages the label says are whole."""
+    rules, pol = built
+    off = {option.id for option in rules["augmentation"]
+           if not option.enabled or option.weight <= 0}
+    assert off, "the shipped rules switch nothing off, so this proves nothing"
+    for decision in planner.plan(400, seed=6, rules=rules, policy=pol):
+        assert decision.force["augmentation"] not in off
 
 
 def test_a_till_roll_never_wears_a_dressing_that_sets_page_margins(built):
@@ -344,13 +341,17 @@ def test_a_till_roll_never_wears_a_dressing_that_sets_page_margins(built):
             assert not option.allowed(on_a_roll), option.id
 
 
-def test_a_roll_still_has_plenty_to_wear(built):
-    """The exclusion must not starve the five till layouts into one dressing."""
+def test_a_roll_wears_ink_and_not_geometry(built):
+    """Every structure value sets the page's own margins in millimetres, so a
+    thermal roll draws none of them -- it is 80 mm across and has no design
+    margins to vary. What is left is the paint-only half of the catalogue, and
+    the point of this test is that the half is still there rather than empty."""
     rules, _ = built
     on_a_roll = frozenset({"aug_free", agent_rules.TILL_TAG})
     drawable = [o for o in rules[agent_rules.ATTRIBUTE] if o.allowed(on_a_roll)]
-    every = rules[agent_rules.ATTRIBUTE]
-    assert len(drawable) > 0.8 * len(every), f"{len(drawable)} of {len(every)}"
+    assert len(drawable) >= 8, f"a roll can only wear {len(drawable)} dressings"
+    levels = {o.params.get("level") for o in drawable} - {"locked"}
+    assert levels <= {"livery"}, f"a roll drew a geometry dressing: {levels}"
 
 
 # ------------------------------------------------ a value the rules switched off
