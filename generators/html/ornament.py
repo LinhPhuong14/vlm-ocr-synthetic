@@ -90,6 +90,15 @@ ANCHORS: dict[str, tuple[tuple[str, ...], tuple[float, float, float, float]]] = 
 # `problems()` reports it, and preflight fails the run.
 FALLBACK_ANCHOR = "page_full"
 
+# Anchors that mean "across the page", where lying over the text is the whole
+# point: a `BẢN SAO` wash and a `COPY` overprint are struck through a finished
+# document on purpose. `clearest` is not applied to these -- moving them to
+# clear paper would be moving them out of the document. Declared rather than
+# left to arithmetic: `page_full` at scale 1.0 happens to have nowhere to go,
+# but `page_center` at 0.42 does, and it moved and still covered 7.8% of the
+# text, which is the worst of both answers.
+OVERPRINT_ANCHORS = frozenset({"page_full", "page_center"})
+
 
 def _rect(quad) -> tuple[float, float, float, float]:
     xs = [point[0] for point in quad]
@@ -154,62 +163,72 @@ def _overlap(rect, boxes: Sequence[dict]) -> float:
 
 
 def clearest(rect, boxes: Sequence[dict], size: tuple[float, float],
-             steps: int = 5, page: tuple[int, int] | None = None):
-    """Where inside `rect` a mark of `size` covers the least text.
+             steps: int = 9, page: tuple[int, int] | None = None):
+    """Where a mark of `size` covers the least text, searching outward.
 
     A mark is composited by multiplying, so ordinary ink under a seal still
     reads through it -- that is the design and it holds for a seal. It does not
     hold for a QR code, which is half solid black by construction: multiplied
     over a title, the title is gone while the label still says every word of it
     is there. Measured on `insurance_property_contract`, whose `letterhead`
-    anchor resolves to the hull of the party names in the middle of the page
-    and dropped the verification QR straight over `HỢP ĐỒNG BẢO HIỂM TÀI SẢN`.
+    anchor resolves to the hull of the party names in the middle of the page and
+    dropped the verification QR straight across `HỢP ĐỒNG BẢO HIỂM TÀI SẢN`.
 
-    So the mark is placed rather than centred: candidate positions on a coarse
-    grid inside the anchor, scored by how much labelled text each would cover,
-    and the emptiest wins. Coarse on purpose -- this runs per mark per page, and
-    the difference between the best spot and the fifth-best is not worth a
-    search. Ties keep the centre, which is where a stamp belongs when the whole
-    anchor is equally busy.
+    **Three rings, and the first clear spot wins.** The anchor itself, then the
+    page band at the anchor's height, then the whole sheet. Zero overlap is the
+    bar, not "less than before": measured over twelve pages, a version that
+    widened the search only when the overlap already exceeded 15% of the mark
+    left seven of them still on text, up to 13.8%. Anything above a pixel or
+    two now escalates.
+
+    Within a ring, ties break on distance from the anchor's centre, so a seal
+    that could sit anywhere still sits where a person would stamp it, and a QR
+    pushed out to the sheet lands as close to its letterhead as clear paper
+    allows. If no ring has a clear spot -- a page with ink everywhere -- the
+    least-covered position of the widest ring is used, which is the best that
+    exists.
     """
     x0, y0, x1, y1 = rect
     mark_w, mark_h = size
-    room_x, room_y = (x1 - x0) - mark_w, (y1 - y0) - mark_h
     centre = ((x0 + x1 - mark_w) / 2, (y0 + y1 - mark_h) / 2)
-    if room_x <= 1 and room_y <= 1:
-        return (*centre, centre[0] + mark_w, centre[1] + mark_h)
 
-    def search(rect):
-        rx0, ry0, rx1, ry1 = rect
-        rx, ry = (rx1 - rx0) - mark_w, (ry1 - ry0) - mark_h
-        found, score_of = None, None
+    def search(area):
+        ax0, ay0, ax1, ay1 = area
+        room_x, room_y = (ax1 - ax0) - mark_w, (ay1 - ay0) - mark_h
+        if room_x < 0 or room_y < 0:
+            return None, None
+        best, best_score = None, None
         for row in range(steps):
             for col in range(steps):
-                px = rx0 + (rx * col / (steps - 1) if rx > 0 and steps > 1 else 0)
-                py = ry0 + (ry * row / (steps - 1) if ry > 0 and steps > 1 else 0)
+                px = ax0 + (room_x * col / (steps - 1) if steps > 1 else 0)
+                py = ay0 + (room_y * row / (steps - 1) if steps > 1 else 0)
                 here = (px, py, px + mark_w, py + mark_h)
-                # Distance from the anchor's centre breaks ties, so a clear
-                # anchor still stamps where a person would stamp.
-                tie = abs(px - centre[0]) + abs(py - centre[1])
-                score = (_overlap(here, boxes), tie)
-                if score_of is None or score < score_of:
-                    found, score_of = here, score
-        return found, score_of
+                score = (_overlap(here, boxes),
+                         abs(px - centre[0]) + abs(py - centre[1]))
+                if best_score is None or score < best_score:
+                    best, best_score = here, score
+        return best, best_score
 
-    best, best_score = search(rect)
-    # A letterhead anchor is the hull of the store block, and on a dense form
-    # every position inside it is on text -- searching there can only pick the
-    # least bad. When that is still most of the mark, widen to the page band at
-    # the anchor's own height: the margins beside a letterhead are where a real
-    # QR goes anyway, and it is the difference between less overlap and none.
-    if best_score and best_score[0] > 0.15 * mark_w * mark_h and page is not None:
-        page_w, page_h = page
-        band = (0.0, max(0.0, y0 - mark_h * 0.5),
-                float(page_w), min(float(page_h), y1 + mark_h * 0.5))
-        wider, wider_score = search(band)
-        if wider_score and wider_score[0] < best_score[0]:
-            best, best_score = wider, wider_score
-    return best
+    # A pixel or two of clipping is not an overlap anyone would see, and holding
+    # out for exact zero would push a seal across the page for nothing.
+    slack = 0.005 * mark_w * mark_h
+    rings = [rect]
+    if page is not None:
+        page_w, page_h = float(page[0]), float(page[1])
+        pad = mark_h * 0.6
+        rings.append((0.0, max(0.0, y0 - pad), page_w, min(page_h, y1 + pad)))
+        rings.append((0.0, 0.0, page_w, page_h))
+
+    fallback, fallback_score = None, None
+    for area in rings:
+        found, score = search(area)
+        if found is None:
+            continue
+        if fallback_score is None or score < fallback_score:
+            fallback, fallback_score = found, score
+        if score[0] <= slack:
+            return found
+    return fallback
 
 
 def mark_size(stem: str, scale: float, width: int, height: int,
@@ -301,10 +320,12 @@ def stamp(image, recipe, boxes: Sequence[dict], seed: int = 0):
             # labels the code), but a set whose barcodes do not decode to their
             # own invoices should say so where somebody will find it.
             entry["from_receipt"] = False
+        if name in OVERPRINT_ANCHORS:
+            entry["overprint"] = True
         scale = _number(params.get("scale"), rng, 0.26)
         # Move the mark off the text where the anchor leaves room for it.
         size = mark_size(stem, scale, width, height, ORNAMENT_DIR)
-        if size is not None and boxes:
+        if size is not None and boxes and name not in OVERPRINT_ANCHORS:
             placed = clearest((x0, y0, x1, y1), boxes, size,
                               page=(width, height))
             if placed is not None:
