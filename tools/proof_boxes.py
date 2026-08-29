@@ -61,8 +61,25 @@ def family(kind: str) -> tuple[str, tuple[int, int, int]]:
     return "khác", OTHER
 
 
+def _tag(overlay, text: str, x: int, y: int, colour, scale: float = 0.32) -> None:
+    """The box's own `kind`, written where it will still be readable on ink.
+
+    Drawn on a filled chip rather than straight onto the page: a proof sheet is
+    read over printed text and half of these labels would otherwise land on a
+    table rule. The chip is the box's own colour so the tag and its outline are
+    obviously the same thing.
+    """
+    import cv2
+
+    (width, height), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, scale, 1)
+    top = max(0, y - height - 4)
+    cv2.rectangle(overlay, (x, top), (x + width + 4, top + height + 4), colour, -1)
+    cv2.putText(overlay, text, (x + 2, top + height + 1),
+                cv2.FONT_HERSHEY_SIMPLEX, scale, (255, 255, 255), 1, cv2.LINE_AA)
+
+
 def draw(image_path: Path, record_path: Path, out_path: Path,
-         legend: bool = True) -> bool:
+         legend: bool = True, tags: bool = True) -> bool:
     """Write the proof for one page. False when the image could not be read."""
     import cv2
     import numpy as np
@@ -77,19 +94,37 @@ def draw(image_path: Path, record_path: Path, out_path: Path,
 
     overlay = image.copy()
     seen: dict[str, tuple[int, int, int]] = {}
+    labels: list[tuple[str, int, int, tuple]] = []
     for box in schema.boxes(item):
         quad = box.get("quad")
-        name, colour = family(box.get("kind", ""))
+        kind = str(box.get("kind", "") or "?")
+        name, colour = family(kind)
         seen[name] = colour
         if isinstance(quad, list) and len(quad) >= 4:
             points = np.array([[int(round(x)), int(round(y))] for x, y in quad[:4]],
                               dtype=np.int32)
             cv2.polylines(overlay, [points], True, colour, 1, cv2.LINE_AA)
+            labels.append((kind, int(points[:, 0].min()), int(points[:, 1].min()), colour))
             continue
         bbox = box.get("bbox") or {}
         if {"x1", "y1", "x2", "y2"} <= set(bbox):
             cv2.rectangle(overlay, (int(bbox["x1"]), int(bbox["y1"])),
                           (int(bbox["x2"]), int(bbox["y2"])), colour, 1)
+            labels.append((kind, int(bbox["x1"]), int(bbox["y1"]), colour))
+
+    # Tags last, so a chip is never overdrawn by the outline of the next box.
+    # A page carries hundreds of runs and most of them repeat a kind down a
+    # column, so only the first of each kind in a neighbourhood is written:
+    # labelling all 431 of a hospital bill's cells makes the sheet unreadable
+    # and says nothing the first one did not.
+    if tags:
+        written: dict[str, list[tuple[int, int]]] = {}
+        for kind, x, y, colour in labels:
+            near = written.setdefault(kind, [])
+            if any(abs(x - px) < 140 and abs(y - py) < 34 for px, py in near):
+                continue
+            near.append((x, y))
+            _tag(overlay, kind, x, y, colour)
 
     # The boxes stay legible over dark ink without hiding the ink itself: the
     # whole point is to see whether the outline sits on the glyphs.
@@ -112,9 +147,10 @@ def draw(image_path: Path, record_path: Path, out_path: Path,
     return True
 
 
-def _one(job: tuple[str, str, str]) -> bool:
-    image, item, out = job
-    return draw(Path(image), Path(item), Path(out))
+def _one(job: tuple) -> bool:
+    image, item, out = job[:3]
+    tags = job[3] if len(job) > 3 else True
+    return draw(Path(image), Path(item), Path(out), tags=tags)
 
 
 def pairs(dataset: Path, framework: str = "html") -> list[tuple[Path, Path]]:
@@ -129,11 +165,11 @@ def pairs(dataset: Path, framework: str = "html") -> list[tuple[Path, Path]]:
 
 
 def run(dataset: Path, framework: str = "html", workers: int = 1,
-        out_dir: Path | None = None) -> tuple[int, int]:
+        out_dir: Path | None = None, tags: bool = True) -> tuple[int, int]:
     """Draw every proof. Returns (written, attempted)."""
     out_dir = out_dir or dataset / "proof"
     out_dir.mkdir(parents=True, exist_ok=True)
-    jobs = [(str(image), str(item), str(out_dir / image.name))
+    jobs = [(str(image), str(item), str(out_dir / image.name), tags)
             for image, item in pairs(dataset, framework)]
     if not jobs:
         return 0, 0
@@ -150,8 +186,11 @@ def main() -> int:
     parser.add_argument("--workers", type=int, default=1)
     parser.add_argument("--out", type=Path, default=None,
                         help="default: <dataset>/proof")
+    parser.add_argument("--no-tags", action="store_true",
+                        help="outline the boxes without writing each one's kind")
     args = parser.parse_args()
-    written, total = run(args.dataset, args.framework, args.workers, args.out)
+    written, total = run(args.dataset, args.framework, args.workers, args.out,
+                         tags=not args.no_tags)
     print(f"{written}/{total} ảnh proof -> {args.out or args.dataset / 'proof'}")
     return 0 if written == total else 1
 
