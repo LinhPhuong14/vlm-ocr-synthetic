@@ -85,7 +85,6 @@ options:
     params:
       chain:
         - [paper_texture, {alpha: 0.30, grain: 0.4}]
-        - [ink_degradation, {level: 1}]
         - [blur_zones, {radius: 0.9, zones: 1, coverage: 0.12}]
 
   - id: medium
@@ -94,7 +93,6 @@ options:
     params:
       chain:
         - [paper_texture, {alpha: 0.40, grain: 0.6}]
-        - [ink_degradation, {level: 3}]
         - [blur_zones, {radius: 1.1, zones: 2, coverage: 0.15}]
         - [shadow_binding, {border: bottom, distance_ratio: 0.10, intensity: 0.35}]
         - [paper_overlay, {alpha: 0.3, lighten: 0.35}]
@@ -106,7 +104,6 @@ options:
     params:
       chain:
         - [paper_texture, {alpha: 0.45, grain: 0.7}]
-        - [ink_degradation, {level: 4}]
         - [bleed_through, {intensity: 0.5, nb_iter: 6}]
         - [blur_zones, {radius: 1.4, zones: 3, coverage: 0.18}]
         - [shadow_binding, {border: left, distance_ratio: 0.13, intensity: 0.45}]
@@ -131,7 +128,6 @@ options:
       chain:
         - [paper_texture, {alpha: 0.35, grain: 0.5}]
         - [gradient_domain, {count: 5, strength: 0.75}]
-        - [ink_degradation, {level: 3}]
 
   - id: crumpled
     enabled: false
@@ -141,7 +137,6 @@ options:
     params:
       chain:
         - [paper_texture, {alpha: 0.50, grain: 0.8, creases: 4}]
-        - [ink_degradation, {level: 3}]
         - [gradient_domain, {count: 3, strength: 0.6}]
         - [blur_zones, {radius: 1.2, zones: 3, coverage: 0.18}]
         - [paper_overlay, {alpha: 0.34, lighten: 0.3}]
@@ -153,7 +148,6 @@ options:
     params:
       chain:
         - [paper_texture, {alpha: 0.40, grain: 0.6, creases: 2}]
-        - [ink_degradation, {level: 2}]
         - [holes, {count: 2, placement: border, size_ratio: 0.16, fill: black}]
         - [holes, {count: 1, placement: corner, size_ratio: 0.26, fill: black}]
         - [blur_zones, {radius: 1.0, zones: 2, coverage: 0.14}]
@@ -165,7 +159,6 @@ options:
     params:
       chain:
         - [paper_texture, {alpha: 0.45, grain: 0.7}]
-        - [ink_degradation, {level: 3}]
         - [holes, {count: 3, placement: center, size_ratio: 0.09, fill: black}]
         - [shadow_binding, {border: left, distance_ratio: 0.10, intensity: 0.35}]
 
@@ -176,7 +169,6 @@ options:
       chain:
         - [paper_texture, {alpha: 0.30, grain: 0.45}]
         - [phantom_character, {frequency: rare}]
-        - [ink_degradation, {level: 2}]
         - [blur_zones, {radius: 1.2, zones: 2, coverage: 0.15}]
 
   # Bản photo dựng KHÔNG có lưới tram: tương phản cao, mực bệt, nhoè ống kính.
@@ -188,7 +180,6 @@ options:
     params:
       chain:
         - [paper_texture, {alpha: 0.25, grain: 0.35}]
-        - [ink_degradation, {level: 3}]
         - [phantom_character, {frequency: rare}]
         - [blur, {radius: 0.8}]
         - [shadow_binding, {border: top, distance_ratio: 0.08, intensity: 0.3}]
@@ -224,10 +215,10 @@ options:
     params:
       chain:
         - [paper_texture, {alpha: 0.28, grain: 0.4}]
-        # KHÔNG có `ink_degradation` ở đây, dù mọi kịch bản khác đều có. Lưới
-        # tram đã là hỏng mực rồi: nó băm nét chữ thành chấm. Chồng thêm mòn
-        # mực lên trên thì chữ không còn đọc được — đo bằng mắt trên chính tờ
-        # này, và một tờ không đọc được vẫn mang nhãn khai là có chữ.
+        # Kịch bản này là kịch bản duy nhất chưa bao giờ gọi `ink_degradation`
+        # — lưới tram đã là hỏng mực rồi, nó băm nét chữ thành chấm, chồng thêm
+        # mòn mực lên thì chữ không còn đọc được. Nay cả mười lăm kịch bản kia
+        # cũng bỏ nó: xem `degradation.SWITCHED_OFF`.
         - [halftone_screen, {cell: 4.2, angle: 45, strength: 0.5}]
         # Tram trước, nhoè sau: máy photo tạo chấm rồi ống kính mới làm mềm
         # mép chấm. Ngược lại thì ra chấm sắc trên nền đã nhoè, không máy nào
@@ -267,7 +258,6 @@ options:
     params:
       chain:
         - [paper_texture, {alpha: 0.30, grain: 0.5}]
-        - [ink_degradation, {level: 2}]
         - [blur_zones, {radius: 1.4, zones: 2, coverage: 0.20}]
         # Ảnh chụp điện thoại rồi chuyển tiếp mấy chặng: mỗi chặng nén lại một
         # lần, sai số dồn lên lưới 8×8 chứ không chỉ làm ảnh mờ đi.
@@ -285,6 +275,7 @@ options:
   #   * mực HỎNG LÚC IN, không phải mòn theo thời gian — `letterpress`,
   #     `hollow`, `dot_matrix`. `ink_degradation` của DocCreator tả tờ giấy in
   #     xong rồi mục đi; ba cái này tả tờ giấy chưa bao giờ được in cho tử tế.
+  #     (`ink_degradation` nay đã tắt — `degradation.SWITCHED_OFF`.)
   #
   # Ba mô hình còn lại của đợt ấy — `bad_photocopy`, `dirty_drum`,
   # `dirty_rollers` — KHÔNG có mặt trong file này. Chúng là ba bộ phận của cái
@@ -356,7 +347,6 @@ options:
     params:
       chain:
         - [paper_texture, {alpha: 0.28, grain: 0.4}]
-        - [ink_degradation, {level: 2}]
         - [paper_overlay, {alpha: 0.26, lighten: 0.32}]
         # Người đọc tô mấy dòng LIỀN NHAU, không tô ba dòng cách quãng.
         - [by_box, {effect: markup, params: {style: highlight, opacity: 0.7},
@@ -374,7 +364,6 @@ options:
     params:
       chain:
         - [paper_texture, {alpha: 0.34, grain: 0.5}]
-        - [ink_degradation, {level: 3}]
         # Gạch xoá một dòng ghi sai. `crossed_off` là mô hình DUY NHẤT ở đây
         # được phép che chữ — và một ô bị gạch xoá vẫn mang nhãn khai đủ chữ,
         # nên `count: 1` chứ không phải một phần trăm của trang.
@@ -396,7 +385,6 @@ options:
         # bắt đầu nhận hoạ tiết nền thành ký tự, tức là đang dạy điều ngược lại
         # với điều muốn dạy.
         - [voronoi_tessellation, {scale: 30, alpha: 0.15, contrast: 0.6, edges: 0.08}]
-        - [ink_degradation, {level: 2}]
         - [blur_zones, {radius: 1.0, zones: 2, coverage: 0.14}]
 
   - id: security_guilloche
@@ -411,7 +399,6 @@ options:
         # lên trang thì đọc ra khác hẳn: mảng tam giác nhọn giống nền in trang
         # trí, ô Voronoi giống thớ giấy. Giữ cả hai để một lượt chạy so được.
         - [delaunay_tessellation, {scale: 42, alpha: 0.13, contrast: 0.5}]
-        - [ink_degradation, {level: 2}]
 
   # Ảnh chụp LẠI MÀN HÌNH. Hoá đơn điện tử mở trên máy tính rồi chụp bằng điện
   # thoại — loại ảnh đang tăng nhanh nhất, và trước đợt này không mô hình nào
@@ -446,5 +433,4 @@ options:
         # ảnh chồng khít còn bốn góc lệch nhất. `radial: 0` là lệch bản in, đều
         # khắp tờ. Hai cơ chế khác nhau, và đây là cái của ống kính.
         - [color_shift, {shift: 2.0, radial: 1.0, blur: 0.5}]
-        - [ink_degradation, {level: 2}]
         - [blur_zones, {radius: 1.2, zones: 2, coverage: 0.16}]

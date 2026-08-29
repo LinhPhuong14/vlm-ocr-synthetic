@@ -218,6 +218,15 @@ SWITCHED_OFF = {
         "nhất gọi tới nó, `photocopy_screened` và `photocopy_stamped`, đã tắt "
         "cùng `photocopy`"
     ),
+    "ink_degradation": (
+        "mô hình nhiễu cục bộ của DocCreator (Kieu và cs.) — đốm mực quanh và "
+        "trong nét chữ. Tắt theo yêu cầu của chủ kho: ở mức 3-4, thứ mà mười "
+        "lăm trong mười sáu kịch bản dùng, các điểm mầm loại `cheval` và "
+        "`inside-ink` ăn vào glyph đủ để một dòng không còn đọc được, trong khi "
+        "nhãn vẫn khai đủ chữ ở đó — cùng một kiểu hỏng như `holes` và "
+        "`gradient_domain`, chỉ nhẹ hơn và vì thế khó thấy hơn. Cổng port và "
+        "test của nó giữ nguyên; bật lại là thêm lại một bước chain"
+    ),
 }
 
 

@@ -60,13 +60,6 @@ NONE_WEIGHT = 2.5
 # colour sweep. Weighted, roughly three in four free pages are restructured.
 FREE_WEIGHT = 2.5
 
-# Degradations this run does not use, stripped from every augmentation chain.
-# Not deleted from `rules/augmentation.yaml`: the value is still the value, and
-# other branches want it. `holes` punches the page through -- it removes label
-# text that the record still claims -- and `gradient_domain` Poisson-blends a
-# stain whose gradients follow the page's own, which at this volume costs more
-# time than it buys variety.
-DISABLED_DEGRADATIONS = ("gradient_domain", "holes")
 
 # The tag `rules/layout.yaml` puts on the thermal-roll family. A dressing that
 # sets the page's own margins in millimetres cannot be worn by a roll about
@@ -135,44 +128,17 @@ def variant_options(catalogue: list, policy) -> list[Option]:
     return out
 
 
-def _without_disabled(options: list[Option]) -> list[Option]:
-    """Every augmentation, with the steps this run does not use taken out.
-
-    A chain that loses every step is left as a chain of nothing, which is what
-    `pristine` already is -- the value keeps its id, its weight and its tags, so
-    the mix and the records still name it and nothing downstream has to learn a
-    special case.
-    """
-    out = []
-    for option in options:
-        chain = option.params.get("chain")
-        if not isinstance(chain, list):
-            out.append(option)
-            continue
-        kept = [step for step in chain
-                if not (isinstance(step, list) and step
-                        and str(step[0]) in DISABLED_DEGRADATIONS)]
-        if len(kept) == len(chain):
-            out.append(option)
-            continue
-        out.append(Option.from_dict({
-            "id": option.id,
-            "weight": option.weight,
-            "tags": sorted(option.tags),
-            "requires": sorted(option.requires),
-            "excludes": sorted(option.excludes),
-            "params": {**option.params, "chain": kept},
-        }, "augmentation"))
-    return out
-
-
 def switch_off(rules: dict[str, list[Option]], attribute: str,
                ids: Iterable[str]) -> dict[str, list[Option]]:
-    """Set `weight: 0` on named values -- the rules' own way of saying "off".
+    """Set `weight: 0` on named values -- one of the rules' two ways to say off.
 
-    Not a deletion: the value keeps its id, tags and params, so anything that
-    reads a record still knows what it would have meant, and `_weighted_choice`
-    plus `Chooser.legal` both already treat zero as never.
+    The other is `enabled: false`, which `rulebase/rules/` uses for a value a
+    person switched off on purpose. This one is for a value a *run* cannot use
+    -- the WriteViT ink sources on a machine with no WriteViT -- so the shipped
+    files keep saying what they mean and only this run's rules root differs.
+
+    Not a deletion either way: the value keeps its id, tags and params, so
+    anything reading a record still knows what it would have meant.
     """
     wanted = set(ids)
     out = dict(rules)
@@ -206,12 +172,8 @@ def compose(catalogue: list, policy=None) -> dict[str, list[Option]]:
 
     out: dict[str, list[Option]] = {}
     for name in ATTRIBUTES:
-        if name == "document":
-            out[name] = _tagged_documents(shipped[name], policy)
-        elif name == "augmentation":
-            out[name] = _without_disabled(shipped[name])
-        else:
-            out[name] = list(shipped[name])
+        out[name] = (_tagged_documents(shipped[name], policy)
+                     if name == "document" else list(shipped[name]))
         if name == AFTER:
             out[ATTRIBUTE] = variant_options(catalogue, policy)
     if ATTRIBUTE not in out:
@@ -251,7 +213,7 @@ def reachable(rules: dict[str, list[Option]], policy) -> dict[str, list[str]]:
     }
 
 
-__all__ = ["AFTER", "ATTRIBUTE", "DISABLED_DEGRADATIONS", "FREE_WEIGHT",
+__all__ = ["AFTER", "ATTRIBUTE", "FREE_WEIGHT",
            "NEEDS_WRITEVIT", "TILL_TAG", "switch_off", "writevit_missing",
            "NONE_ID", "NONE_WEIGHT", "RulesError",
            "activate", "compose", "materialise", "reachable", "variant_options"]
