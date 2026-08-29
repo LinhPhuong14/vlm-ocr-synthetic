@@ -88,6 +88,13 @@ def main() -> int:
                         help="images per renderer process; one browser each")
     parser.add_argument("--dressings", type=int, default=48,
                         help="how many variants the catalogue holds")
+    parser.add_argument(
+        "--qualified", type=Path, default=None, metavar="JSON",
+        help="keep only the dressings named in this file, which "
+             "`python -m agent.distance --out` writes: the ones measured to move "
+             "at least `--min` of a page's labelled runs relative to the phôi. "
+             "Designing a dressing to look different and measuring that it does "
+             "are not the same claim, and only the second one is checkable")
     parser.add_argument("--pressure", type=float, default=planner.DEFAULT_PRESSURE,
                         help="0 draws like the shipped sampler, 1 chases coverage")
     parser.add_argument("--clean", action="store_true", help="no ageing at all")
@@ -115,6 +122,21 @@ def main() -> int:
     # 1-2. Dressings, then the rules root this run reads and writes through.
     started = time.time()
     catalogue = variants.build(count=args.dressings, seed=args.seed)
+    if args.qualified:
+        table = json.loads(args.qualified.read_text(encoding="utf-8"))
+        keep = set(table.get("passed") or ())
+        before = len(catalogue)
+        # `livery` dressings are not measured against this bar: they are the
+        # ones a prescribed form wears, and moving its geometry is the thing
+        # they exist not to do.
+        catalogue = [d for d in catalogue if d.level != "free" or d.id in keep]
+        free = sum(1 for d in catalogue if d.level == "free")
+        if not free:
+            print(f"[agent] không dressing nào đạt ngưỡng {table.get('min')} "
+                  f"trong {args.qualified}")
+            return 1
+        print(f"[agent] lọc theo khoảng cách >= {table.get('min')}: "
+              f"{len(catalogue)}/{before} dressing giữ lại ({free} loại free)")
     pol = policy.load()
     root = agent_rules.materialise(out / RULES_DIR, catalogue, pol)
     agent_rules.activate(root)

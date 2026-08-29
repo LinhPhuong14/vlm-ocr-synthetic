@@ -215,7 +215,11 @@ def _structure() -> Axis:
     every box is still measured off the laid-out DOM.
     """
     return Axis("structure", "free", {
-        "nguyen_phoi": ("giữ nguyên phôi", "", ()),
+        # No "leave it alone" value. A `free` document is one whose dáng nobody
+        # prescribes, and the run is measured on how far its pages sit from the
+        # phôi; a dressing that changes nothing is a page that fails that
+        # measurement by construction. `variant=none` is still there for a
+        # document that may not be restructured at all.
 
         "dao_dau_trang": (
             "đảo letterhead và tiêu đề",
@@ -261,6 +265,44 @@ def _structure() -> Axis:
             f"{S} .signs{{width:52%;margin-left:auto;}}\n"
             f"{S} .foot{{text-align:left;}}",
             (("before", "footer", "signatures"),)),
+
+        # ---- the heavy ones. Each moves several blocks AND the geometry they
+        # sit in, because one alone leaves too much of the page where it was.
+
+        "truong_hai_cot": (
+            "khối trường xếp hai cột, lề rộng",
+            f"{S}{{padding:15mm 14mm;}}\n"
+            f"{S} .f{{display:inline-table;width:48%;vertical-align:top;}}\n"
+            f"{S} .block .f:nth-child(odd){{padding-right:2mm;}}\n"
+            f"{S} table.items{{width:100%;margin-top:3mm;}}",
+            (("swap", "letterhead", "doctitle"), ("after", "words", "signatures"))),
+
+        "bang_len_truoc": (
+            "bảng hàng lên trước khối bên mua/bên bán",
+            f"{S}{{padding:8mm 7mm;}}\n"
+            f"{S} .parties,{S} .seller{{padding-top:3mm;}}\n"
+            f"{S} table.items{{margin-top:0;}}",
+            (("before", "table", "parties"), ("after", "words", "signatures"),
+             ("before", "footer", "signatures"))),
+
+        "dao_nguoc_chan_trang": (
+            "chân trang và chữ ký đảo lên trên khối tổng",
+            f"{S}{{padding:12mm 6mm;}}\n"
+            f"{S} .signs{{width:100%;padding-top:2mm;}}\n"
+            f"{S} .foot{{text-align:right;padding-top:1mm;}}",
+            (("before", "signatures", "totals"), ("before", "footer", "signatures"),
+             ("swap", "letterhead", "doctitle"))),
+
+        "dan_lai_toan_bo": (
+            "dàn lại cả trang: đầu trang xếp chồng, bảng hẹp, ký giữa",
+            f"{S}{{padding:16mm 15mm;}}\n"
+            f"{S} .head{{display:block;}}\n"
+            f"{S} .head > div{{display:block;width:auto;text-align:left;}}\n"
+            f"{S} table.items{{width:82%;margin-left:auto;margin-right:auto;}}\n"
+            f"{S} .signs{{width:70%;margin:0 auto;}}\n"
+            f"{S} .frame{{border:0;padding:0;}}\n{S} .inner{{border:0;}}",
+            (("swap", "letterhead", "doctitle"), ("before", "notes", "table"),
+             ("after", "words", "signatures"))),
     })
 
 
@@ -276,7 +318,10 @@ def _structure() -> Axis:
 # that is both a wide margin on A4 and a survivable one on a roll -- and
 # percentage padding resolves against the containing block, not the sheet, so it
 # would not fix it either.
-WIDE_ONLY_STRUCTURE = frozenset({"le_rong", "le_hep_tieu_de_lon"})
+WIDE_ONLY_STRUCTURE = frozenset({
+    "le_rong", "le_hep_tieu_de_lon", "truong_hai_cot", "dao_nguoc_chan_trang",
+    "dan_lai_toan_bo", "bang_len_truoc",
+})
 
 AXES: tuple[Axis, ...] = (_stock(), _rule(), _band(), _zebra(),
                           _type(), _density(), _mark(), _structure())
