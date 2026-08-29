@@ -34,6 +34,7 @@ from __future__ import annotations
 import io
 import math
 import random
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
@@ -124,6 +125,142 @@ def _star(draw: ImageDraw.ImageDraw, centre: tuple[float, float], radius: float,
     draw.polygon(points, fill=fill)
 
 
+# ---------------------------------------------------------------- chữ theo elip
+
+def _ellipse_radius_at(rx: float, ry: float, at: float) -> float:
+    """Khoảng cách Euclid từ tâm elip tới điểm tại góc `at` (cùng quy ước
+    `_arc_text`: 0 độ ở đỉnh, tăng theo chiều kim đồng hồ). Không phải bán
+    kính cong -- chỉ là xấp xỉ để quy đổi bề rộng pixel sang góc, cùng mức
+    xấp xỉ `_arc_text`/`_fit_arc` đã chấp nhận cho đường tròn (`rx == ry` thì
+    hàm này trả đúng `rx`, khớp lại `_arc_text`)."""
+    return math.hypot(rx * math.sin(at), ry * math.cos(at))
+
+
+def _fit_arc_ellipse(text: str, rx: float, ry: float, mid_deg: float, max_deg: float,
+                     path: str, start_px: float, spacing: float = 1.02) -> ImageFont.FreeTypeFont:
+    """Như `_fit_arc`, dùng bán kính-tại-góc của elip (tại `mid_deg`) thay vì
+    một bán kính cố định."""
+    radius = _ellipse_radius_at(rx, ry, mid_deg * math.pi / 180.0)
+    size = start_px
+    while size > start_px * 0.55:
+        font = ImageFont.truetype(path, int(size))
+        span = sum(font.getlength(ch) * spacing for ch in text) / radius
+        if span * 180.0 / math.pi <= max_deg:
+            return font
+        size *= 0.96
+    return ImageFont.truetype(path, int(size))
+
+
+def _arc_text_ellipse(draw_on: Image.Image, text: str, centre: tuple[float, float],
+                      rx: float, ry: float, font: ImageFont.FreeTypeFont, mid_deg: float,
+                      fill: tuple[int, int, int, int], outward: bool = True,
+                      spacing: float = 1.0) -> None:
+    """Như `_arc_text`, theo cung ELIP thay vì cung tròn.
+
+    Bán kính elip đổi theo góc, nên KHÔNG THỂ ước lượng cả dòng bằng một bán
+    kính rồi bước từng ký tự bằng bán kính-tại-chỗ khác nó -- sai số cộng dồn
+    khiến dòng chữ dạt hẳn sang một bên (rõ nhất khi elip dẹt/text dài). Đi
+    hai lượt thay vì một: lượt 1 tích luỹ góc từng ký tự bằng bán kính tại
+    chỗ (cùng cách `_arc_text` bước, chỉ khác bán kính đổi theo góc thay vì
+    hằng số); lượt 2 dịch cả dòng sao cho ĐIỂM GIỮA của nó -- không phải ký
+    tự đầu -- rơi đúng `mid_deg`, rồi mới vẽ.
+
+    Vị trí mỗi ký tự vẫn tham số hoá bằng góc `at` (cùng quy ước 0 độ ở đỉnh,
+    tăng theo chiều kim đồng hồ); độ XOAY của ký tự dùng góc tiếp tuyến THẬT
+    của elip tại điểm đó -- khác `at` khi `rx != ry` -- chứ không mượn công
+    thức tròn, mượn sẽ làm chữ nghiêng sai dần về hai đầu trục ngắn.
+    """
+    def radius_at(at: float) -> float:
+        return _ellipse_radius_at(rx, ry, at)
+
+    widths = [font.getlength(ch) * spacing for ch in text]
+    mid_at = mid_deg * math.pi / 180.0
+    sign = 1.0 if outward else -1.0
+
+    offsets = []
+    walked = 0.0
+    for width in widths:
+        step = width / radius_at(mid_at + sign * walked)
+        walked += step
+        offsets.append(walked - step / 2)
+    start = -walked / 2  # `walked`, after the loop, is the run's true total span
+
+    for ch, offset in zip(text, offsets):
+        at = mid_at + sign * (start + offset)
+
+        glyph = Image.new("RGBA", (int(font.getlength(ch) * spacing) + 8,
+                                   int(font.size * 1.6) + 8), (0, 0, 0, 0))
+        ImageDraw.Draw(glyph).text((4, 4), ch, font=font, fill=fill)
+        # Tiếp tuyến thật của elip tại `at`, không phải `at` chính nó.
+        tangent = math.atan2(ry * math.sin(at), rx * math.cos(at))
+        rotation = -tangent * 180.0 / math.pi
+        glyph = glyph.rotate(rotation if outward else rotation + 180,
+                             resample=Image.BICUBIC, expand=True)
+
+        cx = centre[0] + rx * math.sin(at)
+        cy = centre[1] - ry * math.cos(at)
+        draw_on.alpha_composite(glyph, (int(cx - glyph.width / 2), int(cy - glyph.height / 2)))
+
+
+# ----------------------------------------------------------- nội dung giữa dấu
+
+MARK_KINDS = ("star", "circle", "diamond", "cross")
+
+
+def _centre_mark(kind: str, draw: ImageDraw.ImageDraw, centre: tuple[float, float],
+                 radius: float, fill: tuple[int, int, int, int]) -> None:
+    """Một hình nhỏ ở giữa dấu -- một trong `MARK_KINDS`. `star` là hình gốc
+    (`_star`); `circle`/`diamond`/`cross` là các lựa chọn mới, cùng đơn giản
+    hình học như nhau (không cần xử lý wear/ink riêng, đó là bước sau)."""
+    if kind == "star":
+        _star(draw, centre, radius, fill)
+    elif kind == "circle":
+        draw.ellipse([centre[0] - radius, centre[1] - radius,
+                     centre[0] + radius, centre[1] + radius], fill=fill)
+    elif kind == "diamond":
+        points = [(centre[0], centre[1] - radius), (centre[0] + radius, centre[1]),
+                 (centre[0], centre[1] + radius), (centre[0] - radius, centre[1])]
+        draw.polygon(points, fill=fill)
+    elif kind == "cross":
+        thickness = radius * 0.34
+        draw.rectangle([centre[0] - thickness, centre[1] - radius,
+                       centre[0] + thickness, centre[1] + radius], fill=fill)
+        draw.rectangle([centre[0] - radius, centre[1] - thickness,
+                       centre[0] + radius, centre[1] + thickness], fill=fill)
+
+
+def _draw_centre(draw: ImageDraw.ImageDraw, centre: tuple[float, float], scale: float,
+                 fill: tuple[int, int, int, int], centre_kind: str, middle: list[str]) -> None:
+    """Nội dung ở giữa dấu tròn/oval -- dùng chung bởi `round_seal` và
+    `oval_seal` nên hai hình cân xứng như nhau ở cùng `centre_kind`.
+
+    `centre_kind` là MỘT trong `MARK_KINDS` (chỉ hình), `"text"` (chỉ dòng
+    `middle`), `"<hình>+text"` (hình trên, `middle` dưới -- `"both"` là bí
+    danh cũ của `"star+text"`, giữ lại để không phá lời gọi cũ), hoặc
+    `"none"` (để trống). `scale` là `size`/`min(width, height)` của dấu --
+    mọi tỉ lệ dưới đây tính theo nó, y hệt các hằng số `round_seal` dùng
+    trước khi hàm này tách ra.
+    """
+    if centre_kind == "both":
+        centre_kind = "star+text"
+    kind = centre_kind.split("+")[0]
+    show_mark = kind in MARK_KINDS
+    show_text = bool(middle) and (centre_kind == "text" or centre_kind.endswith("+text"))
+
+    if show_mark:
+        _centre_mark(kind, draw, centre, scale * 0.115, fill)
+        text_top = centre[1] + scale * 0.135
+    else:
+        text_top = centre[1] - scale * 0.06
+
+    if show_text:
+        line_font = ImageFont.truetype(FONT_BOLD, int(scale * 0.058))
+        for index, line in enumerate(middle):
+            width = draw.textlength(line, font=line_font)
+            draw.text((centre[0] - width / 2, text_top + index * scale * 0.062), line,
+                      font=line_font, fill=fill)
+
+
 # ------------------------------------------------------------------- mực dấu
 
 def _ink(image: Image.Image, rng: random.Random, coverage: float = 0.86) -> Image.Image:
@@ -173,11 +310,12 @@ def round_seal(top: str, bottom: str, middle: list[str], *, seed: int,
 
     `centre_kind` chọn MỘT thứ choán khoảng trống bên trong hai vành, không
     phải cả hai thứ chồng lên nhau -- một con dấu khắc tay không có chỗ cho cả
-    biểu tượng lẫn dòng chữ đều chiếm vị trí chính giữa:
-      "star"  chỉ ngôi sao năm cánh; `middle` không được vẽ
-      "text"  chỉ các dòng `middle`; không có sao
-      "both"  sao ở trên, `middle` ở dưới -- nếp cũ trước khi có tham số này
-      "none"  để trống hẳn, chỉ còn hai vành chữ
+    biểu tượng lẫn dòng chữ đều chiếm vị trí chính giữa. Xem `_draw_centre`
+    cho danh sách đầy đủ; tóm tắt:
+      "star"/"circle"/"diamond"/"cross"  chỉ hình đó; `middle` không được vẽ
+      "text"                             chỉ các dòng `middle`; không có hình
+      "<hình>+text" (hoặc "both" = "star+text")  hình ở trên, `middle` ở dưới
+      "none"                             để trống hẳn, chỉ còn hai vành chữ
 
     `wear` là khoảng `(thấp, cao)` truyền vào `_ink()` làm `coverage` -- thấp
     hơn nghĩa là mực mòn/nhạt hơn. Để `None` thì dùng khoảng mặc định cũ.
@@ -219,20 +357,7 @@ def round_seal(top: str, bottom: str, middle: list[str], *, seed: int,
                       fill=ink, outward=True)
 
     draw = ImageDraw.Draw(canvas)
-    show_star = centre_kind in ("star", "both")
-    show_text = centre_kind in ("text", "both") and middle
-    if show_star:
-        _star(draw, centre, side * 0.115, ink)
-        text_top = centre[1] + side * 0.135
-    else:
-        text_top = centre[1] - side * 0.06
-
-    if show_text:
-        line_font = ImageFont.truetype(FONT_BOLD, int(side * 0.058))
-        for index, line in enumerate(middle):
-            w = draw.textlength(line, font=line_font)
-            draw.text((centre[0] - w / 2, text_top + index * side * 0.062), line,
-                      font=line_font, fill=ink)
+    _draw_centre(draw, centre, side, ink, centre_kind, middle)
 
     canvas = canvas.resize((size, size), Image.LANCZOS)
     lo, hi = wear if wear is not None else (0.78, 0.93)
@@ -270,6 +395,235 @@ def rectangular_seal(lines: list[str], *, seed: int, width: int = 560, height: i
     lo, hi = wear if wear is not None else (0.80, 0.94)
     canvas = _ink(canvas, rng, coverage=rng.uniform(lo, hi))
     return canvas.rotate(rng.uniform(-9, 9), resample=Image.BICUBIC, expand=True)
+
+
+def oval_seal(top: str, bottom: str, middle: list[str], *, seed: int,
+              width: int = 640, height: int = 460, colour=(196, 30, 38),
+              centre_kind: str = "star", wear: tuple[float, float] | None = None) -> Image.Image:
+    """Dấu bầu dục -- như `round_seal` nhưng hai trục khác nhau, hay gặp ở
+    dấu phòng khám/đơn vị tư nhân. `centre_kind`/`wear` cùng ý nghĩa với
+    `round_seal` (xem đó, và `_draw_centre`); chữ chạy theo cung elip qua
+    `_arc_text_ellipse`/`_fit_arc_ellipse` thay vì bản tròn.
+    """
+    rng = random.Random(seed)
+    w, h = width * SS, height * SS
+    canvas = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(canvas)
+    centre = (w / 2, h / 2)
+    ink = colour + (255,)
+    scale = min(w, h)
+
+    outer_rx, outer_ry = w * 0.47, h * 0.44
+    draw.ellipse([centre[0] - outer_rx, centre[1] - outer_ry,
+                 centre[0] + outer_rx, centre[1] + outer_ry],
+                outline=ink, width=int(scale * 0.022))
+    inner_rx, inner_ry = w * 0.415, h * 0.385
+    draw.ellipse([centre[0] - inner_rx, centre[1] - inner_ry,
+                 centre[0] + inner_rx, centre[1] + inner_ry],
+                outline=ink, width=int(scale * 0.007))
+
+    text_rx, text_ry = w * 0.355, h * 0.330
+    top_text = top.upper()
+    top_font = _fit_arc_ellipse(top_text, text_rx, text_ry, 0, 212, FONT_BOLD, scale * 0.10)
+    _arc_text_ellipse(canvas, top_text, centre, text_rx, text_ry, top_font, mid_deg=0,
+                      fill=ink, outward=True, spacing=1.02)
+    top_span = (sum(top_font.getlength(ch) * 1.02 for ch in top_text)
+               / _ellipse_radius_at(text_rx, text_ry, 0) * 180 / math.pi)
+
+    if bottom:
+        bottom_text = bottom.upper()
+        bottom_font = _fit_arc_ellipse(bottom_text, text_rx, text_ry, 180, 110, FONT_BOLD,
+                                       scale * 0.082)
+        _arc_text_ellipse(canvas, bottom_text, centre, text_rx, text_ry, bottom_font,
+                          mid_deg=180, fill=ink, outward=False, spacing=1.02)
+        bottom_span = (sum(bottom_font.getlength(ch) * 1.02 for ch in bottom_text)
+                       / _ellipse_radius_at(text_rx, text_ry, math.pi) * 180 / math.pi)
+        gap_mid = (top_span / 2 + (180 - bottom_span / 2)) / 2
+        star_font = ImageFont.truetype(FONT_BOLD, int(scale * 0.075))
+        for angle in (gap_mid, 360 - gap_mid):
+            _arc_text_ellipse(canvas, "*", centre, text_rx, text_ry, star_font, mid_deg=angle,
+                              fill=ink, outward=True)
+
+    _draw_centre(draw, centre, scale, ink, centre_kind, middle)
+
+    canvas = canvas.resize((width, height), Image.LANCZOS)
+    lo, hi = wear if wear is not None else (0.78, 0.93)
+    canvas = _ink(canvas, rng, coverage=rng.uniform(lo, hi))
+    return canvas.rotate(rng.uniform(-14, 14), resample=Image.BICUBIC, expand=True)
+
+
+def polygon_seal(lines: list[str], *, seed: int, sides: int = 6, size: int = 520,
+                 colour=(196, 30, 38), wear: tuple[float, float] | None = None) -> Image.Image:
+    """Dấu đa giác đều, `sides` đỉnh -- 4 là hình thoi, 6 là lục giác, và cứ
+    thế -- một hàm thay cho một hình cố định cho mỗi hình dạng mới; chữ
+    thẳng hàng giữa như `rectangular_seal`.
+    """
+    rng = random.Random(seed)
+    side = size * SS
+    canvas = Image.new("RGBA", (side, side), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(canvas)
+    centre = (side / 2, side / 2)
+    ink = colour + (255,)
+    sides = max(3, int(sides))
+
+    def ring(radius: float, width: int) -> None:
+        # Đỉnh đầu tại 12 giờ: đa giác chẵn cạnh (thoi, lục giác...) thì mép
+        # trên/dưới đối xứng qua trục dọc, giống cách `round_seal` đặt 0 độ.
+        points = [
+            (centre[0] + radius * math.sin(2 * math.pi * i / sides),
+             centre[1] - radius * math.cos(2 * math.pi * i / sides))
+            for i in range(sides)
+        ]
+        draw.polygon(points, outline=ink, width=width)
+
+    ring(side * 0.47, int(side * 0.022))
+    ring(side * 0.415, int(side * 0.007))
+
+    # Apothem (tâm -> cạnh), không phải bán kính (tâm -> đỉnh): đa giác ít
+    # cạnh (thoi) có khoảng trống dùng được hẹp hơn nhiều so với bán kính.
+    apothem = side * 0.415 * math.cos(math.pi / sides)
+    inside = apothem * 1.5
+    sizes = [side * 0.062, side * 0.038]
+    y = centre[1] - side * 0.09
+    for index, line in enumerate(lines):
+        font = _fit_width(line, inside, FONT_BOLD, sizes[min(index, len(sizes) - 1)])
+        tw = draw.textlength(line, font=font)
+        draw.text((centre[0] - tw / 2, y), line, font=font, fill=ink)
+        y += font.size * 1.25
+
+    canvas = canvas.resize((size, size), Image.LANCZOS)
+    lo, hi = wear if wear is not None else (0.80, 0.94)
+    canvas = _ink(canvas, rng, coverage=rng.uniform(lo, hi))
+    return canvas.rotate(rng.uniform(-9, 9), resample=Image.BICUBIC, expand=True)
+
+
+# --------------------------------------------------------- dấu, chọn theo seed
+#
+# `rulebase/rules/ornament.yaml`'s `marks` used to name a PNG stem in
+# `textures/ornament/` -- fixed at generation time by `main()` below, same
+# text and colour on every document that sampled it. `SEAL_KINDS` keeps the
+# stems as keys (so the rules file does not have to change) but turns each
+# one into a DRAWN-PER-DOCUMENT spec instead of a filename: which shape
+# family it may pick from, and where its text comes from -- the caller
+# (`generators/html/sheets/*.py`) is the one that knows the real store name,
+# tax code, and so on, so it always supplies `lines`, never this file.
+
+INK_COLOURS = [
+    (196, 30, 38),    # đỏ -- màu mực dấu phổ biến nhất
+    (26, 58, 148),    # xanh dương đậm -- dấu ngân hàng/kế toán hay dùng
+    (21, 87, 47),     # xanh lá đậm -- ít gặp hơn, vẫn thấy ở dấu cũ
+]
+
+
+@dataclass(frozen=True)
+class SealKind:
+    """One `marks` stem's drawing family -- `draw_seal()` reads this, seeds
+    the actual shape choice, and never hardcodes a shape itself."""
+
+    shapes: tuple[str, ...]   # ăn theo `shape` param của `draw_seal()`
+
+
+SEAL_KINDS: dict[str, SealKind] = {
+    # Dấu tròn công ty/khách sạn/xuất khẩu: hay gặp round, oval ít hơn nhưng
+    # có thật (phòng khám, đơn vị tư nhân) -- để cả hai cho seed chọn.
+    "seal_round_company": SealKind(("round", "round", "round", "oval")),
+    "seal_round_hotel": SealKind(("round", "oval")),
+    "seal_round_export": SealKind(("round", "round", "oval")),
+    # NOT `seal_name_block`: that stem is `name_block_seal()`'s "person's
+    # name + job title" identification mark, not a company seal -- a
+    # different shape family this pass did not build a procedural version
+    # of. It stays a static PNG (`make_ornaments.py::main()` still bakes
+    # it), and `pipeline/preflight.py` still expects the file.
+    "seal_round_company_double": SealKind(("round", "round", "round", "oval")),
+    "seal_round_company_faint": SealKind(("round", "round", "round", "oval")),
+    "seal_edge_half": SealKind(("round", "oval")),
+    "seal_name_block_chief": SealKind(("round", "round", "oval")),
+    # Dấu "ĐÃ THU TIỀN"/"BẢN SAO"/kế toán: chữ nhật là mặc định thật, polygon
+    # (số đỉnh bốc riêng) là biến thể ít gặp hơn.
+    "seal_square_paid": SealKind(("square", "square", "square", "polygon")),
+    "seal_square_copy": SealKind(("square", "square", "square", "polygon")),
+    "seal_accounting_posted": SealKind(("square", "square", "polygon")),
+}
+
+
+def draw_seal(kind: str, *, seed: int, lines: list[str], colour: tuple[int, int, int] | None = None,
+             shape: str | None = None) -> tuple[Image.Image, str]:
+    """One seal, drawn fresh for this document -- shape and colour picked
+    from `seed` (reproducible: same seed, same seal) unless the caller
+    forces one or both, which `tools/visualize/tab_stamp.py` does to let a
+    person audit a specific combination. Returns the image AND the shape
+    actually used (the caller needs it too -- `generators/html/sheets/
+    base.py::seal_mark()` puts it in the box's `data-kind`).
+
+    `lines`: 1-3 short strings. Round/oval put the first on the top arc, the
+    second on the bottom arc, the rest in the middle; square/polygon print
+    every line straight, centred, top to bottom -- exactly the split
+    `round_seal`/`rectangular_seal` already draw by themselves, just with
+    the seal's own real text instead of a sample company name.
+    """
+    spec = SEAL_KINDS.get(kind)
+    if spec is None:
+        raise KeyError(f"{kind!r} is not a seal kind -- add it to SEAL_KINDS")
+    rng = random.Random(seed)
+    shape = shape or rng.choice(spec.shapes)
+    colour = colour or rng.choice(INK_COLOURS)
+    lines = [line for line in lines if line]
+
+    if shape == "square":
+        return rectangular_seal(lines or ["..."], seed=seed, colour=colour), shape
+    if shape == "polygon":
+        image = polygon_seal(lines or ["..."], seed=seed, sides=rng.choice((4, 5, 6, 8)),
+                             colour=colour)
+        return image, shape
+    top = lines[0] if lines else "..."
+    bottom = lines[1] if len(lines) > 1 else ""
+    middle = lines[2:]
+    centre_kind = "text" if middle else "none"
+    if shape == "oval":
+        image = oval_seal(top, bottom, middle, seed=seed, colour=colour, centre_kind=centre_kind)
+        return image, shape
+    image = round_seal(top, bottom, middle, seed=seed, colour=colour, centre_kind=centre_kind)
+    return image, shape
+
+
+def ink_bleed(image: Image.Image, *, seed: int, strength: float = 1.0) -> Image.Image:
+    """A seal the way it looks through a black-and-white scan or photocopy:
+    colour gone (thresholded to black, same as the scanner/copier does to
+    it), and the ink at the edge no longer crisp -- it spreads unevenly, a
+    blotch here, almost nothing there, because the stamp's pressure and the
+    ink on its pad were never even either.
+
+    The opposite move from `_ink()`: that one shrinks alpha inward from the
+    original edge (mực MÒN, worn ink); this one grows it outward (mực THỪA,
+    excess ink bleeding into the paper). `strength` above 1 pushes it toward
+    a heavily over-inked or many-times-copied look.
+    """
+    rng = random.Random(seed)
+    array = np.array(image.convert("RGBA")).astype(np.float32)
+    height, width = array.shape[:2]
+    array[..., 0] = 0
+    array[..., 1] = 0
+    array[..., 2] = 0
+
+    solid = Image.fromarray(np.clip(array[..., 3], 0, 255).astype(np.uint8), "L")
+    radius = max(1, round(2 * strength))
+    grown = solid.filter(ImageFilter.MaxFilter(radius * 2 + 1))
+
+    def noise(cell: int) -> np.ndarray:
+        small = np.array(Image.fromarray(
+            (np.random.default_rng(rng.randrange(2 ** 31))
+             .random((max(height // cell, 2), max(width // cell, 2))) * 255).astype(np.uint8)
+        ).resize((width, height), Image.BICUBIC)).astype(np.float32) / 255.0
+        return small
+
+    field = noise(10) * 0.6 + noise(30) * 0.4
+    mix = np.clip((0.3 + 0.7 * field) * strength, 0, 1)
+    bled = np.array(solid).astype(np.float32) * (1 - mix) + np.array(grown).astype(np.float32) * mix
+    bled = Image.fromarray(np.clip(bled, 0, 255).astype(np.uint8), "L").filter(
+        ImageFilter.GaussianBlur(0.6 * strength))
+
+    array[..., 3] = np.array(bled).astype(np.float32)
+    return Image.fromarray(np.clip(array, 0, 255).astype(np.uint8), "RGBA")
 
 
 # ------------------------------------------------------------------ hoạ tiết
@@ -674,30 +1028,22 @@ def main() -> None:
     GREEN, TEAL, VIOLET, BLUE = (47, 82, 51), (15, 76, 92), (111, 90, 168), (30, 74, 148)
     RED = (196, 30, 38)
 
-    company = round_seal("CÔNG TY TNHH BÁN LẺ AN PHÚ VIỆT NAM", "MST 0108432911",
-                         ["HÀ NỘI"], seed=23, centre_kind="both")
-    hotel = round_seal("CÔNG TY TNHH KHÁCH SẠN THÁI AN", "MST 4201234567",
-                       ["THÁI AN", "HOTEL"], seed=44, centre_kind="text", colour=(178, 34, 40))
-    export = round_seal("CÔNG TY TNHH DỆT MAY TÂN PHÁT VINA", "ĐỒNG NAI",
-                        ["TÂN PHÁT", "VINA"], seed=37, centre_kind="text", colour=BLUE)
+    # No `seal_*` entries here any more: `rulebase/rules/ornament.yaml`'s
+    # `seal` group stopped naming files the day `generators/html/sheets/
+    # base.py::render_ornament_marks()` started drawing every one of them
+    # fresh per document instead (colour, shape and text all from the
+    # recipe -- see `SEAL_KINDS` above). This `main()` still bakes
+    # `seal_name_block`'s stem below only because `seal_with_name_block`'s
+    # OTHER mark, the name-block itself, has no procedural equivalent yet --
+    # narrowing rather than a decision to keep the seal beside it.
+    #
+    # A repository that already had the old `textures/ornament/seal_*.png`
+    # files on disk keeps them (this does not delete anything); running
+    # `make ornaments` again just stops replacing them, and `preflight.py`
+    # stops expecting them.
 
     made: list[tuple[str, Image.Image]] = [
-        # --- dấu: mực ép lên tờ giấy đã in xong
-        ("seal_round_company", company),
-        ("seal_round_hotel", hotel),
-        ("seal_round_export", export),
-        ("seal_square_paid", rectangular_seal(["ĐÃ THU TIỀN", "PAID"], seed=5)),
-        ("seal_square_copy", rectangular_seal(["BẢN SAO", "COPY"], seed=9, colour=BLUE)),
-        ("seal_accounting_posted", rectangular_seal(
-            ["ĐÃ HẠCH TOÁN", "Ngày ...... / ...... / 20......"], seed=61, colour=BLUE)),
         ("seal_name_block", name_block_seal("Nguyễn Văn Thành", "GIÁM ĐỐC", seed=71)),
-        ("seal_name_block_chief", name_block_seal(
-            "Trần Thị Bích Hạnh", "KẾ TOÁN TRƯỞNG", seed=73, colour=RED)),
-        # cùng con dấu ấy, đóng hỏng theo hai kiểu khác nhau
-        ("seal_round_company_double", double_strike(company, seed=81)),
-        ("seal_round_company_faint", _ring_only(company)),
-        ("seal_edge_half", edge_seal(export)),
-
 
         # --- nét in bảo an
         ("watermark_ban_sao", diagonal_watermark("BẢN SAO", seed=141)),
