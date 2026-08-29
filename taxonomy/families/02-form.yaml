@@ -1,0 +1,27 @@
+# 2. FORM & ADMINISTRATIVE DOCUMENT
+#
+# Flat: eight leaves, no intermediate level. What makes a form a form is the
+# blank -- a label with an empty box beside it, sometimes filled in by hand.
+# That is a property the grid engine can express (a cell with no text still has
+# a box), so this family is the cheapest of the eleven unbuilt ones to start.
+
+id: form
+number: 2
+name: Form & Administrative Document
+name_vi: Biểu mẫu và giấy tờ hành chính
+engine: grid
+status: planned
+notes: >
+  A form needs one thing the receipt generator has never had: a label for an
+  EMPTY field. `gt_parse` currently only records text that was printed, so the
+  schema grows a `fields` block whose entries may have a null value and a box.
+
+children:
+  - {id: application,    name: Application Form,    name_vi: Đơn đăng ký}
+  - {id: registration,   name: Registration Form,   name_vi: Phiếu đăng ký}
+  - {id: request,        name: Request Form,        name_vi: Giấy đề nghị}
+  - {id: survey,         name: Survey Form,         name_vi: Phiếu khảo sát}
+  - {id: declaration,    name: Declaration Form,    name_vi: Tờ khai}
+  - {id: checklist,      name: Checklist,           name_vi: Danh mục kiểm tra}
+  - {id: attendance,     name: Attendance Form,     name_vi: Bảng chấm công}
+  - {id: administrative, name: Administrative Form, name_vi: Biểu mẫu hành chính}
