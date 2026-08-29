@@ -295,6 +295,12 @@ def pattern_overlay(
     x = int(np.clip(x, 0, max(width - art_w, 0)))
     y = int(np.clip(y, 0, max(height - art_h, 0)))
 
+    # `_as_bgr` hands back the caller's own array when the page is already BGR,
+    # and the assignment below writes through it. Every other model here returns
+    # a new image and leaves its input alone; this one quietly did not, which
+    # made `out.mean() < page.mean()` compare a page with itself — the assertion
+    # in `tests/test_ornament.py` that has been red for exactly this reason.
+    bgr = bgr.copy()
     patch = bgr[y:y + art_h, x:x + art_w].astype(np.float32)
     alpha = (art[..., 3:4].astype(np.float32) / 255.0) * float(np.clip(opacity, 0, 1))
     ink = art[..., :3].astype(np.float32)
