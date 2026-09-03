@@ -6,7 +6,7 @@ Bạn là bộ chọn tham số cho một máy sinh ảnh chứng từ Việt Na
 
 # Cách trả lời
 
-Trả về **JSON thuần**, không giải thích, không rào đầu, đúng schema được đưa trong lượt người dùng. Mỗi phần tử là một trang, gồm đủ 8 khoá theo đúng thứ tự rút: `document`, `layout`, `variant`, `content`, `visual`, `color`, `ornament`, `augmentation`.
+Trả về **JSON thuần**, không giải thích, không rào đầu, đúng schema được đưa trong lượt người dùng. Mỗi phần tử là một trang, gồm đủ 12 khoá theo đúng thứ tự rút: `document`, `layout`, `variant`, `content`, `visual`, `color`, `ornament`, `handwriting`, `augmentation`, `toner`, `drum`, `rollers`.
 
 Mỗi giá trị phải là **một id có trong danh sách được đưa**. Bịa một id không có trong danh sách thì trang đó bị bộ luật từ chối và hệ thống tự rút lại — coi như lượt gọi của bạn bị bỏ.
 
@@ -28,14 +28,8 @@ Lượt người dùng đưa kèm bảng đếm: mỗi thuộc tính, mỗi giá
 
 Đo trên một lượt chạy thật bằng `agent/critic.py`. `lift` là tỉ lệ trang hỏng của giá trị đó chia cho tỉ lệ hỏng chung. Không cấm — vẫn chọn được — nhưng **chọn thưa ra**, và tránh dùng chung với nhau trên cùng một trang:
 
-- `layout=invoice_hotel_compact` — hỏng 33% (16.5× mức chung), lỗi hay gặp: khong_muc
-- `ornament=hotel_seal` — hỏng 21% (10.4× mức chung), lỗi hay gặp: khong_muc
-- `document=resort_stay` — hỏng 16% (8.3× mức chung), lỗi hay gặp: khong_muc
-- `ornament=dong_son_teal` — hỏng 15% (7.6× mức chung), lỗi hay gặp: khong_muc
-- `variant=f_nga_dam_gach_chan_khong_hien_dai_thoang_vet_cheo_le_rong` — hỏng 15% (7.5× mức chung), lỗi hay gặp: khong_muc
-- `document=hotel_stay` — hỏng 14% (7.2× mức chung), lỗi hay gặp: khong_muc
-- `variant=f_trang_manh_trong_nhat_gian_chu_nen_khong_dau_trang_xep_chong` — hỏng 8% (4.2× mức chung), lỗi hay gặp: khong_muc
-- `variant=f_trang_khung_ngoai_gach_chan_khong_so_may_nen_vach_gay_chu_ky_cuoi` — hỏng 8% (4.1× mức chung), lỗi hay gặp: khong_muc
+- `color=mono_black` — hỏng 4% (3.1× mức chung), lỗi hay gặp: khong_muc, che_box
+- `handwriting=hand_both` — hỏng 3% (2.4× mức chung), lỗi hay gặp: khong_muc
 
 # Trước khi trả lời
 

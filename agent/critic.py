@@ -115,10 +115,22 @@ GREY = (70.0, 252.0)
 NO_INK = 20.0          # nothing readable is in there at all
 FAINT = 45.0           # something is, and only just
 
-# An ornament may cover this share of a box before it is a fault. Not zero: a
-# seal's outer ring clipping the corner of a signature caption is what a real
-# seal does. A third of a title is not.
+# An ornament may cover this share of a box before it is worth reporting, and
+# this much before the field is gone rather than stamped. Not zero either way:
+# a company seal landing across the signature block is the convention on
+# Vietnamese paper, not an accident, and the marks are composited by
+# multiplying at 0.55-0.85 opacity, so ordinary ink still reads through one.
+# What no opacity saves is a field a mark covers outright -- the label still
+# claims every word of a caption that is not there any more.
 COVERED = 0.05
+# ...where "gone" is the share of the field times how much solid ink the mark
+# actually carries times its opacity -- `ornament.py::solidity` measures the
+# first of those off the artwork and records it per mark. Geometry alone cannot
+# tell a seal from a QR: a company seal is thin strokes on clear ground and
+# measures 0.078 solid, a QR is 0.397 by construction, and at 86% of one
+# signature caption the seal leaves it perfectly readable while the QR would
+# take the caption with it. Both are "a mark over 86% of a box" to a rectangle.
+BURIED = 0.15
 
 # How much of a page may be labelled box before the layout has stopped being a
 # document and started being a wall of text, and how little before it is empty.
@@ -152,7 +164,10 @@ CODES: dict[str, tuple[str, str, str]] = {
     "chu_nho": (MINOR, "record",
                 "dòng chữ thấp dưới ngưỡng pixel, OCR không đọc nổi"),
     "che_box": (SEVERE, "record",
-                "con dấu/QR/hoa văn đóng trùm lên một trường có nhãn"),
+                "con dấu/QR đóng lên một trường có nhãn và xoá mất chữ"),
+    "cham_box": (MINOR, "record",
+                 "con dấu chạm vào một trường có nhãn — đúng như dấu thật, "
+                 "chữ vẫn đọc được qua nét dấu"),
     "lap_noi_dung": (MINOR, "record",
                      "một chuỗi lặp lại nhiều lần trong cùng một loại trường"),
     "dac_thua": (MINOR, "record",
@@ -310,6 +325,9 @@ def read_page(record: dict, name: str = "",
         if not (isinstance(rect, list) and len(rect) == 4):
             continue
         rect = tuple(float(v) for v in rect)
+        # Older sets carry no `solidity`; assume the worst for them rather than
+        # quietly downgrading a finding on data that cannot answer.
+        ink = float(mark.get("solidity", 1.0)) * float(mark.get("opacity", 1.0))
         worst: tuple[float, str] = (0.0, "")
         for box in boxes:
             box_rect = _rect(box)
@@ -319,13 +337,16 @@ def read_page(record: dict, name: str = "",
             share = _intersection(rect, box_rect) / area
             if share > worst[0]:
                 worst = (share, str(box.get("kind", "?")))
+        lost = worst[0] * ink
         if worst[0] > COVERED:
             found.append(Finding(
-                "che_box", page,
+                "che_box" if lost >= BURIED else "cham_box", page,
                 f"{mark.get('pattern')} đóng ở {mark.get('anchor')} trùm "
-                f"{worst[0] * 100:.0f}% lên {worst[1]}",
+                f"{worst[0] * 100:.0f}% lên {worst[1]}, mất "
+                f"{lost * 100:.0f}% chữ",
                 {"pattern": mark.get("pattern"), "anchor": mark.get("anchor"),
                  "kind": worst[1], "share": round(worst[0], 3),
+                 "lost": round(lost, 4), "ink": round(ink, 4),
                  "moved_off_text": bool(mark.get("moved_off_text")),
                  "rect": list(rect)}))
 
@@ -704,7 +725,7 @@ def feedback(review: Review, lift: float = LIFT) -> dict[str, Any]:
                   for code, (s, side, means) in CODES.items()},
         "thresholds": {"overlap": OVERLAP, "tiny_px": TINY_PX,
                        "washed": WASHED, "sharp": SHARP, "no_ink": NO_INK,
-                       "faint": FAINT,
+                       "faint": FAINT, "buried": BURIED,
                        "covered": COVERED, "density": list(DENSITY),
                        "lift": lift},
         "rank": review.rank()[:60],
@@ -813,7 +834,7 @@ def report(review: Review, lift: float = LIFT) -> str:
     return "\n".join(lines) + "\n"
 
 
-__all__ = ["CAPTIONS", "CODES", "COVERED", "DENSITY", "FAINT",
+__all__ = ["BURIED", "CAPTIONS", "CODES", "COVERED", "DENSITY", "FAINT",
            "Finding", "GREY", "STACKED", "WASHED",
            "LIFT", "MINOR", "NO_INK", "OVERLAP", "PENALTY", "REPEATS",
            "Review", "SEVERE", "SHARP", "TINY_PX", "attributes_of", "feedback",

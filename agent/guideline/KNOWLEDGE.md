@@ -8,14 +8,14 @@
 
 | thuộc tính | số giá trị | nghĩa |
 |---|---:|---|
-| `document` | 17 | loại giấy tờ — quyết định nội dung, và quyết định luôn được phép dựng lại hay không |
-| `layout` | 16 | phôi: khung HTML gốc của trang, thuộc một trong 10 họ giấy |
-| `variant` | 65 | bộ áo: CSS chồng lên phôi. `none` là mặc phôi trần |
+| `document` | 41 | loại giấy tờ — quyết định nội dung, và quyết định luôn được phép dựng lại hay không |
+| `layout` | 52 | phôi: khung HTML gốc của trang, thuộc một trong 10 họ giấy |
+| `variant` | 49 | bộ áo: CSS chồng lên phôi. `none` là mặc phôi trần |
 | `content` | 12 | ngôn ngữ, dấu tiếng Việt, hoa/thường, đơn vị tiền |
 | `visual` | 7 | loại máy in và loại giấy |
 | `color` | 5 | hệ màu mực |
 | `ornament` | 21 | dấu, QR, mã vạch, hoa văn nền, chữ ký |
-| `augmentation` | 15 | tờ giấy đã đi qua những gì: photocopy, chụp lệch, ố, gấp |
+| `augmentation` | 23 | tờ giấy đã đi qua những gì: photocopy, chụp lệch, ố, gấp |
 
 Rút theo đúng thứ tự trên. Giá trị rút trước gắn tag lên trang, và tag quyết định giá trị nào còn hợp lệ ở bước sau — nên `document` và `layout` là hai quyết định lớn nhất, phần còn lại chảy theo.
 
@@ -43,11 +43,11 @@ Chứng từ thương mại và giấy tính tiền: mỗi quán, mỗi siêu th
 
 Hai nguồn. **Trục** — 8 trục độc lập (`stock`, `rule`, `band`, `zebra`, `type`, `density`, `mark`, `structure`), tổ hợp lại cho 648 bộ áo hạng livery và 622,080 bộ áo hạng free. Rẻ và rộng, nhưng mỗi bộ vẫn là *cùng một trang sơn khác màu*.
 
-**Kiến trúc** — 14 bản vẽ tay trong `agent/redesign.py`, mỗi bản là một cách dựng trang khác hẳn: cột nhận diện dọc bên trái, sổ cái không đường viền, băng-rôn tối chữ đảo màu, bảng thang bậc lệch phải. Đây mới là thứ làm bố cục khác đi thật.
+**Kiến trúc** — 22 bản vẽ tay trong `agent/redesign.py`, mỗi bản là một cách dựng trang khác hẳn: cột nhận diện dọc bên trái, sổ cái không đường viền, băng-rôn tối chữ đảo màu, bảng thang bậc lệch phải. Đây mới là thứ làm bố cục khác đi thật.
 
 Khác bao nhiêu thì có đo, không nói miệng: `agent/distance.py` vẽ cùng một trang hai lần — một lần `variant=none`, một lần mặc bộ áo — rồi đếm tỉ lệ ô chữ đã dời chỗ **sau khi trừ đi độ dịch chung của cả trang**. Trừ độ dịch chung là điểm mấu chốt: nới lề đẩy cả trang xuống 15 mm thì đó vẫn là trang cũ nằm thấp hơn, không phải bố cục mới.
 
-4 trong số đó được đánh dấu `graphic`: chúng đủ tính thiết kế để một giấy tờ hạng `locked` cũng mặc được mà vẫn ra dáng ấn phẩm chính thức — `cot_nhan_dien_trai`, `bang_thanh_the`, `dan_bao_chi`, `bang_ron_toi`.
+8 trong số đó được đánh dấu `graphic`: chúng đủ tính thiết kế để một giấy tờ hạng `locked` cũng mặc được mà vẫn ra dáng ấn phẩm chính thức — `cot_nhan_dien_trai`, `bang_thanh_the`, `dan_bao_chi`, `bang_ron_toi`, `cuon_bang_ron_toi`, `the_hai_mang`, `the_nen_chat`, `the_chia_hai_cot`.
 
 ## Cái gì bộ áo không được đụng vào
 
@@ -77,8 +77,11 @@ Bộ chọn đọc **cả hai**. Một bộ chọn chỉ nhìn `weight` sẽ v�
 
 ## Lượt chạy gần nhất nói gì
 
-`/home/user/vlm-ocr-synthetic/data/5k_llm` — 5000 trang, 99 trang có lỗi nặng (2.0%).
+`/home/user/vlm-ocr-synthetic/data/5k_llm` — 250 trang, 3 trang có lỗi nặng (1.2%).
 
-- `lap_noi_dung` (nhẹ) ×494 — một chuỗi lặp lại nhiều lần trong cùng một loại trường
-- `chu_nhat_mau` (nhẹ) ×294 — chữ quá nhạt so với nền ngay trong ô của nó
-- `khong_muc` (nặng) ×99 — chỗ có nhãn nhưng trên giấy không có mực
+- `cham_box` (nhẹ) ×17 — con dấu chạm vào một trường có nhãn — đúng như dấu thật, chữ vẫn đọc được qua nét dấu
+- `lap_noi_dung` (nhẹ) ×17 — một chuỗi lặp lại nhiều lần trong cùng một loại trường
+- `chu_nhat_mau` (nhẹ) ×11 — chữ quá nhạt so với nền ngay trong ô của nó
+- `chu_nho` (nhẹ) ×3 — dòng chữ thấp dưới ngưỡng pixel, OCR không đọc nổi
+- `khong_muc` (nặng) ×2 — chỗ có nhãn nhưng trên giấy không có mực
+- `che_box` (nặng) ×1 — con dấu/QR đóng lên một trường có nhãn và xoá mất chữ

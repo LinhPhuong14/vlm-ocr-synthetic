@@ -97,7 +97,16 @@ FALLBACK_ANCHOR = "page_full"
 # left to arithmetic: `page_full` at scale 1.0 happens to have nowhere to go,
 # but `page_center` at 0.42 does, and it moved and still covered 7.8% of the
 # text, which is the worst of both answers.
-OVERPRINT_ANCHORS = frozenset({"page_full", "page_center"})
+OVERPRINT_ANCHORS = frozenset({"page_full", "page_center", "table_back"})
+
+# ...and a mark this wide is a BAND, whatever anchor it was given: nothing that
+# spans the sheet can be anywhere but behind the text. `header_band` carries
+# `wave_band_teal` at `scale: 1.0` and `footer_band` carries both a band and a
+# 0.26-wide accounting stamp, so the anchor alone cannot tell them apart --
+# `clearest` would have shuffled a full-width band around looking for clear
+# paper it can never find, and the reviewer would have called every one of them
+# a fault. The stamp on the same anchor still gets placed.
+BAND_WIDTH = 0.9
 
 
 def _rect(quad) -> tuple[float, float, float, float]:
@@ -146,10 +155,25 @@ def anchor(name: str, boxes: Sequence[dict], width: int, height: int):
     return (x0 * width, y0 * height, x1 * width, y1 * height, "fallback")
 
 
-def _overlap(rect, boxes: Sequence[dict]) -> float:
-    """Area of `rect` covered by labelled runs. Zero is clear paper."""
+def _overlap(rect, boxes: Sequence[dict]) -> tuple[float, float]:
+    """`(worst box's covered share, total covered area)`. (0, 0) is clear paper.
+
+    The worst box comes FIRST, and that ordering is the whole point. Scoring on
+    total area alone asks "how much of this mark landed on text", which is a
+    question about the mark; what matters is "how much of some field did this
+    mark take away", which is a question about the label. On a dense page where
+    no clear spot exists, minimising area put a company seal wholly inside a
+    small `sign.title` -- a few hundred pixels of overlap, the best area score
+    on the page, and one field completely gone while its label still claimed
+    every word. Eight pages in 250 came out that way, every one of them
+    reported `moved_off_text: true`, because the search had honestly minimised
+    the wrong quantity.
+
+    Clipping the corners of four boxes is a better page than burying one.
+    """
     x0, y0, x1, y1 = rect
     total = 0.0
+    worst = 0.0
     for box in boxes:
         quad = box.get("quad")
         if not quad:
@@ -158,8 +182,12 @@ def _overlap(rect, boxes: Sequence[dict]) -> float:
         wide = min(x1, bx1) - max(x0, bx0)
         tall = min(y1, by1) - max(y0, by0)
         if wide > 0 and tall > 0:
-            total += wide * tall
-    return total
+            shared = wide * tall
+            total += shared
+            area = (bx1 - bx0) * (by1 - by0)
+            if area > 0:
+                worst = max(worst, shared / area)
+    return worst, total
 
 
 def clearest(rect, boxes: Sequence[dict], size: tuple[float, float],
@@ -203,15 +231,17 @@ def clearest(rect, boxes: Sequence[dict], size: tuple[float, float],
                 px = ax0 + (room_x * col / (steps - 1) if steps > 1 else 0)
                 py = ay0 + (room_y * row / (steps - 1) if steps > 1 else 0)
                 here = (px, py, px + mark_w, py + mark_h)
-                score = (_overlap(here, boxes),
+                score = (*_overlap(here, boxes),
                          abs(px - centre[0]) + abs(py - centre[1]))
                 if best_score is None or score < best_score:
                     best, best_score = here, score
         return best, best_score
 
     # A pixel or two of clipping is not an overlap anyone would see, and holding
-    # out for exact zero would push a seal across the page for nothing.
+    # out for exact zero would push a seal across the page for nothing. Both
+    # halves have to be small: a little area AND no field mostly gone.
     slack = 0.005 * mark_w * mark_h
+    buried = 0.25
     rings = [rect]
     if page is not None:
         page_w, page_h = float(page[0]), float(page[1])
@@ -226,7 +256,7 @@ def clearest(rect, boxes: Sequence[dict], size: tuple[float, float],
             continue
         if fallback_score is None or score < fallback_score:
             fallback, fallback_score = found, score
-        if score[0] <= slack:
+        if score[0] <= buried and score[1] <= slack:
             return found
     return fallback
 
@@ -234,19 +264,66 @@ def clearest(rect, boxes: Sequence[dict], size: tuple[float, float],
 def mark_size(stem: str, scale: float, width: int, height: int,
               directory: Path) -> tuple[float, float] | None:
     """The footprint `pattern_overlay` will give this mark, or None if unknown."""
-    path = Path(directory) / f"{stem}.png"
-    if not path.exists():
-        return None
-    try:
-        import cv2
-
-        art = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
-    except Exception:                                   # noqa: BLE001
-        return None
-    if art is None or not art.shape[0]:
+    art = _art(Path(directory) / f"{stem}.png")
+    if art is None:
         return None
     mark_w = max(1.0, scale * width)
     return mark_w, mark_w * art.shape[0] / max(art.shape[1], 1)
+
+
+def _art(path: Path):
+    """The pattern, read once and cached. None if it cannot be read."""
+    key = str(path)
+    if key in _ART:
+        return _ART[key]
+    art = None
+    if path.exists():
+        try:
+            import cv2
+
+            art = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
+        except Exception:                               # noqa: BLE001
+            art = None
+    if art is not None and not art.shape[0]:
+        art = None
+    _ART[key] = art
+    return art
+
+
+def solidity(stem: str, directory: Path) -> float:
+    """How much of this pattern is solid ink, from 0 (a hairline) to 1 (a slab).
+
+    The one number that separates a seal from a QR code, and neither the
+    geometry nor the opacity can stand in for it. A company seal is thin red
+    strokes on clear ground: struck across a signature caption at 0.7 opacity,
+    it covers most of the box and the caption reads straight through it, which
+    is what a stamped Vietnamese document looks like. A QR is half solid black
+    by construction: over the same caption, the caption is gone. Both are "a
+    mark covering 86% of a labelled box" to a rectangle test.
+
+    Recorded per mark so `agent/critic.py` can weigh the overlap it measures by
+    how much of the field the mark actually takes away, instead of calling every
+    stamped signature block a fault -- which it did, on seventeen pages in 250.
+    """
+    art = _art(Path(directory) / f"{stem}.png")
+    if art is None:
+        return 1.0
+    try:
+        import numpy as np
+    except Exception:                                   # noqa: BLE001
+        return 1.0
+    if art.ndim == 3 and art.shape[2] == 4:
+        alpha = art[:, :, 3].astype("float32") / 255.0
+        ink = art[:, :, :3].min(axis=2).astype("float32")
+    else:
+        alpha = np.ones(art.shape[:2], dtype="float32")
+        ink = (art if art.ndim == 2 else art.min(axis=2)).astype("float32")
+    # Solid where the artwork is both opaque and dark: that is the part which
+    # survives a multiply and takes the paper with it.
+    return float(((alpha > 0.5) & (ink < 110)).mean())
+
+
+_ART: dict[str, Any] = {}
 
 
 def _number(value: Any, rng: random.Random, default: float) -> float:
@@ -323,9 +400,16 @@ def stamp(image, recipe, boxes: Sequence[dict], seed: int = 0):
         if name in OVERPRINT_ANCHORS:
             entry["overprint"] = True
         scale = _number(params.get("scale"), rng, 0.26)
+        opacity = _number(params.get("opacity"), rng, 0.8)
+        entry["opacity"] = round(opacity, 3)
+        entry["solidity"] = round(solidity(stem, ORNAMENT_DIR), 4)
         # Move the mark off the text where the anchor leaves room for it.
         size = mark_size(stem, scale, width, height, ORNAMENT_DIR)
-        if size is not None and boxes and name not in OVERPRINT_ANCHORS:
+        band = size is not None and size[0] >= BAND_WIDTH * width
+        if band:
+            entry["overprint"] = True
+        if (size is not None and boxes and not band
+                and name not in OVERPRINT_ANCHORS):
             placed = clearest((x0, y0, x1, y1), boxes, size,
                               page=(width, height))
             if placed is not None:
@@ -335,7 +419,7 @@ def stamp(image, recipe, boxes: Sequence[dict], seed: int = 0):
         out = apply_one(out, "pattern_overlay", {
             "pattern": stem,
             "scale": scale,
-            "opacity": _number(params.get("opacity"), rng, 0.8),
+            "opacity": opacity,
             "rotate": _number(params.get("rotate"), rng, 0.0),
             "box": (x0, y0, x1, y1),
         }, rng)

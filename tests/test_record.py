@@ -318,14 +318,34 @@ def page_directories():
     tells `data/dataset60/html/` apart from `data/dataset60/proof/`, whose
     images are Tesseract's working, not the generator's output.
 
-    **Committed**, so a path under a dot-directory is skipped. `data/*/.shards/`
-    is a run's own working state and is gitignored; counting it made the census
-    below depend on whether anyone had run the pipeline in this checkout, which
-    is a red test on one machine and a green one on another for no difference in
-    what is actually committed.
+    **Committed**, and asked of git rather than guessed. A dot-directory rule
+    covered `data/*/.shards/`, a run's own working state; it does not cover
+    `data/5k_llm/`, which is a gitignored directory with an ordinary name that
+    `tools/agent_dataset.py` writes whenever anybody regenerates the agent run.
+    Counting it made the census below depend on what happened to be on the disk
+    -- a red test on the machine that had just generated a set and a green one
+    everywhere else, for no difference at all in what is committed.
+
+    `git check-ignore` is the only thing that knows the answer, so it is asked.
+    Where git cannot answer -- no git, no repository -- nothing is filtered and
+    the census counts what it finds, which is the behaviour this had before.
     """
-    return sorted(path.parent for path in DATA.rglob("synthesis.json")
-                  if not any(part.startswith(".") for part in path.parts))
+    found = sorted(path.parent for path in DATA.rglob("synthesis.json")
+                   if not any(part.startswith(".") for part in path.parts))
+    return [path for path in found if not _ignored(path)]
+
+
+def _ignored(path) -> bool:
+    """Whether git ignores this path. False if git cannot say."""
+    import subprocess
+
+    try:
+        done = subprocess.run(
+            ["git", "check-ignore", "-q", str(path)],
+            cwd=REPO_ROOT, capture_output=True, timeout=20)
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return done.returncode == 0
 
 
 def test_every_committed_page_has_a_record_in_the_shape_this_file_defines():

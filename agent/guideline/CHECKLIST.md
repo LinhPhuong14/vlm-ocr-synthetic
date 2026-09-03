@@ -9,13 +9,14 @@
 - **`chong_lan`** (đọc từ record) — hai box đè lên nhau — người đọc mất một trong hai trường
 - **`tran_le`** (đọc từ record) — box nằm ngoài mép giấy — nội dung bị cắt mất
 - **`o_trong`** (đọc từ record) — box có nhãn nhưng không có chữ — nhãn nói dối
-- **`che_box`** (đọc từ record) — con dấu/QR/hoa văn đóng trùm lên một trường có nhãn
+- **`che_box`** (đọc từ record) — con dấu/QR đóng lên một trường có nhãn và xoá mất chữ
 - **`khong_muc`** (đọc từ ảnh giấy) — chỗ có nhãn nhưng trên giấy không có mực
 - **`nhat`** (đọc từ ảnh giấy) — mực và giấy quá sát nhau, không đọc được
 
 ## Lỗi nhẹ — chấp nhận được lác đác, không chấp nhận được cả loạt
 
 - **`chu_nho`** (đọc từ record) — dòng chữ thấp dưới ngưỡng pixel, OCR không đọc nổi
+- **`cham_box`** (đọc từ record) — con dấu chạm vào một trường có nhãn — đúng như dấu thật, chữ vẫn đọc được qua nét dấu
 - **`lap_noi_dung`** (đọc từ record) — một chuỗi lặp lại nhiều lần trong cùng một loại trường
 - **`dac_thua`** (đọc từ record) — mật độ chữ trên trang ra ngoài khoảng của một tờ giấy thật
 - **`chu_nhat_mau`** (đọc từ ảnh giấy) — chữ quá nhạt so với nền ngay trong ô của nó
