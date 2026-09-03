@@ -1,0 +1,5 @@
+options:
+- id: no_rollers
+  weight: 1.0
+  tags:
+  - rollers_clean

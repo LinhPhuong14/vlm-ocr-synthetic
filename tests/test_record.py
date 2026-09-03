@@ -364,6 +364,11 @@ def test_every_committed_page_has_a_record_in_the_shape_this_file_defines():
     # meant to: a set that quietly lost half its pages would otherwise look
     # like a passing test. The chain, newest first:
     #
+    #   988 = 738 plus `data/5k_llm/`, the agent run's 250 drawn pages. The set
+    #         was committed whole once, removed at the owner's request, and put
+    #         back at their later one; `.gitignore` says which parts land in git.
+    #         The plan is for 5000 -- `--render-upto` drew the first 250 of it,
+    #         so the coverage objective is still balanced over the whole run.
     #   738 = 380 plus `data/layout_augment/`, 358 pages: every one of the 52
     #         phôi drawn bare, and then drawn again wearing each rebuild
     #         `agent/redesign.py` offers it -- same seed, same document, ageing
@@ -400,7 +405,7 @@ def test_every_committed_page_has_a_record_in_the_shape_this_file_defines():
     #   294 = 307 before `data/dataset_test` was rebuilt on the CSS sheets,
     #         which took it from 30 images over two renderers to 16, one per
     #         layout, on the only backend the pipeline still drives.
-    assert seen == 738, seen
+    assert seen == 988, seen
 
 
 # ------------------------------------------------------- the shape before this
