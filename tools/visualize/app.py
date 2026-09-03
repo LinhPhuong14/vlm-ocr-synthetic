@@ -13,8 +13,9 @@ Three tabs, independent of each other:
   cannot draw text on a true circular arc -- see git history and
   `docs/co-che-sinh-con-dau.md` for why), and this tab now only drives the
   PIL half that actually ships in `textures/ornament/`.
-* **Viết tay (hybrid)** -- `BothHands` (production, per-field) next to
-  `HybridHand` (new, per-word) on the same input text.
+* **Viết tay (WriteViT)** -- `HybridHand`'s per-word mix (model where it
+  can write, font where it can't) on typed-in text -- see
+  `tab_handwriting.py` for why this dropped the old BothHands comparison.
 
 Run from `generators/html/.venv` (`make visualize` / `python tasks.py
 visualize` do this for you): that venv already has everything the html
@@ -43,10 +44,20 @@ import tab_stamp  # noqa: E402
 
 TITLE = "vlm-ocr-synthetic -- Visualize"
 
+CSS = """
+.gr-group, .gradio-group { border-radius: 12px !important; }
+.gradio-accordion { border-radius: 10px !important; }
+#title-row { margin-bottom: 0.25em; }
+"""
+
 
 def build() -> gr.Blocks:
     with gr.Blocks(title=TITLE) as demo:
-        gr.Markdown(f"# {TITLE}")
+        gr.Markdown(f"# {TITLE}", elem_id="title-row")
+        gr.Markdown(
+            "Xem nhanh 3 khả năng của repo -- sinh ảnh, con dấu, viết tay -- "
+            "không cần chờ cả dataset."
+        )
         tab_generate.build_tab()
         tab_stamp.build_tab()
         tab_handwriting.build_tab()
@@ -59,7 +70,10 @@ def main() -> int:
     parser.add_argument("--port", type=int, default=7860)
     args = parser.parse_args()
 
-    build().launch(server_name=args.host, server_port=args.port)
+    # Gradio 6 moved `theme`/`css` off the `Blocks` constructor and onto
+    # `launch()` -- passing them to `Blocks()` still works but warns.
+    build().launch(server_name=args.host, server_port=args.port,
+                   theme=gr.themes.Soft(), css=CSS)
     return 0
 
 

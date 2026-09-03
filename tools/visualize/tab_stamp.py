@@ -1,5 +1,5 @@
-"""Tab 2: con dấu vẽ bằng PIL (`tools/make_ornaments.py`), với màu sắc, hình
-dạng, nội dung ở giữa và một lớp "mòn/kiểu đóng" chỉnh được ngay trên UI.
+"""Tab 2: con dấu vẽ bằng PIL (`tools/make_ornaments.py`), với hình dạng, màu
+sắc, nội dung ở giữa và một lớp "mòn/kiểu đóng" chỉnh được ngay trên UI.
 
 Từng là một cột PIL cạnh một cột thử nghiệm bằng synthtiger, để so hai cách
 vẽ con dấu -- xem lịch sử git nếu cần lại bản đó. synthtiger không vẽ được
@@ -23,11 +23,8 @@ for _extra in (REPO_ROOT, REPO_ROOT / "tools"):
         sys.path.insert(0, str(_extra))
 
 from make_ornaments import (  # noqa: E402
-    _ring_only,
-    double_strike,
-    edge_seal,
-    rectangular_seal,
-    round_seal,
+    _ring_only, double_strike, edge_seal, ink_bleed, oval_seal, polygon_seal,
+    rectangular_seal, round_seal,
 )
 
 # Khoảng `coverage` truyền vào `_ink()` -- thấp hơn nghĩa là mực mòn/nhạt hơn.
@@ -46,14 +43,25 @@ STRIKE = {
     "đóng hai lần (double strike)": "double",
     "mờ vành, rỗng ruột (mặt dấu vồng)": "faint",
     "giáp lai (chỉ giữ một nửa mép)": "edge",
+    "mực loang (scan/photocopy đen trắng)": "bleed",
 }
 
+# Xem `_draw_centre` trong make_ornaments.py -- chỉ áp dụng cho round/oval,
+# rectangular_seal/polygon_seal không có khái niệm sao/chữ riêng ở giữa.
 CENTRE = {
     "ngôi sao": "star",
+    "hình tròn": "circle",
+    "hình thoi": "diamond",
+    "dấu cộng": "cross",
     "chữ (dòng giữa)": "text",
-    "cả hai (sao trên, chữ dưới)": "both",
+    "sao + chữ": "both",
+    "hình tròn + chữ": "circle+text",
+    "hình thoi + chữ": "diamond+text",
+    "dấu cộng + chữ": "cross+text",
     "để trống": "none",
 }
+
+SHAPES_WITH_CENTRE = ("round", "oval")
 
 
 def _hex_to_rgb(value: str) -> tuple[int, int, int]:
@@ -71,62 +79,82 @@ def _apply_strike(image, strike_label: str, seed: int):
         return _ring_only(image)
     if kind == "edge":
         return edge_seal(image)
+    if kind == "bleed":
+        return ink_bleed(image, seed=seed)
     return image
 
 
 def generate(shape: str, colour_hex: str, centre_label: str, top: str, bottom: str,
-            middle_text: str, wear_label: str, strike_label: str, seed: float):
+            middle_text: str, sides: float, wear_label: str, strike_label: str, seed: float):
     colour = _hex_to_rgb(colour_hex)
     middle = [line for line in (middle_text or "").splitlines() if line.strip()]
     seed = int(seed)
     lo, hi = WEAR.get(wear_label, WEAR["bình thường"])
+    centre_kind = CENTRE.get(centre_label, "star")
 
     if shape == "square":
         lines = middle or [top or "CONG TY TNHH VI DU"]
         image = rectangular_seal(lines, seed=seed, colour=colour, wear=(lo, hi))
+    elif shape == "polygon":
+        lines = middle or [top or "CONG TY TNHH VI DU"]
+        image = polygon_seal(lines, seed=seed, sides=int(sides), colour=colour, wear=(lo, hi))
+    elif shape == "oval":
+        image = oval_seal(top or "CONG TY TNHH VI DU", bottom, middle, seed=seed,
+                          colour=colour, centre_kind=centre_kind, wear=(lo, hi))
     else:
         image = round_seal(top or "CONG TY TNHH VI DU", bottom, middle, seed=seed,
-                           colour=colour, centre_kind=CENTRE.get(centre_label, "star"),
-                           wear=(lo, hi))
+                           colour=colour, centre_kind=centre_kind, wear=(lo, hi))
 
     return _apply_strike(image, strike_label, seed)
 
 
-def _toggle_centre(shape: str):
-    """Nội dung giữa chỉ có ý nghĩa với dấu tròn -- `rectangular_seal` không
-    có khái niệm sao/chữ riêng, `lines` của nó LÀ toàn bộ nội dung dấu."""
-    return gr.update(visible=(shape == "round"))
+def _toggle_shape_controls(shape: str):
+    """Nội dung giữa chỉ có ý nghĩa với round/oval; số đỉnh chỉ có ý nghĩa
+    với polygon -- `rectangular_seal`/`polygon_seal` không có khái niệm
+    sao/chữ riêng, `lines` của chúng LÀ toàn bộ nội dung con dấu."""
+    return (gr.update(visible=(shape in SHAPES_WITH_CENTRE)),
+           gr.update(visible=(shape == "polygon")))
 
 
 def build_tab() -> None:
-    with gr.Tab("Con dấu"):
+    with gr.Tab("🔴 Con dấu"):
         gr.Markdown(
             "Vẽ con dấu bằng PIL (`tools/make_ornaments.py`) -- cùng mã nguồn "
-            "sinh ra mọi con dấu trong `textures/ornament/`. Đổi màu, hình dạng, "
-            "nội dung giữa và độ mòn/kiểu đóng, xem ngay kết quả."
+            "sinh ra mọi con dấu trong `textures/ornament/`. Đổi hình dạng, "
+            "màu, nội dung giữa và độ mòn/kiểu đóng, xem ngay kết quả."
         )
-        with gr.Row():
-            shape = gr.Radio(["round", "square"], value="round", label="Hình dạng")
-            colour = gr.ColorPicker(value="#C41E26", label="Màu mực")
-        with gr.Row():
-            top = gr.Textbox(label="Dòng trên (round) / dùng khi Dòng giữa trống (square)",
-                             value="CONG TY TNHH VI DU")
-            bottom = gr.Textbox(label="Dòng dưới (chỉ round)", value="MST 0123456789")
-        with gr.Row():
-            centre = gr.Radio(list(CENTRE), value="ngôi sao",
-                              label="Nội dung giữa (chỉ dấu tròn)")
-            middle = gr.Textbox(
-                label="Dòng giữa -- mỗi dòng một ô (round: dùng khi Nội dung giữa "
-                     "là 'chữ' hoặc 'cả hai'; square: TOÀN BỘ nội dung con dấu)",
-                lines=2, value="DA THU TIEN")
-        with gr.Row():
-            wear = gr.Radio(list(WEAR), value="bình thường", label="Mòn mực")
-            strike = gr.Dropdown(list(STRIKE), value="một lần (bình thường)",
-                                 label="Kiểu đóng")
-        seed = gr.Number(label="Seed", value=0, precision=0)
-        go = gr.Button("Vẽ", variant="primary")
-        out = gr.Image(label="Con dấu", type="pil")
+        with gr.Row(equal_height=False):
+            with gr.Column(scale=1, min_width=320):
+                with gr.Group():
+                    shape = gr.Radio(["round", "oval", "square", "polygon"], value="round",
+                                     label="Hình dạng")
+                    sides = gr.Slider(3, 10, value=6, step=1,
+                                      label="Số đỉnh (chỉ khi hình = polygon)",
+                                      visible=False)
+                    colour = gr.ColorPicker(value="#C41E26", label="Màu mực")
+                with gr.Group():
+                    top = gr.Textbox(
+                        label="Dòng trên (round/oval) / dùng khi Dòng giữa trống (square/polygon)",
+                        value="CONG TY TNHH VI DU")
+                    bottom = gr.Textbox(label="Dòng dưới (chỉ round/oval)",
+                                        value="MST 0123456789")
+                    middle = gr.Textbox(
+                        label="Dòng giữa -- mỗi dòng một ô (round/oval: dùng khi Nội dung "
+                             "giữa có '+ chữ'; square/polygon: TOÀN BỘ nội dung con dấu)",
+                        lines=2, value="DA THU TIEN")
+                    centre = gr.Dropdown(list(CENTRE), value="ngôi sao",
+                                         label="Nội dung giữa (chỉ round/oval)")
+                with gr.Group():
+                    wear = gr.Radio(list(WEAR), value="bình thường", label="Mòn mực")
+                    strike = gr.Dropdown(list(STRIKE), value="một lần (bình thường)",
+                                         label="Kiểu đóng")
+                    seed = gr.Number(label="Seed", value=0, precision=0)
+                go = gr.Button("Vẽ", variant="primary", size="lg")
 
-        shape.change(_toggle_centre, inputs=[shape], outputs=[centre])
-        go.click(generate, inputs=[shape, colour, centre, top, bottom, middle, wear, strike, seed],
+            with gr.Column(scale=1):
+                out = gr.Image(label="Con dấu", type="pil")
+
+        shape.change(_toggle_shape_controls, inputs=[shape], outputs=[centre, sides])
+        go.click(generate,
+                 inputs=[shape, colour, centre, top, bottom, middle, sides, wear, strike, seed],
                  outputs=[out])

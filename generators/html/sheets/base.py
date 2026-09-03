@@ -36,8 +36,11 @@ because it is not in the label and never was.
 
 from __future__ import annotations
 
+import base64
 import html
+import io
 import random
+import sys
 import unicodedata
 from pathlib import Path
 from typing import Any, Sequence
@@ -450,6 +453,184 @@ def stamp(text: str, *, colour: str = "#c8102e", size_mm: float = 30,
     )
 
 
+# ------------------------------------------------------------- ornament seals
+#
+# `rulebase/rules/ornament.yaml`'s `seal` group samples a list of `marks`
+# ([kind, {anchor, scale, opacity, rotate}]) onto every recipe that allows
+# one -- and, until this pair of functions, nothing in this package ever
+# drew them: the seals a reader actually sees came from unrelated,
+# hand-written calls (`stamp()` above, `ornament_url()`'s static PNGs) that
+# know nothing about what was sampled. These two close that gap.
+
+# Two anchors a family plugs in itself, through the slot its own layout
+# already reserves (`signature_block(stamp=)`, `totals_block(stamp=)`);
+# everything else is page-level and goes through `document(overlay=)`
+# instead, because nothing else has a per-family DOM hook to plug into.
+_SLOT_ANCHORS = {"signature_seller", "signature_buyer", "totals"}
+
+# Page-relative placement for the anchors `document(overlay=)` draws.
+# Percentages of `#sheet`'s own box (already the containing block every
+# other absolutely-positioned thing here uses) -- `transform` re-centres on
+# that point rather than the box's own top-left corner, so `scale` growing
+# or shrinking the seal does not also drift its anchor point.
+_PAGE_ANCHOR_CSS = {
+    "header_band": "left:50%;top:2%;transform:translate(-50%,0)",
+    "letterhead": "left:8%;top:4%;transform:translate(0,0)",
+    "table_back": "left:50%;top:45%;transform:translate(-50%,-50%)",
+    "footer_band": "left:50%;top:94%;transform:translate(-50%,-100%)",
+    "corner_tl": "left:1%;top:1%;transform:translate(0,0)",
+    "corner_tr": "left:99%;top:1%;transform:translate(-100%,0)",
+    "corner_bl": "left:1%;top:99%;transform:translate(0,-100%)",
+    "corner_br": "left:99%;top:99%;transform:translate(-100%,-100%)",
+    "page_center": "left:50%;top:50%;transform:translate(-50%,-50%)",
+    # Half off the left edge -- `#sheet`'s own `overflow:hidden` (see
+    # `document()`) crops the other half, which IS the "giáp lai" look:
+    # a seal struck across where two sheets met, this page keeping one side.
+    "page_edge_left": "left:0%;top:50%;transform:translate(-50%,-50%)",
+    "page_full": "left:50%;top:50%;transform:translate(-50%,-50%)",
+}
+
+
+def seal_mark(kind: str, *, seed: int, lines: list[str], anchor: str,
+              scale: float = 0.26, opacity: tuple[float, float] = (0.70, 0.90),
+              rotate: tuple[float, float] = (-14, 14), bw: bool = False) -> str:
+    """One `ornament.yaml` seal `mark`, drawn fresh and boxed.
+
+    Drawn: `tools/make_ornaments.py::draw_seal()`, colour and shape chosen
+    from `seed` -- reproducible (same seed, same seal), not re-rolled per
+    render. `bw` additionally runs it through `ink_bleed()` for the pages a
+    document's own `color`/channel attribute already says are a
+    black-and-white scan or photocopy, not a fresh printout.
+
+    Boxed, but NOT the way `handwriting.py` wraps a model-written word
+    (`<span data-kind data-text><img></span>`) -- that shape is only ever
+    produced by a later FILL pass (`handwriting.fill`/`signature.fill` in
+    `render.py`, run on `build()`'s output), never by a family's `build()`
+    itself: `tests/test_sheets.py::test_every_labelled_run_is_a_span_with_a_
+    kind` asserts every `data-kind` span `build()` emits is text-only, and a
+    seal has no such later pass -- it is drawn right here, inside `build()`.
+
+    So the box and the picture are two SIBLING elements at the same CSS
+    position instead of one nested inside the other: a plain `<img>` (what a
+    reader sees) beside an invisible, identically-sized `<span data-kind
+    data-text>` holding the same text (what `CELL_RECTS_JS` measures --
+    `opacity:0` still lays out and still has a real `getBoundingClientRect()`,
+    unlike `display:none`). `data-text` is every line joined by " / ", the
+    seal's whole content in one string -- there is no per-line structure
+    worth a second box for a stamp, unlike a table.
+
+    Matching the SPAN's height to the `<img>`'s is the one fiddly part: the
+    image keeps its own aspect ratio from a `width:N%` alone, but a percentage
+    `height` resolves against the parent's height, not its width, so the same
+    `N%` would not give the span the same shape on a non-square page. The
+    classic fix -- `height:0` plus a `padding-bottom` percentage, which CSS
+    always resolves against the parent's WIDTH on every axis -- does, and
+    `box-sizing:content-box` (inline, so it overrides this file's global
+    `border-box`) is what makes that percentage land purely as height instead
+    of being eaten by itself.
+
+    `anchor` decides CSS placement only; whether the caller places this
+    fragment through a slot (`signature_block`/`totals_block`) or as a
+    page overlay (`document(overlay=)`) is `render_ornament_marks()`'s job,
+    keyed off the same anchor name -- see `_SLOT_ANCHORS`.
+    """
+    tools_dir = REPO_ROOT / "tools"
+    if str(tools_dir) not in sys.path:
+        sys.path.insert(0, str(tools_dir))
+    from make_ornaments import draw_seal, ink_bleed  # noqa: PLC0415
+
+    rng = random.Random(seed)
+    image, shape = draw_seal(kind, seed=seed, lines=lines)
+    if bw:
+        image = ink_bleed(image, seed=seed)
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    data = base64.b64encode(buffer.getvalue()).decode("ascii")
+
+    text = " / ".join(line for line in lines if line)
+    lo, hi = opacity
+    rot_lo, rot_hi = rotate
+    deg = rng.uniform(rot_lo, rot_hi)
+    op = rng.uniform(lo, hi)
+    size_pct = round(scale * 100, 2)
+
+    if anchor in _SLOT_ANCHORS:
+        position = "left:50%;top:0;transform:translateX(-50%)"
+    else:
+        position = _PAGE_ANCHOR_CSS.get(anchor, _PAGE_ANCHOR_CSS["page_center"])
+
+    placed = f'position:absolute;{position} rotate({deg:.1f}deg);width:{size_pct}%;'
+    img = (f'<img alt="{esc(text)}" style="{placed}opacity:{op:.2f};pointer-events:none;" '
+          f'src="data:image/png;base64,{data}">')
+    # `image.height / image.width` as a percentage of `size_pct`: see the
+    # docstring above for why `padding-bottom` (not `height`) carries it.
+    height_pct = round(size_pct * image.height / max(image.width, 1), 2)
+    box = (f'<span data-kind="seal.{esc(shape)}" data-text="{esc(text)}" style="{placed}'
+          f'height:0;padding-bottom:{height_pct}%;box-sizing:content-box;'
+          f'white-space:nowrap;overflow:hidden;opacity:0;pointer-events:none;">'
+          f'{esc(text)}</span>')
+    return img + box
+
+
+def render_ornament_marks(recipe, receipt, *, bw: bool = False) -> tuple[str, str, str]:
+    """Every `mark` the `ornament.yaml` `seal` group sampled onto `recipe`,
+    turned into markup and sorted into the three places a page can take one:
+    the signature slot, the totals slot, and everything else (a page-level
+    overlay). Empty strings all round when the sampled option is
+    `no_ornament` or the recipe has no `ornament` attribute at all.
+
+    `lines` for each mark comes from `receipt` here, not from
+    `SEAL_KINDS` -- that registry only says which drawing family a kind may
+    use, never what it says, so the same `seller_seal` mark reads a
+    different real company name on every document instead of the one
+    baked-in sample name the old static PNGs were stuck with.
+
+    A mark whose kind is not in `SEAL_KINDS` (`seal_name_block`, today: a
+    person's name-and-title stamp, not a company seal -- see that dict's own
+    comment) is skipped rather than raising: `seal_with_name_block` samples
+    it ALONGSIDE `seal_round_company`, and drawing the company half while
+    leaving the name-block half undrawn is the current state of the world,
+    not a new gap this function opens.
+    """
+    tools_dir = REPO_ROOT / "tools"
+    if str(tools_dir) not in sys.path:
+        sys.path.insert(0, str(tools_dir))
+    from make_ornaments import SEAL_KINDS  # noqa: PLC0415
+
+    marks = recipe.get("ornament", "marks", []) or []
+    store = getattr(receipt, "store", None)
+    lines_for = {
+        "seal_round_company": [store.name if store else "", store.tax_code if store else ""],
+        "seal_round_hotel": [store.name if store else "", store.branch if store else ""],
+        "seal_round_export": [store.name if store else "", store.tax_code if store else ""],
+        "seal_round_company_double": [store.name if store else "", store.tax_code if store else ""],
+        "seal_round_company_faint": [store.name if store else "", store.tax_code if store else ""],
+        "seal_edge_half": [store.name if store else ""],
+        "seal_name_block_chief": [store.name if store else ""],
+        "seal_square_paid": ["ĐÃ THU TIỀN", "PAID"],
+        "seal_square_copy": ["BẢN SAO", "COPY"],
+        "seal_accounting_posted": ["ĐÃ HẠCH TOÁN"],
+    }
+
+    slot, totals, overlay = "", "", ""
+    for index, (kind, params) in enumerate(marks):
+        if kind not in SEAL_KINDS:
+            continue
+        anchor = params.get("anchor", "page_center")
+        fragment = seal_mark(
+            kind, seed=recipe.seed ^ (index + 1) * 0x5EA1, lines=lines_for.get(kind, []),
+            anchor=anchor, scale=params.get("scale", 0.26),
+            opacity=tuple(params.get("opacity", (0.70, 0.90))),
+            rotate=tuple(params.get("rotate", (-14, 14))), bw=bw)
+        if anchor in ("signature_seller", "signature_buyer"):
+            slot += fragment
+        elif anchor == "totals":
+            totals += fragment
+        else:
+            overlay += fragment
+    return slot, totals, overlay
+
+
 def key_strip(strip, separator: str = "|") -> str:
     """The one-line run of keys across the top of a modern invoice."""
     pairs = party_rows(strip) if not isinstance(strip, list) else list(strip)
@@ -760,7 +941,7 @@ def _item_row(columns: list[dict], places: list[tuple[int, int, str, str]],
     return Row(cells)
 
 
-def totals_block(parse: dict, *, indent: float = 0.4, grand: int = -1) -> str:
+def totals_block(parse: dict, *, indent: float = 0.4, grand: int = -1, stamp: str = "") -> str:
     """Totals nudged into the right-hand part of the sheet, not in a table.
 
     What an invoice that designed its own paper does: the block stops short of
@@ -771,6 +952,15 @@ def totals_block(parse: dict, *, indent: float = 0.4, grand: int = -1) -> str:
     folio *opens* with the total and then lists what was paid against it, so the
     emphasis falls on the first line and the lines under it are the settlement.
     Pass -1 for the last, 0 for the first, None for none.
+
+    `stamp`: a fragment from `seal_mark(anchor="totals", ...)` (through
+    `render_ornament_marks()`), the same slot convention `signature_block(
+    stamp=)` already has. `seal_mark` positions it `position:absolute`
+    against ITS containing block, so this div needs `position:relative` only
+    when a stamp is actually given -- unconditional would give every OTHER
+    absolutely-positioned thing inside `.totals` (there is none today, but a
+    family's own CSS might add one) a new containing block it did not ask
+    for.
     """
     totals = parse.get("total") or {}
     if not totals:
@@ -785,22 +975,33 @@ def totals_block(parse: dict, *, indent: float = 0.4, grand: int = -1) -> str:
             f'<div class="trow{" grand" if emphasis else ""}">'
             f'{span(f"{kind}.label", label, "lab")}'
             f'{span(kind, value, "amt")}</div>')
-    return (f'<div class="totals" style="margin-left:{indent * 100:.0f}%">'
-            f'{"".join(out)}</div>')
+    position = "position:relative;" if stamp else ""
+    return (f'<div class="totals" style="margin-left:{indent * 100:.0f}%;{position}">'
+            f'{"".join(out)}{stamp}</div>')
 
 
-def signature_block(receipt, parse: dict, *, stamp: str = "") -> str:
+def signature_block(receipt, parse: dict, *, stamp: str = "", stamp_index: int = -1) -> str:
     """The signature captions, and the names under them when the sheet has any.
 
     The captions come from `receipt.invoice.signatures` rather than being
     written out here: they are furniture, not label, but they are the *same*
     furniture the character grid prints, and a document that says "Người bán
     hàng" on one renderer and "Bên bán" on the other is two documents.
+
+    `stamp_index` is which column `stamp` (the issuer's own seal --
+    `seal_mark(anchor="signature_seller", ...)`, through `render_ornament_
+    marks()`) lands in, Python-indexed into `invoice.signatures` (so -1, the
+    default, is the last column). Most families list the issuer last (a
+    shop's own invoice: buyer, then seller); `lodging.py` lists the
+    receptionist FIRST ("Lễ tân", "Khách hàng"), so it passes `0` -- the
+    column order is each family's own layout choice, not something this
+    function should guess at.
     """
     invoice = getattr(receipt, "invoice", None)
     if invoice is None or not invoice.signatures:
         return ""
     names = list((parse.get("invoice") or {}).get("signed_names") or [])
+    stamp_at = stamp_index % len(invoice.signatures)
     columns = []
     for index, (title, note) in enumerate(invoice.signatures):
         who = names[index] if index < len(names) else ""
@@ -809,7 +1010,7 @@ def signature_block(receipt, parse: dict, *, stamp: str = "") -> str:
             f'{span("sign.title", title, "t")}'
             f'<div class="n">{span("sign.note", note)}</div>'
             f'<div class="who">{span("sign.name", who)}</div>'
-            f'{stamp if index == len(invoice.signatures) - 1 else ""}'
+            f'{stamp if index == stamp_at else ""}'
             f"</div>")
     return f'<div class="signs">{"".join(columns)}</div>'
 
@@ -865,7 +1066,7 @@ def words_block(receipt, parse: dict) -> str:
 
 def document(body: str, css: str, *, paper: str = "A4", padding: str = "10mm",
             font: str = SERIF, size: str = "8.6pt", colour: str = "#111",
-            line_height: str = "1.3") -> str:
+            line_height: str = "1.3", overlay: str = "") -> str:
     """The page skeleton both engines lay out identically.
 
     `@page` gets `margin: 0` and the padding goes on `#sheet` rather than the
@@ -881,6 +1082,16 @@ def document(body: str, css: str, *, paper: str = "A4", padding: str = "10mm",
     tightened), but a real risk once a family needs several non-A4 sizes
     (`periodical.py` uses four): a typo would render a wrong-sized page
     with no error at all.
+
+    `overlay`: page-anchored fragments from `render_ornament_marks()` --
+    every `ornament.yaml` seal `mark` whose `anchor` is not one of the two
+    slots a family plugs in itself (`signature_seller`/`signature_buyer`
+    through `signature_block(stamp=)`, `totals` through `totals_block(
+    stamp=)`). Placed first inside `#sheet` so it paints *under* the real
+    content, and positioned against `#sheet`'s own box -- already
+    `position:relative;overflow:hidden`, which is also what gives
+    `page_edge_left` (the "giáp lai" seal that straddles the paper's edge)
+    its half-cut-off look for free.
     """
     if paper not in PAPERS:
         raise KeyError(f"paper={paper!r} is not one of {', '.join(sorted(PAPERS))}")
@@ -902,7 +1113,7 @@ td.c,th.c,.c{{text-align:center;}}
 .sub{{font-style:italic;color:#3a3a3a;}}
 .foot div{{margin-top:.4mm;}}
 {css}
-</style></head><body><div id="sheet">{body}</div></body></html>"""
+</style></head><body><div id="sheet">{overlay}{body}</div></body></html>"""
 
 
 __all__ = [
@@ -912,10 +1123,8 @@ __all__ = [
     "document", "esc", "field_line",
     "footer_block", "initials", "item_rows", "items_table", "key_strip",
     "ncols_of", "notes_blocks", "ornament_url", "party_pairs", "party_rows",
-    # No `signed_lines` -- 459dfd4 deleted the function (zero callers) and
-    # took it out of this list; a later rewrite of the list put the name
-    # back without the function, so `from base import *` raised.
-    "qr_svg", "rng_for", "safe_align", "signature_block",
+    "qr_svg", "render_ornament_marks", "rng_for", "safe_align", "seal_mark",
+    "signature_block", "signed_lines",
     "span", "stamp", "structure_tokens",
     "totals_block", "words_block",
 ]

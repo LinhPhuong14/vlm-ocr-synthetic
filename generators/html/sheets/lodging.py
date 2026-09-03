@@ -133,19 +133,17 @@ def build(recipe, receipt, spec: dict, parse: dict) -> str:
     totals = [{"label": label, "value": value, "grand": index == 0}
               for index, (label, value) in enumerate(entries)] if in_table else None
     table = base.items_table(spec, receipt, parse, rows, totals=totals)
-    money = "" if in_table else base.totals_block(parse, indent=indent, grand=0)
 
-    seal_css = ""
-    if compact:
-        url = base.ornament_url("seal_round_hotel")
-        if url:
-            # A background, not an `<img>`. The seal has to sit *behind* the
-            # signature block, and the only way to do that with an element is to
-            # position it -- which would push every name in the block to the end
-            # of the PDF's character stream. A background paints behind the
-            # content it belongs to and needs no positioning at all.
-            seal_css = (f".signs{{background:url('{url}') no-repeat "
-                        f"left 0 top 1mm;background-size:22mm 22mm;}}")
+    # What used to gate the seal on `compact` (drawn only for the small A5
+    # sheet) is now the `ornament` attribute itself: `hotel_seal` samples
+    # independently of `narrow_sheet`, so whether a seal appears at all --
+    # and its colour, its shape, the real name on it -- is `recipe`'s to
+    # decide, not this family's. `stamp_slot` goes wherever
+    # `signature_block(stamp=)` already reserves room for one; `overlay`
+    # sits page-level, drawn by `document()` under everything else.
+    stamp_slot, totals_stamp, overlay = base.render_ornament_marks(recipe, receipt)
+    money = ("" if in_table else
+            base.totals_block(parse, indent=indent, grand=0, stamp=totals_stamp))
 
     blocks = []
     for name in sections:
@@ -158,7 +156,11 @@ def build(recipe, receipt, spec: dict, parse: dict) -> str:
         elif name == "totals":
             blocks.append(money)
         elif name == "signatures":
-            blocks.append(base.signature_block(receipt, parse))
+            # "Lễ tân" (the hotel's own side, who strikes the seal) is
+            # column 0 here, not the last -- see `signature_block`'s own
+            # docstring for why that is a per-family choice.
+            blocks.append(base.signature_block(receipt, parse, stamp=stamp_slot,
+                                               stamp_index=0))
         elif name == "footer":
             blocks.append(_contact(receipt, parse) if compact else "")
             blocks.append(base.footer_block(parse))
@@ -198,7 +200,7 @@ table.items th{{text-align:left;font-weight:bold;padding:2mm 1.6mm;}}
 table.items th.r{{text-align:right;}} table.items th.c{{text-align:center;}}
 .sub{{font-style:italic;color:#63707a;}}
 .signs{{display:table;width:100%;margin-top:12mm;}}
-.sign{{display:table-cell;width:50%;text-align:center;}}
+.sign{{display:table-cell;width:50%;text-align:center;position:relative;}}
 .sign .t{{font-weight:bold;color:{band};}}
 .sign .n{{font-size:6pt;font-style:italic;color:#63707a;}}
 .sign .who{{margin-top:13mm;}}
@@ -236,12 +238,6 @@ table.items tbody tr:nth-child(odd) td{{background:#f2f7f8;}}
 .trow.grand{{background:{band};color:#fff;padding:2.4mm 2.6mm;border-left:0;margin-bottom:1.5mm;}}
 .trow.grand .lab{{color:#a9ccd4;font-weight:bold;letter-spacing:.4pt;}}
 .trow.grand .amt{{font-size:9pt;color:#fff;}}
-/* The hotel's own seal, struck on the RECEPTIONIST's half -- whoever signs
-   stamps their own block. Painted as a background so it sits behind the names
-   without the block having to be positioned, and clear of them rather than
-   over them: a stamp across printed words is realistic and unreadable, and this
-   page has to be legible enough to be a label. */
-{seal_css}
 .contact{{display:table;width:100%;margin-top:9mm;padding-top:2.6mm;
           border-top:.3mm solid #d3dde1;font-size:5.8pt;color:#63707a;}}
 .contact .cl,.contact .cr{{display:table-cell;width:50%;vertical-align:top;}}
@@ -251,7 +247,7 @@ table.items tbody tr:nth-child(odd) td{{background:#f2f7f8;}}
 """
         return base.document(body, css, paper="A5", padding="0",
                              font=base.SANS, size="6.4pt", colour="#1a1d21",
-                             line_height="1.45")
+                             line_height="1.45", overlay=overlay)
 
     css = common + f"""
 #sheet{{padding:14mm 15mm;}}
@@ -272,7 +268,7 @@ td.tlabel{{text-align:right;}}
 """
     return base.document(body, css, paper="A4", padding="14mm 15mm",
                          font=base.SANS, size="7.6pt", colour="#111",
-                         line_height="1.4")
+                         line_height="1.4", overlay=overlay)
 
 
 __all__ = ["LIVERIES", "build"]
