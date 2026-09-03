@@ -30,34 +30,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from .variants import FIRST, GUARD, HOLDERS, WRAPPERS, on
+
 # Mirrors generators/html/sheets/base.py -- see the note in variants.py.
 SERIF = "'LiberationSerif','DejaVu Serif',serif"
 SANS = "'DejaVuSans','LiberationSans','DejaVu Sans',sans-serif"
 MONO = "'LiberationMono','Cousine',monospace"
-
-# Where a family keeps the blocks a design rearranges. `.frame` and `.card` are
-# the insurance family's: its certificates are absolutely positioned panels
-# inside the sheet, so a rule written only against `#sheet > *` reached nothing
-# at all there -- a whole-page redesign measured 0.000 on the health card and
-# 0.105 on the moto slip, which is not a design that does nothing, it is a
-# selector that matches nothing.
-HOLDERS = ("#sheet", "#sheet .inner", "#sheet main", "#sheet .frame",
-           "#sheet .card")
-
-
-def on(selector: str, body: str) -> str:
-    """One rule, emitted for every container a family might be using."""
-    return "\n".join(f"{holder}{selector}{{{body}}}" for holder in HOLDERS)
-
-
-# A design that paints "the first block" means the letterhead, never the panel
-# the family wraps everything in. `.frame` and `.card` are in HOLDERS so rules
-# reach INSIDE them, and they are also `#sheet`'s first child, so a bare
-# `> *:first-child` painted the whole certificate dark -- and took the
-# handwriting with it, since WriteViT's ink is dark whatever the CSS says.
-WRAPPERS = (".frame", ".card", ".inner")
-FIRST = " > *:first-child" + "".join(f":not({w})" for w in WRAPPERS)
-
 
 def sheet(body: str) -> str:
     return f"#sheet{{{body}}}"
@@ -842,39 +820,6 @@ def _roll_tight() -> Design:
 # silently, on exactly the dense phôi that could least afford it. Between them
 # they put runs off the sheet on four families; `critic.tran_le` is what said
 # so, on pages nobody would have looked at twice.
-GUARD = "\n".join([
-    # Horizontal margins zeroed, not just padding. A design that indents its
-    # blocks indents the table with them, and a table at `width:100%` with a
-    # left margin does not narrow -- it SHIFTS, and runs off the right trim by
-    # exactly the indent. `bang_dan_dau` pushed a hotel folio's whole item
-    # table 18% to the right that way; `bang_thanh_the` did the same to its
-    # staggered cards. Whatever a design does to the blocks, the table keeps the
-    # phôi's own measure.
-    on(" > table.items",
-       "margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;"),
-    # ...and `table-layout:fixed` so the columns are sized from the header row
-    # and the content wraps inside them. `max-width` does not bind an
-    # auto-layout table: its columns are sized from their content and the table
-    # grows past the trim rather than shrinking, which sliced the amount column
-    # in half on four designs before this.
-    on(" table.items", "table-layout:fixed;"),
-    on(" table.items th", "overflow-wrap:anywhere;"),
-    on(" table.items td", "overflow-wrap:anywhere;"),
-    # `.frame` and `.card` are holders, not blocks. They appear in HOLDERS so a
-    # design reaches the blocks inside them, and they are also children of
-    # `#sheet`, so a `> *` rule indents the panel AND everything in it -- the
-    # same double-indent that put a table off the trim, one level up.
-    # ...and it must not take a block's paint either. `> *:first-child` matched
-    # the frame on the insurance cards, so a design meaning to put a dark band
-    # behind the letterhead inverted the WHOLE card -- and the handwriting went
-    # with it: WriteViT draws its ink dark whatever the CSS says, so every
-    # hand-filled field on that certificate disappeared into the ground. The
-    # reviewer reported it as `khong_muc`, which is exactly what it was.
-    ",".join(f"#sheet > {w},#sheet .frame > {w}" for w in WRAPPERS)
-    + "{margin-left:0;margin-right:0;background:transparent;color:inherit;}",
-])
-
-
 def _guarded(design: Design) -> Design:
     from dataclasses import replace
 

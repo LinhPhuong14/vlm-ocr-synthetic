@@ -276,10 +276,16 @@ def build(recipe, receipt, spec: dict, parse: dict) -> str:
 .t1{{display:block;color:{title_ink};font-weight:bold;font-size:16pt;line-height:1.12;}}
 .t2{{font-style:italic;font-size:8.4pt;padding-top:.8mm;}}
 .t3{{font-size:8.6pt;padding-top:1mm;}}
-table.serial{{font-size:8.4pt;}}
+/* `max-width` and a break opportunity, or a long value runs off the sheet.
+   The serial block sits in the header's right-hand cell with no width of its
+   own, so `TECHCOMBANK - CN HOÀN KIẾM` in a bank-account row widened the table
+   until the box ended 10px past the trim -- on the bare phôi, no dressing
+   involved. `pipeline/invariants.py` refuses to assemble a shard containing
+   that page, which is how a 250-page run came back FAIL. */
+table.serial{{font-size:8.4pt;max-width:100%;}}
 table.serial td{{padding:.5mm 0;vertical-align:top;}}
 table.serial .k{{font-weight:bold;white-space:nowrap;padding-right:2mm;width:1%;}}
-table.serial .v{{font-weight:bold;color:{serial_ink};}}
+table.serial .v{{font-weight:bold;color:{serial_ink};overflow-wrap:anywhere;}}
 .rule{{border-top:.35mm solid {frame};margin:2mm 0 0;}}
 .seller{{display:table;width:100%;padding:2mm 0 1.5mm;}}
 .seller > div{{display:table-cell;vertical-align:top;}}
@@ -287,13 +293,18 @@ table.serial .v{{font-weight:bold;color:{serial_ink};}}
 .seller .sname{{display:block;font-weight:bold;font-size:11pt;padding-bottom:.8mm;}}
 .seller p{{margin:.5mm 0;}}
 .seller .lbl{{font-weight:bold;}}
-.parties{{display:table;width:100%;padding:1.5mm 0 1mm;}}
-.pcol{{display:table-cell;vertical-align:top;padding-right:3mm;}}
+/* `table-layout:fixed` and an explicit half each, or the two party columns
+   size to their content: a nowrap label plus a long value made the right-hand
+   column wider than half the sheet and pushed `TẠI NGÂN HÀNG: TECHCOMBANK -
+   CN HOÀN KIẾM` 10px past the trim. On the bare phôi, with no dressing
+   involved -- `pipeline/invariants.py` refused the shard that contained it. */
+.parties{{display:table;table-layout:fixed;width:100%;padding:1.5mm 0 1mm;}}
+.pcol{{display:table-cell;vertical-align:top;padding-right:3mm;width:50%;}}
 .block{{padding:1mm 0 1.5mm;}}
 .f{{display:table;width:100%;margin-bottom:.9mm;}}
 .f > span{{display:table-cell;}}
 .f .k{{width:1%;white-space:nowrap;padding-right:1.5mm;font-weight:bold;}}
-.f .v{{width:99%;font-weight:bold;}}
+.f .v{{width:99%;font-weight:bold;overflow-wrap:anywhere;}}
 .f.dot .v{{border-bottom:.3mm dotted #555;padding-bottom:.4mm;}}
 table.items{{margin-top:1mm;}}
 table.items th,table.items td{{border:.3mm solid {frame};padding:1mm 1.2mm;vertical-align:top;}}
