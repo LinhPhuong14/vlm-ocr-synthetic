@@ -120,3 +120,11 @@ data/*/logs/
 data/*/plan.json
 data/*/manifest.json
 data/*/timings.json
+data/*/report.json
+
+# `data/5k_llm` was the agent run -- 5000 pages and a proof beside every one
+# of them, committed at the owner's request and removed at the owner's later
+# request, `agent_plan.json` included. A fresh run regenerates the set (new
+# forces and seeds, so not byte-identical to the removed one):
+#   python tools/agent_dataset.py -o data/5k_llm -n 5000 --workers 3
+data/5k_llm/

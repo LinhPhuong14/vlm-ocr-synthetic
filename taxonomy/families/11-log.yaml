@@ -1,0 +1,21 @@
+# 11. LOG / OPERATIONAL DOCUMENT
+#
+# Timestamped rows, monospaced, often printed by the machine that produced them.
+# Mechanically the easiest family in the tree for the grid engine -- and the one
+# where the ageing effects matter most, since these are the pages that live in a
+# workshop and get photographed on a clipboard.
+
+id: log
+number: 11
+name: Log / Operational Document
+name_vi: Nhật ký vận hành
+engine: grid
+status: planned
+
+children:
+  - {id: system_log,       name: System Log,       name_vi: Nhật ký hệ thống}
+  - {id: event_log,        name: Event Log,        name_vi: Nhật ký sự kiện}
+  - {id: maintenance_log,  name: Maintenance Log,  name_vi: Nhật ký bảo trì}
+  - {id: activity_log,     name: Activity Log,     name_vi: Nhật ký hoạt động}
+  - {id: inspection_log,   name: Inspection Log,   name_vi: Nhật ký kiểm tra}
+  - {id: operation_record, name: Operation Record, name_vi: Sổ vận hành}

@@ -1,23 +1,65 @@
-# THUỘC TÍNH 7/10 — LÀM CŨ
+# THUỘC TÍNH 8/11 — LÀM CŨ
 #
-# Hai cái cuối là hiệu ứng texture của DocCreator còn dùng ở đây:
+# Hai hiệu ứng texture của DocCreator còn dùng ở đây:
 #   paper_texture      dán trang giấy lên texture giấy thật
-#   gradient_domain    ghép vết bẩn bằng Poisson blending (Seuret và cs. 2015)
 #   phantom_character  dán mảng mực thừa vào rìa chữ
 #
-# `paper_overlay` (phủ ảnh chụp giấy thật của SynthDoG,
-# `augmentations/data/image/`, lên TRÊN CÙNG mọi thứ kể cả mực) đã bị RÚT khỏi
-# mọi chuỗi bên dưới: sáu tấm ảnh trong thư mục đó là ảnh chụp giấy nhàu, mờ,
-# nền xám loang lổ diện tích lớn -- phủ ở alpha 0.22-0.34 lên một trang A4 làm
-# cả nửa dưới trang chìm trong mảng xám mất chi tiết, quá nặng so với mọi hiệu
-# ứng khác trong tệp này. Hàm `degradation.texture.paper_overlay()` vẫn còn
-# nguyên (không xoá), chỉ không có chuỗi nào gọi tới -- bật lại cho một thuộc
-# tính cụ thể thì thêm dòng `[paper_overlay, {alpha, lighten}]` vào chuỗi đó,
-# nhưng nên đổi ảnh nguồn trước nếu muốn dùng lại (xem thư mục ảnh ở trên).
-# `paper_texture` không bị ảnh hưởng: nó chạy ĐẦU chuỗi và NHÂN chứ không hoà,
+# ---- BẢY GIÁ TRỊ ĐANG TẮT, VÀ MỘT MÔ HÌNH ĐÃ RÚT KHỎI MỌI CHUỖI ----
+#
+# `enabled: false` = có mặt, không bao giờ bốc trúng, vẫn dựng lại được khi gọi
+# đích danh (`--force augmentation=stains`). Cùng một chữ mà
+# `rulebase/layouts/*.yaml` và `rules/handwriting.yaml` đang dùng.
+#
+#   stains, crumpled          dùng `gradient_domain` — vết bẩn ghép bằng
+#                             Poisson blending, che mất chữ ở chỗ nó dán vào
+#   torn_edges, punched       dùng `holes` — phần giấy mất đi lấp bằng màu đen,
+#                             xoá hẳn chữ nằm dưới
+#   photocopy,                ba kịch bản bản-photo: tương phản cao, mực bệt,
+#   photocopy_screened,       lưới tram, nhoè ống kính
+#   photocopy_stamped
+#
+# Bốn cái đầu từng bị XOÁ hẳn, vì lúc ấy `weight: 0` là thứ `validate()` gọi là
+# luật chết và chưa có cách khai "tắt có chủ đích". Cái giá đo được: 58 ảnh đã
+# commit ghi một trong bốn id ấy và `tools/check_boxes.py` im lặng bỏ qua từng
+# ảnh một. Nay chúng quay lại ở trạng thái tắt, nên số ấy về 0.
+#
+# `heavy` là ngoại lệ đi hướng khác: `holes` chỉ là 1 trong 6 bước của nó, và
+# `bleed_through` không có giá trị nào khác dùng, nên nó Ở LẠI và mất đúng bước
+# `holes`. Với `stains` thì ngược hẳn — bỏ `gradient_domain` đi thì phần còn lại
+# là một bản `light` viết lại, và một id nói dối về pixel của chính nó là đúng
+# loại lỗi kho này tồn tại để chặn.
+#
+# Mọi mô hình vẫn còn trong `degradation/` và vẫn có test: `degradation/` là
+# thư viện, file này mới là chỗ quyết định dùng gì. Mô hình nào không còn giá
+# trị ĐANG BẬT nào gọi tới thì phải khai trong `degradation.SWITCHED_OFF`, và
+# `make check-rules` soát hai chiều.
+#
+# ---- `paper_overlay`: RÚT RỒI BẬT LẠI, và cái đã đo được ----
+#
+# Nó phủ ảnh chụp giấy thật của SynthDoG (`augmentations/data/image/`) lên TRÊN
+# CÙNG mọi thứ, kể cả mực — khác `paper_texture` ở CHỖ ĐỨNG trong chuỗi chứ
+# không ở ảnh dùng. Qua cả hai thì trang giấy trông như được IN LÊN giấy, chứ
+# không phải dán lên ảnh giấy.
+#
+# Ngày 27/08 nó bị rút khỏi cả bảy chuỗi, vì một lý do ĐO ĐƯỢC: sáu tấm ảnh
+# nguồn là giấy nhàu, mờ, nền xám loang lổ diện tích lớn, và ở alpha 0,22–0,34
+# trên một trang A4 thì cả nửa dưới trang chìm trong mảng xám mất chi tiết —
+# phát hiện trên một trang `insurance_health_id_card`. Nay **bật lại theo yêu
+# cầu**, đúng bảy chuỗi và đúng alpha cũ.
+#
+# Nếu mảng xám ấy quay lại thì đây là hai cái núm, theo thứ tự nên vặn:
+#
+#   1. **Đổi ảnh nguồn.** Đó mới là gốc của vấn đề: sáu tấm ảnh kia chụp giấy
+#      đã nhàu sẵn, không phải giấy phẳng. Một tấm giấy A4 trắng chụp đều sáng
+#      sẽ cho đúng hiệu ứng "in lên giấy" mà không mang theo nếp nhàu của tờ
+#      giấy khác.
+#   2. **Hạ `alpha`** trong từng chuỗi dưới đây. Nó nhân, nên 0,15 vẫn thấy
+#      được vân giấy mà không lấp mất chữ.
+#
+# `paper_texture` không liên quan: nó chạy ĐẦU chuỗi và NHÂN chứ không hoà,
 # nên tờ giấy hiện dưới chữ mà không làm bệt nét mực (`alpha` chỉ làm tối;
 # `grain` và `creases` thì hai chiều — nếp gấp bắt sáng thì sáng hơn mặt giấy
-# quanh nó) -- đây vẫn là lớp "giấy" mặc định của mọi thuộc tính có texture.
+# quanh nó). Đây vẫn là lớp "giấy" mặc định của mọi thuộc tính có texture.
 #
 # Bốc sau cùng, nên chỗ này thấy được mọi thẻ phía trên. Ví dụ trang in nhiệt
 # không bao giờ bị "bleed-through" vì giấy nhiệt chỉ in một mặt.
@@ -35,6 +77,7 @@ options:
     params:
       chain:
         - [paper_texture, {alpha: 0.35, grain: 0.5}]
+        - [paper_overlay, {alpha: 0.28, lighten: 0.3}]
 
   - id: light
     weight: 4
@@ -42,7 +85,6 @@ options:
     params:
       chain:
         - [paper_texture, {alpha: 0.30, grain: 0.4}]
-        - [ink_degradation, {level: 1}]
         - [blur_zones, {radius: 0.9, zones: 1, coverage: 0.12}]
 
   - id: medium
@@ -51,9 +93,9 @@ options:
     params:
       chain:
         - [paper_texture, {alpha: 0.40, grain: 0.6}]
-        - [ink_degradation, {level: 3}]
         - [blur_zones, {radius: 1.1, zones: 2, coverage: 0.15}]
         - [shadow_binding, {border: bottom, distance_ratio: 0.10, intensity: 0.35}]
+        - [paper_overlay, {alpha: 0.3, lighten: 0.35}]
 
   - id: heavy
     weight: 2
@@ -62,20 +104,63 @@ options:
     params:
       chain:
         - [paper_texture, {alpha: 0.45, grain: 0.7}]
-        - [ink_degradation, {level: 4}]
         - [bleed_through, {intensity: 0.5, nb_iter: 6}]
         - [blur_zones, {radius: 1.4, zones: 3, coverage: 0.18}]
         - [shadow_binding, {border: left, distance_ratio: 0.13, intensity: 0.45}]
-        - [holes, {count: 2, placement: border, size_ratio: 0.10, fill: black}]
 
+  # ---- BỐN GIÁ TRỊ NÀY ĐÃ TỪNG BỊ XOÁ, NAY QUAY LẠI Ở TRẠNG THÁI TẮT ----
+  #
+  # Chúng dùng `gradient_domain` và `holes`, hai mô hình đã tắt. Lần đầu tôi
+  # XOÁ hẳn, vì lúc ấy `weight: 0` là thứ `validate()` gọi là luật chết và
+  # không có cách nào khai "tắt có chủ đích". Cái giá: 58 ảnh đã commit trong
+  # `data/` ghi một trong bốn id này, và `tools/check_boxes.py` không dựng lại
+  # được trang nào trong số đó nữa — nó bắt đúng trường hợp "luật không còn tồn
+  # tại" rồi bỏ qua ảnh ấy, tức là im lặng kiểm ít đi.
+  #
+  # `enabled: false` (thêm cùng lúc với `rulebase/layouts/*.yaml`) nói được
+  # đúng điều cần nói: có mặt, không bao giờ bốc trúng, vẫn dựng lại được khi
+  # gọi đích danh. Nên chúng quay về.
   - id: stains
+    enabled: false
     weight: 3
     tags: [textured, dirty]
     params:
       chain:
         - [paper_texture, {alpha: 0.35, grain: 0.5}]
         - [gradient_domain, {count: 5, strength: 0.75}]
-        - [ink_degradation, {level: 3}]
+
+  - id: crumpled
+    enabled: false
+    weight: 2
+    requires: [thermal]
+    tags: [textured, creased]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.50, grain: 0.8, creases: 4}]
+        - [gradient_domain, {count: 3, strength: 0.6}]
+        - [blur_zones, {radius: 1.2, zones: 3, coverage: 0.18}]
+        - [paper_overlay, {alpha: 0.34, lighten: 0.3}]
+
+  - id: torn_edges
+    enabled: false
+    weight: 2
+    tags: [textured, torn]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.40, grain: 0.6, creases: 2}]
+        - [holes, {count: 2, placement: border, size_ratio: 0.16, fill: black}]
+        - [holes, {count: 1, placement: corner, size_ratio: 0.26, fill: black}]
+        - [blur_zones, {radius: 1.0, zones: 2, coverage: 0.14}]
+
+  - id: punched
+    enabled: false
+    weight: 1
+    tags: [textured, torn]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.45, grain: 0.7}]
+        - [holes, {count: 3, placement: center, size_ratio: 0.09, fill: black}]
+        - [shadow_binding, {border: left, distance_ratio: 0.10, intensity: 0.35}]
 
   - id: ghost_text
     weight: 3
@@ -84,56 +169,21 @@ options:
       chain:
         - [paper_texture, {alpha: 0.30, grain: 0.45}]
         - [phantom_character, {frequency: rare}]
-        - [ink_degradation, {level: 2}]
         - [blur_zones, {radius: 1.2, zones: 2, coverage: 0.15}]
 
   # Bản photo dựng KHÔNG có lưới tram: tương phản cao, mực bệt, nhoè ống kính.
   # `photocopy_screened` ở cuối file là bản có tram thật.
   - id: photocopy
+    enabled: false
     weight: 3
     tags: [textured, high_contrast]
     params:
       chain:
         - [paper_texture, {alpha: 0.25, grain: 0.35}]
-        - [ink_degradation, {level: 3}]
         - [phantom_character, {frequency: rare}]
         - [blur, {radius: 0.8}]
         - [shadow_binding, {border: top, distance_ratio: 0.08, intensity: 0.3}]
-
-  - id: crumpled
-    weight: 2
-    requires: [thermal]         # chỉ tờ giấy nhiệt mỏng mới nhàu kiểu này
-    tags: [textured, creased]
-    params:
-      chain:
-        - [paper_texture, {alpha: 0.50, grain: 0.8, creases: 4}]
-        - [ink_degradation, {level: 3}]
-        - [gradient_domain, {count: 3, strength: 0.6}]
-        - [blur_zones, {radius: 1.2, zones: 3, coverage: 0.18}]
-
-  - id: torn_edges
-    weight: 2
-    tags: [textured, torn]
-    params:
-      chain:
-        - [paper_texture, {alpha: 0.40, grain: 0.6, creases: 2}]
-        - [ink_degradation, {level: 2}]
-        # Giấy rách: phần mất đi lấp bằng MÀU ĐEN — mặt bàn tối lộ qua chỗ
-        # rách, đúng mặc định của DocCreator (Assistant.cpp:153).
-        - [holes, {count: 2, placement: border, size_ratio: 0.16, fill: black}]
-        - [holes, {count: 1, placement: corner, size_ratio: 0.26, fill: black}]
-        - [blur_zones, {radius: 1.0, zones: 2, coverage: 0.14}]
-
-  - id: punched
-    weight: 1
-    tags: [textured, torn]
-    params:
-      chain:
-        - [paper_texture, {alpha: 0.45, grain: 0.7}]
-        - [ink_degradation, {level: 3}]
-        # Thủng giữa trang, không phải rách mép.
-        - [holes, {count: 3, placement: center, size_ratio: 0.09, fill: black}]
-        - [shadow_binding, {border: left, distance_ratio: 0.10, intensity: 0.35}]
+        - [paper_overlay, {alpha: 0.22, lighten: 0.4}]
 
   # --------------------------------------------------------------------
   # HOẠ TIẾT CỦA KHÂU CHỤP LẠI
@@ -158,16 +208,17 @@ options:
   # tram thật. Giữ cả hai để một lượt chạy so được chúng với nhau, và để dataset
   # cũ tham chiếu `photocopy` theo tên vẫn ra đúng thứ nó vẫn ra.
   - id: photocopy_screened
+    enabled: false
     weight: 3
     excludes: [thermal]     # không ai photo một tờ giấy nhiệt: nó tự phai
     tags: [textured, screened]
     params:
       chain:
         - [paper_texture, {alpha: 0.28, grain: 0.4}]
-        # KHÔNG có `ink_degradation` ở đây, dù mọi kịch bản khác đều có. Lưới
-        # tram đã là hỏng mực rồi: nó băm nét chữ thành chấm. Chồng thêm mòn
-        # mực lên trên thì chữ không còn đọc được — đo bằng mắt trên chính tờ
-        # này, và một tờ không đọc được vẫn mang nhãn khai là có chữ.
+        # Kịch bản này là kịch bản duy nhất chưa bao giờ gọi `ink_degradation`
+        # — lưới tram đã là hỏng mực rồi, nó băm nét chữ thành chấm, chồng thêm
+        # mòn mực lên thì chữ không còn đọc được. Nay cả mười lăm kịch bản kia
+        # cũng bỏ nó: xem `degradation.SWITCHED_OFF`.
         - [halftone_screen, {cell: 4.2, angle: 45, strength: 0.5}]
         # Tram trước, nhoè sau: máy photo tạo chấm rồi ống kính mới làm mềm
         # mép chấm. Ngược lại thì ra chấm sắc trên nền đã nhoè, không máy nào
@@ -176,6 +227,7 @@ options:
         - [scan_banding, {period: 46, amplitude: 0.045}]
 
   - id: photocopy_stamped
+    enabled: false
     weight: 2
     excludes: [thermal]
     tags: [textured, screened]
@@ -206,7 +258,6 @@ options:
     params:
       chain:
         - [paper_texture, {alpha: 0.30, grain: 0.5}]
-        - [ink_degradation, {level: 2}]
         - [blur_zones, {radius: 1.4, zones: 2, coverage: 0.20}]
         # Ảnh chụp điện thoại rồi chuyển tiếp mấy chặng: mỗi chặng nén lại một
         # lần, sai số dồn lên lưới 8×8 chứ không chỉ làm ảnh mờ đi.
@@ -224,6 +275,7 @@ options:
   #   * mực HỎNG LÚC IN, không phải mòn theo thời gian — `letterpress`,
   #     `hollow`, `dot_matrix`. `ink_degradation` của DocCreator tả tờ giấy in
   #     xong rồi mục đi; ba cái này tả tờ giấy chưa bao giờ được in cho tử tế.
+  #     (`ink_degradation` nay đã tắt — `degradation.SWITCHED_OFF`.)
   #
   # Ba mô hình còn lại của đợt ấy — `bad_photocopy`, `dirty_drum`,
   # `dirty_rollers` — KHÔNG có mặt trong file này. Chúng là ba bộ phận của cái
@@ -295,7 +347,7 @@ options:
     params:
       chain:
         - [paper_texture, {alpha: 0.28, grain: 0.4}]
-        - [ink_degradation, {level: 2}]
+        - [paper_overlay, {alpha: 0.26, lighten: 0.32}]
         # Người đọc tô mấy dòng LIỀN NHAU, không tô ba dòng cách quãng.
         - [by_box, {effect: markup, params: {style: highlight, opacity: 0.7},
                     select: {policy: run, fraction: 0.08}}]
@@ -312,7 +364,6 @@ options:
     params:
       chain:
         - [paper_texture, {alpha: 0.34, grain: 0.5}]
-        - [ink_degradation, {level: 3}]
         # Gạch xoá một dòng ghi sai. `crossed_off` là mô hình DUY NHẤT ở đây
         # được phép che chữ — và một ô bị gạch xoá vẫn mang nhãn khai đủ chữ,
         # nên `count: 1` chứ không phải một phần trăm của trang.
@@ -334,7 +385,6 @@ options:
         # bắt đầu nhận hoạ tiết nền thành ký tự, tức là đang dạy điều ngược lại
         # với điều muốn dạy.
         - [voronoi_tessellation, {scale: 30, alpha: 0.15, contrast: 0.6, edges: 0.08}]
-        - [ink_degradation, {level: 2}]
         - [blur_zones, {radius: 1.0, zones: 2, coverage: 0.14}]
 
   - id: security_guilloche
@@ -344,11 +394,11 @@ options:
     params:
       chain:
         - [paper_texture, {alpha: 0.22, grain: 0.3}]
+        - [paper_overlay, {alpha: 0.24, lighten: 0.34}]
         # Delaunay là đối ngẫu của Voronoi trên cùng tập điểm sinh, nhưng phủ
         # lên trang thì đọc ra khác hẳn: mảng tam giác nhọn giống nền in trang
         # trí, ô Voronoi giống thớ giấy. Giữ cả hai để một lượt chạy so được.
         - [delaunay_tessellation, {scale: 42, alpha: 0.13, contrast: 0.5}]
-        - [ink_degradation, {level: 2}]
 
   # Ảnh chụp LẠI MÀN HÌNH. Hoá đơn điện tử mở trên máy tính rồi chụp bằng điện
   # thoại — loại ảnh đang tăng nhanh nhất, và trước đợt này không mô hình nào
@@ -378,9 +428,9 @@ options:
     params:
       chain:
         - [paper_texture, {alpha: 0.3, grain: 0.45}]
+        - [paper_overlay, {alpha: 0.28, lighten: 0.3}]
         # `radial: 1` là quang sai ống kính — lệch tăng dần theo bán kính, giữa
         # ảnh chồng khít còn bốn góc lệch nhất. `radial: 0` là lệch bản in, đều
         # khắp tờ. Hai cơ chế khác nhau, và đây là cái của ống kính.
         - [color_shift, {shift: 2.0, radial: 1.0, blur: 0.5}]
-        - [ink_degradation, {level: 2}]
         - [blur_zones, {radius: 1.2, zones: 2, coverage: 0.16}]

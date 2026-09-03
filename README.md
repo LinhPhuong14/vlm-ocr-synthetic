@@ -6,7 +6,7 @@
 [![ci](https://github.com/LinhPhuong14/vlm-ocr-synthetic/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB.svg?logo=python&logoColor=white)](pyproject.toml)
 [![Renderer](https://img.shields.io/badge/Renderer-Chromium_via_Playwright-4285F4.svg?logo=googlechrome&logoColor=white)](generators/html)
-[![Layouts](https://img.shields.io/badge/Bố_cục-18_/_7_họ-28C840.svg)](rulebase/layouts)
+[![Layouts](https://img.shields.io/badge/Bố_cục-32_bật_/_42_file-28C840.svg)](rulebase/layouts)
 [![Degradation](https://img.shields.io/badge/Làm_cũ-26_mô_hình_+_by__box-FF6B6B.svg)](degradation/README.md)
 [![Handwriting](https://img.shields.io/badge/Chữ_viết_tay-2_nguồn_mực-9B59B6.svg)](docs/handwriting-html.md)
 [![License](https://img.shields.io/badge/License-chưa_chọn-lightgrey.svg)](#-repository--licence)
@@ -48,11 +48,12 @@ giấy *quét vào* đọc lên giống hệt nhau.
 | Thành phần | Vai trò trong hệ thống | Trạng thái |
 | :--- | :--- | :--- |
 | **Chromium** (Playwright) — [`generators/html/`](generators/html) | Renderer **duy nhất** sinh dataset: dàn trang bằng CSS thật, chụp màn hình, đọc hộp từ chính DOM vừa dàn. | **Bắt buộc (Required)** |
-| **Rule-base** — [`rulebase/`](rulebase/README.md) | 10 thuộc tính có trọng số + ràng buộc thẻ, quyết định *tờ giấy nói gì*: loại chứng từ, bố cục, nội dung, hình thức, màu, hoạ tiết, cách làm cũ, và ba bộ phận của cái máy đã sao nó. | **Bắt buộc (Required)** |
-| **Degradation** — [`degradation/`](degradation/README.md) | 26 mô hình xuống cấp: 8 chuyển thể từ **DocCreator** (LaBRI Bordeaux) — vân giấy, mực mòn, thấm mặt sau, nhoè vùng, rách, bóng gáy; 12 từ **Augraphy** — máy photo hỏng, trống mực bẩn, in kim, in typo, chữ rỗng ruột, bút đánh dấu, nền chia ô, lệch kênh màu; 6 của repo — halftone, sọc quét, JPEG, dấu đóng, ảnh giấy phủ. Cộng `by_box`: bọc mô hình bất kỳ để nó chỉ ăn vào vài ô chữ. | **Bắt buộc (Required)** |
+| **Rule-base** — [`rulebase/`](rulebase/README.md) | 11 thuộc tính có trọng số + ràng buộc thẻ, quyết định *tờ giấy nói gì*: loại chứng từ, bố cục, nội dung, hình thức, màu, hoạ tiết, **mực bút**, cách làm cũ, và ba bộ phận của cái máy đã sao nó. | **Bắt buộc (Required)** |
+| **Degradation** — [`degradation/`](degradation/README.md) | 26 mô hình xuống cấp (**3 đang tắt**: `gradient_domain`, `holes`, `dirty_rollers` — xem `degradation.SWITCHED_OFF`): 8 chuyển thể từ **DocCreator** (LaBRI Bordeaux) — vân giấy, mực mòn, thấm mặt sau, nhoè vùng, rách, bóng gáy; 12 từ **Augraphy** — máy photo hỏng, trống mực bẩn, in kim, in typo, chữ rỗng ruột, bút đánh dấu, nền chia ô, lệch kênh màu; 6 của repo — halftone, sọc quét, JPEG, dấu đóng, ảnh giấy phủ. Cộng `by_box`: bọc mô hình bất kỳ để nó chỉ ăn vào vài ô chữ. | **Bắt buộc (Required)** |
 | **Pipeline** — [`pipeline/`](pipeline) | Một lượt chạy được **khai báo, chia shard, chạy song song và resume được**, kèm bất biến từng ảnh và đo trôi phân phối. | **Bắt buộc (Required)** |
-| **Chữ viết tay** — [`generators/html/handwriting.py`](generators/html/handwriting.py), [`docs/handwriting-html.md`](docs/handwriting-html.md) | Điền ô trống của biểu mẫu bằng **nét bút chứ không phải font in bị rung**. Hai nguồn mực, **không thay thế nhau**: `font` phủ hết mọi ô nhưng một trang chỉ một nét chữ; `model` là [WriteViT](docs/writevit.md) ([`tools/writevit/`](tools/writevit)), nét mỗi lần một khác nhưng không viết được chữ số. | *Mở rộng (Handwriting)* |
+| **Chữ viết tay** — [`generators/html/handwriting.py`](generators/html/handwriting.py), [`docs/handwriting-html.md`](docs/handwriting-html.md) | Điền ô trống của biểu mẫu bằng **nét bút chứ không phải font in bị rung**. Là **thuộc tính 7** của rule-base kể từ nay, nên một lượt chạy ra tập TRỘN — trang đánh máy lẫn trang điền tay — thay vì được-cả-hoặc-không như hồi còn là cờ dòng lệnh. Hai nguồn mực, **không thay thế nhau**: `font` phủ hết mọi ô nhưng một trang chỉ một nét chữ; `model` là [WriteViT](docs/writevit.md) ([`tools/writevit/`](tools/writevit)), nét mỗi lần một khác nhưng không viết được chữ số. | **Bắt buộc (Required)** |
 | **Chữ ký** — [`generators/html/signature.py`](generators/html/signature.py), [`docs/chu-ky.md`](docs/chu-ky.md) | Ký vào khối chữ ký — ô trống cuối cùng của tờ mẫu. Lấy chữ thật (từ `fonts/hand/` hoặc từ WriteViT, **trace thành contour**) rồi kéo giãn thành dấu ký: chữ đầu phóng to, phần thân tan thành nét lượn, nét cuối hất lên, paraph. Mực **không mang nhãn** — nó phải nằm trên trang và nằm ngoài nhãn. | *Mở rộng (Signature)* |
+| **Agent LLM** — [`agent/`](agent/README.md), [`tools/agent_dataset.py`](tools/agent_dataset.py) | Một lượt chạy mà **mô hình chọn tham số cho từng ảnh** thay cho seed: loại giấy, phôi, và **cách dựng lại phôi** (7 trục CSS — tông giấy, nét kẻ, bộ chữ, hoạ tiết sinh thêm). Giấy tờ do nhà nước quy định mẫu thì **chỉ được đóng dấu, không được dựng lại** — ràng buộc nằm trong chính bộ luật, không phải trong planner. | *Mở rộng (Agent)* |
 | **Tesseract 5 (`vie`)** — [`tools/ocr_proof.py`](tools/ocr_proof.py) | Đọc ngược dataset và chấm điểm **không phụ thuộc thứ tự đọc**, để chứng minh ảnh đọc được và nhãn khớp pixel. | *Mở rộng (Kiểm chứng)* |
 | **synthtiger / WeasyPrint** — [`docs/renderers.md`](docs/renderers.md) | Hai renderer cũ. **Đã nghỉ phần sinh**, giữ nguyên phần đọc: các bộ chúng đã vẽ vẫn được commit và vẫn kiểm tra được. | *Nghỉ (Retired)* |
 
@@ -76,18 +77,18 @@ flowchart TD
     seed(["seed + tuỳ chọn --force ATTR=ID"]) --> A
 
     subgraph S1 ["Bước 1: Nội dung — rulebase/"]
-        A["1 · rulebase.make<br/>bốc 10 thuộc tính, điền trường, dàn ô chữ + nét vẽ"]
+        A["1 · rulebase.make<br/>bốc 11 thuộc tính, điền trường, dàn ô chữ + nét vẽ"]
     end
 
     subgraph S2 ["Bước 2-3: Dựng pixel — generators/html/"]
         A --> D2["2 · tờ CSS<br/>sheets/ — A4 có khung, bảng, chữ ký"]
-        D2 --> D3["3 · điền tay (tuỳ chọn)<br/>handwriting.py — nguồn font hoặc WriteViT"]
+        D2 --> D3["3 · điền tay<br/>handwriting.py — thuộc tính 7 quyết định, không phải cờ dòng lệnh"]
     end
 
-    subgraph S3 ["Bước 4-6: Làm cũ & hình học"]
-        D3 --> E["4 · chuỗi làm cũ<br/>apply_recipe — KHÔNG đổi kích thước"]
-        E --> F["5 · hoạ tiết & con dấu<br/>thuộc tính ornament"]
-        F --> G["6 · thu nhỏ<br/>hộp co theo pixel"]
+    subgraph S3 ["Bước 4-6: Hoạ tiết, làm cũ & hình học"]
+        D3 --> F["4 · hoạ tiết & con dấu<br/>ornament.py — đóng theo box của trang"]
+        F --> E["5 · chuỗi làm cũ<br/>apply_recipe — KHÔNG đổi kích thước"]
+        E --> G["6 · thu nhỏ<br/>hộp co theo pixel"]
     end
 
     subgraph S4 ["Bước 7: Kiểm & ghi"]
@@ -96,7 +97,7 @@ flowchart TD
     end
 ```
 
-### Thứ tự mười thuộc tính không phải chuyện thẩm mỹ
+### Thứ tự mười một thuộc tính không phải chuyện thẩm mỹ
 
 Mỗi thuộc tính **nhìn thấy thẻ (`tags`) mà các thuộc tính trước đã đặt**, và
 một giá trị chỉ được `require` thẻ do thuộc tính **trước** nó đặt. Nên thứ tự
@@ -106,28 +107,30 @@ này quyết định *ràng buộc nào viết ra được*. Nó theo nhân qu�
 ```mermaid
 flowchart LR
     d["1 document<br/>loại chứng từ"] --> l["2 layout<br/>bố cục"] --> c["3 content<br/>nội dung"] --> v["4 visual<br/>font, mực, giấy"]
-    v --> col["5 color<br/>màu mực, nền"] --> orn["6 ornament<br/>dấu, hoa văn"] --> a["7 augmentation<br/>chuỗi làm cũ"]
-    a --> t["8 toner<br/>hộp mực"] --> dr["9 drum<br/>trống mực"] --> ro["10 rollers<br/>trục lăn"]
+    v --> col["5 color<br/>màu mực, nền"] --> orn["6 ornament<br/>dấu, hoa văn"] --> hw["7 handwriting<br/>mực bút"]
+    hw --> a["8 augmentation<br/>chuỗi làm cũ"] --> t["9 toner<br/>hộp mực"] --> dr["10 drum<br/>trống mực"] --> ro["11 rollers<br/>trục lăn"]
 ```
 
 Ba thuộc tính cuối là **ba bộ phận của cái máy đã in hoặc đã sao tờ giấy**, và
 chúng hỏng độc lập với nhau: một cái máy có thể sọc trống mà mực vẫn đủ. Gói cả
 ba vào một giá trị `augmentation` thì mỗi tổ hợp phải viết tay một kịch bản, và
 số kịch bản phải viết là **tích** chứ không phải tổng. Đo trên 3 000 lượt bốc:
-**25,2 %** số trang mang ít nhất một vết máy.
+**18,0 %** số trang mang ít nhất một vết máy — từng là 25,2 % khi `rollers` còn
+bật; số này đo lại sau khi tắt nó, không phải chép lại từ lần đo cũ.
 
 | # | Thuộc tính | Quyết định | File |
 | ---: | :--- | :--- | :--- |
 | 1 | `document` | loại chứng từ — 5 họ, 17 giá trị | [`rules/document.yaml`](rulebase/rules/document.yaml) |
-| 2 | `layout` | bố cục — 6 họ, 16 file | [`rules/layout.yaml`](rulebase/rules/layout.yaml) |
+| 2 | `layout` | bố cục — **32 đang bật / 42 file**. Một file tự tắt mình bằng `enabled: false`: lượt chạy không bốc nó nữa, nhưng file vẫn ở đó và vẫn dựng lại được khi gọi đích danh (mười bố cục root 3 Form đang tắt) | [`rules/layout.yaml`](rulebase/rules/layout.yaml) |
 | 3 | `content` | dấu tiếng Việt, viết hoa, định dạng tiền, VAT | [`rules/content.yaml`](rulebase/rules/content.yaml) |
 | 4 | `visual` | font, cỡ chữ, độ đậm mực, lề, khổ giấy | [`rules/visual.yaml`](rulebase/rules/visual.yaml) |
 | 5 | `color` | màu mực, sắc nền, màu nhấn | [`rules/color.yaml`](rulebase/rules/color.yaml) |
-| 6 | `ornament` | **mực không phải chữ**: con dấu tròn, dấu vuông, hoa văn chìm, nẹp sóng, QR | [`rules/ornament.yaml`](rulebase/rules/ornament.yaml) |
-| 7 | `augmentation` | chuỗi làm cũ chạy sau khi vẽ | [`rules/augmentation.yaml`](rulebase/rules/augmentation.yaml) |
-| 8 | `toner` | hộp mực của cái máy đã sao tờ này — bụi mực bám mảng, mảng cháy trắng | [`rules/toner.yaml`](rulebase/rules/toner.yaml) |
-| 9 | `drum` | trống mực — sọc **dọc** theo hướng giấy đi | [`rules/drum.yaml`](rulebase/rules/drum.yaml) |
-| 10 | `rollers` | trục lăn — dải **ngang**, vuông góc hướng giấy | [`rules/rollers.yaml`](rulebase/rules/rollers.yaml) |
+| 6 | `ornament` | **mực không phải chữ**: con dấu tròn, dấu vuông, hoa văn chìm, nẹp sóng, QR. Đóng lên trang bởi [`generators/html/ornament.py`](generators/html/ornament.py), theo **vị trí có nghĩa** (`signature_seller`, `letterhead`…) đọc từ chính box của trang | [`rules/ornament.yaml`](rulebase/rules/ornament.yaml) |
+| 7 | `handwriting` | **ô trống điền bằng nét bút hay chữ in**. `typed` hoặc `hand_font`; `hand_model`/`hand_both` (WriteViT) có mặt nhưng `enabled: false` vì checkpoint 294 MB không nằm trong kho. Đứng **trước** `augmentation` nên nét bút bị làm cũ y như chữ in | [`rules/handwriting.yaml`](rulebase/rules/handwriting.yaml) |
+| 8 | `augmentation` | chuỗi làm cũ chạy sau khi vẽ | [`rules/augmentation.yaml`](rulebase/rules/augmentation.yaml) |
+| 9 | `toner` | hộp mực của cái máy đã sao tờ này — bụi mực bám mảng, mảng cháy trắng | [`rules/toner.yaml`](rulebase/rules/toner.yaml) |
+| 10 | `drum` | trống mực — sọc **dọc** theo hướng giấy đi | [`rules/drum.yaml`](rulebase/rules/drum.yaml) |
+| 11 | `rollers` | trục lăn — **đang tắt**, chỉ còn `no_rollers` | [`rules/rollers.yaml`](rulebase/rules/rollers.yaml) |
 
 ### Hai đường dựng trang, và cái nối chúng
 
@@ -185,7 +188,7 @@ tính, thứ tự đọc phẳng thì sang `synthesis.json` — nơi tham số c
 
 ```mermaid
 flowchart LR
-    R["Recipe<br/>10 thuộc tính + seed"] --> RC["Receipt"]
+    R["Recipe<br/>11 thuộc tính + seed"] --> RC["Receipt"]
     RC --> GT["extracted<br/>nhãn CORD"]
     RC --> G["Grid"]
     G --> PX["pixel"]
@@ -238,7 +241,7 @@ python -c "from pathlib import Path; from pipeline import record; \
 
 Cả hai chế độ dưới đây, mặc định, đều dựng ảnh qua **tờ CSS riêng của từng
 họ bố cục** (`--template auto`) chứ không qua lưới ký tự cũ — mỗi bố cục
-trong 36 bố cục đã sẵn một khoá `family:` để tự chọn tờ mặc, nên đường tô CSS
+trong 42 bố cục đã sẵn một khoá `family:` để tự chọn tờ mặc, nên đường tô CSS
 không còn là thứ phải bật tay theo từng lượt chạy. Lưới ký tự cũ vẫn còn,
 làm đường tường minh khi bỏ hẳn cờ `--template`, và vẫn là đường
 `test_layout.py`/`make preflight` dùng để đo hình học. Xem
@@ -262,6 +265,8 @@ làm đường tường minh khi bỏ hẳn cờ `--template`, và vẫn là đ�
 | **Resume là được-cả-hoặc-không** | `DONE` ghi **cuối cùng và nguyên tử**; shard thiếu `DONE` bị xoá làm lại chứ không ghi nối — ghi nối vào một `metadata` dở dang sinh bản ghi trùng, mà bản ghi trùng thì vô hình | [`pipeline/worker.py`](pipeline/worker.py) |
 | **Song song bằng tiến trình, không bằng luồng** | API đồng bộ của Playwright không an toàn đa luồng | [`pipeline/run.py`](pipeline/run.py) |
 | **Danh sách bố cục khai tường minh** | `layouts: []` nghĩa là mọi file — thứ một dataset muốn. Một **phép so sánh cố định** phải gọi tên, vì quota đi theo thứ tự danh sách | `pipeline.yaml` |
+| **Đủ mọi bố cục, không cần sửa tay** | `per_backend: auto` = **một ảnh cho mỗi bố cục đang có**. Số cứng sẽ hết hạn: `20` đúng khi có 18 bố cục và **từ chối chạy** khi có 32 | [`pipeline/config.py`](pipeline/config.py) |
+| **Chia bài chứ không xếp khối** | hai ảnh **liền kề không bao giờ cùng bố cục**: chia vòng tròn, mỗi bố cục một ảnh rồi quay lại. Hạt giống không đổi — ảnh thứ k của một bố cục vẫn là hạt thứ k của khối bố cục đó, nên đây là đổi **thứ tự**, không đổi một trang nào | [`pipeline/plan.py`](pipeline/plan.py) |
 | **Bất biến từng ảnh** | số học tiền, hộp nằm trong khung, không ký tự thay thế / ô trống glyph | [`pipeline/invariants.py`](pipeline/invariants.py) |
 | **Đo trôi (drift)** | *phân phối* còn khớp luật không, tính trên từng shard, đã trừ đi độ tán của mẫu cỡ đó | [`pipeline/drift.py`](pipeline/drift.py) |
 | **Vân tay vàng** | sha256 từng ảnh và từng bản ghi, để đường song song bị buộc phải cho ra đúng thứ đường tuần tự cho ra | [`tools/baseline.py`](tools/baseline.py) |
@@ -279,7 +284,7 @@ Xong một lượt, thư mục ra gồm **năm thứ, mỗi thứ trả lời m�
 | File | Trả lời | So sánh được? |
 | :--- | :--- | :--- |
 | `<backend>/html_000.jpg` + `.json` | ảnh và bản ghi của nó: hộp, chữ, ground truth | có — sha256 từng file |
-| `<backend>/synthesis.json` | **config từng ảnh**: bố cục nào, mười thuộc tính augment nào, seed nào | có — băm bởi [`tools/baseline.py`](tools/baseline.py) |
+| `<backend>/synthesis.json` | **config từng ảnh**: bố cục nào, mười một thuộc tính augment nào, seed nào | có — băm bởi [`tools/baseline.py`](tools/baseline.py) |
 | `<backend>/imagetimes.jsonl` | **thời gian sinh từng ảnh**, kèm chặng `draw`/`write` | không, và cố tình thế |
 | `timings.json` | tổng thời gian, theo shard và tóm tắt theo ảnh | không |
 | `report.json` | **pass/fail**: mỗi shard một case, mỗi cổng kiểm tra một case | không |
@@ -428,8 +433,8 @@ cột, tiêu đề hai băng với `rowspan`/`colspan`, dòng theo nhóm — d�
 ```
 vlm-ocr-synthetic/
 ├── rulebase/                       # LUẬT SINH — nguồn sự thật duy nhất về nội dung
-│   ├── rules/                      # 10 thuộc tính, mỗi thuộc tính một file YAML
-│   ├── layouts/                    # 42 bố cục — 41 đo từ giấy thật, 1 do LLM
+│   ├── rules/                      # 11 thuộc tính, mỗi thuộc tính một file YAML
+│   ├── layouts/                    # 42 file — 32 đang bật, 10 tắt (root Form)
 │   │                               #   biến thể (`source:` mỗi file ghi từ đâu ra)
 │   ├── corpus/vi/ · corpus/en/     # các chuỗi tờ giấy in ra
 │   ├── spec.py                     # bốc có trọng số, thẻ, node cha
@@ -627,12 +632,20 @@ từng bộ và schema nhãn nằm trong **[`data/README.md`](data/README.md)**.
 | [`degradation/README.md`](degradation/README.md) | từng mô hình làm cũ và file DocCreator nó chuyển thể từ đó |
 | [`docs/lam-cu-de-xuat.md`](docs/lam-cu-de-xuat.md) | kiểm kê nhiễu: mô hình nào đang dùng, phần đã dựng mà chưa bốc tới được, và danh mục đề xuất từ thư viện ngoài, kỹ thuật đồ hoạ và chỗ trống riêng của chứng từ Việt Nam |
 | [`data/README.md`](data/README.md) | các bộ dữ liệu và schema nhãn |
+| [`tools/llm/README.md`](tools/llm/README.md) · [`docs/llm-in-pipeline.md`](docs/llm-in-pipeline.md) | bước sinh bằng LLM chạy **cạnh** pipeline, và thiết kế để nối nó **vào** pipeline mà lượt chạy vẫn dựng lại được từng byte: model quyết định trước, quyết định ghi thành sổ cái, lúc vẽ chỉ đọc sổ cái. Kèm chính sách chứng từ nào được phép biến đổi ([`rulebase/augmentable.yaml`](rulebase/augmentable.yaml)) |
 | [`docs/renderers.md`](docs/renderers.md) | vì sao ba renderer còn một, và cái giá phải trả |
 | [`docs/handwriting-html.md`](docs/handwriting-html.md) · [`docs/writevit.md`](docs/writevit.md) | nối chữ viết tay vào engine HTML, và mô hình đứng sau |
 | [`docs/chu-ky.md`](docs/chu-ky.md) | khảo sát mẫu chữ ký — giám định, bút tướng, thư pháp, hướng dẫn tiếng Việt — engine kéo giãn từng phát hiện thành tham số, và hai nguồn mực nó vẽ bằng |
 | [`docs/huong-dan-va-giai-thich.md`](docs/huong-dan-va-giai-thich.md) | giải thích từng dòng của renderer, kèm Q&A |
 | [`docs/co-che-sinh-con-dau.md`](docs/co-che-sinh-con-dau.md) | cơ chế sinh con dấu, viết dạng paper: mô hình raster của Pillow (nguyên thuỷ hình học **không** khử răng cưa, chữ thì có), siêu lấy mẫu, chữ trên cung tròn, mô hình mực — kèm ngân sách sai số đo được |
 | [`docs/khao-sat-root-document-ocr.md`](docs/khao-sat-root-document-ocr.md) | khảo sát 6 root document phổ biến cho OCR/eKYC ngoài phạm vi hiện tại (CCCD/CMND, hộ chiếu, GPLX, sao kê ngân hàng, CV, hợp đồng) — mỗi root kèm từ khoá và 10 bố cục có link ảnh mẫu |
+| [`docs/README.md`](docs/README.md) | **bắt đầu từ đây cho mảng tự động hoá bằng LLM**: ba tài liệu thiết kế nói gì, mười quyết định quan trọng, bốn quyết định đã sửa và vì sao, số đo đứng sau, và một kế hoạch gộp |
+| [`docs/tu-dong-hoa-bang-llm.md`](docs/tu-dong-hoa-bang-llm.md) | thiết kế tự động hoá: một LLM trong vòng lặp *viết luật* thay vì vẽ pixel — khảo sát hiện trạng sinh chứng từ tổng hợp, chỉ ra mô hình một-trang-một-nét đang chặn form viết tay, đề xuất thuộc tính thứ tám và một lớp `ink/` |
+| [`docs/muc-tieu.md`](docs/muc-tieu.md) | mảng tự động hoá để làm gì: bốn năng lực nó thêm, năm phát biểu kiểm được cho "xong", việc dự án KHÔNG nhắm tới, và bốn cách nó vẫn thất bại dù mọi task đều xong |
+| [`docs/ke-hoach.md`](docs/ke-hoach.md) | việc được chia thành mười task: mỗi task kèm mục tiêu, các file đụng tới, các bước, định nghĩa "xong" kiểm được, những cổng phải giữ xanh, và các bẫy đã biết |
+| [`docs/brief-plan-run.md`](docs/brief-plan-run.md) | lệnh làm việc cho người nhận task đầu tiên: schema input đã đo, đúng hai lượt gọi SDK, những gì model được và không được đặt, mười test cần viết, và một checklist nghiệm thu |
+| [`docs/duong-ong.md`](docs/duong-ong.md) | pipeline vẽ từ đầu đến cuối cho một tờ giấy: ranh giới lúc soạn / lúc vẽ, mười giai đoạn, vòng đời một bounding box, và vì sao hình học luôn thuộc về engine dàn chữ chứ không phải một model |
+| [`docs/tang-cuong-bo-cuc.md`](docs/tang-cuong-bo-cuc.md) | nhân một bố cục đã đo thành hàng trăm biến thể hợp lệ: một cây cột ngữ nghĩa, tám nước đi hợp lệ, `compose:` cho cột gộp, và ba lớp giữ nội dung hợp lý |
 | [`docs/python-versions.md`](docs/python-versions.md) · [`docs/windows.md`](docs/windows.md) | vì sao có mốc chặn phiên bản; cài trên Windows |
 | [`fonts/README.md`](fonts/README.md) | font nào, giấy phép nào, vì sao phải kiểm độ phủ |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | môi trường nào cho việc gì, và các kiểm tra phải chạy trước khi push |

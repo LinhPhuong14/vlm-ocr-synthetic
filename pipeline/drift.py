@@ -316,8 +316,15 @@ def forced_for(shard: dict, plan: dict) -> list[dict[str, str]]:
     """The `force` each of a shard's runs was rendered with, and its weight.
 
     A run pins the layout; `--clean` pins every chain-bearing attribute;
-    `--force` pins whatever the caller asked for. The expectation has to carry
-    the same pins or it is an expectation for a different job.
+    `--force` pins whatever the caller asked for; an agent-planned run pins
+    **every** attribute on the run itself. The expectation has to carry the same
+    pins or it is an expectation for a different job -- and `run["force"]` was
+    the one it did not carry, so every agent shard was compared against the mix
+    the *weights* predict rather than the mix the plan asked for, and warned by
+    0.29 for doing exactly what it was told.
+
+    The run's own pins win the merge, the same way `worklist.Job.pins` puts them
+    last: the narrower statement should.
     """
     pinned: dict[str, str] = {}
     for item in plan.get("force") or []:
@@ -327,7 +334,8 @@ def forced_for(shard: dict, plan: dict) -> list[dict[str, str]]:
     if plan.get("clean"):
         for attribute, value in invariants.CLEAN_FORCES.items():
             pinned.setdefault(attribute, value)
-    return [{**pinned, "layout": run["layout"], "_count": run["count"]}
+    return [{**pinned, **(run.get("force") or {}),
+             "layout": run["layout"], "_count": run["count"]}
             for run in shard.get("runs", [])]
 
 
@@ -373,6 +381,14 @@ def expected_shares(shard: dict, plan: dict, *, rules=None,
         if weight <= 0:
             continue
         weight_total += weight
+        if set(pinned) >= set(rules):
+            # Every attribute pinned: the expectation IS the pin, and sampling
+            # it would draw the same recipe `draws` times. An agent shard is 125
+            # such runs, so the short circuit is the difference between a
+            # counter update and 50,000 pointless draws.
+            for name, value in pinned.items():
+                totals.setdefault(name, Counter())[value] += weight
+            continue
         # A different block of sampling seeds per run, so two runs pinned to the
         # same layout do not contribute the same draws twice.
         counters, _families, failures = sample_distribution(

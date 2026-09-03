@@ -192,6 +192,13 @@ groups:
     # mỗi tag khớp ĐÚNG MỘT layout hoặc một cặp layout cùng hình dạng nội
     # dung — cùng cơ chế requires/excludes root 1 dùng cho invoice_plain/
     # invoice_detailed. Xem `docs/root-document-taxonomy.md` § 3.3.
+    # TẮT cùng mười bố cục root 3. Một loại chứng từ mà mọi bố cục in được nó
+    # đều đã tắt thì không phải "hiếm gặp", nó là **không dựng được**: người
+    # bốc sẽ bốc trúng nó rồi không tìm ra bố cục nào, thử lại 6 000 lần rồi
+    # bỏ cuộc. `tools/rules_report.py --check` bắt đúng chuyện đó từ bây giờ.
+    #
+    # Tắt chứ không xoá, giống mọi chỗ khác: bật lại là xoá tám dòng
+    # `enabled: false` ở đây và mười dòng ở `rules/layout.yaml`.
     - id: form_brief
       weight: 2
       tags: [doc_invoice, doc_form, bare_kv]

@@ -209,8 +209,13 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
             # over as a job list in the order the plan put them, and the
             # renderer draws them in that order, so the records come back in
             # it too -- checked below rather than trusted.
-            jobs = [worklist.Job(layout=run["layout"], seed=run["seed"],
-                                 count=run["count"]) for run in shard["runs"]]
+            jobs = [worklist.Job(
+                layout=run["layout"], seed=run["seed"], count=run["count"],
+                # A plan the agent built pins every attribute per page; an
+                # ordinary plan pins nothing here and the sampler draws.
+                force=tuple(sorted((str(k), str(v))
+                                   for k, v in (run.get("force") or {}).items())))
+                for run in shard["runs"]]
             jobs_path = worklist.write(staging / "jobs.json", jobs)
             command = renderer_command(backend, staging, jobs_path,
                                        bool(plan.get("clean")),
@@ -218,8 +223,14 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
                                        str(plan.get("template") or ""))
             if log:
                 log.write(f"$ {' '.join(command)}\n")
+                # Images PER PROCESS, which is the number W3b was about, and it
+                # is the whole shard: one renderer process draws all of it. The
+                # job count is a separate fact and is one job per image since
+                # the layouts are dealt rather than blocked (`plan.py::deal`) --
+                # printing images-per-JOB here would read as the 1.43 regression
+                # this line was written to watch for.
                 log.write(f"  {len(jobs)} job(s), {worklist.total(jobs)} image(s), "
-                          f"{worklist.total(jobs) / len(jobs):.2f} per process\n")
+                          f"1 process, {worklist.total(jobs)} per process\n")
                 log.flush()
             result = subprocess.run(command, cwd=cwd, env=environment,
                                     capture_output=True, text=True)
