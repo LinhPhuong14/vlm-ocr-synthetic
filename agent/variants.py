@@ -328,10 +328,24 @@ class Variant:
     css: str
     axes: dict[str, str]
     moves: tuple = ()
+    # Set by an authored design, which knows its own width requirement; left
+    # None by a composed dressing, whose requirement is read off its axes.
+    needs_wide: bool | None = None
 
     @property
     def wide_only(self) -> bool:
-        """Whether this dressing needs a sheet wider than a till roll."""
+        """Whether this dressing needs a sheet wider than a till roll.
+
+        A composed dressing declares this through its `structure` axis. An
+        authored one in `agent/redesign.py` cannot -- it has no axes to read --
+        so it sets `needs_wide` instead. Before that field existed, every
+        authored design reported False here, which is how a two-column sidebar
+        layout came to be admissible on an 80 mm thermal roll: `agent/rules.py`
+        only writes `excludes: [till_receipt]` for a dressing that says it is
+        wide, and none of them said so.
+        """
+        if self.needs_wide is not None:
+            return bool(self.needs_wide)
         return self.axes.get("structure", "") in WIDE_ONLY_STRUCTURE
 
 
