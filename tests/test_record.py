@@ -344,10 +344,18 @@ def test_every_committed_page_has_a_record_in_the_shape_this_file_defines():
     # meant to: a set that quietly lost half its pages would otherwise look
     # like a passing test. The chain, newest first:
     #
-    #   5380 = 380 plus `data/5k_llm/`, the 5000-page agent run: every attribute
-    #         of every page chosen by `agent/planner.py` rather than drawn by
-    #         the seed, and committed whole -- images, records and a proof
-    #         beside each one -- at the repository owner's request.
+    #   738 = 380 plus `data/layout_augment/`, 358 pages: every one of the 52
+    #         phôi drawn bare, and then drawn again wearing each rebuild
+    #         `agent/redesign.py` offers it -- same seed, same document, ageing
+    #         pinned off, so the only difference between two pages in a
+    #         directory is the architecture. The proofs live in
+    #         `data/layout_augment/proof/`, outside the page directories, so
+    #         they are not counted here and this test does not trip over an
+    #         image with no record beside it.
+    #   5380 = 380 plus `data/5k_llm/`, the 5000-page agent run, committed
+    #         whole at the repository owner's request and REMOVED at their
+    #         later one (3.5GB); `data/5k_llm/` is gitignored now, and
+    #         `tools/agent_dataset.py` regenerates the set on demand.
     #   380 = 296 plus `data/layouts_all/`, 84 pages -- every ENABLED layout
     #         twice over, dealt so that no two adjacent images carry the same
     #         layout. The count moved three times in one day (84 -> 64 -> 84:
@@ -372,7 +380,7 @@ def test_every_committed_page_has_a_record_in_the_shape_this_file_defines():
     #   294 = 307 before `data/dataset_test` was rebuilt on the CSS sheets,
     #         which took it from 30 images over two renderers to 16, one per
     #         layout, on the only backend the pipeline still drives.
-    assert seen == 5380, seen
+    assert seen == 738, seen
 
 
 # ------------------------------------------------------- the shape before this

@@ -1,0 +1,2496 @@
+options:
+- id: none
+  weight: 1.0
+  params:
+    label: phôi gốc, không dựng lại
+    level: locked
+    css: ''
+- id: cot_nhan_dien_trai
+  weight: 1.0
+  tags:
+  - dressed_free
+  excludes:
+  - till_receipt
+  params:
+    label: Dải nhận diện dọc bên trái, nội dung dồn phải
+    level: free
+    axes:
+      design: cot_nhan_dien_trai
+    css: '#sheet{padding:0;}
+
+      #sheet > *{padding-left:26mm;padding-right:5mm;}
+
+      #sheet .inner > *{padding-left:26mm;padding-right:5mm;}
+
+      #sheet main > *{padding-left:26mm;padding-right:5mm;}
+
+      #sheet .frame > *{padding-left:26mm;padding-right:5mm;}
+
+      #sheet .card > *{padding-left:26mm;padding-right:5mm;}
+
+      #sheet > table.items{width:auto;margin-left:3mm;margin-right:3mm;padding-left:0;padding-right:0;}
+
+      #sheet .inner > table.items{width:auto;margin-left:3mm;margin-right:3mm;padding-left:0;padding-right:0;}
+
+      #sheet main > table.items{width:auto;margin-left:3mm;margin-right:3mm;padding-left:0;padding-right:0;}
+
+      #sheet .frame > table.items{width:auto;margin-left:3mm;margin-right:3mm;padding-left:0;padding-right:0;}
+
+      #sheet .card > table.items{width:auto;margin-left:3mm;margin-right:3mm;padding-left:0;padding-right:0;}
+
+      #sheet table.items th, #sheet table.items td{padding:1mm .8mm;}
+
+      #sheet .inner table.items th, #sheet table.items td{padding:1mm .8mm;}
+
+      #sheet main table.items th, #sheet table.items td{padding:1mm .8mm;}
+
+      #sheet .frame table.items th, #sheet table.items td{padding:1mm .8mm;}
+
+      #sheet .card table.items th, #sheet table.items td{padding:1mm .8mm;}
+
+      #sheet::before{content:'''';position:absolute;left:0;top:0;bottom:0;width:21mm;background:linear-gradient(160deg,#12304f,#2f6ea8);z-index:-1;}
+
+      #sheet::after{content:'''';position:absolute;left:21mm;top:0;bottom:0;width:.6mm;background:#12304f;z-index:-1;}
+
+      #sheet .head, #sheet .brand, #sheet .flag{padding-top:2mm;}
+
+      #sheet .inner .head, #sheet .brand, #sheet .flag{padding-top:2mm;}
+
+      #sheet main .head, #sheet .brand, #sheet .flag{padding-top:2mm;}
+
+      #sheet .frame .head, #sheet .brand, #sheet .flag{padding-top:2mm;}
+
+      #sheet .card .head, #sheet .brand, #sheet .flag{padding-top:2mm;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet table.items th{background:#12304f;color:#fff;border-color:#12304f;}
+
+      #sheet .inner table.items th{background:#12304f;color:#fff;border-color:#12304f;}
+
+      #sheet main table.items th{background:#12304f;color:#fff;border-color:#12304f;}
+
+      #sheet .frame table.items th{background:#12304f;color:#fff;border-color:#12304f;}
+
+      #sheet .card table.items th{background:#12304f;color:#fff;border-color:#12304f;}
+
+      #sheet table.items td{border-left:0;border-right:0;border-color:#c9d6e2;}
+
+      #sheet .inner table.items td{border-left:0;border-right:0;border-color:#c9d6e2;}
+
+      #sheet main table.items td{border-left:0;border-right:0;border-color:#c9d6e2;}
+
+      #sheet .frame table.items td{border-left:0;border-right:0;border-color:#c9d6e2;}
+
+      #sheet .card table.items td{border-left:0;border-right:0;border-color:#c9d6e2;}
+
+      #sheet .signs{width:auto;max-width:none;margin-left:26mm;margin-right:5mm;padding-left:0;padding-right:0;}
+
+      #sheet .inner .signs{width:auto;max-width:none;margin-left:26mm;margin-right:5mm;padding-left:0;padding-right:0;}
+
+      #sheet main .signs{width:auto;max-width:none;margin-left:26mm;margin-right:5mm;padding-left:0;padding-right:0;}
+
+      #sheet .frame .signs{width:auto;max-width:none;margin-left:26mm;margin-right:5mm;padding-left:0;padding-right:0;}
+
+      #sheet .card .signs{width:auto;max-width:none;margin-left:26mm;margin-right:5mm;padding-left:0;padding-right:0;}
+
+      #sheet .foot{text-align:left;padding-left:26mm;}
+
+      #sheet .inner .foot{text-align:left;padding-left:26mm;}
+
+      #sheet main .foot{text-align:left;padding-left:26mm;}
+
+      #sheet .frame .foot{text-align:left;padding-left:26mm;}
+
+      #sheet .card .foot{text-align:left;padding-left:26mm;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - swap
+      - letterhead
+      - doctitle
+- id: bang_thanh_the
+  weight: 1.0
+  tags:
+  - dressed_free
+  excludes:
+  - till_receipt
+  params:
+    label: Bảng hàng thành thẻ nổi trên nền có màu
+    level: free
+    axes:
+      design: bang_thanh_the
+    css: '#sheet{padding:4mm 6mm;background:#eef2f6;}
+
+      #sheet > *{background:#fff;padding:1.8mm 3.5mm;margin-bottom:1.8mm;border-radius:2mm;box-shadow:0
+      .4mm 1.2mm rgba(20,40,70,.14);}
+
+      #sheet .inner > *{background:#fff;padding:1.8mm 3.5mm;margin-bottom:1.8mm;border-radius:2mm;box-shadow:0
+      .4mm 1.2mm rgba(20,40,70,.14);}
+
+      #sheet main > *{background:#fff;padding:1.8mm 3.5mm;margin-bottom:1.8mm;border-radius:2mm;box-shadow:0
+      .4mm 1.2mm rgba(20,40,70,.14);}
+
+      #sheet .frame > *{background:#fff;padding:1.8mm 3.5mm;margin-bottom:1.8mm;border-radius:2mm;box-shadow:0
+      .4mm 1.2mm rgba(20,40,70,.14);}
+
+      #sheet .card > *{background:#fff;padding:1.8mm 3.5mm;margin-bottom:1.8mm;border-radius:2mm;box-shadow:0
+      .4mm 1.2mm rgba(20,40,70,.14);}
+
+      #sheet > *:nth-child(odd){margin-right:26%;margin-left:0;width:auto;max-width:none;}
+
+      #sheet .inner > *:nth-child(odd){margin-right:26%;margin-left:0;width:auto;max-width:none;}
+
+      #sheet main > *:nth-child(odd){margin-right:26%;margin-left:0;width:auto;max-width:none;}
+
+      #sheet .frame > *:nth-child(odd){margin-right:26%;margin-left:0;width:auto;max-width:none;}
+
+      #sheet .card > *:nth-child(odd){margin-right:26%;margin-left:0;width:auto;max-width:none;}
+
+      #sheet > *:nth-child(even){margin-left:26%;margin-right:0;width:auto;max-width:none;}
+
+      #sheet .inner > *:nth-child(even){margin-left:26%;margin-right:0;width:auto;max-width:none;}
+
+      #sheet main > *:nth-child(even){margin-left:26%;margin-right:0;width:auto;max-width:none;}
+
+      #sheet .frame > *:nth-child(even){margin-left:26%;margin-right:0;width:auto;max-width:none;}
+
+      #sheet .card > *:nth-child(even){margin-left:26%;margin-right:0;width:auto;max-width:none;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;width:100%;background:#fff;border-radius:2mm;overflow:hidden;box-shadow:0
+      .4mm 1.2mm rgba(20,40,70,.14);}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;width:100%;background:#fff;border-radius:2mm;overflow:hidden;box-shadow:0
+      .4mm 1.2mm rgba(20,40,70,.14);}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;width:100%;background:#fff;border-radius:2mm;overflow:hidden;box-shadow:0
+      .4mm 1.2mm rgba(20,40,70,.14);}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;width:100%;background:#fff;border-radius:2mm;overflow:hidden;box-shadow:0
+      .4mm 1.2mm rgba(20,40,70,.14);}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;width:100%;background:#fff;border-radius:2mm;overflow:hidden;box-shadow:0
+      .4mm 1.2mm rgba(20,40,70,.14);}
+
+      #sheet table.items th{background:#1d3b5c;color:#fff;border:0;padding:1mm .9mm;}
+
+      #sheet .inner table.items th{background:#1d3b5c;color:#fff;border:0;padding:1mm
+      .9mm;}
+
+      #sheet main table.items th{background:#1d3b5c;color:#fff;border:0;padding:1mm
+      .9mm;}
+
+      #sheet .frame table.items th{background:#1d3b5c;color:#fff;border:0;padding:1mm
+      .9mm;}
+
+      #sheet .card table.items th{background:#1d3b5c;color:#fff;border:0;padding:1mm
+      .9mm;}
+
+      #sheet table.items td{border:0;border-bottom:.2mm solid #dde5ec;padding:.9mm
+      .9mm;}
+
+      #sheet .inner table.items td{border:0;border-bottom:.2mm solid #dde5ec;padding:.9mm
+      .9mm;}
+
+      #sheet main table.items td{border:0;border-bottom:.2mm solid #dde5ec;padding:.9mm
+      .9mm;}
+
+      #sheet .frame table.items td{border:0;border-bottom:.2mm solid #dde5ec;padding:.9mm
+      .9mm;}
+
+      #sheet .card table.items td{border:0;border-bottom:.2mm solid #dde5ec;padding:.9mm
+      .9mm;}
+
+      #sheet .frame{border:0;padding:0;background:transparent;box-shadow:none;}
+
+      #sheet .inner .frame{border:0;padding:0;background:transparent;box-shadow:none;}
+
+      #sheet main .frame{border:0;padding:0;background:transparent;box-shadow:none;}
+
+      #sheet .frame .frame{border:0;padding:0;background:transparent;box-shadow:none;}
+
+      #sheet .card .frame{border:0;padding:0;background:transparent;box-shadow:none;}
+
+      #sheet .inner{border:0;padding:0;}
+
+      #sheet .inner .inner{border:0;padding:0;}
+
+      #sheet main .inner{border:0;padding:0;}
+
+      #sheet .frame .inner{border:0;padding:0;}
+
+      #sheet .card .inner{border:0;padding:0;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;line-height:1.38;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - after
+      - words
+      - signatures
+- id: hai_cot_so_le
+  weight: 1.0
+  tags:
+  - dressed_free
+  excludes:
+  - till_receipt
+  params:
+    label: Khối lẻ dồn trái, khối chẵn dồn phải, bảng trải hết
+    level: free
+    axes:
+      design: hai_cot_so_le
+    css: '#sheet{padding:13mm 10mm;}
+
+      #sheet > *:nth-child(odd){margin-right:34%;margin-left:0;width:auto;max-width:none;}
+
+      #sheet .inner > *:nth-child(odd){margin-right:34%;margin-left:0;width:auto;max-width:none;}
+
+      #sheet main > *:nth-child(odd){margin-right:34%;margin-left:0;width:auto;max-width:none;}
+
+      #sheet .frame > *:nth-child(odd){margin-right:34%;margin-left:0;width:auto;max-width:none;}
+
+      #sheet .card > *:nth-child(odd){margin-right:34%;margin-left:0;width:auto;max-width:none;}
+
+      #sheet > *:nth-child(even){margin-left:34%;margin-right:0;width:auto;max-width:none;}
+
+      #sheet .inner > *:nth-child(even){margin-left:34%;margin-right:0;width:auto;max-width:none;}
+
+      #sheet main > *:nth-child(even){margin-left:34%;margin-right:0;width:auto;max-width:none;}
+
+      #sheet .frame > *:nth-child(even){margin-left:34%;margin-right:0;width:auto;max-width:none;}
+
+      #sheet .card > *:nth-child(even){margin-left:34%;margin-right:0;width:auto;max-width:none;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;width:100%;}
+
+      #sheet table.items th, #sheet table.items td{padding:1.1mm 1.2mm;}
+
+      #sheet .inner table.items th, #sheet table.items td{padding:1.1mm 1.2mm;}
+
+      #sheet main table.items th, #sheet table.items td{padding:1.1mm 1.2mm;}
+
+      #sheet .frame table.items th, #sheet table.items td{padding:1.1mm 1.2mm;}
+
+      #sheet .card table.items th, #sheet table.items td{padding:1.1mm 1.2mm;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - swap
+      - letterhead
+      - doctitle
+    - - after
+      - words
+      - signatures
+- id: bang_dan_dau
+  weight: 1.0
+  tags:
+  - dressed_free
+  excludes:
+  - till_receipt
+  params:
+    label: Bảng hàng lên đầu trang, khối nhận diện xuống dưới
+    level: free
+    axes:
+      design: bang_dan_dau
+    css: '#sheet{padding:10mm 9mm;}
+
+      #sheet > table.items{margin-top:2mm;margin-bottom:6mm;}
+
+      #sheet .inner > table.items{margin-top:2mm;margin-bottom:6mm;}
+
+      #sheet main > table.items{margin-top:2mm;margin-bottom:6mm;}
+
+      #sheet .frame > table.items{margin-top:2mm;margin-bottom:6mm;}
+
+      #sheet .card > table.items{margin-top:2mm;margin-bottom:6mm;}
+
+      #sheet > *:nth-child(n+3){margin-left:18%;width:auto;max-width:none;}
+
+      #sheet .inner > *:nth-child(n+3){margin-left:18%;width:auto;max-width:none;}
+
+      #sheet main > *:nth-child(n+3){margin-left:18%;width:auto;max-width:none;}
+
+      #sheet .frame > *:nth-child(n+3){margin-left:18%;width:auto;max-width:none;}
+
+      #sheet .card > *:nth-child(n+3){margin-left:18%;width:auto;max-width:none;}
+
+      #sheet table.items th{background:#222;color:#fff;border-color:#222;}
+
+      #sheet .inner table.items th{background:#222;color:#fff;border-color:#222;}
+
+      #sheet main table.items th{background:#222;color:#fff;border-color:#222;}
+
+      #sheet .frame table.items th{background:#222;color:#fff;border-color:#222;}
+
+      #sheet .card table.items th{background:#222;color:#fff;border-color:#222;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;font-size:8.2pt;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - table
+      - parties
+    - - after
+      - words
+      - signatures
+    - - before
+      - footer
+      - signatures
+- id: dan_bao_chi
+  weight: 1.0
+  tags:
+  - dressed_free
+  excludes:
+  - till_receipt
+  params:
+    label: 'Dàn kiểu toà soạn: khối đầu tràn mép, thân thụt sâu'
+    level: free
+    axes:
+      design: dan_bao_chi
+    css: '#sheet{padding:14mm 0 12mm;font-family:''LiberationSerif'',''DejaVu Serif'',serif;line-height:1.5;}
+
+      #sheet > *{padding-left:46mm;padding-right:10mm;}
+
+      #sheet .inner > *{padding-left:46mm;padding-right:10mm;}
+
+      #sheet main > *{padding-left:46mm;padding-right:10mm;}
+
+      #sheet .frame > *{padding-left:46mm;padding-right:10mm;}
+
+      #sheet .card > *{padding-left:46mm;padding-right:10mm;}
+
+      #sheet > *:nth-child(-n+2){padding-left:6mm;padding-right:6mm;border-bottom:.7mm
+      solid #111;padding-bottom:4mm;}
+
+      #sheet .inner > *:nth-child(-n+2){padding-left:6mm;padding-right:6mm;border-bottom:.7mm
+      solid #111;padding-bottom:4mm;}
+
+      #sheet main > *:nth-child(-n+2){padding-left:6mm;padding-right:6mm;border-bottom:.7mm
+      solid #111;padding-bottom:4mm;}
+
+      #sheet .frame > *:nth-child(-n+2){padding-left:6mm;padding-right:6mm;border-bottom:.7mm
+      solid #111;padding-bottom:4mm;}
+
+      #sheet .card > *:nth-child(-n+2){padding-left:6mm;padding-right:6mm;border-bottom:.7mm
+      solid #111;padding-bottom:4mm;}
+
+      #sheet > table.items{width:auto;margin-left:4mm;margin-right:4mm;border-top:.7mm
+      solid #111;border-bottom:.7mm solid #111;}
+
+      #sheet .inner > table.items{width:auto;margin-left:4mm;margin-right:4mm;border-top:.7mm
+      solid #111;border-bottom:.7mm solid #111;}
+
+      #sheet main > table.items{width:auto;margin-left:4mm;margin-right:4mm;border-top:.7mm
+      solid #111;border-bottom:.7mm solid #111;}
+
+      #sheet .frame > table.items{width:auto;margin-left:4mm;margin-right:4mm;border-top:.7mm
+      solid #111;border-bottom:.7mm solid #111;}
+
+      #sheet .card > table.items{width:auto;margin-left:4mm;margin-right:4mm;border-top:.7mm
+      solid #111;border-bottom:.7mm solid #111;}
+
+      #sheet table.items th{background:transparent;border:0;border-bottom:.3mm solid
+      #111;padding:1.6mm .8mm;}
+
+      #sheet .inner table.items th{background:transparent;border:0;border-bottom:.3mm
+      solid #111;padding:1.6mm .8mm;}
+
+      #sheet main table.items th{background:transparent;border:0;border-bottom:.3mm
+      solid #111;padding:1.6mm .8mm;}
+
+      #sheet .frame table.items th{background:transparent;border:0;border-bottom:.3mm
+      solid #111;padding:1.6mm .8mm;}
+
+      #sheet .card table.items th{background:transparent;border:0;border-bottom:.3mm
+      solid #111;padding:1.6mm .8mm;}
+
+      #sheet table.items td{border:0;padding:1.4mm .8mm;}
+
+      #sheet .inner table.items td{border:0;padding:1.4mm .8mm;}
+
+      #sheet main table.items td{border:0;padding:1.4mm .8mm;}
+
+      #sheet .frame table.items td{border:0;padding:1.4mm .8mm;}
+
+      #sheet .card table.items td{border:0;padding:1.4mm .8mm;}
+
+      #sheet .frame, #sheet .inner{border:0;padding:0;}
+
+      #sheet .inner .frame, #sheet .inner{border:0;padding:0;}
+
+      #sheet main .frame, #sheet .inner{border:0;padding:0;}
+
+      #sheet .frame .frame, #sheet .inner{border:0;padding:0;}
+
+      #sheet .card .frame, #sheet .inner{border:0;padding:0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - swap
+      - letterhead
+      - doctitle
+    - - before
+      - notes
+      - table
+- id: so_cai_khong_vien
+  weight: 1.0
+  tags:
+  - dressed_free
+  excludes:
+  - till_receipt
+  params:
+    label: 'Kiểu sổ cái: bảng tràn mép, khối chữ thụt sâu'
+    level: free
+    axes:
+      design: so_cai_khong_vien
+    css: '#sheet{padding:15mm 6mm;font-family:''DejaVuSans'',''LiberationSans'',''DejaVu
+      Sans'',sans-serif;font-size:8pt;}
+
+      #sheet > *{margin-left:34mm;margin-right:6mm;width:auto;max-width:none;}
+
+      #sheet .inner > *{margin-left:34mm;margin-right:6mm;width:auto;max-width:none;}
+
+      #sheet main > *{margin-left:34mm;margin-right:6mm;width:auto;max-width:none;}
+
+      #sheet .frame > *{margin-left:34mm;margin-right:6mm;width:auto;max-width:none;}
+
+      #sheet .card > *{margin-left:34mm;margin-right:6mm;width:auto;max-width:none;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;width:100%;}
+
+      #sheet table.items th, #sheet table.items td{border:0;border-bottom:.2mm solid
+      #b9b9b9;padding:1.5mm 1.6mm;}
+
+      #sheet .inner table.items th, #sheet table.items td{border:0;border-bottom:.2mm
+      solid #b9b9b9;padding:1.5mm 1.6mm;}
+
+      #sheet main table.items th, #sheet table.items td{border:0;border-bottom:.2mm
+      solid #b9b9b9;padding:1.5mm 1.6mm;}
+
+      #sheet .frame table.items th, #sheet table.items td{border:0;border-bottom:.2mm
+      solid #b9b9b9;padding:1.5mm 1.6mm;}
+
+      #sheet .card table.items th, #sheet table.items td{border:0;border-bottom:.2mm
+      solid #b9b9b9;padding:1.5mm 1.6mm;}
+
+      #sheet table.items th{background:transparent;border-bottom:.6mm solid #333;}
+
+      #sheet .inner table.items th{background:transparent;border-bottom:.6mm solid
+      #333;}
+
+      #sheet main table.items th{background:transparent;border-bottom:.6mm solid #333;}
+
+      #sheet .frame table.items th{background:transparent;border-bottom:.6mm solid
+      #333;}
+
+      #sheet .card table.items th{background:transparent;border-bottom:.6mm solid
+      #333;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f7f7f5;}
+
+      #sheet .inner table.items tr:nth-child(even) td{background:#f7f7f5;}
+
+      #sheet main table.items tr:nth-child(even) td{background:#f7f7f5;}
+
+      #sheet .frame table.items tr:nth-child(even) td{background:#f7f7f5;}
+
+      #sheet .card table.items tr:nth-child(even) td{background:#f7f7f5;}
+
+      #sheet .frame, #sheet .inner{border:0;padding:0;}
+
+      #sheet .inner .frame, #sheet .inner{border:0;padding:0;}
+
+      #sheet main .frame, #sheet .inner{border:0;padding:0;}
+
+      #sheet .frame .frame, #sheet .inner{border:0;padding:0;}
+
+      #sheet .card .frame, #sheet .inner{border:0;padding:0;}
+
+      #sheet td.r, #sheet th.r{font-family:''LiberationMono'',''Cousine'',monospace;letter-spacing:-.15pt;}
+
+      #sheet .inner td.r, #sheet th.r{font-family:''LiberationMono'',''Cousine'',monospace;letter-spacing:-.15pt;}
+
+      #sheet main td.r, #sheet th.r{font-family:''LiberationMono'',''Cousine'',monospace;letter-spacing:-.15pt;}
+
+      #sheet .frame td.r, #sheet th.r{font-family:''LiberationMono'',''Cousine'',monospace;letter-spacing:-.15pt;}
+
+      #sheet .card td.r, #sheet th.r{font-family:''LiberationMono'',''Cousine'',monospace;letter-spacing:-.15pt;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - footer
+      - signatures
+- id: bang_ron_toi
+  weight: 1.0
+  tags:
+  - dressed_free
+  excludes:
+  - till_receipt
+  params:
+    label: Băng đầu trang nền tối tràn mép, thân trang thụt vào
+    level: free
+    axes:
+      design: bang_ron_toi
+    css: '#sheet{padding:0 0 12mm;}
+
+      #sheet > *{padding-left:22mm;padding-right:12mm;}
+
+      #sheet .inner > *{padding-left:22mm;padding-right:12mm;}
+
+      #sheet main > *{padding-left:22mm;padding-right:12mm;}
+
+      #sheet .frame > *{padding-left:22mm;padding-right:12mm;}
+
+      #sheet .card > *{padding-left:22mm;padding-right:12mm;}
+
+      #sheet > *:first-child:not(.frame):not(.card):not(.inner){background:#14263a;color:#eef4fb;padding:9mm
+      12mm 8mm;margin-bottom:6mm;}
+
+      #sheet .inner > *:first-child:not(.frame):not(.card):not(.inner){background:#14263a;color:#eef4fb;padding:9mm
+      12mm 8mm;margin-bottom:6mm;}
+
+      #sheet main > *:first-child:not(.frame):not(.card):not(.inner){background:#14263a;color:#eef4fb;padding:9mm
+      12mm 8mm;margin-bottom:6mm;}
+
+      #sheet .frame > *:first-child:not(.frame):not(.card):not(.inner){background:#14263a;color:#eef4fb;padding:9mm
+      12mm 8mm;margin-bottom:6mm;}
+
+      #sheet .card > *:first-child:not(.frame):not(.card):not(.inner){background:#14263a;color:#eef4fb;padding:9mm
+      12mm 8mm;margin-bottom:6mm;}
+
+      #sheet > *:first-child:not(.frame):not(.card):not(.inner) *{color:#eef4fb;}
+
+      #sheet .inner > *:first-child:not(.frame):not(.card):not(.inner) *{color:#eef4fb;}
+
+      #sheet main > *:first-child:not(.frame):not(.card):not(.inner) *{color:#eef4fb;}
+
+      #sheet .frame > *:first-child:not(.frame):not(.card):not(.inner) *{color:#eef4fb;}
+
+      #sheet .card > *:first-child:not(.frame):not(.card):not(.inner) *{color:#eef4fb;}
+
+      #sheet > table.items{width:auto;margin-left:6mm;margin-right:6mm;}
+
+      #sheet .inner > table.items{width:auto;margin-left:6mm;margin-right:6mm;}
+
+      #sheet main > table.items{width:auto;margin-left:6mm;margin-right:6mm;}
+
+      #sheet .frame > table.items{width:auto;margin-left:6mm;margin-right:6mm;}
+
+      #sheet .card > table.items{width:auto;margin-left:6mm;margin-right:6mm;}
+
+      #sheet table.items th{background:#e8edf3;border-color:#b9c6d4;}
+
+      #sheet .inner table.items th{background:#e8edf3;border-color:#b9c6d4;}
+
+      #sheet main table.items th{background:#e8edf3;border-color:#b9c6d4;}
+
+      #sheet .frame table.items th{background:#e8edf3;border-color:#b9c6d4;}
+
+      #sheet .card table.items th{background:#e8edf3;border-color:#b9c6d4;}
+
+      #sheet table.items td{border-color:#d8e0e8;}
+
+      #sheet .inner table.items td{border-color:#d8e0e8;}
+
+      #sheet main table.items td{border-color:#d8e0e8;}
+
+      #sheet .frame table.items td{border-color:#d8e0e8;}
+
+      #sheet .card table.items td{border-color:#d8e0e8;}
+
+      #sheet .frame, #sheet .inner{border:0;padding:0;}
+
+      #sheet .inner .frame, #sheet .inner{border:0;padding:0;}
+
+      #sheet main .frame, #sheet .inner{border:0;padding:0;}
+
+      #sheet .frame .frame, #sheet .inner{border:0;padding:0;}
+
+      #sheet .card .frame, #sheet .inner{border:0;padding:0;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - swap
+      - letterhead
+      - doctitle
+    - - after
+      - words
+      - signatures
+- id: cot_giua_hep
+  weight: 1.0
+  tags:
+  - dressed_free
+  excludes:
+  - till_receipt
+  params:
+    label: Cột chữ hẹp canh giữa, bảng và khối cuối tràn rộng
+    level: free
+    axes:
+      design: cot_giua_hep
+    css: '#sheet{padding:18mm 6mm;}
+
+      #sheet > *{margin-left:38mm;margin-right:38mm;text-align:center;}
+
+      #sheet .inner > *{margin-left:38mm;margin-right:38mm;text-align:center;}
+
+      #sheet main > *{margin-left:38mm;margin-right:38mm;text-align:center;}
+
+      #sheet .frame > *{margin-left:38mm;margin-right:38mm;text-align:center;}
+
+      #sheet .card > *{margin-left:38mm;margin-right:38mm;text-align:center;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;width:100%;text-align:left;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;width:100%;text-align:left;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;width:100%;text-align:left;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;width:100%;text-align:left;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;width:100%;text-align:left;}
+
+      #sheet > *:last-child{margin-left:0;margin-right:0;}
+
+      #sheet .inner > *:last-child{margin-left:0;margin-right:0;}
+
+      #sheet main > *:last-child{margin-left:0;margin-right:0;}
+
+      #sheet .frame > *:last-child{margin-left:0;margin-right:0;}
+
+      #sheet .card > *:last-child{margin-left:0;margin-right:0;}
+
+      #sheet .f, #sheet .fld{text-align:left;}
+
+      #sheet .inner .f, #sheet .fld{text-align:left;}
+
+      #sheet main .f, #sheet .fld{text-align:left;}
+
+      #sheet .frame .f, #sheet .fld{text-align:left;}
+
+      #sheet .card .f, #sheet .fld{text-align:left;}
+
+      #sheet .frame{border:.3mm solid #555;padding:4mm;}
+
+      #sheet .inner .frame{border:.3mm solid #555;padding:4mm;}
+
+      #sheet main .frame{border:.3mm solid #555;padding:4mm;}
+
+      #sheet .frame .frame{border:.3mm solid #555;padding:4mm;}
+
+      #sheet .card .frame{border:.3mm solid #555;padding:4mm;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;line-height:1.42;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - notes
+      - table
+    - - swap
+      - letterhead
+      - doctitle
+- id: bac_thang_phai
+  weight: 1.0
+  tags:
+  - dressed_free
+  excludes:
+  - till_receipt
+  params:
+    label: 'Bậc thang: mỗi khối thụt sâu hơn khối trên nó'
+    level: free
+    axes:
+      design: bac_thang_phai
+    css: '#sheet{padding:11mm 8mm;}
+
+      #sheet > *{width:auto;max-width:none;}
+
+      #sheet .inner > *{width:auto;max-width:none;}
+
+      #sheet main > *{width:auto;max-width:none;}
+
+      #sheet .frame > *{width:auto;max-width:none;}
+
+      #sheet .card > *{width:auto;max-width:none;}
+
+      #sheet > *:nth-child(2){margin-left:6%;}
+
+      #sheet .inner > *:nth-child(2){margin-left:6%;}
+
+      #sheet main > *:nth-child(2){margin-left:6%;}
+
+      #sheet .frame > *:nth-child(2){margin-left:6%;}
+
+      #sheet .card > *:nth-child(2){margin-left:6%;}
+
+      #sheet > *:nth-child(3){margin-left:12%;}
+
+      #sheet .inner > *:nth-child(3){margin-left:12%;}
+
+      #sheet main > *:nth-child(3){margin-left:12%;}
+
+      #sheet .frame > *:nth-child(3){margin-left:12%;}
+
+      #sheet .card > *:nth-child(3){margin-left:12%;}
+
+      #sheet > *:nth-child(4){margin-left:18%;}
+
+      #sheet .inner > *:nth-child(4){margin-left:18%;}
+
+      #sheet main > *:nth-child(4){margin-left:18%;}
+
+      #sheet .frame > *:nth-child(4){margin-left:18%;}
+
+      #sheet .card > *:nth-child(4){margin-left:18%;}
+
+      #sheet > *:nth-child(n+5){margin-left:24%;margin-right:0;}
+
+      #sheet .inner > *:nth-child(n+5){margin-left:24%;margin-right:0;}
+
+      #sheet main > *:nth-child(n+5){margin-left:24%;margin-right:0;}
+
+      #sheet .frame > *:nth-child(n+5){margin-left:24%;margin-right:0;}
+
+      #sheet .card > *:nth-child(n+5){margin-left:24%;margin-right:0;}
+
+      #sheet > table.items{margin-left:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;width:100%;}
+
+      #sheet table.items th, #sheet table.items td{padding:.9mm 1mm;}
+
+      #sheet .inner table.items th, #sheet table.items td{padding:.9mm 1mm;}
+
+      #sheet main table.items th, #sheet table.items td{padding:.9mm 1mm;}
+
+      #sheet .frame table.items th, #sheet table.items td{padding:.9mm 1mm;}
+
+      #sheet .card table.items th, #sheet table.items td{padding:.9mm 1mm;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - footer
+      - signatures
+    - - after
+      - words
+      - signatures
+- id: phieu_dong_dau_lon
+  weight: 1.0
+  tags:
+  - dressed_free
+  excludes:
+  - till_receipt
+  params:
+    label: Phiếu nén chặt, khối ký đóng khung đưa lên trước khối tổng
+    level: free
+    axes:
+      design: phieu_dong_dau_lon
+    css: '#sheet{padding:9mm 8mm;font-family:''DejaVuSans'',''LiberationSans'',''DejaVu
+      Sans'',sans-serif;font-size:7.8pt;line-height:1.2;}
+
+      #sheet > *{width:auto;max-width:none;}
+
+      #sheet .inner > *{width:auto;max-width:none;}
+
+      #sheet main > *{width:auto;max-width:none;}
+
+      #sheet .frame > *{width:auto;max-width:none;}
+
+      #sheet .card > *{width:auto;max-width:none;}
+
+      #sheet > *:nth-child(even){margin-left:12%;margin-right:0;}
+
+      #sheet .inner > *:nth-child(even){margin-left:12%;margin-right:0;}
+
+      #sheet main > *:nth-child(even){margin-left:12%;margin-right:0;}
+
+      #sheet .frame > *:nth-child(even){margin-left:12%;margin-right:0;}
+
+      #sheet .card > *:nth-child(even){margin-left:12%;margin-right:0;}
+
+      #sheet > *:nth-child(odd){margin-left:0;margin-right:12%;}
+
+      #sheet .inner > *:nth-child(odd){margin-left:0;margin-right:12%;}
+
+      #sheet main > *:nth-child(odd){margin-left:0;margin-right:12%;}
+
+      #sheet .frame > *:nth-child(odd){margin-left:0;margin-right:12%;}
+
+      #sheet .card > *:nth-child(odd){margin-left:0;margin-right:12%;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;width:100%;}
+
+      #sheet .signs{border:.4mm solid #444;padding:3mm;margin-bottom:5mm;}
+
+      #sheet .inner .signs{border:.4mm solid #444;padding:3mm;margin-bottom:5mm;}
+
+      #sheet main .signs{border:.4mm solid #444;padding:3mm;margin-bottom:5mm;}
+
+      #sheet .frame .signs{border:.4mm solid #444;padding:3mm;margin-bottom:5mm;}
+
+      #sheet .card .signs{border:.4mm solid #444;padding:3mm;margin-bottom:5mm;}
+
+      #sheet table.items th, #sheet table.items td{padding:.7mm .9mm;}
+
+      #sheet .inner table.items th, #sheet table.items td{padding:.7mm .9mm;}
+
+      #sheet main table.items th, #sheet table.items td{padding:.7mm .9mm;}
+
+      #sheet .frame table.items th, #sheet table.items td{padding:.7mm .9mm;}
+
+      #sheet .card table.items th, #sheet table.items td{padding:.7mm .9mm;}
+
+      #sheet table.items th{background:#ddd;}
+
+      #sheet .inner table.items th{background:#ddd;}
+
+      #sheet main table.items th{background:#ddd;}
+
+      #sheet .frame table.items th{background:#ddd;}
+
+      #sheet .card table.items th{background:#ddd;}
+
+      #sheet .frame{border:.8mm double #444;padding:2mm;}
+
+      #sheet .inner .frame{border:.8mm double #444;padding:2mm;}
+
+      #sheet main .frame{border:.8mm double #444;padding:2mm;}
+
+      #sheet .frame .frame{border:.8mm double #444;padding:2mm;}
+
+      #sheet .card .frame{border:.8mm double #444;padding:2mm;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - signatures
+      - totals
+    - - before
+      - footer
+      - signatures
+- id: cuon_hai_dong_moi_mon
+  weight: 1.0
+  tags:
+  - dressed_free
+  params:
+    label: 'Cuộn giấy: mỗi món hai dòng, tiền xuống dòng riêng canh phải'
+    level: free
+    axes:
+      design: cuon_hai_dong_moi_mon
+    css: '#sheet{padding:4mm 3mm 9mm;}
+
+      #sheet .head{text-align:right;margin-bottom:4mm;}
+
+      #sheet .head .n{font-size:1.3em;}
+
+      #sheet .meta{border:0;border-bottom:.5mm solid #222;padding:0 0 2mm;margin:0
+      0 4mm;}
+
+      #sheet .mrow .k{font-size:.85em;}
+
+      #sheet table.items{display:block;width:100%;}
+
+      #sheet table.items tbody,#sheet table.items thead{display:block;width:100%;}
+
+      #sheet table.items tbody tr{display:block;width:100%;padding:.8mm 0;border-bottom:.15mm
+      dotted #999;}
+
+      #sheet table.items tbody td{display:inline-block;padding:0 .6mm;}
+
+      #sheet table.items tbody td:first-child{display:block;width:100%;font-weight:bold;}
+
+      #sheet table.items tbody td.r{float:right;}
+
+      #sheet table.items thead tr{display:block;width:100%;border-bottom:.4mm solid
+      #222;padding-bottom:.5mm;}
+
+      #sheet table.items thead th{display:inline-block;padding:0 .6mm;font-size:.85em;letter-spacing:.3pt;}
+
+      #sheet tr.total,#sheet tr.grand{display:block;width:100%;text-align:right;}
+
+      #sheet tr.total td,#sheet tr.grand td{display:inline-block;border:0;padding:.3mm
+      .6mm;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: cuon_dau_lech_trai
+  weight: 1.0
+  tags:
+  - dressed_free
+  params:
+    label: 'Cuộn giấy: đầu trang dồn trái, thông tin xếp dọc'
+    level: free
+    axes:
+      design: cuon_dau_lech_trai
+    css: '#sheet{padding:4mm 3mm 10mm;}
+
+      #sheet .head{text-align:left;border-bottom:.5mm solid #222;padding-bottom:2.5mm;margin-bottom:4mm;}
+
+      #sheet .head .n{font-size:1.6em;letter-spacing:-.3pt;line-height:1.1;}
+
+      #sheet .head .doc{text-align:right;margin-top:4mm;font-size:1.2em;}
+
+      #sheet .meta{border:0;border-left:.8mm solid #222;padding:1mm 0 1mm 3mm;margin:0
+      0 5mm;}
+
+      #sheet .mrow{display:block;width:100%;padding-bottom:1mm;}
+
+      #sheet .mrow .k{display:block;font-size:.85em;color:#444;}
+
+      #sheet .mrow .v{display:block;text-align:left;font-weight:bold;}
+
+      #sheet table.items td:first-child,#sheet table.items th:first-child{width:52%;}
+
+      #sheet table.items td{padding:1.8mm .3mm;}
+
+      #sheet table.items th{padding-bottom:2mm;text-align:right;}
+
+      #sheet table.items th:first-child{text-align:left;}
+
+      #sheet tr.total td,#sheet tr.grand td{padding-top:2.2mm;}
+
+      #sheet .foot{text-align:left;border-top:.2mm dashed #666;padding-top:3mm;margin-top:6mm;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: cuon_khung_kep
+  weight: 1.0
+  tags:
+  - dressed_free
+  params:
+    label: 'Cuộn giấy: đầu trang trong khung, tổng tiền trong hộp riêng'
+    level: free
+    axes:
+      design: cuon_khung_kep
+    css: '#sheet{padding:3mm 2mm 12mm;}
+
+      #sheet .head{border:.5mm solid #222;padding:4mm 2mm;margin-bottom:4mm;text-align:left;}
+
+      #sheet .head .n{font-size:1.4em;}
+
+      #sheet .head .doc{display:inline-block;border-top:.2mm solid #222;padding-top:2mm;margin-top:2.5mm;}
+
+      #sheet .meta{border:.3mm solid #999;background:#efefec;padding:3mm 2.5mm;margin:0
+      0 5mm;}
+
+      #sheet .mrow{display:block;width:100%;padding:.4mm 0;}
+
+      #sheet .mrow .k{display:block;font-size:.85em;}
+
+      #sheet .mrow .v{display:block;text-align:right;font-weight:bold;}
+
+      #sheet table.items th{border-bottom:.5mm solid #222;padding-bottom:2.5mm;}
+
+      #sheet table.items td{padding:1.5mm .5mm;}
+
+      #sheet table.items tbody tr:nth-child(even) td{background:#f4f4f2;}
+
+      #sheet tr.grand td{border:.4mm solid #222;background:#e8e8e5;padding:3mm .6mm;font-size:1.3em;}
+
+      #sheet .foot{border:.2mm dashed #444;padding:3mm 2mm;margin-top:6mm;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: cuon_thua_dong
+  weight: 1.0
+  tags:
+  - dressed_free
+  params:
+    label: 'Cuộn giấy: giãn dòng, mỗi khối cách nhau một khoảng trắng'
+    level: free
+    axes:
+      design: cuon_thua_dong
+    css: '#sheet{padding:9mm 4mm;line-height:1.75;}
+
+      #sheet .head{margin-bottom:6mm;}
+
+      #sheet .head .n{font-size:1.35em;letter-spacing:.6pt;}
+
+      #sheet .meta{border-top:0;border-bottom:0;margin:5mm 0;}
+
+      #sheet .mrow{padding:.9mm 0;border-bottom:.12mm dotted #bbb;}
+
+      #sheet table.items{margin:5mm 0;}
+
+      #sheet table.items td{padding:1.6mm .4mm;}
+
+      #sheet table.items th{border-bottom:0;padding-bottom:2.5mm;letter-spacing:.5pt;}
+
+      #sheet tr.total td,#sheet tr.grand td{border-top:0;padding-top:2.5mm;}
+
+      #sheet .foot{margin-top:8mm;letter-spacing:.4pt;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: cuon_bang_ron_toi
+  weight: 1.0
+  tags:
+  - dressed_free
+  params:
+    label: 'Cuộn giấy: băng đầu nền tối chữ đảo màu, thông tin hai cột'
+    level: free
+    axes:
+      design: cuon_bang_ron_toi
+    css: '#sheet{padding:0 0 10mm;}
+
+      #sheet .head{background:#1d1d1d;color:#fff;padding:5mm 3mm 4mm;text-align:center;margin-bottom:4mm;}
+
+      #sheet .head .n{font-size:1.45em;letter-spacing:.8pt;}
+
+      #sheet .head .doc{border-top:.3mm solid #888;margin-top:3mm;padding-top:2mm;}
+
+      #sheet .meta{border:0;margin:0 0 5mm;padding:0;display:grid;grid-template-columns:1fr
+      1fr;gap:1.5mm 3mm;}
+
+      #sheet .mrow{display:block;width:auto;border-bottom:.12mm solid #ccc;}
+
+      #sheet .mrow .k{display:block;font-size:.8em;color:#555;}
+
+      #sheet .mrow .v{display:block;text-align:left;}
+
+      #sheet{padding-left:3mm;padding-right:3mm;}
+
+      #sheet .head{margin-left:-3mm;margin-right:-3mm;}
+
+      #sheet table.items th{background:#1d1d1d;color:#fff;border-bottom:0;padding:1.2mm
+      .3mm;}
+
+      #sheet table.items tbody tr:nth-child(odd) td{background:#f1f1ef;}
+
+      #sheet table.items td{padding:1.2mm .3mm;}
+
+      #sheet tr.grand td{background:#1d1d1d;color:#fff;font-size:1.15em;padding:1.8mm
+      .3mm;}
+
+      #sheet .foot{margin:6mm 0 0;padding-top:2mm;border-top:.4mm solid #1d1d1d;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: cuon_treo_dong
+  weight: 1.0
+  tags:
+  - dressed_free
+  params:
+    label: 'Cuộn giấy: tên món treo lề, số lượng và đơn giá lên dòng trên'
+    level: free
+    axes:
+      design: cuon_treo_dong
+    css: '#sheet{padding:5mm 3mm 8mm;}
+
+      #sheet .head{text-align:left;margin-bottom:3mm;}
+
+      #sheet .meta{border-top:0;padding-top:0;}
+
+      #sheet .mrow .k{font-weight:bold;}
+
+      #sheet table.items{display:block;width:100%;}
+
+      #sheet table.items thead,#sheet table.items tbody{display:block;}
+
+      #sheet table.items thead tr{display:block;text-align:right;border-bottom:.3mm
+      solid #444;}
+
+      #sheet table.items thead th{display:inline-block;padding:0 .5mm;font-size:.8em;}
+
+      #sheet table.items tbody tr{display:block;padding:1.2mm 0 1.2mm 6mm;text-indent:-6mm;border-bottom:.12mm
+      dotted #aaa;}
+
+      #sheet table.items tbody td{display:inline;padding:0 1mm 0 0;}
+
+      #sheet table.items tbody td:first-child{display:block;padding-left:6mm;text-indent:0;font-weight:bold;}
+
+      #sheet tr.total td,#sheet tr.grand td{display:inline-block;border:0;}
+
+      #sheet tr.total,#sheet tr.grand{display:block;text-align:right;padding-right:1mm;}
+
+      #sheet .foot{text-align:right;margin-top:5mm;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: cuon_nen_chat
+  weight: 1.0
+  tags:
+  - dressed_free
+  params:
+    label: 'Cuộn giấy: nén chặt, cỡ chữ nhỏ, cuộn ngắn hẳn lại'
+    level: free
+    axes:
+      design: cuon_nen_chat
+    css: '#sheet{padding:2mm 2mm 4mm;line-height:1.05;font-size:7pt;}
+
+      #sheet .head{margin-bottom:1mm;}
+
+      #sheet .head .n{font-size:1.15em;line-height:1;}
+
+      #sheet .head .doc{margin-top:.5mm;}
+
+      #sheet .meta{padding:.3mm 0;margin:.8mm 0;}
+
+      #sheet .mrow{line-height:1.05;}
+
+      #sheet table.items th{padding:.3mm .2mm;}
+
+      #sheet table.items td{padding:.2mm .2mm;}
+
+      #sheet tr.grand td{font-size:1.05em;}
+
+      #sheet .foot{margin-top:1.5mm;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: the_hai_mang
+  weight: 1.0
+  tags:
+  - dressed_free
+  params:
+    label: 'Thẻ hai mảng: dải màu dọc bên trái, khối chữ xếp bậc thang'
+    level: free
+    axes:
+      design: the_hai_mang
+    css: '#sheet{padding:0;}
+
+      #sheet::before{content:'''';position:absolute;left:0;top:0;bottom:0;width:30%;background:linear-gradient(155deg,#123f36,#2f8a76);z-index:-1;}
+
+      #sheet > *{margin-left:32%;margin-right:3%;width:auto;max-width:none;padding-left:0;padding-right:0;}
+
+      #sheet .inner > *{margin-left:32%;margin-right:3%;width:auto;max-width:none;padding-left:0;padding-right:0;}
+
+      #sheet main > *{margin-left:32%;margin-right:3%;width:auto;max-width:none;padding-left:0;padding-right:0;}
+
+      #sheet .frame > *{margin-left:32%;margin-right:3%;width:auto;max-width:none;padding-left:0;padding-right:0;}
+
+      #sheet .card > *{margin-left:32%;margin-right:3%;width:auto;max-width:none;padding-left:0;padding-right:0;}
+
+      #sheet > *:nth-child(2){margin-left:36%;}
+
+      #sheet .inner > *:nth-child(2){margin-left:36%;}
+
+      #sheet main > *:nth-child(2){margin-left:36%;}
+
+      #sheet .frame > *:nth-child(2){margin-left:36%;}
+
+      #sheet .card > *:nth-child(2){margin-left:36%;}
+
+      #sheet > *:nth-child(3){margin-left:34%;}
+
+      #sheet .inner > *:nth-child(3){margin-left:34%;}
+
+      #sheet main > *:nth-child(3){margin-left:34%;}
+
+      #sheet .frame > *:nth-child(3){margin-left:34%;}
+
+      #sheet .card > *:nth-child(3){margin-left:34%;}
+
+      #sheet > *:nth-child(n+4){margin-left:38%;margin-right:2%;}
+
+      #sheet .inner > *:nth-child(n+4){margin-left:38%;margin-right:2%;}
+
+      #sheet main > *:nth-child(n+4){margin-left:38%;margin-right:2%;}
+
+      #sheet .frame > *:nth-child(n+4){margin-left:38%;margin-right:2%;}
+
+      #sheet .card > *:nth-child(n+4){margin-left:38%;margin-right:2%;}
+
+      #sheet .frame, #sheet .inner{border:0;}
+
+      #sheet .inner .frame, #sheet .inner{border:0;}
+
+      #sheet main .frame, #sheet .inner{border:0;}
+
+      #sheet .frame .frame, #sheet .inner{border:0;}
+
+      #sheet .card .frame, #sheet .inner{border:0;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet table.items th{background:#123f36;color:#fff;border:0;}
+
+      #sheet .inner table.items th{background:#123f36;color:#fff;border:0;}
+
+      #sheet main table.items th{background:#123f36;color:#fff;border:0;}
+
+      #sheet .frame table.items th{background:#123f36;color:#fff;border:0;}
+
+      #sheet .card table.items th{background:#123f36;color:#fff;border:0;}
+
+      #sheet table.items td{border:0;border-bottom:.15mm solid #cfe0da;}
+
+      #sheet .inner table.items td{border:0;border-bottom:.15mm solid #cfe0da;}
+
+      #sheet main table.items td{border:0;border-bottom:.15mm solid #cfe0da;}
+
+      #sheet .frame table.items td{border:0;border-bottom:.15mm solid #cfe0da;}
+
+      #sheet .card table.items td{border:0;border-bottom:.15mm solid #cfe0da;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: the_nen_chat
+  weight: 1.0
+  tags:
+  - dressed_free
+  params:
+    label: 'Thẻ nén chữ: cỡ chữ nhỏ hơn, dòng sát hơn, đầu thẻ nền tối'
+    level: free
+    axes:
+      design: the_nen_chat
+    css: '#sheet{font-size:6.6pt;line-height:1.12;font-family:''DejaVuSans'',''LiberationSans'',''DejaVu
+      Sans'',sans-serif;}
+
+      #sheet .inner{font-size:6.6pt;line-height:1.12;font-family:''DejaVuSans'',''LiberationSans'',''DejaVu
+      Sans'',sans-serif;}
+
+      #sheet main{font-size:6.6pt;line-height:1.12;font-family:''DejaVuSans'',''LiberationSans'',''DejaVu
+      Sans'',sans-serif;}
+
+      #sheet .frame{font-size:6.6pt;line-height:1.12;font-family:''DejaVuSans'',''LiberationSans'',''DejaVu
+      Sans'',sans-serif;}
+
+      #sheet .card{font-size:6.6pt;line-height:1.12;font-family:''DejaVuSans'',''LiberationSans'',''DejaVu
+      Sans'',sans-serif;}
+
+      #sheet > *:first-child:not(.frame):not(.card):not(.inner){background:#16233a;color:#f2f6fb;padding:1.5mm
+      3mm;margin-bottom:1.5mm;}
+
+      #sheet .inner > *:first-child:not(.frame):not(.card):not(.inner){background:#16233a;color:#f2f6fb;padding:1.5mm
+      3mm;margin-bottom:1.5mm;}
+
+      #sheet main > *:first-child:not(.frame):not(.card):not(.inner){background:#16233a;color:#f2f6fb;padding:1.5mm
+      3mm;margin-bottom:1.5mm;}
+
+      #sheet .frame > *:first-child:not(.frame):not(.card):not(.inner){background:#16233a;color:#f2f6fb;padding:1.5mm
+      3mm;margin-bottom:1.5mm;}
+
+      #sheet .card > *:first-child:not(.frame):not(.card):not(.inner){background:#16233a;color:#f2f6fb;padding:1.5mm
+      3mm;margin-bottom:1.5mm;}
+
+      #sheet > *:first-child:not(.frame):not(.card):not(.inner) *{color:#f2f6fb;}
+
+      #sheet .inner > *:first-child:not(.frame):not(.card):not(.inner) *{color:#f2f6fb;}
+
+      #sheet main > *:first-child:not(.frame):not(.card):not(.inner) *{color:#f2f6fb;}
+
+      #sheet .frame > *:first-child:not(.frame):not(.card):not(.inner) *{color:#f2f6fb;}
+
+      #sheet .card > *:first-child:not(.frame):not(.card):not(.inner) *{color:#f2f6fb;}
+
+      #sheet .frame{border-width:.25mm;border-style:solid;border-color:#16233a;}
+
+      #sheet .inner .frame{border-width:.25mm;border-style:solid;border-color:#16233a;}
+
+      #sheet main .frame{border-width:.25mm;border-style:solid;border-color:#16233a;}
+
+      #sheet .frame .frame{border-width:.25mm;border-style:solid;border-color:#16233a;}
+
+      #sheet .card .frame{border-width:.25mm;border-style:solid;border-color:#16233a;}
+
+      #sheet table.items th{background:#16233a;color:#fff;border:0;}
+
+      #sheet .inner table.items th{background:#16233a;color:#fff;border:0;}
+
+      #sheet main table.items th{background:#16233a;color:#fff;border:0;}
+
+      #sheet .frame table.items th{background:#16233a;color:#fff;border:0;}
+
+      #sheet .card table.items th{background:#16233a;color:#fff;border:0;}
+
+      #sheet table.items td{border:0;border-bottom:.12mm solid #d6dde6;}
+
+      #sheet .inner table.items td{border:0;border-bottom:.12mm solid #d6dde6;}
+
+      #sheet main table.items td{border:0;border-bottom:.12mm solid #d6dde6;}
+
+      #sheet .frame table.items td{border:0;border-bottom:.12mm solid #d6dde6;}
+
+      #sheet .card table.items td{border:0;border-bottom:.12mm solid #d6dde6;}
+
+      #sheet .foot{border-top:.4mm solid #16233a;}
+
+      #sheet .inner .foot{border-top:.4mm solid #16233a;}
+
+      #sheet main .foot{border-top:.4mm solid #16233a;}
+
+      #sheet .frame .foot{border-top:.4mm solid #16233a;}
+
+      #sheet .card .foot{border-top:.4mm solid #16233a;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: the_chia_hai_cot
+  weight: 1.0
+  tags:
+  - dressed_free
+  params:
+    label: 'Thẻ chia hai cột: nội dung chảy sang cột phải khi hết cột trái'
+    level: free
+    axes:
+      design: the_chia_hai_cot
+    css: '#sheet{column-count:2;column-gap:7mm;column-rule:.3mm solid #b9c4cd;}
+
+      #sheet .inner{column-count:2;column-gap:7mm;column-rule:.3mm solid #b9c4cd;}
+
+      #sheet main{column-count:2;column-gap:7mm;column-rule:.3mm solid #b9c4cd;}
+
+      #sheet .frame{column-count:2;column-gap:7mm;column-rule:.3mm solid #b9c4cd;}
+
+      #sheet .card{column-count:2;column-gap:7mm;column-rule:.3mm solid #b9c4cd;}
+
+      #sheet > *{break-inside:avoid;margin-bottom:1mm;width:auto;max-width:none;}
+
+      #sheet .inner > *{break-inside:avoid;margin-bottom:1mm;width:auto;max-width:none;}
+
+      #sheet main > *{break-inside:avoid;margin-bottom:1mm;width:auto;max-width:none;}
+
+      #sheet .frame > *{break-inside:avoid;margin-bottom:1mm;width:auto;max-width:none;}
+
+      #sheet .card > *{break-inside:avoid;margin-bottom:1mm;width:auto;max-width:none;}
+
+      #sheet > *:first-child:not(.frame):not(.card):not(.inner){column-span:all;border-bottom:.5mm
+      solid #1d3b5c;margin-bottom:2mm;}
+
+      #sheet .inner > *:first-child:not(.frame):not(.card):not(.inner){column-span:all;border-bottom:.5mm
+      solid #1d3b5c;margin-bottom:2mm;}
+
+      #sheet main > *:first-child:not(.frame):not(.card):not(.inner){column-span:all;border-bottom:.5mm
+      solid #1d3b5c;margin-bottom:2mm;}
+
+      #sheet .frame > *:first-child:not(.frame):not(.card):not(.inner){column-span:all;border-bottom:.5mm
+      solid #1d3b5c;margin-bottom:2mm;}
+
+      #sheet .card > *:first-child:not(.frame):not(.card):not(.inner){column-span:all;border-bottom:.5mm
+      solid #1d3b5c;margin-bottom:2mm;}
+
+      #sheet .frame, #sheet .inner{border:0;}
+
+      #sheet .inner .frame, #sheet .inner{border:0;}
+
+      #sheet main .frame, #sheet .inner{border:0;}
+
+      #sheet .frame .frame, #sheet .inner{border:0;}
+
+      #sheet .card .frame, #sheet .inner{border:0;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet table.items th{background:#1d3b5c;color:#fff;border:0;}
+
+      #sheet .inner table.items th{background:#1d3b5c;color:#fff;border:0;}
+
+      #sheet main table.items th{background:#1d3b5c;color:#fff;border:0;}
+
+      #sheet .frame table.items th{background:#1d3b5c;color:#fff;border:0;}
+
+      #sheet .card table.items th{background:#1d3b5c;color:#fff;border:0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: the_lech_phai
+  weight: 1.0
+  tags:
+  - dressed_free
+  params:
+    label: 'Thẻ dồn phải: chữ canh phải, bậc thang thụt từ bên phải vào'
+    level: free
+    axes:
+      design: the_lech_phai
+    css: '#sheet > *{margin-left:8%;margin-right:2%;text-align:right;width:auto;max-width:none;}
+
+      #sheet .inner > *{margin-left:8%;margin-right:2%;text-align:right;width:auto;max-width:none;}
+
+      #sheet main > *{margin-left:8%;margin-right:2%;text-align:right;width:auto;max-width:none;}
+
+      #sheet .frame > *{margin-left:8%;margin-right:2%;text-align:right;width:auto;max-width:none;}
+
+      #sheet .card > *{margin-left:8%;margin-right:2%;text-align:right;width:auto;max-width:none;}
+
+      #sheet > *:nth-child(odd){margin-left:18%;}
+
+      #sheet .inner > *:nth-child(odd){margin-left:18%;}
+
+      #sheet main > *:nth-child(odd){margin-left:18%;}
+
+      #sheet .frame > *:nth-child(odd){margin-left:18%;}
+
+      #sheet .card > *:nth-child(odd){margin-left:18%;}
+
+      #sheet > *:nth-child(n+4){margin-left:26%;}
+
+      #sheet .inner > *:nth-child(n+4){margin-left:26%;}
+
+      #sheet main > *:nth-child(n+4){margin-left:26%;}
+
+      #sheet .frame > *:nth-child(n+4){margin-left:26%;}
+
+      #sheet .card > *:nth-child(n+4){margin-left:26%;}
+
+      #sheet table.items{text-align:right;}
+
+      #sheet .inner table.items{text-align:right;}
+
+      #sheet main table.items{text-align:right;}
+
+      #sheet .frame table.items{text-align:right;}
+
+      #sheet .card table.items{text-align:right;}
+
+      #sheet table.items th:first-child{text-align:left;}
+
+      #sheet .inner table.items th:first-child{text-align:left;}
+
+      #sheet main table.items th:first-child{text-align:left;}
+
+      #sheet .frame table.items th:first-child{text-align:left;}
+
+      #sheet .card table.items th:first-child{text-align:left;}
+
+      #sheet table.items td:first-child{text-align:left;}
+
+      #sheet .inner table.items td:first-child{text-align:left;}
+
+      #sheet main table.items td:first-child{text-align:left;}
+
+      #sheet .frame table.items td:first-child{text-align:left;}
+
+      #sheet .card table.items td:first-child{text-align:left;}
+
+      #sheet .frame{border-width:.2mm;border-style:double;}
+
+      #sheet .inner .frame{border-width:.2mm;border-style:double;}
+
+      #sheet main .frame{border-width:.2mm;border-style:double;}
+
+      #sheet .frame .frame{border-width:.2mm;border-style:double;}
+
+      #sheet .card .frame{border-width:.2mm;border-style:double;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: the_dai_ngang
+  weight: 1.0
+  tags:
+  - dressed_free
+  params:
+    label: 'Thẻ dải ngang: mỗi khối một dải nền, bề rộng so le'
+    level: free
+    axes:
+      design: the_dai_ngang
+    css: '#sheet > *{width:auto;max-width:none;margin-right:0;}
+
+      #sheet .inner > *{width:auto;max-width:none;margin-right:0;}
+
+      #sheet main > *{width:auto;max-width:none;margin-right:0;}
+
+      #sheet .frame > *{width:auto;max-width:none;margin-right:0;}
+
+      #sheet .card > *{width:auto;max-width:none;margin-right:0;}
+
+      #sheet > *:nth-child(odd){background:#f0f3f6;margin-left:0;margin-right:14%;}
+
+      #sheet .inner > *:nth-child(odd){background:#f0f3f6;margin-left:0;margin-right:14%;}
+
+      #sheet main > *:nth-child(odd){background:#f0f3f6;margin-left:0;margin-right:14%;}
+
+      #sheet .frame > *:nth-child(odd){background:#f0f3f6;margin-left:0;margin-right:14%;}
+
+      #sheet .card > *:nth-child(odd){background:#f0f3f6;margin-left:0;margin-right:14%;}
+
+      #sheet > *:nth-child(even){background:#fff;margin-left:14%;margin-right:0;}
+
+      #sheet .inner > *:nth-child(even){background:#fff;margin-left:14%;margin-right:0;}
+
+      #sheet main > *:nth-child(even){background:#fff;margin-left:14%;margin-right:0;}
+
+      #sheet .frame > *:nth-child(even){background:#fff;margin-left:14%;margin-right:0;}
+
+      #sheet .card > *:nth-child(even){background:#fff;margin-left:14%;margin-right:0;}
+
+      #sheet > *:first-child:not(.frame):not(.card):not(.inner){background:#1f2a36;color:#f3f6f9;margin-left:0;margin-right:0;}
+
+      #sheet .inner > *:first-child:not(.frame):not(.card):not(.inner){background:#1f2a36;color:#f3f6f9;margin-left:0;margin-right:0;}
+
+      #sheet main > *:first-child:not(.frame):not(.card):not(.inner){background:#1f2a36;color:#f3f6f9;margin-left:0;margin-right:0;}
+
+      #sheet .frame > *:first-child:not(.frame):not(.card):not(.inner){background:#1f2a36;color:#f3f6f9;margin-left:0;margin-right:0;}
+
+      #sheet .card > *:first-child:not(.frame):not(.card):not(.inner){background:#1f2a36;color:#f3f6f9;margin-left:0;margin-right:0;}
+
+      #sheet > *:first-child:not(.frame):not(.card):not(.inner) *{color:#f3f6f9;}
+
+      #sheet .inner > *:first-child:not(.frame):not(.card):not(.inner) *{color:#f3f6f9;}
+
+      #sheet main > *:first-child:not(.frame):not(.card):not(.inner) *{color:#f3f6f9;}
+
+      #sheet .frame > *:first-child:not(.frame):not(.card):not(.inner) *{color:#f3f6f9;}
+
+      #sheet .card > *:first-child:not(.frame):not(.card):not(.inner) *{color:#f3f6f9;}
+
+      #sheet .frame, #sheet .inner{border:0;}
+
+      #sheet .inner .frame, #sheet .inner{border:0;}
+
+      #sheet main .frame, #sheet .inner{border:0;}
+
+      #sheet .frame .frame, #sheet .inner{border:0;}
+
+      #sheet .card .frame, #sheet .inner{border:0;}
+
+      #sheet table.items td{border-color:#c8d1d9;}
+
+      #sheet .inner table.items td{border-color:#c8d1d9;}
+
+      #sheet main table.items td{border-color:#c8d1d9;}
+
+      #sheet .frame table.items td{border-color:#c8d1d9;}
+
+      #sheet .card table.items td{border-color:#c8d1d9;}
+
+      #sheet table.items th{border-color:#c8d1d9;}
+
+      #sheet .inner table.items th{border-color:#c8d1d9;}
+
+      #sheet main table.items th{border-color:#c8d1d9;}
+
+      #sheet .frame table.items th{border-color:#c8d1d9;}
+
+      #sheet .card table.items th{border-color:#c8d1d9;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []

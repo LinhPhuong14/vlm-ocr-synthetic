@@ -190,7 +190,7 @@ def wanted_count(row: dict) -> int:
     return LOCKED_COUNT if row["klass"] == "locked" else FREE_COUNT
 
 
-def rejected(entry: dict) -> str:
+def rejected(entry: dict, inherited: set[str] = frozenset()) -> str:
     """Why this rebuild is not worth keeping, or "" if it is.
 
     Two reasons, and they are different failures. A rebuild the reviewer faults
@@ -199,11 +199,17 @@ def rejected(entry: dict) -> str:
     scored 0.000 on the health card, because that card is an absolutely
     positioned panel and CSS columns have nothing to do on one. Neither belongs
     in a folder whose whole claim is "this is what the augmentation does".
+
+    `inherited` is what the bare phôi already gets wrong, and a design is not
+    blamed for it. `magazine_contents` overlapped its own hero kicker with its
+    own page number, so all nine designs offered to it came back faulted and it
+    ended the run with one rebuild instead of seven -- for a bug that was
+    nothing to do with any of them.
     """
     if not entry.get("drawn"):
         return "không vẽ được"
     severe = [f for f in entry.get("findings") or ()
-              if f["severity"] == critic.SEVERE]
+              if f["severity"] == critic.SEVERE and f["code"] not in inherited]
     if severe:
         return f"{len(severe)} lỗi nặng ({severe[0]['code']})"
     moved = (entry.get("distance") or {}).get("distance", 0.0)
@@ -327,13 +333,21 @@ def review(out: Path, rows: list[dict]) -> list[dict]:
 def layout_report(row: dict, rows: list[dict], designs: list) -> str:
     """The per-layout page: what each rebuild changed, and by how much."""
     by_id = {design.id: design for design in designs}
+    inherited = row.get("inherited") or []
     lines = [
         f"# `{row['layout']}`",
         "",
         f"Chứng từ dùng để dựng: `{row['document']}` — hạng **{row['klass']}**"
         f"{' (phôi cuộn giấy nhiệt)' if row['narrow'] else ''}.",
         "",
-        f"Phôi gốc: `{BASELINE}.jpg` (proof: `{BASELINE}_proof.jpg`). "
+    ]
+    if inherited:
+        lines += [f"> Bản thân phôi gốc đã có lỗi `{'`, `'.join(inherited)}` — "
+                  f"mọi bản dựng lại đều thừa hưởng, nên không tính cho thiết "
+                  f"kế nào.", ""]
+    lines += [
+        f"Phôi gốc: `{BASELINE}.jpg` "
+        f"(proof: `../proof/{row['layout']}/{BASELINE}.jpg`). "
         f"Tất cả các bản dưới đây vẽ từ **cùng một hạt giống, cùng một chứng "
         f"từ, tắt hết hiệu ứng làm cũ và không đóng dấu** — nên khác nhau chỗ "
         f"nào thì đúng là bố cục khác nhau chỗ ấy.",
@@ -535,6 +549,12 @@ def main() -> int:
         row["shape"] = shape_of(row, size)
         row["sheet"] = list(size or ())
 
+        # What the bare phôi already gets wrong. Reported against the phôi in
+        # its own page, and not charged to any design.
+        review(directory, first)
+        row["inherited"] = sorted({f["code"] for f in first[0].get("findings") or ()
+                                   if f["severity"] == critic.SEVERE})
+
         pool = pool_for(row, row["shape"])
         want = min(wanted_count(row), len(pool))
         taken, kept, dropped = list(pool[:want]), [], []
@@ -546,7 +566,7 @@ def main() -> int:
             spare = [d for d in pool if d.id not in tried]
             taken = []
             for entry in batch:
-                why = rejected(entry)
+                why = rejected(entry, set(row["inherited"]))
                 if not why:
                     kept.append(entry)
                     continue

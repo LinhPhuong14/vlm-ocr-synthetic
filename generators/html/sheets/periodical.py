@@ -326,9 +326,16 @@ header .meta b{display:block;font-family:'LiberationSerif','DejaVu Serif',serif;
                text-transform:none;color:#1c1b18;}
 .hero{display:grid;grid-template-columns:1fr 62mm;gap:7mm;padding:6mm 0;
       border-bottom:.3mm solid #cfc8b8;}
-.hero .n{font-family:'LiberationSerif','DejaVu Serif',serif;font-size:24mm;font-weight:bold;line-height:.85;color:#b8532f;}
+.hero .n{font-family:'LiberationSerif','DejaVu Serif',serif;font-size:24mm;font-weight:bold;line-height:1;color:#b8532f;}
+/* `line-height` on `.n` is 1 and not the .85 a designer would set, because a
+   24mm number on 20.4mm of leading has an inline box shorter than its own
+   glyphs: the measured rect for `hero.page_no` rode up into `hero.kicker` and
+   the two overlapped by 42% of the kicker. Nothing looked wrong -- the ink is
+   fine either way -- but the label said two runs were in the same place, and
+   `agent/critic.py::chong_lan` is what noticed. The 3.6mm the number loses is
+   taken back off the kicker's margin below. */
 .hero .k{font-size:6.8pt;letter-spacing:1.6mm;text-transform:uppercase;color:#b8532f;
-         margin-bottom:1.6mm;}
+         margin-bottom:0.6mm;}
 .hero h2{font-family:'LiberationSerif','DejaVu Serif',serif;font-size:9.4mm;line-height:1.08;margin:0 0 2.5mm;}
 .hero p{font-size:8.8pt;line-height:1.5;color:#4a463c;}
 .hero .by{font-size:7.2pt;letter-spacing:.8mm;text-transform:uppercase;color:#6a6558;
