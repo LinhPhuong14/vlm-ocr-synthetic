@@ -120,6 +120,10 @@ LABELS: dict[str, str] = {
     "sign.": "Text",
     "footer": "Page-footer",
     "cell": "Table",
+    # A struck seal is ink, not running text -- `Picture` is the closest thing
+    # the converter's own vocabulary has to "not words". See
+    # `generators/html/sheets/base.py::seal_mark`.
+    "seal.": "Picture",
     # The party block of an invoice. `parties.title` above is the section
     # heading ("THÔNG TIN CÁC BÊN"); everything else under it -- the per-side
     # titles and the field labels -- is running text. Longest prefix wins, so
@@ -231,6 +235,55 @@ HTML_TAG = {
     "Text": "p",
 }
 
+# ---------------------------------------------------------- docsynth labels
+#
+# `word_annotations`/`layout_annotations` (below `boxes`/`blocks_from_boxes`)
+# write `layout_class` in a SECOND, wider vocabulary -- `docsynth.
+# annotations.v1`'s 19 labels, fixed by what reads those two arrays, not by
+# this repository. Kept separate from `PAGE_LABELS`/`LABELS` above rather
+# than replacing them: those two already carry a lot of judgment about which
+# `kind` prefix wins and where -- the periodical family alone maps 65 of
+# them -- and redoing that BY HAND against a different vocabulary would be
+# throwing that judgment away to re-derive it, not improving it. Translating
+# the label `label_for` already computes is cheaper and just as faithful:
+# every existing reader of `label_for`/`blocks[]` sees no change at all.
+DOCSYNTH_LABELS = frozenset({
+    "Caption", "Footnote", "Equation-Block", "List-Group", "Page-Header",
+    "Page-Footer", "Image", "Section-Header", "Table", "Text",
+    "Complex-Block", "Code-Block", "Form", "Table-Of-Contents", "Figure",
+    "Chemical-Block", "Diagram", "Bibliography", "Blank-Page",
+})
+
+# Every `PAGE_LABELS` value -> the `docsynth` label it stands for. A key for
+# every value `label_for` can return -- `tests/test_record.py` checks that
+# the same way it already checks `label_for` against `PAGE_LABELS`. Where the
+# two vocabularies name the same thing, they agree (`Table` is `Table`); where
+# they do not, the closer concept wins over an exact string match: `Title`
+# is not one of the 19, and the reading in a document-layout vocabulary this
+# size is a bolded heading, i.e. `Section-Header`; `Picture` becomes `Image`
+# for the same reason, not `Figure` (a figure carries a caption relationship
+# this repository does not model).
+DOCSYNTH_LABEL_OF: dict[str, str] = {
+    "Caption": "Caption",
+    "Footnote": "Footnote",
+    "Formula": "Equation-Block",
+    "List-item": "List-Group",
+    "Page-footer": "Page-Footer",
+    "Page-header": "Page-Header",
+    "Picture": "Image",
+    "Section-header": "Section-Header",
+    "Table": "Table",
+    "Text": "Text",
+    "Title": "Section-Header",
+}
+
+
+def layout_class_for(kind: str) -> str:
+    """`label_for(kind)`, translated to the `docsynth.annotations.v1`
+    vocabulary -- see `DOCSYNTH_LABEL_OF`'s own comment for why translated
+    rather than mapped fresh from `kind`."""
+    return DOCSYNTH_LABEL_OF[label_for(kind)]
+
 # ------------------------------------------------------------------- settings
 
 # The converter's job options, given the values that are true of a drawn page.
@@ -274,8 +327,8 @@ PER_PAGE_SETTINGS = ("convert_mode", "extract_fields")
 # Top level, in the order the converter writes them. `json.dump` keeps insertion
 # order, so a record built here reads down the page the way the sample does.
 ORDER = ("schema_version", "job_id", "task", "parser", "filename", "source_files",
-         "settings", "documents", "pages", "blocks", "markdown", "html",
-         "extracted")
+         "settings", "documents", "pages", "blocks", "word_annotations",
+         "layout_annotations", "markdown", "html", "extracted")
 
 # Every key, and there is no second set: a line has these and nothing else, so
 # a record that grew one is as wrong as a record that lost one. That is checked
@@ -364,6 +417,137 @@ def blocks_from_boxes(boxes: Iterable[dict[str, Any]], *,
         }
         out.append(block)
     return out
+
+
+# kind prefix -> the `layout_class` its words' REGION gets, and which words
+# get grouped into a region at all. Deliberately partial, matching the real
+# `docsynth.annotations.v1` sample this was built against: a plain flowing
+# field (`store.name`, `title`...) has no region of its own there either
+# (`layout_region_index: null`) -- only the blocks a reader would call a named
+# "part of the page" (a signature block, the item table, the footer) do.
+# Longest prefix wins, same rule `LABELS` above uses, for the same reason
+# (`total.grand` must not escape `total.` into no region at all).
+REGIONS: dict[str, str] = {
+    "sign.": "Form",
+    "menu.": "Table",
+    "colhdr": "Table",
+    "colnum": "Table",
+    "cell": "Table",
+    "total.": "Table",
+    "summary.": "Table",
+    "footer": "Page-Footer",
+    "entry.": "List-Group",
+    "seal.": "Image",
+}
+
+
+def _region_key(kind: str) -> str | None:
+    best = ""
+    for prefix in REGIONS:
+        if (kind == prefix or kind.startswith(prefix)) and len(prefix) > len(best):
+            best = prefix
+    return best or None
+
+
+def _word_field_role(kind: str) -> str:
+    """`"key"` for a field's own caption, `"unbound"` for page furniture that
+    is not really a document field (a title, a footer line), `"value"` for
+    everything else -- the three roles `docsynth.annotations.v1` uses."""
+    if kind.endswith(".label") or kind.endswith(".title"):
+        return "key"
+    if kind in ("title", "footer", "note") or kind.startswith(("footer", "note")):
+        return "unbound"
+    return "value"
+
+
+def words_from_boxes(boxes: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
+    """One `docsynth.annotations.v1` `word_annotations` entry per word --
+    `boxes` here is `page.py::CELL_RECTS_JS`'s `words` array, already one
+    entry per whitespace-separated word (or, for an inked run with no text
+    node to split, one entry for the whole run -- see that function's own
+    comment for why).
+
+    `field_path`/`relation_path`/`field_pattern` all read the same as `kind`
+    on purpose: `kind` already IS the dotted field path every `sheets/*.py`
+    family writes (`"store.name"`, `"total.grand"`), so there is nothing this
+    function would compute that `kind` does not already say -- three names
+    for callers written against the target schema's own vocabulary, not
+    three different derivations.
+    """
+    out: list[dict[str, Any]] = []
+    for index, box in enumerate(boxes or []):
+        if not isinstance(box, dict):
+            continue
+        kind = str(box.get("kind", ""))
+        bbox = bbox_of(box.get("quad"))
+        x1, y1, x2, y2 = bbox["x1"], bbox["y1"], bbox["x2"], bbox["y2"]
+        out.append({
+            "word_index": index,
+            "text": str(box.get("text", "")),
+            "layout_region_index": None,   # filled in by `regions_from_words`
+            "layout_class": None,
+            "field_role": _word_field_role(kind),
+            "field_path": kind,
+            "relation_path": kind,
+            "field_pattern": kind,
+            "field_name": kind.rsplit(".", 1)[-1] if kind else "",
+            "bbox": [x1, y1, x2, y2],
+            "bbox_mode": "xyxy_pixel",
+            # Not "*_3d_projected_perimeter" like the sample this was built
+            # from: this repository does not re-project a box through a
+            # geometric distortion after it is measured (`render.py` asserts
+            # against exactly that), so the polygon below is the plain
+            # rectangle `bbox` already is, not an approximation of a curve.
+            "bbox_strategy": "visible_content_perimeter",
+            "polygon": [[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]],
+        })
+    return out
+
+
+def regions_from_words(words: list[dict[str, Any]], boxes: Iterable[dict[str, Any]],
+                       *, page_number: int = 1) -> list[dict[str, Any]]:
+    """One `layout_annotations` entry per REGION (`REGIONS`, above) found
+    among `words` -- and, as a side effect, fills in `layout_region_index`/
+    `layout_class` on every word that landed in one. `boxes` supplies each
+    word's `kind` (dropped from the word dict itself, since the target
+    schema's own `word_annotations` do not carry one); the two lists are the
+    same length, in the same order, by construction (`words_from_boxes` and
+    this function are always called on the same `boxes`).
+    """
+    groups: dict[str, list[int]] = {}
+    for word, box in zip(words, boxes or []):
+        kind = str(box.get("kind", "")) if isinstance(box, dict) else ""
+        key = _region_key(kind)
+        if key is not None:
+            groups.setdefault(key, []).append(word["word_index"])
+
+    regions: list[dict[str, Any]] = []
+    for region_index, (key, indices) in enumerate(groups.items()):
+        layout_class = REGIONS[key]
+        member = [words[i] for i in indices]
+        x1 = min(w["bbox"][0] for w in member)
+        y1 = min(w["bbox"][1] for w in member)
+        x2 = max(w["bbox"][2] for w in member)
+        y2 = max(w["bbox"][3] for w in member)
+        text = " ".join(w["text"] for w in member if w["text"])
+        regions.append({
+            "region_index": region_index,
+            "tag": "div",
+            "layout_class": layout_class,
+            "text": text,
+            "bbox": [x1, y1, x2, y2],
+            "bbox_mode": "xyxy_pixel",
+            # A union of the words it contains, not a DOM measurement of its
+            # own -- there is no single element on the page that IS "the
+            # signature block" or "the item table" as one box; the region is
+            # this function's own grouping (see `REGIONS`), not the browser's.
+            "bbox_strategy": "visible_content_union_perimeter",
+            "polygon": [[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]],
+        })
+        for word in member:
+            word["layout_region_index"] = region_index
+            word["layout_class"] = layout_class
+    return regions
 
 
 def rows(blocks: Iterable[dict[str, Any]]) -> list[list[dict[str, Any]]]:
@@ -456,16 +640,26 @@ def field_paths(extracted: Any, prefix: str = "") -> list[str]:
 
 
 def build(*, filename: str, width: int, height: int, parser: str,
-          boxes: Iterable[dict[str, Any]] = (), extracted: Any = None,
-          seed: Any = "", layout: str = "", task: str = TASK_CONVERT,
-          settings: dict[str, Any] | None = None) -> dict[str, Any]:
+          boxes: Iterable[dict[str, Any]] = (), words: Iterable[dict[str, Any]] = (),
+          extracted: Any = None, seed: Any = "", layout: str = "",
+          task: str = TASK_CONVERT, settings: dict[str, Any] | None = None) -> dict[str, Any]:
     """One metadata line, assembled once so the three renderers cannot drift.
 
     `seed` and `layout` are not written down -- they are in `synthesis.json` --
     but the `job_id` is a function of both, so they are asked for here and again
     in `stamp`, which is the only other place that id is derived.
+
+    `words`: `page.py::CELL_RECTS_JS`'s `words` array (one box per
+    whitespace-separated word), separate from `boxes` (one box per field,
+    the same as it always was) because they feed two DIFFERENT arrays here --
+    `blocks` stays exactly what every existing reader already expects;
+    `word_annotations`/`layout_annotations` are additive, in the
+    `docsynth.annotations.v1` shape (`layout_class` from `DOCSYNTH_LABELS`,
+    not `PAGE_LABELS`) -- see `words_from_boxes`/`regions_from_words`.
     """
     blocks = blocks_from_boxes(boxes)
+    word_annotations = words_from_boxes(words)
+    layout_annotations = regions_from_words(word_annotations, words)
 
     options = {**BASE_SETTINGS, **(settings or {})}
     options["convert_mode"] = parser
@@ -494,6 +688,8 @@ def build(*, filename: str, width: int, height: int, parser: str,
             "html": "",
         }],
         "blocks": blocks,
+        "word_annotations": word_annotations,
+        "layout_annotations": layout_annotations,
         "markdown": markdown_of(blocks),
         "html": html_of(blocks),
         "extracted": extracted,
@@ -631,6 +827,42 @@ def validate(record: dict[str, Any], *, strict: bool = True) -> list[str]:
                     break
                 if set(block["bbox"] or {}) != {"x1", "y1", "x2", "y2"}:
                     problems.append(f"blocks[{position}].bbox needs x1, y1, x2, y2")
+                    break
+
+    word_annotations = record.get("word_annotations")
+    if word_annotations is not None:
+        if not isinstance(word_annotations, list):
+            problems.append("word_annotations must be a list")
+        else:
+            wanted = {"word_index", "text", "layout_region_index", "layout_class",
+                     "field_role", "field_path", "relation_path", "field_pattern",
+                     "field_name", "bbox", "bbox_mode", "bbox_strategy", "polygon"}
+            for position, word in enumerate(word_annotations):
+                if not isinstance(word, dict) or wanted - set(word):
+                    problems.append(
+                        f"word_annotations[{position}] needs {', '.join(sorted(wanted))}")
+                    break
+                if word["field_role"] not in ("key", "value", "unbound"):
+                    problems.append(
+                        f"word_annotations[{position}].field_role must be key/value/unbound")
+                    break
+
+    layout_annotations = record.get("layout_annotations")
+    if layout_annotations is not None:
+        if not isinstance(layout_annotations, list):
+            problems.append("layout_annotations must be a list")
+        else:
+            wanted = {"region_index", "tag", "layout_class", "text", "bbox",
+                     "bbox_mode", "bbox_strategy", "polygon"}
+            for position, region in enumerate(layout_annotations):
+                if not isinstance(region, dict) or wanted - set(region):
+                    problems.append(
+                        f"layout_annotations[{position}] needs {', '.join(sorted(wanted))}")
+                    break
+                if region["layout_class"] not in DOCSYNTH_LABELS:
+                    problems.append(
+                        f"layout_annotations[{position}].layout_class "
+                        f"{region['layout_class']!r} is not one of the 19 docsynth labels")
                     break
     return problems
 
@@ -839,6 +1071,14 @@ def refresh(record: dict[str, Any]) -> bool:
                 or type(settings[key]) is not type(value)):
             settings[key] = value
             moved = True
+
+    # `word_annotations`/`layout_annotations` are additive: a page drawn
+    # before they existed was never wrong, it just has nothing to put there --
+    # an empty list is the honest answer, not a re-render.
+    for key in ("word_annotations", "layout_annotations"):
+        if key not in record:
+            record[key] = []
+            moved = True
     return moved
 
 
@@ -1044,6 +1284,16 @@ def boxes(item: dict[str, Any]) -> list[dict[str, Any]]:
     return list(item.get("blocks") or [])
 
 
+def word_annotations(item: dict[str, Any]) -> list[dict[str, Any]]:
+    """One entry per word -- see `words_from_boxes`."""
+    return list(item.get("word_annotations") or [])
+
+
+def layout_annotations(item: dict[str, Any]) -> list[dict[str, Any]]:
+    """One entry per layout region -- see `regions_from_words`."""
+    return list(item.get("layout_annotations") or [])
+
+
 def extracted(item: dict[str, Any]) -> dict[str, Any]:
     """The nested label, as an object."""
     value = item.get("extracted")
@@ -1071,11 +1321,14 @@ def page_size(item: dict[str, Any]) -> tuple[int, int]:
 __all__ = [
     "BASE_SETTINGS",
     "DEFAULT_LABEL",
+    "DOCSYNTH_LABELS",
+    "DOCSYNTH_LABEL_OF",
     "JOB_NAMESPACE",
     "LABELS",
     "ORDER",
     "PAGE_LABELS",
     "PER_PAGE_SETTINGS",
+    "REGIONS",
     "REQUIRED",
     "IMAGES",
     "SCHEMA_VERSION",
@@ -1099,15 +1352,20 @@ __all__ = [
     "images",
     "job_id",
     "label_for",
+    "layout_annotations",
+    "layout_class_for",
     "markdown_of",
     "migrate",
     "page_size",
     "read",
     "read_one",
     "refresh",
+    "regions_from_words",
     "stamp",
     "rows",
     "validate",
+    "word_annotations",
+    "words_from_boxes",
     "write",
     "write_one",
 ]
