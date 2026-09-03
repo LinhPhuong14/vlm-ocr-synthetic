@@ -228,10 +228,26 @@ Augraphy, straug, ocrodeg, graphic-design practice and the Vietnamese paper
 trail — is in [`docs/lam-cu-de-xuat.md`](../docs/lam-cu-de-xuat.md).
 
 The biggest gap it names: **not one model here moves a pixel.** The chain is
-asserted not to resize the page, so the dataset has every kind of dirt and no
-sheet that is skewed, curled or photographed at an angle. Fixing that means a
-geometric model returning its transform so `apply_recipe` can carry the label
-boxes through it.
+asserted not to resize the page, so the dataset had every kind of dirt and no
+sheet that was skewed, curled or photographed at an angle.
+
+That gap now has a fix, in [`geometry.py`](geometry.py) — but deliberately not
+inside `DEGRADATIONS`/`apply_recipe`. The shape assertion above is exactly what
+a page-geometry model cannot satisfy, so it runs as ITS OWN step, after the
+chain and after that assertion, moving the sheet's box collections (`boxes`,
+`words`, `cells`) along with the pixels instead of trusting them to still
+describe the page. Three models: `page_curl` (generalised from
+`generators/synthdog/elements/warp.py::CurlWarp`), `fold_crease` and
+`corner_bulge` (both a flat, invertible approximation of the paper shapes
+[SyntheticDoc](https://github.com/tanguymagne/SyntheticDoc) gets by physically
+simulating a sheet in ARCSim and rendering it in Blender — neither tool fits
+here, ARCSim's licence is non-commercial only and Blender needs a GPU and no
+`pip` package exists for it, so the *shape*, not the code, is what is reused).
+See the module's own docstring for the maths, and `rulebase/rules/
+augmentation.yaml`'s "HÌNH HỌC" section for how a recipe opts in through
+`augmentation.warp`. All three ship `enabled: false` — reachable with
+`--force augmentation=page_curl` (or `folded`, `lifted_corner`) but not yet in
+a default run, until someone has looked at samples.
 
 ---
 

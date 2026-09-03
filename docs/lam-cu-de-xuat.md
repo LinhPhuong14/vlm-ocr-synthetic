@@ -222,6 +222,22 @@ theo. Muốn mở khoá thì có đúng ba đường:
 **Khuyến nghị: đường 1.** Và `CurlWarp` đã có sẵn công thức nghịch, nên nó là
 chỗ để bắt đầu chứ không phải viết mới.
 
+**Đã mở, cho backend `html`** — [`degradation/geometry.py`](../degradation/geometry.py):
+`page_curl` (chính `CurlWarp`, mở rộng khỏi giấy nhiệt), cộng hai cái mới,
+`fold_crease` và `corner_bulge` (kỹ thuật mượn từ scenario `fold_by_pull` /
+`fall_on_ball` của [SyntheticDoc](https://github.com/tanguymagne/SyntheticDoc),
+dựng lại phẳng vì ARCSim phi thương mại và Blender không có gói `pip`). Một
+lệch nhỏ so với đường 1 như mô tả ở trên: thay vì `apply_recipe` tự nhân dồn
+map, mỗi primitive trả `(ảnh, quad)` và **`generators/html/render.py` gọi nó
+như một bước riêng, SAU `apply_recipe` và sau chính cái assert ở trên** — xem
+`degradation/geometry.py::warp_regions`. Giữ nguyên chữ ký `apply_recipe` cho
+ba renderer kia (`genalog`, `synthdog` đã tự có `CurlWarp` của nó) và cho
+`tools/legibility.py`, thay vì đổi một hàm dùng chung chỉ để một backend cần.
+Test giữ hộp: `tests/test_geometry.py`. Ba giá trị rule-base (`page_curl`,
+`folded`, `lifted_corner` trong `rules/augmentation.yaml`) đều `enabled:
+false` — dựng thử bằng `--force augmentation=<id>`, chưa vào lượt bốc mặc
+định.
+
 ---
 
 ## D · Từ thư viện ngoài
@@ -537,7 +553,7 @@ Xếp theo *giá trị cho OCR ÷ công sức*, và ghi rõ mục nào đụng n
 | 6 | **E-VN-1 `carbon_copy`** | trung bình | an toàn | Tờ tới tay OCR thường là liên 2. |
 | 7 | **E-VN-6 `screen_photo`** | trung bình | an toàn | Loại ảnh đang tăng nhanh nhất; dựng lại từ ba thứ đã có. |
 | 8 | **E-VN-5 `quarter_fold`** | trung bình | an toàn nếu chỉ làm bóng | Bản rẻ của nhàu. |
-| 9 | **Mở khoá hình học theo đường 1 của mục C**, bắt đầu bằng `CurlWarp` ở B4 | cao | **cần test giữ hộp** | Mở đường cho perspective, rotate, elastic, `displacement_crumple`, `rolling_shutter` — tức là hơn nửa danh sách E. |
+| 9 | ✅ **Mở khoá hình học theo đường 1 của mục C**, bắt đầu bằng `CurlWarp` ở B4 | cao | test giữ hộp ở `tests/test_geometry.py` | `degradation/geometry.py`, ba giá trị `enabled: false`. Mở đường cho perspective, rotate, elastic, `displacement_crumple`, `rolling_shutter` — tức là hơn nửa danh sách E — còn để ngỏ. |
 | 10 | `textures/stain/` + mặt nạ rách thật (B3) | thấp, nhưng cần dữ liệu | an toàn | Đường vào đã mở sẵn trong mã, chỉ thiếu file. Vướng giấy phép ảnh. |
 
 ---

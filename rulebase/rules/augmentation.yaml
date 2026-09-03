@@ -434,3 +434,76 @@ options:
         # khắp tờ. Hai cơ chế khác nhau, và đây là cái của ống kính.
         - [color_shift, {shift: 2.0, radial: 1.0, blur: 0.5}]
         - [blur_zones, {radius: 1.2, zones: 2, coverage: 0.16}]
+
+  # --------------------------------------------------------------------
+  # HÌNH HỌC — tờ giấy không còn PHẲNG, không chỉ cũ
+  #
+  # Mọi giá trị phía trên chỉ đổi MÀU/KẾT CẤU pixel; `chain` của chúng bị cấm
+  # dịch chuyển pixel (xem `generators/html/render.py`'s kiểm tra ngay sau
+  # `apply_recipe`). Ba giá trị dưới đây là chỗ duy nhất một trang được phép
+  # cong -- qua `params.warp`, đọc riêng bởi `render.py` SAU chuỗi `chain` và
+  # SAU kiểm tra ấy, rồi áp bằng `degradation.geometry.warp_regions` lên cả ba
+  # tập hộp của trang (`boxes`, `words`, `cells`) cùng lúc. Xem
+  # `degradation/geometry.py` cho công thức và vì sao nó không nằm trong
+  # `degradation.DEGRADATIONS`.
+  #
+  # `warp.name` là một khoá của `degradation.geometry.WARPS`; `warp.params`
+  # truyền thẳng vào hàm ấy, mỗi tham số nhận số cố định hoặc `(low, high)`.
+  #
+  # `page_curl` mở rộng `CurlWarp` (SynthDoG-VN) từ giấy nhiệt ra mọi trang.
+  # `folded` và `lifted_corner` là xấp xỉ 2D của dáng giấy SyntheticDoc mô
+  # phỏng vật lý bằng ARCSim + Blender (github.com/tanguymagne/SyntheticDoc,
+  # `fold_by_pull` và `fall_on_ball`/`fall_on_roller`) -- kỹ thuật mượn, không
+  # phải mã: ARCSim chỉ cấp phép phi thương mại và Blender là một path tracer
+  # chạy GPU ngoài pip, cả hai không hợp kiến trúc "một renderer, CI thuần
+  # Python" của repo này.
+  #
+  # `enabled: false` cả ba: đã nối dây đủ (rule-base, renderer, test), nhưng
+  # chưa lượt nào nhìn qua ảnh thật để chỉnh biên độ, nên chưa vào lượt bốc
+  # mặc định. Dựng thử: `--force augmentation=page_curl` (hoặc `folded`,
+  # `lifted_corner`).
+
+  - id: page_curl
+    enabled: false
+    weight: 2
+    tags: [textured, warped]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.32, grain: 0.5}]
+      warp:
+        name: page_curl
+        params:
+          shift: [0.0, 0.02]
+          squeeze: [0.0, 0.05]
+          wave: [0.0, 0.008]
+
+  - id: folded
+    enabled: false
+    weight: 2
+    tags: [textured, warped, creased]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.35, grain: 0.55}]
+        - [blur_zones, {radius: 1.0, zones: 1, coverage: 0.10}]
+      warp:
+        name: fold_crease
+        params:
+          axis: x
+          position: [0.35, 0.65]
+          depth: [0.015, 0.035]
+          width: [0.06, 0.10]
+          shadow: [0.2, 0.4]
+
+  - id: lifted_corner
+    enabled: false
+    weight: 1
+    tags: [textured, warped]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.30, grain: 0.45}]
+        - [shadow_binding, {border: bottom, distance_ratio: 0.08, intensity: 0.3}]
+      warp:
+        name: corner_bulge
+        params:
+          radius: [0.25, 0.4]
+          depth: [0.03, 0.06]
