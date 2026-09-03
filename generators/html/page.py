@@ -106,47 +106,75 @@ def served(markup: str):
 # element -- which is the whole speed difference between this and driving the
 # same browser through Selenium.
 #
-# One text box per drawn field -- and one per LINE when a field wraps.
+# Two granularities out of the same walk: `cells` (one field-level box, and
+# one per LINE when a field wraps -- feeds `blocks[]`/`quads_from_rects`,
+# unchanged shape) and `words` (one box per WHITESPACE-separated word inside
+# each line -- feeds `word_annotations`).
 #
-# The union rectangle of a run that broke over two lines is not a box round the
-# text: it is a box round both lines *and the blank paper between their ragged
-# ends*, which on a full-width block swallows whatever sits at the start of the
-# first line. Measured: an invoice's "Số tiền bằng chữ:" label came out 100%
-# inside the amount's box, and the overlap detector was right to call it.
+# Both are measured with a `Range`, character by character, ALWAYS -- not
+# only when a run wraps to two or more lines. A `<span>` is inline by default
+# and shrinks to its own text, but a family's CSS can (and does, for
+# heading-style kinds) set `display:block`, and a block box is exactly as
+# wide as its CONTAINER regardless of how little text is in it. Measuring the
+# span's own `getBoundingClientRect()` in that case gives a box round the
+# whole row, not round the words -- Range measurement is immune to this: it
+# reads where the glyphs actually painted, never the element's box.
 #
-# So a run whose `getClientRects()` has more than one entry is split per line
-# with a Range, character by character, and each line becomes its own box with
-# its own slice of the text. The character grid never takes this path -- its
-# cells are `white-space:pre` and always one line -- so nothing about it changes.
+# The union rectangle of a run that broke over two lines is not a box round
+# the text either: it is a box round both lines *and the blank paper between
+# their ragged ends*, which on a full-width block swallows whatever sits at
+# the start of the first line. Measured: an invoice's "Số tiền bằng chữ:"
+# label came out 100% inside the amount's box, and the overlap detector was
+# right to call it. Splitting by line, and now within a line by whitespace,
+# is the same fix at two grain sizes.
+#
+# The character grid never takes this path -- its cells are `white-space:pre`
+# and always one line -- so nothing about it changes.
 CELL_RECTS_JS = """() => {
   const sheet = document.querySelector('#sheet').getBoundingClientRect();
-  const out = [];
-  const push = (kind, text, box) => {
+  const cells = [];
+  const words = [];
+  const pushCell = (kind, text, box) => {
     if (!text.trim()) return;
-    out.push({kind, text, x: box.left - sheet.left, y: box.top - sheet.top,
-              w: box.width, h: box.height});
+    cells.push({kind, text, x: box.left - sheet.left, y: box.top - sheet.top,
+                w: box.width, h: box.height});
+  };
+  const pushWord = (kind, text, box) => {
+    if (!text.trim()) return;
+    words.push({kind, text, x: box.left - sheet.left, y: box.top - sheet.top,
+                w: box.width, h: box.height});
   };
   const range = document.createRange();
   for (const span of document.querySelectorAll('#sheet span[data-kind]')) {
     const kind = span.dataset.kind;
     const node = span.firstChild;
     const simple = node && node.nodeType === 3 && span.childNodes.length === 1;
-    // A hand-filled field holds an <img> of ink, not a text node, so its text
-    // rides on `data-text`. Without this the run has no textContent, `push`
-    // drops it, and the page loses the box for exactly the field a reader
-    // most needs one for. Nothing that types its values sets the attribute.
-    if (!simple || span.getClientRects().length < 2) {
-      push(kind, span.dataset.text ?? span.textContent,
-           (span.firstElementChild || span).getBoundingClientRect());
+    // A hand-filled or sealed run holds an <img> of ink, not a text node, so
+    // its text rides on `data-text`. There is no glyph run to split by word
+    // here -- the ink is shaped like the whole run -- so it becomes one cell
+    // AND one word, same box, rather than being dropped from `words`.
+    if (!simple) {
+      const text = span.dataset.text ?? span.textContent;
+      const box = (span.firstElementChild || span).getBoundingClientRect();
+      pushCell(kind, text, box);
+      pushWord(kind, text, box);
       continue;
     }
     const text = node.data;
-    let line = null;
-    const flush = () => {
+    let line = null;   // accumulates the whole line, for `cells`
+    let word = null;   // accumulates since the last whitespace, for `words`
+    const flushLine = () => {
       if (!line) return;
-      push(kind, text.slice(line.from, line.to),
-           {left: line.left, top: line.top, width: line.right - line.left,
-            height: line.bottom - line.top});
+      pushCell(kind, text.slice(line.from, line.to),
+               {left: line.left, top: line.top, width: line.right - line.left,
+                height: line.bottom - line.top});
+    };
+    const flushWord = () => {
+      if (!word) return;
+      pushWord(kind, text.slice(word.from, word.to),
+               {left: word.left, top: word.top, width: word.right - word.left,
+                height: word.bottom - word.top});
+      word = null;
     };
     for (let i = 0; i < text.length; i++) {
       range.setStart(node, i);
@@ -154,7 +182,8 @@ CELL_RECTS_JS = """() => {
       const r = range.getBoundingClientRect();
       if (r.width === 0 && r.height === 0) continue;   // a collapsed break
       if (line === null || Math.abs(r.top - line.top) > 1) {
-        flush();
+        flushLine();
+        flushWord();
         line = {top: r.top, left: r.left, right: r.right, bottom: r.bottom,
                 from: i, to: i + 1};
       } else {
@@ -163,10 +192,22 @@ CELL_RECTS_JS = """() => {
         line.bottom = Math.max(line.bottom, r.bottom);
         line.to = i + 1;
       }
+      if (/\\s/.test(text[i])) {
+        flushWord();
+      } else if (word === null) {
+        word = {top: r.top, left: r.left, right: r.right, bottom: r.bottom,
+                from: i, to: i + 1};
+      } else {
+        word.left = Math.min(word.left, r.left);
+        word.right = Math.max(word.right, r.right);
+        word.bottom = Math.max(word.bottom, r.bottom);
+        word.to = i + 1;
+      }
     }
-    flush();
+    flushLine();
+    flushWord();
   }
-  return out;
+  return {cells, words};
 }"""
 
 # One box per table cell, with its position and span. A merged cell -- a totals
