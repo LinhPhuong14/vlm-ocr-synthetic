@@ -110,6 +110,19 @@ def test_every_label_is_one_the_converter_knows():
     assert R.DEFAULT_LABEL in R.PAGE_LABELS
 
 
+def test_every_html_tag_is_one_the_converter_allows():
+    """Every layout label has its own tag, and none of them invented one.
+
+    `HTML_TAG` names the box's ROLE (a heading, a footnote, a formula), not
+    its content, and it may only pick from `ALLOWED_TAGS` -- the element
+    vocabulary this consumer actually renders. A label with no entry would
+    fall back to `<p>` in `html_of` without anyone noticing; that fallback is
+    for `get`'s benefit, not a second definition of the mapping.
+    """
+    assert set(R.HTML_TAG) == R.PAGE_LABELS
+    assert set(R.HTML_TAG.values()) <= R.ALLOWED_TAGS
+
+
 def test_every_kind_in_every_committed_dataset_is_mapped():
     """The one that catches a field kind added without a label.
 
@@ -344,6 +357,21 @@ def test_every_committed_page_has_a_record_in_the_shape_this_file_defines():
     # meant to: a set that quietly lost half its pages would otherwise look
     # like a passing test. The chain, newest first:
     #
+    #   5380 = 380 plus `data/5k_llm/`, the 5000-page agent run: every attribute
+    #         of every page chosen by `agent/planner.py` rather than drawn by
+    #         the seed, and committed whole -- images, records and a proof
+    #         beside each one -- at the repository owner's request.
+    #   380 = 296 plus `data/layouts_all/`, 84 pages -- every ENABLED layout
+    #         twice over, dealt so that no two adjacent images carry the same
+    #         layout. The count moved three times in one day (84 -> 64 -> 84:
+    #         root 3 switched off, then an insurance root merged in), which is
+    #         why the set is no longer named after it -- `tools/baseline.py`
+    #         renamed `n14`/`n26`/`n36` to `all` for the same reason, and its
+    #         own README carries the number. It is also the set that made
+    #         `test_every_kind_in_every_committed_dataset_is_mapped` fail: the
+    #         periodical layouts had shipped long before any committed page
+    #         drew one, so 65 field kinds had been falling through to the
+    #         default label with nothing to catch them.
     #   296 = 278 plus `data/hand18_model/`, one page per layout drawn with
     #         `--handwriting model` -- a measurement of what that source
     #         actually covers, eight of whose pages carry no ink at all. It was
@@ -357,7 +385,7 @@ def test_every_committed_page_has_a_record_in_the_shape_this_file_defines():
     #   294 = 307 before `data/dataset_test` was rebuilt on the CSS sheets,
     #         which took it from 30 images over two renderers to 16, one per
     #         layout, on the only backend the pipeline still drives.
-    assert seen == 296, seen
+    assert seen == 5380, seen
 
 
 # ------------------------------------------------------- the shape before this

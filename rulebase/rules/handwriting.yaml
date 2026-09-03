@@ -1,0 +1,82 @@
+# THUỘC TÍNH 7/11 — MỰC BÚT
+#
+# Ô trống của một tờ mẫu được điền bằng **nét bút**, hay bằng chữ in? Trước
+# đây câu hỏi này là một cờ dòng lệnh (`--handwriting font|model|both`), nên
+# nó đúng cho CẢ LƯỢT CHẠY: hoặc mọi trang đều viết tay, hoặc không trang nào.
+# Một tập dữ liệu thật thì không thế — tờ điền tay và tờ đánh máy nằm lẫn
+# nhau, và một mô hình chỉ gặp toàn một loại sẽ học nhầm rằng loại kia không
+# tồn tại.
+#
+# ĐỨNG TRƯỚC `augmentation`, và đó là điều quan trọng nhất của file này. Người
+# ta điền vào tờ giấy rồi tờ giấy mới bị photo, bị quăn, bị đưa qua cái máy
+# scan — nên nét bút phải mờ đi, nhoè ra và dính sọc trống **y như chữ in**.
+# Đặt sau `augmentation` thì mực bút sẽ sắc nét nằm trên một trang đã cũ, tức
+# là ảnh của một tờ đã photo rồi mới điền. Cảnh ấy có thật, nhưng nó là một
+# cảnh KHÁC, và trộn hai cảnh vào một giá trị thì không trang nào nói được nó
+# thuộc cảnh nào.
+#
+# `hand_*` `requires: [fillable]` — thẻ của những bố cục THẬT SỰ có ô cho bút
+# chạm tới. Không phải đoán: đo bằng cách dựng markup của từng bố cục qua vài
+# hạt giống rồi đếm run khớp `HAND_KINDS` của họ tờ ấy, được **25 / 42** bố cục
+# có ít nhất một ô (giấy cuộn không có ô nào; báo và tạp chí cũng không; hoá
+# đơn không in khối chữ ký cũng không). `tests/test_sheets.py` đo lại đúng phép
+# đo ấy và so với thẻ, nên thẻ không mục đi khi một tờ CSS đổi.
+#
+# Thẻ `printed_form` hẹp hơn nhiều — chỉ nhóm `administrative_form` đặt nó, tức
+# 2 bố cục sau khi root Form tắt — nên dùng nó ở đây sẽ khoá mực bút vào đúng
+# hai tờ giấy.
+#
+# Đọc `docs/handwriting-html.md` để biết hai nguồn mực khác nhau ở đâu.
+
+options:
+  # Chữ in. Tên là `typed` chứ không phải `no_handwriting`, vì đây không phải
+  # sự vắng mặt của cái gì: mọi tập dữ liệu kho này từng phát hành đều là giá
+  # trị này, và một tờ mẫu đánh máy là một tờ mẫu thật.
+  - id: typed
+    weight: 6
+    tags: [typed_fields]
+
+  # Mặt chữ viết tay có bản quyền trong `fonts/hand/`. Phủ được MỌI ô — chữ
+  # số, chữ hoa, dấu câu — nhưng cả trang chỉ một nét chữ, vì một mặt chữ là
+  # một người viết.
+  # TẮT theo yêu cầu: đây là "font ngay từ đầu", model không tham gia. Mực font
+  # vẫn có mặt trên trang qua `hand_both`, chỉ khác là nó chỉ được gọi tới khi
+  # WriteViT không viết nổi ô ấy. Bật lại = xoá dòng `enabled: false`.
+  - id: hand_font
+    weight: 1
+    enabled: false
+    requires: [fillable]
+    tags: [hand_filled, ink_font]
+
+  # ------------------------------------------------------------------------
+  # HAI GIÁ TRỊ DƯỚI ĐÂY ĐÃ BẬT LẠI
+  #
+  # Chủ kho yêu cầu: mực bút phải là WriteViT, font chỉ đỡ khi model không viết
+  # nổi — chứ không dùng font ngay từ đầu. `hand_both` chính là chính sách ấy,
+  # nên nó thành giá trị chính; `hand_font` (font từ đầu, model không tham gia)
+  # tắt lại theo đúng yêu cầu đó.
+  #
+  # CÁI GIÁ, và nó có thật: WriteViT là **294 MB trọng số không nằm trong kho**.
+  # Ai clone kho về cũng phải chạy `python tools/writevit/setup.py` trước lượt
+  # đầu tiên, nếu không preflight sẽ từ chối. Đó là lý do hai giá trị này từng
+  # bị tắt; nay đổi lại vì bộ dữ liệu cần nét bút thật hơn là cần lượt chạy đầu
+  # tiên chạy được ngay.
+  #
+  # Đo trên `data/hand18_model`: nguồn `model` chỉ phủ 30/191 ô được mời viết
+  # (16 %), vì bảng chữ của checkpoint không có chữ số, không có chữ HOA và
+  # không có dấu câu. Nó KHÔNG thay thế được `hand_font`; nó là nguồn nét chữ
+  # mỗi lần một khác, và đó là lý do `hand_both` tồn tại.
+  - id: hand_model
+    weight: 2
+    requires: [fillable]
+    tags: [hand_filled, ink_model]
+
+  # Model viết được gì thì model viết, phần còn lại để mặt chữ viết. Chiều cao
+  # nét khớp nhau qua `sxHeight` của OS/2 — xem `handwriting.BothHands`.
+  # Giá trị chính của thuộc tính này: model viết được gì thì model viết, phần
+  # còn lại — chữ số, chữ HOA, dấu câu, tức 84% số ô theo đo đạc ở trên — để
+  # mặt chữ viết. Đây là "WriteViT trước, font đỡ" viết thành luật.
+  - id: hand_both
+    weight: 6
+    requires: [fillable]
+    tags: [hand_filled, ink_font, ink_model]

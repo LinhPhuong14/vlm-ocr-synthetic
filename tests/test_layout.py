@@ -9,12 +9,17 @@ three backends at once.
 from __future__ import annotations
 
 import pytest
+from conftest import force_for
 
 import rulebase
-from rulebase.layout import available as available_layouts
+from rulebase.layout import every as every_layout
+
+# `every_layout`, not `available_layouts`: a layout switched off with
+# `enabled: false` means no RUN draws it, not that nobody checks it any more.
+# An unwatched file rots, and switching one back on should not be archaeology.
 
 SEEDS = (1, 7, 42, 2026, 90210)
-LAYOUTS = available_layouts()
+LAYOUTS = every_layout()
 
 
 # Built once and reused. `rulebase.make` with a pinned layout retries seeds
@@ -27,7 +32,7 @@ def grids():
     global _GRIDS
     if _GRIDS is None:
         _GRIDS = [
-            (layout, seed) + rulebase.make(seed=seed, force={"layout": layout})[1:]
+            (layout, seed) + rulebase.make(seed=seed, force=force_for(layout))[1:]
             for layout in LAYOUTS
             for seed in SEEDS
         ]
@@ -40,7 +45,7 @@ def test_there_are_layouts():
 
 @pytest.mark.parametrize("layout", LAYOUTS)
 def test_every_declared_layout_builds(layout):
-    _recipe, _receipt, grid = rulebase.make(seed=3, force={"layout": layout})
+    _recipe, _receipt, grid = rulebase.make(seed=3, force=force_for(layout))
     assert grid.cells
     assert grid.layout_id == layout
 
@@ -115,7 +120,7 @@ def _ruled(layout_id: str, seed: int = 2026):
 
     import rulebase.layout as L
 
-    receipt = rulebase.make(seed=seed, force={"layout": layout_id})[1]
+    receipt = rulebase.make(seed=seed, force=force_for(layout_id))[1]
     original = L.load_layout
 
     def built(mode):
@@ -142,7 +147,7 @@ def test_a_layout_that_does_not_ask_gets_no_marks():
     """
     for layout_id in ("eatery_ascii", "eatery_indexed", "market_barcode",
                       "market_compact", "market_vat"):
-        grid = rulebase.make(seed=7, force={"layout": layout_id})[2]
+        grid = rulebase.make(seed=7, force=force_for(layout_id))[2]
         assert grid.marks == [], layout_id
         assert "marks" not in grid.to_dict()
 
@@ -307,7 +312,7 @@ def test_a_thermal_layout_is_on_a_roll_and_an_invoice_is_on_a_sheet():
              if not rulebase.load_layout(layout).get("sheet")}
     assert rolls, "every layout claims a cut sheet; the roll case is untested"
     for layout_id in LAYOUTS:
-        grid = rulebase.make(seed=11, force={"layout": layout_id})[2]
+        grid = rulebase.make(seed=11, force=force_for(layout_id))[2]
         ratio = rulebase.sheet_ratio(grid)
         if layout_id in rolls:
             assert grid.sheet == "", layout_id
@@ -359,3 +364,77 @@ def test_the_sheet_only_ever_grows_the_page():
 
     roll = rulebase.make(seed=11, force={"layout": "eatery_ascii"})[2]
     assert rulebase.sheet_height(roll, 1000, 100) == 100
+
+
+# ---------------------------------------------------- switching one off
+
+
+ROOT_FORM = ("form_activity_signature", "form_checkbox_heavy",
+             "form_dense_registration", "form_government_app",
+             "form_multi_section", "form_project_kv", "form_questionnaire",
+             "form_table_based", "form_timesheet_grid", "form_two_column")
+
+
+def test_the_two_lists_agree_when_nothing_is_switched_off():
+    """`enabled: false` means "no run draws it", not "it is gone".
+
+    The two lists are the whole mechanism: `available()` is what a run takes
+    when `run.layouts` is empty, `every()` is what the checks walk. A layout
+    that left both would take its committed pages with it -- nothing could
+    redraw them, because `rulebase.make(force=...)` needs the rules entry and
+    `sheets.FAMILIES` needs the file.
+
+    Root 3 is back on at the owner's request, so nothing is switched off today
+    and the two lists coincide. The assertion is the *difference*, not a fixed
+    list: whichever way the switch goes, a layout that leaves `available()`
+    without leaving the disk is the thing being checked, and a layout that
+    leaves both is the failure.
+    """
+    drawable = set(rulebase.available_layouts())
+    on_disk = set(every_layout())
+
+    assert set(ROOT_FORM) <= on_disk
+    assert drawable <= on_disk, "a run can draw a layout that is not on disk"
+    for switched_off in sorted(on_disk - drawable):
+        assert rulebase.load_layout(switched_off), (
+            f"{switched_off} left the drawable list AND the disk")
+
+
+def test_a_root_form_layout_draws_when_it_is_named():
+    """The pages that drew one have to stay drawable, switch or no switch.
+
+    With its DOCUMENT named too, which is what a redraw does anyway --
+    `tools/check_boxes.py` forces every attribute off the record. `form_two_column`
+    requires a tag only the `doc_form` documents set, so naming the layout alone
+    is refused loudly rather than quietly drawing something else; that half of
+    the behaviour is unchanged by root 3 coming back on.
+    """
+    recipe, _receipt, grid = rulebase.make(
+        seed=11, force={"document": "form_symmetric", "layout": "form_two_column"})
+    assert grid.layout_id == "form_two_column"
+    assert recipe.layout.id == "form_two_column"
+
+
+def test_a_switched_off_layout_still_has_a_sheet_to_be_dressed_in():
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "generators" / "html"))
+    import sheets
+
+    assert sheets.FAMILIES["form_two_column"] is sheets.family_of("form_two_column")
+
+
+def test_the_switch_is_read_from_the_layouts_own_file(tmp_path):
+    from rulebase import layout as L
+
+    (tmp_path / "on.yaml").write_text("id: on\nname: x\n", encoding="utf-8")
+    (tmp_path / "off.yaml").write_text("enabled: false\nid: off\nname: x\n",
+                                       encoding="utf-8")
+
+    assert L.every(tmp_path) == ["off", "on"]
+    assert L.available(tmp_path) == ["on"]
+    assert L.is_enabled("on", tmp_path) and not L.is_enabled("off", tmp_path)
+    # `off:` as the key would be YAML 1.1's boolean and vanish. Spelled
+    # `enabled:` for that reason -- and this is the test that says so.
+    assert "enabled" in (tmp_path / "off.yaml").read_text(encoding="utf-8")

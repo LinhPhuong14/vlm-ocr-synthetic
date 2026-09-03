@@ -71,7 +71,7 @@ groups:
         # nhãn không có nét chữ nào trên trang. `tests/test_sheets.py` bắt
         # đúng chuyện này.
         excludes: [has_vat_lines, has_barcode]
-        tags: [handwritten, ruled_paper]
+        tags: [handwritten, ruled_paper, fillable]
 
       - id: market_vat
         weight: 2
@@ -92,14 +92,14 @@ groups:
       - id: invoice_vat_form
         weight: 2
         requires: [invoice_form]
-        tags: [dotted_fields]
+        tags: [dotted_fields, fillable]
 
       # Bản in ra của hoá đơn điện tử: khối người bán trong khung, và tờ kết
       # bằng bảng chia tiền theo từng thuế suất thay vì một dòng thuế.
       - id: invoice_vat_summary
         weight: 2
         requires: [invoice_summary]
-        tags: [summary_table, boxed_letterhead]
+        tags: [summary_table, boxed_letterhead, fillable]
 
       # Tờ song ngữ. Không có `letterhead`: bên bán trên mẫu xuất khẩu là một
       # khối trường có nhãn như bên mua, không phải một dòng tiêu đề.
@@ -107,7 +107,7 @@ groups:
         weight: 2
         requires: [doc_export]
         excludes: [has_vat]        # hàng xuất khẩu chịu thuế suất 0%
-        tags: [bilingual, numbered_columns, stacked_parties]
+        tags: [bilingual, numbered_columns, stacked_parties, fillable]
 
   # ------------------------------------------------------------------------
   - id: utility_invoice
@@ -121,12 +121,12 @@ groups:
       - id: invoice_water
         weight: 2
         requires: [metered_water]
-        tags: [meter_rows]
+        tags: [meter_rows, fillable]
 
       - id: invoice_power
         weight: 2
         requires: [metered_power]
-        tags: [tier_rows]
+        tags: [tier_rows, fillable]
 
   # ------------------------------------------------------------------------
   - id: lodging_invoice
@@ -139,11 +139,11 @@ groups:
     options:
       - id: invoice_hotel_stay
         weight: 2
-        tags: [signature_names]
+        tags: [signature_names, fillable]
 
       - id: invoice_hotel_compact
         weight: 2
-        tags: [signature_names, narrow_sheet]
+        tags: [signature_names, narrow_sheet, fillable]
 
   # ------------------------------------------------------------------------
   - id: modern_invoice
@@ -155,6 +155,7 @@ groups:
     tags: [wide_paper, no_frame]
     options:
       - id: invoice_tax_en
+        tags: [fillable]
         weight: 2
         requires: [lang_en]
 
@@ -163,7 +164,7 @@ groups:
       - id: invoice_brand
         weight: 2
         requires: [doc_brand]
-        tags: [key_strip, footer_columns]
+        tags: [key_strip, footer_columns, fillable]
 
       # ----------------------------------------------------------------
       # MƯỜI BỐ CỤC ROOT "Invoice / Billing" — xem docs/root-document-
@@ -175,10 +176,12 @@ groups:
       # Trộn lẫn hai nhóm là đúng thứ `pipeline/invariants.py` bắt lỗi:
       # một trường tài liệu đã điền mà không bố cục nào vẽ nó.
       - id: invoice_header_table
+        tags: [fillable]
         weight: 2
         requires: [rich_fields]
 
       - id: invoice_logo_split
+        tags: [fillable]
         weight: 2
         requires: [rich_fields]
 
@@ -187,14 +190,17 @@ groups:
         requires: [bare_fields]
 
       - id: invoice_two_column
+        tags: [fillable]
         weight: 2
         requires: [rich_fields]
 
       - id: invoice_sidebar
+        tags: [fillable]
         weight: 2
         requires: [rich_fields]
 
       - id: invoice_keyvalue
+        tags: [fillable]
         weight: 2
         requires: [rich_fields]
 
@@ -211,6 +217,7 @@ groups:
         requires: [bare_fields]
 
       - id: invoice_remittance
+        tags: [fillable]
         weight: 2
         requires: [rich_fields]
 
@@ -228,12 +235,12 @@ groups:
       - id: medical_statement
         weight: 2
         requires: [doc_medical]
-        tags: [ruled_table, grouped_rows, multi_source]
+        tags: [ruled_table, grouped_rows, multi_source, fillable]
 
       - id: authorisation_letter
         weight: 2
         requires: [doc_authorisation]
-        tags: [no_frame, dotted_fields, field_form]
+        tags: [no_frame, dotted_fields, field_form, fillable]
 
       # Root 3 (Form / Application) — mười layout khớp mười đề xuất ở
       # `docs/root-document-taxonomy.md` § 3.3 (FORM-01..FORM-10). Mỗi
@@ -244,7 +251,7 @@ groups:
       - id: form_questionnaire
         weight: 2
         requires: [bare_kv]
-        tags: [field_form]
+        tags: [field_form, fillable]
 
       - id: form_timesheet_grid
         weight: 1
@@ -254,22 +261,22 @@ groups:
       - id: form_project_kv
         weight: 2
         requires: [bare_kv]
-        tags: [field_form]
+        tags: [field_form, fillable]
 
       - id: form_two_column
         weight: 1
         requires: [symmetric]
-        tags: [field_form, two_column]
+        tags: [field_form, two_column, fillable]
 
       - id: form_multi_section
         weight: 1
         requires: [sectioned]
-        tags: [ruled_table, field_form]
+        tags: [ruled_table, field_form, fillable]
 
       - id: form_checkbox_heavy
         weight: 1
         requires: [checklist]
-        tags: [checkbox_form]
+        tags: [checkbox_form, fillable]
 
       - id: form_activity_signature
         weight: 1
@@ -284,12 +291,12 @@ groups:
       - id: form_government_app
         weight: 1
         requires: [dense_registry]
-        tags: [field_form, govt_masthead]
+        tags: [field_form, govt_masthead, fillable]
 
       - id: form_dense_registration
         weight: 1
         requires: [dense_registry]
-        tags: [field_form]
+        tags: [field_form, fillable]
 
   # ------------------------------------------------------------------------
   - id: periodical_page
@@ -341,49 +348,49 @@ groups:
       - id: insurance_moto_certificate
         weight: 2
         requires: [insurance_moto_cert]
-        tags: [tiny_card, landscape]
+        tags: [tiny_card, landscape, fillable]
 
       - id: insurance_auto_certificate
         weight: 2
         requires: [insurance_auto_cert]
-        tags: [table_form, landscape]
+        tags: [table_form, landscape, fillable]
 
       - id: insurance_life_schedule
         weight: 2
         requires: [insurance_life_schedule]
-        tags: [priced_table, boxed_note]
+        tags: [priced_table, boxed_note, fillable]
 
       - id: insurance_application_form
         weight: 2
         requires: [insurance_application_form]
-        tags: [comb_box, checklist_table]
+        tags: [comb_box, checklist_table, fillable]
 
       - id: insurance_health_id_card
         weight: 2
         requires: [insurance_health_id_card]
-        tags: [id_card, landscape, two_faces]
+        tags: [id_card, landscape, two_faces, fillable]
 
       - id: insurance_health_certificate
         weight: 2
         requires: [insurance_health_cert]
-        tags: [sidebar, grouped_rows]
+        tags: [sidebar, grouped_rows, fillable]
 
       - id: insurance_cargo_policy
         weight: 2
         requires: [insurance_cargo_policy]
-        tags: [bilingual, bare_kv]
+        tags: [bilingual, bare_kv, fillable]
 
       - id: insurance_fire_certificate
         weight: 2
         requires: [insurance_fire_cert]
-        tags: [roman_sections, priced_table]
+        tags: [roman_sections, priced_table, fillable]
 
       - id: insurance_travel_certificate
         weight: 2
         requires: [insurance_travel_cert]
-        tags: [bilingual, landscape, priced_table]
+        tags: [bilingual, landscape, priced_table, fillable]
 
       - id: insurance_property_contract
         weight: 2
         requires: [insurance_property_contract]
-        tags: [two_party, priced_table]
+        tags: [two_party, priced_table, fillable]

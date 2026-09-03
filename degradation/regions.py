@@ -75,7 +75,11 @@ def normalise_boxes(boxes: Iterable[Any] | None) -> list[tuple[Rect, str]]:
     nới nó ra thành một vùng thì chỉ tổ bôi bẩn chỗ trống.
     """
     out: list[tuple[Rect, str]] = []
-    for box in boxes or []:
+    # `is None`, không phải `boxes or []`: mảng numpy (N, 4, 2) là một trong bốn
+    # dạng hàm này khai nhận, mà `or` phải hỏi mảng ấy đúng-hay-sai và numpy
+    # ném ValueError cho mảng nhiều phần tử. Nghĩa là dạng thứ tư trong danh
+    # sách ngay trên KHÔNG dùng được, ở đúng dòng đầu tiên chạm vào nó.
+    for box in (() if boxes is None else boxes):
         kind = ""
         if isinstance(box, dict):
             kind = str(box.get("kind") or "")
@@ -478,7 +482,13 @@ def by_box(
         raise ValueError("by_box needs `effect`: the name of the model to run")
     if effect == "by_box":
         raise ValueError("by_box cannot wrap itself")
-    if not regions:
+    # `len(...) == 0`, not `not regions`: một trong ba renderer truyền hộp vào
+    # dưới dạng mảng numpy (`template_receipt.py` gửi `quads`), mà `not` trên
+    # mảng nhiều phần tử thì ném `ValueError: truth value ... is ambiguous`.
+    # Lỗi ấy nổ ở ĐÚNG chỗ đang định báo "không có hộp nào", nên thông điệp
+    # người đọc nhận được là một traceback của numpy thay vì câu giải thích
+    # ngay bên dưới. `None` vẫn phải bắt riêng vì nó không có `len`.
+    if regions is None or len(regions) == 0:
         raise ValueError(
             f"by_box({effect!r}) has no boxes to work on. The renderer passes them "
             "through `apply_recipe(image, recipe, seed, boxes=...)`; for an image "

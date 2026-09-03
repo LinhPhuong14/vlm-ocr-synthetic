@@ -157,8 +157,8 @@ def test_a_clean_run_expects_every_chain_attribute_pinned(tmp_path):
 def test_an_explicit_force_reaches_the_expectation(tmp_path):
     shard = build_shard(tmp_path / "s", make_records(range(4)))
     shares, _problems = drift.expected_shares(
-        shard, plan_for(shard, force=["augmentation=stains"]), draws=40)
-    assert shares["augmentation"] == {"stains": pytest.approx(1.0)}
+        shard, plan_for(shard, force=["augmentation=heavy"]), draws=40)
+    assert shares["augmentation"] == {"heavy": pytest.approx(1.0)}
 
 
 def test_total_variation_reads_as_the_share_that_would_have_to_move():
@@ -409,11 +409,11 @@ def test_an_overridden_run_is_compared_against_its_own_weights(tmp_path):
     plan = plan_for(shard)
 
     shipped, _ = drift.expected_shares(shard, plan, draws=200)
-    silenced = apply_overrides(load_rules(), {"augmentation.crumpled.weight": 0})
+    silenced = apply_overrides(load_rules(), {"augmentation.ghost_text.weight": 0})
     overridden, _ = drift.expected_shares(shard, plan, rules=silenced, draws=200)
 
-    assert shipped["augmentation"].get("crumpled", 0) > 0
-    assert "crumpled" not in overridden["augmentation"], (
+    assert shipped["augmentation"].get("ghost_text", 0) > 0
+    assert "ghost_text" not in overridden["augmentation"], (
         "the expectation ignored the run's own overrides")
 
 
@@ -496,3 +496,44 @@ def test_every_float_in_a_vector_has_a_pinned_precision(tmp_path):
     assert floats, "no float in the vector; this test would pass vacuously"
     for number in floats:
         assert number == round(number, 6), f"{number!r} carries unpinned precision"
+
+
+# ---------------------------------------------- an agent pins every attribute
+
+
+def test_the_expectation_carries_a_runs_own_pins():
+    """`forced_for` merged the job's `--force` and the run's layout and stopped.
+
+    An agent-planned run pins all eight attributes on the run itself, so the
+    expectation was the mix the *weights* predict while the shard held the mix
+    the *plan* asked for -- and every such shard warned by 0.29 for doing what
+    it was told. The images were fine; only the judgement of them was wrong.
+    """
+    from pipeline.drift import forced_for
+
+    plan = {"force": [], "clean": False}
+    shard = {"runs": [{"layout": "market_vat", "count": 3,
+                       "force": {"document": "supermarket_vat",
+                                 "ornament": "shelf_barcode"}}]}
+    pinned = forced_for(shard, plan)[0]
+    assert pinned == {"document": "supermarket_vat", "ornament": "shelf_barcode",
+                      "layout": "market_vat", "_count": 3}
+
+
+def test_a_runs_pin_beats_the_jobs_pin():
+    """The narrower statement wins, as `worklist.Job.pins` already documents."""
+    from pipeline.drift import forced_for
+
+    plan = {"force": ["augmentation=pristine"], "clean": False}
+    shard = {"runs": [{"layout": "market_vat", "count": 1,
+                       "force": {"augmentation": "photocopy"}}]}
+    assert forced_for(shard, plan)[0]["augmentation"] == "photocopy"
+
+
+def test_a_run_with_no_pins_expects_what_it_always_expected():
+    from pipeline.drift import forced_for
+
+    plan = {"force": ["augmentation=pristine"], "clean": False}
+    shard = {"runs": [{"layout": "market_vat", "count": 2}]}
+    assert forced_for(shard, plan)[0] == {
+        "augmentation": "pristine", "layout": "market_vat", "_count": 2}

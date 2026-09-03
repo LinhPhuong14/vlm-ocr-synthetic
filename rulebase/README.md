@@ -95,10 +95,11 @@ later one can rule itself out when it does not fit.
 | 4 | `visual` | font, size, ink weight, **white margin**, sheet, curl | [rules/visual.yaml](rules/visual.yaml) |
 | 5 | `color` | ink, paper tint, accent colour for the shop name | [rules/color.yaml](rules/color.yaml) |
 | 6 | `ornament` | seals and flourishes: the ink that is not text | [rules/ornament.yaml](rules/ornament.yaml) |
-| 7 | `augmentation` | ageing: the degradation chain that runs after rendering | [rules/augmentation.yaml](rules/augmentation.yaml) |
-| 8 | `toner` | the cartridge of the machine that copied this: toner dust in blotches | [rules/toner.yaml](rules/toner.yaml) |
-| 9 | `drum` | the imaging drum: streaks **along** the feed direction | [rules/drum.yaml](rules/drum.yaml) |
-| 10 | `rollers` | the transport rollers: bands **across** it | [rules/rollers.yaml](rules/rollers.yaml) |
+| 7 | `handwriting` | is a blank filled with a **pen** or with type. Before `augmentation`, so the ink ages with the print | [rules/handwriting.yaml](rules/handwriting.yaml) |
+| 8 | `augmentation` | ageing: the degradation chain that runs after rendering | [rules/augmentation.yaml](rules/augmentation.yaml) |
+| 9 | `toner` | the cartridge of the machine that copied this: toner dust in blotches | [rules/toner.yaml](rules/toner.yaml) |
+| 10 | `drum` | the imaging drum: streaks **along** the feed direction | [rules/drum.yaml](rules/drum.yaml) |
+| 11 | `rollers` | the transport rollers: bands **across** it. **Switched off** -- only `no_rollers` is drawable | [rules/rollers.yaml](rules/rollers.yaml) |
 
 **The list is not in the Python.** Attributes are discovered from `rules/*.yaml`
 and ordered by [rules/_order.yaml](rules/_order.yaml), so a further criterion is
