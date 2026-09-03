@@ -36,7 +36,6 @@ sys.path.insert(0, str(REPO_ROOT))
 # The browser, the fonts and the two box-reading snippets live in `page.py`:
 # two producers sit on this backend now -- receipts here, tables in
 # `tables.py` -- and both need all four.
-import ornament  # noqa: E402
 import sheets  # noqa: E402
 from page import (  # noqa: E402
     CELL_RECTS_JS,
@@ -402,6 +401,8 @@ class HtmlReceiptRenderer:
             # the boxes describe the pixels that were captured rather than a
             # second, re-measured layout.
             with profiling.stage("geometry"):
+                # `{cells, words}` -- see `page.py::CELL_RECTS_JS`'s own
+                # docstring for why two grains come out of one walk.
                 rects = page.evaluate(CELL_RECTS_JS)
                 regions = page.evaluate(CELL_REGIONS_JS) if self.template else []
             with profiling.stage("render"):
@@ -430,7 +431,8 @@ class HtmlReceiptRenderer:
                 factor = 1.0
 
         with profiling.stage("geometry"):
-            boxes = quads_from_rects(rects, self.scale, factor)
+            boxes = quads_from_rects(rects["cells"], self.scale, factor)
+            words = quads_from_rects(rects["words"], self.scale, factor)
             cells = regions_from_rects(regions, self.scale, factor)
 
         # Ageing runs after the boxes are computed and must not move a pixel --
@@ -438,15 +440,12 @@ class HtmlReceiptRenderer:
         # rather than assumed: a resize slipped into the chain would shift every
         # box without changing anything visible about the image.
         before = image.shape[:2]
-        # The seal, the watermark, the QR: struck on the paper BEFORE it is aged,
-        # because that is the order the world does it in and the order
-        # `rules/_order.yaml` draws them in. Needs the boxes, which is why it
-        # waits until here -- a rule says "on the seller's signature block" and
-        # only the measured page knows where that is. See ornament.py: this
-        # attribute has been drawn and recorded since the beginning and until
-        # now no renderer printed it.
-        with profiling.stage("ornament"):
-            image, mark_report = ornament.stamp(image, recipe, boxes, seed=seed)
+        # The seal, the watermark, the QR: struck INTO THE MARKUP by
+        # `sheets/base.py::render_ornament_marks()`, before this page was
+        # ever screenshotted -- unlike the ageing chain below, there is no
+        # separate post-render stamping step here. `boxes` (measured just
+        # above) already includes each mark's own `seal.<shape>` box, the
+        # same way it includes every other labelled run on the page.
         with profiling.stage("degradation"):
             # The boxes go in as well as the image: `by_box` puts a model on a
             # few text boxes rather than on the whole sheet, and the boxes are
@@ -460,8 +459,8 @@ class HtmlReceiptRenderer:
                 f"a degradation resized the page ({before} -> {aged.shape[:2]}); "
                 "the boxes no longer describe it"
             )
-        return (recipe, receipt, grid, aged, boxes, cells, hand_report,
-                sign_report, mark_report)
+        return (recipe, receipt, grid, aged, boxes, words, cells, hand_report,
+                sign_report)
 
 
 def signers(seed: int, count: int = 6) -> list[str]:
@@ -499,8 +498,8 @@ def structure_from_cells(cells: list[dict]) -> list[str]:
     return structure_tokens(ordered)
 
 
-def _emit_page(args, name, recipe, receipt, image, boxes, cells,
-               hand_report, sign_report, mark_report, seed, notes) -> None:
+def _emit_page(args, name, recipe, receipt, image, boxes, words, cells,
+               hand_report, sign_report, seed, notes) -> None:
     """Everything an image costs after it is drawn: the JPEG, the record, the
     provenance line.
 
@@ -522,13 +521,6 @@ def _emit_page(args, name, recipe, receipt, image, boxes, cells,
             # checkpoint, and it belongs in the record beside the blocks rather
             # than in a log nobody keeps -- see docs/handwriting-html.md.
             extra["handwriting"] = hand_report
-        if mark_report and mark_report.get("marks"):
-            # Which ornament was struck, where, and whether the place came from
-            # the page's own boxes or from the fallback. A seal that landed by
-            # fallback on a layout with no signature block is a fact about that
-            # layout, and this is where somebody finds it without opening 84
-            # images.
-            extra["ornament"] = mark_report
         if sign_report is not None:
             # The style of every mark on the page, and every block that went
             # unsigned. A signature carries no box and no text, so this record
@@ -543,7 +535,7 @@ def _emit_page(args, name, recipe, receipt, image, boxes, cells,
             extra["structure"] = structure_from_cells(cells)
         item = record.build(
             filename=name, width=image.shape[1], height=image.shape[0],
-            parser="html", boxes=boxes, extracted=receipt.ground_truth(),
+            parser="html", boxes=boxes, words=words, extracted=receipt.ground_truth(),
             seed=seed, layout=recipe.layout.id)
     with profiling.stage("export"):
         # The record beside its image, and the provenance streamed into the one
@@ -674,8 +666,8 @@ def main() -> int:
                 # raises still leaves a row saying which page it was.
                 with clock.time(name, layout=job.layout or "") as timed:
                     drawing = time.monotonic()
-                    (recipe, receipt, _grid, image, boxes, cells, hand_report,
-                     sign_report, mark_report) = renderer.render(seed, forces[job])
+                    (recipe, receipt, _grid, image, boxes, words, cells,
+                     hand_report, sign_report) = renderer.render(seed, forces[job])
                     # Two stages, because they answer different questions: `draw`
                     # is the renderer and `write` is the disk, and a run that has
                     # got slow is one or the other.
@@ -684,8 +676,8 @@ def main() -> int:
                     timed.layout = recipe.layout.id
                     writing = time.monotonic()
                     _emit_page(
-                        args, name, recipe, receipt, image, boxes, cells,
-                        hand_report, sign_report, mark_report, seed, notes)
+                        args, name, recipe, receipt, image, boxes, words, cells,
+                        hand_report, sign_report, seed, notes)
                     timed.stages["write"] = time.monotonic() - writing
                 inked = len(hand_report["inked"]) if hand_report else 0
                 signed = len(sign_report["marks"]) if sign_report else 0
