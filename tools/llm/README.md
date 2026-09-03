@@ -13,6 +13,41 @@ python -m tools.llm.augment_content --file items_market --want 20 --write
 python -m tools.llm.corpus_rules --audit
 ```
 
+## Chạy trên server hay chạy cục bộ — cách nhau một biến môi trường
+
+```bash
+export VLM_LLM_HOST=http://gpu-box.lan:11434    # mặc định: loopback
+export VLM_LLM_MODEL=qwen2.5:32b-instruct
+export VLM_LLM_TOKEN=...                        # nếu server có xác thực
+```
+
+Ollama từ xa nói đúng `/api/chat` như Ollama cục bộ, nên "đưa model lên máy có
+GPU" là một hostname chứ không phải một bản viết lại. Loopback KHÔNG đi qua
+proxy còn host xa thì có — `client.py::_opener_for` chọn theo host, vì
+container này định tuyến mọi thứ ra ngoài qua một agent proxy.
+
+Cái **không** đổi theo hostname là ranh giới ngay dưới đây. Xem
+[`docs/llm-in-pipeline.md`](../../docs/llm-in-pipeline.md) cho thiết kế lấy
+được biến thể theo từng ảnh mà vẫn dựng lại được lượt chạy: model quyết định
+**trước**, quyết định được ghi thành file, lúc vẽ chỉ đọc file.
+
+## Chứng từ nào được phép biến đổi
+
+[`rulebase/augmentable.yaml`](../../rulebase/augmentable.yaml) chia ba mức, và
+`tools/llm/policy.py` đọc nó:
+
+```bash
+python -m tools.llm.policy --check
+```
+
+`fixed` (6 loại) — hoá đơn GTGT theo mẫu, tiền điện, tiền nước, bảng kê viện
+phí, hoá đơn xuất khẩu: **không đổi bố cục**, vì hình dạng của chúng do quy
+định ban hành chứ không do người in quyết. `styled` (13) — cửa hàng tự thiết
+kế. `free` (4) — báo và tạp chí, càng nhiều biến thể càng tốt.
+
+Loại chưa khai được coi là `fixed`. Mặc định phải là mức chặt nhất: quên khai
+thì mất một biến thể, chứ không phải bịa ra một giấy tờ pháp lý.
+
 ## Ranh giới, và vì sao nó là toàn bộ kiến trúc
 
 **Không file nào dưới `tools/llm/` được `generators/` hay `pipeline/` import,

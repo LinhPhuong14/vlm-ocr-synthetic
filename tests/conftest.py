@@ -91,3 +91,27 @@ def real_rules():
     from rulebase.spec import load_rules
 
     return load_rules()
+
+
+def force_for(layout_id: str) -> dict[str, str]:
+    """The `force` that draws this layout, switched off or not.
+
+    A layout with `enabled: false` is never drawn by chance and its DOCUMENT is
+    switched off with it -- eight `doc_form` documents went with the ten root-3
+    layouts, because a document whose every layout is off cannot be drawn at
+    all. So pinning such a layout alone leaves the sampler with no document
+    that produces the tag it requires, and it clashes on every seed.
+
+    Pinning both is what a redraw does anyway: `tools/check_boxes.py` forces
+    every attribute off the committed record, which is why a page drawn before
+    the switch is still reproducible. This helper is that, for the tests that
+    walk every layout file rather than every drawable one.
+    """
+    from rulebase.spec import load_rules
+
+    rules = load_rules()
+    option = next(o for o in rules["layout"] if o.id == layout_id)
+    if option.enabled:
+        return {"layout": layout_id}
+    document = next(d for d in rules["document"] if option.requires <= d.tags)
+    return {"document": document.id, "layout": layout_id}

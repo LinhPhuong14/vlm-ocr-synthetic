@@ -120,6 +120,69 @@ LABELS: dict[str, str] = {
     "sign.": "Text",
     "footer": "Page-footer",
     "cell": "Table",
+    # The party block of an invoice. `parties.title` above is the section
+    # heading ("THÔNG TIN CÁC BÊN"); everything else under it -- the per-side
+    # titles and the field labels -- is running text. Longest prefix wins, so
+    # this does not take the heading back.
+    "parties.": "Text",
+
+    # ----------------------------------------------------------------------
+    # The periodical family: newspapers, magazines, classifieds.
+    #
+    # These 65 kinds went UNMAPPED for as long as no committed dataset held a
+    # periodical page -- the layouts shipped, the fallback quietly labelled
+    # every field `Text`, and `test_every_kind_in_every_committed_dataset_is_mapped`
+    # had nothing to walk. `data/layouts84` is the first set that draws all 42
+    # layouts, which is what turned the hole into a failing test.
+    "masthead": "Title",
+    "issue_": "Page-header",           # issue_label, issue_no, issue_date
+    "slogan": "Page-header",
+    "price": "Page-header",            # the cover price, beside the masthead
+    "website": "Page-footer",
+    "hotline": "Page-footer",
+    "page_no": "Page-footer",
+    # The lead story, and the ones below the fold.
+    "headline": "Title",
+    "hero.headline": "Title",
+    "hero.kicker": "Section-header",
+    "hero.": "Text",                   # byline, teaser, page_no
+    "kicker": "Section-header",
+    "deck": "Section-header",
+    "dateline": "Text",
+    "byline": "Text",                  # byline, byline_by, byline_photo
+    "body": "Text",
+    "jump": "Text",                    # "xem tiếp trang 4"
+    "pull_quote": "Text",
+    "caption": "Caption",
+    "bottom.headline": "Section-header",
+    "bottom.caption": "Caption",
+    "bottom.": "Text",
+    "teaser.kicker": "Section-header",
+    "teaser.headline": "Section-header",
+    "teaser.": "Text",
+    "section": "Section-header",       # section, section.name
+    "category": "Section-header",
+    # A magazine's table of contents is a LIST, not running text: each entry is
+    # a title, a teaser and the page it is on. `List-item` is the one label in
+    # the converter's vocabulary that says so.
+    "entry.": "List-item",
+    # The interview.
+    "qa.question": "Section-header",
+    "qa.answer": "Text",
+    "subject_": "Text",                # subject_name, subject_role
+    "bio_title": "Section-header",
+    "bio.": "Text",
+    "sidebar.title": "Section-header",
+    "sidebar.": "Text",
+    # Classifieds: small ads, official notices, obituaries.
+    "ad.heading": "Section-header",
+    "ad.": "Text",
+    "notice.title": "Section-header",
+    "notice.": "Text",
+    "obit.title": "Section-header",
+    "obit.": "Text",
+    "condolence": "Text",
+    "rate": "Text",                    # the line-rate card at the foot
 }
 
 # What a kind nobody has mapped becomes. Deliberately the converter's most
@@ -134,9 +197,39 @@ STANDALONE = {"Title", "Section-header", "Picture"}
 # Labels to a markdown prefix. Everything not listed is written as it stands.
 MARKDOWN_PREFIX = {"Title": "# ", "Section-header": "## "}
 
-# ...and to the HTML element that holds it.
-HTML_TAG = {"Title": "h1", "Section-header": "h2", "Page-header": "p",
-            "Page-footer": "p", "Table": "p", "Text": "p", "Picture": "p"}
+# The HTML element vocabulary the converter's own HTML consumer accepts.
+# `HTML_TAG` below may only pick from here -- checked by
+# `test_every_html_tag_is_one_the_converter_allows` rather than left as a
+# comment, so a future label cannot quietly pick a tag nothing downstream
+# renders.
+ALLOWED_TAGS = frozenset({
+    "math", "br", "i", "b", "u", "del", "sup", "sub", "table", "tr", "td",
+    "p", "th", "div", "pre", "h1", "h2", "h3", "h4", "h5", "ul", "ol", "li",
+    "input", "a", "span", "img", "hr", "tbody", "small", "caption", "strong",
+    "thead", "big", "code", "chem",
+})
+
+# ...and to the HTML element that holds it. The tag names the box's ROLE on
+# the page -- what a heading, a footnote, a formula *are* -- never what the
+# box happens to say; two "Text" blocks with unrelated content still both get
+# `<p>`. `Page-header` and `Page-footer` are page furniture rather than prose,
+# not `<p>` with running text, and `ALLOWED_TAGS` has no `<header>`/`<footer>`
+# to give them instead, so they get the generic block container, `<div>`.
+# Every label in `PAGE_LABELS` has an entry here now, so nothing falls through
+# to the `.get(..., "p")` fallback below by accident.
+HTML_TAG = {
+    "Title": "h1",
+    "Section-header": "h2",
+    "Caption": "caption",
+    "Footnote": "small",
+    "Formula": "math",
+    "List-item": "li",
+    "Page-header": "div",
+    "Page-footer": "div",
+    "Picture": "div",
+    "Table": "table",
+    "Text": "p",
+}
 
 # ------------------------------------------------------------------- settings
 

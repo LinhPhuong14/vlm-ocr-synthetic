@@ -16,12 +16,38 @@ vì có chữ số**. Có hai nguồn mực vì thế, và chúng **không thay 
 
 *Dựng lại bằng `generators/html/.venv/bin/python docs/figures/make_handwriting_figure.py`, từ hai ảnh trong `samples/handwriting/`.*
 
-## Chạy thử
+## Nó là THUỘC TÍNH 7, không còn là một cờ dòng lệnh
+
+Kể từ khi `rules/handwriting.yaml` tồn tại, **luật bốc mực bút cho từng trang**:
+`typed` (chữ in) hoặc `hand_font`, và một lượt chạy bình thường ra một tập
+**trộn** — khoảng 17 % số trang có nét bút, đo trên 3 000 lượt bốc. Trước đó
+`--handwriting` là một cái công tắc cho cả lượt chạy: hoặc mọi trang đều điền
+tay, hoặc không trang nào. Không tập thật nào trông như thế.
+
+Ba điều đi kèm với việc nó là một thuộc tính:
+
+* **Đứng trước `augmentation`.** Người ta điền vào tờ giấy rồi tờ giấy mới bị
+  photo, nên nét bút mờ đi và nhoè ra **y như chữ in**. Đặt sau thì nét bút sẽ
+  sắc nét nằm trên một trang đã cũ — cảnh "photo tờ mẫu trắng rồi mới điền",
+  có thật nhưng là một cảnh khác.
+* **`hand_*` `requires: [fillable]`**, thẻ của 25 bố cục thật sự có ô cho bút
+  chạm tới. Đo chứ không đoán, và `tests/test_sheets.py` đo lại rồi so với thẻ.
+* **`hand_model` và `hand_both` đang `enabled: false`** — có mặt, không bao giờ
+  bốc trúng, vẫn gọi được đích danh. WriteViT là 294 MB không nằm trong kho, và
+  bốc được nó nghĩa là ai clone kho về cũng phải tải trước khi chạy được.
 
 ```bash
+# Luật tự bốc, tập ra trộn:
+generators/html/.venv/bin/python generators/html/render.py --template auto -c 20 -o out/
+
+# Ghim cả lượt chạy vào một nguồn mực (đây là cái `--handwriting` làm bây giờ:
+# nó thêm `--force handwriting=hand_font`, nên BẢN GHI khớp với PIXEL):
+generators/html/.venv/bin/python generators/html/render.py \
+    --template auto --handwriting font --layout invoice_hotel_stay -c 3 -o out/
+
 python tools/writevit/setup.py                    # một lần, ~294 MB
 generators/html/.venv/bin/python generators/html/render.py \
-    --template auto --handwriting --layout invoice_hotel_stay -c 3 -o out/
+    --template auto --handwriting model --layout invoice_hotel_stay -c 3 -o out/
 ```
 
 `--handwriting` chỉ đi cùng `--template`: lưới ký tự vẽ một glyph một ô, không

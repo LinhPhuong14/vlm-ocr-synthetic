@@ -1,0 +1,1464 @@
+{
+  "min": 0.7,
+  "seed": 2026,
+  "dressings": 128,
+  "layouts": [
+    "invoice_vat_summary",
+    "market_compact",
+    "invoice_hotel_compact",
+    "newspaper_front_broadsheet",
+    "insurance_life_schedule"
+  ],
+  "moved": 0.02,
+  "resized": 0.12,
+  "passed": [
+    "f_hong_khung_ngoai_luc_khong_gian_chu_nen_rang_cua_dan_lai_toan_bo",
+    "f_hong_nhat_xam_xam_hien_dai_nen_vet_cheo_le_rong",
+    "f_trang_khung_ngoai_lam_nhat_gian_chu_thoang_bang_dinh_le_rong",
+    "f_trang_khung_ngoai_gach_chan_nhat_hien_dai_nen_luoi_chan_dan_lai_toan_bo",
+    "f_trang_muc_den_xam_dam_xam_hien_dai_chuan_vach_gay_le_rong",
+    "f_hong_chuan_trong_nhat_hien_dai_thoang_khong_dan_lai_toan_bo",
+    "f_xanh_lam_khung_ngoai_lam_khong_so_may_chuan_vet_cheo_bang_len_truoc",
+    "f_trang_khung_ngoai_gach_chan_khong_so_may_thoang_luoi_chan_le_rong",
+    "f_trang_muc_den_gach_chan_nhat_so_may_chuan_rang_cua_dan_lai_toan_bo",
+    "f_xanh_lam_chuan_xam_nhat_gian_chu_thoang_bang_dinh_truong_hai_cot",
+    "f_nga_khung_ngoai_lam_nhat_gian_chu_thoang_guilloche_truong_hai_cot",
+    "f_xanh_luc_khung_ngoai_trong_nhat_hien_dai_chuan_vach_gay_bang_len_truoc",
+    "f_trang_khung_ngoai_xam_xam_hien_dai_chuan_goc_vuong_bang_len_truoc",
+    "f_nga_chuan_gach_chan_nhat_hien_dai_nen_guilloche_bang_len_truoc",
+    "f_xam_chuan_trong_nhat_gian_chu_nen_guilloche_dao_nguoc_chan_trang",
+    "f_hong_nhat_xam_nhat_hien_dai_thoang_rang_cua_bang_len_truoc",
+    "f_xanh_luc_muc_den_xam_dam_khong_gian_chu_nen_luoi_chan_le_hep_tieu_de_lon",
+    "f_xanh_luc_nhat_luc_nhat_hien_dai_nen_vet_cheo_dao_nguoc_chan_trang",
+    "f_trang_khung_ngoai_trong_khong_hien_dai_nen_vach_gay_dao_nguoc_chan_trang",
+    "f_nga_dam_xam_dam_khong_so_may_nen_vach_gay_le_hep_tieu_de_lon",
+    "f_trang_nhat_gach_chan_nhat_so_may_nen_goc_vuong_le_hep_tieu_de_lon",
+    "f_trang_muc_den_trong_xam_so_may_nen_bang_dinh_le_hep_tieu_de_lon",
+    "f_trang_chuan_trong_xam_gian_chu_chuan_luoi_chan_le_hep_tieu_de_lon",
+    "f_xam_manh_trong_nhat_so_may_chuan_rang_cua_le_hep_tieu_de_lon",
+    "f_xanh_lam_nhat_luc_khong_hien_dai_chuan_goc_vuong_dao_nguoc_chan_trang",
+    "f_xanh_luc_chuan_xam_nhat_hien_dai_thoang_goc_vuong_dao_nguoc_chan_trang",
+    "f_xam_khung_ngoai_luc_khong_so_may_chuan_bang_dinh_khong_khung_bang_hep",
+    "f_xam_khung_ngoai_gach_chan_khong_gian_chu_thoang_goc_vuong_tong_va_ky_doi_ben",
+    "f_xanh_lam_dam_xam_dam_nhat_hien_dai_chuan_luoi_chan_dau_trang_xep_chong",
+    "f_xam_chuan_gach_chan_khong_gian_chu_chuan_luoi_chan_chu_ky_cuoi",
+    "f_nga_khung_ngoai_trong_nhat_so_may_chuan_vach_gay_tong_va_ky_doi_ben",
+    "f_xanh_luc_chuan_xam_dam_khong_so_may_chuan_khong_tong_va_ky_doi_ben",
+    "f_nga_khung_ngoai_luc_nhat_so_may_thoang_vet_cheo_tong_va_ky_doi_ben",
+    "f_xanh_lam_nhat_lam_xam_gian_chu_chuan_bang_dinh_tong_va_ky_doi_ben",
+    "f_xanh_luc_khung_ngoai_xam_dam_nhat_hien_dai_chuan_vet_cheo_tong_va_ky_doi_ben"
+  ],
+  "rows": [
+    {
+      "id": "f_hong_khung_ngoai_luc_khong_gian_chu_nen_rang_cua_dan_lai_toan_bo",
+      "axes": {
+        "stock": "hong",
+        "rule": "khung_ngoai",
+        "band": "luc",
+        "zebra": "khong",
+        "type": "gian_chu",
+        "density": "nen",
+        "mark": "rang_cua",
+        "structure": "dan_lai_toan_bo"
+      },
+      "mean": 0.9353,
+      "min": 0.8491,
+      "max": 0.9925,
+      "layouts": 3
+    },
+    {
+      "id": "f_hong_nhat_xam_xam_hien_dai_nen_vet_cheo_le_rong",
+      "axes": {
+        "stock": "hong",
+        "rule": "nhat",
+        "band": "xam",
+        "zebra": "xam",
+        "type": "hien_dai",
+        "density": "nen",
+        "mark": "vet_cheo",
+        "structure": "le_rong"
+      },
+      "mean": 0.9248,
+      "min": 0.8301,
+      "max": 0.9925,
+      "layouts": 3
+    },
+    {
+      "id": "f_trang_khung_ngoai_lam_nhat_gian_chu_thoang_bang_dinh_le_rong",
+      "axes": {
+        "stock": "trang",
+        "rule": "khung_ngoai",
+        "band": "lam",
+        "zebra": "nhat",
+        "type": "gian_chu",
+        "density": "thoang",
+        "mark": "bang_dinh",
+        "structure": "le_rong"
+      },
+      "mean": 0.9207,
+      "min": 0.8562,
+      "max": 1.0,
+      "layouts": 3
+    },
+    {
+      "id": "f_trang_khung_ngoai_gach_chan_nhat_hien_dai_nen_luoi_chan_dan_lai_toan_bo",
+      "axes": {
+        "stock": "trang",
+        "rule": "khung_ngoai",
+        "band": "gach_chan",
+        "zebra": "nhat",
+        "type": "hien_dai",
+        "density": "nen",
+        "mark": "luoi_chan",
+        "structure": "dan_lai_toan_bo"
+      },
+      "mean": 0.9143,
+      "min": 0.7947,
+      "max": 0.9848,
+      "layouts": 3
+    },
+    {
+      "id": "f_trang_muc_den_xam_dam_xam_hien_dai_chuan_vach_gay_le_rong",
+      "axes": {
+        "stock": "trang",
+        "rule": "muc_den",
+        "band": "xam_dam",
+        "zebra": "xam",
+        "type": "hien_dai",
+        "density": "chuan",
+        "mark": "vach_gay",
+        "structure": "le_rong"
+      },
+      "mean": 0.9044,
+      "min": 0.817,
+      "max": 0.9926,
+      "layouts": 3
+    },
+    {
+      "id": "f_hong_chuan_trong_nhat_hien_dai_thoang_khong_dan_lai_toan_bo",
+      "axes": {
+        "stock": "hong",
+        "rule": "chuan",
+        "band": "trong",
+        "zebra": "nhat",
+        "type": "hien_dai",
+        "density": "thoang",
+        "mark": "khong",
+        "structure": "dan_lai_toan_bo"
+      },
+      "mean": 0.9032,
+      "min": 0.8146,
+      "max": 0.9925,
+      "layouts": 3
+    },
+    {
+      "id": "f_xanh_lam_khung_ngoai_lam_khong_so_may_chuan_vet_cheo_bang_len_truoc",
+      "axes": {
+        "stock": "xanh_lam",
+        "rule": "khung_ngoai",
+        "band": "lam",
+        "zebra": "khong",
+        "type": "so_may",
+        "density": "chuan",
+        "mark": "vet_cheo",
+        "structure": "bang_len_truoc"
+      },
+      "mean": 0.9027,
+      "min": 0.8108,
+      "max": 1.0,
+      "layouts": 3
+    },
+    {
+      "id": "f_trang_khung_ngoai_gach_chan_khong_so_may_thoang_luoi_chan_le_rong",
+      "axes": {
+        "stock": "trang",
+        "rule": "khung_ngoai",
+        "band": "gach_chan",
+        "zebra": "khong",
+        "type": "so_may",
+        "density": "thoang",
+        "mark": "luoi_chan",
+        "structure": "le_rong"
+      },
+      "mean": 0.9025,
+      "min": 0.8039,
+      "max": 1.0,
+      "layouts": 3
+    },
+    {
+      "id": "f_trang_muc_den_gach_chan_nhat_so_may_chuan_rang_cua_dan_lai_toan_bo",
+      "axes": {
+        "stock": "trang",
+        "rule": "muc_den",
+        "band": "gach_chan",
+        "zebra": "nhat",
+        "type": "so_may",
+        "density": "chuan",
+        "mark": "rang_cua",
+        "structure": "dan_lai_toan_bo"
+      },
+      "mean": 0.9024,
+      "min": 0.8079,
+      "max": 0.9848,
+      "layouts": 3
+    },
+    {
+      "id": "f_xanh_lam_chuan_xam_nhat_gian_chu_thoang_bang_dinh_truong_hai_cot",
+      "axes": {
+        "stock": "xanh_lam",
+        "rule": "chuan",
+        "band": "xam",
+        "zebra": "nhat",
+        "type": "gian_chu",
+        "density": "thoang",
+        "mark": "bang_dinh",
+        "structure": "truong_hai_cot"
+      },
+      "mean": 0.901,
+      "min": 0.8354,
+      "max": 1.0,
+      "layouts": 3
+    },
+    {
+      "id": "f_nga_khung_ngoai_lam_nhat_gian_chu_thoang_guilloche_truong_hai_cot",
+      "axes": {
+        "stock": "nga",
+        "rule": "khung_ngoai",
+        "band": "lam",
+        "zebra": "nhat",
+        "type": "gian_chu",
+        "density": "thoang",
+        "mark": "guilloche",
+        "structure": "truong_hai_cot"
+      },
+      "mean": 0.901,
+      "min": 0.8354,
+      "max": 1.0,
+      "layouts": 3
+    },
+    {
+      "id": "f_xanh_luc_khung_ngoai_trong_nhat_hien_dai_chuan_vach_gay_bang_len_truoc",
+      "axes": {
+        "stock": "xanh_luc",
+        "rule": "khung_ngoai",
+        "band": "trong",
+        "zebra": "nhat",
+        "type": "hien_dai",
+        "density": "chuan",
+        "mark": "vach_gay",
+        "structure": "bang_len_truoc"
+      },
+      "mean": 0.8985,
+      "min": 0.8108,
+      "max": 1.0,
+      "layouts": 3
+    },
+    {
+      "id": "f_trang_khung_ngoai_xam_xam_hien_dai_chuan_goc_vuong_bang_len_truoc",
+      "axes": {
+        "stock": "trang",
+        "rule": "khung_ngoai",
+        "band": "xam",
+        "zebra": "xam",
+        "type": "hien_dai",
+        "density": "chuan",
+        "mark": "goc_vuong",
+        "structure": "bang_len_truoc"
+      },
+      "mean": 0.8985,
+      "min": 0.8108,
+      "max": 1.0,
+      "layouts": 3
+    },
+    {
+      "id": "f_nga_chuan_gach_chan_nhat_hien_dai_nen_guilloche_bang_len_truoc",
+      "axes": {
+        "stock": "nga",
+        "rule": "chuan",
+        "band": "gach_chan",
+        "zebra": "nhat",
+        "type": "hien_dai",
+        "density": "nen",
+        "mark": "guilloche",
+        "structure": "bang_len_truoc"
+      },
+      "mean": 0.8955,
+      "min": 0.7838,
+      "max": 0.9924,
+      "layouts": 3
+    },
+    {
+      "id": "f_xam_chuan_trong_nhat_gian_chu_nen_guilloche_dao_nguoc_chan_trang",
+      "axes": {
+        "stock": "xam",
+        "rule": "chuan",
+        "band": "trong",
+        "zebra": "nhat",
+        "type": "gian_chu",
+        "density": "nen",
+        "mark": "guilloche",
+        "structure": "dao_nguoc_chan_trang"
+      },
+      "mean": 0.8826,
+      "min": 0.82,
+      "max": 0.9924,
+      "layouts": 3
+    },
+    {
+      "id": "f_hong_nhat_xam_nhat_hien_dai_thoang_rang_cua_bang_len_truoc",
+      "axes": {
+        "stock": "hong",
+        "rule": "nhat",
+        "band": "xam",
+        "zebra": "nhat",
+        "type": "hien_dai",
+        "density": "thoang",
+        "mark": "rang_cua",
+        "structure": "bang_len_truoc"
+      },
+      "mean": 0.8788,
+      "min": 0.8108,
+      "max": 0.9924,
+      "layouts": 3
+    },
+    {
+      "id": "f_xanh_luc_muc_den_xam_dam_khong_gian_chu_nen_luoi_chan_le_hep_tieu_de_lon",
+      "axes": {
+        "stock": "xanh_luc",
+        "rule": "muc_den",
+        "band": "xam_dam",
+        "zebra": "khong",
+        "type": "gian_chu",
+        "density": "nen",
+        "mark": "luoi_chan",
+        "structure": "le_hep_tieu_de_lon"
+      },
+      "mean": 0.8751,
+      "min": 0.82,
+      "max": 0.9848,
+      "layouts": 3
+    },
+    {
+      "id": "f_xanh_luc_nhat_luc_nhat_hien_dai_nen_vet_cheo_dao_nguoc_chan_trang",
+      "axes": {
+        "stock": "xanh_luc",
+        "rule": "nhat",
+        "band": "luc",
+        "zebra": "nhat",
+        "type": "hien_dai",
+        "density": "nen",
+        "mark": "vet_cheo",
+        "structure": "dao_nguoc_chan_trang"
+      },
+      "mean": 0.8695,
+      "min": 0.7905,
+      "max": 0.9848,
+      "layouts": 3
+    },
+    {
+      "id": "f_trang_khung_ngoai_trong_khong_hien_dai_nen_vach_gay_dao_nguoc_chan_trang",
+      "axes": {
+        "stock": "trang",
+        "rule": "khung_ngoai",
+        "band": "trong",
+        "zebra": "khong",
+        "type": "hien_dai",
+        "density": "nen",
+        "mark": "vach_gay",
+        "structure": "dao_nguoc_chan_trang"
+      },
+      "mean": 0.8695,
+      "min": 0.7905,
+      "max": 0.9848,
+      "layouts": 3
+    },
+    {
+      "id": "f_nga_dam_xam_dam_khong_so_may_nen_vach_gay_le_hep_tieu_de_lon",
+      "axes": {
+        "stock": "nga",
+        "rule": "dam",
+        "band": "xam_dam",
+        "zebra": "khong",
+        "type": "so_may",
+        "density": "nen",
+        "mark": "vach_gay",
+        "structure": "le_hep_tieu_de_lon"
+      },
+      "mean": 0.865,
+      "min": 0.7973,
+      "max": 0.9773,
+      "layouts": 3
+    },
+    {
+      "id": "f_trang_nhat_gach_chan_nhat_so_may_nen_goc_vuong_le_hep_tieu_de_lon",
+      "axes": {
+        "stock": "trang",
+        "rule": "nhat",
+        "band": "gach_chan",
+        "zebra": "nhat",
+        "type": "so_may",
+        "density": "nen",
+        "mark": "goc_vuong",
+        "structure": "le_hep_tieu_de_lon"
+      },
+      "mean": 0.865,
+      "min": 0.7973,
+      "max": 0.9773,
+      "layouts": 3
+    },
+    {
+      "id": "f_trang_muc_den_trong_xam_so_may_nen_bang_dinh_le_hep_tieu_de_lon",
+      "axes": {
+        "stock": "trang",
+        "rule": "muc_den",
+        "band": "trong",
+        "zebra": "xam",
+        "type": "so_may",
+        "density": "nen",
+        "mark": "bang_dinh",
+        "structure": "le_hep_tieu_de_lon"
+      },
+      "mean": 0.865,
+      "min": 0.7973,
+      "max": 0.9773,
+      "layouts": 3
+    },
+    {
+      "id": "f_trang_chuan_trong_xam_gian_chu_chuan_luoi_chan_le_hep_tieu_de_lon",
+      "axes": {
+        "stock": "trang",
+        "rule": "chuan",
+        "band": "trong",
+        "zebra": "xam",
+        "type": "gian_chu",
+        "density": "chuan",
+        "mark": "luoi_chan",
+        "structure": "le_hep_tieu_de_lon"
+      },
+      "mean": 0.8628,
+      "min": 0.7692,
+      "max": 0.9924,
+      "layouts": 3
+    },
+    {
+      "id": "f_xam_manh_trong_nhat_so_may_chuan_rang_cua_le_hep_tieu_de_lon",
+      "axes": {
+        "stock": "xam",
+        "rule": "manh",
+        "band": "trong",
+        "zebra": "nhat",
+        "type": "so_may",
+        "density": "chuan",
+        "mark": "rang_cua",
+        "structure": "le_hep_tieu_de_lon"
+      },
+      "mean": 0.8572,
+      "min": 0.7692,
+      "max": 0.9848,
+      "layouts": 3
+    },
+    {
+      "id": "f_xanh_lam_nhat_luc_khong_hien_dai_chuan_goc_vuong_dao_nguoc_chan_trang",
+      "axes": {
+        "stock": "xanh_lam",
+        "rule": "nhat",
+        "band": "luc",
+        "zebra": "khong",
+        "type": "hien_dai",
+        "density": "chuan",
+        "mark": "goc_vuong",
+        "structure": "dao_nguoc_chan_trang"
+      },
+      "mean": 0.8336,
+      "min": 0.7051,
+      "max": 0.9848,
+      "layouts": 3
+    },
+    {
+      "id": "f_xanh_luc_chuan_xam_nhat_hien_dai_thoang_goc_vuong_dao_nguoc_chan_trang",
+      "axes": {
+        "stock": "xanh_luc",
+        "rule": "chuan",
+        "band": "xam",
+        "zebra": "nhat",
+        "type": "hien_dai",
+        "density": "thoang",
+        "mark": "goc_vuong",
+        "structure": "dao_nguoc_chan_trang"
+      },
+      "mean": 0.7635,
+      "min": 0.4872,
+      "max": 0.9924,
+      "layouts": 3
+    },
+    {
+      "id": "f_xam_khung_ngoai_luc_khong_so_may_chuan_bang_dinh_khong_khung_bang_hep",
+      "axes": {
+        "stock": "xam",
+        "rule": "khung_ngoai",
+        "band": "luc",
+        "zebra": "khong",
+        "type": "so_may",
+        "density": "chuan",
+        "mark": "bang_dinh",
+        "structure": "khong_khung_bang_hep"
+      },
+      "mean": 0.7472,
+      "min": 0.5625,
+      "max": 0.9848,
+      "layouts": 4
+    },
+    {
+      "id": "f_xam_khung_ngoai_gach_chan_khong_gian_chu_thoang_goc_vuong_tong_va_ky_doi_ben",
+      "axes": {
+        "stock": "xam",
+        "rule": "khung_ngoai",
+        "band": "gach_chan",
+        "zebra": "khong",
+        "type": "gian_chu",
+        "density": "thoang",
+        "mark": "goc_vuong",
+        "structure": "tong_va_ky_doi_ben"
+      },
+      "mean": 0.7408,
+      "min": 0.2436,
+      "max": 1.0,
+      "layouts": 4
+    },
+    {
+      "id": "f_xanh_lam_dam_xam_dam_nhat_hien_dai_chuan_luoi_chan_dau_trang_xep_chong",
+      "axes": {
+        "stock": "xanh_lam",
+        "rule": "dam",
+        "band": "xam_dam",
+        "zebra": "nhat",
+        "type": "hien_dai",
+        "density": "chuan",
+        "mark": "luoi_chan",
+        "structure": "dau_trang_xep_chong"
+      },
+      "mean": 0.7401,
+      "min": 0.5469,
+      "max": 0.9848,
+      "layouts": 4
+    },
+    {
+      "id": "f_xam_chuan_gach_chan_khong_gian_chu_chuan_luoi_chan_chu_ky_cuoi",
+      "axes": {
+        "stock": "xam",
+        "rule": "chuan",
+        "band": "gach_chan",
+        "zebra": "khong",
+        "type": "gian_chu",
+        "density": "chuan",
+        "mark": "luoi_chan",
+        "structure": "chu_ky_cuoi"
+      },
+      "mean": 0.739,
+      "min": 0.5,
+      "max": 1.0,
+      "layouts": 4
+    },
+    {
+      "id": "f_nga_khung_ngoai_trong_nhat_so_may_chuan_vach_gay_tong_va_ky_doi_ben",
+      "axes": {
+        "stock": "nga",
+        "rule": "khung_ngoai",
+        "band": "trong",
+        "zebra": "nhat",
+        "type": "so_may",
+        "density": "chuan",
+        "mark": "vach_gay",
+        "structure": "tong_va_ky_doi_ben"
+      },
+      "mean": 0.7087,
+      "min": 0.4744,
+      "max": 0.9848,
+      "layouts": 4
+    },
+    {
+      "id": "f_xanh_luc_chuan_xam_dam_khong_so_may_chuan_khong_tong_va_ky_doi_ben",
+      "axes": {
+        "stock": "xanh_luc",
+        "rule": "chuan",
+        "band": "xam_dam",
+        "zebra": "khong",
+        "type": "so_may",
+        "density": "chuan",
+        "mark": "khong",
+        "structure": "tong_va_ky_doi_ben"
+      },
+      "mean": 0.7087,
+      "min": 0.4744,
+      "max": 0.9848,
+      "layouts": 4
+    },
+    {
+      "id": "f_nga_khung_ngoai_luc_nhat_so_may_thoang_vet_cheo_tong_va_ky_doi_ben",
+      "axes": {
+        "stock": "nga",
+        "rule": "khung_ngoai",
+        "band": "luc",
+        "zebra": "nhat",
+        "type": "so_may",
+        "density": "thoang",
+        "mark": "vet_cheo",
+        "structure": "tong_va_ky_doi_ben"
+      },
+      "mean": 0.7069,
+      "min": 0.2564,
+      "max": 0.9924,
+      "layouts": 4
+    },
+    {
+      "id": "f_xanh_lam_nhat_lam_xam_gian_chu_chuan_bang_dinh_tong_va_ky_doi_ben",
+      "axes": {
+        "stock": "xanh_lam",
+        "rule": "nhat",
+        "band": "lam",
+        "zebra": "xam",
+        "type": "gian_chu",
+        "density": "chuan",
+        "mark": "bang_dinh",
+        "structure": "tong_va_ky_doi_ben"
+      },
+      "mean": 0.7019,
+      "min": 0.4744,
+      "max": 0.9924,
+      "layouts": 4
+    },
+    {
+      "id": "f_xanh_luc_khung_ngoai_xam_dam_nhat_hien_dai_chuan_vet_cheo_tong_va_ky_doi_ben",
+      "axes": {
+        "stock": "xanh_luc",
+        "rule": "khung_ngoai",
+        "band": "xam_dam",
+        "zebra": "nhat",
+        "type": "hien_dai",
+        "density": "chuan",
+        "mark": "vet_cheo",
+        "structure": "tong_va_ky_doi_ben"
+      },
+      "mean": 0.7016,
+      "min": 0.4615,
+      "max": 0.9848,
+      "layouts": 4
+    },
+    {
+      "id": "f_trang_dam_lam_nhat_gian_chu_thoang_rang_cua_dau_trang_xep_chong",
+      "axes": {
+        "stock": "trang",
+        "rule": "dam",
+        "band": "lam",
+        "zebra": "nhat",
+        "type": "gian_chu",
+        "density": "thoang",
+        "mark": "rang_cua",
+        "structure": "dau_trang_xep_chong"
+      },
+      "mean": 0.6895,
+      "min": 0.0385,
+      "max": 1.0,
+      "layouts": 4
+    },
+    {
+      "id": "f_hong_khung_ngoai_trong_khong_gian_chu_thoang_khong_khong_khung_bang_hep",
+      "axes": {
+        "stock": "hong",
+        "rule": "khung_ngoai",
+        "band": "trong",
+        "zebra": "khong",
+        "type": "gian_chu",
+        "density": "thoang",
+        "mark": "khong",
+        "structure": "khong_khung_bang_hep"
+      },
+      "mean": 0.6895,
+      "min": 0.0385,
+      "max": 1.0,
+      "layouts": 4
+    },
+    {
+      "id": "f_nga_khung_ngoai_xam_dam_nhat_gian_chu_thoang_rang_cua_dau_trang_xep_chong",
+      "axes": {
+        "stock": "nga",
+        "rule": "khung_ngoai",
+        "band": "xam_dam",
+        "zebra": "nhat",
+        "type": "gian_chu",
+        "density": "thoang",
+        "mark": "rang_cua",
+        "structure": "dau_trang_xep_chong"
+      },
+      "mean": 0.6895,
+      "min": 0.0385,
+      "max": 1.0,
+      "layouts": 4
+    },
+    {
+      "id": "f_xanh_luc_nhat_xam_xam_gian_chu_nen_rang_cua_tong_va_ky_doi_ben",
+      "axes": {
+        "stock": "xanh_luc",
+        "rule": "nhat",
+        "band": "xam",
+        "zebra": "xam",
+        "type": "gian_chu",
+        "density": "nen",
+        "mark": "rang_cua",
+        "structure": "tong_va_ky_doi_ben"
+      },
+      "mean": 0.6881,
+      "min": 0.1562,
+      "max": 0.9924,
+      "layouts": 4
+    },
+    {
+      "id": "f_xam_muc_den_trong_khong_gian_chu_nen_guilloche_ghi_chu_len_dau",
+      "axes": {
+        "stock": "xam",
+        "rule": "muc_den",
+        "band": "trong",
+        "zebra": "khong",
+        "type": "gian_chu",
+        "density": "nen",
+        "mark": "guilloche",
+        "structure": "ghi_chu_len_dau"
+      },
+      "mean": 0.6862,
+      "min": 0.1562,
+      "max": 0.9848,
+      "layouts": 4
+    },
+    {
+      "id": "f_trang_manh_xam_khong_co_dien_thoang_vach_gay_bang_len_truoc",
+      "axes": {
+        "stock": "trang",
+        "rule": "manh",
+        "band": "xam",
+        "zebra": "khong",
+        "type": "co_dien",
+        "density": "thoang",
+        "mark": "vach_gay",
+        "structure": "bang_len_truoc"
+      },
+      "mean": 0.6848,
+      "min": 0.2205,
+      "max": 0.9872,
+      "layouts": 3
+    },
+    {
+      "id": "f_xanh_lam_muc_den_trong_xam_co_dien_thoang_khong_bang_len_truoc",
+      "axes": {
+        "stock": "xanh_lam",
+        "rule": "muc_den",
+        "band": "trong",
+        "zebra": "xam",
+        "type": "co_dien",
+        "density": "thoang",
+        "mark": "khong",
+        "structure": "bang_len_truoc"
+      },
+      "mean": 0.6848,
+      "min": 0.2205,
+      "max": 0.9872,
+      "layouts": 3
+    },
+    {
+      "id": "f_xam_muc_den_xam_xam_gian_chu_thoang_goc_vuong_chu_ky_cuoi",
+      "axes": {
+        "stock": "xam",
+        "rule": "muc_den",
+        "band": "xam",
+        "zebra": "xam",
+        "type": "gian_chu",
+        "density": "thoang",
+        "mark": "goc_vuong",
+        "structure": "chu_ky_cuoi"
+      },
+      "mean": 0.6799,
+      "min": 0.0,
+      "max": 1.0,
+      "layouts": 4
+    },
+    {
+      "id": "f_xanh_luc_khung_ngoai_gach_chan_xam_gian_chu_thoang_bang_dinh_chu_ky_cuoi",
+      "axes": {
+        "stock": "xanh_luc",
+        "rule": "khung_ngoai",
+        "band": "gach_chan",
+        "zebra": "xam",
+        "type": "gian_chu",
+        "density": "thoang",
+        "mark": "bang_dinh",
+        "structure": "chu_ky_cuoi"
+      },
+      "mean": 0.6799,
+      "min": 0.0,
+      "max": 1.0,
+      "layouts": 4
+    },
+    {
+      "id": "f_trang_manh_xam_xam_hien_dai_nen_vet_cheo_ghi_chu_len_dau",
+      "axes": {
+        "stock": "trang",
+        "rule": "manh",
+        "band": "xam",
+        "zebra": "xam",
+        "type": "hien_dai",
+        "density": "nen",
+        "mark": "vet_cheo",
+        "structure": "ghi_chu_len_dau"
+      },
+      "mean": 0.6796,
+      "min": 0.1719,
+      "max": 0.9773,
+      "layouts": 4
+    },
+    {
+      "id": "f_xanh_lam_nhat_luc_xam_tieu_de_khong_chan_thoang_khong_le_rong",
+      "axes": {
+        "stock": "xanh_lam",
+        "rule": "nhat",
+        "band": "luc",
+        "zebra": "xam",
+        "type": "tieu_de_khong_chan",
+        "density": "thoang",
+        "mark": "khong",
+        "structure": "le_rong"
+      },
+      "mean": 0.6753,
+      "min": 0.2266,
+      "max": 0.9872,
+      "layouts": 3
+    },
+    {
+      "id": "f_xanh_luc_dam_lam_xam_hien_dai_thoang_vach_gay_ghi_chu_len_dau",
+      "axes": {
+        "stock": "xanh_luc",
+        "rule": "dam",
+        "band": "lam",
+        "zebra": "xam",
+        "type": "hien_dai",
+        "density": "thoang",
+        "mark": "vach_gay",
+        "structure": "ghi_chu_len_dau"
+      },
+      "mean": 0.6653,
+      "min": 0.0897,
+      "max": 0.9924,
+      "layouts": 4
+    },
+    {
+      "id": "f_nga_dam_gach_chan_khong_hien_dai_thoang_vet_cheo_ghi_chu_len_dau",
+      "axes": {
+        "stock": "nga",
+        "rule": "dam",
+        "band": "gach_chan",
+        "zebra": "khong",
+        "type": "hien_dai",
+        "density": "thoang",
+        "mark": "vet_cheo",
+        "structure": "ghi_chu_len_dau"
+      },
+      "mean": 0.6653,
+      "min": 0.0897,
+      "max": 0.9924,
+      "layouts": 4
+    },
+    {
+      "id": "f_xanh_lam_dam_xam_dam_xam_hien_dai_thoang_bang_dinh_ghi_chu_len_dau",
+      "axes": {
+        "stock": "xanh_lam",
+        "rule": "dam",
+        "band": "xam_dam",
+        "zebra": "xam",
+        "type": "hien_dai",
+        "density": "thoang",
+        "mark": "bang_dinh",
+        "structure": "ghi_chu_len_dau"
+      },
+      "mean": 0.6653,
+      "min": 0.0897,
+      "max": 0.9924,
+      "layouts": 4
+    },
+    {
+      "id": "f_nga_nhat_trong_nhat_tieu_de_khong_chan_nen_luoi_chan_bang_len_truoc",
+      "axes": {
+        "stock": "nga",
+        "rule": "nhat",
+        "band": "trong",
+        "zebra": "nhat",
+        "type": "tieu_de_khong_chan",
+        "density": "nen",
+        "mark": "luoi_chan",
+        "structure": "bang_len_truoc"
+      },
+      "mean": 0.6627,
+      "min": 0.2283,
+      "max": 0.9487,
+      "layouts": 3
+    },
+    {
+      "id": "f_xanh_lam_dam_luc_xam_so_may_thoang_rang_cua_chu_ky_cuoi",
+      "axes": {
+        "stock": "xanh_lam",
+        "rule": "dam",
+        "band": "luc",
+        "zebra": "xam",
+        "type": "so_may",
+        "density": "thoang",
+        "mark": "rang_cua",
+        "structure": "chu_ky_cuoi"
+      },
+      "mean": 0.646,
+      "min": 0.0128,
+      "max": 0.9924,
+      "layouts": 4
+    },
+    {
+      "id": "f_xanh_lam_dam_lam_xam_tieu_de_khong_chan_chuan_vach_gay_le_rong",
+      "axes": {
+        "stock": "xanh_lam",
+        "rule": "dam",
+        "band": "lam",
+        "zebra": "xam",
+        "type": "tieu_de_khong_chan",
+        "density": "chuan",
+        "mark": "vach_gay",
+        "structure": "le_rong"
+      },
+      "mean": 0.6192,
+      "min": 0.2266,
+      "max": 0.9872,
+      "layouts": 3
+    },
+    {
+      "id": "f_xanh_luc_manh_xam_xam_tieu_de_khong_chan_chuan_guilloche_le_rong",
+      "axes": {
+        "stock": "xanh_luc",
+        "rule": "manh",
+        "band": "xam",
+        "zebra": "xam",
+        "type": "tieu_de_khong_chan",
+        "density": "chuan",
+        "mark": "guilloche",
+        "structure": "le_rong"
+      },
+      "mean": 0.6192,
+      "min": 0.2266,
+      "max": 0.9872,
+      "layouts": 3
+    },
+    {
+      "id": "f_xanh_luc_khung_ngoai_lam_nhat_tieu_de_khong_chan_thoang_vach_gay_khong_khung_bang_hep",
+      "axes": {
+        "stock": "xanh_luc",
+        "rule": "khung_ngoai",
+        "band": "lam",
+        "zebra": "nhat",
+        "type": "tieu_de_khong_chan",
+        "density": "thoang",
+        "mark": "vach_gay",
+        "structure": "khong_khung_bang_hep"
+      },
+      "mean": 0.6159,
+      "min": 0.0,
+      "max": 0.9688,
+      "layouts": 4
+    },
+    {
+      "id": "f_trang_dam_luc_xam_tieu_de_khong_chan_thoang_khong_chu_ky_cuoi",
+      "axes": {
+        "stock": "trang",
+        "rule": "dam",
+        "band": "luc",
+        "zebra": "xam",
+        "type": "tieu_de_khong_chan",
+        "density": "thoang",
+        "mark": "khong",
+        "structure": "chu_ky_cuoi"
+      },
+      "mean": 0.6126,
+      "min": 0.0,
+      "max": 0.9688,
+      "layouts": 4
+    },
+    {
+      "id": "f_trang_chuan_xam_nhat_tieu_de_khong_chan_thoang_guilloche_chu_ky_cuoi",
+      "axes": {
+        "stock": "trang",
+        "rule": "chuan",
+        "band": "xam",
+        "zebra": "nhat",
+        "type": "tieu_de_khong_chan",
+        "density": "thoang",
+        "mark": "guilloche",
+        "structure": "chu_ky_cuoi"
+      },
+      "mean": 0.6126,
+      "min": 0.0,
+      "max": 0.9688,
+      "layouts": 4
+    },
+    {
+      "id": "f_xanh_luc_khung_ngoai_trong_nhat_co_dien_nen_vet_cheo_le_rong",
+      "axes": {
+        "stock": "xanh_luc",
+        "rule": "khung_ngoai",
+        "band": "trong",
+        "zebra": "nhat",
+        "type": "co_dien",
+        "density": "nen",
+        "mark": "vet_cheo",
+        "structure": "le_rong"
+      },
+      "mean": 0.6004,
+      "min": 0.2344,
+      "max": 1.0,
+      "layouts": 3
+    },
+    {
+      "id": "f_xanh_luc_nhat_xam_dam_xam_co_dien_nen_rang_cua_le_rong",
+      "axes": {
+        "stock": "xanh_luc",
+        "rule": "nhat",
+        "band": "xam_dam",
+        "zebra": "xam",
+        "type": "co_dien",
+        "density": "nen",
+        "mark": "rang_cua",
+        "structure": "le_rong"
+      },
+      "mean": 0.6004,
+      "min": 0.2344,
+      "max": 1.0,
+      "layouts": 3
+    },
+    {
+      "id": "f_hong_khung_ngoai_trong_khong_co_dien_nen_luoi_chan_le_rong",
+      "axes": {
+        "stock": "hong",
+        "rule": "khung_ngoai",
+        "band": "trong",
+        "zebra": "khong",
+        "type": "co_dien",
+        "density": "nen",
+        "mark": "luoi_chan",
+        "structure": "le_rong"
+      },
+      "mean": 0.6004,
+      "min": 0.2344,
+      "max": 1.0,
+      "layouts": 3
+    },
+    {
+      "id": "f_xam_dam_lam_nhat_tieu_de_khong_chan_thoang_guilloche_le_hep_tieu_de_lon",
+      "axes": {
+        "stock": "xam",
+        "rule": "dam",
+        "band": "lam",
+        "zebra": "nhat",
+        "type": "tieu_de_khong_chan",
+        "density": "thoang",
+        "mark": "guilloche",
+        "structure": "le_hep_tieu_de_lon"
+      },
+      "mean": 0.5951,
+      "min": 0.2677,
+      "max": 0.8718,
+      "layouts": 3
+    },
+    {
+      "id": "f_trang_muc_den_xam_dam_nhat_co_dien_thoang_guilloche_chu_ky_cuoi",
+      "axes": {
+        "stock": "trang",
+        "rule": "muc_den",
+        "band": "xam_dam",
+        "zebra": "nhat",
+        "type": "co_dien",
+        "density": "thoang",
+        "mark": "guilloche",
+        "structure": "chu_ky_cuoi"
+      },
+      "mean": 0.5613,
+      "min": 0.0,
+      "max": 0.9688,
+      "layouts": 4
+    },
+    {
+      "id": "f_nga_muc_den_gach_chan_nhat_co_dien_thoang_luoi_chan_khong_khung_bang_hep",
+      "axes": {
+        "stock": "nga",
+        "rule": "muc_den",
+        "band": "gach_chan",
+        "zebra": "nhat",
+        "type": "co_dien",
+        "density": "thoang",
+        "mark": "luoi_chan",
+        "structure": "khong_khung_bang_hep"
+      },
+      "mean": 0.556,
+      "min": 0.0,
+      "max": 0.9688,
+      "layouts": 4
+    },
+    {
+      "id": "f_xanh_lam_chuan_xam_xam_tieu_de_khong_chan_nen_vet_cheo_dau_trang_xep_chong",
+      "axes": {
+        "stock": "xanh_lam",
+        "rule": "chuan",
+        "band": "xam",
+        "zebra": "xam",
+        "type": "tieu_de_khong_chan",
+        "density": "nen",
+        "mark": "vet_cheo",
+        "structure": "dau_trang_xep_chong"
+      },
+      "mean": 0.5419,
+      "min": 0.0079,
+      "max": 1.0,
+      "layouts": 4
+    },
+    {
+      "id": "f_xanh_luc_muc_den_trong_xam_co_dien_nen_khong_le_hep_tieu_de_lon",
+      "axes": {
+        "stock": "xanh_luc",
+        "rule": "muc_den",
+        "band": "trong",
+        "zebra": "xam",
+        "type": "co_dien",
+        "density": "nen",
+        "mark": "khong",
+        "structure": "le_hep_tieu_de_lon"
+      },
+      "mean": 0.5308,
+      "min": 0.2835,
+      "max": 1.0,
+      "layouts": 3
+    },
+    {
+      "id": "f_xam_muc_den_lam_xam_tieu_de_khong_chan_nen_goc_vuong_ghi_chu_len_dau",
+      "axes": {
+        "stock": "xam",
+        "rule": "muc_den",
+        "band": "lam",
+        "zebra": "xam",
+        "type": "tieu_de_khong_chan",
+        "density": "nen",
+        "mark": "goc_vuong",
+        "structure": "ghi_chu_len_dau"
+      },
+      "mean": 0.53,
+      "min": 0.0079,
+      "max": 1.0,
+      "layouts": 4
+    },
+    {
+      "id": "f_xam_manh_gach_chan_xam_tieu_de_khong_chan_nen_goc_vuong_dao_dau_trang",
+      "axes": {
+        "stock": "xam",
+        "rule": "manh",
+        "band": "gach_chan",
+        "zebra": "xam",
+        "type": "tieu_de_khong_chan",
+        "density": "nen",
+        "mark": "goc_vuong",
+        "structure": "dao_dau_trang"
+      },
+      "mean": 0.5261,
+      "min": 0.0079,
+      "max": 1.0,
+      "layouts": 4
+    },
+    {
+      "id": "f_trang_muc_den_luc_xam_tieu_de_khong_chan_chuan_goc_vuong_dao_nguoc_chan_trang",
+      "axes": {
+        "stock": "trang",
+        "rule": "muc_den",
+        "band": "luc",
+        "zebra": "xam",
+        "type": "tieu_de_khong_chan",
+        "density": "chuan",
+        "mark": "goc_vuong",
+        "structure": "dao_nguoc_chan_trang"
+      },
+      "mean": 0.5236,
+      "min": 0.252,
+      "max": 0.9487,
+      "layouts": 3
+    },
+    {
+      "id": "f_trang_nhat_luc_nhat_co_dien_nen_vach_gay_dau_trang_xep_chong",
+      "axes": {
+        "stock": "trang",
+        "rule": "nhat",
+        "band": "luc",
+        "zebra": "nhat",
+        "type": "co_dien",
+        "density": "nen",
+        "mark": "vach_gay",
+        "structure": "dau_trang_xep_chong"
+      },
+      "mean": 0.5208,
+      "min": 0.0079,
+      "max": 1.0,
+      "layouts": 4
+    },
+    {
+      "id": "f_hong_manh_lam_khong_co_dien_nen_guilloche_tong_va_ky_doi_ben",
+      "axes": {
+        "stock": "hong",
+        "rule": "manh",
+        "band": "lam",
+        "zebra": "khong",
+        "type": "co_dien",
+        "density": "nen",
+        "mark": "guilloche",
+        "structure": "tong_va_ky_doi_ben"
+      },
+      "mean": 0.5052,
+      "min": 0.0079,
+      "max": 0.9872,
+      "layouts": 4
+    },
+    {
+      "id": "f_trang_dam_luc_nhat_co_dien_chuan_vach_gay_dao_nguoc_chan_trang",
+      "axes": {
+        "stock": "trang",
+        "rule": "dam",
+        "band": "luc",
+        "zebra": "nhat",
+        "type": "co_dien",
+        "density": "chuan",
+        "mark": "vach_gay",
+        "structure": "dao_nguoc_chan_trang"
+      },
+      "mean": 0.5052,
+      "min": 0.252,
+      "max": 0.9872,
+      "layouts": 3
+    },
+    {
+      "id": "f_nga_muc_den_trong_nhat_co_dien_thoang_rang_cua_le_hep_tieu_de_lon",
+      "axes": {
+        "stock": "nga",
+        "rule": "muc_den",
+        "band": "trong",
+        "zebra": "nhat",
+        "type": "co_dien",
+        "density": "thoang",
+        "mark": "rang_cua",
+        "structure": "le_hep_tieu_de_lon"
+      },
+      "mean": 0.5038,
+      "min": 0.2677,
+      "max": 0.9103,
+      "layouts": 3
+    },
+    {
+      "id": "f_xanh_luc_manh_trong_nhat_tieu_de_khong_chan_chuan_bang_dinh_dan_lai_toan_bo",
+      "axes": {
+        "stock": "xanh_luc",
+        "rule": "manh",
+        "band": "trong",
+        "zebra": "nhat",
+        "type": "tieu_de_khong_chan",
+        "density": "chuan",
+        "mark": "bang_dinh",
+        "structure": "dan_lai_toan_bo"
+      },
+      "mean": 0.5025,
+      "min": 0.0551,
+      "max": 0.9872,
+      "layouts": 3
+    },
+    {
+      "id": "f_hong_khung_ngoai_luc_khong_tieu_de_khong_chan_chuan_khong_dan_lai_toan_bo",
+      "axes": {
+        "stock": "hong",
+        "rule": "khung_ngoai",
+        "band": "luc",
+        "zebra": "khong",
+        "type": "tieu_de_khong_chan",
+        "density": "chuan",
+        "mark": "khong",
+        "structure": "dan_lai_toan_bo"
+      },
+      "mean": 0.5025,
+      "min": 0.0551,
+      "max": 0.9872,
+      "layouts": 3
+    },
+    {
+      "id": "f_nga_dam_lam_xam_co_dien_thoang_vach_gay_dao_nguoc_chan_trang",
+      "axes": {
+        "stock": "nga",
+        "rule": "dam",
+        "band": "lam",
+        "zebra": "xam",
+        "type": "co_dien",
+        "density": "thoang",
+        "mark": "vach_gay",
+        "structure": "dao_nguoc_chan_trang"
+      },
+      "mean": 0.4979,
+      "min": 0.2441,
+      "max": 0.9487,
+      "layouts": 3
+    },
+    {
+      "id": "f_xanh_luc_khung_ngoai_luc_khong_co_dien_thoang_guilloche_dao_nguoc_chan_trang",
+      "axes": {
+        "stock": "xanh_luc",
+        "rule": "khung_ngoai",
+        "band": "luc",
+        "zebra": "khong",
+        "type": "co_dien",
+        "density": "thoang",
+        "mark": "guilloche",
+        "structure": "dao_nguoc_chan_trang"
+      },
+      "mean": 0.4979,
+      "min": 0.2441,
+      "max": 0.9487,
+      "layouts": 3
+    },
+    {
+      "id": "f_trang_khung_ngoai_lam_xam_tieu_de_khong_chan_chuan_guilloche_le_hep_tieu_de_lon",
+      "axes": {
+        "stock": "trang",
+        "rule": "khung_ngoai",
+        "band": "lam",
+        "zebra": "xam",
+        "type": "tieu_de_khong_chan",
+        "density": "chuan",
+        "mark": "guilloche",
+        "structure": "le_hep_tieu_de_lon"
+      },
+      "mean": 0.4918,
+      "min": 0.2126,
+      "max": 0.9872,
+      "layouts": 3
+    },
+    {
+      "id": "f_nga_nhat_lam_khong_tieu_de_khong_chan_chuan_vet_cheo_tong_va_ky_doi_ben",
+      "axes": {
+        "stock": "nga",
+        "rule": "nhat",
+        "band": "lam",
+        "zebra": "khong",
+        "type": "tieu_de_khong_chan",
+        "density": "chuan",
+        "mark": "vet_cheo",
+        "structure": "tong_va_ky_doi_ben"
+      },
+      "mean": 0.4656,
+      "min": 0.0,
+      "max": 0.9231,
+      "layouts": 4
+    },
+    {
+      "id": "f_hong_khung_ngoai_xam_dam_nhat_co_dien_chuan_vet_cheo_dau_trang_xep_chong",
+      "axes": {
+        "stock": "hong",
+        "rule": "khung_ngoai",
+        "band": "xam_dam",
+        "zebra": "nhat",
+        "type": "co_dien",
+        "density": "chuan",
+        "mark": "vet_cheo",
+        "structure": "dau_trang_xep_chong"
+      },
+      "mean": 0.4546,
+      "min": 0.0,
+      "max": 0.9872,
+      "layouts": 4
+    },
+    {
+      "id": "f_trang_muc_den_lam_khong_co_dien_chuan_bang_dinh_dau_trang_xep_chong",
+      "axes": {
+        "stock": "trang",
+        "rule": "muc_den",
+        "band": "lam",
+        "zebra": "khong",
+        "type": "co_dien",
+        "density": "chuan",
+        "mark": "bang_dinh",
+        "structure": "dau_trang_xep_chong"
+      },
+      "mean": 0.4546,
+      "min": 0.0,
+      "max": 0.9872,
+      "layouts": 4
+    },
+    {
+      "id": "f_nga_manh_xam_dam_xam_co_dien_chuan_khong_le_hep_tieu_de_lon",
+      "axes": {
+        "stock": "nga",
+        "rule": "manh",
+        "band": "xam_dam",
+        "zebra": "xam",
+        "type": "co_dien",
+        "density": "chuan",
+        "mark": "khong",
+        "structure": "le_hep_tieu_de_lon"
+      },
+      "mean": 0.4426,
+      "min": 0.065,
+      "max": 0.9872,
+      "layouts": 3
+    },
+    {
+      "id": "f_hong_dam_xam_khong_co_dien_chuan_guilloche_le_hep_tieu_de_lon",
+      "axes": {
+        "stock": "hong",
+        "rule": "dam",
+        "band": "xam",
+        "zebra": "khong",
+        "type": "co_dien",
+        "density": "chuan",
+        "mark": "guilloche",
+        "structure": "le_hep_tieu_de_lon"
+      },
+      "mean": 0.4426,
+      "min": 0.065,
+      "max": 0.9872,
+      "layouts": 3
+    },
+    {
+      "id": "f_xam_dam_lam_xam_co_dien_chuan_guilloche_ghi_chu_len_dau",
+      "axes": {
+        "stock": "xam",
+        "rule": "dam",
+        "band": "lam",
+        "zebra": "xam",
+        "type": "co_dien",
+        "density": "chuan",
+        "mark": "guilloche",
+        "structure": "ghi_chu_len_dau"
+      },
+      "mean": 0.4385,
+      "min": 0.0,
+      "max": 0.9872,
+      "layouts": 4
+    },
+    {
+      "id": "f_nga_muc_den_lam_nhat_co_dien_chuan_vach_gay_chu_ky_cuoi",
+      "axes": {
+        "stock": "nga",
+        "rule": "muc_den",
+        "band": "lam",
+        "zebra": "nhat",
+        "type": "co_dien",
+        "density": "chuan",
+        "mark": "vach_gay",
+        "structure": "chu_ky_cuoi"
+      },
+      "mean": 0.4345,
+      "min": 0.0,
+      "max": 0.9872,
+      "layouts": 4
+    }
+  ]
+}

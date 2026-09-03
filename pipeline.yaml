@@ -6,12 +6,21 @@
 
 run:
   out: data/run01
-  # Images per backend, and a FLOOR rather than a free number: it must be at
-  # least the layout count, or the run refuses to start rather than quietly
-  # drawing only the front of the list. 20 against 18 layouts today, so adding
-  # three more layouts is what makes this line need raising -- and the refusal
-  # will say so by name.
-  per_backend: 20
+  # Images per backend. A FLOOR rather than a free number: it must be at least
+  # the layout count, or the run refuses to start rather than quietly drawing
+  # only the front of the list (`pipeline/plan.py::uncovered`).
+  #
+  # `auto` is that floor, computed: **one image of every layout there is**, so
+  # this line does not go stale the day somebody adds a YAML file to
+  # `rulebase/layouts/`. It said `20` while the repository had 18 layouts; at 42
+  # the same number refuses to run. The resolved figure is written into
+  # `plan.json` and `manifest.json`, so a dataset still records the number it
+  # was built with rather than the word.
+  #
+  # A number is still the right answer for a fixed comparison, for the same
+  # reason `layouts:` should name its own: `auto` draws a different-sized set
+  # the day the layout count changes.
+  per_backend: auto
   seed: 2026
   workers: auto          # auto = CPUs - 1, so the machine stays usable
 

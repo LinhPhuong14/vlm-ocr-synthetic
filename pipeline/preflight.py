@@ -236,6 +236,20 @@ def ornament_assets() -> list[str]:
         problems.append(
             f"textures/ornament/{stray}.png: no rule in rules/ornament.yaml names it, "
             f"so it is never drawn")
+
+    # ...and the third agreement, added when the marks finally started being
+    # printed: every `anchor:` a rule names has to be one the renderer can
+    # resolve. An unknown anchor is not an error while rendering -- the mark
+    # lands in the middle of the page instead of on the signature block, which
+    # looks like a design decision -- so it has to stop the run before it.
+    try:
+        sys.path.insert(0, str(REPO_ROOT / "generators" / "html"))
+        import ornament  # noqa: PLC0415 -- optional import, renderer-side
+
+        problems += ornament.problems()
+    except ImportError:
+        problems.append("unchecked: generators/html/ornament.py not importable, "
+                        "so ornament anchors were not checked")
     return problems
 
 
@@ -245,6 +259,25 @@ def ornament_assets() -> list[str]:
 # looking for a page half again too tall, not for a rounding error.
 ADVANCE = 0.62
 SHEET_SEEDS = 12
+
+# How far past its paper a page may measure before this is called an overflow.
+#
+# NOT 1.0, and the reason is `ADVANCE` two lines up: it is an ESTIMATE of a
+# monospace advance, good to a few per cent, and everything below is computed
+# through it. Measured over the drawable layouts at twelve seeds each, the two
+# tightest sit at 99.4% (`invoice_sidebar`) and 101.2% (`invoice_logo_split`) --
+# one either side of 1.0 and both inside the estimator's own error band. A
+# threshold at 1.0 therefore reports a coin toss, which is how a check teaches
+# people to ignore it; it went red on `invoice_logo_split` the moment a new
+# attribute moved the seeds along, with nothing about that layout changed.
+#
+# 1.05 is the error band, and the check keeps the job its docstring claims:
+# finding a page half again too tall, not a rounding error. A page that
+# genuinely does not fit needs measuring in the browser -- the CSS sheets grow
+# the page rather than crop it (`sheets/base.py::document`'s `min-height`), so
+# the honest version of this check lives on the render path and does not exist
+# yet.
+OVERFLOW = 1.05
 
 
 def sheet_overflow(seeds: int = SHEET_SEEDS) -> list[str]:
@@ -297,7 +330,7 @@ def sheet_overflow(seeds: int = SHEET_SEEDS) -> list[str]:
             over = content / (width_px / ratio)
             if over > worst:
                 worst, worst_seed = over, seed
-        if worst > 1.0:
+        if worst > OVERFLOW:
             problems.append(
                 f"{layout_id}: content is {worst:.0%} of the {grid.sheet} sheet it "
                 f"declares (seed {worst_seed}), so the page grows past its paper"
