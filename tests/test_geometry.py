@@ -69,13 +69,35 @@ PROBE = textwrap.dedent("""
         oi, _ = G.apply_warp(name, img.copy(), quads.copy(), {{}}, random.Random(2))
         out[f"{{name}}_same_shape"] = list(oi.shape[:2]) == [h, w]
 
-    # 4. depth (or shadow) at zero is the identity map on the quads
+    # 4. depth at zero is the identity map on the quads (shading never moves
+    # a quad -- it only multiplies pixel brightness, checked separately below)
     oi, oq = G.apply_warp("fold_crease", img.copy(), quads.copy(),
-                           {{"depth": 0.0, "shadow": 0.0}}, random.Random(3))
+                           {{"depth": 0.0}}, random.Random(3))
     out["fold_crease_identity_diff"] = float(np.abs(oq - quads).max())
     oi, oq = G.apply_warp("corner_bulge", img.copy(), quads.copy(),
                            {{"depth": 0.0}}, random.Random(3))
     out["corner_bulge_identity_diff"] = float(np.abs(oq - quads).max())
+
+    # 4b. shading changes pixels but never a quad, and a stronger light does
+    # more work than a weaker one -- the mechanism this whole change was
+    # about (see the module docstring on why shading is not decoration here).
+    out["shading"] = {{}}
+    for name in G.names():
+        base = img.copy()
+        no_shade = G.apply_warp(name, base.copy(), quads.copy(),
+                                 {{"shade_strength": 0.0}}, random.Random(5))[0]
+        full_shade = G.apply_warp(name, base.copy(), quads.copy(),
+                                   {{"shade_strength": 1.0, "shade_ambient": 0.2}},
+                                   random.Random(5))[0]
+        _, q_no = G.apply_warp(name, base.copy(), quads.copy(),
+                                {{"shade_strength": 0.0}}, random.Random(9))
+        _, q_full = G.apply_warp(name, base.copy(), quads.copy(),
+                                  {{"shade_strength": 1.0}}, random.Random(9))
+        out["shading"][name] = {{
+            "pixels_changed": bool(np.abs(
+                no_shade.astype(np.int16) - full_shade.astype(np.int16)).max() > 3),
+            "quads_identical": bool(np.array_equal(q_no, q_full)),
+        }}
 
     # 5. same seed -> same output (reproducible from a recipe's seed)
     a = G.apply_warp("page_curl", img.copy(), quads.copy(), {{}}, random.Random(7))[1]

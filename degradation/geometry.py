@@ -37,6 +37,27 @@ Ported and generalised:
                   axis for a fold, a radial pinch around a corner for a
                   lift -- both inverted through a lookup table instead of a
                   physics solve.
+
+## Bóng đổ không phải phụ, nó là phần chính
+
+`media/teaser.jpg` của SyntheticDoc xếp sáu tấm cạnh nhau: `Rendered image |
+Albedo | Shading | Normal map | 3D coordinates | UV map`. `Shading` là một
+render xám thuần theo pháp tuyến bề mặt -- và chính lớp đó, không phải bản
+thân độ lệch pixel, mới là thứ làm một trang *đọc ra là giấy cong*. Một trang
+lệch vài chục pixel mà tô màu vẫn phẳng thì đọc như ảnh chụp phẳng bị nhiễu
+hình học; cùng trang ấy tô một dải sáng-tối đúng theo độ dốc bề mặt thì đọc
+ra ngay là có khối.
+
+Ba hàm dưới đây suy MỘT trường độ dốc `(dh/dx, dh/dy)` giải tích trực tiếp từ
+chính công thức warp của nó -- không cần dựng lưới 3D hay chạy ARCSim -- rồi
+`_shade` tính pháp tuyến từ trường đó và đổ bóng kiểu Lambertian (`ánh sáng
+song song`, `N·L`). Xem `_shade` cho công thức, và mỗi hàm cho cách nó suy
+`h(x, y)` của riêng mình.
+
+Hướng sáng bốc NGẪU NHIÊN mỗi lần gọi (`_shade`'s `azimuth`), không cố định
+một góc: `docs/lam-cu-de-xuat.md` từng ghi `shadow_binding.angle` cố định 30°
+là một lỗi đã biết -- "mọi trang trong bộ dữ liệu có nguồn sáng cùng một
+hướng, mô hình học được điều đó". Không lặp lại lỗi ấy ở đây.
 """
 
 from __future__ import annotations
@@ -64,6 +85,54 @@ def _sample_range(rng: random.Random, spec: Any) -> float:
     return float(spec)
 
 
+def _shade(
+    image: np.ndarray,
+    dhdx: np.ndarray,
+    dhdy: np.ndarray,
+    rng: random.Random,
+    *,
+    strength: Any = (0.55, 0.9),
+    ambient: Any = (0.35, 0.55),
+    azimuth: Any = (0.0, 360.0),
+    elevation: Any = (30.0, 65.0),
+) -> np.ndarray:
+    """Đổ bóng Lambertian từ trường độ dốc `(dhdx, dhdy)` -- xem docstring đầu
+    file cho lý do đây là phần việc chính, không phải trang trí.
+
+    `dhdx`/`dhdy` là đạo hàm của một trường ĐỘ CAO GIẢ ĐỊNH `h(x, y)` (đơn vị
+    pixel, không phải mét -- chỉ cần đúng HÌNH DÁNG của mặt cong, không cần
+    đúng vật lý), theo trục x và y, cùng kích thước `image[:2]`. Pháp tuyến
+    suy trực tiếp: `N = normalize(-dhdx, -dhdy, 1)` -- độ dốc càng lớn thì mặt
+    càng nghiêng khỏi máy ảnh. Nguồn sáng song song `L` bốc từ góc phương vị
+    (`azimuth`, quanh trục z) và độ cao (`elevation`, so với mặt phẳng trang)
+    -- `azimuth` bốc ĐỀU 0-360°, không cố định một hướng.
+
+    Độ sáng mỗi điểm là `ambient + (1 - ambient) * max(N·L, 0)`, rồi trộn với
+    ảnh gốc theo `strength` (0 = không đổi, 1 = dùng nguyên giá trị tính
+    được) -- nhân trực tiếp vào pixel, cùng lối `shadow_binding` đã làm.
+    """
+    strength_v = _sample_range(rng, strength)
+    if strength_v <= 0:
+        return image
+    ambient_v = min(max(_sample_range(rng, ambient), 0.0), 1.0)
+    azimuth_v = math.radians(_sample_range(rng, azimuth))
+    elevation_v = math.radians(_sample_range(rng, elevation))
+    light = np.array([
+        math.cos(azimuth_v) * math.cos(elevation_v),
+        math.sin(azimuth_v) * math.cos(elevation_v),
+        math.sin(elevation_v),
+    ], dtype=np.float64)
+
+    normal = np.stack([-dhdx, -dhdy, np.ones_like(dhdx)], axis=-1)
+    normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+    n_dot_l = np.clip(normal @ light, 0.0, 1.0)
+    computed = ambient_v + (1.0 - ambient_v) * n_dot_l
+    gain = ((1.0 - strength_v) + strength_v * computed).astype(np.float32)
+    if image.ndim == 3:
+        gain = gain[:, :, None]
+    return np.clip(image.astype(np.float32) * gain, 0, 255).astype(np.uint8)
+
+
 def page_curl(
     image: np.ndarray,
     quads: Quads,
@@ -74,6 +143,8 @@ def page_curl(
     wave: Any = (0.0, 0.010),
     periods_y: Any = (0.4, 2.0),
     periods_x: Any = (0.3, 0.8),
+    shade_strength: Any = (0.55, 0.9),
+    shade_ambient: Any = (0.35, 0.55),
 ) -> tuple[np.ndarray, Quads]:
     """Cong giấy phi tuyến, hai lượt khả nghịch -- xem docstring gốc ở
     `generators/synthdog/elements/warp.py::CurlWarp` cho công thức đầy đủ.
@@ -82,6 +153,13 @@ def page_curl(
 
         lượt 1 (theo hàng y): x' = a(y) * (x - cx) + cx + b(y)
         lượt 2 (theo cột x'): y' = y + c(x')
+
+    Cộng thêm so với `CurlWarp`: đổ bóng theo `_shade`, từ một trường độ cao
+    giả định `h(x, y) = c(x) + squeeze * pw * (1 - cos(...)) / 2` -- số hạng
+    đầu là chính con sóng dọc `c_of` (gợn ra/vào mặt trang), số hạng sau là
+    độ "cuộn" ở hàng `y` (đúng biểu thức bên trong `a_of`, chỗ quyết định
+    trang cuộn bao nhiêu tại hàng đó). Không phải vật lý thật, chỉ cần đúng
+    hình dạng để pháp tuyến suy ra có hướng hợp lý.
 
     Mỗi tham số là một số cố định hoặc một khoảng `(low, high)` để bốc.
     """
@@ -124,6 +202,14 @@ def page_curl(
         interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE,
     )
 
+    # --- bóng: trường độ cao giả định trên LƯỚI ĐÍCH (xx, yy), đạo hàm giải
+    # tích trực tiếp của c_of theo x và của số hạng cuộn theo y ---
+    t_x = 2 * np.pi * periods_x_v * xx / max(pw, 1) + phase_x
+    t_y = 2 * np.pi * periods_y_v * yy / max(ph, 1) + phase_y
+    dhdx = (wave_v * ph * np.cos(t_x) * (2 * np.pi * periods_x_v / max(pw, 1)))
+    dhdy = (squeeze_v * pw * np.sin(t_y) * (2 * np.pi * periods_y_v / max(ph, 1)))
+    warped = _shade(warped, dhdx, dhdy, rng, strength=shade_strength, ambient=shade_ambient)
+
     # --- toạ độ: dùng ánh xạ xuôi (src -> dst) ---
     if quads.size:
         xs, ys = quads[..., 0], quads[..., 1]
@@ -143,19 +229,24 @@ def fold_crease(
     position: Any = (0.3, 0.7),
     depth: Any = (0.01, 0.03),
     width: Any = (0.05, 0.12),
-    shadow: Any = (0.15, 0.35),
+    shade_strength: Any = (0.6, 0.95),
+    shade_ambient: Any = (0.3, 0.5),
 ) -> tuple[np.ndarray, Quads]:
     """Một nếp gấp cứng chạy hết chiều `axis` của trang, cộng bóng đổ dọc nếp.
 
     Biến dạng chỉ theo MỘT trục (`axis`), nên bài toán rút về một hàm số học
     theo một biến -- nội suy nghịch qua bảng tra thay vì giải 2D. Điểm gần nếp
-    bị kéo VỀ PHÍA nếp từ cả hai bên (dáng giấy bị bóp lại ở chỗ gấp); độ tối
-    theo cùng một hình chuông quanh nếp, vì chỗ lõm nhận ít sáng hơn mặt giấy
-    quanh nó -- cùng lý lẽ với `degradation.shadow_binding`, chỉ khác nguồn.
+    bị kéo VỀ PHÍA nếp từ cả hai bên (dáng giấy bị bóp lại ở chỗ gấp).
+
+    Bóng đổ qua `_shade`, từ trường độ cao `h(t) = -depth * exp(-((t -
+    position) / width)^2)` -- một RÃNH LÕM đối xứng dọc `axis`, đơn vị pixel.
+    Đạo hàm của nó PHẢN ĐỐI XỨNG quanh nếp (dương một bên, âm bên kia), nên
+    một sườn rãnh hướng về nguồn sáng thì sáng, sườn kia thì tối -- khác hẳn
+    dải tối đối xứng của bản trước, và đúng cái ảnh "Fold" của SyntheticDoc
+    cho thấy: một bên nếp sáng, một bên tối, không phải cả nếp tối đều.
 
     `position` là vị trí nếp, theo tỉ lệ chiều `axis`. `depth`/`width` là độ
-    sâu và độ rộng vết bóp, cũng theo tỉ lệ đó. `shadow` trong [0, 1] là độ
-    tối tại nếp, 0 là không có bóng. Cả bốn nhận số cố định hoặc `(low, high)`.
+    sâu và độ rộng vết bóp, cũng theo tỉ lệ đó.
     """
     quads = np.asarray(quads, dtype=np.float32).reshape(-1, 4, 2)
     if axis not in ("x", "y"):
@@ -171,30 +262,34 @@ def fold_crease(
     # thể đổ vào cùng một pixel đích. Chặn theo tỉ lệ trước, rồi khoá cứng
     # bằng `np.maximum.accumulate` bên dưới -- không tin riêng phép chặn này.
     depth_v = min(depth_v, 0.5 * width_v)
-    shadow_v = _sample_range(rng, shadow)
 
     coord = np.arange(length, dtype=np.float64)
     offset = coord - position_v
-    forward = coord - depth_v * np.exp(-((offset / width_v) ** 2)) * np.sign(offset)
+    bump = np.exp(-((offset / width_v) ** 2))
+    forward = coord - depth_v * bump * np.sign(offset)
     forward = np.maximum.accumulate(forward)  # lưới an toàn, xem chú thích trên
-    gain = (1.0 - shadow_v * np.exp(-((offset / width_v) ** 2))).astype(np.float32)
 
     src_coord = np.interp(coord, forward, coord).astype(np.float32)
 
     if axis == "x":
         map_x = np.tile(src_coord[None, :], (height, 1))
         map_y = np.tile(np.arange(height, dtype=np.float32)[:, None], (1, width_px))
-        gain_map = np.tile(gain[None, :], (height, 1))
     else:
         map_y = np.tile(src_coord[:, None], (1, width_px))
         map_x = np.tile(np.arange(width_px, dtype=np.float32)[None, :], (height, 1))
-        gain_map = np.tile(gain[:, None], (1, width_px))
 
     warped = cv2.remap(image, map_x, map_y, interpolation=cv2.INTER_LINEAR,
                         borderMode=cv2.BORDER_REPLICATE)
-    if warped.ndim == 3:
-        gain_map = gain_map[:, :, None]
-    warped = np.clip(warped.astype(np.float32) * gain_map, 0, 255).astype(np.uint8)
+
+    # h(t) = -depth * bump(t)  =>  dh/dt = depth * bump(t) * 2 * offset / width^2
+    dh_dt = (depth_v * bump * 2.0 * offset / (width_v ** 2)).astype(np.float32)
+    if axis == "x":
+        dhdx = np.tile(dh_dt[None, :], (height, 1))
+        dhdy = np.zeros_like(dhdx)
+    else:
+        dhdy = np.tile(dh_dt[:, None], (1, width_px))
+        dhdx = np.zeros_like(dhdy)
+    warped = _shade(warped, dhdx, dhdy, rng, strength=shade_strength, ambient=shade_ambient)
 
     if quads.size:
         axis_idx = 0 if axis == "x" else 1
@@ -213,6 +308,8 @@ def corner_bulge(
     corner: str | None = None,
     radius: Any = (0.25, 0.45),
     depth: Any = (0.03, 0.07),
+    shade_strength: Any = (0.6, 0.95),
+    shade_ambient: Any = (0.3, 0.5),
 ) -> tuple[np.ndarray, Quads]:
     """Giấy nhấc khỏi mặt phẳng gần một góc trang -- bóp bán kính về tâm góc.
 
@@ -220,6 +317,11 @@ def corner_bulge(
     `fall_on_ball`/`fall_on_roller`: không phối cảnh, chỉ nén nội dung gần
     góc vào một vùng nhỏ hơn, theo bán kính -- khả nghịch cùng cách
     `fold_crease` khả nghịch, một hàm số một biến (bán kính) qua bảng tra.
+
+    Bóng đổ qua `_shade`, từ trường độ cao đối xứng trục `h(r) = -depth *
+    (r / radius) * exp(-(r / radius)^2)` -- cùng hình dạng với chính độ lệch
+    bán kính, nên rãnh lõm và bóng của nó luôn khớp nhau. Đạo hàm bán kính
+    tách thành `dh/dx`, `dh/dy` qua quy tắc chuỗi trên hướng `(dx, dy) / r`.
 
     `corner` là một trong `CORNERS`, hoặc `None` để bốc đều. `radius` là tầm
     với của vết bóp, theo tỉ lệ `min(height, width)`; `depth` là độ sâu, cùng
@@ -260,6 +362,15 @@ def corner_bulge(
 
     warped = cv2.remap(image, map_x, map_y, interpolation=cv2.INTER_LINEAR,
                         borderMode=cv2.BORDER_REPLICATE)
+
+    # h(r) = -depth * (r/radius) * exp(-(r/radius)^2)
+    # dh/dr = -(depth/radius) * exp(-(r/radius)^2) * (1 - 2*(r/radius)^2)
+    ratio = dst_r / radius_v
+    dh_dr = -(depth_v / radius_v) * np.exp(-(ratio ** 2)) * (1.0 - 2.0 * ratio ** 2)
+    inv_r = np.divide(1.0, dst_r, out=np.zeros_like(dst_r), where=dst_r > 1e-6)
+    dhdx = (dh_dr * dx * inv_r).astype(np.float32)
+    dhdy = (dh_dr * dy * inv_r).astype(np.float32)
+    warped = _shade(warped, dhdx, dhdy, rng, strength=shade_strength, ambient=shade_ambient)
 
     if quads.size:
         qdx = quads[..., 0] - anchor_x

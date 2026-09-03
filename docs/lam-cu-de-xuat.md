@@ -238,6 +238,15 @@ Test giữ hộp: `tests/test_geometry.py`. Ba giá trị rule-base (`page_curl`
 false` — dựng thử bằng `--force augmentation=<id>`, chưa vào lượt bốc mặc
 định.
 
+**Bản đầu chỉ dịch pixel, không đổ bóng — sai so với chính SyntheticDoc.**
+`media/teaser.jpg` của họ xếp sáu tấm `Rendered | Albedo | Shading | Normal
+map | 3D coordinates | UV map`, và tấm `Shading` — một render xám thuần theo
+pháp tuyến bề mặt — mới là thứ làm mẫu của họ đọc ra là giấy cong, không phải
+bản thân độ lệch pixel. Đã sửa: mỗi hàm suy một trường độ dốc `(dh/dx, dh/dy)`
+giải tích từ chính công thức warp của nó, `_shade` tính pháp tuyến và đổ bóng
+kiểu Lambertian, hướng sáng bốc ngẫu nhiên mỗi lần (không lặp lại lỗi
+`shadow_binding.angle` cố định đã nêu ở mục B).
+
 ---
 
 ## D · Từ thư viện ngoài
