@@ -249,6 +249,18 @@ augmentation.yaml`'s "HÌNH HỌC" section for how a recipe opts in through
 `--force augmentation=page_curl` (or `folded`, `lifted_corner`) but not yet in
 a default run, until someone has looked at samples.
 
+**The geometry alone reads as noise, not as paper — the shading is what makes
+it read as a surface.** SyntheticDoc's own `media/teaser.jpg` lines up six
+panels — rendered image, albedo, *shading*, normal map, 3D coordinates, UV
+map — and it is the shading panel, not the pixel displacement, that carries
+most of what makes a sample look like curved paper rather than a flat photo
+with a mild geometric wobble. Each of the three functions therefore derives
+an analytic height-field gradient from its own displacement formula (no 3D
+mesh, no renderer) and shades it with a one-line Lambertian model — random
+light direction every call, on purpose: `docs/lam-cu-de-xuat.md` already
+names a fixed light angle (`shadow_binding.angle`) as a defect a model would
+learn and then fail on real photos lit from elsewhere.
+
 ---
 
 # Augraphy's models, and putting one on a box instead of a page
