@@ -535,8 +535,8 @@ def _emit_page(args, name, recipe, receipt, image, boxes, words, cells,
             extra["structure"] = structure_from_cells(cells)
         item = record.build(
             filename=name, width=image.shape[1], height=image.shape[0],
-            parser="html", boxes=boxes, words=words, extracted=receipt.ground_truth(),
-            seed=seed, layout=recipe.layout.id)
+            parser="html", boxes=boxes, words=words, cells=cells,
+            extracted=receipt.ground_truth(), seed=seed, layout=recipe.layout.id)
     with profiling.stage("export"):
         # The record beside its image, and the provenance streamed into the one
         # file for the set -- so a shard's memory does not grow with its size

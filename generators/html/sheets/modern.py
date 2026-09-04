@@ -81,8 +81,11 @@ def _masthead_corner(receipt, parse: dict, spec: dict) -> str:
     if header.get("logo"):
         # Plain text, not `span()`: the letter is a decoration derived from
         # the name, not a field of its own -- the name itself is already a
-        # box, in `brand`. Same reasoning as `page.marker` in
-        # `invoice_multipage.yaml`.
+        # box, in `brand`. Same reasoning as the `.wm` watermark and
+        # `insurance.py`'s `"MH"`/`base.stamp()` marks: a monogram/logo
+        # badge is decorative brand art, not content a reader extracts, even
+        # though (unlike those two) this one is typeset text rather than a
+        # background layer.
         initial = ((store.get("name") or "").strip()[:1] or "•").upper()
         badge = f'<div class="logo">{base.esc(initial)}</div>'
     pairs = base.party_pairs(receipt, parse, "strip")
@@ -315,7 +318,6 @@ def _grid_items_table(spec: dict, receipt, parse: dict, rows) -> str:
     boxes joined by a literal `<br>`, never one span holding markup.
     """
     from components.table import Border, Cell, Column, Row, TableSpec, render_table
-
     from rulebase.layout import item_values
 
     columns = base.columns_of(spec, base.ncols_of(spec))
@@ -414,11 +416,13 @@ def build(recipe, receipt, spec: dict, parse: dict) -> str:
 
     marker = page.get("marker")
     if marker:
-        # Furniture, not label: no `span()`, so it carries no `data-kind` and
-        # is not a field `ground_truth()` could ever claim went unprinted --
-        # see `invoice_multipage.yaml` for why this stands in for a second
-        # page the renderer has no way to actually turn to.
-        body += f'<div class="pagemark">{base.esc(marker)}</div>'
+        # Not a field `ground_truth()` claims went unprinted -- see
+        # `invoice_multipage.yaml` for why this stands in for a second page
+        # the renderer has no way to actually turn to -- but it is real ink
+        # ON THIS page regardless, the same continuation notice a real
+        # multi-page form prints, so it still gets a box. `"page_no"` is
+        # already `Page-Footer`, which is where this sits.
+        body += f'<div class="pagemark">{span("page_no", marker)}</div>'
 
     if page.get("watermark"):
         # A faint, once-only diagonal repeat of the seller's own name --
