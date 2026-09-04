@@ -3,16 +3,16 @@
     "i": 0,
     "scenario": "page_curl",
     "seed": 42000,
-    "duration_s": null,
+    "duration_s": 93.7,
     "status": "success",
-    "layout": null,
+    "layout": "invoice_hotel_compact",
     "out": "html_000.jpg"
   },
   {
     "i": 1,
     "scenario": "page_curl",
     "seed": 42001,
-    "duration_s": 175.1,
+    "duration_s": 101.3,
     "status": "success",
     "layout": "newspaper_front_broadsheet",
     "out": "html_001.jpg"
@@ -21,7 +21,7 @@
     "i": 2,
     "scenario": "page_curl",
     "seed": 42002,
-    "duration_s": 186.4,
+    "duration_s": 100.8,
     "status": "success",
     "layout": "insurance_life_schedule",
     "out": "html_002.jpg"
@@ -30,7 +30,7 @@
     "i": 3,
     "scenario": "page_curl",
     "seed": 42003,
-    "duration_s": 183.8,
+    "duration_s": 100.1,
     "status": "success",
     "layout": "newspaper_classifieds",
     "out": "html_003.jpg"
@@ -39,7 +39,7 @@
     "i": 4,
     "scenario": "folded",
     "seed": 42004,
-    "duration_s": 180.8,
+    "duration_s": 97.2,
     "status": "success",
     "layout": "eatery_ascii",
     "out": "html_004.jpg"
@@ -48,7 +48,7 @@
     "i": 5,
     "scenario": "folded",
     "seed": 42005,
-    "duration_s": 197.2,
+    "duration_s": 108.0,
     "status": "success",
     "layout": "invoice_brand",
     "out": "html_005.jpg"
@@ -57,7 +57,7 @@
     "i": 6,
     "scenario": "folded",
     "seed": 42006,
-    "duration_s": 168.9,
+    "duration_s": 97.4,
     "status": "success",
     "layout": "eatery_indexed_b",
     "out": "html_006.jpg"
@@ -66,7 +66,7 @@
     "i": 7,
     "scenario": "folded",
     "seed": 42007,
-    "duration_s": 173.7,
+    "duration_s": 104.2,
     "status": "success",
     "layout": "form_multi_section",
     "out": "html_007.jpg"
@@ -75,7 +75,7 @@
     "i": 8,
     "scenario": "lifted_corner",
     "seed": 42008,
-    "duration_s": 188.7,
+    "duration_s": 107.6,
     "status": "success",
     "layout": "insurance_travel_certificate",
     "out": "html_008.jpg"
@@ -84,7 +84,7 @@
     "i": 9,
     "scenario": "lifted_corner",
     "seed": 42009,
-    "duration_s": 184.1,
+    "duration_s": 103.4,
     "status": "success",
     "layout": "invoice_vat_summary",
     "out": "html_009.jpg"
@@ -93,7 +93,7 @@
     "i": 10,
     "scenario": "lifted_corner",
     "seed": 42010,
-    "duration_s": 176.9,
+    "duration_s": 100.9,
     "status": "success",
     "layout": "invoice_power",
     "out": "html_010.jpg"
@@ -102,7 +102,7 @@
     "i": 11,
     "scenario": "lifted_corner",
     "seed": 42011,
-    "duration_s": 186.1,
+    "duration_s": 99.2,
     "status": "success",
     "layout": "invoice_power",
     "out": "html_011.jpg"
@@ -111,7 +111,7 @@
     "i": 12,
     "scenario": "crease_bundle",
     "seed": 42012,
-    "duration_s": 97.6,
+    "duration_s": 67.7,
     "status": "success",
     "layout": "authorisation_letter",
     "out": "html_012.jpg"
@@ -120,7 +120,7 @@
     "i": 13,
     "scenario": "crease_bundle",
     "seed": 42013,
-    "duration_s": 161.9,
+    "duration_s": 97.6,
     "status": "success",
     "layout": "insurance_cargo_policy",
     "out": "html_013.jpg"
@@ -129,7 +129,7 @@
     "i": 14,
     "scenario": "crease_bundle",
     "seed": 42014,
-    "duration_s": 158.9,
+    "duration_s": 99.5,
     "status": "success",
     "layout": "form_two_column",
     "out": "html_014.jpg"
@@ -138,7 +138,7 @@
     "i": 15,
     "scenario": "crease_bundle",
     "seed": 42015,
-    "duration_s": 191.8,
+    "duration_s": 106.6,
     "status": "success",
     "layout": "insurance_life_schedule",
     "out": "html_015.jpg"
@@ -147,7 +147,7 @@
     "i": 16,
     "scenario": "crumple",
     "seed": 42016,
-    "duration_s": 180.2,
+    "duration_s": 104.7,
     "status": "success",
     "layout": "invoice_hotel_stay",
     "out": "html_016.jpg"
@@ -156,7 +156,7 @@
     "i": 17,
     "scenario": "crumple",
     "seed": 42017,
-    "duration_s": 190.8,
+    "duration_s": 109.2,
     "status": "success",
     "layout": "insurance_fire_certificate",
     "out": "html_017.jpg"
@@ -165,7 +165,7 @@
     "i": 18,
     "scenario": "crumple",
     "seed": 42018,
-    "duration_s": 182.7,
+    "duration_s": 108.4,
     "status": "success",
     "layout": "insurance_health_certificate",
     "out": "html_018.jpg"
@@ -174,7 +174,7 @@
     "i": 19,
     "scenario": "crumple",
     "seed": 42019,
-    "duration_s": 183.8,
+    "duration_s": 100.2,
     "status": "success",
     "layout": "eatery_indexed",
     "out": "html_019.jpg"

@@ -17,24 +17,28 @@ cong lên" hơn là "va vào vật gì đó").
 
 ## Kết quả batch
 
-**20/20 thành công, 0 lỗi.** Ảnh #0 khôi phục từ một lần chạy trước bị lỗi
-thư mục output chưa kịp tạo (crash ở đúng bước copy file, không phải ở
-render) — ảnh vẫn hợp lệ, chỉ không đo được thời gian riêng. 19 ảnh còn lại
-chạy tiếp từ chỗ dừng, mỗi ảnh vẫn là một tiến trình `render.py -c 1` riêng.
+**20/20 thành công, 0 lỗi.** Dựng lại cùng 20 seed sau khi crop ảnh về đúng
+khung trang và giảm sample Cycles/khung hình mô phỏng — cùng đổi đã áp cho
+`page_curl20/`, xem README ở đó cho chi tiết cơ chế crop. Mỗi ảnh vẫn là một
+tiến trình `render.py -c 1` riêng (bản dựng đầu từng crash ở bước copy file
+của ảnh #0 vì thư mục output chưa kịp tạo; lần này chạy trọn từ đầu, không
+còn ảnh nào thiếu thời gian đo).
 
 | | |
 | --- | ---: |
 | Số ảnh | 20 |
 | Thành công | 20 |
 | Lỗi | 0 |
-| Tổng thời gian (19 ảnh đo được) | 3349.4s (≈ 55 phút 49 giây) |
-| Trung bình / ảnh | 176.3s |
-| Nhanh nhất | 97.6s |
-| Chậm nhất | 197.2s |
+| Tổng thời gian | 2007.7s (≈ 33 phút 28 giây) |
+| Trung bình / ảnh | 100.4s |
+| Nhanh nhất | 67.7s |
+| Chậm nhất | 109.2s |
 
-Nhanh hơn `page_curl20/` một chút (176s vs 217s trung bình) dù cùng cơ chế —
-chênh lệch nằm trong biên độ tự nhiên giữa các lần chạy (khởi động Chromium +
-Blender mỗi ảnh), không phải do kịch bản nào nhanh hơn hẳn kịch bản khác.
+Cùng tốc độ với `page_curl20/` (100.4s vs 96.9s trung bình) — chênh lệch nằm
+trong biên độ tự nhiên giữa các lần chạy, không phải do kịch bản nào nhanh
+hơn hẳn kịch bản khác. Ngoại lệ là seed 42012 (`crease_bundle`, 67.7s): nếp
+gấp che gần hết trang nên vùng crop cuối cùng rất nhỏ (155×213) — vẫn đọc
+được, chỉ ít pixel để render hơn.
 
 ## Một lỗi thật bắt được khi chuẩn bị bộ này
 
@@ -53,28 +57,28 @@ Xem commit sửa lỗi trong lịch sử `degradation/blender/` để biết chi
 
 ## Từng ảnh
 
-| # | kịch bản | seed | layout | trạng thái | thời gian (s) |
-| --: | --- | --: | --- | --- | --: |
-| 0 | page_curl | 42000 | — | success | — (không đo, ảnh khôi phục từ lần chạy bị lỗi thư mục) |
-| 1 | page_curl | 42001 | newspaper_front_broadsheet | success | 175.1 |
-| 2 | page_curl | 42002 | insurance_life_schedule | success | 186.4 |
-| 3 | page_curl | 42003 | newspaper_classifieds | success | 183.8 |
-| 4 | folded | 42004 | eatery_ascii | success | 180.8 |
-| 5 | folded | 42005 | invoice_brand | success | 197.2 |
-| 6 | folded | 42006 | eatery_indexed_b | success | 168.9 |
-| 7 | folded | 42007 | form_multi_section | success | 173.7 |
-| 8 | lifted_corner | 42008 | insurance_travel_certificate | success | 188.7 |
-| 9 | lifted_corner | 42009 | invoice_vat_summary | success | 184.1 |
-| 10 | lifted_corner | 42010 | invoice_power | success | 176.9 |
-| 11 | lifted_corner | 42011 | invoice_power | success | 186.1 |
-| 12 | crease_bundle | 42012 | authorisation_letter | success | 97.6 |
-| 13 | crease_bundle | 42013 | insurance_cargo_policy | success | 161.9 |
-| 14 | crease_bundle | 42014 | form_two_column | success | 158.9 |
-| 15 | crease_bundle | 42015 | insurance_life_schedule | success | 191.8 |
-| 16 | crumple | 42016 | invoice_hotel_stay | success | 180.2 |
-| 17 | crumple | 42017 | insurance_fire_certificate | success | 190.8 |
-| 18 | crumple | 42018 | insurance_health_certificate | success | 182.7 |
-| 19 | crumple | 42019 | eatery_indexed | success | 183.8 |
+| # | kịch bản | seed | layout | trạng thái | thời gian (s) | kích thước |
+| --: | --- | --: | --- | --- | --: | --: |
+| 0 | page_curl | 42000 | invoice_hotel_compact | success | 93.7 | 422×763 |
+| 1 | page_curl | 42001 | newspaper_front_broadsheet | success | 101.3 | 532×759 |
+| 2 | page_curl | 42002 | insurance_life_schedule | success | 100.8 | 518×692 |
+| 3 | page_curl | 42003 | newspaper_classifieds | success | 100.1 | 481×728 |
+| 4 | folded | 42004 | eatery_ascii | success | 97.2 | 427×786 |
+| 5 | folded | 42005 | invoice_brand | success | 108.0 | 465×751 |
+| 6 | folded | 42006 | eatery_indexed_b | success | 97.4 | 381×786 |
+| 7 | folded | 42007 | form_multi_section | success | 104.2 | 499×713 |
+| 8 | lifted_corner | 42008 | insurance_travel_certificate | success | 107.6 | 733×485 |
+| 9 | lifted_corner | 42009 | invoice_vat_summary | success | 103.4 | 488×703 |
+| 10 | lifted_corner | 42010 | invoice_power | success | 100.9 | 513×738 |
+| 11 | lifted_corner | 42011 | invoice_power | success | 99.2 | 507×723 |
+| 12 | crease_bundle | 42012 | authorisation_letter | success | 67.7 | 155×213 |
+| 13 | crease_bundle | 42013 | insurance_cargo_policy | success | 97.6 | 341×475 |
+| 14 | crease_bundle | 42014 | form_two_column | success | 99.5 | 343×488 |
+| 15 | crease_bundle | 42015 | insurance_life_schedule | success | 106.6 | 577×745 |
+| 16 | crumple | 42016 | invoice_hotel_stay | success | 104.7 | 572×765 |
+| 17 | crumple | 42017 | insurance_fire_certificate | success | 109.2 | 505×730 |
+| 18 | crumple | 42018 | insurance_health_certificate | success | 108.4 | 585×713 |
+| 19 | crumple | 42019 | eatery_indexed | success | 100.2 | 440×738 |
 
 
 ## Kiểm tra đã chạy
