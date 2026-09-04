@@ -26,11 +26,24 @@ Lần chạy gần nhất: **138 hộp run** (77 + 61) và **37 khối vùng** (
 | `*-proof.png` | **run** — mỗi đoạn chữ một hộp | ba trục có gán đúng cho từng đoạn chữ không |
 | `*-region.png` | **khối** — mỗi vùng đúng một hộp | trục 1 chia trang có hợp lý không |
 
-Ảnh trục 1 không suy ra được từ ảnh ba trục. Bao lồi của các run trong một bảng
-nằm **gọn bên trong** đường kẻ: thiếu lề ô, thiếu hàng rỗng, thiếu chính đường
-kẻ. Nên hộp vùng đo **thẳng từ phần tử** — `data-region-box` đánh dấu khối và
-`getBoundingClientRect()` của nó đã bao gồm border. Bảng ra đúng một hộp theo
-đường kẻ, không phải hai chục hộp nhỏ theo chữ.
+Hộp vùng **không phải** bao lồi của các run: bao lồi trong một bảng nằm gọn bên
+trong đường kẻ — thiếu lề ô, thiếu hàng rỗng, thiếu chính đường kẻ.
+
+Nhưng nó cũng **không phải** hộp của thẻ chứa: một `<div>` tiêu đề là block nên
+rộng cả khổ giấy, trong khi chữ căn giữa chỉ chiếm một phần ba — và chỗ trống
+hai bên không có gì được vẽ ra cả.
+
+Định nghĩa đúng là thứ một người gán nhãn sẽ khoanh: **mực, cộng với hình mà
+vùng ấy tự vẽ ra**. Hộp vùng là hợp của hai thứ — hộp của mọi run bên trong, và
+hộp của mọi phần tử **có viền hoặc có nền**.
+
+| vùng | ra hộp nào | vì |
+| --- | --- | --- |
+| `Table` | theo đường kẻ | bảng vẽ đường kẻ |
+| `Section-Header` (dải xanh) | cả bề ngang | dải có nền |
+| `Code-Block`, `Figure`, `Complex-Block` | cả khung | có viền/nền |
+| `Title` | ôm sát chữ | không vẽ gì cả |
+| `Text` (đoạn văn) | cả bề ngang | vì chữ căn đều thật sự rộng thế |
 
 ## Ba trục, và trục nào thuộc về ai
 

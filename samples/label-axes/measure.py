@@ -71,17 +71,52 @@ PAGES = ("page.html", "page2.html")
 # run bên trong: bao lồi của chữ nằm gọn bên trong đường kẻ, thiếu mất lề ô, và
 # thiếu cả hàng nào tình cờ rỗng.
 #
-# Nên nó được đo thẳng từ chính phần tử: `data-region-box` đánh dấu khối, và
-# `getBoundingClientRect()` của phần tử ấy đã bao gồm border.
+# Nhưng cũng KHÔNG phải hộp của thẻ chứa: một `<div>` tiêu đề là block, nên nó
+# rộng cả khổ giấy trong khi chữ căn giữa chỉ chiếm một phần ba -- và chỗ trống
+# hai bên không có gì được vẽ ra cả.
+#
+# Định nghĩa đúng là thứ một người gán nhãn sẽ khoanh: **mực, cộng với hình mà
+# vùng ấy tự vẽ ra**. Nên hộp vùng là hợp của hai thứ -- hộp của mọi run bên
+# trong, và hộp của mọi phần tử CÓ viền hoặc CÓ nền. Bảng lấy theo đường kẻ vì
+# đường kẻ là hình nó vẽ; tiêu đề bám sát chữ vì nó không vẽ gì.
 REGION_BOX_JS = """() => {
   const sheet = document.querySelector('#sheet').getBoundingClientRect();
+  // Có vẽ ra gì không: viền thấy được, hoặc nền không trong suốt. Đây là phép
+  // thử phân biệt "khối này CÓ hình" với "khối này chỉ là chỗ xếp chữ".
+  const paints = (el) => {
+    const st = getComputedStyle(el);
+    const bg = st.backgroundColor;
+    if (bg && bg !== 'transparent' && !/rgba\(0,\s*0,\s*0,\s*0\)/.test(bg)) return true;
+    for (const side of ['Top', 'Right', 'Bottom', 'Left']) {
+      const w = parseFloat(st['border' + side + 'Width']);
+      const style = st['border' + side + 'Style'];
+      if (w > 0 && style && style !== 'none' && style !== 'hidden') return true;
+    }
+    return false;
+  };
+  const grow = (u, r) => {
+    if (r.width < 1 && r.height < 1) return u;
+    return u === null ? {l: r.left, t: r.top, r: r.right, b: r.bottom}
+      : {l: Math.min(u.l, r.left), t: Math.min(u.t, r.top),
+         r: Math.max(u.r, r.right), b: Math.max(u.b, r.bottom)};
+  };
   const out = [];
   for (const el of document.querySelectorAll('#sheet [data-region-box]')) {
-    const b = el.getBoundingClientRect();
-    if (b.width < 1 || b.height < 1) continue;
+    let u = null;
+    // 1. mực: hợp của mọi run có nhãn bên trong. Một tiêu đề căn giữa thì đây
+    //    là chính chữ ấy, không phải cả bề ngang tờ giấy.
+    for (const run of el.querySelectorAll('[data-kind]')) u = grow(u, run.getBoundingClientRect());
+    if (el.hasAttribute('data-kind')) u = grow(u, el.getBoundingClientRect());
+    // 2. hình: hộp của chính khối và của mọi con CÓ VẼ ra gì -- đường kẻ bảng,
+    //    dải nền, khung ảnh. Đó là phần thuộc về vùng mà mực không chạm tới.
+    if (paints(el)) u = grow(u, el.getBoundingClientRect());
+    for (const kid of el.querySelectorAll('*')) {
+      if (paints(kid)) u = grow(u, kid.getBoundingClientRect());
+    }
+    if (u === null) continue;
     out.push({region: el.dataset.regionBox,
-              x: b.left - sheet.left, y: b.top - sheet.top,
-              w: b.width, h: b.height});
+              x: u.l - sheet.left, y: u.t - sheet.top,
+              w: u.r - u.l, h: u.b - u.t});
   }
   return out;
 }"""
