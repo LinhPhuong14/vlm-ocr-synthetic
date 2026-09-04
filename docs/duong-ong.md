@@ -439,7 +439,7 @@ sequenceDiagram
     W->>DG: apply_recipe(ảnh, recipe)
     DG-->>W: ảnh đã làm cũ, CÙNG KÍCH THƯỚC
     W->>R: warp + downscale — glyph cả hai luôn; html cong NẾU recipe bốc
-    Note over R: `augmentation.warp` (rulebase/rules/augmentation.yaml,<br/>degradation/geometry.py) — genalog vẫn chỉ downscale
+    Note over R: `augmentation.warp` (rulebase/rules/augmentation.yaml,<br/>degradation/blender/ — render Blender thật) — genalog vẫn chỉ downscale
     R-->>W: ảnh cuối + quad đã biến đổi
     W->>IV: kiểm
     Note over IV: tiền · quad trong khung · không ô glyph rỗng<br/>mọi giá trị nhãn đều được in<br/>ô hand phải CÓ MỰC trong hộp

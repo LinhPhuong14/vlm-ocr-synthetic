@@ -21,6 +21,9 @@ extend-exclude = [
     "generators/genalog/docs",
     "generators/genalog/setup.py",
     "augmentations",
+    # Runs inside Blender's own Python (3.10+), not this repo's py38 floor -- parenthesized
+    # `with` (PEP 617) and anything else newer than 3.8 is fine there. See its own NOTICE.md.
+    "degradation/blender/vendor",
     ".venv*",
 ]
 

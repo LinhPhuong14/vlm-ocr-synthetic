@@ -442,26 +442,32 @@ options:
   # dịch chuyển pixel (xem `generators/html/render.py`'s kiểm tra ngay sau
   # `apply_recipe`). Ba giá trị dưới đây là chỗ duy nhất một trang được phép
   # cong -- qua `params.warp`, đọc riêng bởi `render.py` SAU chuỗi `chain` và
-  # SAU kiểm tra ấy, rồi áp bằng `degradation.geometry.warp_regions` lên cả ba
-  # tập hộp của trang (`boxes`, `words`, `cells`) cùng lúc. Xem
-  # `degradation/geometry.py` cho công thức và vì sao nó không nằm trong
-  # `degradation.DEGRADATIONS`.
+  # SAU kiểm tra ấy, rồi áp bằng `degradation.blender.warp_regions` lên cả ba
+  # tập hộp của trang (`boxes`, `words`, `cells`) cùng lúc.
   #
-  # `warp.name` là một khoá của `degradation.geometry.WARPS`; `warp.params`
-  # truyền thẳng vào hàm ấy, mỗi tham số nhận số cố định hoặc `(low, high)`.
+  # Bước này RENDER THẬT qua Blender -- mesh giấy cong (numpy, xem
+  # `degradation/blender/meshes.py`), vật liệu giấy, camera phối cảnh và ánh
+  # sáng thật (vendor từ github.com/tanguymagne/SyntheticDoc, MIT, xem
+  # `degradation/blender/vendor/NOTICE.md`). Không phải mô phỏng lại: bản đầu
+  # của ba giá trị này là warp pixel 2D thuần numpy, và so với ảnh mẫu của
+  # SyntheticDoc thì thiếu đúng phần làm nó ĐỌC RA là giấy cong -- phối cảnh
+  # thật và bóng đổ theo pháp tuyến bề mặt thật, không xấp xỉ được bằng cách
+  # tô lại pixel. ARCSim (mô phỏng vật lý của SyntheticDoc) KHÔNG được dùng --
+  # giấy phép phi thương mại; mesh biến dạng ở đây là mặt cong giải tích dựng
+  # bằng numpy, không mô phỏng vật lý gì. Xem `degradation/blender/meshes.py`'s
+  # docstring.
   #
-  # `page_curl` mở rộng `CurlWarp` (SynthDoG-VN) từ giấy nhiệt ra mọi trang.
-  # `folded` và `lifted_corner` là xấp xỉ 2D của dáng giấy SyntheticDoc mô
-  # phỏng vật lý bằng ARCSim + Blender (github.com/tanguymagne/SyntheticDoc,
-  # `fold_by_pull` và `fall_on_ball`/`fall_on_roller`) -- kỹ thuật mượn, không
-  # phải mã: ARCSim chỉ cấp phép phi thương mại và Blender là một path tracer
-  # chạy GPU ngoài pip, cả hai không hợp kiến trúc "một renderer, CI thuần
-  # Python" của repo này.
+  # `warp.name` là một khoá của `degradation.blender.meshes.MESHES`; `warp.params`
+  # truyền thẳng vào hàm dựng mesh ấy, mỗi tham số nhận số cố định hoặc
+  # `(low, high)`. Chi phí: một lượt gọi Blender, vài giây tới hơn một phút một
+  # trang -- không phải milli-giây như mọi model khác trong `degradation/`.
   #
   # `enabled: false` cả ba: đã nối dây đủ (rule-base, renderer, test), nhưng
   # chưa lượt nào nhìn qua ảnh thật để chỉnh biên độ, nên chưa vào lượt bốc
-  # mặc định. Dựng thử: `--force augmentation=page_curl` (hoặc `folded`,
-  # `lifted_corner`).
+  # mặc định -- và chi phí thời gian ở trên cũng không hợp một lượt chạy toàn
+  # bộ dataset cho tới khi có quyết định khác. Dựng thử:
+  # `--force augmentation=page_curl` (hoặc `folded`, `lifted_corner`). Cần
+  # Blender cài sẵn -- `make setup-blender`.
 
   - id: page_curl
     enabled: false
@@ -473,9 +479,7 @@ options:
       warp:
         name: page_curl
         params:
-          shift: [0.0, 0.02]
-          squeeze: [0.0, 0.05]
-          wave: [0.0, 0.008]
+          angle: [20.0, 45.0]
 
   - id: folded
     enabled: false
@@ -490,9 +494,8 @@ options:
         params:
           axis: x
           position: [0.35, 0.65]
-          depth: [0.015, 0.035]
-          width: [0.06, 0.10]
-          shade_strength: [0.6, 0.95]
+          angle: [25.0, 55.0]
+          crease_width_ratio: [0.03, 0.06]
 
   - id: lifted_corner
     enabled: false
@@ -505,5 +508,5 @@ options:
       warp:
         name: corner_bulge
         params:
-          radius: [0.25, 0.4]
-          depth: [0.03, 0.06]
+          radius_ratio: [0.3, 0.5]
+          depth: [0.02, 0.05]
