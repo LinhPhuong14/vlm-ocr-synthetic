@@ -1,0 +1,168 @@
+<!--
+  Trang 3: tài liệu kỹ thuật phần mềm — nơi `Code-Block` có thật.
+
+  Trang này tồn tại vì một lý do: bản trước đặt một hàm Python vào giữa một
+  tiêu chuẩn TCVN về phân tích nitơ, chỉ để lớp `Code-Block` xuất hiện trên
+  ảnh proof. Nội dung bịa cho vừa cái nhãn là đúng thứ đầu độc một bộ dữ liệu
+  huấn luyện — mô hình học được rằng tài liệu hoá học có mã nguồn.
+
+  Nên khối mã chuyển về đây, và ở đây nó là thứ tự nhiên nhất trên trang.
+-->
+<style>
+  #sheet{
+    position:relative; width:794px; min-height:1123px; margin:0 auto;
+    background:#fff; color:#111; padding:34px 44px 30px;
+    font-family:LiberationSerif,'DejaVu Serif',serif; font-size:12.5px; line-height:1.5;
+  }
+  #sheet *{box-sizing:border-box;}
+
+  /* `display:block` trên span có nhãn thì hộp rộng bằng cả khối; `width:max-content`
+     giữ việc xuống dòng mà hộp vẫn bám chữ. Xem README. */
+  [data-ink="print"]{}
+  [data-ink="hand"]{font-family:PatrickHand,'Segoe Script',cursive; font-size:14px; color:#1a2f6b;}
+  [data-ink="dotmatrix"]{font-family:LiberationMono,monospace; letter-spacing:.08em; color:#2b2b2b;}
+  [data-ink="thermal"]{font-family:LiberationMono,monospace; color:#4a4a4a; opacity:.72;}
+  [data-ink="reversed"]{color:#fff;}
+  [data-ink="stamp"]{font-family:LiberationSans,sans-serif; font-weight:700; color:#a8281e;}
+
+  .h-run{display:flex; justify-content:space-between; font-size:10.5px; color:#666;
+         border-bottom:.5px solid #bbb; padding-bottom:4px; margin-bottom:14px;}
+  .t-doc{text-align:center; margin-bottom:6px;}
+  .t-doc .t{font-size:19px; font-weight:700; display:block; width:max-content;
+            margin-left:auto; margin-right:auto; letter-spacing:.02em;}
+  .t-doc .s{font-size:11.5px; color:#555; display:block; width:max-content;
+            margin-left:auto; margin-right:auto; margin-top:3px;}
+  .h2{font-weight:700; font-size:13.5px; display:block; width:max-content; margin:16px 0 5px;}
+  .p{text-align:justify; margin:0 0 8px;}
+  /* KHÔNG dùng <code> lồng trong span có nhãn: `CELL_RECTS_JS` đo
+     `span.firstElementChild || span`, nên thẻ con lặng lẽ thành cái hộp. Đo
+     được trên trang này trước khi bỏ: đoạn văn 60 px thay vì 706. Cần chữ
+     đẳng khoảng thì đặt CSS lên CHÍNH span mang nhãn. */
+  .mono{font-family:LiberationMono,monospace; font-size:.92em;}
+
+  /* Khối mã: nền chìm + viền trái. Nền LÀ vùng, nên hộp lấy cả tấm nền —
+     khác với khung nét đứt quanh sơ đồ ở trang 2, thứ chỉ vẽ cho dễ nhìn. */
+  .code{background:#f4f6f8; border:.5px solid #d6dee6; border-left:2.5px solid #1d3b5c;
+        padding:9px 12px; margin:10px 0; font-family:LiberationMono,monospace;
+        font-size:11.5px; line-height:1.6;}
+  .code span{display:block; width:max-content;}
+
+  .tbl{width:100%; border-collapse:collapse; margin:10px 0; font-size:11.5px;}
+  .tbl th,.tbl td{border:.5px solid #b9c4cf; padding:4px 7px; text-align:left;}
+  .tbl thead th{background:#eef3f9; font-weight:600;}
+  .tbl td.m{font-family:LiberationMono,monospace;}
+
+  .list ul{margin:0; padding-left:0; list-style:none;}
+  .list li{margin-bottom:3px; display:flex; gap:7px;}
+  .list li .no{flex:none;}
+
+  .fn{border-top:.5px solid #bbb; margin-top:16px; padding-top:6px;
+      font-size:10.5px; color:#555;}
+  .fn span{display:block; width:max-content; margin-bottom:2px;}
+  .foot{display:flex; justify-content:space-between; margin-top:20px; padding-top:5px;
+        border-top:.5px solid #bbb; font-size:10.5px; color:#666;}
+</style>
+
+<div id="sheet">
+
+<div class="h-run">
+  <span data-region="Page-Header" data-role="note" data-ink="print"
+        data-region-box="Page-Header" data-kind="head.doc">Tài liệu kỹ thuật · API Hoá đơn điện tử v2.4</span>
+  <span data-region="Page-Header" data-role="note" data-ink="print"
+        data-region-box="Page-Header" data-kind="head.page">Trang 7/32</span>
+</div>
+
+<div class="t-doc">
+  <span class="t" data-region="Title" data-role="heading" data-ink="print"
+        data-region-box="Title" data-kind="doc.title">TRA CỨU TRẠNG THÁI HOÁ ĐƠN</span>
+  <span class="s" data-region="Title" data-role="subheading" data-ink="print"
+        data-kind="doc.subtitle">Mục 3.2 — Điểm cuối GET /v2/invoices/{id}</span>
+</div>
+
+<span class="h2" data-region="Section-Header" data-role="heading" data-ink="print"
+      data-region-box="Section-Header" data-kind="sec.title">3.2.1 Mô tả</span>
+<p class="p" data-region-box="Text"><span data-region="Text" data-role="body" data-ink="print"
+   data-kind="sec.body">Trả về trạng thái phát hành của một hoá đơn theo mã định danh do
+   hệ thống cấp. Điểm cuối này chỉ đọc, không thay đổi trạng thái, và có thể gọi lại nhiều
+   lần với cùng kết quả. Khi hoá đơn chưa được cơ quan thuế chấp nhận, trường
+   tax_code để trống thay vì trả về giá trị tạm.</span></p>
+
+<span class="h2" data-region="Section-Header" data-role="heading" data-ink="print"
+      data-region-box="Section-Header" data-kind="sec.title">3.2.2 Tham số đường dẫn</span>
+<table class="tbl" data-region-box="Table">
+  <thead>
+    <tr>
+      <th><span data-region="Table" data-role="colhdr" data-ink="print" data-kind="col.name">Tham số</span></th>
+      <th><span data-region="Table" data-role="colhdr" data-ink="print" data-kind="col.type">Kiểu</span></th>
+      <th><span data-region="Table" data-role="colhdr" data-ink="print" data-kind="col.desc">Mô tả</span></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="m"><span data-region="Table" data-role="cell" data-ink="print" data-kind="param.name">id</span></td>
+      <td><span data-region="Table" data-role="cell" data-ink="print" data-kind="param.type">chuỗi</span></td>
+      <td><span data-region="Table" data-role="cell" data-ink="print" data-kind="param.desc">Mã định danh hoá đơn, 26 ký tự, phân biệt hoa thường</span></td>
+    </tr>
+    <tr>
+      <td class="m"><span data-region="Table" data-role="cell" data-ink="print" data-kind="param.name">expand</span></td>
+      <td><span data-region="Table" data-role="cell" data-ink="print" data-kind="param.type">chuỗi</span></td>
+      <td><span data-region="Table" data-role="cell" data-ink="print" data-kind="param.desc">Danh sách trường lồng cần trả kèm, ngăn bằng dấu phẩy</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<span class="h2" data-region="Section-Header" data-role="heading" data-ink="print"
+      data-region-box="Section-Header" data-kind="sec.title">3.2.3 Ví dụ gọi</span>
+<div class="code" data-region-box="Code-Block">
+  <span data-region="Code-Block" data-role="body" data-ink="print"
+        data-kind="code.line">curl -sS https://api.hddt.vn/v2/invoices/INV26031400042317 \</span>
+  <span data-region="Code-Block" data-role="body" data-ink="print"
+        data-kind="code.line">     -H "Authorization: Bearer $TOKEN" \</span>
+  <span data-region="Code-Block" data-role="body" data-ink="print"
+        data-kind="code.line">     -d expand=seller,buyer</span>
+</div>
+
+<span class="h2" data-region="Section-Header" data-role="heading" data-ink="print"
+      data-region-box="Section-Header" data-kind="sec.title">3.2.4 Phản hồi</span>
+<div class="code" data-region-box="Code-Block">
+  <span data-region="Code-Block" data-role="body" data-ink="print" data-kind="code.line">{</span>
+  <span data-region="Code-Block" data-role="body" data-ink="print" data-kind="code.line">  "id": "INV26031400042317",</span>
+  <span data-region="Code-Block" data-role="body" data-ink="print" data-kind="code.line">  "serial": "1C26TYY",</span>
+  <span data-region="Code-Block" data-role="body" data-ink="print" data-kind="code.line">  "status": "accepted",</span>
+  <span data-region="Code-Block" data-role="body" data-ink="print" data-kind="code.line">  "tax_code": "M1-26-0004231",</span>
+  <span data-region="Code-Block" data-role="body" data-ink="print" data-kind="code.line">  "total": 1628640</span>
+  <span data-region="Code-Block" data-role="body" data-ink="print" data-kind="code.line">}</span>
+</div>
+
+<span class="h2" data-region="Section-Header" data-role="heading" data-ink="print"
+      data-region-box="Section-Header" data-kind="sec.title">3.2.5 Mã lỗi cần xử lý</span>
+<div class="list">
+  <ul data-region-box="List-Group">
+    <li><span class="no" data-region="List-Group" data-role="item" data-ink="print"
+              data-kind="list.marker">—</span><span
+              data-region="List-Group" data-role="item" data-ink="print"
+              data-kind="list.item">404 — mã định danh không tồn tại hoặc đã bị thu hồi.</span></li>
+    <li><span class="no" data-region="List-Group" data-role="item" data-ink="print"
+              data-kind="list.marker">—</span><span
+              data-region="List-Group" data-role="item" data-ink="print"
+              data-kind="list.item">409 — hoá đơn đang chờ cơ quan thuế phản hồi; gọi lại sau 30 giây.</span></li>
+    <li><span class="no" data-region="List-Group" data-role="item" data-ink="print"
+              data-kind="list.marker">—</span><span
+              data-region="List-Group" data-role="item" data-ink="print"
+              data-kind="list.item">429 — vượt hạn mức 600 lượt mỗi phút trên mỗi mã số thuế.</span></li>
+  </ul>
+</div>
+
+<div class="fn">
+  <span data-region="Footnote" data-role="note" data-ink="print"
+        data-region-box="Footnote" data-kind="fn.entry">¹ Hạn mức tính theo cửa sổ trượt 60 giây, không phải theo phút đồng hồ.</span>
+</div>
+
+<div class="foot">
+  <span data-region="Page-Footer" data-role="note" data-ink="print"
+        data-region-box="Page-Footer" data-kind="foot.note">© 2026 — tài liệu nội bộ, không phát hành ra ngoài</span>
+  <span data-region="Page-Footer" data-role="value" data-ink="dotmatrix"
+        data-region-box="Page-Footer" data-kind="foot.doc_id">API-HDDT-2.4-P07</span>
+</div>
+
+</div>

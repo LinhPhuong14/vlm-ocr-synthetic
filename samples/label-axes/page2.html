@@ -200,17 +200,17 @@
         data-kind="fig.caption">Hình 4.1 — Sơ đồ lắp bộ chưng cất, bình hứng đặt ngập đầu ống dẫn.</span>
 </div>
 
-<!-- ══ Code-Block ══ role: body -->
+<!-- Ở đây bản trước có một hàm Python. Một tiêu chuẩn TCVN về phân tích nitơ
+     không chứa mã nguồn — nó có mặt chỉ để lớp `Code-Block` xuất hiện. Nội
+     dung bịa cho vừa cái nhãn là đúng thứ đầu độc một bộ dữ liệu, nên nó bị bỏ
+     đi và `Code-Block` chuyển sang `page3.html`, một trang tài liệu kỹ thuật
+     phần mềm — nơi mã nguồn có thật. -->
 <span class="b-h" data-region-box="Section-Header" data-region="Section-Header" data-role="heading" data-ink="print"
       data-kind="sec.title">4.3 Tính kết quả</span>
-<div class="b-code" data-region-box="Code-Block">
-  <span data-region="Code-Block" data-role="body" data-ink="print"
-        data-kind="code.line">def nito_tong(v1: float, v0: float, c: float, m: float) -&gt; float:</span>
-  <span data-region="Code-Block" data-role="body" data-ink="print"
-        data-kind="code.line">    """Hàm lượng nitơ tổng số, % khối lượng — công thức (4.1)."""</span>
-  <span data-region="Code-Block" data-role="body" data-ink="print"
-        data-kind="code.line">    return (v1 - v0) * c * 14.007 * 100 / m</span>
-</div>
+<p class="b-p" data-region-box="Text"><span data-region="Text" data-role="body" data-ink="print"
+   data-kind="sec.body">Kết quả là trung bình cộng của hai lần xác định song
+   song, làm tròn đến 0,01 % khối lượng. Báo cáo thử nghiệm phải ghi rõ phương
+   pháp viện dẫn, khối lượng phần mẫu thử và nhiệt độ vô cơ hoá đã dùng.</span></p>
 
 <!-- ══ List-Group ══ role: item -->
 <div class="b-list">
@@ -233,40 +233,47 @@
   </ul>
 </div>
 
-<!-- ══ Complex-Block ══ khối con có region KHÁC NHAU, tách ra là mất nghĩa.
-     Đây là định nghĩa chặt của lớp này, và nó phải chặt: một lớp "gộp" định
-     nghĩa lỏng sẽ thành cái sọt rác mới, đúng vai mà `Text` đang giữ. -->
-<div class="b-cx" data-region-box="Complex-Block">
-  <span class="t" data-region="Complex-Block" data-role="heading" data-ink="print"
-        data-kind="cx.title">Bảng 4.2 — Giới hạn phát hiện theo nền mẫu, kèm chú giải</span>
-  <table>
+<!-- ══ Caption + Table + Footnote ══ ba vùng, không phải một khối gộp.
+     Bản trước gán cả khối này là `Complex-Block`, và đó là sai. Định nghĩa của
+     lớp ấy là "khối con có region khác nhau và TÁCH RA THÌ MẤT NGHĨA" — mà một
+     bảng có chú thích ở trên và ghi chú ở dưới là cấu trúc thường gặp nhất
+     trong tài liệu kỹ thuật, tách ra không mất gì cả. Mọi bộ dữ liệu bố cục
+     đều gán nó là Caption + Table + Text/Footnote.
+     Lý do thật khiến nó từng là `Complex-Block`: tôi cần lớp ấy xuất hiện trên
+     trang. Đó là chế dữ liệu cho vừa cái nhãn, đúng thứ làm hỏng bộ dữ liệu. -->
+<div class="b-cx">
+  <span class="t" data-region="Caption" data-role="caption" data-ink="print"
+        data-region-box="Caption"
+        data-kind="table.caption">Bảng 4.2 — Giới hạn phát hiện theo nền mẫu, kèm chú giải</span>
+  <table data-region-box="Table">
     <tr>
-      <th><span data-region="Complex-Block" data-role="colhdr" data-ink="print"
-                data-kind="cx.colhdr">Nền mẫu</span></th>
-      <th><span data-region="Complex-Block" data-role="colhdr" data-ink="print"
-                data-kind="cx.colhdr">LOD (% N)</span></th>
-      <th><span data-region="Complex-Block" data-role="colhdr" data-ink="print"
-                data-kind="cx.colhdr">Ghi chú</span></th>
+      <th><span data-region="Table" data-role="colhdr" data-ink="print"
+                data-kind="lod.colhdr">Nền mẫu</span></th>
+      <th><span data-region="Table" data-role="colhdr" data-ink="print"
+                data-kind="lod.colhdr">LOD (% N)</span></th>
+      <th><span data-region="Table" data-role="colhdr" data-ink="print"
+                data-kind="lod.colhdr">Ghi chú</span></th>
     </tr>
     <tr>
-      <td><span data-region="Complex-Block" data-role="cell" data-ink="print"
-                data-kind="cx.cell">Thức ăn chăn nuôi</span></td>
-      <td><span data-region="Complex-Block" data-role="cell" data-ink="print"
-                data-kind="cx.cell">0,02</span></td>
-      <td><span data-region="Complex-Block" data-role="cell" data-ink="print"
-                data-kind="cx.cell">nghiền qua rây 1 mm</span></td>
+      <td><span data-region="Table" data-role="cell" data-ink="print"
+                data-kind="lod.cell">Thức ăn chăn nuôi</span></td>
+      <td><span data-region="Table" data-role="cell" data-ink="print"
+                data-kind="lod.cell">0,02</span></td>
+      <td><span data-region="Table" data-role="cell" data-ink="print"
+                data-kind="lod.cell">nghiền qua rây 1 mm</span></td>
     </tr>
     <tr>
-      <td><span data-region="Complex-Block" data-role="cell" data-ink="print"
-                data-kind="cx.cell">Phân bón hữu cơ</span></td>
-      <td><span data-region="Complex-Block" data-role="cell" data-ink="print"
-                data-kind="cx.cell">0,05</span></td>
-      <td><span data-region="Complex-Block" data-role="cell" data-ink="print"
-                data-kind="cx.cell">sấy 105 °C đến khối lượng không đổi</span></td>
+      <td><span data-region="Table" data-role="cell" data-ink="print"
+                data-kind="lod.cell">Phân bón hữu cơ</span></td>
+      <td><span data-region="Table" data-role="cell" data-ink="print"
+                data-kind="lod.cell">0,05</span></td>
+      <td><span data-region="Table" data-role="cell" data-ink="print"
+                data-kind="lod.cell">sấy 105 °C đến khối lượng không đổi</span></td>
     </tr>
   </table>
-  <span class="n" data-region="Complex-Block" data-role="note" data-ink="print"
-        data-kind="cx.note">Giá trị LOD xác định theo 3σ của mười lần đo mẫu trắng, làm tròn lên.</span>
+  <span class="n" data-region="Footnote" data-role="note" data-ink="print"
+        data-region-box="Footnote"
+        data-kind="table.note">Giá trị LOD xác định theo 3σ của mười lần đo mẫu trắng, làm tròn lên.</span>
 </div>
 
 <!-- ══ Form ══ trên tài liệu kỹ thuật: khối duyệt, có chữ ký tay và dấu -->

@@ -264,17 +264,17 @@
   "page": "page2.html"
  },
  {
-  "region": "Code-Block",
+  "region": "Text",
   "x": 44,
-  "y": 702.90625,
+  "y": 699.90625,
   "w": 794,
-  "h": 73.4375,
+  "h": 32.75,
   "page": "page2.html"
  },
  {
   "region": "Section-Header",
   "x": 44,
-  "y": 788.34375,
+  "y": 745.40625,
   "w": 152.765625,
   "h": 14,
   "page": "page2.html"
@@ -282,23 +282,39 @@
  {
   "region": "List-Group",
   "x": 44,
-  "y": 805.09375,
+  "y": 762.15625,
   "w": 328.09375,
   "h": 62.25,
   "page": "page2.html"
  },
  {
-  "region": "Complex-Block",
-  "x": 44,
-  "y": 881.34375,
-  "w": 794,
-  "h": 148.25,
+  "region": "Caption",
+  "x": 59,
+  "y": 851.40625,
+  "w": 315.328125,
+  "h": 18.75,
+  "page": "page2.html"
+ },
+ {
+  "region": "Table",
+  "x": 59.5,
+  "y": 877.65625,
+  "w": 763,
+  "h": 72.75,
+  "page": "page2.html"
+ },
+ {
+  "region": "Footnote",
+  "x": 59,
+  "y": 957.90625,
+  "w": 298.296875,
+  "h": 15.75,
   "page": "page2.html"
  },
  {
   "region": "Form",
   "x": 44,
-  "y": 1046.59375,
+  "y": 1003.65625,
   "w": 391.625,
   "h": 19,
   "page": "page2.html"
@@ -306,7 +322,7 @@
  {
   "region": "Image",
   "x": 344.9375,
-  "y": 1047.59375,
+  "y": 1004.65625,
   "w": 90.6875,
   "h": 14,
   "page": "page2.html"
@@ -314,7 +330,7 @@
  {
   "region": "Section-Header",
   "x": 44,
-  "y": 1083.34375,
+  "y": 1040.40625,
   "w": 96.40625,
   "h": 20.25,
   "page": "page2.html"
@@ -322,7 +338,7 @@
  {
   "region": "Bibliography",
   "x": 44,
-  "y": 1119.59375,
+  "y": 1076.65625,
   "w": 786.421875,
   "h": 71.75,
   "page": "page2.html"
@@ -330,7 +346,7 @@
  {
   "region": "Footnote",
   "x": 44,
-  "y": 1210.59375,
+  "y": 1167.65625,
   "w": 794,
   "h": 40.5,
   "page": "page2.html"
@@ -338,7 +354,7 @@
  {
   "region": "Page-Footer",
   "x": 44,
-  "y": 1277.09375,
+  "y": 1234.15625,
   "w": 229.4375,
   "h": 15.75,
   "page": "page2.html"
@@ -346,9 +362,137 @@
  {
   "region": "Page-Footer",
   "x": 730.875,
-  "y": 1277.09375,
+  "y": 1234.15625,
   "w": 107.125,
   "h": 15.75,
   "page": "page2.html"
+ },
+ {
+  "region": "Page-Header",
+  "x": 44,
+  "y": 34,
+  "w": 185.9375,
+  "h": 15.75,
+  "page": "page3.html"
+ },
+ {
+  "region": "Page-Header",
+  "x": 792,
+  "y": 34,
+  "w": 46,
+  "h": 15.75,
+  "page": "page3.html"
+ },
+ {
+  "region": "Title",
+  "x": 282.359375,
+  "y": 68.75,
+  "w": 317.265625,
+  "h": 28.5,
+  "page": "page3.html"
+ },
+ {
+  "region": "Section-Header",
+  "x": 44,
+  "y": 133.5,
+  "w": 64.5,
+  "h": 20.25,
+  "page": "page3.html"
+ },
+ {
+  "region": "Text",
+  "x": 44,
+  "y": 160.75,
+  "w": 794,
+  "h": 32.75,
+  "page": "page3.html"
+ },
+ {
+  "region": "Section-Header",
+  "x": 44,
+  "y": 212.25,
+  "w": 145.890625,
+  "h": 20.25,
+  "page": "page3.html"
+ },
+ {
+  "region": "Table",
+  "x": 44.5,
+  "y": 243,
+  "w": 793,
+  "h": 78.75,
+  "page": "page3.html"
+ },
+ {
+  "region": "Section-Header",
+  "x": 44,
+  "y": 338.25,
+  "w": 82.65625,
+  "h": 20.25,
+  "page": "page3.html"
+ },
+ {
+  "region": "Code-Block",
+  "x": 44,
+  "y": 368.5,
+  "w": 794,
+  "h": 75.171875,
+  "page": "page3.html"
+ },
+ {
+  "region": "Section-Header",
+  "x": 44,
+  "y": 459.671875,
+  "w": 81.78125,
+  "h": 20.25,
+  "page": "page3.html"
+ },
+ {
+  "region": "Code-Block",
+  "x": 44,
+  "y": 489.921875,
+  "w": 794,
+  "h": 148.734375,
+  "page": "page3.html"
+ },
+ {
+  "region": "Section-Header",
+  "x": 44,
+  "y": 654.65625,
+  "w": 123.234375,
+  "h": 20.25,
+  "page": "page3.html"
+ },
+ {
+  "region": "List-Group",
+  "x": 44,
+  "y": 679.90625,
+  "w": 360.6875,
+  "h": 62.25,
+  "page": "page3.html"
+ },
+ {
+  "region": "Footnote",
+  "x": 44,
+  "y": 765.15625,
+  "w": 303.59375,
+  "h": 15.75,
+  "page": "page3.html"
+ },
+ {
+  "region": "Page-Footer",
+  "x": 44,
+  "y": 806.90625,
+  "w": 217.359375,
+  "h": 15.75,
+  "page": "page3.html"
+ },
+ {
+  "region": "Page-Footer",
+  "x": 723.734375,
+  "y": 806.90625,
+  "w": 114.265625,
+  "h": 15.75,
+  "page": "page3.html"
  }
 ]

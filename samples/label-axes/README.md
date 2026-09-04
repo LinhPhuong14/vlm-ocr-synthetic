@@ -11,13 +11,17 @@ generators/html/.venv/bin/python samples/label-axes/proof.py
 | file | là gì |
 | --- | --- |
 | `page.html` | hoá đơn GTGT — chứng từ giao dịch, loại phôi kho đang có |
-| `page2.html` | trang tiêu chuẩn kỹ thuật — loại phôi kho **chưa** có |
+| `page2.html` | trang tiêu chuẩn kỹ thuật — công thức, phản ứng, sơ đồ, viện dẫn |
+| `page3.html` | trang tài liệu API — nơi khối mã có thật |
 | `measure.py` | render + đo, cả mức run lẫn mức khối |
 | `proof.py` | vẽ hai loại ảnh proof: ba trục, và riêng trục 1 |
 | `*.png` · `boxes.json` · `regions.json` | sinh ra, không commit |
 
-Lần chạy gần nhất: **138 hộp run** (77 + 61) và **37 khối vùng** (16 + 21),
-`region` **19/19**, `role` **13/13**, `ink` **6/6**, **0 hộp thiếu trục**.
+Lần chạy gần nhất: **182 hộp run** và **62 khối vùng** trên 3 trang,
+`region` **18/19**, `role` **13/13**, `ink` **6/6**, **0 hộp thiếu trục**,
+**0 lỗi chú thích**.
+
+Vùng thứ 19 là `Complex-Block`, và nó **cố ý không có ví dụ** — xem dưới.
 
 ## Hai loại ảnh proof, và vì sao phải có hai
 
@@ -151,6 +155,44 @@ tính) cộng `Form` (cặp có nhãn: MST:, ĐT:). Đây là chỗ bản đầu
 sai, và gán sai theo đúng kiểu đã làm hỏng trục 1: lấy **chỗ đứng trên trang**
 thay cho **vai trò trong tài liệu**.
 
+## Ba lớp bị dùng sai, và cách xử lý
+
+**`Complex-Block`: bỏ trống, khai ra, không chế ví dụ.** Bảng 4.2 ở trang 2 từng
+mang nhãn này. Sai: định nghĩa của lớp là *"khối con có region khác nhau và tách
+ra thì mất nghĩa"*, mà một bảng có chú thích ở trên và ghi chú ở dưới là cấu
+trúc thường gặp nhất trong tài liệu kỹ thuật — tách ra không mất gì, và mọi bộ
+dữ liệu bố cục đều tách thành `Caption` + `Table` + `Footnote`. Lý do thật khiến
+nó từng là `Complex-Block` là **tôi cần lớp ấy xuất hiện trên ảnh proof**.
+
+Ứng viên thật là khối mà cái khung **mang nghĩa "đây là một đơn vị"**: một mẩu
+rao vặt trên báo — tiêu đề, thân, số điện thoại, logo nhỏ, đóng khung — tách ra
+là mất "đây là MỘT mẩu quảng cáo". Kho có phôi báo, nên đó là chỗ nó nên xuất
+hiện. Ở đây thì `DECLARED_GAP` khai nó ra và `measure.py` không coi là lỗi.
+
+**`Code-Block`: chuyển sang trang 3.** Bản trước đặt một hàm Python vào giữa một
+tiêu chuẩn TCVN về phân tích nitơ. Không tiêu chuẩn hoá học nào chứa mã nguồn —
+nó ở đó chỉ để lớp này xuất hiện, và **nội dung bịa cho vừa cái nhãn là đúng thứ
+đầu độc bộ dữ liệu**: mô hình học được rằng tài liệu hoá học có mã nguồn.
+`page3.html` là một trang tài liệu API, nơi khối mã là thứ tự nhiên nhất.
+
+**`Equation-Block` + `Chemical-Block`: đề nghị gộp thành `Formula`.** Đây là
+**đề nghị gửi bên yêu cầu**, không phải thay đổi tự quyết — trục 1 là hợp đồng
+với bên ngoài.
+
+> Một mô hình dò bố cục nhìn **hình dạng**, không đọc nội dung. Trên trang,
+> `(NH₄)₂SO₄ + 2 NaOH → …` và `w = (V₁−V₀)·c·14,007·100/m` là **cùng một
+> hình**: một dòng ngắn căn giữa, có chỉ số dưới, đôi khi đánh số bên phải.
+> Không có tín hiệu hình học nào tách chúng — muốn tách phải *hiểu* nội dung,
+> mà đó là việc của chặng sau, không phải của dò bố cục. Hai lớp mà mô hình
+> không phân biệt được thì nó sẽ lẫn, và cái lẫn ấy vào thẳng chỉ số đo.
+>
+> DocLayNet dùng đúng **một** lớp: `Formula`.
+>
+> `Chemical-Block` chỉ đáng đứng riêng nếu nó nghĩa là **cấu trúc hoá học vẽ
+> ra** — vòng benzen, liên kết — vì thứ đó giống ảnh hơn giống công thức, và
+> khi ấy nó thuộc về `Diagram`/`Image` chứ vẫn không phải một lớp riêng. Một
+> phản ứng viết thành dòng chỉ là chữ có chỉ số dưới.
+
 ## Ba chỗ dễ gán nhầm, đã gán nhầm cả ba
 
 Cả ba đều là một lỗi: **lấy hình dạng của từng run để quyết định nhãn của cả
@@ -199,9 +241,10 @@ Dấu hiệu nhận ra: **mọi font render giống hệt nhau**, kể cả font
 không font nào được nạp cả. Docstring của `served()` đã ghi đúng cái bẫy này từ
 trước; đây là lần thứ hai nó sập.
 
-**2 · Thẻ inline lồng trong span nuốt cái hộp.** Gặp ba lần trên trang 2, cùng
-một gốc: `<sub>` trong công thức, `<sub>` trong đoạn văn giải thích ký hiệu, và
-`<i>` trong mục tài liệu viện dẫn. Hộp của cả phương trình hoá học rộng **5,3
+**2 · Thẻ inline lồng trong span nuốt cái hộp.** Gặp **bốn** lần, cùng một gốc:
+`<sub>` trong công thức, `<sub>` trong đoạn văn giải thích ký hiệu, `<i>` trong
+mục tài liệu viện dẫn, và `<code>` trong trang 3 (đoạn văn đo ra 60 px thay vì
+706). Hộp của cả phương trình hoá học rộng **5,3
 px** thay vì 310,6 — nó là hộp của chữ số 4 trong (NH₄)₂SO₄; mục viện dẫn thì
 chỉ ôm phần in nghiêng. Đây đúng là cái bẫy mà docstring của `span()` cảnh báo,
 gặp lần đầu trên nội dung thật.

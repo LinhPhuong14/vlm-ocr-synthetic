@@ -58,12 +58,25 @@ REGIONS = ("Caption", "Footnote", "Equation-Block", "List-Group", "Page-Header",
            "Complex-Block", "Code-Block", "Form", "Table-Of-Contents", "Figure",
            "Chemical-Block", "Diagram", "Bibliography", "Title")
 PAGE_ONLY = ("Blank-Page",)
+# Vùng chưa có ví dụ, và KHAI RA thay vì chế một ví dụ cho vừa cái nhãn.
+#
+# `Complex-Block` định nghĩa là "khối con có region khác nhau và tách ra thì mất
+# nghĩa". Ba trang này không có trường hợp nào như thế: bảng có chú thích trên và
+# ghi chú dưới tách ra được sạch sẽ, và mọi bộ dữ liệu bố cục đều tách. Bản trước
+# gán khối ấy là `Complex-Block` chỉ để lớp này xuất hiện — chế nội dung cho vừa
+# cái nhãn, đúng thứ đầu độc bộ dữ liệu huấn luyện.
+#
+# Ứng viên thật cho lớp này là khối mà cái khung MANG NGHĨA "đây là một đơn vị":
+# một mẩu rao vặt trên báo (tiêu đề + thân + số điện thoại + logo nhỏ, đóng
+# khung, tách ra là mất "đây là MỘT mẩu quảng cáo"). Kho có phôi báo, nên đó là
+# chỗ nó nên xuất hiện — không phải ở đây.
+DECLARED_GAP = ("Complex-Block",)
 # Trục 2 là từ vựng của kho này: nó chia nhỏ BÊN TRONG một region, nên nó tự do
 # hơn -- không ai ở ngoài đọc nó, và nó là chỗ 158 `kind` rút về một bộ chuẩn.
 ROLES = ("key", "value", "heading", "subheading", "colhdr", "rowhdr", "cell",
          "total", "body", "item", "caption", "note", "mark")
 INKS = ("print", "hand", "stamp", "dotmatrix", "thermal", "reversed")
-PAGES = ("page.html", "page2.html")
+PAGES = ("page.html", "page2.html", "page3.html")
 
 # Trục 1 đo ở mức KHỐI, không phải mức run. Một `region` là một vùng của trang,
 # nên hộp của nó phải là hộp của khối -- với một bảng, đó là hộp theo ĐƯỜNG KẺ,
@@ -242,15 +255,16 @@ def report(rects: list[dict]) -> int:
         print(f"── {axis} ── {len(seen)}/{len(expected)} giá trị có hộp")
         for value in expected:
             n = seen.get(value, 0)
-            mark = "  " if n else "!!"
+            mark = "  " if n else ("--" if value in DECLARED_GAP else "!!")
             print(f"  {mark} {value:14s} {n:4d}")
-            if not n:
+            if not n and value not in DECLARED_GAP:
                 missing.append(f"{axis}={value}")
         extra = sorted(set(seen) - set(expected) - {""})
         if extra:
             print(f"     ngoài từ vựng: {extra}")
         print()
-    print(f"chỉ ở mức trang, không thể là hộp: {', '.join(PAGE_ONLY)}\n")
+    print(f"chỉ ở mức trang, không thể là hộp: {', '.join(PAGE_ONLY)}")
+    print(f"chưa có ví dụ, khai ra chứ không chế: {', '.join(DECLARED_GAP)}\n")
 
     # Every box must carry all three axes. A box missing one is a box a
     # consumer cannot filter, which is the whole failure this design exists

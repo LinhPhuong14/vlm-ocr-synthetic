@@ -219,7 +219,7 @@ def draw_regions(page: Path, blocks: Path, out: Path, only: str) -> None:
 
 if __name__ == "__main__":
     # `boxes.json` gộp cả hai trang, nên mỗi trang chỉ lấy phần hộp của nó.
-    for _name in ("page", "page2"):
+    for _name in ("page", "page2", "page3"):
         draw(HERE / f"{_name}.png", HERE / "boxes.json",
              HERE / f"{_name}-proof.png", only=f"{_name}.html")
         draw_regions(HERE / f"{_name}.png", HERE / "regions.json",
