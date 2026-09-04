@@ -1,8 +1,8 @@
 <!--
   Trang mẫu cho hệ nhãn ba trục: region × role × ink.
 
-  Đây là một FIXTURE, không phải một tờ chứng từ có thật. Nó cố ý gom đủ
-  13 `region`, 12 `role` và 6 `ink` lên một trang, để:
+  Đây là một FIXTURE, không phải một tờ chứng từ có thật. Nó gom mọi `region`
+  mà một chứng từ giao dịch sinh ra; `page2.html` gom số còn lại. Để:
 
     * đọc được bằng mắt xem ba trục có đủ chỗ cho mọi thứ in ra giấy không;
     * đo được bằng máy — `samples/label-axes/measure.py` chạy đúng
@@ -37,7 +37,9 @@
   [data-ink="thermal"]   {font-family:LiberationMono,monospace; color:#4a4a4a; opacity:.72;}
   [data-ink="reversed"]  {color:#fff;}
 
-  /* ---- region: 13 vùng. Chỉ là khối, không quyết định nhãn của run bên trong. */
+  /* ---- Khối trình bày. Tên khối KHÔNG phải tên region: một khối là cách bày
+     trang, một region là nhãn. Trộn hai thứ vào một cái tên là cách trục 1 hết
+     general -- dải in ngược thành "Mark" chỉ vì nó được vẽ như một dải. */
   .r-runninghead{display:flex; justify-content:space-between;
                  font-size:10.5px; color:#666; border-bottom:.5px solid #bbb;
                  padding-bottom:4px; margin-bottom:12px;}
@@ -78,169 +80,172 @@
                  padding-top:5px; border-top:.5px solid #bbb;
                  font-size:10.5px; color:#666;}
 
-  /* r-mark: con dấu, mã vạch, QR, hoa văn. Vẽ ngoài luồng, z-index âm nếu
+  /* Khối trình bày ngoài luồng: dải tiêu đề, con dấu, mã vạch. z-index âm nếu
      đè lên chữ — đúng như hoạ tiết hiện nay, để không đẩy chữ và không che nhãn. */
-  .r-mark.seal{position:absolute; right:104px; bottom:242px;
+  .r-seal{position:absolute; right:104px; bottom:242px;
                border:2.5px solid #a8281e; border-radius:50%;
                width:104px; height:104px; display:flex; align-items:center;
                justify-content:center; text-align:center; padding:8px;
                transform:rotate(-13deg); opacity:.82; font-size:11px; line-height:1.2;}
-  .r-mark.band{background:#1d3b5c; padding:5px 12px; margin:14px 0 0;
+  .r-band{background:#1d3b5c; padding:5px 12px; margin:14px 0 0;
                display:flex; justify-content:space-between; align-items:center;}
-  .r-mark.code{font-family:LiberationMono,monospace; letter-spacing:.02em;}
+  .r-code{font-family:LiberationMono,monospace; letter-spacing:.02em;}
 
   .hand-img{height:19px; vertical-align:-4px;}
 </style>
 
 <div id="sheet">
 
-<!-- ══ region: RunningHead ═══════════════════════════ role: note ══ ink: print -->
+<!-- ══ RunningHead ═══════════════════════════ role: note ══ ink: print -->
 <div class="r-runninghead">
-  <span data-region="RunningHead" data-role="note" data-ink="print"
+  <span data-region="Page-Header" data-role="note" data-ink="print"
         data-kind="head.form_no">Mẫu số 01/GTKT3-001</span>
-  <span data-region="RunningHead" data-role="note" data-ink="print"
+  <span data-region="Page-Header" data-role="note" data-ink="print"
         data-kind="head.page">Trang 1/1</span>
 </div>
 
-<!-- ══ region: Letterhead ═══ roles: heading, subheading, value ══ ink: print -->
+<!-- ══ Letterhead ═══ roles: heading, subheading, value ══ ink: print -->
 <div class="r-letterhead">
   <div class="l">
-    <span data-region="Letterhead" data-role="heading" data-ink="print"
+    <span data-region="Page-Header" data-role="heading" data-ink="print"
           data-kind="store.name">CÔNG TY TNHH THƯƠNG MẠI HOÀNG LONG</span><br>
-    <span data-region="Letterhead" data-role="subheading" data-ink="print"
+    <span data-region="Page-Header" data-role="subheading" data-ink="print"
           data-kind="store.slogan">Bán buôn – bán lẻ hàng tiêu dùng</span><br>
-    <span data-region="Letterhead" data-role="value" data-ink="print"
+    <span data-region="Page-Header" data-role="value" data-ink="print"
           data-kind="store.address">128 Nguyễn Trãi, P. Bến Thành, Q.1, TP. Hồ Chí Minh</span>
   </div>
   <div class="rt">
-    <span data-region="Letterhead" data-role="key" data-ink="print"
+    <span data-region="Page-Header" data-role="key" data-ink="print"
           data-kind="store.tax_id.label">MST:</span>
-    <span data-region="Letterhead" data-role="value" data-ink="dotmatrix"
+    <span data-region="Page-Header" data-role="value" data-ink="dotmatrix"
           data-kind="store.tax_id">0312345678</span><br>
-    <span data-region="Letterhead" data-role="key" data-ink="print"
+    <span data-region="Page-Header" data-role="key" data-ink="print"
           data-kind="store.phone.label">ĐT:</span>
-    <span data-region="Letterhead" data-role="value" data-ink="print"
+    <span data-region="Page-Header" data-role="value" data-ink="print"
           data-kind="store.phone">(028) 3822 6677</span>
   </div>
 </div>
 
-<!-- ══ region: DocTitle ══════════════════ roles: heading, subheading ══ print -->
+<!-- ══ DocTitle ══════════════════ roles: heading, subheading ══ print -->
 <div class="r-doctitle">
-  <span class="t" data-region="DocTitle" data-role="heading" data-ink="print"
+  <span class="t" data-region="Title" data-role="heading" data-ink="print"
         data-kind="doc.title">HOÁ ĐƠN GIÁ TRỊ GIA TĂNG</span>
-  <span class="s" data-region="DocTitle" data-role="subheading" data-ink="print"
+  <span class="s" data-region="Title" data-role="subheading" data-ink="print"
         data-kind="doc.subtitle">Liên 2: Giao cho người mua</span>
 </div>
 
-<!-- ══ region: Mark ══ role: mark ══ ink: reversed — dải in ngược, chữ trắng -->
-<div class="r-mark band">
-  <span data-region="Mark" data-role="mark" data-ink="reversed"
-        data-kind="mark.band_label">KÝ HIỆU HOÁ ĐƠN</span>
-  <span class="code" data-region="Mark" data-role="mark" data-ink="reversed"
-        data-kind="mark.serial">1C26TYY — 00042317</span>
+<!-- ══ Section-Header ══ roles: heading, value ══ ink: reversed
+     Dải in ngược là CÁCH BÀY, không phải nhãn. Thứ nó chứa là một tiêu đề mục
+     và giá trị của mục ấy — y như một tiêu đề in đen trên nền trắng — nên
+     region là Section-Header. "Chữ trắng trên nền đậm" là việc của trục 3. -->
+<div class="r-band">
+  <span data-region="Section-Header" data-role="heading" data-ink="reversed"
+        data-kind="invoice.serial.label">KÝ HIỆU HOÁ ĐƠN</span>
+  <span class="r-code" data-region="Section-Header" data-role="value" data-ink="reversed"
+        data-kind="invoice.serial">1C26TYY — 00042317</span>
 </div>
 
-<!-- ══ region: FieldGroup ══ roles: key, value ══ inks: print, hand, dotmatrix -->
+<!-- ══ FieldGroup ══ roles: key, value ══ inks: print, hand, dotmatrix -->
 <div class="r-fieldgroup">
   <div class="f">
-    <span data-region="FieldGroup" data-role="key" data-ink="print"
+    <span data-region="Form" data-role="key" data-ink="print"
           data-kind="invoice.number.label">Số hoá đơn:</span>
-    <span class="v" data-region="FieldGroup" data-role="value" data-ink="dotmatrix"
+    <span class="v" data-region="Form" data-role="value" data-ink="dotmatrix"
           data-kind="invoice.number">00042317</span>
   </div>
   <div class="f">
-    <span data-region="FieldGroup" data-role="key" data-ink="print"
+    <span data-region="Form" data-role="key" data-ink="print"
           data-kind="invoice.date.label">Ngày lập:</span>
-    <span class="v" data-region="FieldGroup" data-role="value" data-ink="hand"
+    <span class="v" data-region="Form" data-role="value" data-ink="hand"
           data-kind="invoice.date">14 tháng 3 năm 2026</span>
   </div>
   <div class="f">
-    <span data-region="FieldGroup" data-role="key" data-ink="print"
+    <span data-region="Form" data-role="key" data-ink="print"
           data-kind="buyer.name.label">Tên người mua hàng:</span>
-    <span class="v" data-region="FieldGroup" data-role="value" data-ink="hand"
+    <span class="v" data-region="Form" data-role="value" data-ink="hand"
           data-kind="buyer.name">Nguyễn Thị Bích Trâm</span>
   </div>
   <div class="f">
-    <span data-region="FieldGroup" data-role="key" data-ink="print"
+    <span data-region="Form" data-role="key" data-ink="print"
           data-kind="buyer.tax_id.label">Mã số thuế:</span>
-    <span class="v" data-region="FieldGroup" data-role="value" data-ink="dotmatrix"
+    <span class="v" data-region="Form" data-role="value" data-ink="dotmatrix"
           data-kind="buyer.tax_id">0301122334</span>
   </div>
   <div class="f">
-    <span data-region="FieldGroup" data-role="key" data-ink="print"
+    <span data-region="Form" data-role="key" data-ink="print"
           data-kind="buyer.address.label">Địa chỉ:</span>
-    <span class="v" data-region="FieldGroup" data-role="value" data-ink="print"
+    <span class="v" data-region="Form" data-role="value" data-ink="print"
           data-kind="buyer.address">45/7 Trần Hưng Đạo, Q.5, TP. HCM</span>
   </div>
   <div class="f">
-    <span data-region="FieldGroup" data-role="key" data-ink="print"
+    <span data-region="Form" data-role="key" data-ink="print"
           data-kind="invoice.payment.label">Hình thức thanh toán:</span>
-    <span class="v" data-region="FieldGroup" data-role="value" data-ink="print"
+    <span class="v" data-region="Form" data-role="value" data-ink="print"
           data-kind="invoice.payment">Chuyển khoản</span>
   </div>
 </div>
 
-<!-- ══ region: ItemTable ══ roles: colhdr, rowhdr, cell ══ inks: print, reversed -->
+<!-- ══ ItemTable ══ roles: colhdr, rowhdr, cell ══ inks: print, reversed -->
 <table class="r-itemtable">
   <colgroup><col style="width:7%"><col style="width:38%"><col style="width:9%">
             <col style="width:9%"><col style="width:17%"><col style="width:20%"></colgroup>
   <thead>
     <tr>
-      <th><span data-region="ItemTable" data-role="colhdr" data-ink="reversed"
+      <th><span data-region="Table" data-role="colhdr" data-ink="reversed"
                 data-kind="col.no">STT</span></th>
-      <th><span data-region="ItemTable" data-role="colhdr" data-ink="reversed"
+      <th><span data-region="Table" data-role="colhdr" data-ink="reversed"
                 data-kind="col.name">Tên hàng hoá, dịch vụ</span></th>
-      <th><span data-region="ItemTable" data-role="colhdr" data-ink="reversed"
+      <th><span data-region="Table" data-role="colhdr" data-ink="reversed"
                 data-kind="col.unit">ĐVT</span></th>
-      <th><span data-region="ItemTable" data-role="colhdr" data-ink="reversed"
+      <th><span data-region="Table" data-role="colhdr" data-ink="reversed"
                 data-kind="col.qty">SL</span></th>
-      <th><span data-region="ItemTable" data-role="colhdr" data-ink="reversed"
+      <th><span data-region="Table" data-role="colhdr" data-ink="reversed"
                 data-kind="col.price">Đơn giá</span></th>
-      <th><span data-region="ItemTable" data-role="colhdr" data-ink="reversed"
+      <th><span data-region="Table" data-role="colhdr" data-ink="reversed"
                 data-kind="col.amount">Thành tiền</span></th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td class="stub"><span data-region="ItemTable" data-role="rowhdr" data-ink="print"
+      <td class="stub"><span data-region="Table" data-role="rowhdr" data-ink="print"
                              data-kind="item.no">1</span></td>
-      <td><span data-region="ItemTable" data-role="cell" data-ink="print"
+      <td><span data-region="Table" data-role="cell" data-ink="print"
                 data-kind="item.name">Gạo thơm ST25 túi 5&nbsp;kg</span></td>
-      <td><span data-region="ItemTable" data-role="cell" data-ink="print"
+      <td><span data-region="Table" data-role="cell" data-ink="print"
                 data-kind="item.unit">Túi</span></td>
-      <td class="n"><span data-region="ItemTable" data-role="cell" data-ink="print"
+      <td class="n"><span data-region="Table" data-role="cell" data-ink="print"
                           data-kind="item.qty">4</span></td>
-      <td class="n"><span data-region="ItemTable" data-role="cell" data-ink="print"
+      <td class="n"><span data-region="Table" data-role="cell" data-ink="print"
                           data-kind="item.price">185.000</span></td>
-      <td class="n"><span data-region="ItemTable" data-role="cell" data-ink="print"
+      <td class="n"><span data-region="Table" data-role="cell" data-ink="print"
                           data-kind="item.amount">740.000</span></td>
     </tr>
     <tr>
-      <td class="stub"><span data-region="ItemTable" data-role="rowhdr" data-ink="print"
+      <td class="stub"><span data-region="Table" data-role="rowhdr" data-ink="print"
                              data-kind="item.no">2</span></td>
-      <td><span data-region="ItemTable" data-role="cell" data-ink="print"
+      <td><span data-region="Table" data-role="cell" data-ink="print"
                 data-kind="item.name">Nước mắm Nam Ngư chai 500&nbsp;ml</span></td>
-      <td><span data-region="ItemTable" data-role="cell" data-ink="print"
+      <td><span data-region="Table" data-role="cell" data-ink="print"
                 data-kind="item.unit">Chai</span></td>
-      <td class="n"><span data-region="ItemTable" data-role="cell" data-ink="print"
+      <td class="n"><span data-region="Table" data-role="cell" data-ink="print"
                           data-kind="item.qty">12</span></td>
-      <td class="n"><span data-region="ItemTable" data-role="cell" data-ink="print"
+      <td class="n"><span data-region="Table" data-role="cell" data-ink="print"
                           data-kind="item.price">35.000</span></td>
-      <td class="n"><span data-region="ItemTable" data-role="cell" data-ink="print"
+      <td class="n"><span data-region="Table" data-role="cell" data-ink="print"
                           data-kind="item.amount">420.000</span></td>
     </tr>
     <tr>
-      <td class="stub"><span data-region="ItemTable" data-role="rowhdr" data-ink="print"
+      <td class="stub"><span data-region="Table" data-role="rowhdr" data-ink="print"
                              data-kind="item.no">3</span></td>
-      <td><span data-region="ItemTable" data-role="cell" data-ink="print"
+      <td><span data-region="Table" data-role="cell" data-ink="print"
                 data-kind="item.name">Dầu ăn Simply đậu nành 1&nbsp;lít</span></td>
-      <td><span data-region="ItemTable" data-role="cell" data-ink="print"
+      <td><span data-region="Table" data-role="cell" data-ink="print"
                 data-kind="item.unit">Chai</span></td>
-      <td class="n"><span data-region="ItemTable" data-role="cell" data-ink="print"
+      <td class="n"><span data-region="Table" data-role="cell" data-ink="print"
                           data-kind="item.qty">6</span></td>
-      <td class="n"><span data-region="ItemTable" data-role="cell" data-ink="print"
+      <td class="n"><span data-region="Table" data-role="cell" data-ink="print"
                           data-kind="item.price">58.000</span></td>
-      <td class="n"><span data-region="ItemTable" data-role="cell" data-ink="print"
+      <td class="n"><span data-region="Table" data-role="cell" data-ink="print"
                           data-kind="item.amount">348.000</span></td>
     </tr>
   </tbody>
@@ -248,39 +253,39 @@
 <span class="r-caption" data-region="Caption" data-role="caption" data-ink="print"
       data-kind="table.caption">Bảng kê hàng hoá kèm theo hoá đơn số 00042317.</span>
 
-<!-- ══ region: Summary ══════════════ roles: key, value, total ══ ink: print -->
+<!-- ══ Summary ══════════════ roles: key, value, total ══ ink: print -->
 <div class="r-summary">
   <div class="row">
-    <span data-region="Summary" data-role="key" data-ink="print"
+    <span data-region="Form" data-role="key" data-ink="print"
           data-kind="total.before.label">Cộng tiền hàng:</span>
-    <span data-region="Summary" data-role="value" data-ink="print"
+    <span data-region="Form" data-role="value" data-ink="print"
           data-kind="total.before">1.508.000</span>
   </div>
   <div class="row">
-    <span data-region="Summary" data-role="key" data-ink="print"
+    <span data-region="Form" data-role="key" data-ink="print"
           data-kind="total.vat.label">Thuế GTGT (8%):</span>
-    <span data-region="Summary" data-role="value" data-ink="print"
+    <span data-region="Form" data-role="value" data-ink="print"
           data-kind="total.vat">120.640</span>
   </div>
   <div class="row grand">
-    <span data-region="Summary" data-role="key" data-ink="print"
+    <span data-region="Form" data-role="key" data-ink="print"
           data-kind="total.grand.label">TỔNG CỘNG THANH TOÁN:</span>
-    <span data-region="Summary" data-role="total" data-ink="print"
+    <span data-region="Form" data-role="total" data-ink="print"
           data-kind="total.grand">1.628.640</span>
   </div>
 </div>
 <div style="margin-top:5px">
-  <span data-region="Summary" data-role="key" data-ink="print"
+  <span data-region="Form" data-role="key" data-ink="print"
         data-kind="total.words.label">Số tiền viết bằng chữ:</span>
-  <span data-region="Summary" data-role="value" data-ink="hand"
+  <span data-region="Form" data-role="value" data-ink="hand"
         data-kind="total.words">Một triệu sáu trăm hai tám nghìn sáu trăm bốn mươi đồng</span>
 </div>
 
-<!-- ══ region: Prose ══════════════════════ roles: heading, body ══ ink: print -->
+<!-- ══ Prose ══════════════════════ roles: heading, body ══ ink: print -->
 <div class="r-prose">
-  <span class="h" data-region="Prose" data-role="heading" data-ink="print"
+  <span class="h" data-region="Text" data-role="heading" data-ink="print"
         data-kind="terms.title">Điều khoản chung</span>
-  <span data-region="Prose" data-role="body" data-ink="print" data-kind="terms.body">Hoá
+  <span data-region="Text" data-role="body" data-ink="print" data-kind="terms.body">Hoá
   đơn này được lập theo quy định tại Nghị định 123/2020/NĐ-CP và Thông tư
   78/2021/TT-BTC. Người mua có trách nhiệm kiểm tra thông tin trên hoá đơn ngay khi
   nhận; mọi khiếu nại về số lượng, chất lượng hoặc giá trị hàng hoá phải được gửi
@@ -288,59 +293,59 @@
   hạn nêu trên, bên bán không tiếp nhận yêu cầu điều chỉnh.</span>
 </div>
 
-<!-- ══ region: ListGroup ══════════════════ roles: heading, item ══ ink: print -->
+<!-- ══ ListGroup ══════════════════ roles: heading, item ══ ink: print -->
 <div class="r-listgroup">
-  <span class="h" data-region="ListGroup" data-role="heading" data-ink="print"
+  <span class="h" data-region="List-Group" data-role="heading" data-ink="print"
         data-kind="attach.title">Chứng từ kèm theo</span>
   <ol>
-    <li><span data-region="ListGroup" data-role="item" data-ink="print"
+    <li><span data-region="List-Group" data-role="item" data-ink="print"
               data-kind="attach.item">Phiếu xuất kho số PXK-2026/0318</span></li>
-    <li><span data-region="ListGroup" data-role="item" data-ink="print"
+    <li><span data-region="List-Group" data-role="item" data-ink="print"
               data-kind="attach.item">Biên bản giao nhận hàng hoá ngày 14/03/2026</span></li>
-    <li><span data-region="ListGroup" data-role="item" data-ink="print"
+    <li><span data-region="List-Group" data-role="item" data-ink="print"
               data-kind="attach.item">Uỷ nhiệm chi số UNC-88214 của Vietcombank</span></li>
   </ol>
 </div>
 
-<!-- ══ region: Signature ══ roles: heading, note, value ══ inks: print, hand -->
+<!-- ══ Signature ══ roles: heading, note, value ══ inks: print, hand -->
 <div class="r-signature">
   <div class="col">
-    <span class="ttl" data-region="Signature" data-role="heading" data-ink="print"
+    <span class="ttl" data-region="Form" data-role="heading" data-ink="print"
           data-kind="sign.buyer.title">NGƯỜI MUA HÀNG</span>
-    <span class="nt" data-region="Signature" data-role="note" data-ink="print"
+    <span class="nt" data-region="Form" data-role="note" data-ink="print"
           data-kind="sign.buyer.note">(Ký, ghi rõ họ tên)</span>
-    <span data-region="Signature" data-role="value" data-ink="hand"
+    <span data-region="Form" data-role="value" data-ink="hand"
           data-kind="sign.buyer.name">Bích Trâm</span>
   </div>
   <div class="col">
-    <span class="ttl" data-region="Signature" data-role="heading" data-ink="print"
+    <span class="ttl" data-region="Form" data-role="heading" data-ink="print"
           data-kind="sign.seller.title">NGƯỜI BÁN HÀNG</span>
-    <span class="nt" data-region="Signature" data-role="note" data-ink="print"
+    <span class="nt" data-region="Form" data-role="note" data-ink="print"
           data-kind="sign.seller.note">(Ký, đóng dấu, ghi rõ họ tên)</span>
-    <span data-region="Signature" data-role="value" data-ink="hand"
+    <span data-region="Form" data-role="value" data-ink="hand"
           data-kind="sign.seller.name">Trần Hoàng Long</span>
   </div>
 </div>
 
-<!-- ══ region: Mark ══ role: mark ══ ink: stamp — con dấu tròn, đè ngoài luồng -->
-<div class="r-mark seal">
-  <span data-region="Mark" data-role="mark" data-ink="stamp"
-        data-kind="mark.seal">CÔNG TY TNHH TM HOÀNG LONG · TP.HCM</span>
+<!-- ══ Image ══ role: mark ══ ink: stamp — raster không có cấu trúc đọc được -->
+<div class="r-seal">
+  <span data-region="Image" data-role="mark" data-ink="stamp"
+        data-kind="store.seal">CÔNG TY TNHH TM HOÀNG LONG · TP.HCM</span>
 </div>
 
-<!-- ══ region: Note ═══════════════════════════════ role: note ══ ink: thermal -->
+<!-- ══ Note ═══════════════════════════════ role: note ══ ink: thermal -->
 <div class="r-note">
-  <span data-region="Note" data-role="note" data-ink="thermal"
+  <span data-region="Text" data-role="note" data-ink="thermal"
         data-kind="note.footer">Liên 2 in trên giấy nhiệt, lưu trữ nơi khô ráo, tránh
   ánh nắng trực tiếp. Bản in mờ dần sau 24 tháng không làm mất hiệu lực hoá đơn điện tử gốc.</span>
 </div>
 
-<!-- ══ region: RunningFoot ═══════════════════ roles: note, mark ══ print/code -->
+<!-- ══ RunningFoot ═══════════════════ roles: note, mark ══ print/code -->
 <div class="r-runningfoot">
-  <span data-region="RunningFoot" data-role="note" data-ink="print"
+  <span data-region="Page-Footer" data-role="note" data-ink="print"
         data-kind="foot.website">hoanglong-tm.com.vn</span>
-  <span class="r-mark code" data-region="RunningFoot" data-role="mark" data-ink="dotmatrix"
-        data-kind="foot.barcode">*00042317-1C26TYY*</span>
+  <span class="r-code" data-region="Page-Footer" data-role="value" data-ink="dotmatrix"
+        data-kind="footer.barcode">*00042317-1C26TYY*</span>
 </div>
 
 </div>

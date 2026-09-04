@@ -48,17 +48,28 @@ for _old, _new in (
     assert AXES_JS.count(_old) == 1, _old
     AXES_JS = AXES_JS.replace(_old, _new)
 
-REGIONS = ("Letterhead", "DocTitle", "FieldGroup", "ItemTable", "Summary",
-           "Prose", "ListGroup", "Signature", "Mark", "RunningHead",
-           "RunningFoot", "Caption", "Note")
+# Trục 1 là từ vựng của BÊN DÙNG dữ liệu, không phải của kho này -- cùng lý do
+# `PAGE_LABELS` bị khoá: một lớp thứ 21 ở đây là một lớp không ai có class cho.
+# Sửa duy nhất so với danh sách nhận được: thêm `Title` (danh sách có
+# `Section-Header` nhưng không có tên tài liệu), và `Blank-Page` chuyển xuống
+# mức TRANG vì một trang trắng không có hộp nào để gắn nhãn.
+REGIONS = ("Caption", "Footnote", "Equation-Block", "List-Group", "Page-Header",
+           "Page-Footer", "Image", "Section-Header", "Table", "Text",
+           "Complex-Block", "Code-Block", "Form", "Table-Of-Contents", "Figure",
+           "Chemical-Block", "Diagram", "Bibliography", "Title")
+PAGE_ONLY = ("Blank-Page",)
+# Trục 2 là từ vựng của kho này: nó chia nhỏ BÊN TRONG một region, nên nó tự do
+# hơn -- không ai ở ngoài đọc nó, và nó là chỗ 158 `kind` rút về một bộ chuẩn.
 ROLES = ("key", "value", "heading", "subheading", "colhdr", "rowhdr", "cell",
          "total", "body", "item", "caption", "note", "mark")
 INKS = ("print", "hand", "stamp", "dotmatrix", "thermal", "reversed")
+PAGES = ("page.html", "page2.html")
 
 
-def measure(html: str) -> list[dict]:
+def measure(name: str) -> list[dict]:
     from playwright.sync_api import sync_playwright
 
+    html = (HERE / name).read_text(encoding="utf-8")
     markup = (f"<!doctype html><meta charset='utf-8'><style>{font_faces()}"
               f"body{{margin:0;background:#e9edf1;padding:20px}}</style>{html}")
     chromium = find_chromium()
@@ -76,7 +87,8 @@ def measure(html: str) -> list[dict]:
         page.goto(url, wait_until="networkidle")
         page.wait_for_timeout(250)
         rects = page.evaluate(AXES_JS)
-        page.locator("#sheet").screenshot(path=str(HERE / "page.png"))
+        page.locator("#sheet").screenshot(
+            path=str(HERE / name.replace(".html", ".png")))
         browser.close()
     return rects
 
@@ -88,7 +100,7 @@ def report(rects: list[dict]) -> int:
         for axis in counts:
             counts[axis][box[axis]] += 1
 
-    print(f"{len(rects)} hộp đo được từ DOM\n")
+    print(f"{len(rects)} hộp đo được từ DOM, trên {len(PAGES)} trang\n")
     missing = []
     for axis, expected in (("region", REGIONS), ("role", ROLES), ("ink", INKS)):
         seen = counts[axis]
@@ -103,6 +115,7 @@ def report(rects: list[dict]) -> int:
         if extra:
             print(f"     ngoài từ vựng: {extra}")
         print()
+    print(f"chỉ ở mức trang, không thể là hộp: {', '.join(PAGE_ONLY)}\n")
 
     # Every box must carry all three axes. A box missing one is a box a
     # consumer cannot filter, which is the whole failure this design exists
@@ -120,4 +133,12 @@ def report(rects: list[dict]) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(report(measure((HERE / "page.html").read_text(encoding="utf-8"))))
+    boxes: list[dict] = []
+    for _name in PAGES:
+        got = measure(_name)
+        for _box in got:
+            _box["page"] = _name
+        print(f"{_name:14s} {len(got):4d} hộp")
+        boxes += got
+    print()
+    raise SystemExit(report(boxes))

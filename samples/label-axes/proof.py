@@ -28,23 +28,31 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 
-# BGR, because OpenCV. Thirteen regions need thirteen colours that stay apart
-# on white paper and on printed text, so these are picked for hue separation
-# rather than for looking like a palette.
+# BGR, because OpenCV. Nineteen regions need nineteen colours that stay apart on
+# white paper and over printed text, so these are picked for hue separation
+# rather than for looking like a palette. The four blocks that only a technical
+# page produces sit at the cool end, which makes the two fixture pages
+# distinguishable at a glance without a second device.
 REGION: dict[str, tuple[int, int, int]] = {
-    "Letterhead":   (190,  60, 180),
-    "DocTitle":     ( 30,  30, 210),
-    "FieldGroup":   (200, 120,  40),
-    "ItemTable":    ( 60, 170,  60),
-    "Summary":      ( 40,  90, 220),
-    "Prose":        (120,  90, 200),
-    "ListGroup":    ( 20, 160, 200),
-    "Signature":    ( 30, 190, 220),
-    "Mark":         ( 40,  40, 140),
-    "RunningHead":  (150, 150, 150),
-    "RunningFoot":  (150, 150, 150),
-    "Caption":      (170, 110,  70),
-    "Note":         (110, 110, 110),
+    "Title":             ( 30,  30, 210),
+    "Section-Header":    ( 40,  90, 220),
+    "Page-Header":       (190,  60, 180),
+    "Page-Footer":       (150, 150, 150),
+    "Form":              (200, 120,  40),
+    "Table":             ( 60, 170,  60),
+    "Text":              (120,  90, 200),
+    "List-Group":        ( 20, 160, 200),
+    "Table-Of-Contents": ( 90, 170, 230),
+    "Caption":           (170, 110,  70),
+    "Footnote":          (110, 110, 110),
+    "Image":             ( 40,  40, 140),
+    "Figure":            ( 90,  40, 140),
+    "Diagram":           (160,  70,  20),
+    "Equation-Block":    ( 30, 140, 140),
+    "Chemical-Block":    ( 20, 110,  70),
+    "Code-Block":        (100,  60,  20),
+    "Bibliography":      (130, 100, 110),
+    "Complex-Block":     ( 70,  70, 210),
 }
 OTHER = (80, 80, 80)
 
@@ -131,11 +139,13 @@ def _legend(width: int, seen_regions, seen_inks) -> np.ndarray:
     return strip
 
 
-def draw(page: Path, boxes: Path, out: Path) -> None:
+def draw(page: Path, boxes: Path, out: Path, only: str | None = None) -> None:
     image = cv2.imread(str(page))
     if image is None:
         raise SystemExit(f"không đọc được {page}")
     rects = json.loads(boxes.read_text(encoding="utf-8"))
+    if only is not None:
+        rects = [b for b in rects if b.get("page") == only]
 
     # The screenshot is taken at device_scale_factor=2, so it is twice the size
     # the boxes were measured in. Scaling here rather than re-measuring keeps
@@ -166,4 +176,7 @@ def draw(page: Path, boxes: Path, out: Path) -> None:
 
 
 if __name__ == "__main__":
-    draw(HERE / "page.png", HERE / "boxes.json", HERE / "proof.png")
+    # `boxes.json` gộp cả hai trang, nên mỗi trang chỉ lấy phần hộp của nó.
+    for _name in ("page", "page2"):
+        draw(HERE / f"{_name}.png", HERE / "boxes.json",
+             HERE / f"{_name}-proof.png", only=f"{_name}.html")
