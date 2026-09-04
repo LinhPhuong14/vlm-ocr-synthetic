@@ -156,10 +156,13 @@ thay cho **vai trò trong tài liệu**.
 Cả ba đều là một lỗi: **lấy hình dạng của từng run để quyết định nhãn của cả
 vùng**, thay vì hỏi vùng ấy *là gì* trên trang.
 
-**`Page-Header` không phải "thứ nằm ở lề trên".** "Mẫu số 01GTKT3/001" từng bị
-xếp vào đó vì nó nằm trên cùng. Nhưng nó không lặp lại trang nào khác, không
-phải chỉ số trang — nó là **trường định danh biểu mẫu**, tức `Form`. Trên trang
-này chỉ "Trang 1/1" là `Page-Header` thật.
+**`Page-Header` là cả hai mục ở lề trên, nhưng mỗi mục một vùng.** Không phải
+một dải chạy hết bề ngang: dải ấy 13% mực, rỗng ruột ở giữa, và mô hình học từ
+nó sẽ học rằng khoảng trắng giữa hai mục cũng là đầu trang.
+
+> Một câu hỏi bỏ ngỏ, do chủ dự án quyết: "Mẫu số 01/GTKT3-001" có thật là đầu
+> trang không? Nó không lặp lại trang nào khác và không phải chỉ số trang — đọc
+> chặt thì nó là trường định danh biểu mẫu. Ở đây giữ `Page-Header`.
 
 **`Form` không phải "dòng có dấu hai chấm".** "MST:" và "ĐT:" trong letterhead
 từng thành một vùng `Form` riêng. Nhưng `Form` nói **vùng này là chỗ để điền**;

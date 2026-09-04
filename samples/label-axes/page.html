@@ -109,18 +109,12 @@
 <!-- ══ RunningHead ═══════════════════════════ role: note ══ ink: print -->
 <!-- Đầu trang: mỗi mục MỘT vùng, không phải một dải chạy hết bề ngang — dải ấy
      rỗng ruột ở giữa (13% mực) và dạy mô hình rằng khoảng trắng giữa hai mục
-     cũng là đầu trang.
-     Và chỉ MỘT trong hai mục ở đây là `Page-Header` thật. "Trang 1/1" là chỉ
-     số trang — đúng thứ vùng ấy sinh ra để chứa. "Mẫu số" thì không lặp lại,
-     không phải chỉ số trang: nó là trường định danh biểu mẫu, tức `Form`. Đặt
-     nó vào `Page-Header` chỉ vì nó nằm ở lề trên là lấy CHỖ ĐỨNG thay cho VAI
-     TRÒ — cùng cái sai đã đẩy letterhead vào `Page-Header`. -->
+     cũng là đầu trang. -->
 <div class="r-runninghead">
-  <span data-region-box="Form"><span data-region="Form" data-role="key" data-ink="print"
-        data-kind="invoice.form_no.label">Mẫu số:</span>
-    <span data-region="Form" data-role="value" data-ink="print"
-        data-kind="invoice.form_no">01GTKT3/001</span></span>
-  <span data-region="Page-Header" data-role="value" data-ink="print"
+  <span data-region="Page-Header" data-role="note" data-ink="print"
+        data-region-box="Page-Header"
+        data-kind="head.form_no">Mẫu số 01/GTKT3-001</span>
+  <span data-region="Page-Header" data-role="note" data-ink="print"
         data-region-box="Page-Header"
         data-kind="head.page">Trang 1/1</span>
 </div>
