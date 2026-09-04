@@ -8,6 +8,7 @@ synthtiger pins Pillow 9.5 and WeasyPrint needs a modern one.
 | --- | --- | --- |
 | `rulebase/` | any Python 3.9+ with `PyYAML` | pure content logic; no image libraries |
 | `degradation/` | any Python 3.9+ with `numpy`, `opencv` | shared by all three renderers |
+| `degradation/blender/` | `generators/html/.venv` (needs `scipy` too) + `make setup-blender` | opt-in, not part of `setup`; a real `blender` executable, not a venv — see its own module docstring |
 | `generators/synthdog/` | `make setup-synthdog` | **Python 3.8 – 3.11 only** |
 | `generators/html/` | `make setup-html` | needs a browser; see its README |
 | `generators/genalog/` | `make setup-genalog` | genalog's source is vendored here, not installed |

@@ -222,30 +222,40 @@ theo. Muốn mở khoá thì có đúng ba đường:
 **Khuyến nghị: đường 1.** Và `CurlWarp` đã có sẵn công thức nghịch, nên nó là
 chỗ để bắt đầu chứ không phải viết mới.
 
-**Đã mở, cho backend `html`** — [`degradation/geometry.py`](../degradation/geometry.py):
-`page_curl` (chính `CurlWarp`, mở rộng khỏi giấy nhiệt), cộng hai cái mới,
-`fold_crease` và `corner_bulge` (kỹ thuật mượn từ scenario `fold_by_pull` /
-`fall_on_ball` của [SyntheticDoc](https://github.com/tanguymagne/SyntheticDoc),
-dựng lại phẳng vì ARCSim phi thương mại và Blender không có gói `pip`). Một
-lệch nhỏ so với đường 1 như mô tả ở trên: thay vì `apply_recipe` tự nhân dồn
-map, mỗi primitive trả `(ảnh, quad)` và **`generators/html/render.py` gọi nó
-như một bước riêng, SAU `apply_recipe` và sau chính cái assert ở trên** — xem
-`degradation/geometry.py::warp_regions`. Giữ nguyên chữ ký `apply_recipe` cho
-ba renderer kia (`genalog`, `synthdog` đã tự có `CurlWarp` của nó) và cho
-`tools/legibility.py`, thay vì đổi một hàm dùng chung chỉ để một backend cần.
-Test giữ hộp: `tests/test_geometry.py`. Ba giá trị rule-base (`page_curl`,
-`folded`, `lifted_corner` trong `rules/augmentation.yaml`) đều `enabled:
-false` — dựng thử bằng `--force augmentation=<id>`, chưa vào lượt bốc mặc
-định.
+**Đã mở, cho backend `html`** — [`degradation/blender/`](../degradation/blender):
+`page_curl`, `fold_crease`, `corner_bulge`, tương ứng scenario `curve_by_pull`
+/ `fold_by_pull` / `fall_on_ball`+`fall_on_roller` của
+[SyntheticDoc](https://github.com/tanguymagne/SyntheticDoc). Một lệch so với
+đường 1 như mô tả ở trên: thay vì `apply_recipe` tự nhân dồn map, mỗi
+scenario trả `(ảnh, quad)` và **`generators/html/render.py` gọi nó như một
+bước riêng, SAU `apply_recipe` và sau chính cái assert ở trên** — xem
+`degradation/blender/render.py::warp_regions`. Giữ nguyên chữ ký
+`apply_recipe` cho ba renderer kia (`genalog`, `synthdog` đã tự có `CurlWarp`
+của nó) và cho `tools/legibility.py`, thay vì đổi một hàm dùng chung chỉ để
+một backend cần.
 
-**Bản đầu chỉ dịch pixel, không đổ bóng — sai so với chính SyntheticDoc.**
-`media/teaser.jpg` của họ xếp sáu tấm `Rendered | Albedo | Shading | Normal
-map | 3D coordinates | UV map`, và tấm `Shading` — một render xám thuần theo
-pháp tuyến bề mặt — mới là thứ làm mẫu của họ đọc ra là giấy cong, không phải
-bản thân độ lệch pixel. Đã sửa: mỗi hàm suy một trường độ dốc `(dh/dx, dh/dy)`
-giải tích từ chính công thức warp của nó, `_shade` tính pháp tuyến và đổ bóng
-kiểu Lambertian, hướng sáng bốc ngẫu nhiên mỗi lần (không lặp lại lỗi
-`shadow_binding.angle` cố định đã nêu ở mục B).
+**Bản đầu là warp pixel 2D thuần numpy + bóng Lambertian giải tích — sai so
+với chính SyntheticDoc.** `media/teaser.jpg` của họ xếp sáu tấm `Rendered |
+Albedo | Shading | Normal map | 3D coordinates | UV map`; tấm `Shading` — một
+render xám thuần theo pháp tuyến bề mặt THẬT — cộng với việc trang giấy là
+một vật thể nằm trên bàn, chụp qua camera phối cảnh thật, mới là thứ làm mẫu
+của họ đọc ra là giấy cong. Không xấp xỉ được bằng cách tô lại pixel. Bản
+hiện tại RENDER THẬT qua Blender thay vì xấp xỉ: `degradation/blender/
+meshes.py` dựng mesh giấy cong bằng numpy (không ARCSim — phi thương mại, xem
+`vendor/NOTICE.md`), `degradation/blender/vendor/` (adapt từ SyntheticDoc,
+MIT) dựng cảnh Blender thật — vật liệu giấy, camera dò góc thấy trọn tờ giấy,
+một trong bốn bộ đèn studio theo hướng ngẫu nhiên (không lặp lại lỗi
+`shadow_binding.angle` cố định đã nêu ở mục B) — và `render.py` nghịch đảo
+bản đồ UV Blender xuất ra để dịch lại toạ độ hộp nhãn vào ảnh đã render.
+
+Chi phí: một lượt gọi Blender qua subprocess, vài giây tới hơn một phút một
+trang — không phải milli-giây như warp pixel. `make setup-blender` cài
+Blender + numpy cho python riêng của nó. Test: `tests/test_blender_warp.py`
+(nửa mesh chạy nhanh; nửa render thật đánh dấu `slow` và tự bỏ qua nếu máy
+chưa cài Blender). Ba giá trị rule-base (`page_curl`, `folded`,
+`lifted_corner` trong `rules/augmentation.yaml`) đều `enabled: false` — dựng
+thử bằng `--force augmentation=<id>`, chưa vào lượt bốc mặc định (chi phí
+thời gian ở trên cũng chưa hợp một lượt chạy toàn bộ dataset).
 
 ---
 
@@ -562,7 +572,7 @@ Xếp theo *giá trị cho OCR ÷ công sức*, và ghi rõ mục nào đụng n
 | 6 | **E-VN-1 `carbon_copy`** | trung bình | an toàn | Tờ tới tay OCR thường là liên 2. |
 | 7 | **E-VN-6 `screen_photo`** | trung bình | an toàn | Loại ảnh đang tăng nhanh nhất; dựng lại từ ba thứ đã có. |
 | 8 | **E-VN-5 `quarter_fold`** | trung bình | an toàn nếu chỉ làm bóng | Bản rẻ của nhàu. |
-| 9 | ✅ **Mở khoá hình học theo đường 1 của mục C**, bắt đầu bằng `CurlWarp` ở B4 | cao | test giữ hộp ở `tests/test_geometry.py` | `degradation/geometry.py`, ba giá trị `enabled: false`. Mở đường cho perspective, rotate, elastic, `displacement_crumple`, `rolling_shutter` — tức là hơn nửa danh sách E — còn để ngỏ. |
+| 9 | ✅ **Mở khoá hình học theo đường 1 của mục C**, bắt đầu bằng `CurlWarp` ở B4 | cao | test giữ hộp ở `tests/test_blender_warp.py` | `degradation/blender/` — render Blender thật, không xấp xỉ pixel. Ba giá trị `enabled: false`, cần `make setup-blender`. Mở đường cho perspective, rotate, elastic, `displacement_crumple`, `rolling_shutter` — tức là hơn nửa danh sách E — còn để ngỏ. |
 | 10 | `textures/stain/` + mặt nạ rách thật (B3) | thấp, nhưng cần dữ liệu | an toàn | Đường vào đã mở sẵn trong mã, chỉ thiếu file. Vướng giấy phép ảnh. |
 
 ---

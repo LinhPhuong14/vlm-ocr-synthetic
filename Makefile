@@ -19,7 +19,7 @@ PROFILE_N ?= 8
 LAYOUT  ?=
 
 .DEFAULT_GOAL := help
-.PHONY: help setup setup-synthdog setup-html setup-genalog setup-writevit \
+.PHONY: help setup setup-synthdog setup-html setup-genalog setup-writevit setup-blender \
         textures patterns handwriting signatures \
         receipts preview preview-grid visualize dataset dataset-clean proof showcase \
         ornaments templates \
@@ -43,6 +43,8 @@ setup-synthdog:  ## patterns: synthtiger (retired as a document backend)
 	$(TASKS) setup-synthdog
 setup-genalog:   ## WeasyPrint + PyMuPDF (retired; only to re-read old sets)
 	$(TASKS) setup-genalog
+setup-blender:   ## Geometry warps: Blender + numpy for its own interpreter (opt-in, see rulebase/rules/augmentation.yaml)
+	$(TASKS) setup-blender
 patterns:        ## Regenerate every shared pattern: paper, backgrounds, ornaments
 	$(TASKS) patterns
 textures:        ## Regenerate the shared paper and background textures

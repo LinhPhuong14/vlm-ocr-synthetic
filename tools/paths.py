@@ -32,6 +32,7 @@ VENDORED = (
     "generators/genalog/docs/",
     "generators/genalog/setup.py",
     "augmentations/",
+    "degradation/blender/vendor/",
 )
 
 VENVS = {
