@@ -54,7 +54,8 @@ def _block(title: str, pairs, band: str) -> str:
         f'<div class="f">{span("invoice.field.label", label, "k")}'
         f'<span class="v">{span("invoice.field", value)}</span></div>'
         for label, value in pairs)
-    return (f'<div class="band" style="background:{band}">{esc(title)}</div>'
+    return (f'<div class="band" style="background:{band}">'
+            f'{span("parties.title", title)}</div>'
             f'<div class="fields">{rows}</div>')
 
 
@@ -100,7 +101,7 @@ def build(recipe, receipt, spec: dict, parse: dict) -> str:
     body = (head + title
             + '<div class="box">' + "".join(block for block in blocks if block) + "</div>"
             + f'<div class="tail"><div class="bc">{_barcode(serial)}'
-              f'<div class="bcnum">* {" ".join(serial[:8].upper())} *</div></div>'
+              f'<div class="bcnum">{span("invoice.serial", "* " + " ".join(serial[:8].upper()) + " *")}</div></div>'
               f'<div class="code">{span("invoice.serial", serial)}</div></div>')
 
     css = """

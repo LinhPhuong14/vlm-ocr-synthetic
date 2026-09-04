@@ -19,8 +19,13 @@ Checkboxes are new furniture this family introduces (`_checklist`): a
 glyph, not a ground-truth field. The item beside it -- one line of
 `invoice.notes` -- is real, printed text; whether its box reads ☐ or ☑ is
 decided fresh at render time and never claimed as something the document
-"said", the same reasoning `invoice_multipage`'s page marker and this
-family's own government masthead and photo placeholder already follow.
+"said", the same reasoning `_roster_table`'s per-day attendance mark
+follows below. That reasoning is about the MARK, not about whether nearby
+fixed text gets a box -- the government masthead, the photo placeholder's
+"Ảnh"/"4x6", and the roster's own day-of-week column headers are word-for-word
+fixed on every page (nothing here is drawn from the seed), but they are still
+real ink a reader has to read, so they carry `span()` like everything else;
+only the mark whose two states are a coin flip at render time does not.
 """
 
 from __future__ import annotations
@@ -39,17 +44,29 @@ NATIONAL_MASTHEAD = ("CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM", "Độc l�
 
 
 def _govt_masthead() -> str:
-    return (f'<div class="govt"><div class="g1">{esc(NATIONAL_MASTHEAD[0])}</div>'
-            f'<div class="g2">{esc(NATIONAL_MASTHEAD[1])}</div><div class="grule"></div></div>')
+    # Word for word on every real form this draws, yes -- but that makes it
+    # furniture in the SAMPLING sense (nothing here was drawn from the seed),
+    # not in the sense that matters for a box: it is real ink a reader has to
+    # read like anything else on the page, and `word_annotations` exists to
+    # cover exactly that ink, sampled or not. `"masthead"` is already the
+    # `layout_class_for` prefix for this shape (Section-Header) -- the two
+    # lines share it rather than inventing a second kind for the motto.
+    return (f'<div class="govt"><div class="g1">{span("masthead", NATIONAL_MASTHEAD[0])}</div>'
+            f'<div class="g2">{span("masthead.motto", NATIONAL_MASTHEAD[1])}</div>'
+            f'<div class="grule"></div></div>')
 
 
 def _photobox() -> str:
-    """A blank corner for a portrait photo -- furniture, never `span()`.
+    """A blank corner for a portrait photo.
 
     Real registration forms print the box whether or not a photo is glued
-    in; the box itself carries no field of the document's own.
+    in, so its two words are not a sampled field -- but they are still ink
+    printed on the page ("glue a 4x6 photo here"), and the box itself is the
+    same photo placeholder `periodical.py::_photo_box` draws, marked
+    `"photo."` so the region reads `Image` rather than `Text`.
     """
-    return '<div class="photobox">Ảnh<br>4x6</div>'
+    return (f'<div class="photobox">{span("photo.placeholder", "Ảnh")}<br>'
+           f'{span("photo.size", "4x6")}</div>')
 
 
 def _orgname(parse: dict) -> str:
@@ -88,7 +105,7 @@ def _fields_block(pairs: list[tuple[str, str]], *, title: str = "") -> str:
         f'<div class="frow">{span("invoice.field.label", label, "k")} '
         f'{span("invoice.field", value, "v")}</div>'
         for label, value in pairs)
-    head = f'<div class="fcap">{esc(title)}</div>' if title else ""
+    head = f'<div class="fcap">{span("subhead", title)}</div>' if title else ""
     return f'<div class="fields">{head}{rows}</div>'
 
 
@@ -118,7 +135,8 @@ def _sectioned(letter: str, title: str, body: str) -> str:
     if not body:
         return ""
     return (f'<div class="section"><div class="shead">'
-            f'<span class="sl">{esc(letter)}.</span> {esc(title)}</div>{body}</div>')
+            f'<span class="sl">{span("subhead.label", f"{letter}.")}</span> '
+            f'{span("subhead", title)}</div>{body}</div>')
 
 
 def _checklist(receipt, spec: dict, rng: random.Random) -> str:
@@ -170,7 +188,6 @@ def _item_table(spec: dict, receipt, parse: dict, rows) -> str:
     still carries every value's ground truth.
     """
     from components.table import Border, Cell, Column, Row, TableSpec, render_table
-
     from rulebase.layout import item_values
 
     columns = base.columns_of(spec, base.ncols_of(spec))
@@ -216,7 +233,6 @@ def _roster_table(spec: dict, receipt, parse: dict, rows, rng: random.Random) ->
     the page rather than drifting between two runs of the same seed.
     """
     from components.table import Border, Cell, Column, Row, TableSpec, render_table
-
     from rulebase.layout import item_values
 
     columns = base.columns_of(spec, base.ncols_of(spec))
@@ -230,7 +246,7 @@ def _roster_table(spec: dict, receipt, parse: dict, rows, rng: random.Random) ->
 
     head_cells = [Cell(span("colhdr", c.get("title", "")), html=True,
                        align=c.get("title_align", "center")) for c in columns]
-    head_cells += [Cell(esc(day), align="center") for day in days]
+    head_cells += [Cell(span("colhdr", day), html=True, align="center") for day in days]
     table_rows = [Row(head_cells, header=True, bg="#eef0f2")]
     for item in receipt.items:
         values = item_values(item, receipt)
