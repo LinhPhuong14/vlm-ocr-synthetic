@@ -12,9 +12,11 @@ scene with a real paper material, a real camera search for an unoccluded angle, 
 four studio lighting presets, then renders it.
 
 The cost of that realism is real too: a call here shells out to Blender and takes on the
-order of ten seconds to a minute, against the microseconds of a pixel remap -- which is
-exactly why every rule-base option that names a scenario here ships `enabled: false`. See
-`rulebase/rules/augmentation.yaml`'s "HÌNH HỌC" section.
+order of a minute (`vendor/config.py`'s `RENDER_SAMPLES`/`SIMULATION_FRAMES` are tuned for
+speed over photorealism, by eye, against this repo's CPU-only Cycles), against the
+microseconds of a pixel remap -- which is exactly why every rule-base option that names a
+scenario here ships `enabled: false`. See `rulebase/rules/augmentation.yaml`'s "HÌNH HỌC"
+section.
 
     from degradation.blender.render import warp_regions
     image, boxes, words, cells = warp_regions(
@@ -25,6 +27,14 @@ page is no longer a flat crop of the render -- goes through `uv_inverse.py`: Ble
 renders a UV-inverse map (which flat point each rendered pixel shows), inverted here into
 the opposite direction, source pixel -> render pixel, and every quad corner is resampled
 through that map.
+
+The render canvas itself (`vendor/config.py`'s `RESOLUTION_X`/`RESOLUTION_Y`) is sized for
+the worst-case camera distance a stubborn fold's visibility-check retries can reach, not for
+how big the page usually looks -- left alone, most pages would be a small object surrounded
+by background. `apply_warp` crops back to the page's own footprint (`_page_bounding_box`,
+read off the same UV-inverse map) plus a small margin before returning, which is also why
+the camera is free to back off as far as it needs to: a page that ends up tiny in-frame gets
+cropped back to size, not shipped tiny.
 """
 
 from __future__ import annotations
@@ -66,8 +76,35 @@ _CAMERA_DISTANCE_RETRIES = 6
 _CAMERA_DISTANCE_GROWTH = 1.5
 
 
+# Fraction of the page's own bounding-box size added back as a margin on every side after
+# cropping to it -- enough that a label quad drawn right at the page edge (rare, but the
+# UV-visibility mask can be a pixel tighter than the geometry it came from) is not cut off.
+_CROP_MARGIN_RATIO = 0.04
+
+
 class BlenderWarpError(RuntimeError):
     """A Blender render failed for a reason other than camera framing."""
+
+
+def _page_bounding_box(uv_map: np.ndarray) -> tuple[int, int, int, int] | None:
+    """Pixel bounding box `(x0, y0, x1, y1)` (inclusive) of the visible page in a UV-inverse
+    render, expanded by `_CROP_MARGIN_RATIO`. `None` if the mask is empty (should not happen
+    for a render that already passed the visibility check, but a page that vanished would
+    otherwise crop to a zero-size image with no error)."""
+    mask = uv_map[..., 2] > 0
+    if not mask.any():
+        return None
+    ys, xs = np.where(mask)
+    x0, x1 = int(xs.min()), int(xs.max())
+    y0, y1 = int(ys.min()), int(ys.max())
+    margin_x = max(1, round((x1 - x0) * _CROP_MARGIN_RATIO))
+    margin_y = max(1, round((y1 - y0) * _CROP_MARGIN_RATIO))
+    height, width = mask.shape
+    x0 = max(0, x0 - margin_x)
+    x1 = min(width - 1, x1 + margin_x)
+    y0 = max(0, y0 - margin_y)
+    y1 = min(height - 1, y1 + margin_y)
+    return x0, y0, x1, y1
 
 
 def find_blender() -> str:
@@ -218,8 +255,21 @@ def apply_warp(
         if rendered is None:
             raise BlenderWarpError(f"blender wrote {render_path} but it could not be read back")
 
+        # The render canvas (config.RESOLUTION_X/Y, 1024x1440 by default) is sized for the
+        # WORST-case camera distance the visibility-check retries can reach (see `_render`),
+        # not for how big the page usually needs to look -- most of the time the page is a
+        # small object in a mostly-background frame. Cropped down to its own footprint (plus
+        # a margin) here, which is also why the retries above are free to back the camera off
+        # as far as a stubborn fold needs: a page that ends up tiny in-frame is cropped back
+        # to size, not shipped tiny.
+        uv_map = read_uv_inverse_exr(uv_path)
+        bbox = _page_bounding_box(uv_map)
+        crop_x0, crop_y0 = bbox[:2] if bbox else (0, 0)
+        if bbox:
+            x0, y0, x1, y1 = bbox
+            rendered = rendered[y0:y1 + 1, x0:x1 + 1]
+
         if quads.size:
-            uv_map = read_uv_inverse_exr(uv_path)
             backward_map = uv_to_backward_map(uv_map, size=(height, width))
             ys = quads[..., 1].ravel()
             xs = quads[..., 0].ravel()
@@ -232,13 +282,14 @@ def apply_warp(
             # a corner near a steep fold, by a wild margin (seen once during testing:
             # (-1868, 7181) against a 1024x1440 canvas). A page with one such corner fails
             # `pipeline.record.validate`'s frame check anyway, so it is caught HERE instead,
-            # loudly, rather than shipped as a record with one silently wrong label.
-            render_h, render_w = rendered.shape[:2]
-            margin = max(render_h, render_w)
+            # loudly, rather than shipped as a record with one silently wrong label. Checked
+            # against the UNCROPPED render, which is the space `backward_map` is in.
+            uncropped_h, uncropped_w = uv_map.shape[:2]
+            margin = max(uncropped_h, uncropped_w)
             in_range = (
                 np.isfinite(new_rows) & np.isfinite(new_cols)
-                & (new_rows >= -margin) & (new_rows <= render_h + margin)
-                & (new_cols >= -margin) & (new_cols <= render_w + margin)
+                & (new_rows >= -margin) & (new_rows <= uncropped_h + margin)
+                & (new_cols >= -margin) & (new_cols <= uncropped_w + margin)
             )
             if not in_range.all():
                 bad = int((~in_range).sum())
@@ -247,6 +298,8 @@ def apply_warp(
                     "warping (backward-map extrapolation near a steep fold) -- retry with a "
                     "different seed rather than trust this render's labels")
 
+            new_rows -= crop_y0
+            new_cols -= crop_x0
             quads = np.stack([new_cols, new_rows], axis=-1).reshape(quads.shape).astype(np.float32)
 
         return rendered, quads

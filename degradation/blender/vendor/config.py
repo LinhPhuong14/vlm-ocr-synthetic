@@ -10,7 +10,11 @@ SCALE = 1
 
 # ========== RENDER SETTINGS ==========
 RENDER_ENGINE = "CYCLES"  # 'CYCLES', 'BLENDER_EEVEE_NEXT'
-RENDER_SAMPLES = 96
+# Half of upstream's 96, chosen by eye against this repo's own CPU-only Cycles renders (no
+# GPU, no OpenImageDenoise -- see USE_DENOISING below): ~1.5x faster per page with grain that
+# does not read as a defect at the resolution below, against ~2.7x faster and visibly grainier
+# at 24. Turn this back up if a machine has a GPU and OIDN to spend on it.
+RENDER_SAMPLES = 48
 # Left on by default -- a full Blender install (blender.org) has OpenImageDenoise built in.
 # `render_utils.renderImage` catches the "Build without OpenImageDenoiser" error a stripped
 # distro package (Ubuntu's `apt install blender`, notably) raises and retries once with this
@@ -138,7 +142,10 @@ NATURAL_BOUNCE_SIZE = 1.8
 # ========== PHYSICS SETTINGS ==========
 # Rigid body simulation settling the table against the paper. Gravity points up so the table
 # rises to meet the paper, which must not move: see plane_paper_contact.py.
-SIMULATION_FRAMES = 250  # frames played through before the result is baked
+# Cut from upstream's 250: a flat plane settling against a static paper mesh has stopped
+# moving well before frame 100 in every render checked by hand -- there is nothing left to
+# converge in the frames this drops, just idle simulation steps.
+SIMULATION_FRAMES = 100  # frames played through before the result is baked
 SIMULATION_GRAVITY = (0.0, 0.0, 9.8100004196167)  # m/s^2, +Z so the table falls upward
 RIGID_BODY_FRICTION = 100.0  # far above any physical value, so surfaces grip instead of sliding
 
