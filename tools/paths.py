@@ -20,24 +20,18 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 WINDOWS = os.name == "nt"
 
 # Third-party code that is checked in as-is. It keeps its own style, so linting
-# and byte-compiling skip it. `generators/genalog/` is only PARTLY vendored --
-# render.py, templates/ and README.md are ours -- so the upstream
-# subdirectories are listed rather than the whole directory.
+# and byte-compiling skip it. The six `generators/genalog/` entries that used to
+# head this list went with that backend; `augmentations/` is what is left.
 # Mirrored by `extend-exclude` in pyproject.toml, which ruff reads directly.
 VENDORED = (
-    "generators/genalog/genalog/",
-    "generators/genalog/tests/",
-    "generators/genalog/example/",
-    "generators/genalog/devops/",
-    "generators/genalog/docs/",
-    "generators/genalog/setup.py",
     "augmentations/",
 )
 
+# One environment, because there is one renderer. `synthdog` and `genalog` had
+# entries here until they were deleted -- see `pipeline/config.py::GONE_BACKENDS`
+# for what that means for the pages they drew, which are still committed.
 VENVS = {
-    "synthdog": REPO_ROOT / "generators" / "synthdog" / ".venv",
     "html": REPO_ROOT / "generators" / "html" / ".venv",
-    "genalog": REPO_ROOT / "generators" / "genalog" / ".venv",
 }
 
 

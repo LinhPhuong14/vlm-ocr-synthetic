@@ -85,7 +85,7 @@ table:
   group_span: 6
   # Bảng chạy sang trang sau thì KHÔNG lặp lại tiêu đề — đúng như tờ mẫu, và
   # cũng đỡ cho phép dò box: tiêu đề lặp là hơn trăm ký tự mà markup chỉ khai
-  # một lần. Xem `match_runs` trong generators/genalog/render.py.
+  # một lần.
   repeat_header: false
 
 item:

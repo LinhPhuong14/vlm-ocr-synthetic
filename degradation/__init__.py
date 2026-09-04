@@ -5,8 +5,10 @@ Mansencal, Kieu et al., LaBRI Bordeaux) is a C++/Qt application whose
 degradation models are the strongest part: they were designed against real
 degraded manuscripts, not invented to look plausible. The C++ needs Qt,
 OpenGL and a build, which does not fit a Python generation pipeline, so the
-models are ported here and applied to whatever a generator produced --
-synthdog receipts, genalog pages, anything else.
+models are ported here and applied to whatever a generator produced. That was
+literal when three renderers fed them; it is still how they are written -- they
+take an array, not a page -- which is why deleting two renderers cost this
+package nothing.
 
 `Augraphy <https://github.com/sparkfish/augraphy>`_ is the other source, and
 twelve of its models are ported the same way: the marks a copier, a printer or
@@ -129,7 +131,7 @@ DEGRADATIONS: dict[str, tuple[Callable[..., np.ndarray], bool, bool]] = {
 }
 
 # Models kept here on purpose and drawn by NO rule. Same shape, and the same
-# reasoning, as `pipeline/config.py::RETIRED_BACKENDS`: switching a model off is
+# reasoning, as `pipeline/config.py::GONE_BACKENDS`: switching a model off is
 # not deleting it. The port stays, its tests stay, and turning it back on is one
 # chain entry in `rulebase/rules/`.
 #
@@ -189,7 +191,7 @@ SWITCHED_OFF = {
 }
 
 # Models kept here on purpose and drawn by NO rule. Same shape, and the same
-# reasoning, as `pipeline/config.py::RETIRED_BACKENDS`: switching a model off is
+# reasoning, as `pipeline/config.py::GONE_BACKENDS`: switching a model off is
 # not deleting it. The port stays, its tests stay, and turning it back on is one
 # chain entry in `rulebase/rules/`.
 #

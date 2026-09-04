@@ -1,5 +1,5 @@
 # llm-generated qwen2.5:7b-instruct@845dbda0ea48ed74 from=eatery_indexed seed=60 2026-08-27
-# Reviewed by a person before it drew anything. The gauntlet it passed is in tools/llm/augment_layout.py.
+# Reviewed by a person before it drew anything. The gauntlet it passed is in agent/augment_layout.py.
 id: eatery_indexed_b
 name: Eatery — index column, quantity, price, amount
 source: 'biến thể của eatery_indexed (sinh bằng LLM, không đo từ ảnh nào) — bố cục

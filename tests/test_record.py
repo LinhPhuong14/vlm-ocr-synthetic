@@ -331,14 +331,34 @@ def page_directories():
     tells `data/dataset60/html/` apart from `data/dataset60/proof/`, whose
     images are Tesseract's working, not the generator's output.
 
-    **Committed**, so a path under a dot-directory is skipped. `data/*/.shards/`
-    is a run's own working state and is gitignored; counting it made the census
-    below depend on whether anyone had run the pipeline in this checkout, which
-    is a red test on one machine and a green one on another for no difference in
-    what is actually committed.
+    **Committed**, and asked of git rather than guessed. A dot-directory rule
+    covered `data/*/.shards/`, a run's own working state; it does not cover
+    `data/5k_llm/`, which is a gitignored directory with an ordinary name that
+    `tools/agent_dataset.py` writes whenever anybody regenerates the agent run.
+    Counting it made the census below depend on what happened to be on the disk
+    -- a red test on the machine that had just generated a set and a green one
+    everywhere else, for no difference at all in what is committed.
+
+    `git check-ignore` is the only thing that knows the answer, so it is asked.
+    Where git cannot answer -- no git, no repository -- nothing is filtered and
+    the census counts what it finds, which is the behaviour this had before.
     """
-    return sorted(path.parent for path in DATA.rglob("synthesis.json")
-                  if not any(part.startswith(".") for part in path.parts))
+    found = sorted(path.parent for path in DATA.rglob("synthesis.json")
+                   if not any(part.startswith(".") for part in path.parts))
+    return [path for path in found if not _ignored(path)]
+
+
+def _ignored(path) -> bool:
+    """Whether git ignores this path. False if git cannot say."""
+    import subprocess
+
+    try:
+        done = subprocess.run(
+            ["git", "check-ignore", "-q", str(path)],
+            cwd=REPO_ROOT, capture_output=True, timeout=20)
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return done.returncode == 0
 
 
 def test_every_committed_page_has_a_record_in_the_shape_this_file_defines():
@@ -357,10 +377,19 @@ def test_every_committed_page_has_a_record_in_the_shape_this_file_defines():
     # meant to: a set that quietly lost half its pages would otherwise look
     # like a passing test. The chain, newest first:
     #
-    #   5380 = 380 plus `data/5k_llm/`, the 5000-page agent run: every attribute
-    #         of every page chosen by `agent/planner.py` rather than drawn by
-    #         the seed, and committed whole -- images, records and a proof
-    #         beside each one -- at the repository owner's request.
+    #   988 = 738 plus `data/5k_llm/`, the agent run's 250 drawn pages. The set
+    #         was committed whole once, removed at the owner's request, and put
+    #         back at their later one; `.gitignore` says which parts land in git.
+    #         The plan is for 5000 -- `--render-upto` drew the first 250 of it,
+    #         so the coverage objective is still balanced over the whole run.
+    #   738 = 380 plus `data/layout_augment/`, 358 pages: every one of the 52
+    #         phôi drawn bare, and then drawn again wearing each rebuild
+    #         `agent/redesign.py` offers it -- same seed, same document, ageing
+    #         pinned off, so the only difference between two pages in a
+    #         directory is the architecture. The proofs live in
+    #         `data/layout_augment/proof/`, outside the page directories, so
+    #         they are not counted here and this test does not trip over an
+    #         image with no record beside it.
     #   380 = 296 plus `data/layouts_all/`, 84 pages -- every ENABLED layout
     #         twice over, dealt so that no two adjacent images carry the same
     #         layout. The count moved three times in one day (84 -> 64 -> 84:
@@ -385,7 +414,15 @@ def test_every_committed_page_has_a_record_in_the_shape_this_file_defines():
     #   294 = 307 before `data/dataset_test` was rebuilt on the CSS sheets,
     #         which took it from 30 images over two renderers to 16, one per
     #         layout, on the only backend the pipeline still drives.
-    assert seen == 5380, seen
+    #
+    # RED right now, on purpose, after this merge: `data/5k_llm/` was measured
+    # to hold 770 tracked files (not the 250 this comment chain assumes), and
+    # every one of its records predates `word_annotations`/`layout_annotations`
+    # -- 988 of them fail `R.validate` here for missing those two keys before
+    # `seen` even reaches this number. `pipeline.record.migrate` is the tool
+    # for exactly this (see its own docstring); nothing here has run it, by
+    # request -- reconcile this assert against `migrate`'s result once it has.
+    assert seen == 988, seen
 
 
 # ------------------------------------------------------- the shape before this

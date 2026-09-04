@@ -3,8 +3,11 @@
 
     python samples/form-templates/render.py        # or: make templates
 
-Needs `weasyprint` and `pymupdf` -- both are in the genalog renderer's
-requirements, so `make setup-genalog` covers it.
+Needs `weasyprint` and `pymupdf`. They came with the genalog renderer's
+requirements while that backend existed; it is deleted, so install them into
+whatever interpreter you run this with:
+
+    pip install weasyprint pymupdf
 
 Same idea as `samples/invoice-templates/render.py`, with one difference these
 sheets force: a form is not always one page. `bang kê chi phí` is three, and

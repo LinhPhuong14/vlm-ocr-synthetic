@@ -48,7 +48,7 @@ from __future__ import annotations
 import json
 import random
 from dataclasses import asdict, dataclass
-from typing import Any
+from typing import Any, Iterable
 
 from rulebase.spec import Option, sample_recipe
 
@@ -100,12 +100,23 @@ class Chooser:
     """Weighted choice that remembers, over one attribute at a time."""
 
     def __init__(self, rules: dict[str, list[Option]], order: tuple[str, ...],
-                 seed: int, pressure: float = DEFAULT_PRESSURE):
+                 seed: int, pressure: float = DEFAULT_PRESSURE,
+                 penalty: dict[str, dict[str, float]] | None = None,
+                 ban: Iterable[tuple[tuple[str, str], tuple[str, str]]] = ()):
         self.rules = rules
         self.order = tuple(order)
         self.rng = random.Random(seed)
         self.pressure = float(pressure)
         self.used: dict[str, dict[str, int]] = {name: {} for name in self.order}
+        # What `agent/critic.py` learnt from the last run, if anything: a
+        # multiplier per value, and pairs that are only bad together. Empty by
+        # default, so a first run behaves exactly as it did before there was a
+        # reviewer -- the loop is opt-in and the driver's `--feedback` opens it.
+        self.penalty = {a: dict(o) for a, o in (penalty or {}).items()}
+        self.ban: dict[tuple[str, str], set[tuple[str, str]]] = {}
+        for one, two in ban or ():
+            self.ban.setdefault(tuple(one), set()).add(tuple(two))
+            self.ban.setdefault(tuple(two), set()).add(tuple(one))
 
     def legal(self, attribute: str, tags: frozenset[str]) -> list[Option]:
         """Drawable values: allowed by the tags, and not switched off.
@@ -125,16 +136,41 @@ class Chooser:
         return [option for option in self.rules[attribute]
                 if option.weight > 0 and option.enabled and option.allowed(tags)]
 
+    def permitted(self, attribute: str, tags: frozenset[str],
+                  chosen: Iterable[tuple[str, str]] = ()) -> list[Option]:
+        """`legal`, minus values the reviewer banned alongside what is chosen.
+
+        A ban is a pair, never a single value: `layout=form_dense` is a good
+        layout and `ornament=qr_dau_trang` is a good mark, and the fault is
+        only in the two of them on one page. Dropping either one on its own
+        would cost the set a phôi or a mark for no reason.
+        """
+        options = self.legal(attribute, tags)
+        if not self.ban:
+            return options
+        forbidden: set[tuple[str, str]] = set()
+        for pair in chosen:
+            forbidden |= self.ban.get(tuple(pair), set())
+        if not forbidden:
+            return options
+        kept = [o for o in options if (attribute, o.id) not in forbidden]
+        # Never strand a walk on the reviewer's advice: the bans are a
+        # heuristic and the rules are not, so an attribute the bans would empty
+        # keeps its legal values and the pair is drawn rather than the run dying.
+        return kept or options
+
     def _score(self, attribute: str, option: Option, bare_penalty: float) -> float:
         used = self.used[attribute].get(option.id, 0)
         score = option.weight / (1.0 + used) ** self.pressure
         if attribute == "ornament" and option.id == BARE_ID:
             score *= bare_penalty
+        score *= self.penalty.get(attribute, {}).get(option.id, 1.0)
         return max(score, 1e-9)
 
     def take(self, attribute: str, tags: frozenset[str],
-             bare_penalty: float = 1.0, record: bool = True) -> Option:
-        options = self.legal(attribute, tags)
+             bare_penalty: float = 1.0, record: bool = True,
+             chosen: Iterable[tuple[str, str]] = ()) -> Option:
+        options = self.permitted(attribute, tags, chosen)
         if not options:
             raise Clash(
                 f"{attribute}: nothing is drawable under tags {sorted(tags)}")
@@ -187,7 +223,7 @@ def decide_one(chooser: Chooser, policy, index: int, seed: int,
                     from_model.append(attribute)
                 else:
                     option = chooser.take(attribute, tags, bare_penalty=penalty,
-                                          record=False)
+                                          record=False, chosen=taken)
                 force[attribute] = option.id
                 taken.append((attribute, option.id))
                 tags = tags | option.tags
@@ -275,10 +311,19 @@ def propose(llm, rules, order, block: int, seen: dict[str, dict[str, int]],
 
 def plan(count: int, seed: int, rules: dict[str, list[Option]], policy,
          *, order: tuple[str, ...] | None = None, llm=None,
-         pressure: float = DEFAULT_PRESSURE, block: int = 24) -> list[Decision]:
-    """`count` decided pages, in output order."""
+         pressure: float = DEFAULT_PRESSURE, block: int = 24,
+         penalty: dict[str, dict[str, float]] | None = None,
+         ban: Iterable[tuple[tuple[str, str], tuple[str, str]]] = ()) -> list[Decision]:
+    """`count` decided pages, in output order.
+
+    `penalty` and `ban` are the previous run's review, as
+    `agent/critic.py::load_feedback` hands them back. Passing them is how the
+    reviewer's findings reach the next set: values that broke pages get drawn
+    less, and pairs that only break together stop being drawn at all.
+    """
     order = tuple(order or rules.keys())
-    chooser = Chooser(rules, order, seed=seed, pressure=pressure)
+    chooser = Chooser(rules, order, seed=seed, pressure=pressure,
+                      penalty=penalty, ban=ban)
     out: list[Decision] = []
     pending: list[dict[str, str]] = []
 

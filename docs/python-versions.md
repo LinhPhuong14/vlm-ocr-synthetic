@@ -1,9 +1,15 @@
-# Why synthdog stops at Python 3.12
+# Why synthdog stopped at Python 3.12
 
-`generators/synthdog/requirements.txt` pins `pillow<10`, `numpy<2` and `opencv-python<5`,
-and caps the interpreter at 3.12. Those are not conservative guesses — every
-one of them was hit. This page records the measurements so nobody has to
-rediscover them, and so the cap is not "relaxed" by someone on a new laptop.
+> **This constraint is gone.** The glyph renderer was deleted
+> ([renderers.md](renderers.md)) and took its pins with it; `make setup` now
+> runs on any Python 3.9+. The page stays because the measurements cost two
+> days and answer a question that outlives the backend — *what does depending
+> on an unmaintained package actually cost, and how do you find out?* Read it
+> as a record, not as instructions.
+
+`generators/synthdog/requirements.txt` pinned `pillow<10`, `numpy<2` and
+`opencv-python<5`, and capped the interpreter at 3.12. Those were not
+conservative guesses — every one of them was hit.
 
 Everything below was measured on **CPython 3.14.7**, installed from
 python-build-standalone.
@@ -38,27 +44,30 @@ Add Pillow to that table and the ceiling drops again:
 | ------- | -------------- | ------------------------------- |
 | `pillow` | 9.5.0 (`pillow<10`) | **cp311** |
 
-**CPython 3.11 is the last interpreter where the whole stack installs from
+**CPython 3.11 was the last interpreter where the whole stack installed from
 wheels.** On 3.12, `pillow<10` resolves to 9.5.0, whose manylinux wheels stop at
 cp311, so pip falls back to a source build that fails. Measured on this
-repository, not inferred from release notes — which is why `make setup` refuses
-3.12 even though synthtiger itself would run there.
+repository, not inferred from release notes — which is why `make setup` refused
+3.12 even though synthtiger itself would have run there.
 
-## What this means in practice
-
-- Create the synthdog environment with a 3.8 – 3.11 interpreter. `make setup`
-  refuses to continue on anything newer rather than producing a broken venv.
-- If your system Python is 3.12+, get an older one rather than relaxing a pin:
-  `uv python install 3.11`, `pyenv install 3.11`, or your distribution's
-  `python3.11` package.
-- The other two pins have their own causes, both documented in
-  `generators/synthdog/requirements.txt`: synthtiger 1.2.1 calls `ImageFont.getsize()`,
-  removed in Pillow 10; and `opencv-python>=5` requires NumPy 2, which conflicts
-  with `numpy<2`.
+The other two pins had their own causes, both documented in that same
+requirements file: synthtiger 1.2.1 calls `ImageFont.getsize()`, removed in
+Pillow 10; and `opencv-python>=5` requires NumPy 2, which conflicts with
+`numpy<2`.
 
 ## The failure mode to recognise
 
-synthtiger catches exceptions inside its generation loop and retries, so a
-version mismatch does not raise — **it hangs**. If generation produces nothing
-and prints nothing, that is what has happened. Re-run with `-v` to see the
-traceback.
+synthtiger caught exceptions inside its generation loop and retried, so a
+version mismatch did not raise — **it hung**. Generation produced nothing and
+printed nothing. This is the part worth carrying forward: a dependency that
+retries instead of failing turns an install problem into a silent one, and the
+cost is not the pin, it is that the pin is invisible until someone waits an
+hour for images that were never coming.
+
+## What replaced it
+
+One renderer, one environment, and its dependencies are ones that still ship
+wheels for the current interpreter. The repo's floor is Python 3.9 — set by the
+rule-base, which has to import without any image library at all — and there is
+no ceiling. If a future dependency wants to introduce one, this page is the
+argument for choosing a different dependency.

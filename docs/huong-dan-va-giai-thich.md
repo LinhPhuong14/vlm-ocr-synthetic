@@ -10,9 +10,9 @@ như mọi chỗ "viết lạ" trong repo này đều là hậu quả của mộ
 - [1. Chạy thử](#1-chạy-thử)
 - [2. Đường đi của một tấm ảnh](#2-đường-đi-của-một-tấm-ảnh)
 - [3. Phần dùng chung: `rulebase/`](#3-phần-dùng-chung-rulebase)
-- [4. Framework 1 — synthdog (glyph)](#4-framework-1--synthdog-glyph)
+- [4. Framework 1 — synthdog (glyph) *(đã xoá)*](#4-framework-1--synthdog-glyph)
 - [5. Framework 2 — html (Chromium)](#5-framework-2--html-chromium)
-- [6. Framework 3 — genalog (WeasyPrint)](#6-framework-3--genalog-weasyprint)
+- [6. Framework 3 — genalog (WeasyPrint) *(đã xoá)*](#6-framework-3--genalog-weasyprint)
 - [7. Phần dùng chung: `degradation/`](#7-phần-dùng-chung-degradation)
 - [8. Kiểm thử](#8-kiểm-thử)
 - [9. Q&A](#9-qa)
@@ -24,31 +24,31 @@ như mọi chỗ "viết lạ" trong repo này đều là hậu quả của mộ
 ### 1.1 Dựng môi trường
 
 ```bash
-make setup          # dựng cả ba: setup-synthdog, setup-html, setup-genalog
+make setup          # = make setup-html; chỉ còn một renderer
 ```
 
 Không có `make` (Windows chẳng hạn) thì gọi thẳng task runner — **mọi task định
 nghĩa ở `tasks.py`**, `Makefile` chỉ forward, nên hai bên không thể lệch nhau:
 
 ```powershell
-py -3.11 tasks.py setup
+py tasks.py setup
 py tasks.py            # liệt kê task
 ```
 
-Chi tiết Windows: [`windows.md`](windows.md).
+Chi tiết Windows: [`windows.md`](windows.md). `setup-html` **không** chạy
+`playwright install` trong container của repo — trình duyệt đã có sẵn ở
+`/opt/pw-browsers`.
 
-Ba môi trường **không gộp được**. synthtiger ghim `pillow<10` (nó gọi
-`ImageFont.getsize()`, API bị xoá ở Pillow 10) còn WeasyPrint đời mới cần
-Pillow mới. Đây là mâu thuẫn thật, không phải sự cẩn thận thừa — xem
+Tài liệu này viết khi còn ba renderer, và §4 với §6 tả hai cái đã bị xoá. Chúng
+ở lại vì mục đích của tài liệu là "hiểu tại sao viết như thế", mà rất nhiều chỗ
+lạ trong `rulebase/` chỉ có nghĩa khi biết nó từng phải nuôi ba renderer. Chỗ
+nào là bản ghi thì có ghi rõ. Xem [`renderers.md`](renderers.md).
+
+Ba môi trường ngày ấy **không gộp được** — synthtiger ghim `pillow<10` (nó gọi
+`ImageFont.getsize()`, API bị xoá ở Pillow 10) còn WeasyPrint đời mới cần Pillow
+mới — và đó là một trong những cái giá của việc giữ cả ba. Nay chỉ còn một môi
+trường, không còn ràng buộc phiên bản nào; xem
 [`docs/python-versions.md`](python-versions.md).
-
-Dựng riêng từng cái nếu chỉ cần một:
-
-```bash
-make setup-synthdog    # cần Python 3.8–3.11, Makefile chặn 3.12+
-make setup-html        # playwright; KHÔNG chạy `playwright install`
-make setup-genalog     # genalog vendor sẵn trong repo, xem §6
-```
 
 ### 1.2 Xem trước, không cần render
 
@@ -148,10 +148,15 @@ tháng sau mới phát hiện bố cục đó chưa từng xuất hiện trong d
             │
      ┌──────┴───────┬───────────────┐
   synthdog         html          genalog          ← ba cách vẽ CÙNG một Grid
-     │              │                │
+   (đã xoá)          │             (đã xoá)
      └──────┬───────┴───────────────┘
   degradation.pipeline.apply_recipe  làm cũ         ->  ảnh cuối
 ```
+
+Nay chỉ còn nhánh giữa. Hình vẽ giữ cả ba vì **hình dạng** ấy mới là thứ giải
+thích được ba mục kế tiếp: `Receipt` tách khỏi `Grid`, `Grid` đếm cột bằng ký tự,
+và `degradation/` nhận mảng chứ không nhận trang — cả ba đều là hệ quả của việc
+phải nuôi ba nhánh, và cả ba đều còn nguyên giá trị với một nhánh.
 
 Ba dòng đầu gói trong một hàm: `rulebase.make(seed, force)` trong
 `rulebase/__init__.py`.
@@ -314,6 +319,10 @@ tiếng Việt. Dịch nốt vế sau là đổi bộ dữ liệu chứ không p
 ---
 
 ## 4. Framework 1 — synthdog (glyph)
+
+> **Backend này đã bị xoá** ([`renderers.md`](renderers.md)). Mục này là bản
+> ghi. Đọc nó để hiểu vì sao `rulebase/layout.py` đếm cột bằng ký tự chứ không
+> bằng pixel, và vì sao `visual.curl` vẫn nằm trong luật mà không ai đọc.
 
 **Bản chất:** vẽ từng ô chữ bằng `synthtiger.layers.TextLayer`, rồi làm cong tờ
 giấy, thả lên nền và "chụp lại". Kết quả trông như **ảnh chụp** hoá đơn nằm
@@ -520,6 +529,10 @@ phối khác hẳn renderer glyph — và là lý do giữ cả ba.
 
 ## 6. Framework 3 — genalog (WeasyPrint)
 
+> **Backend này đã bị xoá** ([`renderers.md`](renderers.md)). Mục này là bản
+> ghi. Đọc nó để hiểu vì sao vài chỗ trong `generators/html/sheets/` tránh
+> `position:absolute`, và vì sao `ornament_url()` trả về URL tuyệt đối.
+
 **Bản chất:** dựng document bằng Jinja2 + WeasyPrint qua chính API của
 [genalog](https://github.com/microsoft/genalog), in ra PDF rồi raster. Kết quả
 trông như **bản in / photocopy**.
@@ -586,6 +599,12 @@ Chỗ này trước đây viết "genalog là renderer dễ đọc nhất ở b�
 Bỏ. Trên cùng một bộ hoá đơn (`pairing: paired`, W1b) genalog được **0.659**,
 thấp hơn html **0.729**. Lý do giữ genalog không phải vì nó dễ đọc nhất — mà vì
 nó là đường render thứ ba, và đó là lý do đủ.
+
+**Về sau lý do ấy không còn đủ.** Nó đủ khi giá phải trả là dựng thêm một venv;
+nó hết đủ khi mỗi tính năng mới phải viết hai lần — chữ viết tay là chỗ vỡ, vì
+`match_runs` đọc hộp từ lớp glyph của PDF còn ảnh mực không góp glyph nào. Một
+đường render đa dạng hơn mà chặn được tính năng thì không phải là đa dạng, mà là
+mẫu số chung. Xem [`renderers.md`](renderers.md).
 
 ---
 

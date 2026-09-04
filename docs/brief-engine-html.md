@@ -251,7 +251,11 @@ ra để sửa. Cái gì khác nhau GIỮA các thành viên một họ thì đ�
 bố cục: `sections:`, `columns:`, `item.rows:` — kể cả `span: [qty, amount]`,
 tức một ô `colspan` thật.
 
-### Đường genalog: WeasyPrint in đúng markup ấy
+### Đường genalog: WeasyPrint in đúng markup ấy *(đã xoá)*
+
+> Mục này mô tả một backend không còn tồn tại. Giữ lại vì phần CSS nói ở cuối
+> mục vẫn đang có trong `sheets/`, và ai đọc nó cần biết vì sao nó được viết
+> như thế. Xem [`renderers.md`](renderers.md).
 
 `generators/genalog/render.py --template` nhận cùng một chuỗi markup, đưa qua
 `Document` của genalog (`templates/sheet.html.jinja` chỉ có `{{ content }}`).

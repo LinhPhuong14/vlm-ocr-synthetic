@@ -145,7 +145,7 @@ HAND_KINDS = ("invoice.field", "invoice.words", "sign.name")
 ALL_KINDS = "*"
 
 # The handwriting typefaces, in `fonts/hand/`. Both are SIL OFL 1.1 and both
-# pass `generators/synthdog/tools/check_fonts.py` on the full Vietnamese
+# pass `tools/check_fonts.py` on the full Vietnamese
 # alphabet -- which is not a formality: **Caveat, the obvious casual-hand
 # choice, is missing 80 of those characters** and would have printed empty boxes
 # under a label claiming the word was written. `size` is the multiple of the

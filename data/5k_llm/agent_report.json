@@ -1,0 +1,525 @@
+{
+  "images": 5000,
+  "policy": {
+    "classes": {
+      "locked": [
+        "form_activity",
+        "form_dense",
+        "form_symmetric",
+        "hospital_bill",
+        "insurance_auto_certificate",
+        "insurance_health_id_card",
+        "insurance_moto_certificate",
+        "vat_invoice_form"
+      ],
+      "livery": [
+        "authorisation_letter",
+        "export_invoice",
+        "form_roster",
+        "insurance_cargo_policy",
+        "insurance_fire_certificate",
+        "insurance_health_certificate",
+        "insurance_life_schedule",
+        "insurance_travel_certificate",
+        "tax_invoice_en",
+        "utility_power",
+        "utility_water"
+      ],
+      "free": [
+        "bakery_order",
+        "convenience_store",
+        "form_brief",
+        "form_checklist",
+        "form_checklist_table",
+        "form_sectioned",
+        "hotel_stay",
+        "insurance_application_form",
+        "insurance_property_contract",
+        "invoice_detailed",
+        "invoice_plain",
+        "magazine_contents",
+        "magazine_qa_interview",
+        "newspaper_classifieds",
+        "newspaper_front_broadsheet",
+        "pub_eatery",
+        "resort_stay",
+        "restaurant_vat",
+        "retail_vat_invoice",
+        "street_eatery",
+        "supermarket",
+        "supermarket_vat"
+      ]
+    },
+    "reasons": {
+      "locked": "Phôi do cơ quan nhà nước ban hành, có mẫu số và ký hiệu quy định. Dáng tờ giấy là một phần của tính hợp lệ, nên chỉ đóng dấu chứ không dựng lại.",
+      "livery": "Bố cục do ngành hoặc bên phát hành quy định — số cột, thứ tự khối, nhãn song ngữ đều cố định — nhưng mực, nền và nét kẻ thì mỗi đợt in một khác. Đổi màu thì được, đổi hình thì không.",
+      "free": "Chứng từ thương mại và giấy tính tiền: mỗi quán, mỗi siêu thị, mỗi khách sạn tự thiết kế. Đa dạng dáng ở đây là đúng với đời thật, không phải là bịa."
+    },
+    "reachable_variants": {
+      "authorisation_letter": 18,
+      "bakery_order": 49,
+      "convenience_store": 49,
+      "export_invoice": 18,
+      "form_activity": 1,
+      "form_brief": 49,
+      "form_checklist": 49,
+      "form_checklist_table": 49,
+      "form_dense": 1,
+      "form_roster": 18,
+      "form_sectioned": 49,
+      "form_symmetric": 1,
+      "hospital_bill": 1,
+      "hotel_stay": 49,
+      "insurance_application_form": 49,
+      "insurance_auto_certificate": 1,
+      "insurance_cargo_policy": 18,
+      "insurance_fire_certificate": 18,
+      "insurance_health_certificate": 18,
+      "insurance_health_id_card": 1,
+      "insurance_life_schedule": 18,
+      "insurance_moto_certificate": 1,
+      "insurance_property_contract": 49,
+      "insurance_travel_certificate": 18,
+      "invoice_detailed": 49,
+      "invoice_plain": 49,
+      "magazine_contents": 49,
+      "magazine_qa_interview": 49,
+      "newspaper_classifieds": 49,
+      "newspaper_front_broadsheet": 49,
+      "pub_eatery": 49,
+      "resort_stay": 49,
+      "restaurant_vat": 49,
+      "retail_vat_invoice": 49,
+      "street_eatery": 49,
+      "supermarket": 49,
+      "supermarket_vat": 49,
+      "tax_invoice_en": 18,
+      "utility_power": 18,
+      "utility_water": 18,
+      "vat_invoice_form": 1
+    }
+  },
+  "variants": {
+    "catalogue": 48,
+    "space": {
+      "livery": 648,
+      "free": 622080
+    },
+    "axes": {
+      "stock": {
+        "level": "livery",
+        "values": [
+          "hong",
+          "nga",
+          "trang",
+          "xam",
+          "xanh_lam",
+          "xanh_luc"
+        ]
+      },
+      "rule": {
+        "level": "livery",
+        "values": [
+          "chuan",
+          "dam",
+          "khung_ngoai",
+          "manh",
+          "muc_den",
+          "nhat"
+        ]
+      },
+      "band": {
+        "level": "livery",
+        "values": [
+          "gach_chan",
+          "lam",
+          "luc",
+          "trong",
+          "xam",
+          "xam_dam"
+        ]
+      },
+      "zebra": {
+        "level": "livery",
+        "values": [
+          "khong",
+          "nhat",
+          "xam"
+        ]
+      },
+      "type": {
+        "level": "free",
+        "values": [
+          "co_dien",
+          "gian_chu",
+          "hien_dai",
+          "so_may",
+          "tieu_de_khong_chan"
+        ]
+      },
+      "density": {
+        "level": "free",
+        "values": [
+          "chuan",
+          "nen",
+          "thoang"
+        ]
+      },
+      "mark": {
+        "level": "free",
+        "values": [
+          "bang_dinh",
+          "goc_vuong",
+          "guilloche",
+          "khong",
+          "luoi_chan",
+          "rang_cua",
+          "vach_gay",
+          "vet_cheo"
+        ]
+      },
+      "structure": {
+        "level": "free",
+        "values": [
+          "bang_giua_ky_trai",
+          "bang_len_truoc",
+          "dan_lai_toan_bo",
+          "ky_len_tren_tong",
+          "le_hep_tieu_de_lon",
+          "le_rong_dao_khoi",
+          "tong_trai_ky_phai",
+          "truong_hai_cot"
+        ]
+      }
+    }
+  },
+  "feedback": {
+    "from": "",
+    "penalties": {},
+    "ban": []
+  },
+  "coverage": {
+    "images": 5000,
+    "by": {
+      "llm": 0,
+      "coverage": 5000
+    },
+    "distinct_triples": 1250,
+    "attributes": {
+      "augmentation": {
+        "defined": 23,
+        "used": 16,
+        "min": 153,
+        "max": 472,
+        "counts": {
+          "annotated": 302,
+          "flatbed_scan": 384,
+          "forwarded_photo": 372,
+          "ghost_text": 386,
+          "heavy": 285,
+          "impact_ribbon": 153,
+          "light": 451,
+          "medium": 450,
+          "misregistered": 172,
+          "pristine": 316,
+          "real_paper": 472,
+          "screen_photo": 263,
+          "scribbled": 383,
+          "security_guilloche": 153,
+          "security_paper": 162,
+          "worn_plate": 296
+        }
+      },
+      "color": {
+        "defined": 5,
+        "used": 5,
+        "min": 503,
+        "max": 1606,
+        "counts": {
+          "blue_ink": 503,
+          "faded_gray": 1214,
+          "mono_black": 1606,
+          "red_logo": 514,
+          "thermal_yellow": 1163
+        }
+      },
+      "content": {
+        "defined": 12,
+        "used": 12,
+        "min": 38,
+        "max": 1517,
+        "counts": {
+          "ascii_upper": 355,
+          "diacritics_mixed": 338,
+          "diacritics_upper": 329,
+          "dong_suffix": 161,
+          "invoice_ascii": 793,
+          "invoice_en": 80,
+          "invoice_service_dong": 234,
+          "invoice_service_vnd": 230,
+          "invoice_vi": 1517,
+          "invoice_vi_upper": 785,
+          "market_decimals": 38,
+          "market_full": 140
+        }
+      },
+      "document": {
+        "defined": 41,
+        "used": 41,
+        "min": 71,
+        "max": 166,
+        "counts": {
+          "authorisation_letter": 92,
+          "bakery_order": 145,
+          "convenience_store": 119,
+          "export_invoice": 117,
+          "form_activity": 71,
+          "form_brief": 126,
+          "form_checklist": 79,
+          "form_checklist_table": 85,
+          "form_dense": 138,
+          "form_roster": 86,
+          "form_sectioned": 88,
+          "form_symmetric": 75,
+          "hospital_bill": 125,
+          "hotel_stay": 140,
+          "insurance_application_form": 123,
+          "insurance_auto_certificate": 135,
+          "insurance_cargo_policy": 134,
+          "insurance_fire_certificate": 125,
+          "insurance_health_certificate": 142,
+          "insurance_health_id_card": 130,
+          "insurance_life_schedule": 124,
+          "insurance_moto_certificate": 131,
+          "insurance_property_contract": 128,
+          "insurance_travel_certificate": 121,
+          "invoice_detailed": 125,
+          "invoice_plain": 115,
+          "magazine_contents": 128,
+          "magazine_qa_interview": 133,
+          "newspaper_classifieds": 138,
+          "newspaper_front_broadsheet": 123,
+          "pub_eatery": 166,
+          "resort_stay": 129,
+          "restaurant_vat": 115,
+          "retail_vat_invoice": 144,
+          "street_eatery": 157,
+          "supermarket": 157,
+          "supermarket_vat": 125,
+          "tax_invoice_en": 80,
+          "utility_power": 117,
+          "utility_water": 142,
+          "vat_invoice_form": 127
+        }
+      },
+      "drum": {
+        "defined": 1,
+        "used": 1,
+        "min": 5000,
+        "max": 5000,
+        "counts": {
+          "no_drum": 5000
+        }
+      },
+      "handwriting": {
+        "defined": 4,
+        "used": 3,
+        "min": 787,
+        "max": 2689,
+        "counts": {
+          "hand_both": 1524,
+          "hand_model": 787,
+          "typed": 2689
+        }
+      },
+      "layout": {
+        "defined": 52,
+        "used": 52,
+        "min": 18,
+        "max": 214,
+        "counts": {
+          "authorisation_letter": 92,
+          "eatery_ascii": 122,
+          "eatery_indexed": 214,
+          "eatery_indexed_b": 102,
+          "form_activity_signature": 71,
+          "form_checkbox_heavy": 79,
+          "form_dense_registration": 63,
+          "form_government_app": 75,
+          "form_multi_section": 88,
+          "form_project_kv": 57,
+          "form_questionnaire": 69,
+          "form_table_based": 85,
+          "form_timesheet_grid": 86,
+          "form_two_column": 75,
+          "insurance_application_form": 123,
+          "insurance_auto_certificate": 135,
+          "insurance_cargo_policy": 134,
+          "insurance_fire_certificate": 125,
+          "insurance_health_certificate": 142,
+          "insurance_health_id_card": 130,
+          "insurance_life_schedule": 124,
+          "insurance_moto_certificate": 131,
+          "insurance_property_contract": 128,
+          "insurance_travel_certificate": 121,
+          "invoice_brand": 145,
+          "invoice_dense_table": 34,
+          "invoice_export": 117,
+          "invoice_header_table": 23,
+          "invoice_hotel_compact": 128,
+          "invoice_hotel_stay": 141,
+          "invoice_keyvalue": 18,
+          "invoice_logo_center": 27,
+          "invoice_logo_split": 23,
+          "invoice_minimalist": 32,
+          "invoice_multipage": 22,
+          "invoice_power": 117,
+          "invoice_remittance": 20,
+          "invoice_sidebar": 23,
+          "invoice_tax_en": 80,
+          "invoice_two_column": 18,
+          "invoice_vat_form": 127,
+          "invoice_vat_summary": 144,
+          "invoice_water": 142,
+          "magazine_contents": 128,
+          "magazine_qa_interview": 133,
+          "market_barcode": 140,
+          "market_compact": 131,
+          "market_vat": 68,
+          "medical_statement": 125,
+          "newspaper_classifieds": 138,
+          "newspaper_front_broadsheet": 123,
+          "notebook_ledger": 62
+        }
+      },
+      "ornament": {
+        "defined": 21,
+        "used": 21,
+        "min": 28,
+        "max": 1166,
+        "counts": {
+          "branded_green": 81,
+          "branded_teal": 75,
+          "copy_stamp": 177,
+          "dong_son_brand": 68,
+          "dong_son_teal": 28,
+          "export_seal": 29,
+          "hotel_seal": 45,
+          "no_ornament": 1166,
+          "overlap_seal": 157,
+          "qr_and_seal": 272,
+          "seal_and_paid": 279,
+          "seal_short_of_ink": 248,
+          "seal_struck_twice": 268,
+          "seal_with_name_block": 332,
+          "security_print": 205,
+          "seller_seal": 401,
+          "shelf_barcode": 179,
+          "verify_qr": 398,
+          "watermark_copy": 389,
+          "watermark_sample": 143,
+          "wave_only": 60
+        }
+      },
+      "rollers": {
+        "defined": 1,
+        "used": 1,
+        "min": 5000,
+        "max": 5000,
+        "counts": {
+          "no_rollers": 5000
+        }
+      },
+      "toner": {
+        "defined": 1,
+        "used": 1,
+        "min": 5000,
+        "max": 5000,
+        "counts": {
+          "no_toner": 5000
+        }
+      },
+      "variant": {
+        "defined": 49,
+        "used": 49,
+        "min": 46,
+        "max": 1007,
+        "counts": {
+          "f_hong_khung_ngoai_xam_dam_nhat_co_dien_chuan_vet_cheo_le_rong_dao_khoi": 46,
+          "f_hong_manh_xam_dam_nhat_so_may_thoang_guilloche_bang_giua_ky_trai": 57,
+          "f_hong_muc_den_xam_nhat_co_dien_chuan_khong_bang_giua_ky_trai": 62,
+          "f_nga_muc_den_lam_nhat_co_dien_chuan_vach_gay_bang_len_truoc": 63,
+          "f_nga_muc_den_xam_khong_so_may_thoang_rang_cua_truong_hai_cot": 57,
+          "f_nga_nhat_lam_khong_tieu_de_khong_chan_chuan_vet_cheo_ky_len_tren_tong": 52,
+          "f_nga_nhat_lam_nhat_hien_dai_nen_vach_gay_bang_len_truoc": 56,
+          "f_nga_nhat_trong_khong_so_may_chuan_goc_vuong_bang_giua_ky_trai": 52,
+          "f_trang_dam_luc_xam_tieu_de_khong_chan_thoang_khong_bang_len_truoc": 59,
+          "f_trang_manh_gach_chan_nhat_tieu_de_khong_chan_nen_vet_cheo_dan_lai_toan_bo": 61,
+          "f_xam_dam_gach_chan_xam_co_dien_nen_guilloche_bang_len_truoc": 62,
+          "f_xam_dam_trong_khong_co_dien_thoang_vet_cheo_truong_hai_cot": 56,
+          "f_xam_khung_ngoai_lam_nhat_gian_chu_nen_vet_cheo_truong_hai_cot": 68,
+          "f_xam_khung_ngoai_trong_khong_hien_dai_thoang_vet_cheo_truong_hai_cot": 53,
+          "f_xam_manh_lam_nhat_hien_dai_chuan_bang_dinh_dan_lai_toan_bo": 52,
+          "f_xam_muc_den_xam_khong_tieu_de_khong_chan_chuan_khong_bang_len_truoc": 53,
+          "f_xam_nhat_trong_khong_hien_dai_nen_rang_cua_bang_len_truoc": 54,
+          "f_xam_nhat_xam_dam_khong_gian_chu_thoang_khong_dan_lai_toan_bo": 55,
+          "f_xanh_lam_chuan_xam_nhat_hien_dai_chuan_bang_dinh_le_rong_dao_khoi": 53,
+          "f_xanh_lam_dam_lam_khong_tieu_de_khong_chan_thoang_goc_vuong_tong_trai_ky_phai": 55,
+          "f_xanh_lam_dam_xam_dam_xam_co_dien_thoang_vach_gay_bang_giua_ky_trai": 56,
+          "f_xanh_lam_dam_xam_xam_tieu_de_khong_chan_nen_goc_vuong_tong_trai_ky_phai": 52,
+          "f_xanh_lam_khung_ngoai_xam_dam_xam_gian_chu_chuan_luoi_chan_bang_len_truoc": 52,
+          "f_xanh_lam_manh_trong_xam_hien_dai_nen_vet_cheo_bang_giua_ky_trai": 63,
+          "f_xanh_lam_nhat_luc_xam_tieu_de_khong_chan_thoang_khong_le_hep_tieu_de_lon": 56,
+          "f_xanh_luc_dam_lam_xam_hien_dai_thoang_vach_gay_tong_trai_ky_phai": 48,
+          "f_xanh_luc_khung_ngoai_trong_nhat_co_dien_nen_vet_cheo_dan_lai_toan_bo": 56,
+          "f_xanh_luc_manh_trong_xam_so_may_nen_bang_dinh_le_hep_tieu_de_lon": 51,
+          "f_xanh_luc_muc_den_luc_xam_so_may_thoang_luoi_chan_truong_hai_cot": 53,
+          "f_xanh_luc_muc_den_trong_xam_so_may_nen_khong_le_hep_tieu_de_lon": 64,
+          "f_xanh_luc_muc_den_xam_nhat_gian_chu_thoang_khong_truong_hai_cot": 59,
+          "l_hong_chuan_luc_khong": 124,
+          "l_hong_khung_ngoai_xam_xam": 125,
+          "l_hong_manh_xam_xam": 145,
+          "l_nga_nhat_xam_dam_xam": 127,
+          "l_trang_khung_ngoai_luc_nhat": 132,
+          "l_trang_khung_ngoai_trong_nhat": 123,
+          "l_xam_chuan_trong_xam": 137,
+          "l_xam_chuan_xam_dam_nhat": 130,
+          "l_xam_dam_gach_chan_xam": 129,
+          "l_xanh_lam_khung_ngoai_gach_chan_xam": 134,
+          "l_xanh_lam_khung_ngoai_luc_nhat": 138,
+          "l_xanh_lam_muc_den_trong_xam": 134,
+          "l_xanh_lam_nhat_trong_xam": 137,
+          "l_xanh_luc_chuan_lam_xam": 138,
+          "l_xanh_luc_khung_ngoai_gach_chan_xam": 133,
+          "l_xanh_luc_khung_ngoai_lam_nhat": 138,
+          "l_xanh_luc_muc_den_xam_dam_khong": 133,
+          "none": 1007
+        }
+      },
+      "visual": {
+        "defined": 7,
+        "used": 7,
+        "min": 243,
+        "max": 2061,
+        "counts": {
+          "dot_matrix": 254,
+          "impact_invoice": 1578,
+          "laser_invoice": 2061,
+          "laser_sharp": 251,
+          "thermal_dark": 306,
+          "thermal_faint": 307,
+          "thermal_narrow": 243
+        }
+      }
+    }
+  },
+  "never_drawn": {},
+  "unreachable": {},
+  "elapsed_seconds": {
+    "rules": 0.57,
+    "plan": 0.57,
+    "verify": 0.36,
+    "render": 980.62,
+    "proof": 2.79
+  }
+}

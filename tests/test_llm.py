@@ -5,7 +5,7 @@ the validator, the provenance stamp, the line cleaner -- which is deliberate:
 those are the parts that decide what reaches `rulebase/`, and a test that
 needed a 4.7 GB checkpoint to run is a test that does not run.
 
-The first test is the load-bearing one. `tools/llm/` may write files that the
+The first test is the load-bearing one. `agent/` may write files that the
 pipeline later reads; it may never be *called* by the pipeline. If that ever
 stops being true, the repository quietly loses the property everything else
 rests on -- the same seed drawing the same bytes -- and it loses it without a
@@ -25,14 +25,17 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from tools.llm import corpus_rules as rules  # noqa: E402
-from tools.llm import layout_schema  # noqa: E402
-from tools.llm import provenance as prov  # noqa: E402
-from tools.llm.client import lines_of, retab  # noqa: E402
+from agent import corpus_rules as rules  # noqa: E402
+from agent import layout_schema  # noqa: E402
+from agent import provenance as prov  # noqa: E402
+from agent.ollama import lines_of, retab  # noqa: E402
 
 # Where the render path lives. Every one of these is imported by a running
-# render or a running pipeline, so an import of `tools.llm` from any of them
-# would put a model call on that path.
+# render or a running pipeline, so an import of `agent` from any of them would
+# put a model call on that path. The assertion widened when `tools/llm/` moved
+# into `agent/`: it now covers the planner and the critic too, which is the
+# point -- both decide things a model influenced, and neither may be reachable
+# from a page being drawn.
 RENDER_PATH = ("generators", "pipeline", "rulebase", "degradation", "components")
 
 
@@ -61,7 +64,7 @@ def test_the_render_path_cannot_reach_the_generator():
             if ".venv" in path.parts:
                 continue
             for name in _imports(path):
-                if name == "tools.llm" or name.startswith("tools.llm."):
+                if name == "agent" or name.startswith("agent."):
                     offenders.append(f"{path.relative_to(REPO_ROOT)} imports {name}")
     assert offenders == [], (
         "the render path must not import the generator:\n  " + "\n  ".join(offenders))
@@ -74,7 +77,7 @@ def test_the_generator_never_writes_outside_the_corpus_and_the_rules():
     paths are *stated* in the source: an audit reads this list, not a strace.
     """
     allowed = ("rulebase/corpus", "rulebase/layouts", "rulebase/variants")
-    for path in (REPO_ROOT / "tools" / "llm").rglob("*.py"):
+    for path in (REPO_ROOT / "agent").rglob("*.py"):
         source = path.read_text(encoding="utf-8")
         if "open(" in source and "\"a\"" in source:
             assert any(part in source for part in ("CORPUS_VI", "CORPUS_ROOT")), (
@@ -315,8 +318,8 @@ def test_every_committed_corpus_line_is_attributable():
 def test_every_prompt_the_generator_names_exists():
     """A missing prompt fails at the ask, after the model has been loaded --
     eleven seconds and 4.7 GB later. Cheaper to find out here."""
-    from tools.llm import augment_content as content
-    from tools.llm.client import prompt
+    from agent import augment_content as content
+    from agent.ollama import prompt
 
     for name in set(content.PROMPTS.values()) | {content.DEFAULT_PROMPT}:
         assert prompt(name).strip(), name
@@ -325,7 +328,7 @@ def test_every_prompt_the_generator_names_exists():
 def test_every_generatable_family_has_a_vietnamese_description():
     """Asking the model for `shops_market` by its file name gets file-name
     shaped nonsense back, so a stem with no description must stop the run."""
-    from tools.llm import augment_content as content
+    from agent import augment_content as content
 
     for stem in content.SUBJECTS:
         assert rules.shape_of(stem)          # the family is measured
@@ -418,7 +421,7 @@ def test_the_policy_and_the_rules_agree_both_ways():
     here: "safe" means a document type that quietly never varies, and a run
     whose point is variety should not find that out by reading the output.
     """
-    from tools.llm import policy
+    from agent import augmentable as policy
 
     assert policy.problems() == []
 
@@ -430,7 +433,7 @@ def test_a_prescribed_form_may_not_have_its_layout_varied():
     generated variant of it is a document that does not exist, and a model
     trained on those learns to look for a field no real page has.
     """
-    from tools.llm import policy
+    from agent import augmentable as policy
 
     assert policy.level_of("vat_invoice_form") == policy.FIXED
     assert not policy.may_vary_layout("vat_invoice_form")
@@ -442,14 +445,14 @@ def test_a_prescribed_form_may_not_have_its_layout_varied():
 def test_an_unclassified_document_is_fixed_rather_than_free():
     """The default has to be the strict end: forgetting to classify a new
     document costs a variation, not a forged licence."""
-    from tools.llm import policy
+    from agent import augmentable as policy
 
     assert policy.level_of("a_document_nobody_has_classified") == policy.FIXED
     assert policy.DEFAULT == policy.FIXED
 
 
 def test_a_level_outside_the_three_is_refused(tmp_path):
-    from tools.llm import policy
+    from agent import augmentable as policy
 
     path = tmp_path / "augmentable.yaml"
     path.write_text("documents:\n  x: anything_goes\n", encoding="utf-8")

@@ -85,9 +85,9 @@ def test_nonsense_counts_are_rejected(value):
 
 
 def test_out_is_absolute():
-    # A relative output path handed to the glyph backend lands inside
-    # generators/synthdog/, because that backend runs from its own directory and
-    # creates whatever it is given.
+    # A backend that runs from its own directory resolves a relative output
+    # path against that directory and creates it there. One did; the guard is
+    # kept for the next one, since the failure is silent.
     assert make_config(out="data/rel").out.is_absolute()
 
 

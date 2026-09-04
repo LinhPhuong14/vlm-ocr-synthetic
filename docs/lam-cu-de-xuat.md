@@ -158,28 +158,30 @@ tiêu**. Thêm một dòng YAML là dùng được ngay, không phải viết m�
 * **`phantom_character.patterns`** — như trên, với `phantomPatterns` của
   DocCreator.
 
-### B4 · Mô hình sống trong nhánh đã nghỉ hưu
+### B4 · Mô hình đã mất cùng hai renderer bị xoá
 
-`backends: [html]` — `genalog` và `synthdog` đã rút khỏi việc sinh dữ liệu
-(xem [`docs/renderers.md`](renderers.md)). Kéo theo:
+`backends: [html]` — `genalog` và `synthdog` đã bị xoá khỏi cây mã (xem
+[`docs/renderers.md`](renderers.md)). Ba thứ dưới đây **không còn trên đĩa**;
+muốn dùng lại thì phải lấy từ lịch sử git hoặc từ upstream, và đó chính là lý
+do chúng được ghi ở đây thay vì bị quên:
 
-* **`CurlWarp`** ([`generators/synthdog/elements/warp.py`](../generators/synthdog/elements/warp.py))
-  — cong giấy phi tuyến hai lượt, **và có công thức nghịch nên map lại được toạ
-  độ từng ô chữ**. Đây là thứ giá trị nhất trong nhóm này: nó giải đúng bài toán
-  mà mục **C** dưới đây nói là đang bỏ trống. `visual.curl` (0.85 / 0.9 / 1.0
-  cho ba loại giấy nhiệt) vẫn nằm trong luật, vẫn được bốc, và **không ai đọc
-  nữa** — chỉ `template_receipt.py` của synthdog đọc.
-* **`generators/genalog/genalog/degradation/effect.py`** — cả một họ nhiễu đã
-  vendor sẵn, chưa lần nào chạy qua đường `apply_recipe`: `salt`, `pepper`,
+* **`CurlWarp`** (`generators/synthdog/elements/warp.py`, đã xoá) — cong giấy phi
+  tuyến hai lượt, **và có công thức nghịch nên map lại được toạ độ từng ô chữ**.
+  Đây là thứ giá trị nhất trong nhóm: nó giải đúng bài toán mà mục **C** dưới
+  đây nói là đang bỏ trống. `visual.curl` (0.85 / 0.9 / 1.0 cho ba loại giấy
+  nhiệt) vẫn nằm trong luật, vẫn được bốc, và **không ai đọc nữa**.
+* **`genalog/degradation/effect.py`** (đã xoá) — cả một họ nhiễu từng vendor
+  sẵn, chưa lần nào chạy qua đường `apply_recipe`: `salt`, `pepper`,
   `salt_then_pepper`, `pepper_then_salt`, `morphology` (`open` / `close` /
-  `erode` / `dilate`), `translation`, `overlay_weighted`, `bleed_through` bản
-  của genalog. `erode`/`dilate` là **mô hình nét mực dày lên / mỏng đi**, thứ mà
+  `erode` / `dilate`), `translation`, `overlay_weighted`, `bleed_through`.
+  `erode`/`dilate` là **mô hình nét mực dày lên / mỏng đi**, thứ mà
   `degradation/` hiện không có — `ink_degradation` ăn mực theo mảng chứ không
-  làm cả nét béo ra đều.
-* **`textures/background/`** — 8 ảnh cảnh nền chụp thật (SynthDoG). Chỉ
-  `config_vi_receipt.yaml` của synthdog trỏ vào. Renderer HTML cho ra ảnh quét
-  phẳng không có ngoại cảnh, nên **bộ dữ liệu hiện tại không có tờ nào nằm trên
-  bàn**.
+  làm cả nét béo ra đều. Upstream microsoft/genalog vẫn có, giấy phép MIT.
+* **`textures/background/`** — 8 ảnh cảnh nền chụp thật (SynthDoG). Chúng **vẫn
+  còn** trong repo, nhưng file duy nhất trỏ vào là config của synthdog, và file
+  ấy đã xoá. Renderer HTML cho ra ảnh quét phẳng không có ngoại cảnh, nên **bộ
+  dữ liệu hiện tại không có tờ nào nằm trên bàn**, và tám ảnh kia hiện không ai
+  đọc.
 
 ### B5 · `DEFAULT_CHAIN` chỉ có công cụ dùng
 
@@ -231,7 +233,6 @@ lệch nhỏ so với đường 1 như mô tả ở trên: thay vì `apply_recip
 map, mỗi primitive trả `(ảnh, quad)` và **`generators/html/render.py` gọi nó
 như một bước riêng, SAU `apply_recipe` và sau chính cái assert ở trên** — xem
 `degradation/geometry.py::warp_regions`. Giữ nguyên chữ ký `apply_recipe` cho
-ba renderer kia (`genalog`, `synthdog` đã tự có `CurlWarp` của nó) và cho
 `tools/legibility.py`, thay vì đổi một hàm dùng chung chỉ để một backend cần.
 Test giữ hộp: `tests/test_geometry.py`. Ba giá trị rule-base (`page_curl`,
 `folded`, `lifted_corner` trong `rules/augmentation.yaml`) đều `enabled:

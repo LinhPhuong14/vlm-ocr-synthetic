@@ -1,34 +1,29 @@
 # Contributing
 
-This repository holds one rule-base and three renderers. There is no shared
-package and no shared virtualenv: the renderers cannot share one, because
-synthtiger pins Pillow 9.5 and WeasyPrint needs a modern one.
+This repository holds one rule-base and one renderer. There is still no shared
+package and no shared virtualenv: the renderer keeps its own, because it pins a
+browser and the pure-Python parts must stay installable without one.
 
 | working on | environment | notes |
 | --- | --- | --- |
 | `rulebase/` | any Python 3.9+ with `PyYAML` | pure content logic; no image libraries |
-| `degradation/` | any Python 3.9+ with `numpy`, `opencv` | shared by all three renderers |
-| `generators/synthdog/` | `make setup-synthdog` | **Python 3.8 – 3.11 only** |
+| `degradation/` | any Python 3.9+ with `numpy`, `opencv` | shared by the renderer and the tools |
 | `generators/html/` | `make setup-html` | needs a browser; see its README |
-| `generators/genalog/` | `make setup-genalog` | genalog's source is vendored here, not installed |
 
-`make setup` builds all three renderer environments. Without `make` — on
-Windows, or anywhere — `python tasks.py setup` does the same: **every task is
-defined in `tasks.py`** and the Makefile only forwards to it, so there is one
-definition per task rather than one per platform. See
-[`docs/windows.md`](docs/windows.md).
+`make setup` builds that one environment. Without `make` — on Windows, or
+anywhere — `python tasks.py setup` does the same: **every task is defined in
+`tasks.py`** and the Makefile only forwards to it, so there is one definition
+per task rather than one per platform. See [`docs/windows.md`](docs/windows.md).
 
-Before changing a renderer, read
+Before changing the renderer, read
 [`docs/huong-dan-va-giai-thich.md`](docs/huong-dan-va-giai-thich.md): it walks
-each one function by function and says why the non-obvious parts are written
-the way they are. Most of them are a bug that was hit once already.
+it function by function and says why the non-obvious parts are written the way
+they are. Most of them are a bug that was hit once already.
 
-The glyph renderer is run **from its own directory** — the paths in
-`config_vi_receipt.yaml` are relative to it. `make receipts`, `make preview` and
-`tools/generate_dataset.py` already `cd` for you. (That is also the reason
-`generate_dataset.py` resolves its output path to an absolute one before
-launching a backend: a relative `-o data/...` would land inside
-`generators/synthdog/`, silently, because the backend creates what it writes to.)
+There were two other renderers, `synthdog` (a glyph grid) and `genalog`
+(WeasyPrint). Both are deleted; [`docs/renderers.md`](docs/renderers.md) says
+why, and what still reads the pages they drew. Anything in these docs that
+measures them is a record of what was measured, not an instruction you can run.
 
 ## Before pushing
 
@@ -53,16 +48,6 @@ make proof DATASET=data/dataset60
 
 ## Constraints that are deliberate
 
-**The version cap is real.** `generators/synthdog/requirements.txt` pins
-`pillow<10`, `numpy<2` and `opencv-python<5`, and each pin exists because
-removing it breaks something specific — the file says which. Python 3.12+
-cannot satisfy them at all; [`docs/python-versions.md`](docs/python-versions.md)
-has the measurements. On a newer interpreter, build the 3.11 environment rather
-than relaxing a pin.
-
-**synthtiger swallows exceptions and retries forever**, so a broken template
-hangs silently rather than failing. Always pass `-v`.
-
 **The corpus is stored with diacritics.** Folding is one-way: "Hẹn gặp lại" →
 "Hen gap lai" is recoverable, the reverse is not. Whether a given receipt is
 folded is `content.prob_ascii_fold`'s decision, made at render time.
@@ -73,7 +58,7 @@ Mono, the obvious monospace choice, is missing 46 characters including
 label still says the word was printed.
 
 ```bash
-generators/synthdog/.venv/bin/python generators/synthdog/tools/check_fonts.py fonts/mono
+generators/html/.venv/bin/python tools/check_fonts.py fonts/mono
 ```
 
 **Order in a degradation chain is not commutative.** Ink decay before blur reads
@@ -85,11 +70,11 @@ smudged scan.
 `ruff` for linting, configured in `pyproject.toml`. It checks correctness and
 imports, not formatting: much of the Python here is adapted from upstream and
 reformatting it would only make future merges harder. Vendored code
-(`generators/genalog/`'s own source and tests) is excluded entirely; see
-`tools/paths.py`.
+(`degradation/augmentations/`) is excluded entirely; see `tools/paths.py`.
 
-`target-version` is `py38` because that is what the glyph renderer supports, so
-ruff will not suggest `zip(strict=)` or other newer syntax that would break it.
+`target-version` is `py39`, the oldest interpreter the rule-base is expected to
+run on. The renderer's own environment is newer, but `rulebase/` and
+`degradation/` are imported by tools that may not have it.
 
 Comments and docstrings are in English; the YAML rules, the corpus and the
 rule-base README are in Vietnamese, because those are what a Vietnamese speaker

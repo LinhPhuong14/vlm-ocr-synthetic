@@ -5,7 +5,7 @@
 
 Same idea as `samples/invoice-templates/render.py` and `samples/form-
 templates/render.py`, on a different engine. Those two print with WeasyPrint,
-which this repository's own `make setup-genalog` now calls "retired" -- so
+which arrived with a renderer this repository has since deleted -- so
 this script instead launches the same Chromium build
 `generators/html/render.py` uses for the real pipeline (`find_chromium()`,
 shared from `generators/html/page.py`) and screenshots each `.sheet` element

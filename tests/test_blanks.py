@@ -36,7 +36,7 @@ def test_a_document_with_one_blank_is_reported_as_such(real_rules):
 
     `pub_eatery` has three since `eatery_indexed_b` shipped. A variant is drawn
     by the same documents as the layout it varies -- that is what makes it a
-    variant rather than a new kind of paper -- so `tools/llm/augment_layout.py`
+    variant rather than a new kind of paper -- so `agent/augment_layout.py`
     adds it beside its parent in every document list the parent appears in, and
     this count moves with it.
     """

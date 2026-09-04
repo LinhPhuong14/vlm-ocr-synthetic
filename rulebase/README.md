@@ -17,17 +17,17 @@ with glyphs, with Chromium or with WeasyPrint. That is the precondition for a
 comparison between the three to mean anything — if each renderer invented its
 own content, what you compared would be two datasets, not two ways of drawing.
 
-**The two HTML backends have a second entry point, for a page made of CSS
-rather than character cells.** `build_grid` cuts an over-wide value to fit its
-column and writes the cut back, which is correct once but wrong twice: a sheet
-built from that grid would inherit a trim the sheet never needed, since it has
-no column to overflow. So Chromium (`generators/html/render.py`) and
-WeasyPrint (`generators/genalog/render.py`) skip the grid on this path and call
+**The renderer has a second entry point, for a page made of CSS rather than
+character cells.** `build_grid` cuts an over-wide value to fit its column and
+writes the cut back, which is correct once but wrong twice: a sheet built from
+that grid would inherit a trim the sheet never needed, since it has no column to
+overflow. So Chromium (`generators/html/render.py`) skips the grid on this path
+and calls
 `recipe, receipt, rng = rulebase.make_content(seed=7)` instead, then hand
 `(recipe, receipt)` straight to `sheets.build()`, which reads the layout's own
 `family:` key from `rulebase/layouts/<id>.yaml` and drapes it in ordinary
 flow — real `<table>`, real `colspan`, millimetres, no character grid at all.
-This is what `--template auto` selects on both backends, and it is the
+This is what `--template auto` selects, and it is the
 default every production path now uses: `make dataset`, `make run` and every
 `tools/baseline.py` plan pass it, because every shipped layout already has a
 family to be dressed in. `--template <layout-id>` forces one specific family

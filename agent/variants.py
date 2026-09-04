@@ -318,6 +318,74 @@ AXES: tuple[Axis, ...] = (_stock(), _rule(), _band(), _zebra(),
 LIVERY_AXES = tuple(axis for axis in AXES if axis.level == "livery")
 
 
+# ---------------------------------------------------------- shared with redesign
+#
+# `agent/redesign.py` writes whole-page architectures by hand and this file
+# composes them from axes, but both of them are CSS laid over somebody else's
+# phôi, and both hit the same walls. So the selector helpers and the guard live
+# here, where the module that has no imports can hold them, and `redesign`
+# imports them.
+
+# Where a family keeps the blocks a dressing rearranges. `.frame` and `.card`
+# are the insurance family's: its certificates are absolutely positioned panels
+# inside the sheet, so a rule written only against `#sheet > *` reached nothing
+# at all there -- a whole-page redesign measured 0.000 on the health card and
+# 0.105 on the moto slip, which is not a design that does nothing, it is a
+# selector that matches nothing.
+HOLDERS = ("#sheet", "#sheet .inner", "#sheet main", "#sheet .frame",
+           "#sheet .card")
+
+
+def on(selector: str, body: str) -> str:
+    """One rule, emitted for every container a family might be using."""
+    return "\n".join(f"{holder}{selector}{{{body}}}" for holder in HOLDERS)
+
+
+# A dressing that paints "the first block" means the letterhead, never the panel
+# the family wraps everything in. `.frame` and `.card` are in HOLDERS so rules
+# reach INSIDE them, and they are also `#sheet`'s first child, so a bare
+# `> *:first-child` painted the whole certificate dark -- and took the
+# handwriting with it, since WriteViT's ink is dark whatever the CSS says.
+WRAPPERS = (".frame", ".card", ".inner")
+FIRST = " > *:first-child" + "".join(f":not({w})" for w in WRAPPERS)
+
+GUARD = "\n".join([
+    # Horizontal margins zeroed, not just padding. A design that indents its
+    # blocks indents the table with them, and a table at `width:100%` with a
+    # left margin does not narrow -- it SHIFTS, and runs off the right trim by
+    # exactly the indent. `bang_dan_dau` pushed a hotel folio's whole item
+    # table 18% to the right that way; `bang_thanh_the` did the same to its
+    # staggered cards. Whatever a design does to the blocks, the table keeps the
+    # phôi's own measure.
+    on(" > table.items",
+       "margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;"),
+    # ...and `table-layout:fixed` so the columns are sized from the header row
+    # and the content wraps inside them. `max-width` does not bind an
+    # auto-layout table: its columns are sized from their content and the table
+    # grows past the trim rather than shrinking, which sliced the amount column
+    # in half on four designs before this.
+    on(" table.items", "table-layout:fixed;"),
+    on(" table.items th", "overflow-wrap:anywhere;"),
+    on(" table.items td", "overflow-wrap:anywhere;"),
+    # `.frame` and `.card` are holders, not blocks. They appear in HOLDERS so a
+    # design reaches the blocks inside them, and they are also children of
+    # `#sheet`, so a `> *` rule indents the panel AND everything in it -- the
+    # same double-indent that put a table off the trim, one level up.
+    # ...and it must not take a block's paint either. `> *:first-child` matched
+    # the frame on the insurance cards, so a design meaning to put a dark band
+    # behind the letterhead inverted the WHOLE card -- and the handwriting went
+    # with it: WriteViT draws its ink dark whatever the CSS says, so every
+    # hand-filled field on that certificate disappeared into the ground. The
+    # reviewer reported it as `khong_muc`, which is exactly what it was.
+    ",".join(f"#sheet > {w},#sheet .frame > {w}" for w in WRAPPERS)
+    + "{margin-left:0;margin-right:0;background:transparent;color:inherit;}",
+])
+
+
+def guarded(css: str) -> str:
+    """A dressing's CSS with the guard appended, so the guard wins on order."""
+    return css + "\n" + GUARD if css.strip() else css
+
 @dataclass(frozen=True)
 class Variant:
     """One dressing: an id, what a person would call it, the CSS, the moves."""
@@ -328,10 +396,24 @@ class Variant:
     css: str
     axes: dict[str, str]
     moves: tuple = ()
+    # Set by an authored design, which knows its own width requirement; left
+    # None by a composed dressing, whose requirement is read off its axes.
+    needs_wide: bool | None = None
 
     @property
     def wide_only(self) -> bool:
-        """Whether this dressing needs a sheet wider than a till roll."""
+        """Whether this dressing needs a sheet wider than a till roll.
+
+        A composed dressing declares this through its `structure` axis. An
+        authored one in `agent/redesign.py` cannot -- it has no axes to read --
+        so it sets `needs_wide` instead. Before that field existed, every
+        authored design reported False here, which is how a two-column sidebar
+        layout came to be admissible on an 80 mm thermal roll: `agent/rules.py`
+        only writes `excludes: [till_receipt]` for a dressing that says it is
+        wide, and none of them said so.
+        """
+        if self.needs_wide is not None:
+            return bool(self.needs_wide)
         return self.axes.get("structure", "") in WIDE_ONLY_STRUCTURE
 
 
@@ -348,8 +430,15 @@ def _compose(picks: dict[str, str], level: str, axes: tuple[Axis, ...]) -> Varia
             moves.extend(entry[2])
         labels.append(label)
     ident = f"{level[0]}_" + "_".join(picks[axis.name] for axis in axes if axis.name in picks)
+    # Guarded like an authored design, and for the same reason. The `structure`
+    # axis narrows the item table -- `tong_trai_ky_phai` sets `width:86%` -- and
+    # an auto-layout table told to be narrower than its columns need overflows
+    # to the RIGHT instead of shrinking. On `invoice_vat_summary` that put a
+    # bank name 10px past the trim, and `pipeline/invariants.py` refused to
+    # assemble the shard: a page whose label points outside the paper is not a
+    # page this repository will ship.
     return Variant(id=ident, level=level, label=", ".join(labels),
-                   css="\n".join(parts), axes=dict(picks),
+                   css=guarded("\n".join(parts)), axes=dict(picks),
                    moves=tuple(tuple(move) for move in moves))
 
 

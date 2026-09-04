@@ -1,13 +1,14 @@
 # Fonts
 
-Shared by all three renderers. `rules/visual.yaml` names a directory
-(`font_dir: mono`) for the glyph renderer and a CSS stack (`font_family`) for
-the two HTML renderers; both must resolve to the same typeface, or the
-backends wrap lines differently and stop being comparable.
+`rules/visual.yaml` names both a directory (`font_dir: mono`) and a CSS stack
+(`font_family`), and the two must resolve to the same typeface. That mattered
+literally when three renderers drew the same page two different ways; it still
+matters now, because `pipeline/preflight.py` estimates a page's height from the
+directory while Chromium lays it out from the stack, and a disagreement there
+is a page that passes preflight and overflows.
 
-These are committed, unlike the fonts under
-`generators/synthdog/resources/font/`, because every one of them is
-redistributable and a clone with no fonts cannot render anything at all.
+These are committed because every one of them is redistributable and a clone
+with no fonts cannot render anything at all.
 
 | directory | fonts | licence |
 | --- | --- | --- |
@@ -70,8 +71,11 @@ box, and the label still claims the word was printed.
 Check anything you add before a long run:
 
 ```bash
-generators/synthdog/.venv/bin/python generators/synthdog/tools/check_fonts.py fonts/mono
+generators/html/.venv/bin/python tools/check_fonts.py fonts/mono
 ```
 
-Fonts you cannot redistribute go in `generators/synthdog/resources/font/`
-instead, which `.gitignore` keeps out of the repository.
+Any interpreter with `fontTools` will do; the renderer's venv is named because
+it is the one that certainly has it.
+
+A font you cannot redistribute must not be committed. Put it outside the repo
+and point `font_dir` at it, or add its directory to `.gitignore` first.

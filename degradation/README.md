@@ -75,7 +75,7 @@ is **where in the pipeline they enter**, not what they show:
 | --- | --- | --- |
 | [`textures/paper/`](../textures/paper) | before anything is drawn | the sheet the text is printed on. `paper_texture` only ever darkens, so ink stays ink. Eight sheets, all generated: four smooth (thermal, recycled, office) and four coarse (wood, stone, weave) whose grain reads as rough stock under a 0.3–0.5 alpha. |
 | [`augmentations/data/image/`](../augmentations/data/image) | last step of the chain | photographs of real sheets, from SynthDoG's `resources/paper/`, laid over the finished page. `paper_overlay` multiplies *and* screens, so fibre darkens while the sheet's own scatter lifts the page — a render that has been through both reads as printed on paper rather than pasted onto a picture of paper. |
-| [`textures/background/`](../textures/background) | after ageing, glyph renderer only | the scene the sheet is photographed on, from SynthDoG's `resources/background/`. The two HTML renderers produce flat scans with no surround. `background.image.paths` in `generators/synthdog/config_vi_receipt.yaml` points at it. |
+| [`textures/background/`](../textures/background) | nothing reads it now | the scene the sheet is photographed on, from SynthDoG's `resources/background/`. Only the glyph renderer composited onto it, through `background.image.paths` in its config; that renderer is deleted. The HTML renderer produces flat scans with no surround, so no current page sits on a desk. |
 
 DocCreator ships desk tops of its own in `data/Mesh/Background/wood00..04.jpg`,
 which is the same idea as the third row. Their images are LGPL data, the same
@@ -237,7 +237,8 @@ a page-geometry model cannot satisfy, so it runs as ITS OWN step, after the
 chain and after that assertion, moving the sheet's box collections (`boxes`,
 `words`, `cells`) along with the pixels instead of trusting them to still
 describe the page. Three models: `page_curl` (generalised from
-`generators/synthdog/elements/warp.py::CurlWarp`), `fold_crease` and
+`generators/synthdog/elements/warp.py::CurlWarp`, since deleted — see
+[`docs/renderers.md`](../docs/renderers.md)), `fold_crease` and
 `corner_bulge` (both a flat, invertible approximation of the paper shapes
 [SyntheticDoc](https://github.com/tanguymagne/SyntheticDoc) gets by physically
 simulating a sheet in ARCSim and rendering it in Blender — neither tool fits
