@@ -33,7 +33,7 @@ _PHOTO_LABEL = "ẢNH"
 
 def _photo_box(*, height: str = "40mm", label: str = _PHOTO_LABEL) -> str:
     return (f'<div class="ph" style="height:{height}">'
-            f'<span class="phl">{esc(label)}</span></div>')
+            f'<span class="phl">{span("photo.placeholder", label)}</span></div>')
 
 
 # --------------------------------------------------------------- lead + rail
@@ -281,7 +281,7 @@ def _classifieds(receipt) -> str:
 
 
 def _toc(receipt) -> str:
-    header = (f'<header><h1>Mục lục</h1><div class="meta">'
+    header = (f'<header><h1>{span("title", "Mục lục")}</h1><div class="meta">'
              f'{span("masthead", receipt.masthead)}<b>{span("issue_label", receipt.issue_label)}'
              f'</b></div></header>')
 

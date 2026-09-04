@@ -67,7 +67,7 @@ def _kv_block(receipt, parse: dict, which: str, *, title: str = "") -> str:
     pairs = base.party_pairs(receipt, parse, which)
     if not pairs:
         return ""
-    heading = f'<div class="kvt">{esc(title)}</div>' if title else ""
+    heading = f'<div class="kvt">{span("parties.title", title)}</div>' if title else ""
     return f'<div class="kvb">{heading}{_fields(pairs)}</div>'
 
 
@@ -136,18 +136,14 @@ table.items tr.total td,table.items tr.grand td{{font-weight:700;border-top:.5mm
 
 def _build_moto_cert(recipe, receipt, spec: dict, parse: dict, rng: random.Random) -> str:
     invoice = receipt.invoice
-    # `_stamp_wrap()` above is this root's own always-on "BẢO HIỂM MINH HOẠ"
-    # watermark, not the sampled `ornament` attribute -- it keeps the
-    # signature slot on this layout; only the page-level anchors
-    # (`copy_stamp`/`overlap_seal`/...) are wired in here.
-    _, _, overlay = base.render_ornament_marks(recipe, receipt)
     body = (
         '<div class="frame"><div class="inner">'
         '<div class="head">'
         f'<div class="logo">MH</div><div class="co">'
         f'{span("store.name", receipt.store.name, "nm")}'
-        f'<div class="sub2">Bảo hiểm bắt buộc trách nhiệm dân sự</div></div>'
-        f'<div class="serial">Số GCN<div class="no">{span("invoice.number", invoice.number)}</div></div>'
+        f'<div class="sub2">{span("slogan", "Bảo hiểm bắt buộc trách nhiệm dân sự")}</div></div>'
+        f'<div class="serial">{span("invoice.number.label", "Số GCN")}'
+        f'<div class="no">{span("invoice.number", invoice.number)}</div></div>'
         '</div>'
         f'<div class="title2"><h1 class="title2h">{span("title", receipt.title)}</h1>'
         f'<div class="sub2b">{span("invoice.subtitle", invoice.subtitle)}</div></div>'
@@ -156,7 +152,7 @@ def _build_moto_cert(recipe, receipt, spec: dict, parse: dict, rng: random.Rando
         f'{_notes(receipt)}'
         '<div class="sign2">'
         f'<div class="date">{span("invoice.field", invoice.period)}</div>'
-        '<div class="role">Doanh nghiệp bảo hiểm</div>'
+        f'<div class="role">{span("sign.title", "Doanh nghiệp bảo hiểm")}</div>'
         f'{_stamp_wrap(size_mm=20)}'
         '</div></div>'
         f'{base.footer_block(parse)}'
@@ -184,8 +180,7 @@ def _build_moto_cert(recipe, receipt, spec: dict, parse: dict, rng: random.Rando
 .sign2 .date{{font-size:6.2pt;font-style:italic;}}
 .sign2 .role{{font-size:6.6pt;font-weight:700;}}
 """
-    return base.document(body, css, paper="A6_LANDSCAPE", padding="0", size="7pt", font=base.SANS,
-                        overlay=overlay)
+    return base.document(body, css, paper="A6_LANDSCAPE", padding="0", size="7pt", font=base.SANS)
 
 
 # ------------------------------------------------------------ auto_cert (LO-02)
@@ -193,10 +188,9 @@ def _build_moto_cert(recipe, receipt, spec: dict, parse: dict, rng: random.Rando
 
 def _build_auto_cert(recipe, receipt, spec: dict, parse: dict, rng: random.Random, rows: Rows) -> str:
     invoice = receipt.invoice
-    _, _, overlay = base.render_ornament_marks(recipe, receipt)
     pairs = base.party_pairs(receipt, parse, "left")
     table_rows = "".join(
-        f'<tr><td class="idx">{index + 1}</td><th>{esc(label)}</th>'
+        f'<tr><td class="idx">{index + 1}</td><th>{span("invoice.field.label", label)}</th>'
         f'<td>{span("invoice.field", value)}</td></tr>'
         for index, (label, value) in enumerate(pairs)
     )
@@ -204,13 +198,14 @@ def _build_auto_cert(recipe, receipt, spec: dict, parse: dict, rng: random.Rando
         '<div class="head">'
         f'<div class="mark">MH</div><div class="org">'
         f'<div class="n">{span("store.name", receipt.store.name)}</div></div>'
-        f'<div class="lien">Số Giấy chứng nhận<div class="code">{span("invoice.number", invoice.number)}</div></div>'
+        f'<div class="lien">{span("invoice.number.label", "Số Giấy chứng nhận")}'
+        f'<div class="code">{span("invoice.number", invoice.number)}</div></div>'
         '</div>'
         f'<h1 class="title">{span("title", receipt.title)}</h1>'
         f'<div class="sub">{span("invoice.subtitle", invoice.subtitle)}</div>'
         f'<table class="items"><tbody>{table_rows}</tbody></table>'
         f'<div class="bottom">{_notes(receipt)}<div class="sign">{_stamp_wrap()}'
-        f'<div class="role">Doanh nghiệp bảo hiểm</div></div></div>'
+        f'<div class="role">{span("sign.title", "Doanh nghiệp bảo hiểm")}</div></div></div>'
         f'{base.footer_block(parse)}'
     )
     css = _SHARED_CSS + f"""
@@ -225,8 +220,7 @@ table.items th{{width:40mm;background:#e8f0f7;text-align:left;color:{_INK};}}
 .bottom{{position:relative;margin-top:4mm;}}
 .sign{{position:relative;text-align:right;margin-top:2mm;}}
 """
-    return base.document(body, css, paper="A5_LANDSCAPE", padding="8mm 10mm", font=base.SANS,
-                        overlay=overlay)
+    return base.document(body, css, paper="A5_LANDSCAPE", padding="8mm 10mm", font=base.SANS)
 
 
 # --------------------------------------------------------- life_schedule (LO-03)
@@ -234,11 +228,11 @@ table.items th{{width:40mm;background:#e8f0f7;text-align:left;color:{_INK};}}
 
 def _build_life_schedule(recipe, receipt, spec: dict, parse: dict, rng: random.Random, rows: Rows) -> str:
     invoice = receipt.invoice
-    _, _, overlay = base.render_ornament_marks(recipe, receipt)
     body = (
         '<div class="band">'
         f'<div class="brow"><div class="brand">{span("store.name", receipt.store.name)}</div>'
-        f'<div class="pol">Số hợp đồng<b>{span("invoice.number", invoice.number)}</b></div></div>'
+        f'<div class="pol">{span("invoice.number.label", "Số hợp đồng")}'
+        f'<b>{span("invoice.number", invoice.number)}</b></div></div>'
         f'<h1 class="btitle">{span("title", receipt.title)}</h1>'
         f'<div class="bsub">{span("invoice.subtitle", invoice.subtitle)}</div>'
         '</div>'
@@ -260,7 +254,7 @@ def _build_life_schedule(recipe, receipt, spec: dict, parse: dict, rng: random.R
 main{{padding:6mm 10mm;}}
 .signs{{margin-top:6mm;}}
 """
-    return base.document(body, css, paper="A4", padding="0", font=base.SANS, overlay=overlay)
+    return base.document(body, css, paper="A4", padding="0", font=base.SANS)
 
 
 # ----------------------------------------------------- application_form (LO-04)
@@ -288,8 +282,10 @@ def _checks_table(receipt) -> str:
             "</tr>"
         )
     return (
-        '<table class="items"><thead><tr><th>Câu hỏi</th><th class="yn">Có</th>'
-        '<th class="yn">Không</th><th>Chi tiết</th></tr></thead>'
+        f'<table class="items"><thead><tr><th>{span("colhdr", "Câu hỏi")}</th>'
+        f'<th class="yn">{span("colhdr", "Có")}</th>'
+        f'<th class="yn">{span("colhdr", "Không")}</th>'
+        f'<th>{span("colhdr", "Chi tiết")}</th></tr></thead>'
         f'<tbody>{"".join(rows_html)}</tbody></table>'
     )
 
@@ -297,9 +293,6 @@ def _checks_table(receipt) -> str:
 def _build_application_form(recipe, receipt, spec: dict, parse: dict,
                             rng: random.Random, rows: Rows) -> str:
     invoice = receipt.invoice
-    # No `_stamp()` watermark on this layout -- the signature slot is free,
-    # so (unlike the rest of this root) the sampled seal goes there too.
-    slot, _, overlay = base.render_ornament_marks(recipe, receipt)
     left = base.party_pairs(receipt, parse, "left")
     combable = {"applicant_name", "applicant_dob", "applicant_id"}
     field_html = []
@@ -309,22 +302,24 @@ def _build_application_form(recipe, receipt, spec: dict, parse: dict,
         if key in combable:
             groups = (2, 2, 4) if key == "applicant_dob" else None
             field_html.append(
-                f'<div class="line"><span class="lab">{esc(label)}</span>'
+                f'<div class="line"><span class="lab">{span("invoice.field.label", label)}</span>'
                 f'{base.comb_box("invoice.field", value, groups=groups)}</div>'
             )
         else:
             field_html.append(f'<div class="line">{base.field_line(label, value)}</div>')
     body = (
         f'<div class="issuer">{span("store.name", receipt.store.name)}'
-        f' &middot; Số hồ sơ: {span("invoice.number", invoice.number)}</div>'
+        f' &middot; {span("invoice.number.label", "Số hồ sơ:")} {span("invoice.number", invoice.number)}</div>'
         f'<h1 class="title">{span("title", receipt.title)}</h1>'
-        '<div class="sub">Vui lòng viết chữ IN HOA · Đánh dấu vào ô lựa chọn</div>'
-        f'<div class="sec"><div class="t">A</div><div class="b">{"".join(field_html)}</div></div>'
-        f'<div class="sec"><div class="t">B</div><div class="b">'
+        f'<div class="sub">{span("note", "Vui lòng viết chữ IN HOA · Đánh dấu vào ô lựa chọn")}</div>'
+        f'<div class="sec"><div class="t">{span("subhead.label", "A")}</div>'
+        f'<div class="b">{"".join(field_html)}</div></div>'
+        f'<div class="sec"><div class="t">{span("subhead.label", "B")}</div><div class="b">'
         f'{_table(spec, receipt, parse, rows, with_totals=False)}</div></div>'
-        f'<div class="sec"><div class="t">C</div><div class="b">{_checks_table(receipt)}</div></div>'
+        f'<div class="sec"><div class="t">{span("subhead.label", "C")}</div>'
+        f'<div class="b">{_checks_table(receipt)}</div></div>'
         f'{_notes(receipt, boxed=True)}'
-        f'<div class="signs">{base.signature_block(receipt, parse, stamp=slot)}</div>'
+        f'<div class="signs">{base.signature_block(receipt, parse)}</div>'
         f'{base.footer_block(parse)}'
     )
     css = _SHARED_CSS + f"""
@@ -338,7 +333,7 @@ def _build_application_form(recipe, receipt, spec: dict, parse: dict,
 .line .lab{{font-size:8pt;color:#222;white-space:nowrap;}}
 table.items .yn{{width:16mm;text-align:center;font-size:7.6pt;}}
 """
-    return base.document(body, css, paper="A4", padding="10mm 12mm", overlay=overlay)
+    return base.document(body, css, paper="A4", padding="10mm 12mm")
 
 
 # ----------------------------------------------------- health_id_card (LO-05)
@@ -346,7 +341,6 @@ table.items .yn{{width:16mm;text-align:center;font-size:7.6pt;}}
 
 def _build_health_id_card(recipe, receipt, spec: dict, parse: dict, rng: random.Random) -> str:
     invoice = receipt.invoice
-    _, _, overlay = base.render_ornament_marks(recipe, receipt)
     front_fields = "".join(
         f'<div class="cf">{base.field_line(label, value)}</div>'
         for label, value in base.party_pairs(receipt, parse, "left") if value
@@ -364,8 +358,8 @@ def _build_health_id_card(recipe, receipt, spec: dict, parse: dict, rng: random.
     )
     body = (
         '<div class="stage">'
-        f'<div class="wrap"><div class="cap">Mặt trước</div>{front}</div>'
-        f'<div class="wrap"><div class="cap">Mặt sau</div>{back}</div>'
+        f'<div class="wrap"><div class="cap">{span("caption", "Mặt trước")}</div>{front}</div>'
+        f'<div class="wrap"><div class="cap">{span("caption", "Mặt sau")}</div>{back}</div>'
         '</div>'
         f'{base.footer_block(parse)}'
     )
@@ -386,8 +380,7 @@ def _build_health_id_card(recipe, receipt, spec: dict, parse: dict, rng: random.
 .cf{{font-size:6.4pt;margin-bottom:.5mm;}}
 .cface .notes{{font-size:6pt;margin:0;}}
 """
-    return base.document(body, css, paper="A4_LANDSCAPE", padding="0", font=base.SANS,
-                        overlay=overlay)
+    return base.document(body, css, paper="A4_LANDSCAPE", padding="0", font=base.SANS)
 
 
 # ------------------------------------------------------------- health_cert (LO-06)
@@ -395,12 +388,12 @@ def _build_health_id_card(recipe, receipt, spec: dict, parse: dict, rng: random.
 
 def _build_health_cert(recipe, receipt, spec: dict, parse: dict, rng: random.Random, rows: Rows) -> str:
     invoice = receipt.invoice
-    _, _, overlay = base.render_ornament_marks(recipe, receipt)
     sidebar = (
         '<aside>'
         f'<div class="brand">{span("store.name", receipt.store.name)}</div>'
         '<div class="memcard">'
-        f'<div class="lbl">Số thẻ hội viên</div><div class="no">{span("invoice.number", invoice.number)}</div>'
+        f'<div class="lbl">{span("invoice.number.label", "Số thẻ hội viên")}</div>'
+        f'<div class="no">{span("invoice.number", invoice.number)}</div>'
         f'<div class="nm">{span("invoice.field", (base.party_pairs(receipt, parse, "left") or [("", "")])[0][1])}</div>'
         '</div>'
         f'{_fields(base.party_pairs(receipt, parse, "right"))}'
@@ -415,20 +408,20 @@ def _build_health_cert(recipe, receipt, spec: dict, parse: dict, rng: random.Ran
         '</main>'
     )
     body = f'<div class="sidebar-wrap">{sidebar}{main}</div>{base.footer_block(parse)}'
-    css = _SHARED_CSS + """
-.sidebar-wrap{display:flex;margin:-14mm -14mm 0;min-height:calc(100% + 14mm);}
-aside{width:34%;flex:none;background:#06584f;color:#eafaf6;padding:14mm 8mm;box-sizing:border-box;}
-aside .brand{font-size:11pt;font-weight:800;margin-bottom:6mm;}
-aside .f{font-size:7.6pt;color:#eafaf6;}
-aside .f .k{color:#bfe3da;} aside .f .v{color:#fff;}
-.memcard{background:linear-gradient(140deg,#0b7a6c,#0f9a86);border-radius:2.5mm;padding:4mm;
-         margin-bottom:6mm;}
-.memcard .lbl{font-size:6.4pt;letter-spacing:.5mm;text-transform:uppercase;opacity:.85;}
-.memcard .no{font-family:"Courier New",monospace;font-size:9pt;font-weight:700;margin:1mm 0;}
-.memcard .nm{font-size:8pt;font-weight:700;text-transform:uppercase;}
-main{flex:1;padding:14mm;box-sizing:border-box;}
+    css = _SHARED_CSS + f"""
+.sidebar-wrap{{display:flex;margin:-14mm -14mm 0;min-height:calc(100% + 14mm);}}
+aside{{width:34%;flex:none;background:#06584f;color:#eafaf6;padding:14mm 8mm;box-sizing:border-box;}}
+aside .brand{{font-size:11pt;font-weight:800;margin-bottom:6mm;}}
+aside .f{{font-size:7.6pt;color:#eafaf6;}}
+aside .f .k{{color:#bfe3da;}} aside .f .v{{color:#fff;}}
+.memcard{{background:linear-gradient(140deg,#0b7a6c,#0f9a86);border-radius:2.5mm;padding:4mm;
+         margin-bottom:6mm;}}
+.memcard .lbl{{font-size:6.4pt;letter-spacing:.5mm;text-transform:uppercase;opacity:.85;}}
+.memcard .no{{font-family:"Courier New",monospace;font-size:9pt;font-weight:700;margin:1mm 0;}}
+.memcard .nm{{font-size:8pt;font-weight:700;text-transform:uppercase;}}
+main{{flex:1;padding:14mm;box-sizing:border-box;}}
 """
-    return base.document(body, css, paper="A4", padding="14mm", font=base.SANS, overlay=overlay)
+    return base.document(body, css, paper="A4", padding="14mm", font=base.SANS)
 
 
 # -------------------------------------------------------------- cargo_policy (LO-07)
@@ -436,7 +429,6 @@ main{flex:1;padding:14mm;box-sizing:border-box;}
 
 def _build_cargo_policy(recipe, receipt, spec: dict, parse: dict, rng: random.Random) -> str:
     invoice = receipt.invoice
-    _, _, overlay = base.render_ornament_marks(recipe, receipt)
     bilingual_labels = spec.get("bilingual_left") or []
     rows_html = []
     pairs = base.party_pairs(receipt, parse, "left")
@@ -447,7 +439,8 @@ def _build_cargo_policy(recipe, receipt, spec: dict, parse: dict, rng: random.Ra
     body = (
         '<header>'
         f'<div class="org">{span("store.name", receipt.store.name)}</div>'
-        f'<div class="polno">Policy No.<b>{span("invoice.number", invoice.number)}</b></div>'
+        f'<div class="polno">{span("invoice.number.label", "Policy No.")}'
+        f'<b>{span("invoice.number", invoice.number)}</b></div>'
         '</header>'
         f'<h1 class="title">{span("title", receipt.title)}</h1>'
         f'<div class="fields">{"".join(rows_html)}</div>'
@@ -467,8 +460,7 @@ header{{display:flex;justify-content:space-between;border-bottom:.9mm solid {_IN
 .f .en{{font-size:6.8pt;font-weight:700;text-transform:uppercase;color:{_INK};}}
 .f .vn{{font-size:7.4pt;font-style:italic;color:#555;}}
 """
-    return base.document(body, css, paper="A4", padding="12mm 14mm", font=base.SANS,
-                        overlay=overlay)
+    return base.document(body, css, paper="A4", padding="12mm 14mm", font=base.SANS)
 
 
 # --------------------------------------------------------------- fire_cert (LO-08)
@@ -476,17 +468,19 @@ header{{display:flex;justify-content:space-between;border-bottom:.9mm solid {_IN
 
 def _build_fire_cert(recipe, receipt, spec: dict, parse: dict, rng: random.Random, rows: Rows) -> str:
     invoice = receipt.invoice
-    _, _, overlay = base.render_ornament_marks(recipe, receipt)
     body = (
         f'<div class="issuer">{span("store.name", receipt.store.name)}'
-        f' &middot; Số: {span("invoice.number", invoice.number)}</div>'
+        f' &middot; {span("invoice.number.label", "Số:")} {span("invoice.number", invoice.number)}</div>'
         f'<h1 class="title">{span("title", receipt.title)}</h1>'
         f'<div class="sub">{span("invoice.subtitle", invoice.subtitle)}</div>'
-        f'<div class="sec2"><div class="cap">I. Bên mua bảo hiểm và đối tượng bảo hiểm</div>'
+        f'<div class="sec2"><div class="cap">'
+        f'{span("subhead", "I. Bên mua bảo hiểm và đối tượng bảo hiểm")}</div>'
         f'{_kv_block(receipt, parse, "left")}</div>'
-        f'<div class="sec2"><div class="cap">II. Danh mục tài sản và số tiền bảo hiểm</div>'
+        f'<div class="sec2"><div class="cap">'
+        f'{span("subhead", "II. Danh mục tài sản và số tiền bảo hiểm")}</div>'
         f'{_table(spec, receipt, parse, rows)}</div>'
-        f'<div class="sec2"><div class="cap">III. Phí bảo hiểm và thời hạn</div>'
+        f'<div class="sec2"><div class="cap">'
+        f'{span("subhead", "III. Phí bảo hiểm và thời hạn")}</div>'
         f'{_notes(receipt)}</div>'
         f'<div class="signs">{base.signature_block(receipt, parse, stamp=_stamp())}</div>'
         f'{base.footer_block(parse)}'
@@ -498,7 +492,7 @@ def _build_fire_cert(recipe, receipt, spec: dict, parse: dict, rng: random.Rando
 .sec2 .cap{{font-weight:700;font-size:8.6pt;color:{_INK};text-transform:uppercase;
            margin-bottom:1.5mm;letter-spacing:.2pt;}}
 """
-    return base.document(body, css, paper="A4", padding="14mm 16mm", overlay=overlay)
+    return base.document(body, css, paper="A4", padding="14mm 16mm")
 
 
 # ------------------------------------------------------------- travel_cert (LO-09)
@@ -506,7 +500,6 @@ def _build_fire_cert(recipe, receipt, spec: dict, parse: dict, rng: random.Rando
 
 def _build_travel_cert(recipe, receipt, spec: dict, parse: dict, rng: random.Random, rows: Rows) -> str:
     invoice = receipt.invoice
-    _, _, overlay = base.render_ornament_marks(recipe, receipt)
     bilingual_labels = spec.get("bilingual_left") or []
     left_html = []
     pairs = base.party_pairs(receipt, parse, "left")
@@ -516,7 +509,8 @@ def _build_travel_cert(recipe, receipt, spec: dict, parse: dict, rng: random.Ran
     body = (
         '<header>'
         f'<div class="org">{span("store.name", receipt.store.name)}</div>'
-        f'<div class="polno">Certificate No.<b>{span("invoice.number", invoice.number)}</b></div>'
+        f'<div class="polno">{span("invoice.number.label", "Certificate No.")}'
+        f'<b>{span("invoice.number", invoice.number)}</b></div>'
         '</header>'
         f'<h1 class="title">{span("title", receipt.title)}</h1>'
         '<div class="grid3">'
@@ -538,8 +532,7 @@ header{{display:flex;justify-content:space-between;border-bottom:.9mm solid {_IN
 .left{{padding-right:6mm;}} .right{{padding-left:6mm;}}
 table.items th.r,table.items td.r{{text-align:right;}}
 """
-    return base.document(body, css, paper="A4_LANDSCAPE", padding="10mm 12mm", font=base.SANS,
-                        overlay=overlay)
+    return base.document(body, css, paper="A4_LANDSCAPE", padding="10mm 12mm", font=base.SANS)
 
 
 # --------------------------------------------------------- property_contract (LO-10)
@@ -548,19 +541,21 @@ table.items th.r,table.items td.r{{text-align:right;}}
 def _build_property_contract(recipe, receipt, spec: dict, parse: dict,
                              rng: random.Random, rows: Rows) -> str:
     invoice = receipt.invoice
-    _, _, overlay = base.render_ornament_marks(recipe, receipt)
     parties = (
-        f'<div class="party"><div class="t">Bên mua bảo hiểm (Bên A)</div>'
+        f'<div class="party"><div class="t">'
+        f'{span("parties.title", "Bên mua bảo hiểm (Bên A)")}</div>'
         f'{_fields(base.party_pairs(receipt, parse, "left"))}</div>'
-        f'<div class="party"><div class="t">Doanh nghiệp bảo hiểm (Bên B)</div>'
+        f'<div class="party"><div class="t">'
+        f'{span("parties.title", "Doanh nghiệp bảo hiểm (Bên B)")}</div>'
         f'{_fields(base.party_pairs(receipt, parse, "right"))}</div>'
     )
     body = (
-        f'<div class="issuer">Số: {span("invoice.number", invoice.number)}</div>'
+        f'<div class="issuer">{span("invoice.number.label", "Số:")} {span("invoice.number", invoice.number)}</div>'
         f'<h1 class="title">{span("title", receipt.title)}</h1>'
         f'<div class="sub">{span("invoice.subtitle", invoice.subtitle)}</div>'
         f'{parties}'
-        f'<div class="sec2"><div class="cap">Đối tượng bảo hiểm và số tiền bảo hiểm</div>'
+        f'<div class="sec2"><div class="cap">'
+        f'{span("subhead", "Đối tượng bảo hiểm và số tiền bảo hiểm")}</div>'
         f'{_table(spec, receipt, parse, rows)}</div>'
         f'{_notes(receipt)}'
         f'<div class="signs">{base.signature_block(receipt, parse, stamp=_stamp())}</div>'
@@ -574,7 +569,7 @@ def _build_property_contract(recipe, receipt, spec: dict, parse: dict,
 .sec2 .cap{{font-weight:700;font-size:8.6pt;color:{_INK};text-transform:uppercase;
            margin-bottom:1.5mm;}}
 """
-    return base.document(body, css, paper="A4", padding="16mm 18mm", overlay=overlay)
+    return base.document(body, css, paper="A4", padding="16mm 18mm")
 
 
 _COMPOSITIONS = {

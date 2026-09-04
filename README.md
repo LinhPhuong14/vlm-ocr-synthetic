@@ -86,7 +86,7 @@ flowchart TD
     end
 
     subgraph S3 ["Bước 4-6: Hoạ tiết, làm cũ & hình học"]
-        D3 --> F["4 · hoạ tiết & con dấu<br/>ornament.py — đóng theo box của trang"]
+        D3 --> F["4 · hoạ tiết & con dấu<br/>sheets/base.py::seal_mark — đóng vào markup trước khi chụp, có box"]
         F --> E["5 · chuỗi làm cũ<br/>apply_recipe — KHÔNG đổi kích thước"]
         E --> G["6 · thu nhỏ<br/>hộp co theo pixel"]
     end
@@ -125,7 +125,7 @@ bật; số này đo lại sau khi tắt nó, không phải chép lại từ l�
 | 3 | `content` | dấu tiếng Việt, viết hoa, định dạng tiền, VAT | [`rules/content.yaml`](rulebase/rules/content.yaml) |
 | 4 | `visual` | font, cỡ chữ, độ đậm mực, lề, khổ giấy | [`rules/visual.yaml`](rulebase/rules/visual.yaml) |
 | 5 | `color` | màu mực, sắc nền, màu nhấn | [`rules/color.yaml`](rulebase/rules/color.yaml) |
-| 6 | `ornament` | **mực không phải chữ**: con dấu tròn, dấu vuông, hoa văn chìm, nẹp sóng, QR. Đóng lên trang bởi [`generators/html/ornament.py`](generators/html/ornament.py), theo **vị trí có nghĩa** (`signature_seller`, `letterhead`…) đọc từ chính box của trang | [`rules/ornament.yaml`](rulebase/rules/ornament.yaml) |
+| 6 | `ornament` | **mực không phải chữ**: con dấu tròn, dấu vuông, hoa văn chìm, nẹp sóng, QR. Đóng vào markup bởi [`seal_mark()`/`render_ornament_marks()`](generators/html/sheets/base.py) TRƯỚC khi trang được chụp, theo **vị trí có nghĩa** (`signature_seller`, `letterhead`…) đọc từ chính box của trang — nên mỗi con dấu có box `seal.<hình>` thật, không phải dán đè sau | [`rules/ornament.yaml`](rulebase/rules/ornament.yaml) |
 | 7 | `handwriting` | **ô trống điền bằng nét bút hay chữ in**. `typed` hoặc `hand_font`; `hand_model`/`hand_both` (WriteViT) có mặt nhưng `enabled: false` vì checkpoint 294 MB không nằm trong kho. Đứng **trước** `augmentation` nên nét bút bị làm cũ y như chữ in | [`rules/handwriting.yaml`](rulebase/rules/handwriting.yaml) |
 | 8 | `augmentation` | chuỗi làm cũ chạy sau khi vẽ | [`rules/augmentation.yaml`](rulebase/rules/augmentation.yaml) |
 | 9 | `toner` | hộp mực của cái máy đã sao tờ này — bụi mực bám mảng, mảng cháy trắng | [`rules/toner.yaml`](rulebase/rules/toner.yaml) |

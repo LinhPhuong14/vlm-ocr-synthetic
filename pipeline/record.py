@@ -254,35 +254,143 @@ DOCSYNTH_LABELS = frozenset({
     "Chemical-Block", "Diagram", "Bibliography", "Blank-Page",
 })
 
-# Every `PAGE_LABELS` value -> the `docsynth` label it stands for. A key for
-# every value `label_for` can return -- `tests/test_record.py` checks that
-# the same way it already checks `label_for` against `PAGE_LABELS`. Where the
-# two vocabularies name the same thing, they agree (`Table` is `Table`); where
-# they do not, the closer concept wins over an exact string match: `Title`
-# is not one of the 19, and the reading in a document-layout vocabulary this
-# size is a bolded heading, i.e. `Section-Header`; `Picture` becomes `Image`
-# for the same reason, not `Figure` (a figure carries a caption relationship
-# this repository does not model).
-DOCSYNTH_LABEL_OF: dict[str, str] = {
-    "Caption": "Caption",
-    "Footnote": "Footnote",
-    "Formula": "Equation-Block",
-    "List-item": "List-Group",
-    "Page-footer": "Page-Footer",
-    "Page-header": "Page-Header",
-    "Picture": "Image",
-    "Section-header": "Section-Header",
-    "Table": "Table",
-    "Text": "Text",
-    "Title": "Section-Header",
+# kind prefix -> `docsynth.annotations.v1` label, DIRECTLY -- not through
+# `label_for`/`PAGE_LABELS`. That two-hop version (kind -> old 11-label ->
+# new 19-label) was cheaper to write, but it can only ever hand back
+# whichever of the 19 the OLD label happened to translate to, one per old
+# label, even when a `kind` deserves a more specific one the eleven-label
+# vocabulary had no slot for -- a magazine's `entry.` (its table of
+# contents) is `List-item` there and would translate to the generic
+# `List-Group`, when the vocabulary has an exact name for what it is:
+# `Table-Of-Contents`. This table is seeded from the same prefixes `LABELS`
+# already carries -- the judgment about which KIND belongs to which GROUP is
+# not redone -- with the target chosen against the 19 directly, prefix by
+# prefix, instead of inherited from a different vocabulary's answer.
+#
+# Same rule as `LABELS`: longest prefix wins. A `kind` this does not cover
+# reads as `Text`, `layout_class_for`'s own default -- most of what a
+# Vietnamese business document says IS running text, and the eight labels
+# actually used below (`Caption`, `Image`, `Page-Footer`, `Page-Header`,
+# `Section-Header`, `Table`, `Table-Of-Contents`, `Text`) are what this
+# repository's content actually is; the other eleven (`Equation-Block`,
+# `Chemical-Block`, `Bibliography`, ...) name things no layout here draws,
+# and forcing a `kind` onto one of them would be a label lying about the
+# page, not a use of the vocabulary's breadth.
+DOCSYNTH_LABEL_FOR_KIND: dict[str, str] = {
+    # A document's own title reads as `Page-Header` here by explicit call:
+    # this repository draws one document per page, so "the page's header"
+    # and "the document's title" are the same band of ink -- a choice, not
+    # the DocLayNet-style reading that would put it under `Section-Header`
+    # instead.
+    "title": "Page-Header",
+    "subtitle": "Section-Header",
+    "parties.title": "Section-Header",
+    # Only the org's own name is PAGE-HEADER material -- the running
+    # identification a reader expects there, terse and repeated on every
+    # page of this business regardless of which document it is. Everything
+    # else under `store.*` (branch, address, tax code, phone, bank account,
+    # website) is substantive contact/legal/bank DATA a downstream reader
+    # extracts precisely, the same kind of content `invoice.field`/
+    # `parties.*` carry for the other party on the same page -- and those
+    # already read as `Text` below. Left as a blanket `"store.":
+    # "Page-Header"`, every one of those detail fields inherited the label
+    # too, so a header box built from a company's letterhead block ran five
+    # lines tall and carried its tax code and bank account number, while the
+    # identical fields for the OTHER party on the same page (typed through
+    # `invoice.field` instead of `store.*`) correctly read as `Text` -- the
+    # same content, labelled two different ways only because of which side
+    # of the transaction printed it.
+    "store.name": "Page-Header",
+    "store.": "Text",
+    "invoice.subtitle": "Section-Header",
+    "invoice.": "Text",
+    "menu.": "Table",
+    "colhdr": "Table",
+    "colnum": "Table",
+    "total.": "Table",
+    "summary.": "Table",
+    "period": "Text",
+    "meta": "Text",
+    "note": "Text",
+    # A signature line is a field a signer fills in, not running prose --
+    # `Form` is the 19-label vocabulary's name for that, and it is the only
+    # entry here `Text` would otherwise swallow despite there being a better
+    # word for it.
+    "sign.": "Form",
+    "footer": "Page-Footer",
+    "cell": "Table",
+    "seal.": "Image",
+    # A blank placeholder box standing in for a photo the renderer never
+    # actually draws (a portrait for an ID, a product shot) -- its own
+    # caption ("ẢNH", "4x6") is the one word this repository ever prints
+    # inside that box, so it is what marks the region as `Image` rather than
+    # `Text`; nothing else about the box is `span()`-worthy on its own.
+    "photo.": "Image",
+    "parties.": "Text",
+    "masthead": "Section-Header",
+    "issue_": "Page-Header",
+    "slogan": "Page-Header",
+    "price": "Page-Header",
+    "website": "Page-Footer",
+    "hotline": "Page-Footer",
+    "page_no": "Page-Footer",
+    "headline": "Section-Header",
+    "hero.headline": "Section-Header",
+    "hero.kicker": "Section-Header",
+    "hero.": "Text",
+    "kicker": "Section-Header",
+    "deck": "Section-Header",
+    "dateline": "Text",
+    "byline": "Text",
+    "body": "Text",
+    "jump": "Text",
+    "pull_quote": "Text",
+    "caption": "Caption",
+    "bottom.headline": "Section-Header",
+    "bottom.caption": "Caption",
+    "bottom.": "Text",
+    "teaser.kicker": "Section-Header",
+    "teaser.headline": "Section-Header",
+    "teaser.": "Text",
+    "section": "Section-Header",
+    "category": "Section-Header",
+    # A lettered/numbered heading that introduces one block of a page's own
+    # body ("A. Thông tin dự án", "I. Bên mua bảo hiểm...") -- a different
+    # thing from `section` above, which names a magazine's editorial
+    # category, not a heading's own text.
+    "subhead": "Section-Header",
+    # The one direct improvement over the two-hop version: a real table of
+    # contents, not a generic list.
+    "entry.": "Table-Of-Contents",
+    "qa.question": "Section-Header",
+    "qa.answer": "Text",
+    "subject_": "Text",
+    "bio_title": "Section-Header",
+    "bio.": "Text",
+    "sidebar.title": "Section-Header",
+    "sidebar.": "Text",
+    "ad.heading": "Section-Header",
+    "ad.": "Text",
+    "notice.title": "Section-Header",
+    "notice.": "Text",
+    "obit.title": "Section-Header",
+    "obit.": "Text",
+    "condolence": "Text",
+    "rate": "Text",
 }
 
 
 def layout_class_for(kind: str) -> str:
-    """`label_for(kind)`, translated to the `docsynth.annotations.v1`
-    vocabulary -- see `DOCSYNTH_LABEL_OF`'s own comment for why translated
-    rather than mapped fresh from `kind`."""
-    return DOCSYNTH_LABEL_OF[label_for(kind)]
+    """The `docsynth.annotations.v1` label for one of this repository's field
+    kinds, chosen directly against the 19-label vocabulary -- see
+    `DOCSYNTH_LABEL_FOR_KIND`'s own comment for why not through `label_for`.
+    """
+    kind = str(kind or "")
+    best = ""
+    for prefix in DOCSYNTH_LABEL_FOR_KIND:
+        if (kind == prefix or kind.startswith(prefix)) and len(prefix) > len(best):
+            best = prefix
+    return DOCSYNTH_LABEL_FOR_KIND[best] if best else "Text"
 
 # ------------------------------------------------------------------- settings
 
@@ -419,36 +527,6 @@ def blocks_from_boxes(boxes: Iterable[dict[str, Any]], *,
     return out
 
 
-# kind prefix -> the `layout_class` its words' REGION gets, and which words
-# get grouped into a region at all. Deliberately partial, matching the real
-# `docsynth.annotations.v1` sample this was built against: a plain flowing
-# field (`store.name`, `title`...) has no region of its own there either
-# (`layout_region_index: null`) -- only the blocks a reader would call a named
-# "part of the page" (a signature block, the item table, the footer) do.
-# Longest prefix wins, same rule `LABELS` above uses, for the same reason
-# (`total.grand` must not escape `total.` into no region at all).
-REGIONS: dict[str, str] = {
-    "sign.": "Form",
-    "menu.": "Table",
-    "colhdr": "Table",
-    "colnum": "Table",
-    "cell": "Table",
-    "total.": "Table",
-    "summary.": "Table",
-    "footer": "Page-Footer",
-    "entry.": "List-Group",
-    "seal.": "Image",
-}
-
-
-def _region_key(kind: str) -> str | None:
-    best = ""
-    for prefix in REGIONS:
-        if (kind == prefix or kind.startswith(prefix)) and len(prefix) > len(best):
-            best = prefix
-    return best or None
-
-
 def _word_field_role(kind: str) -> str:
     """`"key"` for a field's own caption, `"unbound"` for page furniture that
     is not really a document field (a title, a footer line), `"value"` for
@@ -485,7 +563,11 @@ def words_from_boxes(boxes: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
             "word_index": index,
             "text": str(box.get("text", "")),
             "layout_region_index": None,   # filled in by `regions_from_words`
-            "layout_class": None,
+            # Set from `kind` directly, not left null: a reader needs every
+            # word classified into the 19-label vocabulary, not only the ones
+            # that happened to land inside a named region -- `layout_class_for`
+            # already knows what EVERY `kind` this repository writes means.
+            "layout_class": layout_class_for(kind),
             "field_role": _word_field_role(kind),
             "field_path": kind,
             "relation_path": kind,
@@ -504,49 +586,171 @@ def words_from_boxes(boxes: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
     return out
 
 
-def regions_from_words(words: list[dict[str, Any]], boxes: Iterable[dict[str, Any]],
-                       *, page_number: int = 1) -> list[dict[str, Any]]:
-    """One `layout_annotations` entry per REGION (`REGIONS`, above) found
-    among `words` -- and, as a side effect, fills in `layout_region_index`/
-    `layout_class` on every word that landed in one. `boxes` supplies each
-    word's `kind` (dropped from the word dict itself, since the target
-    schema's own `word_annotations` do not carry one); the two lists are the
-    same length, in the same order, by construction (`words_from_boxes` and
-    this function are always called on the same `boxes`).
-    """
-    groups: dict[str, list[int]] = {}
-    for word, box in zip(words, boxes or []):
-        kind = str(box.get("kind", "")) if isinstance(box, dict) else ""
-        key = _region_key(kind)
-        if key is not None:
-            groups.setdefault(key, []).append(word["word_index"])
+# Added to every region's word-derived bbox -- a region is a BLOCK a reader
+# would point at ("the header", "the signature line"), and a box drawn exactly
+# to the ink inside it reads as a crop, not the block. Small and fixed rather
+# than proportional to the page: the point is "this box has the breathing room
+# a component has," not a second wear knob.
+REGION_PAD_PX = 6
 
+# How many word-heights of vertical gap end a region and start the next one,
+# when grouping by `layout_class` -- see `regions_from_words`.
+REGION_GAP_HEIGHTS = 1.6
+
+# How many word-heights of HORIZONTAL gap end a region and start the next one,
+# for two words that sit on the *same* line. Wider than `REGION_GAP_HEIGHTS`
+# on purpose: a column gutter -- the space between a date field and a serial
+# number field printed side by side in one header row -- reads as several
+# word-heights of blank paper, while the space between two words IN one
+# phrase is a fraction of one. Any layout that prints unrelated same-class
+# content side by side needs this, not just the one that first exposed it.
+REGION_GAP_WIDTHS = 3.0
+
+
+def _pad_bbox(bbox: tuple[float, float, float, float], page_size) -> list[int]:
+    x1, y1, x2, y2 = bbox
+    x1, y1 = x1 - REGION_PAD_PX, y1 - REGION_PAD_PX
+    x2, y2 = x2 + REGION_PAD_PX, y2 + REGION_PAD_PX
+    if page_size:
+        width, height = page_size
+        x1, y1 = max(0, x1), max(0, y1)
+        x2, y2 = min(width, x2), min(height, y2)
+    return [int(round(x1)), int(round(y1)), int(round(x2)), int(round(y2))]
+
+
+def _region_entry(region_index: int, layout_class: str, text: str,
+                  bbox: tuple[float, float, float, float], strategy: str,
+                  page_size) -> dict[str, Any]:
+    x1, y1, x2, y2 = _pad_bbox(bbox, page_size)
+    return {
+        "region_index": region_index,
+        "tag": "div",
+        "layout_class": layout_class,
+        "text": text,
+        "bbox": [x1, y1, x2, y2],
+        "bbox_mode": "xyxy_pixel",
+        "bbox_strategy": strategy,
+        "polygon": [[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]],
+    }
+
+
+def _region_gap_ok(current_bbox: list[float], word_bbox: list[float],
+                   gap_y: float, gap_x: float) -> bool:
+    """Whether `word_bbox` continues the run `current_bbox` is the union of,
+    rather than starting a new region.
+
+    One test, on both axes at once -- not "same line, judge only by the
+    horizontal gap" versus "different line, judge only by the vertical gap."
+    An earlier version split on that distinction and it does tell a phrase
+    from an unrelated field beside it (a date at the left of a header, a
+    serial number at the right, sharing a line), but checking only the
+    vertical gap for two words on different lines has its own failure: a
+    checklist's Yes/No answer column sits far to the right of the question
+    text it answers, so once that answer starts a region of its own -- correct,
+    it is not close horizontally to the question beside it -- the *next*
+    question below, on a new line, was still judged only by the vertical
+    gap to that isolated answer and got pulled into its region, dragging
+    every question after it in behind it.
+
+    Testing both axes against the RUNNING UNION avoids this without a special
+    case for either shape: the union grows to cover the column a wrapped
+    paragraph actually occupies, so a later line that starts back at that
+    same left margin has zero horizontal gap to it however far below the
+    line above it sits -- ordinary paragraphs and stacked lists still merge
+    across their own vertical gap exactly as before. A one-word fragment far
+    to the side (that answer column) keeps a narrow union bbox of its own, so
+    the next line's horizontal distance to it stays large and the wrong
+    merge no longer happens.
+    """
+    ax1, ay1, ax2, ay2 = current_bbox
+    bx1, by1, bx2, by2 = word_bbox
+    dx = max(0.0, bx1 - ax2, ax1 - bx2)
+    dy = max(0.0, by1 - ay2, ay1 - by2)
+    return dx <= gap_x and dy <= gap_y
+
+
+def regions_from_words(words: list[dict[str, Any]], *,
+                       cells: Iterable[dict[str, Any]] = (),
+                       page_size: tuple[int, int] | None = None) -> list[dict[str, Any]]:
+    """Every `layout_annotations` region on the page, covering EVERY word --
+    not only the ones that happen to sit in an obviously named block. As a
+    side effect, sets `layout_region_index` on every word (already carrying
+    its own `layout_class` from `words_from_boxes`).
+
+    Two passes:
+
+    1. **A real `<table>`, if the page drew one** (`cells`, from `page.py::
+       CELL_REGIONS_JS` -- empty for the character-grid backend, which has no
+       `<table>` element to measure: its rules are painted marks, not cells).
+       The region's box is the union of the measured `<td>` boxes -- the
+       table's own border and padding, which is what "the table" means to a
+       reader, not a crop of whichever cell's text happens to run furthest
+       in each direction. Multiple real tables on one page (an invoice's
+       items table and its separate tax-summary table) are folded into one
+       Table region rather than told apart: both ARE tables, and telling them
+       apart needs geometry this function does not have reason to compute
+       twice when `words_from_boxes` already means both count as one label.
+
+    2. **Everything else**, grouped by `layout_class` in reading order, split
+       into a new region wherever the next word is not "close" to the run so
+       far -- see `_region_gap_ok` for what "close" means. This is what gives
+       every remaining word a region: there is no third bucket.
+    """
+    cells = list(cells or [])
     regions: list[dict[str, Any]] = []
-    for region_index, (key, indices) in enumerate(groups.items()):
-        layout_class = REGIONS[key]
-        member = [words[i] for i in indices]
-        x1 = min(w["bbox"][0] for w in member)
-        y1 = min(w["bbox"][1] for w in member)
-        x2 = max(w["bbox"][2] for w in member)
-        y2 = max(w["bbox"][3] for w in member)
+    covered = [False] * len(words)
+
+    if cells:
+        x1 = min(c["quad"][0][0] for c in cells)
+        y1 = min(c["quad"][0][1] for c in cells)
+        x2 = max(c["quad"][2][0] for c in cells)
+        y2 = max(c["quad"][2][1] for c in cells)
+        text = " ".join(str(c.get("text", "")) for c in cells if c.get("text"))
+        regions.append(_region_entry(0, "Table", text, (x1, y1, x2, y2),
+                                     "dom_element_perimeter", page_size))
+        for i, word in enumerate(words):
+            cx = (word["bbox"][0] + word["bbox"][2]) / 2
+            cy = (word["bbox"][1] + word["bbox"][3]) / 2
+            if x1 <= cx <= x2 and y1 <= cy <= y2:
+                covered[i] = True
+
+    heights = [w["bbox"][3] - w["bbox"][1] for i, w in enumerate(words) if not covered[i]]
+    median_height = sorted(heights)[len(heights) // 2] if heights else 12.5
+    gap_y = median_height * REGION_GAP_HEIGHTS
+    gap_x = median_height * REGION_GAP_WIDTHS
+
+    current: dict[str, Any] | None = None
+
+    def flush() -> None:
+        nonlocal current
+        if current is None:
+            return
+        member = current["members"]
+        x1, y1, x2, y2 = current["bbox"]
         text = " ".join(w["text"] for w in member if w["text"])
-        regions.append({
-            "region_index": region_index,
-            "tag": "div",
-            "layout_class": layout_class,
-            "text": text,
-            "bbox": [x1, y1, x2, y2],
-            "bbox_mode": "xyxy_pixel",
-            # A union of the words it contains, not a DOM measurement of its
-            # own -- there is no single element on the page that IS "the
-            # signature block" or "the item table" as one box; the region is
-            # this function's own grouping (see `REGIONS`), not the browser's.
-            "bbox_strategy": "visible_content_union_perimeter",
-            "polygon": [[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]],
-        })
-        for word in member:
-            word["layout_region_index"] = region_index
-            word["layout_class"] = layout_class
+        regions.append(_region_entry(len(regions), current["layout_class"], text,
+                                     (x1, y1, x2, y2), "visible_content_union_perimeter",
+                                     page_size))
+        for w in member:
+            w["layout_region_index"] = regions[-1]["region_index"]
+        current = None
+
+    for i, word in enumerate(words):
+        if covered[i]:
+            flush()
+            word["layout_region_index"] = 0   # the Table region, always index 0
+            continue
+        cls = word["layout_class"]
+        wb = word["bbox"]
+        if (current is not None and current["layout_class"] == cls
+                and _region_gap_ok(current["bbox"], wb, gap_y, gap_x)):
+            current["members"].append(word)
+            current["bbox"] = [min(current["bbox"][0], wb[0]), min(current["bbox"][1], wb[1]),
+                               max(current["bbox"][2], wb[2]), max(current["bbox"][3], wb[3])]
+        else:
+            flush()
+            current = {"layout_class": cls, "members": [word], "bbox": list(wb)}
+    flush()
     return regions
 
 
@@ -641,8 +845,9 @@ def field_paths(extracted: Any, prefix: str = "") -> list[str]:
 
 def build(*, filename: str, width: int, height: int, parser: str,
           boxes: Iterable[dict[str, Any]] = (), words: Iterable[dict[str, Any]] = (),
-          extracted: Any = None, seed: Any = "", layout: str = "",
-          task: str = TASK_CONVERT, settings: dict[str, Any] | None = None) -> dict[str, Any]:
+          cells: Iterable[dict[str, Any]] = (), extracted: Any = None, seed: Any = "",
+          layout: str = "", task: str = TASK_CONVERT,
+          settings: dict[str, Any] | None = None) -> dict[str, Any]:
     """One metadata line, assembled once so the three renderers cannot drift.
 
     `seed` and `layout` are not written down -- they are in `synthesis.json` --
@@ -656,10 +861,16 @@ def build(*, filename: str, width: int, height: int, parser: str,
     `word_annotations`/`layout_annotations` are additive, in the
     `docsynth.annotations.v1` shape (`layout_class` from `DOCSYNTH_LABELS`,
     not `PAGE_LABELS`) -- see `words_from_boxes`/`regions_from_words`.
+
+    `cells`: `generators/html/render.py::regions_from_rects`'s table-cell
+    list (empty off the character-grid backend, which draws no `<table>`) --
+    lets the Table region use the cells' own measured boxes instead of a
+    union of the words inside them. See `regions_from_words`.
     """
     blocks = blocks_from_boxes(boxes)
     word_annotations = words_from_boxes(words)
-    layout_annotations = regions_from_words(word_annotations, words)
+    layout_annotations = regions_from_words(
+        word_annotations, cells=cells, page_size=(int(width), int(height)))
 
     options = {**BASE_SETTINGS, **(settings or {})}
     options["convert_mode"] = parser
@@ -1322,7 +1533,7 @@ __all__ = [
     "BASE_SETTINGS",
     "DEFAULT_LABEL",
     "DOCSYNTH_LABELS",
-    "DOCSYNTH_LABEL_OF",
+    "DOCSYNTH_LABEL_FOR_KIND",
     "JOB_NAMESPACE",
     "LABELS",
     "ORDER",
