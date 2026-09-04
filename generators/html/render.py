@@ -48,6 +48,7 @@ from page import (  # noqa: E402
 import profiling  # noqa: E402
 import rulebase  # noqa: E402
 import worklist  # noqa: E402
+from degradation.geometry import warp_regions  # noqa: E402
 from degradation.pipeline import apply_recipe  # noqa: E402
 from pipeline import imagetimes, record, synthesis  # noqa: E402
 
@@ -459,6 +460,21 @@ class HtmlReceiptRenderer:
                 f"a degradation resized the page ({before} -> {aged.shape[:2]}); "
                 "the boxes no longer describe it"
             )
+
+        # Hình học -- không phải chuỗi làm cũ. Ở NGOÀI `apply_recipe`/`chain`
+        # có chủ đích: mọi model trong đó bị buộc GIỮ NGUYÊN kích thước (kiểm
+        # tra ngay trên), còn cong giấy thì đổi cả hai. `augmentation.warp` là
+        # nơi duy nhất một trang được phép cong -- xem `degradation/geometry.py`
+        # và header "HÌNH HỌC" của `rulebase/rules/augmentation.yaml`. Vắng mặt
+        # (giá trị mặc định) thì bước này là no-op; ba id có nó đều
+        # `enabled: false` cho tới khi có người soát bằng mắt.
+        warp = recipe.get("augmentation", "warp")
+        if warp:
+            with profiling.stage("geometry"):
+                aged, boxes, words, cells = warp_regions(
+                    warp["name"], aged, warp.get("params"),
+                    random.Random(seed), boxes, words, cells)
+
         return (recipe, receipt, grid, aged, boxes, words, cells, hand_report,
                 sign_report)
 

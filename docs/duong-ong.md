@@ -311,7 +311,7 @@ Một quy tắc, và nó là toàn bộ chính sách an toàn:
 | 5 | `render.py` | `Grid` | **pixel + quad** | – | **★ SINH RA Ở ĐÂY** |
 | 6 | `ink/apply_ink` **(mới)** | ảnh + `Grid` + quad | ảnh có mực tay/dấu | – | thêm hộp cho ô `ink ≠ press` |
 | 7 | `degradation/apply_recipe` | ảnh | ảnh **cùng kích thước** | – | không đụng (có assert) |
-| 8 | `warp.apply` *(chỉ glyph)* | ảnh + quad | ảnh cong + quad đã xoay | – | **cùng phép biến đổi với pixel** |
+| 8 | `warp.apply` *(glyph luôn; html tuỳ chọn, xem dưới)* | ảnh + quad | ảnh cong + quad đã xoay | – | **cùng phép biến đổi với pixel** |
 | 9 | downscale | ảnh + quad | × `scale × factor` | – | nhân, **không đo lại** |
 | 10 | `record.validate` + `invariants` | tất cả | `.jpg` + một dòng `metadata.jsonl` | – | kiểm |
 
@@ -438,7 +438,8 @@ sequenceDiagram
     IK-->>W: ảnh có mực tay/dấu (quad không đổi)
     W->>DG: apply_recipe(ảnh, recipe)
     DG-->>W: ảnh đã làm cũ, CÙNG KÍCH THƯỚC
-    W->>R: warp + downscale — glyph cả hai, html/genalog chỉ downscale
+    W->>R: warp + downscale — glyph cả hai luôn; html cong NẾU recipe bốc
+    Note over R: `augmentation.warp` (rulebase/rules/augmentation.yaml,<br/>degradation/geometry.py) — genalog vẫn chỉ downscale
     R-->>W: ảnh cuối + quad đã biến đổi
     W->>IV: kiểm
     Note over IV: tiền · quad trong khung · không ô glyph rỗng<br/>mọi giá trị nhãn đều được in<br/>ô hand phải CÓ MỰC trong hộp
