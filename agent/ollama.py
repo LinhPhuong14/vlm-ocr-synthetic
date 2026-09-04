@@ -1,10 +1,10 @@
 """One local model, and the boundary it is not allowed to cross.
 
-    from tools.llm.client import Model
+    from agent.ollama import Model
     model = Model()                       # qwen2.5:7b-instruct on 127.0.0.1
     reply = model.chat(system, user, seed=7)
 
-**Nothing under `tools/llm/` may be imported by `generators/` or `pipeline/`,
+**Nothing under `agent/` may be imported by `generators/` or `pipeline/`,
 and `tests/test_llm.py` asserts it.** That is the whole architecture in one
 sentence, and it is worth the sentence because the tempting design is the wrong
 one.
@@ -179,7 +179,7 @@ def _call(path: str, payload: dict | None, timeout: float,
             f"cannot reach {where} ({error}).\n"
             "Start it with:  ollama serve &\n"
             "and pull the weights with:  ollama pull " + MODEL + "\n"
-            "See tools/llm/README.md. Nothing here falls back to a hosted "
+            "See agent/README.md. Nothing here falls back to a hosted "
             "model: a generator that silently changed where the text came from "
             "would put unattributable material in the corpus."
         ) from error

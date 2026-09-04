@@ -19,9 +19,9 @@ theo hai đường rồi so sha256, `pipeline/run.py` chứng minh một worker 
 worker cho ra `manifest.json` giống hệt nhau.
 
 Gọi model **trong lúc vẽ** phá cả ba, và phá lặng lẽ: ảnh vẫn ra, chỉ là không
-còn dựng lại được nữa. `tools/llm/client.py` mở đầu bằng đúng câu đó, và
+còn dựng lại được nữa. `agent/ollama.py` mở đầu bằng đúng câu đó, và
 `tests/test_llm.py` khẳng định bằng một assertion — `pipeline/` và
-`generators/` không được import bất cứ thứ gì dưới `tools/llm/`.
+`generators/` không được import bất cứ thứ gì dưới `agent/`.
 
 Nhưng yêu cầu ở đây là **mỗi ảnh một quyết định của model**. Hai điều ấy chỉ
 mâu thuẫn nếu ta cho rằng "model quyết định" và "lúc vẽ" phải xảy ra cùng lúc.
@@ -45,7 +45,7 @@ flowchart TD
     end
 
     subgraph new ["MỚI — pha compose, chạy như một tiến trình con"]
-        P --> L["2 · compose<br/>python -m tools.llm.compose --plan plan.json"]
+        P --> L["2 · compose<br/>python -m agent.compose --plan plan.json"]
         L --> LG[("compose.jsonl<br/>mỗi ảnh một dòng:<br/>force + biến thể bố cục + nội dung")]
         L --> LV[("out/.rules/layouts/*.yaml<br/>biến thể đã qua cửa ải")]
     end
@@ -62,7 +62,7 @@ flowchart TD
 **Vì sao `compose` là tiến trình con chứ không phải một import.** Renderer đã
 là tiến trình con (`pipeline/worker.py::renderer_command`); `compose` đi đúng
 đường ấy. Nhờ thế ranh giới trong `tests/test_llm.py` còn nguyên: `pipeline/`
-gọi một lệnh, không import `tools/llm`. Lượt chạy không khai `llm:` thì pha này
+gọi một lệnh, không import `agent`. Lượt chạy không khai `llm:` thì pha này
 không tồn tại — CI, baseline vàng và mọi tập đã commit đi đúng đường cũ.
 
 **Model không phát minh ra cơ chế mới.** Nó chỉ điền vào hai chỗ pipeline đã có
@@ -81,7 +81,7 @@ nhỏ hơn nó nghe.
 
 ## 3. Ràng buộc: chứng từ nào được biến đổi ✅
 
-`rulebase/augmentable.yaml` + `tools/llm/policy.py` — **đã làm**.
+`rulebase/augmentable.yaml` + `agent/augmentable.py` — **đã làm**.
 
 | mức | nghĩa | ai |
 | :--- | :--- | :--- |
@@ -100,7 +100,7 @@ pháp lý bịa theo cách chưa ai duyệt. `policy.problems()` báo tên nhữ
 chưa khai, cả hai chiều.
 
 ```bash
-python -m tools.llm.policy --check
+python -m agent.augmentable --check
 ```
 
 ---
@@ -234,10 +234,10 @@ server là một biến môi trường, không phải một bản viết lại, 
 
 | # | việc | file | xong khi |
 | ---: | :--- | :--- | :--- |
-| 1 ✅ | client nói chuyện được với server | `tools/llm/client.py` | `VLM_LLM_HOST` trỏ đi đâu thì gọi đúng đấy; loopback không qua proxy, host xa thì qua |
-| 2 ✅ | chính sách chứng từ nào được biến đổi | `rulebase/augmentable.yaml`, `tools/llm/policy.py` | `--check` khớp hai chiều với `rules/document.yaml` |
-| 3 | `compose` sinh biến thể theo lô | `tools/llm/compose.py` | 32 phôi × `variety`, mỗi biến thể qua đủ sáu cửa ải của `augment_layout` |
-| 4 | ngân sách cân bằng | `tools/llm/compose.py` + `pipeline/drift.py` | 1 000 ảnh giả lập: total variation mọi trục ≤ dung sai |
+| 1 ✅ | client nói chuyện được với server | `agent/ollama.py` | `VLM_LLM_HOST` trỏ đi đâu thì gọi đúng đấy; loopback không qua proxy, host xa thì qua |
+| 2 ✅ | chính sách chứng từ nào được biến đổi | `rulebase/augmentable.yaml`, `agent/augmentable.py` | `--check` khớp hai chiều với `rules/document.yaml` |
+| 3 | `compose` sinh biến thể theo lô | `agent/compose.py` | 32 phôi × `variety`, mỗi biến thể qua đủ sáu cửa ải của `augment_layout` |
+| 4 | ngân sách cân bằng | `agent/compose.py` + `pipeline/drift.py` | 1 000 ảnh giả lập: total variation mọi trục ≤ dung sai |
 | 5 | sổ cái + `pipeline/run.py` gọi pha compose | `pipeline/run.py`, `pipeline/compose.py` | chạy lại từ `compose.jsonl` ra đúng byte; `manifest.json` mang sha256 |
 | 6 | lớp phủ nội dung | `rulebase/content.py`, `worklist.py` | trường do model viết qua được `corpus_rules`; số tiền vẫn do rule-base tính |
 | 7 | tài liệu + một tập mẫu | `data/llm<N>/` | tập đầu tiên có biến thể do model sinh, kèm sổ cái |

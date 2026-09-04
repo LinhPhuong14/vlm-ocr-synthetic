@@ -1,6 +1,6 @@
 """How far each kind of document may be varied, and who is allowed to ask.
 
-    from tools.llm.policy import Policy, level_of
+    from agent.augmentable import Policy, level_of
     level_of("vat_invoice_form")     # "fixed"
     level_of("newspaper_classifieds")  # "free"
 
@@ -41,7 +41,7 @@ from pathlib import Path
 
 import yaml
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[1]
 POLICY_FILE = REPO_ROOT / "rulebase" / "augmentable.yaml"
 
 FIXED, STYLED, FREE = "fixed", "styled", "free"

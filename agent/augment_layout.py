@@ -1,7 +1,7 @@
 """Read a layout, have a local model vary it, and refuse it unless it draws.
 
-    python -m tools.llm.augment_layout --from market_vat --id market_vat_b
-    python -m tools.llm.augment_layout --from market_vat --id market_vat_b --write
+    python -m agent.augment_layout --from market_vat --id market_vat_b
+    python -m agent.augment_layout --from market_vat --id market_vat_b --write
 
 Without `--write` nothing is created. With it, three files change: the layout
 itself, its registration in `rulebase/rules/layout.yaml`, and its blank in
@@ -31,7 +31,7 @@ The model proposes; six checks dispose, in increasing order of cost:
 1. **it is YAML**, and it is a mapping;
 2. **every key path exists in some hand-written layout**, with the right type,
    inside the observed numeric range, and enum values from the observed set --
-   `tools/llm/layout_schema.py`, which derives all of that rather than
+   `agent/layout_schema.py`, which derives all of that rather than
    declaring it;
 3. **every key path that is in all seventeen layouts is present**;
 4. **`rulebase.make()` builds a grid** over a spread of seeds without raising,
@@ -58,12 +58,12 @@ from pathlib import Path
 import yaml
 
 if __package__ in (None, ""):
-    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from tools.llm import layout_schema as schema_mod
-from tools.llm.client import LLMError, Model, prompt
+from agent import layout_schema as schema_mod
+from agent.ollama import LLMError, Model, prompt
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[1]
 LAYOUTS = REPO_ROOT / "rulebase" / "layouts"
 RULES_LAYOUT = REPO_ROOT / "rulebase" / "rules" / "layout.yaml"
 BLANKS = REPO_ROOT / "rulebase" / "blanks.yaml"
@@ -482,7 +482,7 @@ def main() -> int:
                              "layout the next run picks up.")
     args = parser.parse_args()
 
-    from tools.llm.client import MODEL
+    from agent.ollama import MODEL
 
     if not (LAYOUTS / f"{args.parent}.yaml").exists():
         raise SystemExit(f"no layout {args.parent!r} in {LAYOUTS}")
@@ -493,7 +493,7 @@ def main() -> int:
     model = Model(args.model or MODEL)
     if not model.available():
         raise SystemExit(f"the local model {model.name!r} is not loaded; see "
-                         "tools/llm/README.md")
+                         "agent/README.md")
 
     schema = schema_mod.derive()
     print(f"{args.parent} -> {args.layout_id}: schema has {len(schema)} key paths "
@@ -554,7 +554,7 @@ def main() -> int:
               f"from={args.parent} seed={kept_reply.seed} "
               f"{_datetime.date.today().isoformat()}\n"
               f"# Reviewed by a person before it drew anything. The gauntlet it "
-              f"passed is in tools/llm/augment_layout.py.\n")
+              f"passed is in agent/augment_layout.py.\n")
     target.write_text(
         header + yaml.safe_dump(variant, allow_unicode=True, sort_keys=False),
         encoding="utf-8")

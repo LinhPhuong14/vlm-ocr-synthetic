@@ -50,7 +50,7 @@ run:
 
   # Which layouts to draw from, by name. Empty (the default) means **every file
   # in `rulebase/layouts/`** -- so a layout added to that directory, by hand or
-  # by `tools/llm/augment_layout.py`, is in the next run without anybody
+  # by `agent/augment_layout.py`, is in the next run without anybody
   # editing this file. That is what a dataset wants.
   #
   # A *fixed comparison* should name them instead: the quota walks the list in

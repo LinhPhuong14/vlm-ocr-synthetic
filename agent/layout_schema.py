@@ -35,7 +35,7 @@ from typing import Any
 
 import yaml
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[1]
 LAYOUTS_ROOT = REPO_ROOT / "rulebase" / "layouts"
 
 # The first line of a generated layout. A comment, so `yaml.safe_load` never

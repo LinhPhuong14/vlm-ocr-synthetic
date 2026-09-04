@@ -6,7 +6,7 @@ rules are the only thing between it and the dataset.
 
 ## The shapes are measured, not chosen -- and the first attempt was wrong
 
-Every number in `SHAPES` below comes from `python -m tools.llm.corpus_rules
+Every number in `SHAPES` below comes from `python -m agent.corpus_rules
 --audit`, which walks the committed corpus and prints what it actually
 contains. That command is also the test of these rules, and it is the point:
 
@@ -56,7 +56,7 @@ import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 
-CORPUS_ROOT = Path(__file__).resolve().parents[2] / "rulebase" / "corpus"
+CORPUS_ROOT = Path(__file__).resolve().parents[1] / "rulebase" / "corpus"
 
 # The marks the committed corpus actually uses, from --audit. An em-dash, a
 # smart quote or a stray asterisk is a chat model's formatting leaking into the
@@ -156,7 +156,7 @@ def envelopes(text: str) -> dict[int, Envelope]:
     Price columns get none: they are checked as numbers, and a digit string's
     "word count" means nothing.
     """
-    from tools.llm.provenance import human  # noqa: PLC0415 -- avoids a cycle
+    from agent.provenance import human  # noqa: PLC0415 -- avoids a cycle
 
     columns: dict[int, list[str]] = {}
     for line in human(text):

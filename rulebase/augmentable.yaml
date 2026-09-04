@@ -11,7 +11,7 @@
 # cùng lý do với `rules/`: người biết một tờ chứng từ Việt Nam bị ràng buộc tới
 # đâu không nhất thiết là người sửa Python.
 #
-# Đọc bởi `tools/llm/` (bước compose, xem `docs/llm-in-pipeline.md`). KHÔNG có
+# Đọc bởi `agent/augmentable.py` (bước compose, xem `docs/llm-in-pipeline.md`). KHÔNG có
 # gì trong `pipeline/` hay `generators/` đọc file này: nó quyết định model được
 # đề xuất gì, không quyết định trang được vẽ ra sao.
 #
@@ -68,7 +68,7 @@ documents:
   # Tám phôi biểu mẫu hành chính, bật lại cùng lượt với ba root giấy tờ. Chúng
   # được khai ở đây theo đúng hạng mà `agent/policy.yaml` đã xếp, vì hai file
   # trả lời cùng một câu hỏi cho hai người đọc khác nhau: file này nói với
-  # `tools/llm/` được đề xuất biến đổi tới đâu, file kia nói với `agent/` được
+  # bộ sinh được đề xuất biến đổi tới đâu, file kia nói bộ quyết định được
   # vẽ tới đâu. Hai câu trả lời khác nhau về cùng một tờ giấy là một lỗi.
   #
   # Giấy khai sinh, tờ khai đăng ký kết hôn, phiếu lý lịch hoạt động của Bộ Nội

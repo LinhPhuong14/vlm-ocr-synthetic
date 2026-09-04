@@ -1,7 +1,7 @@
 """Grow a corpus file with a local model, one validated block at a time.
 
-    python -m tools.llm.augment_content --file items_market --want 20
-    python -m tools.llm.augment_content --file items_market --want 20 --write
+    python -m agent.augment_content --file items_market --want 20
+    python -m agent.augment_content --file items_market --want 20 --write
 
 Without `--write` it prints what it would add and what it threw away, and
 touches nothing. That is the default on purpose: the model is a proposer, and
@@ -47,11 +47,11 @@ import sys
 from pathlib import Path
 
 if __package__ in (None, ""):                       # `python augment_content.py`
-    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from tools.llm import corpus_rules as rules
-from tools.llm.client import LLMError, Model, lines_of, prompt, retab
-from tools.llm.provenance import Stamp, human
+from agent import corpus_rules as rules
+from agent.ollama import LLMError, Model, lines_of, prompt, retab
+from agent.provenance import Stamp, human
 
 CORPUS_VI = rules.CORPUS_ROOT / "vi"
 
@@ -204,7 +204,7 @@ def main() -> int:
                         help="the day to stamp; defaults to today")
     args = parser.parse_args()
 
-    from tools.llm.client import MODEL
+    from agent.ollama import MODEL
 
     return run(args.file, args.want, rounds=args.rounds, seed=args.seed,
                write=args.write, model_name=args.model or MODEL,
