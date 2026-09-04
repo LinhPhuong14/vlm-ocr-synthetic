@@ -11,6 +11,7 @@
 | [`layouts_all/`](layouts_all) | 84 | **mọi bố cục đang bật, hai lần, không hai ảnh liền kề cùng bố cục** — 42 layouts × 2 (mười trong số đó là bảo hiểm), 6 241 boxes, 60 con dấu/hoa văn được in ra thật, 12 trang điền tay. Tập đầu tiên PASS sạch với 84/84 nhãn phân biệt, sau khi `magazine_contents` thôi chép nguyên một trong sáu mục lục của corpus — xem [README](layouts_all/README.md) |
 | [`dataset_test/`](dataset_test) | 45 | a **scratch set for looking at**, one image per working layout per renderer. Regenerated whenever the ageing is retuned, and not a fixed comparison point — see below |
 | [`page_curl20/`](page_curl20) | 20 | the look before `augmentation.page_curl` went `enabled: true` — a real Blender render per page (`degradation/blender/`), 15 distinct layouts, 20/20 rendered clean; timing and per-image status in its own [README](page_curl20/README.md) |
+| [`warp_variety20/`](warp_variety20) | 20 | five `degradation/blender/` warp scenarios, four pages each — `page_curl`, `folded`, `lifted_corner`, `crease_bundle`, `crumple` — surface deformation only, not SyntheticDoc's "dropped on an obstacle" family; 20/20 rendered clean, caught a real box-remapping bug along the way — see its own [README](warp_variety20/README.md) |
 
 20 images per renderer (synthdog / html / genalog) in each `dataset60*` set,
 spread evenly over the layouts. `invoices54/` is a different shape and says so
