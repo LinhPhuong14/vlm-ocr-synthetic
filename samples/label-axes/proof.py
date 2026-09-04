@@ -175,8 +175,52 @@ def draw(page: Path, boxes: Path, out: Path, only: str | None = None) -> None:
     print(f"{len(rects)} hộp · {len(order)} region · {len(inks)} ink -> {out}")
 
 
+def draw_regions(page: Path, blocks: Path, out: Path, only: str) -> None:
+    """Trục 1 một mình: mỗi vùng đúng một hộp, và hộp là hộp của KHỐI.
+
+    Khác hẳn ảnh proof ba trục. Ở đó mỗi run một hộp, nên một bảng ra hai chục
+    hộp nhỏ và không hộp nào là "cái bảng". Ở đây một bảng ra ĐÚNG MỘT hộp, đo
+    từ chính phần tử `<table>`, nên nó ôm theo đường kẻ — kể cả lề ô và hàng
+    rỗng, những thứ mà bao lồi của chữ bên trong không bao giờ chạm tới.
+
+    Đây là hình mà một người gán nhãn bố cục nhìn, và là hình để trả lời câu
+    "vùng này có nên là vùng kia không" — câu mà ảnh ba trục làm rối bằng cách
+    vẽ thêm hai trục nữa lên cùng một chỗ.
+    """
+    image = cv2.imread(str(page))
+    if image is None:
+        raise SystemExit(f"không đọc được {page}")
+    rows = [b for b in json.loads(blocks.read_text(encoding="utf-8"))
+            if b.get("page") == only]
+    scale = round(image.shape[1] / max(max(b["x"] + b["w"] for b in rows), 1))
+
+    overlay = image.copy()
+    for box in rows:
+        colour = REGION.get(box["region"], OTHER)
+        x, y = int(box["x"] * scale), int(box["y"] * scale)
+        w, h = int(box["w"] * scale), int(box["h"] * scale)
+        # Tô nhạt cả vùng rồi mới kẻ viền: một hộp to mà chỉ có viền thì hai
+        # hộp lồng nhau đọc ra như một, còn nền nhạt cho thấy vùng nào phủ tới đâu.
+        cv2.rectangle(overlay, (x, y), (x + w, y + h), colour, -1)
+    image = cv2.addWeighted(overlay, 0.14, image, 0.86, 0)
+
+    for box in rows:
+        colour = REGION.get(box["region"], OTHER)
+        x, y = int(box["x"] * scale), int(box["y"] * scale)
+        w, h = int(box["w"] * scale), int(box["h"] * scale)
+        cv2.rectangle(image, (x, y), (x + w, y + h), colour, 3)
+        _tag(image, box["region"], x, y, colour, scale=0.5)
+
+    order = [r for r in REGION if any(b["region"] == r for b in rows)]
+    strip = _legend(image.shape[1], order, [])[:30]
+    cv2.imwrite(str(out), np.vstack([strip, image]))
+    print(f"{len(rows)} vùng · {len(order)} region -> {out}")
+
+
 if __name__ == "__main__":
     # `boxes.json` gộp cả hai trang, nên mỗi trang chỉ lấy phần hộp của nó.
     for _name in ("page", "page2"):
         draw(HERE / f"{_name}.png", HERE / "boxes.json",
              HERE / f"{_name}-proof.png", only=f"{_name}.html")
+        draw_regions(HERE / f"{_name}.png", HERE / "regions.json",
+                     HERE / f"{_name}-region.png", only=f"{_name}.html")

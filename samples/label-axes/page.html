@@ -26,6 +26,10 @@
   }
   #sheet *{box-sizing:border-box;}
 
+  /* `display:block` trên một span có nhãn thì hộp rộng bằng cả khối chứa nó,
+     không ôm chữ — trên trang này tiêu đề tài liệu đo ra 794 px, đúng bề ngang
+     tờ giấy. `width:max-content` giữ được việc xuống dòng mà hộp vẫn bám chữ.
+     Hộp phải tả CHỮ; còn khối là việc của trục 1, đo riêng ở `data-region-box`. */
   /* ---- ink: sáu cách mực lên giấy. Đây là TRỤC 3, và nó thuần trình bày. */
   [data-ink="print"]     {}
   [data-ink="hand"]      {font-family:PatrickHand,'Segoe Script',cursive;
@@ -48,8 +52,8 @@
   .r-letterhead .l{max-width:62%;}
   .r-letterhead .rt{text-align:right; font-size:11.5px; color:#333;}
   .r-doctitle{text-align:center; margin:16px 0 4px;}
-  .r-doctitle .t{font-size:21px; font-weight:700; letter-spacing:.04em; display:block;}
-  .r-doctitle .s{font-size:12px; color:#555; display:block; margin-top:2px;}
+  .r-doctitle .t{margin-left:auto; margin-right:auto; font-size:21px; font-weight:700; letter-spacing:.04em; display:block; width:max-content;}
+  .r-doctitle .s{margin-left:auto; margin-right:auto; font-size:12px; color:#555; display:block; width:max-content; margin-top:2px;}
   .r-fieldgroup{display:grid; grid-template-columns:1fr 1fr; gap:5px 26px; margin:14px 0 4px;}
   .r-fieldgroup .f{display:flex; gap:6px; align-items:baseline;
                    border-bottom:.5px dotted #999; padding-bottom:2px;}
@@ -64,16 +68,16 @@
   .r-summary .row{display:flex; justify-content:space-between; padding:2.5px 0;}
   .r-summary .row.grand{border-top:1px solid #333; font-weight:700; padding-top:5px;}
   .r-prose{margin:16px 0 0; text-align:justify;}
-  .r-prose .h{font-weight:700; display:block; margin-bottom:3px;}
+  .r-prose .h{font-weight:700; display:block; width:max-content; margin-bottom:3px;}
   .r-listgroup{margin:14px 0 0;}
-  .r-listgroup .h{font-weight:700; display:block; margin-bottom:4px;}
+  .r-listgroup .h{font-weight:700; display:block; width:max-content; margin-bottom:4px;}
   .r-listgroup ol{margin:0; padding-left:20px;}
   .r-listgroup li{margin-bottom:2px;}
   .r-signature{display:flex; justify-content:space-between; gap:30px; margin-top:24px;}
   .r-signature .col{flex:1; text-align:center; position:relative; min-height:96px;}
-  .r-signature .ttl{font-weight:600; display:block;}
-  .r-signature .nt{font-size:11px; color:#555; display:block; margin-bottom:34px;}
-  .r-caption{font-size:11px; color:#555; font-style:italic; margin-top:5px; display:block;}
+  .r-signature .ttl{margin-left:auto; margin-right:auto; font-weight:600; display:block; width:max-content;}
+  .r-signature .nt{margin-left:auto; margin-right:auto; font-size:11px; color:#555; display:block; width:max-content; margin-bottom:34px;}
+  .r-caption{font-size:11px; color:#555; font-style:italic; margin-top:5px; display:block; width:max-content;}
   .r-note{margin-top:14px; font-size:11px; color:#444; border-left:2px solid #bbb;
           padding-left:9px;}
   .r-runningfoot{display:flex; justify-content:space-between; margin-top:26px;
@@ -97,7 +101,7 @@
 <div id="sheet">
 
 <!-- ══ RunningHead ═══════════════════════════ role: note ══ ink: print -->
-<div class="r-runninghead">
+<div class="r-runninghead" data-region-box="Page-Header">
   <span data-region="Page-Header" data-role="note" data-ink="print"
         data-kind="head.form_no">Mẫu số 01/GTKT3-001</span>
   <span data-region="Page-Header" data-role="note" data-ink="print"
@@ -106,7 +110,7 @@
 
 <!-- ══ Letterhead ═══ roles: heading, subheading, value ══ ink: print -->
 <div class="r-letterhead">
-  <div class="l">
+  <div class="l" data-region-box="Text">
     <span data-region="Page-Header" data-role="heading" data-ink="print"
           data-kind="store.name">CÔNG TY TNHH THƯƠNG MẠI HOÀNG LONG</span><br>
     <span data-region="Page-Header" data-role="subheading" data-ink="print"
@@ -114,7 +118,7 @@
     <span data-region="Page-Header" data-role="value" data-ink="print"
           data-kind="store.address">128 Nguyễn Trãi, P. Bến Thành, Q.1, TP. Hồ Chí Minh</span>
   </div>
-  <div class="rt">
+  <div class="rt" data-region-box="Form">
     <span data-region="Page-Header" data-role="key" data-ink="print"
           data-kind="store.tax_id.label">MST:</span>
     <span data-region="Page-Header" data-role="value" data-ink="dotmatrix"
@@ -127,7 +131,7 @@
 </div>
 
 <!-- ══ DocTitle ══════════════════ roles: heading, subheading ══ print -->
-<div class="r-doctitle">
+<div class="r-doctitle" data-region-box="Title">
   <span class="t" data-region="Title" data-role="heading" data-ink="print"
         data-kind="doc.title">HOÁ ĐƠN GIÁ TRỊ GIA TĂNG</span>
   <span class="s" data-region="Title" data-role="subheading" data-ink="print"
@@ -138,7 +142,7 @@
      Dải in ngược là CÁCH BÀY, không phải nhãn. Thứ nó chứa là một tiêu đề mục
      và giá trị của mục ấy — y như một tiêu đề in đen trên nền trắng — nên
      region là Section-Header. "Chữ trắng trên nền đậm" là việc của trục 3. -->
-<div class="r-band">
+<div class="r-band" data-region-box="Section-Header">
   <span data-region="Section-Header" data-role="heading" data-ink="reversed"
         data-kind="invoice.serial.label">KÝ HIỆU HOÁ ĐƠN</span>
   <span class="r-code" data-region="Section-Header" data-role="value" data-ink="reversed"
@@ -146,7 +150,7 @@
 </div>
 
 <!-- ══ FieldGroup ══ roles: key, value ══ inks: print, hand, dotmatrix -->
-<div class="r-fieldgroup">
+<div class="r-fieldgroup" data-region-box="Form">
   <div class="f">
     <span data-region="Form" data-role="key" data-ink="print"
           data-kind="invoice.number.label">Số hoá đơn:</span>
@@ -186,7 +190,7 @@
 </div>
 
 <!-- ══ ItemTable ══ roles: colhdr, rowhdr, cell ══ inks: print, reversed -->
-<table class="r-itemtable">
+<table class="r-itemtable" data-region-box="Table">
   <colgroup><col style="width:7%"><col style="width:38%"><col style="width:9%">
             <col style="width:9%"><col style="width:17%"><col style="width:20%"></colgroup>
   <thead>
@@ -250,11 +254,11 @@
     </tr>
   </tbody>
 </table>
-<span class="r-caption" data-region="Caption" data-role="caption" data-ink="print"
+<span class="r-caption" data-region-box="Caption" data-region="Caption" data-role="caption" data-ink="print"
       data-kind="table.caption">Bảng kê hàng hoá kèm theo hoá đơn số 00042317.</span>
 
 <!-- ══ Summary ══════════════ roles: key, value, total ══ ink: print -->
-<div class="r-summary">
+<div class="r-summary" data-region-box="Form">
   <div class="row">
     <span data-region="Form" data-role="key" data-ink="print"
           data-kind="total.before.label">Cộng tiền hàng:</span>
@@ -274,7 +278,7 @@
           data-kind="total.grand">1.628.640</span>
   </div>
 </div>
-<div style="margin-top:5px">
+<div style="margin-top:5px" data-region-box="Form">
   <span data-region="Form" data-role="key" data-ink="print"
         data-kind="total.words.label">Số tiền viết bằng chữ:</span>
   <span data-region="Form" data-role="value" data-ink="hand"
@@ -282,7 +286,7 @@
 </div>
 
 <!-- ══ Prose ══════════════════════ roles: heading, body ══ ink: print -->
-<div class="r-prose">
+<div class="r-prose" data-region-box="Text">
   <span class="h" data-region="Text" data-role="heading" data-ink="print"
         data-kind="terms.title">Điều khoản chung</span>
   <span data-region="Text" data-role="body" data-ink="print" data-kind="terms.body">Hoá
@@ -294,7 +298,7 @@
 </div>
 
 <!-- ══ ListGroup ══════════════════ roles: heading, item ══ ink: print -->
-<div class="r-listgroup">
+<div class="r-listgroup" data-region-box="List-Group">
   <span class="h" data-region="List-Group" data-role="heading" data-ink="print"
         data-kind="attach.title">Chứng từ kèm theo</span>
   <ol>
@@ -308,7 +312,7 @@
 </div>
 
 <!-- ══ Signature ══ roles: heading, note, value ══ inks: print, hand -->
-<div class="r-signature">
+<div class="r-signature" data-region-box="Form">
   <div class="col">
     <span class="ttl" data-region="Form" data-role="heading" data-ink="print"
           data-kind="sign.buyer.title">NGƯỜI MUA HÀNG</span>
@@ -328,20 +332,20 @@
 </div>
 
 <!-- ══ Image ══ role: mark ══ ink: stamp — raster không có cấu trúc đọc được -->
-<div class="r-seal">
+<div class="r-seal" data-region-box="Image">
   <span data-region="Image" data-role="mark" data-ink="stamp"
         data-kind="store.seal">CÔNG TY TNHH TM HOÀNG LONG · TP.HCM</span>
 </div>
 
 <!-- ══ Note ═══════════════════════════════ role: note ══ ink: thermal -->
-<div class="r-note">
+<div class="r-note" data-region-box="Text">
   <span data-region="Text" data-role="note" data-ink="thermal"
         data-kind="note.footer">Liên 2 in trên giấy nhiệt, lưu trữ nơi khô ráo, tránh
   ánh nắng trực tiếp. Bản in mờ dần sau 24 tháng không làm mất hiệu lực hoá đơn điện tử gốc.</span>
 </div>
 
 <!-- ══ RunningFoot ═══════════════════ roles: note, mark ══ print/code -->
-<div class="r-runningfoot">
+<div class="r-runningfoot" data-region-box="Page-Footer">
   <span data-region="Page-Footer" data-role="note" data-ink="print"
         data-kind="foot.website">hoanglong-tm.com.vn</span>
   <span class="r-code" data-region="Page-Footer" data-role="value" data-ink="dotmatrix"

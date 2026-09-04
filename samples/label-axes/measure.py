@@ -65,8 +65,29 @@ ROLES = ("key", "value", "heading", "subheading", "colhdr", "rowhdr", "cell",
 INKS = ("print", "hand", "stamp", "dotmatrix", "thermal", "reversed")
 PAGES = ("page.html", "page2.html")
 
+# Trục 1 đo ở mức KHỐI, không phải mức run. Một `region` là một vùng của trang,
+# nên hộp của nó phải là hộp của khối -- với một bảng, đó là hộp theo ĐƯỜNG KẺ,
+# không phải bao lồi của chữ trong bảng. Cái đó không suy ra được từ hộp của các
+# run bên trong: bao lồi của chữ nằm gọn bên trong đường kẻ, thiếu mất lề ô, và
+# thiếu cả hàng nào tình cờ rỗng.
+#
+# Nên nó được đo thẳng từ chính phần tử: `data-region-box` đánh dấu khối, và
+# `getBoundingClientRect()` của phần tử ấy đã bao gồm border.
+REGION_BOX_JS = """() => {
+  const sheet = document.querySelector('#sheet').getBoundingClientRect();
+  const out = [];
+  for (const el of document.querySelectorAll('#sheet [data-region-box]')) {
+    const b = el.getBoundingClientRect();
+    if (b.width < 1 || b.height < 1) continue;
+    out.push({region: el.dataset.regionBox,
+              x: b.left - sheet.left, y: b.top - sheet.top,
+              w: b.width, h: b.height});
+  }
+  return out;
+}"""
 
-def measure(name: str) -> list[dict]:
+
+def measure(name: str) -> tuple[list[dict], list[dict]]:
     from playwright.sync_api import sync_playwright
 
     html = (HERE / name).read_text(encoding="utf-8")
@@ -87,10 +108,11 @@ def measure(name: str) -> list[dict]:
         page.goto(url, wait_until="networkidle")
         page.wait_for_timeout(250)
         rects = page.evaluate(AXES_JS)
+        blocks = page.evaluate(REGION_BOX_JS)
         page.locator("#sheet").screenshot(
             path=str(HERE / name.replace(".html", ".png")))
         browser.close()
-    return rects
+    return rects, blocks
 
 
 def report(rects: list[dict]) -> int:
@@ -134,11 +156,15 @@ def report(rects: list[dict]) -> int:
 
 if __name__ == "__main__":
     boxes: list[dict] = []
+    blocks: list[dict] = []
     for _name in PAGES:
-        got = measure(_name)
-        for _box in got:
-            _box["page"] = _name
-        print(f"{_name:14s} {len(got):4d} hộp")
+        got, block = measure(_name)
+        for _row in (*got, *block):
+            _row["page"] = _name
+        print(f"{_name:14s} {len(got):4d} run · {len(block):3d} khối")
         boxes += got
+        blocks += block
+    (HERE / "regions.json").write_text(
+        json.dumps(blocks, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     print()
     raise SystemExit(report(boxes))

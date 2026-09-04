@@ -12,12 +12,25 @@ generators/html/.venv/bin/python samples/label-axes/proof.py
 | --- | --- |
 | `page.html` | hoá đơn GTGT — chứng từ giao dịch, loại phôi kho đang có |
 | `page2.html` | trang tiêu chuẩn kỹ thuật — loại phôi kho **chưa** có |
-| `measure.py` | render + đo bằng `CELL_RECTS_JS` của `generators/html/page.py` |
-| `proof.py` | vẽ hộp đo được ngược lên trang, mỗi trục một dấu hiệu |
-| `*.png` · `boxes.json` | sinh ra, không commit |
+| `measure.py` | render + đo, cả mức run lẫn mức khối |
+| `proof.py` | vẽ hai loại ảnh proof: ba trục, và riêng trục 1 |
+| `*.png` · `boxes.json` · `regions.json` | sinh ra, không commit |
 
-Lần chạy gần nhất: **137 hộp** (77 + 60), `region` **19/19**, `role` **13/13**,
-`ink` **6/6**, **0 hộp thiếu trục**.
+Lần chạy gần nhất: **138 hộp run** (77 + 61) và **37 khối vùng** (16 + 21),
+`region` **19/19**, `role` **13/13**, `ink` **6/6**, **0 hộp thiếu trục**.
+
+## Hai loại ảnh proof, và vì sao phải có hai
+
+| ảnh | đo ở mức | trả lời câu hỏi |
+| --- | --- | --- |
+| `*-proof.png` | **run** — mỗi đoạn chữ một hộp | ba trục có gán đúng cho từng đoạn chữ không |
+| `*-region.png` | **khối** — mỗi vùng đúng một hộp | trục 1 chia trang có hợp lý không |
+
+Ảnh trục 1 không suy ra được từ ảnh ba trục. Bao lồi của các run trong một bảng
+nằm **gọn bên trong** đường kẻ: thiếu lề ô, thiếu hàng rỗng, thiếu chính đường
+kẻ. Nên hộp vùng đo **thẳng từ phần tử** — `data-region-box` đánh dấu khối và
+`getBoundingClientRect()` của nó đã bao gồm border. Bảng ra đúng một hộp theo
+đường kẻ, không phải hai chục hộp nhỏ theo chữ.
 
 ## Ba trục, và trục nào thuộc về ai
 
@@ -64,6 +77,15 @@ trong 9 lớp ấy. Lớp thứ chín không thể là một hộp.
 Màu chỉ dành cho một trục. Nếu `ink` cũng vẽ bằng màu thì hai trục nói cùng một
 thứ tiếng và người đọc sẽ gộp chúng — đúng cái lỗi hệ ba trục sinh ra để sửa.
 
+## `Page-Header` chỉ là đầu trang chạy
+
+Khối tên/địa chỉ/mã số thuế của bên phát hành **không** phải `Page-Header`. Vùng
+ấy là **dòng lặp lại ở lề trên mọi trang** — mẫu số, số trang. Letterhead là nội
+dung của riêng trang này, xuất hiện một lần, nên nó là `Text` (ba dòng danh
+tính) cộng `Form` (cặp có nhãn: MST:, ĐT:). Đây là chỗ bản đầu của fixture gán
+sai, và gán sai theo đúng kiểu đã làm hỏng trục 1: lấy **chỗ đứng trên trang**
+thay cho **vai trò trong tài liệu**.
+
 ## Hợp đồng nhãn không đổi
 
 Mỗi run vẫn là **một `<span>` chứa chỉ chữ đã escape**. Ba trục là ba thuộc
@@ -87,11 +109,12 @@ Dấu hiệu nhận ra: **mọi font render giống hệt nhau**, kể cả font
 không font nào được nạp cả. Docstring của `served()` đã ghi đúng cái bẫy này từ
 trước; đây là lần thứ hai nó sập.
 
-**2 · `<sub>` nuốt cái hộp.** `Equation-Block` và `Chemical-Block` cần
-`<sub>`/`<sup>`. Bản đầu của `page2.html` viết chúng trực tiếp trong span, và
-hộp của cả phương trình hoá học rộng **5,3 px** thay vì 310,6 px — nó là hộp
-của chữ số 4 trong (NH₄)₂SO₄. Đây đúng là cái bẫy mà docstring của `span()`
-cảnh báo, gặp lần đầu trên dữ liệu thật.
+**2 · Thẻ inline lồng trong span nuốt cái hộp.** Gặp ba lần trên trang 2, cùng
+một gốc: `<sub>` trong công thức, `<sub>` trong đoạn văn giải thích ký hiệu, và
+`<i>` trong mục tài liệu viện dẫn. Hộp của cả phương trình hoá học rộng **5,3
+px** thay vì 310,6 — nó là hộp của chữ số 4 trong (NH₄)₂SO₄; mục viện dẫn thì
+chỉ ôm phần in nghiêng. Đây đúng là cái bẫy mà docstring của `span()` cảnh báo,
+gặp lần đầu trên nội dung thật.
 
 Cách xử lý **không sửa renderer**: bọc toàn bộ công thức trong đúng **một** thẻ
 con và cho chuỗi chữ đi kèm ở `data-text` — chính là cơ chế renderer đã có cho
@@ -99,3 +122,9 @@ mực viết tay của WriteViT. Khi ấy `firstElementChild` là cả công th�
 đúng. Đánh đổi: mất hộp cho từng ký hiệu bên trong. Với bài toán dò bố cục thì
 đó là thứ đang cần; muốn có hộp bên trong thì phải **nới phép đo**, và đó là
 một quyết định về hợp đồng chứ không phải một bản vá.
+
+**3 · `display:block` làm hộp rộng bằng cả khối.** Tiêu đề tài liệu đo ra
+**794 px** — đúng bề ngang tờ giấy — vì span được đặt `display:block`, nên hộp
+là hộp của khối chứ không ôm chữ. `width:max-content` giữ được việc xuống dòng
+mà hộp vẫn bám chữ. Bài học chung với bẫy 2: **hộp ở mức run phải tả CHỮ**; cái
+tả khối là trục 1, và nó được đo riêng.

@@ -1,0 +1,298 @@
+[
+ {
+  "region": "Page-Header",
+  "x": 38,
+  "y": 34,
+  "w": 794,
+  "h": 20.21875,
+  "page": "page.html"
+ },
+ {
+  "region": "Text",
+  "x": 38,
+  "y": 66.21875,
+  "w": 285.5625,
+  "h": 56.53125,
+  "page": "page.html"
+ },
+ {
+  "region": "Form",
+  "x": 724.625,
+  "y": 66.21875,
+  "w": 107.375,
+  "h": 34.34375,
+  "page": "page.html"
+ },
+ {
+  "region": "Title",
+  "x": 38,
+  "y": 149.75,
+  "w": 794,
+  "h": 49.828125,
+  "page": "page.html"
+ },
+ {
+  "region": "Section-Header",
+  "x": 38,
+  "y": 213.578125,
+  "w": 794,
+  "h": 28.84375,
+  "page": "page.html"
+ },
+ {
+  "region": "Form",
+  "x": 38,
+  "y": 256.421875,
+  "w": 794,
+  "h": 81.53125,
+  "page": "page.html"
+ },
+ {
+  "region": "Table",
+  "x": 38,
+  "y": 351.953125,
+  "w": 794,
+  "h": 106.5625,
+  "page": "page.html"
+ },
+ {
+  "region": "Caption",
+  "x": 38,
+  "y": 463.515625,
+  "w": 222.734375,
+  "h": 15.9375,
+  "page": "page.html"
+ },
+ {
+  "region": "Form",
+  "x": 387.375,
+  "y": 489.453125,
+  "w": 444.625,
+  "h": 75.03125,
+  "page": "page.html"
+ },
+ {
+  "region": "Form",
+  "x": 38,
+  "y": 569.484375,
+  "w": 794,
+  "h": 21.84375,
+  "page": "page.html"
+ },
+ {
+  "region": "Text",
+  "x": 38,
+  "y": 607.328125,
+  "w": 794,
+  "h": 78.375,
+  "page": "page.html"
+ },
+ {
+  "region": "List-Group",
+  "x": 38,
+  "y": 699.703125,
+  "w": 794,
+  "h": 83.375,
+  "page": "page.html"
+ },
+ {
+  "region": "Form",
+  "x": 38,
+  "y": 807.078125,
+  "w": 794,
+  "h": 96,
+  "page": "page.html"
+ },
+ {
+  "region": "Image",
+  "x": 651.6353149414062,
+  "y": 830.6353149414062,
+  "w": 124.7293701171875,
+  "h": 124.7293701171875,
+  "page": "page.html"
+ },
+ {
+  "region": "Text",
+  "x": 38,
+  "y": 917.078125,
+  "w": 794,
+  "h": 33.875,
+  "page": "page.html"
+ },
+ {
+  "region": "Page-Footer",
+  "x": 38,
+  "y": 976.953125,
+  "w": 794,
+  "h": 21.21875,
+  "page": "page.html"
+ },
+ {
+  "region": "Page-Header",
+  "x": 44,
+  "y": 34,
+  "w": 794,
+  "h": 20.75,
+  "page": "page2.html"
+ },
+ {
+  "region": "Title",
+  "x": 44,
+  "y": 68.75,
+  "w": 794,
+  "h": 48.75,
+  "page": "page2.html"
+ },
+ {
+  "region": "Section-Header",
+  "x": 44,
+  "y": 133.5,
+  "w": 109.9375,
+  "h": 20.25,
+  "page": "page2.html"
+ },
+ {
+  "region": "Table-Of-Contents",
+  "x": 44,
+  "y": 165.75,
+  "w": 794,
+  "h": 68.25,
+  "page": "page2.html"
+ },
+ {
+  "region": "Section-Header",
+  "x": 44,
+  "y": 250,
+  "w": 166,
+  "h": 20.25,
+  "page": "page2.html"
+ },
+ {
+  "region": "Text",
+  "x": 44,
+  "y": 275.25,
+  "w": 794,
+  "h": 56.25,
+  "page": "page2.html"
+ },
+ {
+  "region": "Chemical-Block",
+  "x": 44,
+  "y": 343.5,
+  "w": 794,
+  "h": 22.90625,
+  "page": "page2.html"
+ },
+ {
+  "region": "Equation-Block",
+  "x": 44,
+  "y": 378.40625,
+  "w": 794,
+  "h": 24.75,
+  "page": "page2.html"
+ },
+ {
+  "region": "Text",
+  "x": 44,
+  "y": 415.15625,
+  "w": 794,
+  "h": 37.5,
+  "page": "page2.html"
+ },
+ {
+  "region": "Diagram",
+  "x": 44,
+  "y": 466.65625,
+  "w": 794,
+  "h": 60.5,
+  "page": "page2.html"
+ },
+ {
+  "region": "Figure",
+  "x": 44,
+  "y": 541.15625,
+  "w": 794,
+  "h": 133.5,
+  "page": "page2.html"
+ },
+ {
+  "region": "Section-Header",
+  "x": 44,
+  "y": 690.65625,
+  "w": 94.296875,
+  "h": 20.25,
+  "page": "page2.html"
+ },
+ {
+  "region": "Code-Block",
+  "x": 44,
+  "y": 720.90625,
+  "w": 794,
+  "h": 73.4375,
+  "page": "page2.html"
+ },
+ {
+  "region": "List-Group",
+  "x": 44,
+  "y": 804.34375,
+  "w": 794,
+  "h": 81,
+  "page": "page2.html"
+ },
+ {
+  "region": "Complex-Block",
+  "x": 44,
+  "y": 899.34375,
+  "w": 794,
+  "h": 148.25,
+  "page": "page2.html"
+ },
+ {
+  "region": "Form",
+  "x": 44,
+  "y": 1063.59375,
+  "w": 794,
+  "h": 21.75,
+  "page": "page2.html"
+ },
+ {
+  "region": "Image",
+  "x": 344.9375,
+  "y": 1063.59375,
+  "w": 90.6875,
+  "h": 18.75,
+  "page": "page2.html"
+ },
+ {
+  "region": "Section-Header",
+  "x": 44,
+  "y": 1101.34375,
+  "w": 96.40625,
+  "h": 20.25,
+  "page": "page2.html"
+ },
+ {
+  "region": "Bibliography",
+  "x": 44,
+  "y": 1135.59375,
+  "w": 794,
+  "h": 77,
+  "page": "page2.html"
+ },
+ {
+  "region": "Footnote",
+  "x": 44,
+  "y": 1228.59375,
+  "w": 794,
+  "h": 40.5,
+  "page": "page2.html"
+ },
+ {
+  "region": "Page-Footer",
+  "x": 44,
+  "y": 1289.09375,
+  "w": 794,
+  "h": 21.75,
+  "page": "page2.html"
+ }
+]
