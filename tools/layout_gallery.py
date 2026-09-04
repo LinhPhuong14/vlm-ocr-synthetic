@@ -53,7 +53,8 @@ for _extra in (REPO_ROOT, REPO_ROOT / "tools"):
     if str(_extra) not in sys.path:
         sys.path.insert(0, str(_extra))
 
-from agent import critic, distance, policy as policy_module, redesign  # noqa: E402
+from agent import critic, distance, redesign  # noqa: E402
+from agent import policy as policy_module  # noqa: E402
 from agent import rules as agent_rules  # noqa: E402
 from rulebase import spec  # noqa: E402
 from rulebase.spec import Option  # noqa: E402

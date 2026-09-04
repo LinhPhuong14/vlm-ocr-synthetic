@@ -400,7 +400,6 @@ def read_paper(record: dict, image_path: Path, name: str = "") -> list[Finding]:
     rather than reporting a hundred false `khong_muc`.
     """
     import cv2
-    import numpy as np
 
     from pipeline import record as schema
 

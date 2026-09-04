@@ -30,7 +30,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .variants import FIRST, GUARD, HOLDERS, WRAPPERS, on
+from .variants import FIRST, GUARD, HOLDERS, on
 
 # Mirrors generators/html/sheets/base.py -- see the note in variants.py.
 SERIF = "'LiberationSerif','DejaVu Serif',serif"

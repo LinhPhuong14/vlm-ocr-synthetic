@@ -208,10 +208,11 @@ def initials(name: str) -> str:
 def ornament_url(stem: str) -> str:
     """A `file://` URL for one of `textures/ornament/`, or "" if it is missing.
 
-    Absolute rather than relative because the two engines resolve differently:
-    the browser serves the markup from a temporary directory (see
-    `page.served`) and genalog hands WeasyPrint a bare string with no base URL.
-    An absolute URL is the only form both of them find.
+    Absolute rather than relative because the browser serves the markup from a
+    temporary directory (see `page.served`), so a relative URL resolves against
+    that directory and finds nothing. It was also the only form the WeasyPrint
+    path could resolve, which is why it is absolute rather than served-relative;
+    that path is gone, the reason above is not.
     """
     path = ORNAMENT_DIR / f"{stem}.png"
     return path.as_uri() if path.exists() else ""

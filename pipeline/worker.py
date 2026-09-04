@@ -80,7 +80,7 @@ INVARIANTS = invariants.INVARIANTS_NAME
 # `html` only. The glyph and WeasyPrint backends were removed from this table
 # rather than left in it unused: a registry is what turns a name in a plan into
 # a process, so a name still in here is a backend that still runs. Why each was
-# retired is in `pipeline/config.RETIRED_BACKENDS`, which refuses them earlier
+# retired is in `pipeline/config.GONE_BACKENDS`, which refuses them earlier
 # and louder; this is the backstop for a plan that reached dispatch anyway.
 BACKENDS = {
     "html": (REPO_ROOT / "generators" / "html" / "render.py", REPO_ROOT),
@@ -130,7 +130,7 @@ def renderer_command(backend: str, staging: Path, jobs: Path,
     if backend not in BACKENDS:
         raise ShardError(
             f"{backend!r} is not a backend this repository draws with; "
-            f"have {sorted(BACKENDS)}. See pipeline/config.RETIRED_BACKENDS."
+            f"have {sorted(BACKENDS)}. See pipeline/config.GONE_BACKENDS."
         )
     interpreter = venv_python(VENVS[backend])
     if not interpreter.exists():
@@ -401,9 +401,9 @@ def main() -> int:
     parser.add_argument("--rules-root", type=Path)
     args = parser.parse_args()
 
-    # Absolute before anything else touches it. The glyph backend runs from its
-    # own directory, so a relative path would land inside generators/synthdog/
-    # -- silently, because the backend creates whatever it is given.
+    # Absolute before anything else touches it: a backend that runs from its
+    # own directory would resolve a relative path against that directory and
+    # create it there, silently. See the same note in pipeline/config.py.
     out = args.out.resolve()
     plan = json.loads(args.plan.read_text(encoding="utf-8"))
     shard = next((s for s in plan["shards"] if s["index"] == args.shard), None)

@@ -30,10 +30,10 @@ engines:
     built: true
     description: >
       Text placed at (row, column) in character units, the way a till, a
-      dot-matrix printer or any monospaced form prints. This is the engine the
-      three renderers already share -- `rulebase/layout.py` builds the grid and
-      synthdog, html and genalog each draw it. Tabular, fixed-width, no
-      pagination.
+      dot-matrix printer or any monospaced form prints. `rulebase/layout.py`
+      builds the grid and the html renderer draws it; it was built to be drawn
+      three ways, and the two other renderers are gone. Tabular, fixed-width,
+      no pagination.
   flow:
     name: Paginated text flow
     built: false

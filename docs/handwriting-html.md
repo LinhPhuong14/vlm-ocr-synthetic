@@ -91,9 +91,12 @@ phải khai điều đó, và `record["handwriting"]["source"]` khai.
 chỗ đọc hộp không cần biết nguồn mực này tồn tại, và một giá trị dài vẫn **xuống
 dòng** rồi được cắt hộp theo dòng — thứ một ảnh mực không làm được.
 
-Nhờ đúng chỗ ấy mà **đường WeasyPrint chạy được với nguồn `font`**:
+Nhờ đúng chỗ ấy mà **đường WeasyPrint chạy được với nguồn `font`** — lệnh dưới
+đây là bản ghi, không chạy lại được: renderer ấy đã bị xoá
+([`renderers.md`](renderers.md)).
 
 ```bash
+# đã xoá cùng backend genalog
 generators/genalog/.venv/bin/python generators/genalog/render.py \
     --template auto --handwriting font --jobs data/hand12/jobs.json -o out/
 ```
@@ -410,13 +413,14 @@ chữ sẽ **thu nhỏ cả nét** thay vì bóp ngang — `height` cộng `max-
 
 ## Chỗ chưa nối
 
-* **Mực của mô hình trên đường WeasyPrint.** `generators/genalog/` dựng lại hộp
-  bằng `match_runs`, đi song song giữa danh sách run và **lớp glyph của chính
-  file PDF**. Một ô mực của mô hình là một `<img>`, không góp glyph nào, nên hai
-  dãy lệch nhau ngay ở ô đầu tiên và mọi run sau đó nhận nhầm hộp — đúng kiểu
-  hỏng mà commit `forms16` đã tả. Nối được, nhưng phải dạy `match_runs` biết có
-  run lấy hộp từ khối ảnh; chưa làm, nên `--handwriting` ở genalog chỉ nhận
-  `font` và từ chối `model` bằng tên.
+* ~~**Mực của mô hình trên đường WeasyPrint.**~~ **Không còn là chỗ chưa nối —
+  đường ấy đã bị xoá.** Ghi lại vì nó là một nửa lý do xoá: `generators/genalog/`
+  dựng lại hộp bằng `match_runs`, đi song song giữa danh sách run và **lớp glyph
+  của chính file PDF**. Một ô mực của mô hình là một `<img>`, không góp glyph
+  nào, nên hai dãy lệch nhau ngay ở ô đầu tiên và mọi run sau đó nhận nhầm hộp.
+  Nối được, nhưng phải dạy `match_runs` biết có run lấy hộp từ khối ảnh — tức
+  viết bản thứ hai của phép "run này nằm ở đâu", cho mọi tính năng về sau. Cái
+  giá ấy là thứ [`renderers.md`](renderers.md) từ chối trả.
 * **`sign.name` chỉ có ở tờ lưu trú.** Bốn ô ký của `authorisation_letter` đều
   đề *"(Ký và ghi rõ họ tên)"* và đều để trắng, vì `signature_names` không bật
   cho tài liệu ấy. Bật nó là đổi `ground_truth()`, tức là đổi nhãn của mọi ảnh

@@ -586,6 +586,6 @@ khớp được, phần còn lại là chữ ngoài bảng (letterhead, chữ k�
 | [`tang-cuong-bo-cuc.md`](tang-cuong-bo-cuc.md) | cây cột · chín nước đi · [§4b component](tang-cuong-bo-cuc.md#4b-trục-thứ-hai-biến-thể-ở-mức-component) |
 | [`README.md` §The eight stages](../README.md#the-eight-stages) | tám chặng hiện tại — bản này thêm chặng 3 và 6 |
 | [`tools/check_boxes.py`](../tools/check_boxes.py) | ba phép kiểm hộp, và ca 82 % coverage |
-| [`generators/synthdog/elements/warp.py`](../generators/synthdog/elements/warp.py) | `apply(image, quads) → (image, quads)` |
-| [`generators/genalog/render.py`](../generators/genalog/render.py) | vì sao phải rơi xuống mức glyph |
+| `generators/synthdog/elements/warp.py` (đã xoá) | `apply(image, quads) → (image, quads)` |
+| `generators/genalog/render.py` (đã xoá) | vì sao phải rơi xuống mức glyph |
 | [`pipeline/record.py`](../pipeline/record.py) | lược đồ một dòng `metadata.jsonl` |

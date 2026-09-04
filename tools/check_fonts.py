@@ -1,14 +1,17 @@
-"""
-Donut / SynthDoG-VN
-MIT License
+"""Kiểm tra font có vẽ được đủ chữ tiếng Việt không.
 
-Kiểm tra font có vẽ được đủ chữ tiếng Việt không.
+    generators/html/.venv/bin/python tools/check_fonts.py fonts/mono
 
-Thêm font vào `resources/font/vi` mà không kiểm tra là rủi ro lớn nhất của
-pipeline này: font thiếu glyph vẫn chạy bình thường, chỉ là ảnh hiện ô vuông
-▯ trong khi nhãn vẫn ghi đúng chữ — dữ liệu bẩn mà không có lỗi nào báo ra.
+Thêm một font mà không kiểm tra là rủi ro lớn nhất của kho này: font thiếu
+glyph vẫn chạy bình thường, chỉ là ảnh hiện ô vuông ▯ trong khi nhãn vẫn ghi
+đúng chữ — dữ liệu bẩn mà không có lỗi nào báo ra. Trình duyệt còn tệ hơn
+renderer lưới ký tự ở chỗ này: nó **thay font khác** cho ký tự thiếu, nên trang
+trông vẫn đọc được mà nét chữ đổi giữa dòng.
 
-    python tools/check_fonts.py resources/font/vi
+Gốc của file là `tools/check_fonts.py` của SynthDoG-VN (MIT), theo backend lưới
+ký tự khi backend ấy còn. Nó ở lại vì phép kiểm tra không thuộc về backend nào:
+nó hỏi file font, không hỏi renderer. Chỉ cần `fontTools`, thứ môi trường của
+renderer HTML đã có sẵn.
 """
 import argparse
 import os

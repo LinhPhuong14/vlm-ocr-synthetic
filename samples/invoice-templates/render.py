@@ -3,8 +3,11 @@
 
     python samples/invoice-templates/render.py        # or: make templates
 
-Needs `weasyprint` and `pymupdf` -- both are in the genalog renderer's
-requirements, so `make setup-genalog` covers it.
+Needs `weasyprint` and `pymupdf`. They came with the genalog renderer's
+requirements while that backend existed; it is deleted, so install them into
+whatever interpreter you run this with:
+
+    pip install weasyprint pymupdf
 
 The PDF is the authority: these are print documents, and WeasyPrint is a print
 engine with a page box and its own text shaper. The JPG beside each source is

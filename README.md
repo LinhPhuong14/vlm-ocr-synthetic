@@ -361,8 +361,8 @@ mai sẽ tự xuất hiện** mà không phải sửa script.
 ### 7.2 Một tờ giấy, ba engine
 
 Các bộ đã commit là **paired** — đúng một tờ giấy được chụp ảnh, quét, và in.
-Hai engine bên phải nay đã nghỉ phần sinh, nhưng ảnh chúng vẽ vẫn được giữ và
-vẫn kiểm được.
+Hai engine bên phải nay đã bị xoá khỏi cây mã, nhưng ảnh chúng vẽ vẫn được giữ
+và vẫn kiểm được — đó là cả điểm của việc tách phía sinh khỏi phía đọc.
 
 ![Cùng một hoá đơn do synthdog, html và genalog vẽ](docs/figures/renderers.jpg)
 
@@ -620,7 +620,7 @@ từng bộ và schema nhãn nằm trong **[`data/README.md`](data/README.md)**.
 | | |
 | :--- | :--- |
 | **`make baseline-verify` phụ thuộc môi trường** | file vàng lưu hash ảnh chính xác từng byte và ghi lại luật/bố cục/corpus nó được chụp dưới, **nhưng không ghi phiên bản thư viện**. Một venv dựng tại chỗ có thể raster khác một trang và bị báo là hồi quy. |
-| **Hai renderer đã nghỉ vẫn nằm trên đĩa** | `generators/synthdog/` và `generators/genalog/` không còn sinh dataset nhưng vẫn import sạch, vì **phía đọc giữ nguyên cả ba**: một công cụ đọc mà quên một renderer sẽ làm mù phần dữ liệu đã công bố chứ không làm sạch nó. Xem [`docs/renderers.md`](docs/renderers.md). |
+| **Tên hai renderer đã xoá vẫn còn trong mã** | `generators/synthdog/` và `generators/genalog/` đã bị xoá, nhưng `synthdog` và `genalog` vẫn xuất hiện trong `pipeline/record.py`, `tools/check_boxes.py`, `tools/ocr_proof.py` và `pipeline/config.GONE_BACKENDS`. Đó là cố ý: **phía đọc giữ nguyên cả ba** cho 115 trang đã commit, và một tên backend đã từng đúng phải báo lỗi rõ chứ không được lặng lẽ vẽ ra con số không. Xem [`docs/renderers.md`](docs/renderers.md). |
 
 ---
 
@@ -656,7 +656,7 @@ từng bộ và schema nhãn nằm trong **[`data/README.md`](data/README.md)**.
 
 - **Repository:** [LinhPhuong14/vlm-ocr-synthetic](https://github.com/LinhPhuong14/vlm-ocr-synthetic)
 - **Giấy phép:** **chưa chọn — cần chọn trước khi công bố.** Phần đi kèm mang
-  giấy phép riêng: [`generators/genalog/`](generators/genalog/LICENSE) theo MIT;
+  giấy phép riêng: `degradation/augmentations/` theo giấy phép của chính nó;
   mô hình bảng trong [`generators/html/tables.py`](generators/html/tables.py)
   dẫn xuất từ TIES_DataGeneration qua PaddleOCR (Apache-2.0) và ghi rõ trong
   file; font trong [`fonts/`](fonts/README.md) theo OFL 1.1 / Apache 2.0 /

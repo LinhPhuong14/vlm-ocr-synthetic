@@ -19,9 +19,9 @@ PROFILE_N ?= 8
 LAYOUT  ?=
 
 .DEFAULT_GOAL := help
-.PHONY: help setup setup-synthdog setup-html setup-genalog setup-writevit \
+.PHONY: help setup setup-html setup-writevit \
         textures patterns handwriting signatures \
-        receipts preview preview-grid visualize dataset dataset-clean proof showcase \
+        preview-grid visualize dataset dataset-clean proof showcase \
         ornaments templates \
         preflight check-rules check-corpus check-boxes migrate-metadata \
         distribution monitor \
@@ -39,10 +39,6 @@ setup-html:      ## HTML renderer: playwright + a headless browser
 	$(TASKS) setup-html
 setup-writevit:  ## handwriting: clone WriteViT beside the repo, fetch its weights
 	$(TASKS) setup-writevit
-setup-synthdog:  ## patterns: synthtiger (retired as a document backend)
-	$(TASKS) setup-synthdog
-setup-genalog:   ## WeasyPrint + PyMuPDF (retired; only to re-read old sets)
-	$(TASKS) setup-genalog
 patterns:        ## Regenerate every shared pattern: paper, backgrounds, ornaments
 	$(TASKS) patterns
 textures:        ## Regenerate the shared paper and background textures
@@ -56,8 +52,6 @@ signatures:      ## Regenerate samples/signatures: the style grid and two signed
 
 # ------------------------------------------------------------ generation
 
-receipts:        ## 100 receipts with the glyph renderer, via the synthtiger CLI
-	$(TASKS) receipts
 dataset:         ## Build a labelled dataset with the html renderer (N=auto)
 	$(TASKS) dataset -o $(DATASET) -n $(N)
 dataset-clean:   ## The same dataset with no ageing and no distortion at all
@@ -82,8 +76,6 @@ migrate-metadata: ## Bring $(DATASET)'s metadata.jsonl into the current schema
 	$(TASKS) migrate-metadata --dataset $(DATASET)
 showcase:        ## One before/after image per degradation into samples/degradation/
 	$(TASKS) showcase
-preview:         ## Render a grid of sample receipts to eyeball the config
-	$(TASKS) preview
 preview-grid:    ## Print a sampled receipt as text (LAYOUT=<id> to pin one)
 	@$(TASKS) preview-grid $(if $(LAYOUT),--layout $(LAYOUT),)
 visualize:       ## Local Gradio app: sinh ảnh, thử con dấu, thử viết tay hybrid

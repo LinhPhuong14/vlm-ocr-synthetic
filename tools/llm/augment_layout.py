@@ -192,7 +192,10 @@ print('\\n'.join(bad))
 
 def preflight() -> list[str]:
     """The repository's own check over the whole rule base."""
-    interpreter = REPO_ROOT / "generators" / "synthdog" / ".venv" / "bin" / "python"
+    # The renderer's environment, which is the one with the dependencies
+    # preflight needs. It used to be synthdog's, from when that backend was the
+    # one with a built venv; that directory is gone.
+    interpreter = REPO_ROOT / "generators" / "html" / ".venv" / "bin" / "python"
     if not interpreter.exists():
         interpreter = Path(sys.executable)
     result = subprocess.run([str(interpreter), "pipeline/preflight.py"],

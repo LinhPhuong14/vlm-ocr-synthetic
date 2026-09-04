@@ -35,7 +35,8 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-from agent import critic, policy as policy_module
+from agent import critic
+from agent import policy as policy_module
 
 DEFAULT_DIR = Path(__file__).resolve().parent / "guideline"
 

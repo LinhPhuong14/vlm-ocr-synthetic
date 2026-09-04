@@ -72,9 +72,10 @@ run:
   # and pipeline/preflight.py's page-overflow estimate still need directly.
   template: auto
 
-# `html` is the renderer. `genalog` and `synthdog` are retired from dataset
-# generation and naming either here is an error with the reason attached --
-# see pipeline/config.py and docs/renderers.md.
+# `html` is the renderer, and the only one. `genalog` and `synthdog` are
+# deleted; naming either here is an error with the reason attached, because a
+# typo'd backend must not read as "draw nothing" -- see pipeline/config.py and
+# docs/renderers.md.
 backends: [html]
 
 shard:
@@ -83,9 +84,10 @@ shard:
   #
   # At the cost of a page measured by `tools/profile_pipeline.py` -- html 1.4s
   # under the conditions that file records -- 100 to 250 puts a shard in the
-  # two-to-ten-minute band resume is designed for. (The same file records
-  # synthdog at 3.1s and genalog at 0.9s; both are retired, and the numbers are
-  # kept only because the band was chosen against them.) The numbers here were re-measured from scratch rather than carried
+  # two-to-ten-minute band resume is designed for. (The band was originally
+  # chosen against three renderers, the other two measured at 3.1s and 0.9s.
+  # They are deleted; the band is not re-derived, because html sits inside it
+  # on its own.) The numbers here were re-measured from scratch rather than carried
   # forward: the previous ones predated the `sample_recipe` fix, and comparing
   # a new measurement with an old one taken over a different layout and ageing
   # mix credits whatever changed in between with the difference.
@@ -95,7 +97,7 @@ shard:
   # layout count. It used to be one process per layout, so a 20-image shard
   # over 14 layouts paid that cost 14 times and drew 1.43 images per process.
   # Fixing it cut the same plan from 140s to 98s, a third of the run, without
-  # changing an html or genalog pixel.
+  # changing a pixel on any renderer then present.
   size: 100
 
 # Re-weight a value for this run only, without editing rules/. Every entry must

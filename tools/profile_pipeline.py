@@ -63,10 +63,7 @@ import profiling  # noqa: E402
 # rather than imported so this tool does not drag the pipeline package (and its
 # YAML dependency) into a renderer venv that may not have it.
 BACKENDS = {
-    "synthdog": (REPO_ROOT / "generators" / "synthdog" / "render.py",
-                 REPO_ROOT / "generators" / "synthdog"),
     "html": (REPO_ROOT / "generators" / "html" / "render.py", REPO_ROOT),
-    "genalog": (REPO_ROOT / "generators" / "genalog" / "render.py", REPO_ROOT),
 }
 
 # The stages the pipeline is made of, in the order they run. Printed in this
@@ -74,8 +71,10 @@ BACKENDS = {
 # compare them.
 #
 # `scene` and `geometry` are separate on purpose. Both used to be `geometry`,
-# and the row then read 1.695 s for the glyph renderer against 0.0006 s for
-# genalog -- a factor of 2800, because it was measuring two different things.
+# and the row then read 1.695 s for the glyph renderer against 0.0006 s for the
+# PDF one -- a factor of 2800, because it was measuring two different things.
+# Both of those renderers are deleted; the split stays, because the two stages
+# are still two different questions.
 # `scene` is curling the paper, dropping it on a background and photographing
 # it, which only the glyph renderer does; `geometry` is working out where the
 # boxes are, which all three do and which costs milliseconds. A label has to
