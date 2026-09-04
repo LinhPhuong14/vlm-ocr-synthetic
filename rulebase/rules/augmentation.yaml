@@ -470,7 +470,7 @@ options:
   # Blender cài sẵn -- `make setup-blender`.
 
   - id: page_curl
-    enabled: false
+    enabled: true
     weight: 2
     tags: [textured, warped]
     params:
