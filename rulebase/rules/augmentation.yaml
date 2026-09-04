@@ -510,3 +510,40 @@ options:
         params:
           radius_ratio: [0.3, 0.5]
           depth: [0.02, 0.05]
+
+  # Hai giá trị dưới đây KHÔNG tương ứng scenario "thả rơi xuống vật cản"
+  # (`fall_on_ball`/`fall_on_roller`/`fall_on_roof`) của SyntheticDoc -- chỉ
+  # `lifted_corner` ở trên mượn hình dáng đó (một góc phồng, kiểu `fall_on_
+  # ball`). Đây là biến dạng BỀ MẶT thuần: nhiều nếp gấp cắt nhau
+  # (`crease_bundle`) hoặc nhàu rải rác (`crumple`, xấp xỉ phẳng của
+  # `fall_on_many` -- xem docstring hai hàm trong `degradation/blender/
+  # meshes.py` cho lý do đây không phải cùng một phép dựng với `fold_crease`).
+  - id: crease_bundle
+    enabled: false
+    weight: 1
+    tags: [textured, warped, creased]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.35, grain: 0.55}]
+        - [blur_zones, {radius: 1.0, zones: 2, coverage: 0.12}]
+      warp:
+        name: crease_bundle
+        params:
+          n_creases: [2, 4]
+          depth: [0.01, 0.022]
+          width_ratio: [0.03, 0.055]
+
+  - id: crumple
+    enabled: false
+    weight: 1
+    tags: [textured, warped, creased]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.40, grain: 0.6}]
+        - [blur_zones, {radius: 1.1, zones: 3, coverage: 0.16}]
+      warp:
+        name: crumple
+        params:
+          n_bumps: [10, 16]
+          amplitude: [0.006, 0.012]
+          radius_ratio: [0.07, 0.13]

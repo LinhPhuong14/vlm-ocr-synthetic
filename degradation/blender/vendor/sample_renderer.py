@@ -15,6 +15,7 @@ sys.path.append(str(Path(__file__).resolve().parent))
 import argparse
 import json
 import random
+import traceback
 from datetime import datetime
 
 import camera_angle_sampler
@@ -139,12 +140,15 @@ def generateSample(
         metadata["status"] = "success"
 
     except Exception as e:
-        # Record why the sample failed, then let the caller decide what to do with it.
+        # Recorded rather than re-raised: `main()` always prints `metadata` as its last
+        # line of stdout, success or failure, which is what `../render.py::
+        # _run_sample_renderer` parses to tell a retryable NoValidCameraAngleError from
+        # everything else. A caller that wants the traceback still has it on stderr.
         metadata["status"] = "failed"
         metadata["error"] = str(e)
         metadata["error_type"] = type(e).__name__
         print(f"Sample {sample_id_str} failed ({metadata['error_type']}): {e}", file=sys.stderr)
-        raise
+        traceback.print_exc()
 
     finally:
         # Written on success and failure alike, so a failed sample still leaves a record

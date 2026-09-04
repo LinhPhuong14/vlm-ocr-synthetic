@@ -208,10 +208,97 @@ def corner_bulge(
     return out_path
 
 
+def crease_bundle(
+    width: float,
+    height: float,
+    rng: random.Random,
+    out_path: Path,
+    *,
+    n_creases: Any = (2, 4),
+    depth: Any = (0.01, 0.025),
+    width_ratio: Any = (0.03, 0.06),
+    grid: tuple[int, int] = (70, 100),
+) -> Path:
+    """Several creases at independent angles, crossing near the middle -- a sheet handled
+    roughly rather than folded once. SyntheticDoc reaches this shape by dropping a sheet
+    on a dense jittered grid of small spheres (`fall_on_many`) -- crumpling it through
+    contact rather than a single deliberate fold. What is reused here is only the RESULT,
+    several intersecting creases, not the mechanism: each is a straight ridge, its height a
+    Gaussian in the signed distance to its own line, summed rather than integrated along one
+    bending axis -- `fold_crease`'s developable construction has no "and then a second,
+    differently-angled crease" step, so this is a genuinely different (simpler, not
+    arc-length-preserving) construction, not a generalisation of it.
+    """
+    nx, ny = grid
+    xs = np.linspace(0, width, nx) - width / 2
+    ys = np.linspace(0, height, ny) - height / 2
+    xx, yy = np.meshgrid(xs, ys)
+
+    zz = np.zeros_like(xx)
+    n = int(round(_sample_range(rng, n_creases)))
+    span = min(width, height)
+    for _ in range(n):
+        cx = rng.uniform(-width / 2 * 0.6, width / 2 * 0.6)
+        cy = rng.uniform(-height / 2 * 0.6, height / 2 * 0.6)
+        angle = rng.uniform(0, math.pi)
+        sign = rng.choice((-1.0, 1.0))
+        depth_v = sign * _sample_range(rng, depth)
+        sigma = _sample_range(rng, width_ratio) * span
+        # signed distance from every grid point to the infinite line through (cx, cy) at `angle`
+        nx_, ny_ = -math.sin(angle), math.cos(angle)
+        dist = (xx - cx) * nx_ + (yy - cy) * ny_
+        zz += depth_v * np.exp(-((dist / sigma) ** 2))
+
+    _write_obj(out_path, xx, yy, zz, nx, ny)
+    return out_path
+
+
+def crumple(
+    width: float,
+    height: float,
+    rng: random.Random,
+    out_path: Path,
+    *,
+    n_bumps: Any = (10, 18),
+    amplitude: Any = (0.006, 0.014),
+    radius_ratio: Any = (0.06, 0.14),
+    grid: tuple[int, int] = (70, 100),
+) -> Path:
+    """A dense scatter of small, independent bumps and dimples -- a sheet crumpled by hand
+    rather than bent once. SyntheticDoc's own version of this (`fall_on_many`) drops a sheet
+    on 30-150 small spheres and lets contact do the work; this sums that many Gaussian bumps
+    directly onto the flat grid instead, at random sign, position, size and height. A rougher
+    approximation than the single-fold scenarios above (no physical contact, so two bumps can
+    overlap in ways real cloth would resist), but the closest a flat, non-developable
+    construction gets to what SyntheticDoc calls crumpling rather than folding.
+    """
+    nx, ny = grid
+    xs = np.linspace(0, width, nx) - width / 2
+    ys = np.linspace(0, height, ny) - height / 2
+    xx, yy = np.meshgrid(xs, ys)
+
+    zz = np.zeros_like(xx)
+    n = int(round(_sample_range(rng, n_bumps)))
+    span = min(width, height)
+    for _ in range(n):
+        cx = rng.uniform(-width / 2 * 0.9, width / 2 * 0.9)
+        cy = rng.uniform(-height / 2 * 0.9, height / 2 * 0.9)
+        sign = rng.choice((-1.0, 1.0))
+        amp = sign * _sample_range(rng, amplitude)
+        radius = _sample_range(rng, radius_ratio) * span
+        r2 = (xx - cx) ** 2 + (yy - cy) ** 2
+        zz += amp * np.exp(-r2 / (2 * radius**2))
+
+    _write_obj(out_path, xx, yy, zz, nx, ny)
+    return out_path
+
+
 MESHES: dict[str, Callable[..., Path]] = {
     "page_curl": page_curl,
     "fold_crease": fold_crease,
     "corner_bulge": corner_bulge,
+    "crease_bundle": crease_bundle,
+    "crumple": crumple,
 }
 
 
@@ -230,4 +317,7 @@ def generate(
     return fn(width, height, rng, out_path, **(params or {}))
 
 
-__all__ = ["MESHES", "corner_bulge", "fold_crease", "generate", "names", "page_curl"]
+__all__ = [
+    "MESHES", "corner_bulge", "crease_bundle", "crumple", "fold_crease", "generate",
+    "names", "page_curl",
+]

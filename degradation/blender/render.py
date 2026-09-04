@@ -54,11 +54,16 @@ BACKGROUND_DIR = REPO_ROOT / "textures" / "background"
 # for `vendor/config.py`'s camera lens/light/table constants, all tuned for an A4-ish sheet.
 PAGE_WIDTH_M = 0.21
 
-# `NoValidCameraAngleError` means the mesh was folded enough that no candidate angle saw the
-# whole sheet at this distance -- not a bug, just a camera too close for how deep the fold
-# reaches. Backed off and retried rather than failing outright, up to this many times.
-_CAMERA_DISTANCE_RETRIES = 4
-_CAMERA_DISTANCE_GROWTH = 1.35
+# `NoValidCameraAngleError` has two causes (see `_render`'s docstring), and backing the
+# camera off helps both: a mesh that does not fit the frame obviously needs more room, but a
+# multi-bump mesh (`crease_bundle`, `crumple`) that fails on local normal consistency instead
+# also clears more candidates once it is not ALSO fighting an out-of-frame rejection on top --
+# confirmed by hand: a `crease_bundle` mesh that failed all 26 candidates at ~0.7m passed 6 of
+# them at 1.5m, nothing else about the mesh changed. Retried up to this many times, with the
+# mesh regenerated fresh each attempt (see `_render`) since the distance alone does not fix
+# every failure.
+_CAMERA_DISTANCE_RETRIES = 6
+_CAMERA_DISTANCE_GROWTH = 1.5
 
 
 class BlenderWarpError(RuntimeError):
@@ -141,22 +146,31 @@ def _render(
     name: str, width_m: float, height_m: float, params: dict[str, Any] | None, rng: random.Random,
     tmp_dir: Path,
 ) -> dict[str, Any]:
-    """Generate the mesh, pick a background, and render -- retrying a too-close camera."""
-    blender = find_blender()
-    mesh_path = tmp_dir / "mesh.obj"
-    meshes.generate(name, width_m, height_m, rng, mesh_path, params)
+    """Pick a background and render -- retrying with a fresh mesh draw and a larger camera
+    distance on a camera-angle failure.
 
+    `NoValidCameraAngleError` has two, unrelated causes (`vendor/camera_angle_sampler.py::
+    isMeshVisibleFromCamera`): the mesh does not FIT the frame (fixed by backing the camera
+    off, which is all the retry used to do), or parts of it face away from every candidate
+    angle -- a fold-back the visibility check is designed to catch (fixed by nothing except a
+    different mesh; several independent creases summed rather than integrated, as
+    `crease_bundle` and `crumple` are, can draw a combination steep enough to trigger this).
+    The mesh is regenerated every attempt now, from the same `rng`, so a retry can fix either.
+    """
+    blender = find_blender()
     background_photo = _pick_background(rng)
     background_dir = tmp_dir / "background"
     background_dir.mkdir()
     shutil.copy(background_photo, background_dir / background_photo.name)
 
-    sample_id = rng.randint(0, 2**31 - 1)
     output_dir = tmp_dir / "out"
-    distance = 2.0 * ((width_m**2 + height_m**2) ** 0.5)
+    distance = 2.5 * ((width_m**2 + height_m**2) ** 0.5)
 
     last_metadata = None
     for attempt in range(_CAMERA_DISTANCE_RETRIES):
+        mesh_path = tmp_dir / f"mesh_{attempt}.obj"
+        meshes.generate(name, width_m, height_m, rng, mesh_path, params)
+        sample_id = rng.randint(0, 2**31 - 1)
         metadata = _run_sample_renderer(
             blender, mesh_path, tmp_dir / "document.png", background_dir,
             output_dir, sample_id, distance)
@@ -169,8 +183,8 @@ def _render(
         distance *= _CAMERA_DISTANCE_GROWTH
 
     raise BlenderWarpError(
-        f"no camera angle saw the whole page after {_CAMERA_DISTANCE_RETRIES} distances "
-        f"(last tried {distance / _CAMERA_DISTANCE_GROWTH:.3f}m); last error: "
+        f"no camera angle saw the whole page after {_CAMERA_DISTANCE_RETRIES} attempts "
+        f"(last distance tried {distance / _CAMERA_DISTANCE_GROWTH:.3f}m); last error: "
         f"{last_metadata.get('error') if last_metadata else '?'}")
 
 
@@ -211,6 +225,28 @@ def apply_warp(
             xs = quads[..., 0].ravel()
             new_rows = map_coordinates(backward_map[..., 0], [ys, xs], order=1, mode="nearest")
             new_cols = map_coordinates(backward_map[..., 1], [ys, xs], order=1, mode="nearest")
+
+            # `uv_inverse.fill_missing` extrapolates a quad corner that lands on a source
+            # point never sampled by any visible render pixel (folded out of frame, occluded
+            # by another part of the sheet) -- usually off by a few pixels, occasionally, for
+            # a corner near a steep fold, by a wild margin (seen once during testing:
+            # (-1868, 7181) against a 1024x1440 canvas). A page with one such corner fails
+            # `pipeline.record.validate`'s frame check anyway, so it is caught HERE instead,
+            # loudly, rather than shipped as a record with one silently wrong label.
+            render_h, render_w = rendered.shape[:2]
+            margin = max(render_h, render_w)
+            in_range = (
+                np.isfinite(new_rows) & np.isfinite(new_cols)
+                & (new_rows >= -margin) & (new_rows <= render_h + margin)
+                & (new_cols >= -margin) & (new_cols <= render_w + margin)
+            )
+            if not in_range.all():
+                bad = int((~in_range).sum())
+                raise BlenderWarpError(
+                    f"{bad}/{in_range.size} quad corners remapped to a wild position after "
+                    "warping (backward-map extrapolation near a steep fold) -- retry with a "
+                    "different seed rather than trust this render's labels")
+
             quads = np.stack([new_cols, new_rows], axis=-1).reshape(quads.shape).astype(np.float32)
 
         return rendered, quads
