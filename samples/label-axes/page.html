@@ -101,31 +101,40 @@
 <div id="sheet">
 
 <!-- ══ RunningHead ═══════════════════════════ role: note ══ ink: print -->
-<div class="r-runninghead" data-region-box="Page-Header">
+<!-- Mỗi mục đầu trang là MỘT vùng, không phải một dải chạy hết bề ngang: dải
+     ấy rỗng ruột ở giữa (mực phủ 13%), và một mô hình học từ nó sẽ học rằng
+     khoảng trắng giữa hai mục cũng là đầu trang. -->
+<div class="r-runninghead">
   <span data-region="Page-Header" data-role="note" data-ink="print"
+        data-region-box="Page-Header"
         data-kind="head.form_no">Mẫu số 01/GTKT3-001</span>
   <span data-region="Page-Header" data-role="note" data-ink="print"
+        data-region-box="Page-Header"
         data-kind="head.page">Trang 1/1</span>
 </div>
 
-<!-- ══ Letterhead ═══ roles: heading, subheading, value ══ ink: print -->
+<!-- ══ Text + Form ══ khối phát hành, KHÔNG phải Page-Header.
+     `Page-Header` là ĐẦU TRANG CHẠY — dòng lặp ở lề trên mọi trang. Khối
+     tên/địa chỉ/mã số thuế của bên phát hành là nội dung của riêng trang này,
+     xuất hiện một lần, nên nó không thuộc vùng ấy: ba dòng danh tính là `Text`,
+     cặp có nhãn (MST:, ĐT:) là `Form`. -->
 <div class="r-letterhead">
   <div class="l" data-region-box="Text">
-    <span data-region="Page-Header" data-role="heading" data-ink="print"
+    <span data-region="Text" data-role="heading" data-ink="print"
           data-kind="store.name">CÔNG TY TNHH THƯƠNG MẠI HOÀNG LONG</span><br>
-    <span data-region="Page-Header" data-role="subheading" data-ink="print"
+    <span data-region="Text" data-role="subheading" data-ink="print"
           data-kind="store.slogan">Bán buôn – bán lẻ hàng tiêu dùng</span><br>
-    <span data-region="Page-Header" data-role="value" data-ink="print"
+    <span data-region="Text" data-role="body" data-ink="print"
           data-kind="store.address">128 Nguyễn Trãi, P. Bến Thành, Q.1, TP. Hồ Chí Minh</span>
   </div>
   <div class="rt" data-region-box="Form">
-    <span data-region="Page-Header" data-role="key" data-ink="print"
+    <span data-region="Form" data-role="key" data-ink="print"
           data-kind="store.tax_id.label">MST:</span>
-    <span data-region="Page-Header" data-role="value" data-ink="dotmatrix"
+    <span data-region="Form" data-role="value" data-ink="dotmatrix"
           data-kind="store.tax_id">0312345678</span><br>
-    <span data-region="Page-Header" data-role="key" data-ink="print"
+    <span data-region="Form" data-role="key" data-ink="print"
           data-kind="store.phone.label">ĐT:</span>
-    <span data-region="Page-Header" data-role="value" data-ink="print"
+    <span data-region="Form" data-role="value" data-ink="print"
           data-kind="store.phone">(028) 3822 6677</span>
   </div>
 </div>
@@ -298,10 +307,11 @@
 </div>
 
 <!-- ══ ListGroup ══════════════════ roles: heading, item ══ ink: print -->
-<div class="r-listgroup" data-region-box="List-Group">
-  <span class="h" data-region="List-Group" data-role="heading" data-ink="print"
+<div class="r-listgroup">
+  <span class="h" data-region="Section-Header" data-role="heading" data-ink="print"
+        data-region-box="Section-Header"
         data-kind="attach.title">Chứng từ kèm theo</span>
-  <ol>
+  <ol data-region-box="List-Group">
     <li><span data-region="List-Group" data-role="item" data-ink="print"
               data-kind="attach.item">Phiếu xuất kho số PXK-2026/0318</span></li>
     <li><span data-region="List-Group" data-role="item" data-ink="print"
@@ -345,10 +355,12 @@
 </div>
 
 <!-- ══ RunningFoot ═══════════════════ roles: note, mark ══ print/code -->
-<div class="r-runningfoot" data-region-box="Page-Footer">
+<div class="r-runningfoot">
   <span data-region="Page-Footer" data-role="note" data-ink="print"
+        data-region-box="Page-Footer"
         data-kind="foot.website">hoanglong-tm.com.vn</span>
   <span class="r-code" data-region="Page-Footer" data-role="value" data-ink="dotmatrix"
+        data-region-box="Page-Footer"
         data-kind="footer.barcode">*00042317-1C26TYY*</span>
 </div>
 

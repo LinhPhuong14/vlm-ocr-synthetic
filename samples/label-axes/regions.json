@@ -3,8 +3,16 @@
   "region": "Page-Header",
   "x": 38,
   "y": 34,
-  "w": 794,
-  "h": 20.21875,
+  "w": 99.75,
+  "h": 15.21875,
+  "page": "page.html"
+ },
+ {
+  "region": "Page-Header",
+  "x": 791.25,
+  "y": 34,
+  "w": 40.75,
+  "h": 15.21875,
   "page": "page.html"
  },
  {
@@ -88,11 +96,19 @@
   "page": "page.html"
  },
  {
-  "region": "List-Group",
+  "region": "Section-Header",
   "x": 38,
   "y": 699.703125,
-  "w": 266.671875,
-  "h": 80.53125,
+  "w": 107.703125,
+  "h": 18.84375,
+  "page": "page.html"
+ },
+ {
+  "region": "List-Group",
+  "x": 58,
+  "y": 723.546875,
+  "w": 246.671875,
+  "h": 56.6875,
   "page": "page.html"
  },
  {
@@ -122,17 +138,33 @@
  {
   "region": "Page-Footer",
   "x": 38,
-  "y": 976.953125,
-  "w": 794,
-  "h": 21.21875,
+  "y": 982.953125,
+  "w": 92.75,
+  "h": 15.21875,
+  "page": "page.html"
+ },
+ {
+  "region": "Page-Footer",
+  "x": 714.796875,
+  "y": 982.953125,
+  "w": 117.203125,
+  "h": 15.21875,
   "page": "page.html"
  },
  {
   "region": "Page-Header",
   "x": 44,
   "y": 34,
-  "w": 794,
-  "h": 20.75,
+  "w": 84.875,
+  "h": 15.75,
+  "page": "page2.html"
+ },
+ {
+  "region": "Page-Header",
+  "x": 786.75,
+  "y": 34,
+  "w": 51.25,
+  "h": 15.75,
   "page": "page2.html"
  },
  {
@@ -216,6 +248,14 @@
   "page": "page2.html"
  },
  {
+  "region": "Caption",
+  "x": 287.921875,
+  "y": 658.15625,
+  "w": 306.15625,
+  "h": 16.5,
+  "page": "page2.html"
+ },
+ {
   "region": "Section-Header",
   "x": 44,
   "y": 690.65625,
@@ -232,11 +272,19 @@
   "page": "page2.html"
  },
  {
-  "region": "List-Group",
+  "region": "Section-Header",
   "x": 44,
   "y": 806.34375,
-  "w": 328.59375,
-  "h": 76.25,
+  "w": 152.765625,
+  "h": 14,
+  "page": "page2.html"
+ },
+ {
+  "region": "List-Group",
+  "x": 64,
+  "y": 825.09375,
+  "w": 308.59375,
+  "h": 57.5,
   "page": "page2.html"
  },
  {
@@ -290,9 +338,17 @@
  {
   "region": "Page-Footer",
   "x": 44,
-  "y": 1289.09375,
-  "w": 794,
-  "h": 21.75,
+  "y": 1295.09375,
+  "w": 229.4375,
+  "h": 15.75,
+  "page": "page2.html"
+ },
+ {
+  "region": "Page-Footer",
+  "x": 730.875,
+  "y": 1295.09375,
+  "w": 107.125,
+  "h": 15.75,
   "page": "page2.html"
  }
 ]

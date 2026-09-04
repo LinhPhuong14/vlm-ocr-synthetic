@@ -90,10 +90,47 @@ trong 9 lớp ấy. Lớp thứ chín không thể là một hộp.
 Màu chỉ dành cho một trục. Nếu `ink` cũng vẽ bằng màu thì hai trục nói cùng một
 thứ tiếng và người đọc sẽ gộp chúng — đúng cái lỗi hệ ba trục sinh ra để sửa.
 
+## Ba phép kiểm chú thích, chạy mỗi lần
+
+Kiểm "mọi tag đều ra hộp" là kiểm **cơ học**: nó nói bộ từ vựng dùng được,
+không nói bộ chú thích đúng. `measure.py` chạy thêm ba phép hỏi câu của người
+gán nhãn, và trả về mã lỗi khác 0 nếu hỏng:
+
+1. **Một vùng không chứa run của vùng khác.** Đây là phép bắt được lỗi thật:
+   tiêu đề của một danh sách nằm trong hộp `List-Group` thì mô hình học rằng
+   tiêu đề là một mục của danh sách. Trường hợp lồng nhau **hợp lệ** phải khai
+   trong `MAY_NEST` — `Figure` chứa `Caption` là cấu trúc, không phải lỗi — vì
+   phần lớn cái lồng còn lại là lỗi thật.
+2. **Hai vùng không chồng nhau**, trừ thứ in đè (`MAY_OVERPRINT`): con dấu đè
+   lên chữ ký là chuyện có thật trên giấy, nên cấm hẳn sẽ cấm luôn một thứ thật.
+3. **Vùng mực phủ dưới 30% được liệt kê ra**, không phải để chặn mà để bắt
+   giải thích.
+
+Lần chạy gần nhất: **0 lỗi chú thích**, 8 vùng loãng — và cả tám giải thích
+được:
+
+| vùng | phủ | vì sao vẫn đúng |
+| --- | ---: | --- |
+| `Figure` | 7,7% | ảnh trong fixture là ô gạch chéo, gần như không có mực — trang thật thì raster phủ kín. **Hiện vật của fixture, không phải lỗi thiết kế.** |
+| `Complex-Block` | 15,3% | khung có viền, bên trong là bảng — giấy trắng giữa các ô là phần của vùng |
+| `Table` | 17,1% | một bảng phần lớn là giấy giữa các đường kẻ |
+| `Diagram` | 20,0% | các nút cách nhau, khoảng giữa là phần của sơ đồ |
+| `Section-Header` | 21,5% | dải có nền: cả dải là vùng, dù chữ chỉ ở hai đầu |
+| `Table-Of-Contents` | 21,6% | dấu chấm dẫn **có được vẽ** nhưng không phải run — **phép đo đếm thiếu** |
+| `Form` (chữ ký) | 25,7% | chỗ trống để ký chính là thứ định nghĩa khối chữ ký |
+| `Form` (tổng kết) | 29,4% | nhãn trái, số phải, giữa để trống — đúng cách in |
+
+Hai dòng in đậm là chỗ con số nói dối chứ không phải chú thích sai. Sáu dòng
+còn lại: khoảng trắng **là** phần của vùng.
+
 ## `Page-Header` chỉ là đầu trang chạy
 
 Khối tên/địa chỉ/mã số thuế của bên phát hành **không** phải `Page-Header`. Vùng
-ấy là **dòng lặp lại ở lề trên mọi trang** — mẫu số, số trang. Letterhead là nội
+ấy là **dòng lặp lại ở lề trên mọi trang** — mẫu số, số trang. Và mỗi mục ở
+đó là **một vùng riêng**, không phải một dải chạy hết bề ngang: dải ấy rỗng
+ruột ở giữa (mực phủ 13%), nên mô hình học từ nó sẽ học rằng khoảng trắng giữa
+hai mục cũng là đầu trang. Đây là cách DocLayNet gán nhãn, và là lý do hai vùng
+loãng nhất biến mất khỏi bảng trên. Letterhead là nội
 dung của riêng trang này, xuất hiện một lần, nên nó là `Text` (ba dòng danh
 tính) cộng `Form` (cặp có nhãn: MST:, ĐT:). Đây là chỗ bản đầu của fixture gán
 sai, và gán sai theo đúng kiểu đã làm hỏng trục 1: lấy **chỗ đứng trên trang**

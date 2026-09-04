@@ -150,6 +150,84 @@ def measure(name: str) -> tuple[list[dict], list[dict]]:
     return rects, blocks
 
 
+def _overlap(a: dict, b: dict) -> float:
+    """Diện tích giao nhau của hai hộp."""
+    x = max(0.0, min(a["x"] + a["w"], b["x"] + b["w"]) - max(a["x"], b["x"]))
+    y = max(0.0, min(a["y"] + a["h"], b["y"] + b["h"]) - max(a["y"], b["y"]))
+    return x * y
+
+
+# Vùng được phép lồng vào vùng khác. Con dấu và hoạ tiết in đè LÀ đè lên chỗ
+# khác -- đó là điều chúng làm trên giấy thật -- nên cấm chồng lấn hoàn toàn sẽ
+# cấm luôn một thứ có thật. Danh sách này là chỗ khai ra ngoại lệ ấy, để một
+# chồng lấn KHÔNG khai là một lỗi chứ không phải một chuyện thường.
+MAY_OVERPRINT = frozenset({"Image", "Figure"})
+
+# Vùng được phép CHỨA vùng khác, khai tường minh. Một `Figure` theo định nghĩa
+# là ảnh cộng chú thích, nên nó chứa một `Caption` -- đó là cấu trúc, không phải
+# lỗi. Khai ở đây thay vì bỏ qua mọi trường hợp lồng nhau: một cái lồng KHÔNG
+# khai vẫn phải báo lỗi, vì phần lớn cái lồng là lỗi thật.
+MAY_NEST = {
+    "Figure": {"Caption"},
+    "Complex-Block": {"Table", "Caption", "Text", "Section-Header"},
+}
+
+# Dưới ngưỡng này thì hỏi lại: vùng gần như trống. Không phải lỗi -- một bảng
+# phần lớn là giấy trắng giữa các đường kẻ, một khối chữ ký phần lớn là chỗ
+# trống để ký -- nhưng là chỗ phải giải thích được.
+THIN = 0.30
+
+
+def audit(runs: list[dict], blocks: list[dict]) -> int:
+    """Ba phép kiểm mà một bộ dữ liệu dò bố cục phải qua.
+
+    Kiểm "mọi tag đều ra hộp" là kiểm CƠ HỌC: nó nói bộ từ vựng dùng được, không
+    nói bộ chú thích đúng. Ba phép dưới đây hỏi câu của người gán nhãn.
+    """
+    print("── kiểm chú thích ───────────────────────────────────────────")
+    bad = 0
+
+    # 1. Một vùng không được chứa run của vùng khác. Đây là phép bắt được lỗi
+    #    thật: tiêu đề của một danh sách nằm trong hộp List-Group thì mô hình
+    #    học rằng tiêu đề là một mục của danh sách.
+    for blk in blocks:
+        inside = [r for r in runs if r["page"] == blk["page"]
+                  and _overlap(blk, r) > 0.6 * r["w"] * r["h"]]
+        allowed = {blk["region"]} | MAY_NEST.get(blk["region"], set()) | MAY_OVERPRINT
+        alien = sorted({r["region"] for r in inside} - allowed)
+        if alien:
+            bad += 1
+            print(f"  !! {blk['page']} {blk['region']}: chứa run của {alien}")
+
+    # 2. Hai vùng không được chồng nhau, trừ khi một bên là thứ in đè.
+    for i, a in enumerate(blocks):
+        for b in blocks[i + 1:]:
+            if a["page"] != b["page"]:
+                continue
+            small = min(a["w"] * a["h"], b["w"] * b["h"])
+            if small and _overlap(a, b) > 0.15 * small:
+                if a["region"] in MAY_OVERPRINT or b["region"] in MAY_OVERPRINT:
+                    continue
+                bad += 1
+                print(f"  !! {a['page']} {a['region']} × {b['region']}: chồng nhau")
+
+    # 3. Vùng gần như trống thì phải giải thích được, nên nó được liệt kê chứ
+    #    không bị coi là lỗi.
+    thin = []
+    for blk in blocks:
+        area = blk["w"] * blk["h"]
+        if not area:
+            continue
+        ink = sum(_overlap(blk, r) for r in runs if r["page"] == blk["page"])
+        if ink / area < THIN:
+            thin.append((blk, ink / area))
+    print(f"  {len(thin)} vùng mực phủ dưới {THIN:.0%} — phải giải thích được:")
+    for blk, cover in sorted(thin, key=lambda t: t[1]):
+        print(f"     {blk['page']:11s} {blk['region']:18s} {cover * 100:5.1f}%")
+    print(f"\n  lỗi chú thích: {bad}\n")
+    return bad
+
+
 def report(rects: list[dict]) -> int:
     counts = {"region": collections.Counter(), "role": collections.Counter(),
               "ink": collections.Counter()}
@@ -202,4 +280,5 @@ if __name__ == "__main__":
     (HERE / "regions.json").write_text(
         json.dumps(blocks, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     print()
-    raise SystemExit(report(boxes))
+    _bad = report(boxes)
+    raise SystemExit(_bad + audit(boxes, blocks))
