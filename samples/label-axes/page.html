@@ -71,8 +71,14 @@
   .r-prose .h{font-weight:700; display:block; width:max-content; margin-bottom:3px;}
   .r-listgroup{margin:14px 0 0;}
   .r-listgroup .h{font-weight:700; display:block; width:max-content; margin-bottom:4px;}
-  .r-listgroup ol{margin:0; padding-left:20px;}
-  .r-listgroup li{margin-bottom:2px;}
+  /* `list-style:none` và tự in số: dấu đầu dòng do CSS vẽ KHÔNG có node DOM,
+     nên nó không có run, không có nhãn, và hộp vùng không với tới nó — đo được:
+     hộp List-Group bắt đầu sau chữ số, bỏ lại đúng thứ dễ nhận ra nhất của một
+     danh sách. Với một mô hình OCR còn tệ hơn: "1." là mực trên giấy mà không
+     có nhãn nào nói nó tồn tại. */
+  .r-listgroup ol{margin:0; padding-left:0; list-style:none;}
+  .r-listgroup li{margin-bottom:2px; display:flex; gap:7px;}
+  .r-listgroup li .no{flex:none; min-width:16px;}
   .r-signature{display:flex; justify-content:space-between; gap:30px; margin-top:24px;}
   .r-signature .col{flex:1; text-align:center; position:relative; min-height:96px;}
   .r-signature .ttl{margin-left:auto; margin-right:auto; font-weight:600; display:block; width:max-content;}
@@ -101,14 +107,20 @@
 <div id="sheet">
 
 <!-- ══ RunningHead ═══════════════════════════ role: note ══ ink: print -->
-<!-- Mỗi mục đầu trang là MỘT vùng, không phải một dải chạy hết bề ngang: dải
-     ấy rỗng ruột ở giữa (mực phủ 13%), và một mô hình học từ nó sẽ học rằng
-     khoảng trắng giữa hai mục cũng là đầu trang. -->
+<!-- Đầu trang: mỗi mục MỘT vùng, không phải một dải chạy hết bề ngang — dải ấy
+     rỗng ruột ở giữa (13% mực) và dạy mô hình rằng khoảng trắng giữa hai mục
+     cũng là đầu trang.
+     Và chỉ MỘT trong hai mục ở đây là `Page-Header` thật. "Trang 1/1" là chỉ
+     số trang — đúng thứ vùng ấy sinh ra để chứa. "Mẫu số" thì không lặp lại,
+     không phải chỉ số trang: nó là trường định danh biểu mẫu, tức `Form`. Đặt
+     nó vào `Page-Header` chỉ vì nó nằm ở lề trên là lấy CHỖ ĐỨNG thay cho VAI
+     TRÒ — cùng cái sai đã đẩy letterhead vào `Page-Header`. -->
 <div class="r-runninghead">
-  <span data-region="Page-Header" data-role="note" data-ink="print"
-        data-region-box="Page-Header"
-        data-kind="head.form_no">Mẫu số 01/GTKT3-001</span>
-  <span data-region="Page-Header" data-role="note" data-ink="print"
+  <span data-region-box="Form"><span data-region="Form" data-role="key" data-ink="print"
+        data-kind="invoice.form_no.label">Mẫu số:</span>
+    <span data-region="Form" data-role="value" data-ink="print"
+        data-kind="invoice.form_no">01GTKT3/001</span></span>
+  <span data-region="Page-Header" data-role="value" data-ink="print"
         data-region-box="Page-Header"
         data-kind="head.page">Trang 1/1</span>
 </div>
@@ -116,8 +128,16 @@
 <!-- ══ Text + Form ══ khối phát hành, KHÔNG phải Page-Header.
      `Page-Header` là ĐẦU TRANG CHẠY — dòng lặp ở lề trên mọi trang. Khối
      tên/địa chỉ/mã số thuế của bên phát hành là nội dung của riêng trang này,
-     xuất hiện một lần, nên nó không thuộc vùng ấy: ba dòng danh tính là `Text`,
-     cặp có nhãn (MST:, ĐT:) là `Form`. -->
+     xuất hiện một lần, nên nó không thuộc vùng ấy.
+     Cả khối là MỘT vùng `Text`, kể cả "MST:" và "ĐT:". Có dấu hai chấm không
+     làm một dòng thành biểu mẫu: `Form` nói VÙNG NÀY là chỗ để điền, còn
+     "nhãn đi với giá trị" là chuyện của trục 2 (`role=key`/`role=value`) —
+     và trục 2 đã ghi rồi. Tách khối này làm hai vùng là để hình dạng của từng
+     dòng quyết định nhãn của cả vùng.
+     Nhưng là HAI vùng `Text`, không phải một: hai khối chữ cách nhau gần nửa
+     trang thì một hộp bao cả hai là một hộp rỗng ruột ở giữa (25% mực), và mô
+     hình học từ nó sẽ học rằng khoảng trắng ấy cũng là chữ. Cùng lý do đã tách
+     đầu trang thành từng mục. -->
 <div class="r-letterhead">
   <div class="l" data-region-box="Text">
     <span data-region="Text" data-role="heading" data-ink="print"
@@ -127,14 +147,14 @@
     <span data-region="Text" data-role="body" data-ink="print"
           data-kind="store.address">128 Nguyễn Trãi, P. Bến Thành, Q.1, TP. Hồ Chí Minh</span>
   </div>
-  <div class="rt" data-region-box="Form">
-    <span data-region="Form" data-role="key" data-ink="print"
+  <div class="rt" data-region-box="Text">
+    <span data-region="Text" data-role="key" data-ink="print"
           data-kind="store.tax_id.label">MST:</span>
-    <span data-region="Form" data-role="value" data-ink="dotmatrix"
+    <span data-region="Text" data-role="value" data-ink="dotmatrix"
           data-kind="store.tax_id">0312345678</span><br>
-    <span data-region="Form" data-role="key" data-ink="print"
+    <span data-region="Text" data-role="key" data-ink="print"
           data-kind="store.phone.label">ĐT:</span>
-    <span data-region="Form" data-role="value" data-ink="print"
+    <span data-region="Text" data-role="value" data-ink="print"
           data-kind="store.phone">(028) 3822 6677</span>
   </div>
 </div>
@@ -312,11 +332,17 @@
         data-region-box="Section-Header"
         data-kind="attach.title">Chứng từ kèm theo</span>
   <ol data-region-box="List-Group">
-    <li><span data-region="List-Group" data-role="item" data-ink="print"
+    <li><span class="no" data-region="List-Group" data-role="item" data-ink="print"
+              data-kind="attach.marker">1.</span><span
+              data-region="List-Group" data-role="item" data-ink="print"
               data-kind="attach.item">Phiếu xuất kho số PXK-2026/0318</span></li>
-    <li><span data-region="List-Group" data-role="item" data-ink="print"
+    <li><span class="no" data-region="List-Group" data-role="item" data-ink="print"
+              data-kind="attach.marker">2.</span><span
+              data-region="List-Group" data-role="item" data-ink="print"
               data-kind="attach.item">Biên bản giao nhận hàng hoá ngày 14/03/2026</span></li>
-    <li><span data-region="List-Group" data-role="item" data-ink="print"
+    <li><span class="no" data-region="List-Group" data-role="item" data-ink="print"
+              data-kind="attach.marker">3.</span><span
+              data-region="List-Group" data-role="item" data-ink="print"
               data-kind="attach.item">Uỷ nhiệm chi số UNC-88214 của Vietcombank</span></li>
   </ol>
 </div>

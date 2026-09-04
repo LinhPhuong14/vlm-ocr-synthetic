@@ -106,22 +106,37 @@ gán nhãn, và trả về mã lỗi khác 0 nếu hỏng:
 3. **Vùng mực phủ dưới 30% được liệt kê ra**, không phải để chặn mà để bắt
    giải thích.
 
-Lần chạy gần nhất: **0 lỗi chú thích**, 8 vùng loãng — và cả tám giải thích
+Lần chạy gần nhất: **0 lỗi chú thích**, 7 vùng loãng — và cả bảy giải thích
 được:
 
 | vùng | phủ | vì sao vẫn đúng |
 | --- | ---: | --- |
-| `Figure` | 7,7% | ảnh trong fixture là ô gạch chéo, gần như không có mực — trang thật thì raster phủ kín. **Hiện vật của fixture, không phải lỗi thiết kế.** |
-| `Complex-Block` | 15,3% | khung có viền, bên trong là bảng — giấy trắng giữa các ô là phần của vùng |
+| `Figure` | 7,7% | ảnh trong fixture là ô gạch chéo, gần như không có mực — trang thật thì raster phủ kín. **Hiện vật của fixture.** |
+| `Complex-Block` | 15,3% | khung có viền thật, bên trong là bảng — giấy trắng giữa các ô là phần của vùng |
 | `Table` | 17,1% | một bảng phần lớn là giấy giữa các đường kẻ |
-| `Diagram` | 20,0% | các nút cách nhau, khoảng giữa là phần của sơ đồ |
 | `Section-Header` | 21,5% | dải có nền: cả dải là vùng, dù chữ chỉ ở hai đầu |
 | `Table-Of-Contents` | 21,6% | dấu chấm dẫn **có được vẽ** nhưng không phải run — **phép đo đếm thiếu** |
 | `Form` (chữ ký) | 25,7% | chỗ trống để ký chính là thứ định nghĩa khối chữ ký |
 | `Form` (tổng kết) | 29,4% | nhãn trái, số phải, giữa để trống — đúng cách in |
 
-Hai dòng in đậm là chỗ con số nói dối chứ không phải chú thích sai. Sáu dòng
+Hai dòng in đậm là chỗ **con số nói dối**, không phải chú thích sai. Năm dòng
 còn lại: khoảng trắng **là** phần của vùng.
+
+### Khoảng trắng: khi nào đúng, khi nào là lỗi
+
+Quy tắc "vùng = mực + thứ nó tự vẽ ra" đúng, nhưng nó có một mặt sắc: **thứ
+được vẽ ra chỉ để dễ nhìn cũng định nghĩa luôn cái vùng.**
+
+* `Code-Block` rộng cả khổ giấy dù dòng mã chỉ dài 60% — **đúng**. Nền xám là
+  thật, người đọc thấy cả tấm nền là khối mã, nên hộp phải là cả tấm nền.
+* `Diagram` từng rộng cả khổ giấy — **sai**. Nó có một khung nét đứt mà tôi vẽ
+  chỉ để nhìn thấy khối; tài liệu kỹ thuật thật không đóng khung lưu đồ. Bỏ
+  khung thì vùng về đúng **387 px** thay vì 794.
+* Letterhead từng là một vùng `Text` bao cả hai cột, rỗng ruột ở giữa (25%
+  mực) — **sai**. Hai khối chữ cách nhau gần nửa trang là **hai vùng**.
+
+Bài học: một fixture vẽ thêm khung cho dễ đọc sẽ dạy hộp sai chỗ. Khung nào
+không có trên giấy thật thì không được có trong fixture.
 
 ## `Page-Header` chỉ là đầu trang chạy
 
@@ -135,6 +150,28 @@ dung của riêng trang này, xuất hiện một lần, nên nó là `Text` (ba
 tính) cộng `Form` (cặp có nhãn: MST:, ĐT:). Đây là chỗ bản đầu của fixture gán
 sai, và gán sai theo đúng kiểu đã làm hỏng trục 1: lấy **chỗ đứng trên trang**
 thay cho **vai trò trong tài liệu**.
+
+## Ba chỗ dễ gán nhầm, đã gán nhầm cả ba
+
+Cả ba đều là một lỗi: **lấy hình dạng của từng run để quyết định nhãn của cả
+vùng**, thay vì hỏi vùng ấy *là gì* trên trang.
+
+**`Page-Header` không phải "thứ nằm ở lề trên".** "Mẫu số 01GTKT3/001" từng bị
+xếp vào đó vì nó nằm trên cùng. Nhưng nó không lặp lại trang nào khác, không
+phải chỉ số trang — nó là **trường định danh biểu mẫu**, tức `Form`. Trên trang
+này chỉ "Trang 1/1" là `Page-Header` thật.
+
+**`Form` không phải "dòng có dấu hai chấm".** "MST:" và "ĐT:" trong letterhead
+từng thành một vùng `Form` riêng. Nhưng `Form` nói **vùng này là chỗ để điền**;
+còn "nhãn đi với giá trị" là chuyện của trục 2 (`role=key`/`role=value`) — và
+trục 2 đã ghi rồi. Cả letterhead là `Text`.
+
+**`List-Group` phải gồm cả số thứ tự.** Hộp cũ bắt đầu *sau* chữ số, bỏ lại
+đúng thứ dễ nhận ra nhất của một danh sách. Nguyên nhân: `list-style` của CSS
+vẽ dấu đầu dòng mà **không tạo node DOM**, nên nó không có run, không có nhãn,
+và hộp vùng không với tới. Với một mô hình OCR còn nặng hơn: "1." là mực trên
+giấy mà không nhãn nào nói nó tồn tại — đúng loại lỗ hổng như **286 từ mồ côi**
+đã đo trên 25/48 phôi. Sửa bằng `list-style:none` và in số thành run có nhãn.
 
 ## Hợp đồng nhãn không đổi
 

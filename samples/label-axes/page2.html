@@ -69,8 +69,12 @@
       border:.5px solid #c3ccd6; display:flex; align-items:center; justify-content:center;}
   .b-fig .cap{margin-left:auto; margin-right:auto; font-size:11px; color:#555; font-style:italic; display:block; width:max-content; margin-top:5px;}
 
-  /* Diagram: cấu trúc vẽ ra để ĐỌC như cấu trúc, không phải ảnh chụp */
-  .b-dia{margin:14px 0; border:.5px dashed #9aa8b6; padding:14px 10px;
+  /* Diagram: cấu trúc vẽ ra để ĐỌC như cấu trúc, không phải ảnh chụp.
+     KHÔNG có khung bao. Bản trước có một khung nét đứt, vẽ ra chỉ để nhìn thấy
+     khối — và vì hộp vùng lấy cả thứ được vẽ, chính cái khung trang trí ấy
+     định nghĩa luôn vùng: hộp rộng cả khổ giấy trong khi sơ đồ chỉ chiếm
+     khoảng giữa. Một tài liệu kỹ thuật thật không đóng khung lưu đồ. */
+  .b-dia{margin:14px 0; padding:6px 10px;
          display:flex; align-items:center; justify-content:center; gap:10px;
          font-family:LiberationSans,sans-serif; font-size:11px;}
   .b-dia .n{border:1px solid #1d3b5c; border-radius:3px; padding:6px 10px;
@@ -87,7 +91,11 @@
   .b-toc{margin:12px 0;}
   .b-toc .row{display:flex; gap:8px; align-items:baseline; padding:2px 0;}
   .b-toc .row .d{flex:1; border-bottom:1px dotted #aab4be; transform:translateY(-3px);}
-  .b-list{margin:8px 0;} .b-list ul{margin:0; padding-left:20px;} .b-list li{margin-bottom:3px;}
+  /* Như trang 1: dấu đầu dòng phải là run có nhãn, không phải `list-style`. */
+  .b-list{margin:8px 0;}
+  .b-list ul{margin:0; padding-left:0; list-style:none;}
+  .b-list li{margin-bottom:3px; display:flex; gap:7px;}
+  .b-list li .no{flex:none;}
 
   .b-bib{margin:14px 0 0;}
   .b-bib .row{padding-left:22px; text-indent:-22px; margin-bottom:4px; font-size:11.5px;}
@@ -210,11 +218,17 @@
         data-region-box="Section-Header"
         data-kind="list.title">Điều kiện phải thoả đồng thời:</span>
   <ul data-region-box="List-Group">
-    <li><span data-region="List-Group" data-role="item" data-ink="print"
+    <li><span class="no" data-region="List-Group" data-role="item" data-ink="print"
+              data-kind="list.marker">—</span><span
+              data-region="List-Group" data-role="item" data-ink="print"
               data-kind="list.item">Nhiệt độ khối phản ứng giữ trong khoảng 370 °C đến 400 °C.</span></li>
-    <li><span data-region="List-Group" data-role="item" data-ink="print"
+    <li><span class="no" data-region="List-Group" data-role="item" data-ink="print"
+              data-kind="list.marker">—</span><span
+              data-region="List-Group" data-role="item" data-ink="print"
               data-kind="list.item">Mẫu trắng phải cho kết quả không vượt quá 0,02 % nitơ.</span></li>
-    <li><span data-region="List-Group" data-role="item" data-ink="print"
+    <li><span class="no" data-region="List-Group" data-role="item" data-ink="print"
+              data-kind="list.marker">—</span><span
+              data-region="List-Group" data-role="item" data-ink="print"
               data-kind="list.item">Hai lần xác định song song chênh nhau không quá 0,05 %.</span></li>
   </ul>
 </div>
