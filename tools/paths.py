@@ -25,6 +25,7 @@ WINDOWS = os.name == "nt"
 # Mirrored by `extend-exclude` in pyproject.toml, which ruff reads directly.
 VENDORED = (
     "augmentations/",
+    "degradation/blender/vendor/",
 )
 
 # One environment, because there is one renderer. `synthdog` and `genalog` had

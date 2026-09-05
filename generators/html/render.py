@@ -48,7 +48,7 @@ from page import (  # noqa: E402
 import profiling  # noqa: E402
 import rulebase  # noqa: E402
 import worklist  # noqa: E402
-from degradation.geometry import warp_regions  # noqa: E402
+from degradation.blender import warp_regions  # noqa: E402
 from degradation.pipeline import apply_recipe  # noqa: E402
 from pipeline import imagetimes, record, synthesis  # noqa: E402
 
@@ -464,10 +464,13 @@ class HtmlReceiptRenderer:
         # Hình học -- không phải chuỗi làm cũ. Ở NGOÀI `apply_recipe`/`chain`
         # có chủ đích: mọi model trong đó bị buộc GIỮ NGUYÊN kích thước (kiểm
         # tra ngay trên), còn cong giấy thì đổi cả hai. `augmentation.warp` là
-        # nơi duy nhất một trang được phép cong -- xem `degradation/geometry.py`
+        # nơi duy nhất một trang được phép cong -- xem `degradation/blender/`
         # và header "HÌNH HỌC" của `rulebase/rules/augmentation.yaml`. Vắng mặt
         # (giá trị mặc định) thì bước này là no-op; ba id có nó đều
         # `enabled: false` cho tới khi có người soát bằng mắt.
+        #
+        # Bước này gọi ra Blender qua subprocess (vài giây tới hơn một phút một
+        # trang, không phải milli-giây) -- xem `degradation/blender/render.py`.
         warp = recipe.get("augmentation", "warp")
         if warp:
             with profiling.stage("geometry"):

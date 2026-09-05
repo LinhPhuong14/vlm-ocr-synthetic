@@ -124,6 +124,16 @@ def main() -> int:
              "shards already carrying a DONE are skipped. This is how a long "
              "run is delivered in batches without the batches each becoming a "
              "differently-balanced dataset")
+    parser.add_argument(
+        "--resume", action="store_true",
+        help="if the plan step was interrupted -- the process was killed, the "
+             "model server dropped -- pick it back up from "
+             f"<out>/{PLAN_NAME}.partial instead of asking the model again "
+             "for pages it already answered. Only meaningful with the same "
+             "--seed/--dressings/--qualified/--pressure as the run being "
+             "resumed; verify() below still catches a mismatch that made a "
+             "resumed page illegal, it just cannot tell you resumed for the "
+             "wrong reason")
     args = parser.parse_args()
 
     out: Path = args.out.resolve()
@@ -187,10 +197,22 @@ def main() -> int:
             for option, factor in sorted(options.items(), key=lambda kv: kv[1]):
                 print(f"          {attribute}={option} x{factor}")
 
+    checkpoint = out / f"{PLAN_NAME}.partial"
+    resume: list = []
+    if args.resume:
+        resume = planner.read(checkpoint)[:args.count]
+        if resume:
+            print(f"[agent] tiếp tục từ checkpoint {checkpoint.name}: "
+                  f"{len(resume)}/{args.count} trang đã quyết định từ trước")
+        else:
+            print(f"[agent] --resume: không có checkpoint ở {checkpoint} "
+                  "(hoặc rỗng) — chạy từ đầu")
+
     started = time.time()
     decisions = planner.plan(args.count, args.seed, rules, pol,
                              llm=llm, pressure=args.pressure,
-                             penalty=weights, ban=bans)
+                             penalty=weights, ban=bans,
+                             resume=resume, checkpoint=checkpoint)
     clock["plan"] = round(time.time() - started, 2)
 
     started = time.time()
@@ -202,6 +224,10 @@ def main() -> int:
             print(f"  - {problem}")
         return 1
     planner.write(out / PLAN_NAME, decisions)
+    # The checkpoint's only job was surviving a plan step that never finished.
+    # One that did needs it no longer, and leaving it behind would make a
+    # later --resume load a plan already superseded by args.count/rules.
+    checkpoint.unlink(missing_ok=True)
 
     summary = planner.coverage(decisions, rules)
     print(f"[agent] {len(decisions)} trang, {summary['distinct_triples']} tổ hợp "

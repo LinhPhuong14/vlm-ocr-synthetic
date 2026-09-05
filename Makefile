@@ -19,7 +19,7 @@ PROFILE_N ?= 8
 LAYOUT  ?=
 
 .DEFAULT_GOAL := help
-.PHONY: help setup setup-html setup-writevit \
+.PHONY: help setup setup-html setup-writevit setup-blender \
         textures patterns handwriting signatures \
         preview-grid visualize dataset dataset-clean proof showcase \
         ornaments templates \
@@ -39,6 +39,8 @@ setup-html:      ## HTML renderer: playwright + a headless browser
 	$(TASKS) setup-html
 setup-writevit:  ## handwriting: clone WriteViT beside the repo, fetch its weights
 	$(TASKS) setup-writevit
+setup-blender:   ## Geometry warps: Blender + numpy for its own interpreter (opt-in, see rulebase/rules/augmentation.yaml)
+	$(TASKS) setup-blender
 patterns:        ## Regenerate every shared pattern: paper, backgrounds, ornaments
 	$(TASKS) patterns
 textures:        ## Regenerate the shared paper and background textures

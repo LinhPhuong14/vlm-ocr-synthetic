@@ -112,6 +112,66 @@ def setup_html(args) -> None:
         run([python, "-m", "playwright", "install", "chromium"])
 
 
+@task("setup-blender", "geometry warps: Blender plus numpy for its own interpreter")
+def setup_blender(args) -> None:
+    """Not one of the three renderer environments, and not part of `setup`.
+
+    `degradation/blender/` shells out to a real `blender` executable rather than importing
+    anything -- see that module's own docstring for why. Nothing in `generators/html/
+    .venv` needs it, and the three rule-base options that use it (`page_curl`, `folded`,
+    `lifted_corner` in `rulebase/rules/augmentation.yaml`) all ship `enabled: false`, so a
+    clone that never forces one of them never needs this task either.
+    """
+    blender = shutil.which("blender")
+    if not blender:
+        if sys.platform.startswith("linux"):
+            print("No `blender` on PATH -- trying `apt-get install -y blender`.")
+            if run(["apt-get", "install", "-y", "blender"], check=False) != 0:
+                raise SystemExit(
+                    "`apt-get install blender` failed (no apt, or no root). Install Blender "
+                    "yourself -- 4.1+ preferred, see degradation/blender/vendor/"
+                    "blender_utils.py for what a pre-4.1 build (e.g. Ubuntu's own package) "
+                    "needs -- and put it on PATH, then re-run this task.")
+            blender = shutil.which("blender")
+        else:
+            raise SystemExit(
+                "No `blender` on PATH. Install it from https://www.blender.org/download/ "
+                "(4.1+ preferred) and put it on PATH, then re-run this task.")
+    if not blender:
+        raise SystemExit("`blender` still not on PATH after installing it -- check your shell's PATH.")
+
+    print(f"$ {blender} --version")
+    run([blender, "--version"])
+
+    # `degradation/blender/vendor/*.py` runs INSIDE Blender, against whatever Python it was
+    # built with -- a distro package like `apt install blender` shares the system
+    # interpreter, a download from blender.org bundles its own. Either way `numpy` is the
+    # one thing that Python needs and does not already have; asking Blender for its own
+    # `sys.executable` is what makes this work for both without telling them apart.
+    print("Installing numpy into Blender's own Python...")
+    # `--break-system-packages` is only a valid pip flag on a PEP 668 "externally managed"
+    # interpreter -- true for `apt install blender`'s shared system Python, an error on
+    # blender.org's own bundled one. Tried first without it; retried with it only on that
+    # specific failure, rather than guessing which kind of install this is up front.
+    install_numpy = (
+        "import subprocess, sys\n"
+        "try:\n"
+        "    import pip  # noqa: F401\n"
+        "except ImportError:\n"
+        "    subprocess.check_call([sys.executable, '-m', 'ensurepip', '--default-pip'],"
+        " stdout=subprocess.DEVNULL)\n"
+        "try:\n"
+        "    subprocess.check_call([sys.executable, '-m', 'pip', 'install', '-q', 'numpy'])\n"
+        "except subprocess.CalledProcessError:\n"
+        "    subprocess.check_call([sys.executable, '-m', 'pip', 'install', '-q',"
+        " '--break-system-packages', 'numpy'])\n"
+    )
+    run([blender, "--background", "--python-expr", install_numpy])
+
+    run([blender, "--background", "--python-expr",
+         "import numpy; print('blender geometry warps ready: numpy', numpy.__version__)"])
+
+
 @task("setup", "build the renderer environment (html)")
 def setup(args) -> None:
     # One renderer, one environment. There were three of these tasks while

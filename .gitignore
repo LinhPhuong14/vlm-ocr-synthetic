@@ -121,6 +121,11 @@ data/*/plan.json
 data/*/manifest.json
 data/*/timings.json
 data/*/report.json
+# `tools/agent_dataset.py`'s crash-recovery checkpoint for the plan step
+# (see `agent/planner.py::plan`'s `checkpoint=`) -- superseded by
+# agent_plan.json the moment a run finishes, and meaningless without the
+# `--seed`/`--dressings`/rules of the run that wrote it.
+data/*/agent_plan.json.partial
 
 # `data/5k_llm` is the agent run, and its images ARE committed, at the owner's
 # request -- removed once at their request and put back at their later one. The

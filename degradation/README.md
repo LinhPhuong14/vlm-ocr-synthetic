@@ -231,36 +231,41 @@ The biggest gap it names: **not one model here moves a pixel.** The chain is
 asserted not to resize the page, so the dataset had every kind of dirt and no
 sheet that was skewed, curled or photographed at an angle.
 
-That gap now has a fix, in [`geometry.py`](geometry.py) — but deliberately not
-inside `DEGRADATIONS`/`apply_recipe`. The shape assertion above is exactly what
-a page-geometry model cannot satisfy, so it runs as ITS OWN step, after the
+That gap now has a fix, in [`blender/`](blender) — but deliberately not inside
+`DEGRADATIONS`/`apply_recipe`. The shape assertion above is exactly what a
+page-geometry model cannot satisfy, so it runs as ITS OWN step, after the
 chain and after that assertion, moving the sheet's box collections (`boxes`,
 `words`, `cells`) along with the pixels instead of trusting them to still
-describe the page. Three models: `page_curl` (generalised from
-`generators/synthdog/elements/warp.py::CurlWarp`, since deleted — see
-[`docs/renderers.md`](../docs/renderers.md)), `fold_crease` and
-`corner_bulge` (both a flat, invertible approximation of the paper shapes
-[SyntheticDoc](https://github.com/tanguymagne/SyntheticDoc) gets by physically
-simulating a sheet in ARCSim and rendering it in Blender — neither tool fits
-here, ARCSim's licence is non-commercial only and Blender needs a GPU and no
-`pip` package exists for it, so the *shape*, not the code, is what is reused).
-See the module's own docstring for the maths, and `rulebase/rules/
-augmentation.yaml`'s "HÌNH HỌC" section for how a recipe opts in through
-`augmentation.warp`. All three ship `enabled: false` — reachable with
-`--force augmentation=page_curl` (or `folded`, `lifted_corner`) but not yet in
-a default run, until someone has looked at samples.
+describe the page.
 
-**The geometry alone reads as noise, not as paper — the shading is what makes
-it read as a surface.** SyntheticDoc's own `media/teaser.jpg` lines up six
-panels — rendered image, albedo, *shading*, normal map, 3D coordinates, UV
-map — and it is the shading panel, not the pixel displacement, that carries
-most of what makes a sample look like curved paper rather than a flat photo
-with a mild geometric wobble. Each of the three functions therefore derives
-an analytic height-field gradient from its own displacement formula (no 3D
-mesh, no renderer) and shades it with a one-line Lambertian model — random
-light direction every call, on purpose: `docs/lam-cu-de-xuat.md` already
-names a fixed light angle (`shadow_binding.angle`) as a defect a model would
-learn and then fail on real photos lit from elsewhere.
+The first version of this fix was a pure-numpy 2D pixel remap plus an
+analytic shading model — no Blender, no mesh. Held up against SyntheticDoc's
+own sample renders (github.com/tanguymagne/SyntheticDoc, `media/teaser.jpg`),
+it read as noise, not as paper: the geometry alone barely shows, and it is
+the DIRECTIONAL SHADING off a real 3D surface, not the pixel displacement,
+that makes a sample look like curved paper rather than a flat photo with a
+mild wobble — that, and a real camera looking at a real page-sized object on
+a table, not a full-bleed crop. Both are what `blender/` now does for real
+rather than approximates: `blender/meshes.py` bends a flat page into a 3D
+mesh (plain numpy — no physics engine; see that module's docstring for why
+not SyntheticDoc's own ARCSim), and `blender/vendor/` (adapted from
+SyntheticDoc, MIT licence, see its `NOTICE.md`) puts it in a real Blender
+scene: a real paper material, a camera that searches for an angle seeing the
+whole sheet, one of four studio lighting presets in a random direction —
+`docs/lam-cu-de-xuat.md` already names a FIXED light angle
+(`shadow_binding.angle`) as a defect a model would learn and fail on real
+photos lit from elsewhere, and this does not repeat it. `blender/render.py`
+inverts Blender's own UV ground-truth map to remap the page's label quads
+into the render, and is what `generators/html/render.py` actually calls.
+
+Three scenarios, one per SyntheticDoc simulation family it stands in for:
+`page_curl` (`curve_by_pull`), `fold_crease` (`fold_by_pull`), `corner_bulge`
+(`fall_on_ball`/`fall_on_roller`). See `rulebase/rules/augmentation.yaml`'s
+"HÌNH HỌC" section for how a recipe opts in through `augmentation.warp`. All
+three ship `enabled: false` — reachable with `--force augmentation=page_curl`
+(or `folded`, `lifted_corner`), needs Blender (`make setup-blender`), and
+costs seconds to over a minute per page rather than the microseconds of every
+other model here, which is also why it is not in a default run yet.
 
 ---
 

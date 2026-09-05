@@ -188,6 +188,7 @@ class _Stub(BaseHTTPRequestHandler):
     """An OpenAI-compatible server that answers with whatever `pages` is set to."""
 
     pages: list = []
+    calls: int = 0
 
     def log_message(self, *_args):        # noqa: D102 -- silence the test run
         pass
@@ -199,6 +200,7 @@ class _Stub(BaseHTTPRequestHandler):
         self.wfile.write(b'{"data":[]}')
 
     def do_POST(self):                    # noqa: N802
+        type(self).calls += 1
         length = int(self.headers.get("Content-Length", 0))
         body = json.loads(self.rfile.read(length) or b"{}")
         block = (body["response_format"]["json_schema"]["schema"]
@@ -261,6 +263,53 @@ def test_a_server_that_is_not_there_is_a_mode_and_not_a_crash(built):
     assert dead.alive() is False
     decisions = planner.plan(5, seed=2, rules=rules, policy=pol, llm=dead, block=2)
     assert all(d.by == "coverage" for d in decisions)
+
+
+# --------------------------------- a plan interrupted is not a plan lost
+
+
+def test_checkpoint_is_written_as_the_plan_goes_and_removed_by_nobody_here(built, tmp_path):
+    rules, pol = built
+    checkpoint = tmp_path / "agent_plan.json.partial"
+    decisions = planner.plan(10, seed=7, rules=rules, policy=pol, block=4,
+                             checkpoint=checkpoint)
+    # `plan()` leaves it behind -- clearing it once the caller has a complete,
+    # *verified* plan is `tools/agent_dataset.py`'s job, not this function's.
+    assert planner.read(checkpoint) == decisions
+
+
+def test_resume_replays_usage_instead_of_redrawing_it(built):
+    """Resuming must not just splice on more pages -- it has to make the
+    coverage objective behave as if the resumed prefix had just been drawn,
+    or a run interrupted right after its rarest value finally got used would
+    forget that the moment it picked back up."""
+    rules, pol = built
+    whole = planner.plan(20, seed=13, rules=rules, policy=pol)
+    resumed = planner.plan(20, seed=13, rules=rules, policy=pol,
+                           resume=whole[:12])
+    assert resumed[:12] == whole[:12]
+    assert len(resumed) == 20
+    assert planner.verify(resumed, rules) == []
+
+
+def test_resume_does_not_ask_the_model_for_pages_it_already_answered(built, stub):
+    rules, pol = built
+    legal = {name: {o.id for o in options} for name, options in rules.items()}
+    _Stub.pages = [{"document": "supermarket", "layout": "market_barcode",
+                    "variant": "none", "content": "market_upper",
+                    "visual": "till_thermal", "color": "mono_black",
+                    "ornament": "no_ornament", "augmentation": "pristine"}]
+    _Stub.pages[0] = {k: v for k, v in _Stub.pages[0].items() if v in legal.get(k, ())}
+    if len(_Stub.pages[0]) < 3:
+        pytest.skip("the shipped rules renamed the ids this stub names")
+    already = planner.plan(3, seed=1, rules=rules, policy=pol, llm=_client(stub), block=3)
+    calls_before = _Stub.calls
+    finished = planner.plan(6, seed=1, rules=rules, policy=pol, llm=_client(stub),
+                            block=3, resume=already)
+    assert finished[:3] == already
+    assert len(finished) == 6
+    # 3 pages already resumed, 3 left -- one more block, not two.
+    assert _Stub.calls - calls_before == 1
 
 
 # ------------------------------------- dressing the layout, not just painting it

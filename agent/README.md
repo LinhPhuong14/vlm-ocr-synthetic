@@ -203,9 +203,20 @@ Cờ đáng chỉnh:
 | `--shard` | 125 | số ảnh mỗi tiến trình render (mỗi shard một trình duyệt) |
 | `--plan-only` | | quyết định và báo cáo, không vẽ |
 | `--no-proof` | | bỏ qua ảnh proof |
+| `--resume` | | bước quyết định bị ngắt giữa chừng thì tiếp tục từ checkpoint thay vì hỏi lại model những trang đã có |
 
 Server không trả lời thì `alive()` bắt được và lượt chạy nói ra rồi chuyển sang
 `coverage` — chứ không đứng chờ 5000 lần timeout.
+
+**Bước quyết định có thanh tiến độ và tự lưu lại giữa chừng.** 5000 trang qua
+model là hàng trăm lượt gọi mạng — mỗi lượt quyết một khối 24 trang theo mặc
+định — không phải một phép tính tức thời, nên `agent/planner.py::plan()` vẽ
+một thanh tiến độ (`pipeline/progress.py`, tự ẩn khi không phải terminal) và
+ghi `agent_plan.json` **tạm** (`.partial`) sau mỗi khối trang, không đợi tới
+trang cuối cùng. Mất kết nối tới server, hay tiến trình bị kill, chỉ mất tối
+đa một khối vừa gọi dở chứ không mất từ đầu — chạy lại với `--resume` là đọc
+tiếp từ đó. File tạm đó tự xoá khi bước quyết định xong xuôi và
+`agent_plan.json` đã ghi thật; nó không phải sổ cái, chỉ là tấm lưới an toàn.
 
 ---
 

@@ -8,6 +8,7 @@ browser and the pure-Python parts must stay installable without one.
 | --- | --- | --- |
 | `rulebase/` | any Python 3.9+ with `PyYAML` | pure content logic; no image libraries |
 | `degradation/` | any Python 3.9+ with `numpy`, `opencv` | shared by the renderer and the tools |
+| `degradation/blender/` | `generators/html/.venv` (needs `scipy` too) + `make setup-blender` | opt-in, not part of `setup`; a real `blender` executable, not a venv — see its own module docstring |
 | `generators/html/` | `make setup-html` | needs a browser; see its README |
 
 `make setup` builds that one environment. Without `make` — on Windows, or
