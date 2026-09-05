@@ -179,19 +179,23 @@ nó ở đó chỉ để lớp này xuất hiện, và **nội dung bịa cho v�
 **đề nghị gửi bên yêu cầu**, không phải thay đổi tự quyết — trục 1 là hợp đồng
 với bên ngoài.
 
-> Một mô hình dò bố cục nhìn **hình dạng**, không đọc nội dung. Trên trang,
-> `(NH₄)₂SO₄ + 2 NaOH → …` và `w = (V₁−V₀)·c·14,007·100/m` là **cùng một
-> hình**: một dòng ngắn căn giữa, có chỉ số dưới, đôi khi đánh số bên phải.
-> Không có tín hiệu hình học nào tách chúng — muốn tách phải *hiểu* nội dung,
-> mà đó là việc của chặng sau, không phải của dò bố cục. Hai lớp mà mô hình
-> không phân biệt được thì nó sẽ lẫn, và cái lẫn ấy vào thẳng chỉ số đo.
+> **Ranh giới lớp đặt ở chỗ mục tiêu huấn luyện cần, không đặt ở chỗ nội dung
+> khác nhau.**
+>
+> `Formula` tách khỏi `Text` là ranh giới **cần**: công thức được bày khác và
+> được đọc khác văn xuôi, và phía sau xử lý nó khác. Mô hình hiểu nội dung đủ
+> để biết "đây là một công thức" là chuyện bình thường và cần thiết.
+>
+> `Equation` tách khỏi `Chemical` là ranh giới **không ai dùng tới**. Nó không
+> đổi cách trích xuất, không đổi cách hiển thị, không đổi bước xử lý nào phía
+> sau. Chia thêm chỉ tạo ra hai lớp mà người gán nhãn khó nhất quán và chỉ số
+> đo khó đọc — công sức bỏ vào một phân biệt không ai tiêu thụ.
 >
 > DocLayNet dùng đúng **một** lớp: `Formula`.
 >
-> `Chemical-Block` chỉ đáng đứng riêng nếu nó nghĩa là **cấu trúc hoá học vẽ
-> ra** — vòng benzen, liên kết — vì thứ đó giống ảnh hơn giống công thức, và
-> khi ấy nó thuộc về `Diagram`/`Image` chứ vẫn không phải một lớp riêng. Một
-> phản ứng viết thành dòng chỉ là chữ có chỉ số dưới.
+> Cấu trúc hoá học **vẽ ra** — vòng benzen, liên kết — thì lại khác thật: nó
+> được đọc như *cấu trúc*, nên nó là `Diagram`. Đó mới là ranh giới có nghĩa,
+> và nó không nằm giữa "hoá học" với "toán học".
 
 ## Ba chỗ dễ gán nhầm, đã gán nhầm cả ba
 

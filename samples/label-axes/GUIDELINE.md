@@ -125,14 +125,25 @@ học được: thụt treo, mã trong ngoặc vuông, nhan đề in nghiêng.
 
 ### `Formula`
 
-Gộp từ `Equation-Block` và `Chemical-Block`. Lý do: mô hình dò bố cục nhìn
-**hình dạng**, và trên trang `(NH₄)₂SO₄ + 2 NaOH →` với
-`w = (V₁−V₀)·c·14,007·100/m` là **cùng một hình** — dòng ngắn căn giữa, có chỉ
-số dưới, đôi khi đánh số bên phải. Tách chúng đòi *hiểu* nội dung, mà đó là việc
-của chặng sau. Hai lớp mô hình không phân biệt được sẽ thành nhiễu trong chỉ số.
+Gộp từ `Equation-Block` và `Chemical-Block`.
 
-Cấu trúc hoá học **vẽ ra** (vòng benzen, liên kết) thì không phải `Formula` —
-nó là `Diagram`, vì nó được đọc như cấu trúc.
+**Ranh giới lớp đặt ở chỗ mục tiêu huấn luyện cần, không đặt ở chỗ nội dung
+khác nhau.** Hai thứ có thể khác nhau về nội dung mà vẫn nên chung một lớp, nếu
+không bước nào phía sau dùng đến phân biệt ấy.
+
+* `Formula` tách khỏi `Text` — **cần**. Công thức được bày khác, đọc khác, và
+  phía sau xử lý khác. Mô hình hiểu nội dung đủ để biết "đây là công thức" là
+  chuyện bình thường và cần thiết.
+* `Equation` tách khỏi `Chemical` — **không ai dùng tới**. Nó không đổi cách
+  trích xuất, không đổi cách hiển thị, không đổi bước xử lý nào. Chia thêm chỉ
+  tạo hai lớp mà người gán nhãn khó nhất quán và chỉ số đo khó đọc.
+
+Phép thử chung: *"có bước nào phía sau đối xử với hai lớp này khác nhau
+không?"* Không có thì gộp.
+
+Cấu trúc hoá học **vẽ ra** (vòng benzen, liên kết) thì khác thật: nó được đọc
+như **cấu trúc**, nên nó là `Diagram`. Đó mới là ranh giới có nghĩa — và nó
+không nằm giữa "hoá học" với "toán học".
 
 ### `Complex-Block`
 
