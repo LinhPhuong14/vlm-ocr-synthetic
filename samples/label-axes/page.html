@@ -349,8 +349,14 @@
 </div>
 
 <!-- ══ Signature ══ roles: heading, note, value ══ inks: print, hand -->
-<div class="r-signature" data-region-box="Form">
-  <div class="col">
+<!-- HAI vùng `Form`, không phải một.
+     Hộp vùng lấy hợp của mực bên trong, nên đánh dấu trên thẻ bao CẢ HAI CỘT
+     sẽ cho MỘT hộp trải hết bề ngang, với gần nửa trang trống ở giữa — đo
+     được 25,7% mực. Đó là cùng cái sai đã gộp letterhead thành một vùng.
+     Ô ký bên mua và ô ký bên bán là hai khối điền độc lập: điền ô này không
+     đụng ô kia, và người gán nhãn sẽ khoanh hai hộp. Nên đánh dấu ở TỪNG CỘT. -->
+<div class="r-signature">
+  <div class="col" data-region-box="Form">
     <span class="ttl" data-region="Form" data-role="heading" data-ink="print"
           data-kind="sign.buyer.title">NGƯỜI MUA HÀNG</span>
     <span class="nt" data-region="Form" data-role="note" data-ink="print"
@@ -358,7 +364,7 @@
     <span data-region="Form" data-role="value" data-ink="hand"
           data-kind="sign.buyer.name">Bích Trâm</span>
   </div>
-  <div class="col">
+  <div class="col" data-region-box="Form">
     <span class="ttl" data-region="Form" data-role="heading" data-ink="print"
           data-kind="sign.seller.title">NGƯỜI BÁN HÀNG</span>
     <span class="nt" data-region="Form" data-role="note" data-ink="print"
