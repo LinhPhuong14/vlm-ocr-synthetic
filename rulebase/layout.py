@@ -1,17 +1,19 @@
 """Turn a `Receipt` plus a layout spec into a grid of cells.
 
-The grid is the contract between the rule-base and the three renderers. A cell
-is a piece of text at (row, column range) with an alignment and a relative
-size -- deliberately the coarsest description that still pins the text down,
-because it has to survive being drawn three different ways:
+The grid is the contract between the rule-base and the renderer. A cell is a
+piece of text at (row, column range) with an alignment and a relative size --
+deliberately the coarsest description that still pins the text down, because it
+was written to survive being drawn three different ways:
 
-    synthdog   one TextLayer per cell at row*line_height, col*char_width
     html       one absolutely-positioned span per cell, widths in `ch`
+    synthdog   one TextLayer per cell at row*line_height, col*char_width
     genalog    the same HTML, printed through WeasyPrint
 
-Columns are counted in characters, not pixels, which is what makes the three
-agree: a thermal receipt really is a fixed-width grid, and every layout in
-`layouts/*.yaml` was measured off a photograph in those units.
+Only the first is left. The coarseness stays anyway, and not out of nostalgia:
+columns counted in characters rather than pixels is what let three renderers
+agree, and it is the same property that lets `preflight.py` estimate a page's
+height without a browser. A thermal receipt really is a fixed-width grid, and
+every layout in `layouts/*.yaml` was measured off a photograph in those units.
 
 A page is a **sequence of sections**, and which sections in what order is the
 layout's to say (`sections:` in the YAML). A till receipt is one particular

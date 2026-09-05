@@ -253,10 +253,12 @@ def ornament_assets() -> list[str]:
     return problems
 
 
-# A monospace advance as a fraction of the font size. The same estimate
-# `generators/genalog/render.py` has always used to size its page; good to a few
-# per cent for every font in `fonts/`, which is all this check needs -- it is
-# looking for a page half again too tall, not for a rounding error.
+# A monospace advance as a fraction of the font size. Measured against every
+# font in `fonts/`, where it is good to a few per cent -- which is all this
+# check needs, since it looks for a page half again too tall, not for a
+# rounding error. (It came from the WeasyPrint renderer, which sized its page
+# the same way. That renderer is gone; the constant is a property of the
+# fonts, not of it.)
 ADVANCE = 0.62
 SHEET_SEEDS = 12
 

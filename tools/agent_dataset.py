@@ -53,7 +53,8 @@ REPORT_NAME = "agent_report.json"
 RULES_DIR = "rules"
 
 
-def report(out: Path, decisions, rules, pol, catalogue, elapsed: dict) -> dict:
+def report(out: Path, decisions, rules, pol, catalogue, elapsed: dict,
+           feedback: dict | None = None) -> dict:
     """What this run decided, and what it covered. Written beside the images."""
     payload = {
         "images": len(decisions),
@@ -69,6 +70,7 @@ def report(out: Path, decisions, rules, pol, catalogue, elapsed: dict) -> dict:
             "axes": {axis.name: {"level": axis.level, "values": sorted(axis.values)}
                      for axis in variants.AXES},
         },
+        "feedback": feedback or {},
         "coverage": planner.coverage(decisions, rules),
         "never_drawn": planner.unused(decisions, rules),
         # Drawable on paper and impossible in practice -- see planner.unreachable.
@@ -99,6 +101,13 @@ def main() -> int:
              "are not the same claim, and only the second one is checkable")
     parser.add_argument("--pressure", type=float, default=planner.DEFAULT_PRESSURE,
                         help="0 draws like the shipped sampler, 1 chases coverage")
+    parser.add_argument(
+        "--feedback", type=Path, default=None, metavar="JSON",
+        help="the previous run's review, which `tools/critic_review.py` "
+             "writes as feedback.json. Values it found on broken pages get "
+             "drawn less often and pairs that only fail together stop being "
+             "drawn at all -- which is how the reviewing agent reaches the "
+             "generating one instead of just filing a report nobody reads")
     parser.add_argument("--clean", action="store_true", help="no ageing at all")
     parser.add_argument("--template", default="auto",
                         help="page model; 'auto' is the sheet the layout belongs to")
@@ -115,6 +124,16 @@ def main() -> int:
              "shards already carrying a DONE are skipped. This is how a long "
              "run is delivered in batches without the batches each becoming a "
              "differently-balanced dataset")
+    parser.add_argument(
+        "--resume", action="store_true",
+        help="if the plan step was interrupted -- the process was killed, the "
+             "model server dropped -- pick it back up from "
+             f"<out>/{PLAN_NAME}.partial instead of asking the model again "
+             "for pages it already answered. Only meaningful with the same "
+             "--seed/--dressings/--qualified/--pressure as the run being "
+             "resumed; verify() below still catches a mismatch that made a "
+             "resumed page illegal, it just cannot tell you resumed for the "
+             "wrong reason")
     args = parser.parse_args()
 
     out: Path = args.out.resolve()
@@ -165,9 +184,35 @@ def main() -> int:
         llm = None
     print(f"[agent] chế độ: {'llm ' + llm.model if llm else 'coverage (không có server)'}")
 
+    weights: dict[str, dict[str, float]] = {}
+    bans: list = []
+    if args.feedback:
+        from agent import critic  # noqa: PLC0415 -- only this branch needs it
+
+        weights, bans = critic.load_feedback(args.feedback)
+        listed = sum(len(v) for v in weights.values())
+        print(f"[agent] phản hồi từ {args.feedback}: phạt {listed} giá trị, "
+              f"cấm {len(bans)} cặp")
+        for attribute, options in sorted(weights.items()):
+            for option, factor in sorted(options.items(), key=lambda kv: kv[1]):
+                print(f"          {attribute}={option} x{factor}")
+
+    checkpoint = out / f"{PLAN_NAME}.partial"
+    resume: list = []
+    if args.resume:
+        resume = planner.read(checkpoint)[:args.count]
+        if resume:
+            print(f"[agent] tiếp tục từ checkpoint {checkpoint.name}: "
+                  f"{len(resume)}/{args.count} trang đã quyết định từ trước")
+        else:
+            print(f"[agent] --resume: không có checkpoint ở {checkpoint} "
+                  "(hoặc rỗng) — chạy từ đầu")
+
     started = time.time()
     decisions = planner.plan(args.count, args.seed, rules, pol,
-                             llm=llm, pressure=args.pressure)
+                             llm=llm, pressure=args.pressure,
+                             penalty=weights, ban=bans,
+                             resume=resume, checkpoint=checkpoint)
     clock["plan"] = round(time.time() - started, 2)
 
     started = time.time()
@@ -179,6 +224,10 @@ def main() -> int:
             print(f"  - {problem}")
         return 1
     planner.write(out / PLAN_NAME, decisions)
+    # The checkpoint's only job was surviving a plan step that never finished.
+    # One that did needs it no longer, and leaving it behind would make a
+    # later --resume load a plan already superseded by args.count/rules.
+    checkpoint.unlink(missing_ok=True)
 
     summary = planner.coverage(decisions, rules)
     print(f"[agent] {len(decisions)} trang, {summary['distinct_triples']} tổ hợp "
@@ -192,8 +241,10 @@ def main() -> int:
     if args.render_upto:
         print(f"[agent] vẽ {len(drawing)}/{len(decisions)} trang trong lượt này")
 
+    applied = {"from": str(args.feedback) if args.feedback else "",
+               "penalties": weights, "ban": [[list(a), list(b)] for a, b in bans]}
     if args.plan_only:
-        report(out, decisions, rules, pol, catalogue, clock)
+        report(out, decisions, rules, pol, catalogue, clock, applied)
         return 0
 
     # 4. Render, through the pipeline the ordinary driver uses.
@@ -219,7 +270,7 @@ def main() -> int:
     code = execute(config, runs={"html": planner.to_runs(drawing)})
     clock["render"] = round(time.time() - started, 2)
     if code != 0:
-        report(out, decisions, rules, pol, catalogue, clock)
+        report(out, decisions, rules, pol, catalogue, clock, applied)
         return code
 
     # 4b. What was drawn, against what was decided. The one check that catches a
@@ -229,7 +280,7 @@ def main() -> int:
         print(f"[agent] {len(drifted)} trang được vẽ KHÁC với kế hoạch:")
         for problem in drifted[:10]:
             print(f"  - {problem}")
-        report(out, decisions, rules, pol, catalogue, clock)
+        report(out, decisions, rules, pol, catalogue, clock, applied)
         return 1
     print(f"[agent] {len(drawing)} trang: thuộc tính đã vẽ khớp kế hoạch")
 
@@ -246,7 +297,7 @@ def main() -> int:
             print("[agent] một số ảnh proof không vẽ được")
             code = 1
 
-    payload = report(out, decisions, rules, pol, catalogue, clock)
+    payload = report(out, decisions, rules, pol, catalogue, clock, applied)
     print(f"[agent] báo cáo -> {out / REPORT_NAME}")
     never = {k: v for k, v in payload["never_drawn"].items() if v}
     if never:

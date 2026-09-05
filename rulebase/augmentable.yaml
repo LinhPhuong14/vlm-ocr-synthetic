@@ -11,7 +11,7 @@
 # cùng lý do với `rules/`: người biết một tờ chứng từ Việt Nam bị ràng buộc tới
 # đâu không nhất thiết là người sửa Python.
 #
-# Đọc bởi `tools/llm/` (bước compose, xem `docs/llm-in-pipeline.md`). KHÔNG có
+# Đọc bởi `agent/augmentable.py` (bước compose, xem `docs/llm-in-pipeline.md`). KHÔNG có
 # gì trong `pipeline/` hay `generators/` đọc file này: nó quyết định model được
 # đề xuất gì, không quyết định trang được vẽ ra sao.
 #
@@ -55,14 +55,6 @@ documents:
   # thứ tự của chúng theo thông lệ quốc tế chứ không theo ý người in.
   export_invoice: fixed
 
-  # Root 3 (Form/Application), hai document mang khuôn mẫu hành chính nhà
-  # nước ban hành -- "sơ yếu lý lịch tự thuật" và "giấy khai sinh"/đăng ký
-  # kết hôn đều có mẫu thống nhất một cơ quan quy định, đúng định nghĩa
-  # `fixed` ở trên (nội dung trường vẫn bốc tự do, bố cục thì không).
-  form_activity: fixed        # FORM-07, trang cuối sơ yếu lý lịch tự thuật
-  form_dense: fixed           # FORM-09 giấy khai sinh, FORM-10 sơ yếu lý lịch
-  form_symmetric: fixed       # FORM-04 tờ khai đăng ký kết hôn
-
   # Bảo hiểm BẮT BUỘC: mẫu giấy chứng nhận do nghị định/thông tư ban hành, và
   # đó là tờ giấy cảnh sát giao thông hoặc cơ quan PCCC đọc. Biến thể của nó
   # không phải "một công ty bảo hiểm khác" — nó là một giấy tờ không tồn tại.
@@ -72,6 +64,18 @@ documents:
   # Thẻ BHYT do cơ quan bảo hiểm xã hội phát hành: mã thẻ, nơi khám ban đầu,
   # thời hạn — hình thức là của nhà nước, không của ai in nó.
   insurance_health_id_card: fixed
+
+  # Tám phôi biểu mẫu hành chính, bật lại cùng lượt với ba root giấy tờ. Chúng
+  # được khai ở đây theo đúng hạng mà `agent/policy.yaml` đã xếp, vì hai file
+  # trả lời cùng một câu hỏi cho hai người đọc khác nhau: file này nói với
+  # bộ sinh được đề xuất biến đổi tới đâu, file kia nói bộ quyết định được
+  # vẽ tới đâu. Hai câu trả lời khác nhau về cùng một tờ giấy là một lỗi.
+  #
+  # Giấy khai sinh, tờ khai đăng ký kết hôn, phiếu lý lịch hoạt động của Bộ Nội
+  # vụ: mẫu ban hành kèm thông tư, có số hiệu mẫu in ở góc.
+  form_dense: fixed
+  form_symmetric: fixed
+  form_activity: fixed
 
   # ---- styled: cửa hàng tự thiết kế -----------------------------------------
   #
@@ -90,20 +94,12 @@ documents:
   bakery_order: styled
   resort_stay: styled
   hotel_stay: styled
-
-  # Root 3 (Form/Application) còn lại: khuôn mẫu quen thuộc (một bảng công
-  # việc, một danh sách checkbox, hai mục A/B...) nhưng không văn bản pháp
-  # luật nào bắt phải trình bày đúng vậy -- mỗi nơi soạn một kiểu trong
-  # khuôn khổ nội dung bắt buộc, đúng định nghĩa `styled`.
-  form_brief: styled            # FORM-01 questionnaire, FORM-03 label-value
-  form_checklist: styled        # FORM-06 checkbox-heavy
-  form_checklist_table: styled  # FORM-08 table-based
-  form_roster: styled           # FORM-02 bảng chấm công
-  form_sectioned: styled        # FORM-05 multi-section (mục A/B)
-
   # Giấy uỷ quyền: có khuôn mẫu quen thuộc nhưng không mẫu nào bắt buộc; mỗi
   # nơi soạn một kiểu, miễn đủ hai bên, nội dung uỷ quyền và chữ ký.
   authorisation_letter: styled
+  # Danh sách/bảng phân công của một cơ quan: khuôn do đơn vị tự đặt, dùng đi
+  # dùng lại trong nội bộ, không mẫu nào ban hành.
+  form_roster: styled
 
   # Bảo hiểm THƯƠNG MẠI: nội dung bị Luật Kinh doanh bảo hiểm ràng buộc, còn
   # tờ giấy thì mỗi doanh nghiệp một kiểu — đúng định nghĩa của `styled`.
@@ -117,6 +113,14 @@ documents:
   # Hợp đồng: điều khoản bị ràng buộc, hình thức thì không — mỗi nơi soạn một
   # kiểu, và càng nhiều kiểu càng tốt cho một mô hình phải đọc hợp đồng thật.
   insurance_property_contract: free
+
+  # Giấy tờ nội bộ không mẫu: bản trình bày ngắn, phiếu việc cần làm, bảng
+  # kiểm, biểu mẫu chia mục. Mỗi nơi soạn một kiểu và không quy định nào nói
+  # chúng phải trông ra sao.
+  form_brief: free
+  form_checklist: free
+  form_checklist_table: free
+  form_sectioned: free
 
   newspaper_front_broadsheet: free
   newspaper_classifieds: free

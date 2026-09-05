@@ -12,7 +12,8 @@ They were a function of the seed *and the position of the page in its process*,
 because `config_vi_receipt.yaml` uses imgaug augmenters and imgaug does one-time
 initialisation on its first augmentation in a process. Nothing noticed for four
 waves, because the worker started a fresh process per layout and every page was
-page one. See `_warm_imgaug` in `generators/synthdog/template_receipt.py`.
+page one -- a defect the glyph renderer had. That renderer is deleted, and
+the test that pinned the defect went with it.
 """
 
 from __future__ import annotations
@@ -41,10 +42,7 @@ PLAN = [{"layout": "market_vat", "seed": 5000, "count": 2},
         {"layout": "eatery_ascii", "seed": 6000, "count": 1}]
 
 SCRIPTS = {
-    "synthdog": (REPO_ROOT / "generators" / "synthdog" / "render.py",
-                 REPO_ROOT / "generators" / "synthdog"),
     "html": (REPO_ROOT / "generators" / "html" / "render.py", REPO_ROOT),
-    "genalog": (REPO_ROOT / "generators" / "genalog" / "render.py", REPO_ROOT),
 }
 
 
@@ -197,21 +195,3 @@ def test_a_page_is_the_same_drawn_alone_or_in_a_list(backend, tmp_path):
         assert alone[2] == together[2], f"page {index}: the boxes differ"
 
 
-@pytest.mark.slow
-def test_a_glyph_page_does_not_depend_on_its_position_in_the_process(tmp_path):
-    """The defect that batching exposed, kept as a test of its own.
-
-    The same seed drawn as the first page of a process and as the second page
-    of a process must give the same image. Before `_warm_imgaug` it did not,
-    and the difference was invisible: same label, same words, different pixels
-    and different quads.
-    """
-    if not venv_python(VENVS["synthdog"]).exists():
-        pytest.skip("synthdog environment not built")
-
-    alone = _render("synthdog", tmp_path / "alone",
-                    ["-c", "1", "--seed", "5000", "--layout", "market_vat"])
-    pair = _render("synthdog", tmp_path / "pair",
-                   ["-c", "2", "--seed", "4999", "--layout", "market_vat"])
-    assert alone[0][0] == pair[1][0], (
-        "seed 5000 drew a different image as page 2 of a process than as page 1")

@@ -37,7 +37,6 @@ from paths import (  # noqa: E402
     venv_tool,
 )
 
-SYNTHDOG = REPO_ROOT / "generators" / "synthdog"
 TASKS: dict[str, tuple] = {}
 
 
@@ -103,23 +102,6 @@ def _make_venv(name: str, requirements: Path, extra_first: list[str] | None = No
     return python
 
 
-@task("setup-synthdog", "patterns: synthtiger (retired as a document backend)")
-def setup_synthdog(args) -> None:
-    if sys.version_info >= (3, 12):
-        raise SystemExit(
-            f"synthdog needs Python 3.8-3.11, this is {sys.version.split()[0]}.\n"
-            "Run this task with an older interpreter:\n"
-            "  py -3.11 tasks.py setup-synthdog        (Windows)\n"
-            "  python3.11 tasks.py setup-synthdog      (Linux/macOS)\n"
-            "See docs/python-versions.md for why the cap is real."
-        )
-    python = _make_venv(
-        "synthdog", SYNTHDOG / "requirements.txt", ["-U", "setuptools", "wheel"]
-    )
-    run([python, "-c", "import synthtiger, PIL; print('synthtiger', synthtiger.__version__,"
-                       " '| pillow', PIL.__version__)"])
-
-
 @task("setup-html", "HTML renderer: playwright plus a headless browser")
 def setup_html(args) -> None:
     python = _make_venv("html", REPO_ROOT / "generators" / "html" / "requirements.txt")
@@ -128,25 +110,6 @@ def setup_html(args) -> None:
         # No system browser is shipped on Windows, unlike the Linux container
         # this repository was built in, so Playwright has to fetch its own.
         run([python, "-m", "playwright", "install", "chromium"])
-
-
-@task("setup-genalog", "WeasyPrint plus PyMuPDF (retired; reads old sets)")
-def setup_genalog(args) -> None:
-    genalog = REPO_ROOT / "generators" / "genalog"
-    python = _make_venv("genalog", genalog / "requirements.txt")
-    # genalog itself is NOT installed from PyPI: its source is vendored under
-    # generators/genalog/, and because that directory is the script directory of
-    # render.py it lands on sys.path[0] and wins over anything pip installed.
-    # Installing the package as well would leave two copies with the vendored
-    # one silently shadowing the other.
-    run([python, "-c", "import sys; sys.path.insert(0, r'%s');"
-                       " import genalog, weasyprint;"
-                       " print('genalog renderer ready:', genalog.__file__)" % genalog])
-    if WINDOWS:
-        print(
-            "\nNOTE: WeasyPrint on Windows needs the GTK runtime for Pango and "
-            "cairo.\n      See docs/windows.md."
-        )
 
 
 @task("setup-blender", "geometry warps: Blender plus numpy for its own interpreter")
@@ -211,10 +174,10 @@ def setup_blender(args) -> None:
 
 @task("setup", "build the renderer environment (html)")
 def setup(args) -> None:
-    # `html` is the renderer, so this builds one environment and not three.
-    # `setup-synthdog` and `setup-genalog` are still here for anyone reviving a
-    # retired backend or re-reading a dataset half it drew, but neither is part
-    # of setting the repository up -- see pipeline/config.RETIRED_BACKENDS.
+    # One renderer, one environment. There were three of these tasks while
+    # `synthdog` and `genalog` were on disk; both are deleted now, and the
+    # pages they drew are read without either -- see
+    # `pipeline/config.py::GONE_BACKENDS`.
     setup_html(args)
 
 
@@ -351,7 +314,7 @@ def showcase(args) -> None:
 
 @task("patterns", "regenerate every shared pattern: paper, backgrounds, ornaments")
 def patterns(args) -> None:
-    """The whole pattern layer in one task, which is the synthdog side's job now.
+    """The whole pattern layer in one task.
 
     `textures/paper/`, `textures/background/` and `textures/ornament/` are what
     every page is composited onto and marked with. They are generated rather
@@ -360,21 +323,6 @@ def patterns(args) -> None:
     """
     textures(args)
     ornaments(args)
-
-
-@task("receipts", "100 receipts through synthtiger's CLI (retired backend)")
-def receipts(args) -> None:
-    run([venv_tool(VENVS["synthdog"], "synthtiger"),
-         "-o", "./outputs/VNReceipt", "-c", "100", "-w", "4", "-v",
-         "template_receipt.py", "SynthVNReceipt", "config_vi_receipt.yaml"],
-        cwd=SYNTHDOG)
-
-
-@task("preview", "grid of sample receipts from the glyph path (retired backend)")
-def preview(args) -> None:
-    run([venv_python(VENVS["synthdog"]), "tools/preview_receipt.py",
-         "--count", "8", "--grid", "4", "--seed", "2026", "--out", args.out],
-        cwd=SYNTHDOG)
 
 
 @task("preview-grid", "print sampled receipts as text (--layout to pin one)")
@@ -389,9 +337,7 @@ def visualize(args) -> None:
     # The html backend's interpreter: the live-gallery tab drives
     # `pipeline.run.execute()` in-process, and the handwriting tab imports
     # `generators/html/handwriting.py` directly -- both need what that venv
-    # already has. The stamp tab's own synthtiger half crosses into
-    # `generators/synthdog/.venv` as a subprocess, the same way a real run's
-    # renderer dispatch does.
+    # already has.
     run([venv_python(VENVS["html"]), REPO_ROOT / "tools" / "visualize" / "app.py"])
 
 
@@ -519,7 +465,6 @@ def clean(args) -> None:
     targets = [
         REPO_ROOT / ".ruff_cache",
         REPO_ROOT / ".pytest_cache",
-        SYNTHDOG / "outputs",
         REPO_ROOT / "data" / "visualize_runs",
     ]
     targets += [

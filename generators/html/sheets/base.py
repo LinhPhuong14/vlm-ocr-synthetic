@@ -211,10 +211,11 @@ def initials(name: str) -> str:
 def ornament_url(stem: str) -> str:
     """A `file://` URL for one of `textures/ornament/`, or "" if it is missing.
 
-    Absolute rather than relative because the two engines resolve differently:
-    the browser serves the markup from a temporary directory (see
-    `page.served`) and genalog hands WeasyPrint a bare string with no base URL.
-    An absolute URL is the only form both of them find.
+    Absolute rather than relative because the browser serves the markup from a
+    temporary directory (see `page.served`), so a relative URL resolves against
+    that directory and finds nothing. It was also the only form the WeasyPrint
+    path could resolve, which is why it is absolute rather than served-relative;
+    that path is gone, the reason above is not.
     """
     path = ORNAMENT_DIR / f"{stem}.png"
     return path.as_uri() if path.exists() else ""
@@ -1123,8 +1124,11 @@ __all__ = [
     "document", "esc", "field_line",
     "footer_block", "initials", "item_rows", "items_table", "key_strip",
     "ncols_of", "notes_blocks", "ornament_url", "party_pairs", "party_rows",
+    # No `signed_lines` -- 459dfd4 deleted the function (zero callers) and
+    # took it out of this list; a later rewrite of the list put the name
+    # back without the function, so `from base import *` raised.
     "qr_svg", "render_ornament_marks", "rng_for", "safe_align", "seal_mark",
-    "signature_block", "signed_lines",
+    "signature_block",
     "span", "stamp", "structure_tokens",
     "totals_block", "words_block",
 ]

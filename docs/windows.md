@@ -5,7 +5,7 @@ Repo chạy được trên Windows mà không cần WSL. Không có `make` thì 
 mỏng. `make dataset` và `python tasks.py dataset` là một.
 
 ```powershell
-py -3.11 tasks.py setup
+py tasks.py setup
 py tasks.py dataset
 py tasks.py proof --dataset data\dataset60
 py tasks.py                       # liệt kê task
@@ -15,7 +15,7 @@ Bảng đối chiếu:
 
 | Linux / macOS | Windows |
 | --- | --- |
-| `make setup` | `py -3.11 tasks.py setup` |
+| `make setup` | `py tasks.py setup` |
 | `make dataset N=5` | `py tasks.py dataset -n 5` |
 | `make dataset DATASET=/tmp/thu` | `py tasks.py dataset -o C:\tmp\thu` |
 | `make proof DATASET=…` | `py tasks.py proof --dataset …` |
@@ -113,7 +113,7 @@ Xoá các venv dở dang rồi làm lại từ đầu — chúng đang rỗng ho
 
 ```powershell
 Remove-Item -Recurse -Force generators\*\.venv
-py -3.11 tasks.py setup
+py tasks.py setup
 ```
 
 Kiểm tra nhanh trước khi chạy lại cả `setup`:
@@ -126,22 +126,13 @@ Lệnh này chạy trót lọt thì `setup` cũng sẽ trót lọt.
 
 ---
 
-## 1. Python 3.11 cho renderer glyph
+## 1. Python nào cũng được (3.9+)
 
-Bắt buộc. synthtiger ghim `pillow<10`, `numpy<2`, `opencv-python<5`, và
-**Python 3.12+ không thoả được** — xem [python-versions.md](python-versions.md).
-
-```powershell
-winget install Python.Python.3.11
-py -0                      # kiểm tra đã thấy 3.11
-py -3.11 tasks.py setup-synthdog
-```
-
-`tasks.py setup-synthdog` **tự chặn** nếu bạn chạy bằng 3.12+ và in ra đúng
-lệnh cần gõ, thay vì để pip nổ giữa chừng với một thông báo khó hiểu.
-
-Hai renderer kia không kén, `py tasks.py setup-html` và `setup-genalog` chạy
-bằng Python nào cũng được (3.9+).
+Trước đây mục này bắt buộc Python 3.11, vì renderer lưới ký tự ghim
+`pillow<10`, `numpy<2`, `opencv-python<5` và **3.12+ không thoả được**. Renderer
+ấy đã bị xoá ([renderers.md](renderers.md)), nên ràng buộc cũng mất theo:
+`py tasks.py setup` chạy bằng bản Python nào bạn đang có, miễn 3.9 trở lên.
+[python-versions.md](python-versions.md) giữ lại phép đo, cho ai đọc lịch sử.
 
 ## 2. Trình duyệt cho renderer HTML
 
@@ -154,23 +145,12 @@ Trong container Linux của repo đã có sẵn bản build ở `/opt/pw-browser
 py tasks.py setup-html          # đã tự chạy `playwright install chromium`
 ```
 
-## 3. GTK cho renderer genalog
+## 3. Không còn cần GTK
 
-WeasyPrint cần Pango và cairo. Trên Linux là gói hệ thống; trên Windows phải
-cài **GTK3 runtime**:
-
-- Tải [tirl/gtk-for-windows-runtime-environment-installer](https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases)
-- Cài xong **mở lại terminal** để `PATH` cập nhật.
-
-Kiểm tra:
-
-```powershell
-generators\genalog\.venv\Scripts\python -c "import weasyprint; print('ok')"
-```
-
-Báo lỗi `cannot load library 'libgobject-2.0-0'` nghĩa là GTK chưa có trên
-`PATH`. Đây là yêu cầu của WeasyPrint chứ không phải của repo — xem
-[tài liệu WeasyPrint](https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#windows).
+Mục này từng hướng dẫn cài **GTK3 runtime** cho WeasyPrint, thứ nặng nhất trong
+cả bản dựng trên Windows. Renderer dùng WeasyPrint đã bị xoá, nên bước ấy không
+còn. Nếu bạn gặp `cannot load library 'libgobject-2.0-0'` thì đó là một môi
+trường cũ dựng từ trước, không phải của bản repo này.
 
 ## 4. Tesseract cho `proof`
 
@@ -225,7 +205,5 @@ có `\r` ở cuối.
   `py tasks.py check`.
 - Đường dẫn dài: bật `git config --system core.longpaths true` nếu clone vào
   thư mục sâu.
-- `py tasks.py setup` gọi cả ba; muốn bỏ genalog (để khỏi cài GTK) thì chạy
-  riêng `setup-synthdog` và `setup-html`, rồi
-  `py tasks.py dataset` với `--frameworks synthdog html` qua
-  `tools\generate_dataset.py`.
+- `py tasks.py setup` dựng đúng một môi trường, nên không còn phần "chạy riêng
+  từng renderer" mà bản trước của trang này mô tả.

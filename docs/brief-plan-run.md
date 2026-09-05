@@ -312,7 +312,7 @@ apply_overrides(load_rules(), {o.path: o.value for o in proposal.overrides})
 # 2. mọi bố cục được nêu đều có thật
 unknown = set(proposal.layouts) - set(rulebase.available_layouts())
 
-# 3. mọi backend được nêu đều có thật; --template chỉ đi với html/genalog
+# 3. mọi backend được nêu đều có thật (nay chỉ còn `html`)
 
 # 4. dựng dict đầy đủ (seed/pairing/out do CÔNG CỤ đặt), safe_dump, rồi
 #    Config.load() lên chính file vừa ghi ra
@@ -494,7 +494,7 @@ run:
   workers: auto
   pairing: paired     # do công cụ đặt
   layouts: [market_barcode, invoice_export, invoice_vat_form, invoice_brand]
-backends: [synthdog, html, genalog]
+backends: [html]        # bản gốc của brief này khai cả ba; hai kia đã xoá
 shard: {size: 100}
 overrides:
   # market_barcode 0,234 — thấp nhất trong 14 bố cục, chỉ 3 ảnh trong bộ đo

@@ -1,25 +1,18 @@
-# This repository is a collection of generators, not an installable package:
-# synthdog/ and genalog/ each have their own dependencies and their own
-# supported Python range. What lives here is the tooling configuration shared
-# across them.
+# This repository is not an installable package: the renderer has its own
+# dependencies and its own virtualenv, and the rule-base is meant to be
+# importable without them. What lives here is the tooling configuration shared
+# across both.
 
 [tool.ruff]
 line-length = 90
-# synthdog targets Python 3.8, so ruff must not suggest newer syntax --
-# `zip(strict=)` and friends would break the environment it actually runs in.
-target-version = "py38"
+# The rule-base and the tools around it must stay importable from an ordinary
+# system Python, which is older than the renderer's. Targeting the older one
+# keeps ruff from suggesting syntax that would break there.
+target-version = "py39"
 # Vendored third-party code keeps its own style and its own pre-commit config.
-# `generators/genalog/` is only partly vendored -- render.py, templates/ and its
-# README are ours -- so the upstream subdirectories are named individually.
 # Keep this list in step with VENDORED in tools/paths.py, which is what
 # `tasks.py check` uses.
 extend-exclude = [
-    "generators/genalog/genalog",
-    "generators/genalog/tests",
-    "generators/genalog/example",
-    "generators/genalog/devops",
-    "generators/genalog/docs",
-    "generators/genalog/setup.py",
     "augmentations",
     # Runs inside Blender's own Python (3.10+), not this repo's py38 floor -- parenthesized
     # `with` (PEP 617) and anything else newer than 3.8 is fine there. See its own NOTICE.md.
@@ -34,10 +27,6 @@ ignore = [
     "E501",  # long lines
     "E731",  # assigned lambdas read fine in the layout helpers
 ]
-
-[tool.ruff.lint.per-file-ignores]
-# Kept close to clovaai/donut so upstream changes still merge cleanly.
-"generators/synthdog/template.py" = ["F841"]
 
 [tool.pytest.ini_options]
 # `pythonpath` so `import rulebase` works without installing the package, and

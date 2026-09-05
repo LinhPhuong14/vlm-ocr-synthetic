@@ -1,0 +1,1128 @@
+{
+  "dataset": "/home/user/vlm-ocr-synthetic/data/5k_llm",
+  "pages": 250,
+  "checked_paper": true,
+  "pages_with_severe": 3,
+  "share_severe": 0.012,
+  "findings": {
+    "cham_box": 17,
+    "lap_noi_dung": 17,
+    "chu_nhat_mau": 11,
+    "chu_nho": 3,
+    "khong_muc": 2,
+    "che_box": 1
+  },
+  "codes": {
+    "chong_lan": {
+      "severity": "nặng",
+      "side": "record",
+      "means": "hai box đè lên nhau — người đọc mất một trong hai trường"
+    },
+    "tran_le": {
+      "severity": "nặng",
+      "side": "record",
+      "means": "box nằm ngoài mép giấy — nội dung bị cắt mất"
+    },
+    "o_trong": {
+      "severity": "nặng",
+      "side": "record",
+      "means": "box có nhãn nhưng không có chữ — nhãn nói dối"
+    },
+    "chu_nho": {
+      "severity": "nhẹ",
+      "side": "record",
+      "means": "dòng chữ thấp dưới ngưỡng pixel, OCR không đọc nổi"
+    },
+    "che_box": {
+      "severity": "nặng",
+      "side": "record",
+      "means": "con dấu/QR đóng lên một trường có nhãn và xoá mất chữ"
+    },
+    "cham_box": {
+      "severity": "nhẹ",
+      "side": "record",
+      "means": "con dấu chạm vào một trường có nhãn — đúng như dấu thật, chữ vẫn đọc được qua nét dấu"
+    },
+    "lap_noi_dung": {
+      "severity": "nhẹ",
+      "side": "record",
+      "means": "một chuỗi lặp lại nhiều lần trong cùng một loại trường"
+    },
+    "dac_thua": {
+      "severity": "nhẹ",
+      "side": "record",
+      "means": "mật độ chữ trên trang ra ngoài khoảng của một tờ giấy thật"
+    },
+    "khong_muc": {
+      "severity": "nặng",
+      "side": "paper",
+      "means": "chỗ có nhãn nhưng trên giấy không có mực"
+    },
+    "chu_nhat_mau": {
+      "severity": "nhẹ",
+      "side": "paper",
+      "means": "chữ quá nhạt so với nền ngay trong ô của nó"
+    },
+    "nhat": {
+      "severity": "nặng",
+      "side": "paper",
+      "means": "mực và giấy quá sát nhau, không đọc được"
+    },
+    "mo": {
+      "severity": "nhẹ",
+      "side": "paper",
+      "means": "ảnh nhoè, không đủ nét để đọc"
+    },
+    "muc_lech": {
+      "severity": "nhẹ",
+      "side": "paper",
+      "means": "cả trang quá tối hoặc quá trắng"
+    }
+  },
+  "thresholds": {
+    "overlap": 0.15,
+    "tiny_px": 10.0,
+    "washed": 0.3,
+    "sharp": 12.0,
+    "no_ink": 20.0,
+    "faint": 45.0,
+    "buried": 0.15,
+    "covered": 0.05,
+    "density": [
+      0.015,
+      0.8
+    ],
+    "lift": 2.0
+  },
+  "rank": [
+    {
+      "attribute": "color",
+      "option": "mono_black",
+      "drawn": 80,
+      "broken": 3,
+      "rate": 0.0375,
+      "lift": 3.12,
+      "codes": {
+        "khong_muc": 2,
+        "che_box": 1
+      }
+    },
+    {
+      "attribute": "handwriting",
+      "option": "hand_both",
+      "drawn": 71,
+      "broken": 2,
+      "rate": 0.0282,
+      "lift": 2.35,
+      "codes": {
+        "khong_muc": 2
+      }
+    },
+    {
+      "attribute": "content",
+      "option": "invoice_vi",
+      "drawn": 76,
+      "broken": 1,
+      "rate": 0.0132,
+      "lift": 1.1,
+      "codes": {
+        "khong_muc": 1
+      }
+    },
+    {
+      "attribute": "visual",
+      "option": "impact_invoice",
+      "drawn": 81,
+      "broken": 1,
+      "rate": 0.0123,
+      "lift": 1.03,
+      "codes": {
+        "khong_muc": 1
+      }
+    },
+    {
+      "attribute": "toner",
+      "option": "no_toner",
+      "drawn": 250,
+      "broken": 3,
+      "rate": 0.012,
+      "lift": 1.0,
+      "codes": {
+        "khong_muc": 2,
+        "che_box": 1
+      }
+    },
+    {
+      "attribute": "drum",
+      "option": "no_drum",
+      "drawn": 250,
+      "broken": 3,
+      "rate": 0.012,
+      "lift": 1.0,
+      "codes": {
+        "khong_muc": 2,
+        "che_box": 1
+      }
+    },
+    {
+      "attribute": "rollers",
+      "option": "no_rollers",
+      "drawn": 250,
+      "broken": 3,
+      "rate": 0.012,
+      "lift": 1.0,
+      "codes": {
+        "khong_muc": 2,
+        "che_box": 1
+      }
+    },
+    {
+      "attribute": "visual",
+      "option": "laser_invoice",
+      "drawn": 102,
+      "broken": 1,
+      "rate": 0.0098,
+      "lift": 0.82,
+      "codes": {
+        "khong_muc": 1
+      }
+    },
+    {
+      "attribute": "handwriting",
+      "option": "typed",
+      "drawn": 132,
+      "broken": 1,
+      "rate": 0.0076,
+      "lift": 0.63,
+      "codes": {
+        "che_box": 1
+      }
+    },
+    {
+      "attribute": "ornament",
+      "option": "no_ornament",
+      "drawn": 62,
+      "broken": 0,
+      "rate": 0.0,
+      "lift": 0.0,
+      "codes": {}
+    },
+    {
+      "attribute": "variant",
+      "option": "none",
+      "drawn": 48,
+      "broken": 0,
+      "rate": 0.0,
+      "lift": 0.0,
+      "codes": {}
+    },
+    {
+      "attribute": "content",
+      "option": "invoice_vi_upper",
+      "drawn": 40,
+      "broken": 0,
+      "rate": 0.0,
+      "lift": 0.0,
+      "codes": {}
+    },
+    {
+      "attribute": "content",
+      "option": "invoice_ascii",
+      "drawn": 41,
+      "broken": 0,
+      "rate": 0.0,
+      "lift": 0.0,
+      "codes": {}
+    },
+    {
+      "attribute": "handwriting",
+      "option": "hand_model",
+      "drawn": 47,
+      "broken": 0,
+      "rate": 0.0,
+      "lift": 0.0,
+      "codes": {}
+    },
+    {
+      "attribute": "color",
+      "option": "faded_gray",
+      "drawn": 65,
+      "broken": 0,
+      "rate": 0.0,
+      "lift": 0.0,
+      "codes": {}
+    },
+    {
+      "attribute": "color",
+      "option": "thermal_yellow",
+      "drawn": 55,
+      "broken": 0,
+      "rate": 0.0,
+      "lift": 0.0,
+      "codes": {}
+    },
+    {
+      "attribute": "color",
+      "option": "red_logo",
+      "drawn": 27,
+      "broken": 0,
+      "rate": 0.0,
+      "lift": 0.0,
+      "codes": {}
+    }
+  ],
+  "penalties": {
+    "color": {
+      "mono_black": 0.16
+    },
+    "handwriting": {
+      "hand_both": 0.213
+    }
+  },
+  "ban": [],
+  "worst": [
+    {
+      "code": "che_box",
+      "severity": "nặng",
+      "side": "record",
+      "page": "html_143.jpg",
+      "detail": "barcode_ean13_sample đóng ở footer_band trùm 46% lên footer, mất 15% chữ",
+      "where": {
+        "pattern": "barcode_ean13_sample",
+        "anchor": "footer_band",
+        "kind": "footer",
+        "share": 0.455,
+        "lost": 0.1541,
+        "ink": 0.3386,
+        "moved_off_text": true,
+        "rect": [
+          327.0,
+          1253.0,
+          606.0,
+          1376.0
+        ]
+      }
+    },
+    {
+      "code": "khong_muc",
+      "severity": "nặng",
+      "side": "paper",
+      "page": "html_005.jpg",
+      "detail": "2 trường có nhãn nhưng không có mực: invoice.field",
+      "where": {
+        "kinds": [
+          "invoice.field"
+        ],
+        "count": 2,
+        "share": 0.065
+      }
+    },
+    {
+      "code": "khong_muc",
+      "severity": "nặng",
+      "side": "paper",
+      "page": "html_015.jpg",
+      "detail": "3 trường có nhãn nhưng không có mực: colhdr",
+      "where": {
+        "kinds": [
+          "colhdr"
+        ],
+        "count": 3,
+        "share": 0.042
+      }
+    },
+    {
+      "code": "cham_box",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_006.jpg",
+      "detail": "seal_round_company_faint đóng ở signature_seller trùm 11% lên sign.title, mất 0% chữ",
+      "where": {
+        "pattern": "seal_round_company_faint",
+        "anchor": "signature_seller",
+        "kind": "sign.title",
+        "share": 0.106,
+        "lost": 0.004,
+        "ink": 0.0384,
+        "moved_off_text": true,
+        "rect": [
+          1023.0,
+          735.0,
+          1383.0,
+          1095.0
+        ]
+      }
+    },
+    {
+      "code": "cham_box",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_009.jpg",
+      "detail": "seal_round_company_double đóng ở signature_seller trùm 6% lên note.right, mất 0% chữ",
+      "where": {
+        "pattern": "seal_round_company_double",
+        "anchor": "signature_seller",
+        "kind": "note.right",
+        "share": 0.06,
+        "lost": 0.0039,
+        "ink": 0.0658,
+        "moved_off_text": true,
+        "rect": [
+          784.0,
+          1252.0,
+          1120.0,
+          1588.0
+        ]
+      }
+    },
+    {
+      "code": "cham_box",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_017.jpg",
+      "detail": "seal_round_company_double đóng ở signature_seller trùm 86% lên sign.note, mất 5% chữ",
+      "where": {
+        "pattern": "seal_round_company_double",
+        "anchor": "signature_seller",
+        "kind": "sign.note",
+        "share": 0.86,
+        "lost": 0.0466,
+        "ink": 0.0542,
+        "moved_off_text": true,
+        "rect": [
+          422.0,
+          2549.0,
+          785.0,
+          2912.0
+        ]
+      }
+    },
+    {
+      "code": "cham_box",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_026.jpg",
+      "detail": "seal_round_company_double đóng ở signature_seller trùm 9% lên sign.note, mất 1% chữ",
+      "where": {
+        "pattern": "seal_round_company_double",
+        "anchor": "signature_seller",
+        "kind": "sign.note",
+        "share": 0.089,
+        "lost": 0.0051,
+        "ink": 0.0576,
+        "moved_off_text": true,
+        "rect": [
+          0.0,
+          1155.0,
+          390.0,
+          1546.0
+        ]
+      }
+    },
+    {
+      "code": "cham_box",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_058.jpg",
+      "detail": "seal_round_company đóng ở signature_seller trùm 10% lên sign.title, mất 1% chữ",
+      "where": {
+        "pattern": "seal_round_company",
+        "anchor": "signature_seller",
+        "kind": "sign.title",
+        "share": 0.1,
+        "lost": 0.0082,
+        "ink": 0.0824,
+        "moved_off_text": true,
+        "rect": [
+          875.0,
+          633.0,
+          1182.0,
+          940.0
+        ]
+      }
+    },
+    {
+      "code": "cham_box",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_073.jpg",
+      "detail": "seal_round_company đóng ở signature_seller trùm 48% lên note, mất 3% chữ",
+      "where": {
+        "pattern": "seal_round_company",
+        "anchor": "signature_seller",
+        "kind": "note",
+        "share": 0.484,
+        "lost": 0.0345,
+        "ink": 0.0712,
+        "moved_off_text": true,
+        "rect": [
+          514.0,
+          365.0,
+          876.0,
+          727.0
+        ]
+      }
+    },
+    {
+      "code": "cham_box",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_094.jpg",
+      "detail": "barcode_ean13_sample đóng ở footer_band trùm 39% lên total.line, mất 13% chữ",
+      "where": {
+        "pattern": "barcode_ean13_sample",
+        "anchor": "footer_band",
+        "kind": "total.line",
+        "share": 0.385,
+        "lost": 0.1333,
+        "ink": 0.3462,
+        "moved_off_text": true,
+        "rect": [
+          245.0,
+          1128.0,
+          524.0,
+          1251.0
+        ]
+      }
+    },
+    {
+      "code": "cham_box",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_096.jpg",
+      "detail": "barcode_ean13_sample đóng ở footer_band trùm 46% lên store.name, mất 15% chữ",
+      "where": {
+        "pattern": "barcode_ean13_sample",
+        "anchor": "footer_band",
+        "kind": "store.name",
+        "share": 0.456,
+        "lost": 0.1484,
+        "ink": 0.3254,
+        "moved_off_text": true,
+        "rect": [
+          327.0,
+          0.0,
+          606.0,
+          123.0
+        ]
+      }
+    },
+    {
+      "code": "cham_box",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_101.jpg",
+      "detail": "seal_round_company_double đóng ở signature_seller trùm 25% lên store.name, mất 2% chữ",
+      "where": {
+        "pattern": "seal_round_company_double",
+        "anchor": "signature_seller",
+        "kind": "store.name",
+        "share": 0.252,
+        "lost": 0.0164,
+        "ink": 0.0648,
+        "moved_off_text": true,
+        "rect": [
+          716.0,
+          0.0,
+          1023.0,
+          307.0
+        ]
+      }
+    },
+    {
+      "code": "cham_box",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_108.jpg",
+      "detail": "seal_round_company_double đóng ở signature_seller trùm 44% lên invoice.words, mất 3% chữ",
+      "where": {
+        "pattern": "seal_round_company_double",
+        "anchor": "signature_seller",
+        "kind": "invoice.words",
+        "share": 0.436,
+        "lost": 0.0275,
+        "ink": 0.063,
+        "moved_off_text": true,
+        "rect": [
+          209.0,
+          1332.0,
+          568.0,
+          1690.0
+        ]
+      }
+    },
+    {
+      "code": "cham_box",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_125.jpg",
+      "detail": "barcode_ean13_sample đóng ở footer_band trùm 23% lên footer, mất 7% chữ",
+      "where": {
+        "pattern": "barcode_ean13_sample",
+        "anchor": "footer_band",
+        "kind": "footer",
+        "share": 0.233,
+        "lost": 0.0731,
+        "ink": 0.3139,
+        "moved_off_text": true,
+        "rect": [
+          205.0,
+          995.0,
+          483.0,
+          1118.0
+        ]
+      }
+    },
+    {
+      "code": "cham_box",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_133.jpg",
+      "detail": "seal_round_company đóng ở signature_seller trùm 20% lên footer, mất 2% chữ",
+      "where": {
+        "pattern": "seal_round_company",
+        "anchor": "signature_seller",
+        "kind": "footer",
+        "share": 0.196,
+        "lost": 0.0161,
+        "ink": 0.0821,
+        "moved_off_text": true,
+        "rect": [
+          829.0,
+          503.0,
+          1120.0,
+          794.0
+        ]
+      }
+    },
+    {
+      "code": "cham_box",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_136.jpg",
+      "detail": "seal_round_company_faint đóng ở signature_seller trùm 10% lên total.grand.label, mất 0% chữ",
+      "where": {
+        "pattern": "seal_round_company_faint",
+        "anchor": "signature_seller",
+        "kind": "total.grand.label",
+        "share": 0.103,
+        "lost": 0.0039,
+        "ink": 0.0381,
+        "moved_off_text": true,
+        "rect": [
+          689.0,
+          1010.0,
+          1012.0,
+          1333.0
+        ]
+      }
+    },
+    {
+      "code": "cham_box",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_158.jpg",
+      "detail": "barcode_ean13_sample đóng ở footer_band trùm 44% lên footer, mất 14% chữ",
+      "where": {
+        "pattern": "barcode_ean13_sample",
+        "anchor": "footer_band",
+        "kind": "footer",
+        "share": 0.438,
+        "lost": 0.1417,
+        "ink": 0.3237,
+        "moved_off_text": true,
+        "rect": [
+          327.0,
+          1183.0,
+          606.0,
+          1306.0
+        ]
+      }
+    },
+    {
+      "code": "cham_box",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_170.jpg",
+      "detail": "seal_round_company đóng ở signature_seller trùm 10% lên sign.title, mất 1% chữ",
+      "where": {
+        "pattern": "seal_round_company",
+        "anchor": "signature_seller",
+        "kind": "sign.title",
+        "share": 0.099,
+        "lost": 0.0079,
+        "ink": 0.0793,
+        "moved_off_text": true,
+        "rect": [
+          750.0,
+          510.0,
+          1013.0,
+          773.0
+        ]
+      }
+    },
+    {
+      "code": "cham_box",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_197.jpg",
+      "detail": "barcode_ean13_sample đóng ở footer_band trùm 17% lên total.line, mất 5% chữ",
+      "where": {
+        "pattern": "barcode_ean13_sample",
+        "anchor": "footer_band",
+        "kind": "total.line",
+        "share": 0.166,
+        "lost": 0.0531,
+        "ink": 0.3205,
+        "moved_off_text": true,
+        "rect": [
+          205.0,
+          1353.0,
+          483.0,
+          1477.0
+        ]
+      }
+    },
+    {
+      "code": "cham_box",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_210.jpg",
+      "detail": "seal_round_company đóng ở signature_seller trùm 10% lên footer, mất 1% chữ",
+      "where": {
+        "pattern": "seal_round_company",
+        "anchor": "signature_seller",
+        "kind": "footer",
+        "share": 0.099,
+        "lost": 0.0071,
+        "ink": 0.0722,
+        "moved_off_text": true,
+        "rect": [
+          829.0,
+          503.0,
+          1120.0,
+          794.0
+        ]
+      }
+    },
+    {
+      "code": "chu_nhat_mau",
+      "severity": "nhẹ",
+      "side": "paper",
+      "page": "html_005.jpg",
+      "detail": "1 trường chữ nhạt, nhạt nhất invoice.field chênh 41/255 giữa chỗ đậm nhất và chỗ nhạt nhất trong ô",
+      "where": {
+        "count": 1,
+        "lowest": 41.0,
+        "kinds": [
+          "invoice.field"
+        ]
+      }
+    },
+    {
+      "code": "chu_nhat_mau",
+      "severity": "nhẹ",
+      "side": "paper",
+      "page": "html_015.jpg",
+      "detail": "4 trường chữ nhạt, nhạt nhất colhdr chênh 20/255 giữa chỗ đậm nhất và chỗ nhạt nhất trong ô",
+      "where": {
+        "count": 4,
+        "lowest": 20.0,
+        "kinds": [
+          "colhdr"
+        ]
+      }
+    },
+    {
+      "code": "chu_nhat_mau",
+      "severity": "nhẹ",
+      "side": "paper",
+      "page": "html_054.jpg",
+      "detail": "7 trường chữ nhạt, nhạt nhất invoice.field chênh 23/255 giữa chỗ đậm nhất và chỗ nhạt nhất trong ô",
+      "where": {
+        "count": 7,
+        "lowest": 23.0,
+        "kinds": [
+          "colhdr",
+          "invoice.field"
+        ]
+      }
+    },
+    {
+      "code": "chu_nhat_mau",
+      "severity": "nhẹ",
+      "side": "paper",
+      "page": "html_078.jpg",
+      "detail": "5 trường chữ nhạt, nhạt nhất colhdr chênh 22/255 giữa chỗ đậm nhất và chỗ nhạt nhất trong ô",
+      "where": {
+        "count": 5,
+        "lowest": 22.0,
+        "kinds": [
+          "colhdr",
+          "invoice.field"
+        ]
+      }
+    },
+    {
+      "code": "chu_nhat_mau",
+      "severity": "nhẹ",
+      "side": "paper",
+      "page": "html_087.jpg",
+      "detail": "1 trường chữ nhạt, nhạt nhất section chênh 44/255 giữa chỗ đậm nhất và chỗ nhạt nhất trong ô",
+      "where": {
+        "count": 1,
+        "lowest": 44.0,
+        "kinds": [
+          "section"
+        ]
+      }
+    },
+    {
+      "code": "chu_nhat_mau",
+      "severity": "nhẹ",
+      "side": "paper",
+      "page": "html_134.jpg",
+      "detail": "2 trường chữ nhạt, nhạt nhất colhdr chênh 40/255 giữa chỗ đậm nhất và chỗ nhạt nhất trong ô",
+      "where": {
+        "count": 2,
+        "lowest": 40.0,
+        "kinds": [
+          "colhdr"
+        ]
+      }
+    },
+    {
+      "code": "chu_nhat_mau",
+      "severity": "nhẹ",
+      "side": "paper",
+      "page": "html_135.jpg",
+      "detail": "1 trường chữ nhạt, nhạt nhất invoice.field chênh 44/255 giữa chỗ đậm nhất và chỗ nhạt nhất trong ô",
+      "where": {
+        "count": 1,
+        "lowest": 44.0,
+        "kinds": [
+          "invoice.field"
+        ]
+      }
+    },
+    {
+      "code": "chu_nhat_mau",
+      "severity": "nhẹ",
+      "side": "paper",
+      "page": "html_176.jpg",
+      "detail": "6 trường chữ nhạt, nhạt nhất colhdr chênh 20/255 giữa chỗ đậm nhất và chỗ nhạt nhất trong ô",
+      "where": {
+        "count": 6,
+        "lowest": 20.0,
+        "kinds": [
+          "colhdr"
+        ]
+      }
+    },
+    {
+      "code": "chu_nhat_mau",
+      "severity": "nhẹ",
+      "side": "paper",
+      "page": "html_182.jpg",
+      "detail": "11 trường chữ nhạt, nhạt nhất invoice.field chênh 21/255 giữa chỗ đậm nhất và chỗ nhạt nhất trong ô",
+      "where": {
+        "count": 11,
+        "lowest": 21.0,
+        "kinds": [
+          "colhdr",
+          "invoice.field"
+        ]
+      }
+    },
+    {
+      "code": "chu_nhat_mau",
+      "severity": "nhẹ",
+      "side": "paper",
+      "page": "html_204.jpg",
+      "detail": "2 trường chữ nhạt, nhạt nhất invoice.field chênh 30/255 giữa chỗ đậm nhất và chỗ nhạt nhất trong ô",
+      "where": {
+        "count": 2,
+        "lowest": 30.0,
+        "kinds": [
+          "invoice.field"
+        ]
+      }
+    },
+    {
+      "code": "chu_nhat_mau",
+      "severity": "nhẹ",
+      "side": "paper",
+      "page": "html_213.jpg",
+      "detail": "2 trường chữ nhạt, nhạt nhất invoice.field chênh 26/255 giữa chỗ đậm nhất và chỗ nhạt nhất trong ô",
+      "where": {
+        "count": 2,
+        "lowest": 26.0,
+        "kinds": [
+          "invoice.field"
+        ]
+      }
+    },
+    {
+      "code": "chu_nho",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_007.jpg",
+      "detail": "31 trường thấp dưới 10px, thấp nhất teaser.kicker 9.0px",
+      "where": {
+        "count": 31,
+        "lowest": 9.0,
+        "kinds": [
+          "bottom.caption",
+          "byline",
+          "caption",
+          "dateline",
+          "hotline",
+          "issue_date",
+          "issue_no",
+          "jump"
+        ]
+      }
+    },
+    {
+      "code": "chu_nho",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_068.jpg",
+      "detail": "105 trường thấp dưới 10px, thấp nhất ad.phone 9.3px",
+      "where": {
+        "count": 105,
+        "lowest": 9.3,
+        "kinds": [
+          "ad.body",
+          "ad.lead",
+          "ad.phone",
+          "condolence",
+          "footer",
+          "issue_date",
+          "masthead",
+          "notice.body"
+        ]
+      }
+    },
+    {
+      "code": "chu_nho",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_156.jpg",
+      "detail": "5 trường thấp dưới 10px, thấp nhất page_no 8.6px",
+      "where": {
+        "count": 5,
+        "lowest": 8.6,
+        "kinds": [
+          "footer",
+          "page_no",
+          "teaser.kicker"
+        ]
+      }
+    },
+    {
+      "code": "lap_noi_dung",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_015.jpg",
+      "detail": "menu.name: 'Tiền phòng Studio' lặp 3 lần",
+      "where": {
+        "kind": "menu.name",
+        "text": "Tiền phòng Studio",
+        "times": 3
+      }
+    },
+    {
+      "code": "lap_noi_dung",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_015.jpg",
+      "detail": "menu.note: 'Phòng đôi, 2 khách' lặp 3 lần",
+      "where": {
+        "kind": "menu.note",
+        "text": "Phòng đôi, 2 khách",
+        "times": 3
+      }
+    },
+    {
+      "code": "lap_noi_dung",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_017.jpg",
+      "detail": "menu.amount_bv: '5.200 VND' lặp 4 lần",
+      "where": {
+        "kind": "menu.amount_bv",
+        "text": "5.200 VND",
+        "times": 4
+      }
+    },
+    {
+      "code": "lap_noi_dung",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_046.jpg",
+      "detail": "menu.name: 'Tiền phòng Suite hướng biển' lặp 4 lần",
+      "where": {
+        "kind": "menu.name",
+        "text": "Tiền phòng Suite hướng biển",
+        "times": 4
+      }
+    },
+    {
+      "code": "lap_noi_dung",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_050.jpg",
+      "detail": "ad.lead: 'Cho thuê' lặp 3 lần",
+      "where": {
+        "kind": "ad.lead",
+        "text": "Cho thuê",
+        "times": 3
+      }
+    },
+    {
+      "code": "lap_noi_dung",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_054.jpg",
+      "detail": "menu.name: 'Tiền phòng Superior' lặp 3 lần",
+      "where": {
+        "kind": "menu.name",
+        "text": "Tiền phòng Superior",
+        "times": 3
+      }
+    },
+    {
+      "code": "lap_noi_dung",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_054.jpg",
+      "detail": "menu.note: 'Phòng đôi, 2 khách' lặp 3 lần",
+      "where": {
+        "kind": "menu.note",
+        "text": "Phòng đôi, 2 khách",
+        "times": 3
+      }
+    },
+    {
+      "code": "lap_noi_dung",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_068.jpg",
+      "detail": "ad.lead: 'Cho thuê' lặp 4 lần",
+      "where": {
+        "kind": "ad.lead",
+        "text": "Cho thuê",
+        "times": 4
+      }
+    },
+    {
+      "code": "lap_noi_dung",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_152.jpg",
+      "detail": "menu.unit: 'TRIỆU ĐỒNG' lặp 3 lần",
+      "where": {
+        "kind": "menu.unit",
+        "text": "TRIỆU ĐỒNG",
+        "times": 3
+      }
+    },
+    {
+      "code": "lap_noi_dung",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_164.jpg",
+      "detail": "menu.name: 'BAN LAM VIEC GO CONG NGHIEP' lặp 3 lần",
+      "where": {
+        "kind": "menu.name",
+        "text": "BAN LAM VIEC GO CONG NGHIEP",
+        "times": 3
+      }
+    },
+    {
+      "code": "lap_noi_dung",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_176.jpg",
+      "detail": "menu.name: 'Tiền phòng' lặp 3 lần",
+      "where": {
+        "kind": "menu.name",
+        "text": "Tiền phòng",
+        "times": 3
+      }
+    },
+    {
+      "code": "lap_noi_dung",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_186.jpg",
+      "detail": "ad.lead: 'Cho thuê' lặp 3 lần",
+      "where": {
+        "kind": "ad.lead",
+        "text": "Cho thuê",
+        "times": 3
+      }
+    },
+    {
+      "code": "lap_noi_dung",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_195.jpg",
+      "detail": "ad.lead: 'Cho thuê' lặp 3 lần",
+      "where": {
+        "kind": "ad.lead",
+        "text": "Cho thuê",
+        "times": 3
+      }
+    },
+    {
+      "code": "lap_noi_dung",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_211.jpg",
+      "detail": "menu.name: 'THIT KHO TAU' lặp 3 lần",
+      "where": {
+        "kind": "menu.name",
+        "text": "THIT KHO TAU",
+        "times": 3
+      }
+    },
+    {
+      "code": "lap_noi_dung",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_218.jpg",
+      "detail": "ad.lead: 'Cho thuê' lặp 3 lần",
+      "where": {
+        "kind": "ad.lead",
+        "text": "Cho thuê",
+        "times": 3
+      }
+    },
+    {
+      "code": "lap_noi_dung",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_240.jpg",
+      "detail": "menu.name: 'Tiền phòng' lặp 4 lần",
+      "where": {
+        "kind": "menu.name",
+        "text": "Tiền phòng",
+        "times": 4
+      }
+    },
+    {
+      "code": "lap_noi_dung",
+      "severity": "nhẹ",
+      "side": "record",
+      "page": "html_245.jpg",
+      "detail": "ad.lead: 'Cho thuê' lặp 3 lần",
+      "where": {
+        "kind": "ad.lead",
+        "text": "Cho thuê",
+        "times": 3
+      }
+    }
+  ]
+}

@@ -1,10 +1,11 @@
-"""Text helpers every backend shares.
+"""Text helpers the rule-base and every backend share.
 
-Formatting lives here rather than in a renderer because the same receipt has
-to come out identical whether it is drawn glyph by glyph or laid out in HTML.
-If money were formatted twice -- once in the synthdog element, once in a
-Jinja filter -- the two would drift and the labels would stop matching one of
-the images.
+Formatting lives here rather than in a renderer because the label and the pixels
+must agree on the same string. When there were three renderers this was about
+them agreeing with each other; with one it is about the renderer agreeing with
+the record. Money formatted twice -- once on the way to the page, once on the
+way to `text` -- drifts, and then the label stops matching the image with
+nothing raising.
 """
 
 from __future__ import annotations

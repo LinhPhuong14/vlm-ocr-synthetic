@@ -41,6 +41,19 @@ A document the policy locks may not be redressed, so its only room to vary is
 the ink pressed onto it afterwards. On those pages the agent pushes the
 "no ornament" value down hard (`BARE_PENALTY`) -- they come out stamped and
 sealed rather than plain, which is where their diversity has to come from.
+
+A page decided is a network round trip, not a coin flip
+---------------------------------------------------------
+
+The `coverage` half is instant; the `llm` half is not, and 5000 of them is a
+run measured in minutes to hours depending on what is on the other end of
+`VLM_LLM_URL`. `plan()` shows a bar for that (`pipeline/progress.py`) and, via
+`checkpoint=`, writes what it has decided so far every `block` pages -- so a
+run a dropped connection or a killed process cuts short has lost at most one
+block of model calls, not every one since the start. `resume=` is the other
+half: hand back a `read()` of that checkpoint and the loop picks up where it
+left off instead of asking the model again for pages it already answered.
+`tools/agent_dataset.py --resume` is the wiring for both.
 """
 
 from __future__ import annotations
@@ -48,8 +61,9 @@ from __future__ import annotations
 import json
 import random
 from dataclasses import asdict, dataclass
-from typing import Any
+from typing import Any, Iterable
 
+from pipeline.progress import Bar
 from rulebase.spec import Option, sample_recipe
 
 # How much a locked or livery document's "no ornament at all" value is worth
@@ -100,12 +114,23 @@ class Chooser:
     """Weighted choice that remembers, over one attribute at a time."""
 
     def __init__(self, rules: dict[str, list[Option]], order: tuple[str, ...],
-                 seed: int, pressure: float = DEFAULT_PRESSURE):
+                 seed: int, pressure: float = DEFAULT_PRESSURE,
+                 penalty: dict[str, dict[str, float]] | None = None,
+                 ban: Iterable[tuple[tuple[str, str], tuple[str, str]]] = ()):
         self.rules = rules
         self.order = tuple(order)
         self.rng = random.Random(seed)
         self.pressure = float(pressure)
         self.used: dict[str, dict[str, int]] = {name: {} for name in self.order}
+        # What `agent/critic.py` learnt from the last run, if anything: a
+        # multiplier per value, and pairs that are only bad together. Empty by
+        # default, so a first run behaves exactly as it did before there was a
+        # reviewer -- the loop is opt-in and the driver's `--feedback` opens it.
+        self.penalty = {a: dict(o) for a, o in (penalty or {}).items()}
+        self.ban: dict[tuple[str, str], set[tuple[str, str]]] = {}
+        for one, two in ban or ():
+            self.ban.setdefault(tuple(one), set()).add(tuple(two))
+            self.ban.setdefault(tuple(two), set()).add(tuple(one))
 
     def legal(self, attribute: str, tags: frozenset[str]) -> list[Option]:
         """Drawable values: allowed by the tags, and not switched off.
@@ -125,16 +150,41 @@ class Chooser:
         return [option for option in self.rules[attribute]
                 if option.weight > 0 and option.enabled and option.allowed(tags)]
 
+    def permitted(self, attribute: str, tags: frozenset[str],
+                  chosen: Iterable[tuple[str, str]] = ()) -> list[Option]:
+        """`legal`, minus values the reviewer banned alongside what is chosen.
+
+        A ban is a pair, never a single value: `layout=form_dense` is a good
+        layout and `ornament=qr_dau_trang` is a good mark, and the fault is
+        only in the two of them on one page. Dropping either one on its own
+        would cost the set a phôi or a mark for no reason.
+        """
+        options = self.legal(attribute, tags)
+        if not self.ban:
+            return options
+        forbidden: set[tuple[str, str]] = set()
+        for pair in chosen:
+            forbidden |= self.ban.get(tuple(pair), set())
+        if not forbidden:
+            return options
+        kept = [o for o in options if (attribute, o.id) not in forbidden]
+        # Never strand a walk on the reviewer's advice: the bans are a
+        # heuristic and the rules are not, so an attribute the bans would empty
+        # keeps its legal values and the pair is drawn rather than the run dying.
+        return kept or options
+
     def _score(self, attribute: str, option: Option, bare_penalty: float) -> float:
         used = self.used[attribute].get(option.id, 0)
         score = option.weight / (1.0 + used) ** self.pressure
         if attribute == "ornament" and option.id == BARE_ID:
             score *= bare_penalty
+        score *= self.penalty.get(attribute, {}).get(option.id, 1.0)
         return max(score, 1e-9)
 
     def take(self, attribute: str, tags: frozenset[str],
-             bare_penalty: float = 1.0, record: bool = True) -> Option:
-        options = self.legal(attribute, tags)
+             bare_penalty: float = 1.0, record: bool = True,
+             chosen: Iterable[tuple[str, str]] = ()) -> Option:
+        options = self.permitted(attribute, tags, chosen)
         if not options:
             raise Clash(
                 f"{attribute}: nothing is drawable under tags {sorted(tags)}")
@@ -187,7 +237,7 @@ def decide_one(chooser: Chooser, policy, index: int, seed: int,
                     from_model.append(attribute)
                 else:
                     option = chooser.take(attribute, tags, bare_penalty=penalty,
-                                          record=False)
+                                          record=False, chosen=taken)
                 force[attribute] = option.id
                 taken.append((attribute, option.id))
                 tags = tags | option.tags
@@ -275,18 +325,61 @@ def propose(llm, rules, order, block: int, seen: dict[str, dict[str, int]],
 
 def plan(count: int, seed: int, rules: dict[str, list[Option]], policy,
          *, order: tuple[str, ...] | None = None, llm=None,
-         pressure: float = DEFAULT_PRESSURE, block: int = 24) -> list[Decision]:
-    """`count` decided pages, in output order."""
+         pressure: float = DEFAULT_PRESSURE, block: int = 24,
+         penalty: dict[str, dict[str, float]] | None = None,
+         ban: Iterable[tuple[tuple[str, str], tuple[str, str]]] = (),
+         resume: list[Decision] = (), checkpoint=None) -> list[Decision]:
+    """`count` decided pages, in output order.
+
+    `penalty` and `ban` are the previous run's review, as
+    `agent/critic.py::load_feedback` hands them back. Passing them is how the
+    reviewer's findings reach the next set: values that broke pages get drawn
+    less, and pairs that only break together stop being drawn at all.
+
+    A page decided by the model is one network round trip that cannot be
+    replayed for free, so a run of thousands is not a thing to lose to a
+    dropped connection or a killed process. Two knobs cover that:
+
+    `resume` is a prefix of already-decided pages, typically `read()` back
+    from a checkpoint an earlier, interrupted call to `plan()` left behind.
+    Their usage is replayed into the chooser -- so the coverage objective
+    still sees them as drawn -- and the loop picks up at `len(resume)`
+    instead of asking the model again for pages it already answered.
+
+    `checkpoint`, if given, is a path `write()` is called against after every
+    `block` pages, so a run killed partway loses at most one block's worth of
+    model calls rather than every one since the start. Bounded by `block` on
+    purpose: writing after every single page would turn thousands of model
+    calls into thousands of rewrites of a JSON file that only grows.
+
+    Progress prints to stderr either way -- see `pipeline/progress.py` for
+    what it shows and why it never touches stdout.
+    """
     order = tuple(order or rules.keys())
-    chooser = Chooser(rules, order, seed=seed, pressure=pressure)
-    out: list[Decision] = []
+    chooser = Chooser(rules, order, seed=seed, pressure=pressure,
+                      penalty=penalty, ban=ban)
+    out: list[Decision] = list(resume)
+    for decision in out:
+        for attribute, option_id in decision.force.items():
+            chooser.record(attribute, option_id)
     pending: list[dict[str, str]] = []
 
-    for index in range(count):
-        if llm is not None and not pending:
-            pending = propose(llm, rules, order, min(block, count - index), chooser.used)
-        proposal = pending.pop(0) if pending else None
-        out.append(decide_one(chooser, policy, index, seed + index, proposal))
+    with Bar(count, "trang") as bar:
+        bar.set(len(out))
+        since_checkpoint = 0
+        for index in range(len(out), count):
+            if llm is not None and not pending:
+                pending = propose(llm, rules, order, min(block, count - index), chooser.used)
+            proposal = pending.pop(0) if pending else None
+            decision = decide_one(chooser, policy, index, seed + index, proposal)
+            out.append(decision)
+            bar.advance(1, note=decision.by)
+            since_checkpoint += 1
+            if checkpoint is not None and since_checkpoint >= block:
+                write(checkpoint, out)
+                since_checkpoint = 0
+        if checkpoint is not None and since_checkpoint:
+            write(checkpoint, out)
     return out
 
 
@@ -442,6 +535,23 @@ def write(path, decisions: list[Decision]) -> Any:
     return path
 
 
+def read(path) -> list[Decision]:
+    """The inverse of `write()` -- [] for a path that is not there yet.
+
+    Missing rather than raising, because the caller is always a checkpoint
+    that may not exist: the first run of a plan, or one that finished
+    cleanly and had its checkpoint removed. Either way, "nothing to resume
+    from" is not an error.
+    """
+    import pathlib
+
+    path = pathlib.Path(path)
+    if not path.exists():
+        return []
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    return [Decision(**item) for item in raw]
+
+
 __all__ = ["BARE_ID", "BARE_PENALTY", "DEFAULT_PRESSURE", "Chooser", "Decision",
            "SYSTEM", "audit_drawn", "coverage", "decide_one", "plan", "propose",
-           "schema", "to_runs", "unreachable", "unused", "verify", "write"]
+           "read", "schema", "to_runs", "unreachable", "unused", "verify", "write"]
