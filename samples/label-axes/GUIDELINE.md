@@ -129,6 +129,41 @@ sọt rác mới, đúng vai `Text` từng giữ.
 **`Blank-Page`** — **thuộc tính của TRANG, không phải của hộp.** Trang trắng
 không có hộp nào để gắn nhãn. Ghi ở `pages[].blank`, không ghi trong `blocks[]`.
 
+### Vì sao KHÔNG có lớp `Page`
+
+Câu hỏi tự nhiên: tài liệu nhiều trang thì có cần một hộp bao cả trang không?
+**Không — với trường hợp một tờ một ảnh.** Ba lý do:
+
+1. **Nó không mang thông tin nào.** Hộp ấy luôn có đúng một cái, luôn phủ trọn
+   ảnh, và kích thước do khổ ảnh quyết định chứ không do nội dung. Một bộ dò
+   đoán đúng nó bằng cách đoán "cả tấm ảnh" — không có tín hiệu nào để học.
+2. **Nó phá phép kiểm 1.** Mọi vùng khác đều nằm *trong* nó, nên luật "vùng
+   không chứa run của vùng khác" sẽ báo lỗi ở **mọi** vùng. Phải miễn trừ toàn
+   cục, và khi ấy phép kiểm hết nghĩa ở mức trang.
+3. **Nó lặp lại thứ bản ghi đã có, không mất mát.** `pages[]` mang
+   `page_number`, `width`, `height`, `document_index`; mỗi block mang
+   `page_number` và `index_in_page`. Danh tính trang **đã được ghi thẳng**, đọc
+   ra được mà không cần chạy bộ dò nào.
+
+Áp phép thử của §6: *"có bước nào phía sau đối xử với lớp này khác đi không?"*
+Không có bước nào cần một hộp trang **dự đoán** mà biên ảnh không cho sẵn.
+
+### Nhưng có một ca thật, và nó sẽ đến
+
+**Nhiều tờ trong MỘT ảnh**: sách mở hai trang, hai tờ giấy đặt cạnh nhau trên
+bàn, bản in 2-up. Khi ấy "trang 1 kết thúc ở đâu, trang 2 bắt đầu ở đâu" là bài
+toán dò có tín hiệu thật, và một hộp cho mỗi tờ **có** mang thông tin.
+
+Đó là **phân đoạn tờ giấy**, không phải phân loại bố cục — hai bài toán khác
+nhau, thường chạy ở hai chặng khác nhau. Chỗ của nó là **mức trang**, cùng chỗ
+với `Blank-Page`: một trường như `pages[].sheet_quad`, không phải một lớp trên
+trục 1.
+
+Ca này thành có thật **đúng lúc Blender vào pipeline**: khi tờ giấy được đặt
+vào cảnh 3D, chụp nghiêng, nằm trên mặt bàn, thì ảnh có ngoại cảnh quanh tờ
+giấy và biên tờ giấy không còn là biên ảnh nữa. Nên đây là việc cần **chuẩn bị
+chỗ trước**, chưa cần làm ngay.
+
 ---
 
 ## 3. Trục 2 — `role` (13 giá trị)
