@@ -154,18 +154,18 @@
    chuẩn độ bằng axit chuẩn. Hàm lượng nitơ tổng số tính theo phần trăm khối lượng.</span></p>
 
 <!-- ══ Chemical-Block ══ role: body -->
-<div class="b-chem" data-region-box="Chemical-Block">
-  <span data-region="Chemical-Block" data-role="body" data-ink="print"
+<div class="b-chem" data-region-box="Formula">
+  <span data-region="Formula" data-role="body" data-ink="print"
         data-kind="chem.reaction"
         data-text="(NH4)2SO4 + 2 NaOH → 2 NH3↑ + Na2SO4 + 2 H2O"><span class="tex">(NH<sub>4</sub>)<sub>2</sub>SO<sub>4</sub> + 2 NaOH → 2 NH<sub>3</sub>↑ + Na<sub>2</sub>SO<sub>4</sub> + 2 H<sub>2</sub>O</span></span>
 </div>
 
 <!-- ══ Equation-Block ══ roles: body, value -->
-<div class="b-eq" data-region-box="Equation-Block">
-  <span data-region="Equation-Block" data-role="body" data-ink="print"
+<div class="b-eq" data-region-box="Formula">
+  <span data-region="Formula" data-role="body" data-ink="print"
         data-kind="eq.body"
         data-text="wN = (V1 − V0) · c · 14,007 · 100 / m"><span class="tex">w<sub>N</sub> = (V<sub>1</sub> − V<sub>0</sub>) · c · 14,007 · 100 / m</span></span>
-  <span class="no" data-region="Equation-Block" data-role="value" data-ink="print"
+  <span class="no" data-region="Formula" data-role="value" data-ink="print"
         data-kind="eq.number">(4.1)</span>
 </div>
 <p class="b-p" data-region-box="Text"><span data-region="Text" data-role="body" data-ink="print"
@@ -214,9 +214,12 @@
 
 <!-- ══ List-Group ══ role: item -->
 <div class="b-list">
-  <span data-region="Section-Header" data-role="heading" data-ink="print"
-        data-region-box="Section-Header"
-        data-kind="list.title">Điều kiện phải thoả đồng thời:</span>
+  <!-- Câu dẫn kết thúc bằng dấu hai chấm, chữ thường, không đánh số — đó là
+       CÂU MỞ ĐẦU của danh sách, không phải tiêu đề mục. `Section-Header` dành
+       cho một phần được đặt tên của tài liệu: "4.1 Nguyên tắc phương pháp". -->
+  <span data-region="Text" data-role="body" data-ink="print"
+        data-region-box="Text"
+        data-kind="list.lead">Điều kiện phải thoả đồng thời:</span>
   <ul data-region-box="List-Group">
     <li><span class="no" data-region="List-Group" data-role="item" data-ink="print"
               data-kind="list.marker">—</span><span
@@ -291,8 +294,12 @@
     <span data-region="Form" data-role="value" data-ink="hand"
           data-kind="review.date">02/6/2026</span>
   </div>
-  <div data-region-box="Image">
-    <span data-region="Image" data-role="mark" data-ink="stamp"
+  <!-- Con dấu chữ nhật có chữ ĐỌC ĐƯỢC. `Image` nghĩa là raster không có cấu
+       trúc đọc được; đây thì mô hình phải đọc ra "ĐÃ SOÁT XÉT". Việc "đây là
+       con dấu" đã có trục 3 ghi (`ink=stamp`) — đẩy nó lên trục 1 là lấy CHẤT
+       LIỆU thay cho VAI TRÒ, cùng cái sai đã đẩy letterhead vào Page-Header. -->
+  <div data-region-box="Text">
+    <span data-region="Text" data-role="mark" data-ink="stamp"
           data-kind="review.seal">ĐÃ SOÁT XÉT</span>
   </div>
 </div>

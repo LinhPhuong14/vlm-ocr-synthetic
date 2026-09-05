@@ -50,13 +50,17 @@ for _old, _new in (
 
 # Trục 1 là từ vựng của BÊN DÙNG dữ liệu, không phải của kho này -- cùng lý do
 # `PAGE_LABELS` bị khoá: một lớp thứ 21 ở đây là một lớp không ai có class cho.
-# Sửa duy nhất so với danh sách nhận được: thêm `Title` (danh sách có
-# `Section-Header` nhưng không có tên tài liệu), và `Blank-Page` chuyển xuống
-# mức TRANG vì một trang trắng không có hộp nào để gắn nhãn.
-REGIONS = ("Caption", "Footnote", "Equation-Block", "List-Group", "Page-Header",
+# Ba sửa so với danh sách nhận được:
+#   + `Title`       — danh sách có `Section-Header` nhưng không có tên tài liệu
+#   ~ `Blank-Page`  — xuống mức TRANG: trang trắng không có hộp nào để gắn nhãn
+#   ~ `Formula`     — gộp `Equation-Block` + `Chemical-Block`. Mô hình dò bố cục
+#                     nhìn hình dạng, và trên trang hai thứ ấy là CÙNG một hình:
+#                     dòng ngắn căn giữa, có chỉ số dưới, đôi khi đánh số bên
+#                     phải. Tách chúng đòi hiểu nội dung — việc của chặng sau.
+REGIONS = ("Caption", "Footnote", "Formula", "List-Group", "Page-Header",
            "Page-Footer", "Image", "Section-Header", "Table", "Text",
            "Complex-Block", "Code-Block", "Form", "Table-Of-Contents", "Figure",
-           "Chemical-Block", "Diagram", "Bibliography", "Title")
+           "Diagram", "Bibliography", "Title")
 PAGE_ONLY = ("Blank-Page",)
 # Vùng chưa có ví dụ, và KHAI RA thay vì chế một ví dụ cho vừa cái nhãn.
 #
@@ -170,17 +174,30 @@ def _overlap(a: dict, b: dict) -> float:
     return x * y
 
 
-# Vùng được phép lồng vào vùng khác. Con dấu và hoạ tiết in đè LÀ đè lên chỗ
-# khác -- đó là điều chúng làm trên giấy thật -- nên cấm chồng lấn hoàn toàn sẽ
-# cấm luôn một thứ có thật. Danh sách này là chỗ khai ra ngoại lệ ấy, để một
-# chồng lấn KHÔNG khai là một lỗi chứ không phải một chuyện thường.
-MAY_OVERPRINT = frozenset({"Image", "Figure"})
+# In đè là thuộc tính của MỰC, không phải của vùng.
+#
+# Bản trước khai ngoại lệ theo tên vùng (`Image`, `Figure`), và nó vỡ ngay khi
+# con dấu "ĐÃ SOÁT XÉT" được sửa từ `Image` sang `Text` -- đúng chỗ nó thuộc
+# về, vì chữ trong dấu đọc được. Cái làm một thứ "in đè" không phải là nó thuộc
+# vùng nào, mà là mực của nó: dấu đóng lên trên, hoạ tiết in chồng. Nên phép
+# thử hỏi trục 3 và trục 2, không hỏi trục 1.
+OVERPRINT_INK = frozenset({"stamp"})
+OVERPRINT_ROLE = frozenset({"mark"})
+
+
+def _overprints(runs: list[dict]) -> bool:
+    """Cả cụm run này có phải mực in đè lên chỗ khác không."""
+    return bool(runs) and all(
+        r["ink"] in OVERPRINT_INK or r["role"] in OVERPRINT_ROLE for r in runs)
 
 # Vùng được phép CHỨA vùng khác, khai tường minh. Một `Figure` theo định nghĩa
 # là ảnh cộng chú thích, nên nó chứa một `Caption` -- đó là cấu trúc, không phải
 # lỗi. Khai ở đây thay vì bỏ qua mọi trường hợp lồng nhau: một cái lồng KHÔNG
 # khai vẫn phải báo lỗi, vì phần lớn cái lồng là lỗi thật.
 MAY_NEST = {
+    # `Figure` = ảnh CỘNG chú thích, một khối. Ảnh bên trong KHÔNG gắn thêm
+    # nhãn `Image`: hai vùng khác lớp phủ cùng một vùng pixel là hai đích mâu
+    # thuẫn cho mô hình. Phân biệt: có chú thích -> `Figure`; không có -> `Image`.
     "Figure": {"Caption"},
     "Complex-Block": {"Table", "Caption", "Text", "Section-Header"},
 }
@@ -203,23 +220,35 @@ def audit(runs: list[dict], blocks: list[dict]) -> int:
     # 1. Một vùng không được chứa run của vùng khác. Đây là phép bắt được lỗi
     #    thật: tiêu đề của một danh sách nằm trong hộp List-Group thì mô hình
     #    học rằng tiêu đề là một mục của danh sách.
-    for blk in blocks:
-        inside = [r for r in runs if r["page"] == blk["page"]
-                  and _overlap(blk, r) > 0.6 * r["w"] * r["h"]]
-        allowed = {blk["region"]} | MAY_NEST.get(blk["region"], set()) | MAY_OVERPRINT
-        alien = sorted({r["region"] for r in inside} - allowed)
+    inside_of: dict[int, list[dict]] = {}
+    for i, blk in enumerate(blocks):
+        inside_of[i] = [r for r in runs if r["page"] == blk["page"]
+                        and _overlap(blk, r) > 0.6 * r["w"] * r["h"]]
+    for i, blk in enumerate(blocks):
+        inside = inside_of[i]
+        allowed = {blk["region"]} | MAY_NEST.get(blk["region"], set())
+        # Mực in đè rơi vào vùng khác là chuyện thường trên giấy, không phải lỗi.
+        alien = sorted({r["region"] for r in inside
+                        if not (r["ink"] in OVERPRINT_INK
+                                or r["role"] in OVERPRINT_ROLE)} - allowed)
         if alien:
             bad += 1
             print(f"  !! {blk['page']} {blk['region']}: chứa run của {alien}")
 
     # 2. Hai vùng không được chồng nhau, trừ khi một bên là thứ in đè.
     for i, a in enumerate(blocks):
-        for b in blocks[i + 1:]:
+        for j, b in enumerate(blocks[i + 1:], start=i + 1):
             if a["page"] != b["page"]:
                 continue
             small = min(a["w"] * a["h"], b["w"] * b["h"])
             if small and _overlap(a, b) > 0.15 * small:
-                if a["region"] in MAY_OVERPRINT or b["region"] in MAY_OVERPRINT:
+                if _overprints(inside_of[i]) or _overprints(inside_of[j]):
+                    continue
+                # Lồng nhau đã khai thì chồng lấn là hệ quả tất yếu: `Figure`
+                # chứa `Caption` thì hai hộp phải chồng. Khai một lần ở
+                # `MAY_NEST`, dùng cho cả hai phép thử.
+                if b["region"] in MAY_NEST.get(a["region"], set()) \
+                        or a["region"] in MAY_NEST.get(b["region"], set()):
                     continue
                 bad += 1
                 print(f"  !! {a['page']} {a['region']} × {b['region']}: chồng nhau")

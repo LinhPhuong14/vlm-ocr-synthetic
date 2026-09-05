@@ -102,6 +102,11 @@
   .r-code{font-family:LiberationMono,monospace; letter-spacing:.02em;}
 
   .hand-img{height:19px; vertical-align:-4px;}
+  /* Logo: hình thuần, không có chữ để đọc — đây mới là `Image`. */
+  .logo{width:46px; height:46px; flex:none; border-radius:50%;
+        background:conic-gradient(#1d3b5c 0 25%, #2f5f8f 0 50%,
+                                  #1d3b5c 0 75%, #4a7fb5 0);
+        border:2px solid #1d3b5c;}
 </style>
 
 <div id="sheet">
@@ -133,6 +138,8 @@
      hình học từ nó sẽ học rằng khoảng trắng ấy cũng là chữ. Cùng lý do đã tách
      đầu trang thành từng mục. -->
 <div class="r-letterhead">
+  <div class="logo" data-region-box="Image"><span data-region="Image" data-role="mark"
+       data-ink="print" data-kind="store.logo" data-text="logo Hoàng Long"></span></div>
   <div class="l" data-region-box="Text">
     <span data-region="Text" data-role="heading" data-ink="print"
           data-kind="store.name">CÔNG TY TNHH THƯƠNG MẠI HOÀNG LONG</span><br>
@@ -361,9 +368,12 @@
   </div>
 </div>
 
-<!-- ══ Image ══ role: mark ══ ink: stamp — raster không có cấu trúc đọc được -->
-<div class="r-seal" data-region-box="Image">
-  <span data-region="Image" data-role="mark" data-ink="stamp"
+<!-- ══ Text ══ role: mark ══ ink: stamp
+     Con dấu tròn, nhưng chữ trong dấu ĐỌC ĐƯỢC và bên trích xuất cần đọc nó.
+     `Image` chỉ dành cho raster KHÔNG đọc được: logo, mã vạch, mã QR, ảnh
+     chụp. Còn "đây là con dấu" là chuyện của trục 3. -->
+<div class="r-seal" data-region-box="Text">
+  <span data-region="Text" data-role="mark" data-ink="stamp"
         data-kind="store.seal">CÔNG TY TNHH TM HOÀNG LONG · TP.HCM</span>
 </div>
 

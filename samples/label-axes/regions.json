@@ -16,8 +16,16 @@
   "page": "page.html"
  },
  {
-  "region": "Text",
+  "region": "Image",
   "x": 38,
+  "y": 66.21875,
+  "w": 46,
+  "h": 46,
+  "page": "page.html"
+ },
+ {
+  "region": "Text",
+  "x": 261.53125,
   "y": 67.21875,
   "w": 285.5625,
   "h": 52.6875,
@@ -120,7 +128,7 @@
   "page": "page.html"
  },
  {
-  "region": "Image",
+  "region": "Text",
   "x": 651.6353149414062,
   "y": 830.6353149414062,
   "w": 124.7293701171875,
@@ -208,7 +216,7 @@
   "page": "page2.html"
  },
  {
-  "region": "Chemical-Block",
+  "region": "Formula",
   "x": 285.71875,
   "y": 346.5,
   "w": 310.5625,
@@ -216,7 +224,7 @@
   "page": "page2.html"
  },
  {
-  "region": "Equation-Block",
+  "region": "Formula",
   "x": 305.75,
   "y": 378.40625,
   "w": 270.5,
@@ -272,7 +280,7 @@
   "page": "page2.html"
  },
  {
-  "region": "Section-Header",
+  "region": "Text",
   "x": 44,
   "y": 745.40625,
   "w": 152.765625,
@@ -320,7 +328,7 @@
   "page": "page2.html"
  },
  {
-  "region": "Image",
+  "region": "Text",
   "x": 344.9375,
   "y": 1004.65625,
   "w": 90.6875,
