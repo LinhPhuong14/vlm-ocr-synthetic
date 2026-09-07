@@ -1,3 +1,16 @@
+<!-- `agent/augment_layout.py::build()` sends this file PLUS `regions.md`
+     (English, appended in Python, not copy-pasted here) as one system
+     prompt. `regions.md` names the FRAMEWORK a real reader will later
+     classify every block of this layout into (Form vs Text, one
+     Section-Header per part, and so on) -- even though this YAML has no
+     `region:`/`role:`/`ink:` key yet for the model to fill in directly.
+     Understanding what a block IS should make a better set of
+     `sections`/`columns` more likely (grouping a signer's name with their
+     signature line, say, instead of splitting them for no reason a real
+     form would). It does not, on its own, change what this gauntlet checks:
+     `agent/layout_schema.py` still refuses any key path a hand-written
+     layout does not already have. -->
+
 Bạn sửa **một phần** của một file bố cục chứng từ Việt Nam, viết bằng YAML.
 
 Người dùng đưa cho bạn file gốc. Nhiệm vụ: trả về **một file YAML hoàn chỉnh**

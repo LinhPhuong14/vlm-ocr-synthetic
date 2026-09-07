@@ -103,10 +103,9 @@ def check() -> list[str]:
 
         known = set(degradation_names())
         drawn: set[str] = set()
-        # Every attribute, not just `augmentation`. `toner`, `drum` and
-        # `rollers` carry chains of their own, and a check that walked one
-        # attribute would call their three models unused and then let a typo in
-        # one of the three files through.
+        # Every attribute, not just `augmentation` -- a check that walked only
+        # one attribute would call any other chain-bearing attribute's models
+        # unused and then let a typo in one of its values through.
         chained = {name: options for name, options in rules.items()
                    if any(option.params.get("chain") for option in options)}
         for attribute, options in chained.items():

@@ -452,8 +452,12 @@ def check_family(variant: dict, parent_yaml: dict) -> list[str]:
 
 def build(parent: str, layout_id: str, model: Model, seed: int) -> tuple[dict, str]:
     original = (LAYOUTS / f"{parent}.yaml").read_text(encoding="utf-8")
+    # `regions.md`: English, kept as its own file rather than translated into
+    # this one -- see the note at the top of `prompts/layout.md` for why the
+    # framework it names does not (yet) map onto a key this YAML has.
+    system = prompt("layout") + "\n\n" + prompt("regions")
     reply = model.chat(
-        prompt("layout"),
+        system,
         f"Đây là file bố cục gốc `{parent}.yaml`:\n\n{original}\n\n"
         f"Viết lại thành một biến thể. `id` phải là `{layout_id}`.",
         seed=seed, num_predict=2400)

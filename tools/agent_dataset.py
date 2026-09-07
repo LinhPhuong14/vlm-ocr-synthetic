@@ -45,8 +45,9 @@ for _extra in (REPO_ROOT, REPO_ROOT / "tools"):
         sys.path.insert(0, str(_extra))
 
 from agent import client as llm_client  # noqa: E402
-from agent import planner, policy, variants  # noqa: E402
+from agent import compose, planner, policy, variants  # noqa: E402
 from agent import rules as agent_rules  # noqa: E402
+from pipeline.invariants import CLEAN_FORCES  # noqa: E402
 
 PLAN_NAME = "agent_plan.json"
 REPORT_NAME = "agent_report.json"
@@ -99,6 +100,23 @@ def main() -> int:
              "at least `--min` of a page's labelled runs relative to the phôi. "
              "Designing a dressing to look different and measuring that it does "
              "are not the same claim, and only the second one is checkable")
+    parser.add_argument(
+        "--llm-concurrency", type=int, default=1, metavar="N",
+        help="prefetch N blocks of model proposals at once over separate "
+             "threads instead of one at a time -- see agent.planner.plan's "
+             "own docstring for what stays sequential regardless (applying a "
+             "block, so reproducibility holds) and what does not (the "
+             "diversity tally a concurrent block's prompt sees, which goes a "
+             "few blocks stale). 1 keeps the old one-at-a-time behaviour.")
+    parser.add_argument(
+        "--content-llm", action="store_true",
+        help="let the model write store names, item names, and (medical "
+             "documents) the diagnosis/comorbid pair, instead of "
+             "rulebase/content.py drawing them from corpus. Opt-in, and NOT "
+             "auto-enabled by VLM_LLM_URL the way planning is -- rewriting "
+             "text on every page is a bigger behaviour change than picking "
+             "among existing enum ids. See agent/compose.py. Numbers are "
+             "never affected: amounts and totals are always rule-based.")
     parser.add_argument("--pressure", type=float, default=planner.DEFAULT_PRESSURE,
                         help="0 draws like the shipped sampler, 1 chases coverage")
     parser.add_argument(
@@ -111,9 +129,27 @@ def main() -> int:
     parser.add_argument("--clean", action="store_true", help="no ageing at all")
     parser.add_argument("--template", default="auto",
                         help="page model; 'auto' is the sheet the layout belongs to")
+    parser.add_argument(
+        "--naming", default=None, metavar="TEMPLATE",
+        help="output file name, e.g. '{document}_{index:03d}' -- a format "
+             "string over `backend`, `index`, and any rule-base attribute a "
+             "page was drawn with. Default keeps `{backend}_NNN`, see "
+             "pipeline.config.DEFAULT_NAMING")
     parser.add_argument("--proof-workers", type=int, default=0,
                         help="0 uses --workers")
-    parser.add_argument("--no-proof", action="store_true")
+    parser.add_argument("--no-proof", action="store_true",
+                        help="skip the field-box proof (proof/) drawn by default")
+    parser.add_argument("--proof-layout", action="store_true",
+                        help="also draw a proof from layout_annotations "
+                             "(proof_layout/), one box per region, coloured "
+                             "by the 19-label docsynth vocabulary. Off by "
+                             "default: an extra pass over every page nobody "
+                             "asked for costs time for nothing.")
+    parser.add_argument("--proof-words", action="store_true",
+                        help="also draw a proof from word_annotations "
+                             "(proof_words/), one box per word, same "
+                             "palette as --proof-layout, tagged by "
+                             "field_role. Off by default, same reason.")
     parser.add_argument("--plan-only", action="store_true",
                         help="decide and report, draw nothing")
     parser.add_argument(
@@ -211,6 +247,8 @@ def main() -> int:
     started = time.time()
     decisions = planner.plan(args.count, args.seed, rules, pol,
                              llm=llm, pressure=args.pressure,
+                             concurrency=args.llm_concurrency,
+                             pin=CLEAN_FORCES if args.clean else None,
                              penalty=weights, ban=bans,
                              resume=resume, checkpoint=checkpoint)
     clock["plan"] = round(time.time() - started, 2)
@@ -247,6 +285,20 @@ def main() -> int:
         report(out, decisions, rules, pol, catalogue, clock, applied)
         return 0
 
+    # 3b. Content, if asked for -- writes store names, item names, and (for
+    # medical documents) the diagnosis/comorbid pair, in place of what
+    # rulebase/content.py would have drawn from corpus. See agent/compose.py.
+    content_overrides_path = None
+    if args.content_llm:
+        started = time.time()
+        composed = compose.decide(drawing, rules, llm=llm, concurrency=args.llm_concurrency)
+        content_overrides_path = out / "content_overrides.json"
+        compose.write(composed, out / "compose.jsonl", content_overrides_path)
+        clock["compose"] = round(time.time() - started, 2)
+        written = sum(1 for page in composed if page.by == "llm")
+        print(f"[agent] {written}/{len(composed)} trang có nội dung do llm viết "
+              f"-> {content_overrides_path}")
+
     # 4. Render, through the pipeline the ordinary driver uses.
     from pipeline.config import Config
     from pipeline.run import execute
@@ -262,12 +314,14 @@ def main() -> int:
             "force": [],
             "pairing": "paired",
             "template": args.template,
+            "naming": args.naming,
         },
         "backends": ["html"],
         "shard": {"size": max(args.shard, 1)},
     })
     started = time.time()
-    code = execute(config, runs={"html": planner.to_runs(drawing)})
+    code = execute(config, runs={"html": planner.to_runs(drawing)},
+                   content_overrides=content_overrides_path)
     clock["render"] = round(time.time() - started, 2)
     if code != 0:
         report(out, decisions, rules, pol, catalogue, clock, applied)
@@ -275,7 +329,7 @@ def main() -> int:
 
     # 4b. What was drawn, against what was decided. The one check that catches a
     # plan which never reached the renderer -- a failure with no other symptom.
-    drifted = planner.audit_drawn(out, drawing)
+    drifted = planner.audit_drawn(out, drawing, naming=config.naming)
     if drifted:
         print(f"[agent] {len(drifted)} trang được vẽ KHÁC với kế hoạch:")
         for problem in drifted[:10]:
@@ -284,18 +338,27 @@ def main() -> int:
         return 1
     print(f"[agent] {len(drawing)} trang: thuộc tính đã vẽ khớp kế hoạch")
 
-    # 5. A proof beside every page.
-    if not args.no_proof:
+    # 5. A proof beside every page -- up to three, one per `proof_boxes.MODES`,
+    # each its own attribute rather than folded into one flag: a person
+    # reading field boxes day to day should not pay for the other two just
+    # because they exist, and someone checking the label-axes migration wants
+    # exactly `layout`/`words` without the field-box one.
+    wanted = [mode for mode, flag in (("blocks", not args.no_proof),
+                                       ("layout", args.proof_layout),
+                                       ("words", args.proof_words)) if flag]
+    if wanted:
         import proof_boxes  # noqa: PLC0415 -- needs cv2, and step 4 does not
 
-        started = time.time()
-        written, total = proof_boxes.run(
-            out, "html", workers=args.proof_workers or args.workers)
-        clock["proof"] = round(time.time() - started, 2)
-        print(f"[agent] {written}/{total} ảnh proof -> {out / 'proof'}")
-        if written != total:
-            print("[agent] một số ảnh proof không vẽ được")
-            code = 1
+        for mode in wanted:
+            started = time.time()
+            written, total = proof_boxes.run(
+                out, "html", workers=args.proof_workers or args.workers, mode=mode)
+            clock[f"proof_{mode}"] = round(time.time() - started, 2)
+            print(f"[agent] {written}/{total} ảnh proof ({mode}) -> "
+                  f"{out / proof_boxes.OUT_DIRNAME[mode]}")
+            if written != total:
+                print(f"[agent] một số ảnh proof ({mode}) không vẽ được")
+                code = 1
 
     payload = report(out, decisions, rules, pol, catalogue, clock, applied)
     print(f"[agent] báo cáo -> {out / REPORT_NAME}")

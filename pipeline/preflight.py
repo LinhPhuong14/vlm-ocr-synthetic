@@ -207,9 +207,11 @@ def ornament_assets() -> list[str]:
     for option in options:
         for mark in option.params.get("marks") or []:
             stem = str((list(mark) + [""])[0])
-            if stem in SEAL_KINDS:
-                continue           # drawn per document now, not a file
             named.add(stem)
+            if stem in SEAL_KINDS:
+                continue           # drawn per document now, not a file -- but
+                                    # still "named", so an old seal_*.png this
+                                    # kind used to write is not flagged stray
             if stem not in on_disk:
                 problems.append(
                     f"ornament/{option.id}: names {stem!r}, but "

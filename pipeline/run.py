@@ -179,6 +179,8 @@ def _render_one(job: dict) -> dict:
             result = render_shard(
                 shard, out, plan,
                 rules_root=Path(job["rules_root"]) if job.get("rules_root") else None,
+                content_overrides=(Path(job["content_overrides"])
+                                   if job.get("content_overrides") else None),
                 log=log,
             )
             result["error"] = None
@@ -283,11 +285,19 @@ def assemble(out: Path, plan: dict, shards_root: Path
 
 
 def execute(config: Config, *, workers: int | None = None,
-            skip_preflight: bool = False, runs=None) -> int:
+            skip_preflight: bool = False, runs=None,
+            content_overrides: Path | None = None) -> int:
     """Run one job. The entry point for both the CLI and `generate_dataset.py`.
 
     Taking a `Config` rather than a path is what lets the compatibility shell
     reuse this without writing a temporary YAML file and parsing it back.
+
+    `content_overrides`: one JSON file for the whole run (`{seed: {field:
+    value}}`, from `agent/compose.py`), same treatment as `rules_root` a few
+    lines below -- a renderer subprocess needing more than an id string reads
+    a file, not a bigger CLI string. No per-shard slicing: every shard gets
+    the same path, because the file is a few thousand small entries and
+    `rules_root` doesn't slice per shard either.
     """
     workers = workers or config.workers
 
@@ -347,7 +357,8 @@ def execute(config: Config, *, workers: int | None = None,
     print(f"{len(plan['shards'])} shard, {len(pending)} chưa xong, {workers} worker")
 
     jobs = [{"out": str(shards_root), "plan": str(plan_path), "index": s["index"],
-             "rules_root": str(rules_root) if rules_root else None}
+             "rules_root": str(rules_root) if rules_root else None,
+             "content_overrides": str(content_overrides) if content_overrides else None}
             for s in pending]
 
     started = time.time()

@@ -434,6 +434,7 @@ def build_plan(config, layouts: list[str],
         "clean": config.clean,
         "force": list(config.force),
         "template": config.template,
+        "naming": config.naming,
         "overrides": dict(config.overrides),
         "shards": [shard.to_dict() for shard in shards],
     }
@@ -448,13 +449,29 @@ def write_plan(plan: dict[str, Any], path: Path) -> Path:
     return path
 
 
-def image_name(backend: str, index: int) -> str:
-    """The output file name, matching what the sequential driver produced."""
-    return f"{backend}_{index:03d}.jpg"
+DEFAULT_NAMING = "{backend}_{index:03d}"
+
+
+def image_name(backend: str, index: int, *, template: str = DEFAULT_NAMING,
+               fields: dict[str, str] | None = None) -> str:
+    """The output file name.
+
+    `template` is a plain format string over `backend`, `index`, and
+    whatever else `fields` supplies -- every rule-base attribute a page was
+    actually drawn with (`document`, `layout`, `visual`, ...), since the
+    renderer is now the only backend and `{backend}_003.jpg` alone answers
+    nothing about which of those 003 is. Naming by document type, or by any
+    other attribute, is a one-line change to `run.naming` in `pipeline.yaml`
+    (see `pipeline/config.py::Config.naming`) -- not a rule hardcoded here,
+    so a family added later needs no change on this side.
+    """
+    values = {"backend": backend, "index": index, **(fields or {})}
+    return f"{template.format(**values)}.jpg"
 
 
 __all__ = [
     "BACKEND_STRIDE",
+    "DEFAULT_NAMING",
     "LAYOUT_STRIDE",
     "Run",
     "Shard",

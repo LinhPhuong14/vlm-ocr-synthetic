@@ -1,0 +1,1022 @@
+[
+ {
+  "index": 0,
+  "seed": 2026,
+  "force": {
+   "document": "supermarket",
+   "layout": "market_compact",
+   "variant": "l_xanh_luc_khung_ngoai_lam_nhat",
+   "content": "market_full",
+   "visual": "thermal_dark",
+   "color": "mono_black",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "annotated"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 1,
+  "seed": 2027,
+  "force": {
+   "document": "form_activity",
+   "layout": "form_activity_signature",
+   "variant": "none",
+   "content": "invoice_vi_upper",
+   "visual": "laser_invoice",
+   "color": "faded_gray",
+   "ornament": "security_print",
+   "handwriting": "typed",
+   "augmentation": "scribbled"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 2,
+  "seed": 2028,
+  "force": {
+   "document": "bakery_order",
+   "layout": "invoice_brand",
+   "variant": "f_nga_muc_den_xam_khong_so_may_thoang_rang_cua_truong_hai_cot",
+   "content": "invoice_service_dong",
+   "visual": "laser_invoice",
+   "color": "mono_black",
+   "ornament": "qr_and_seal",
+   "handwriting": "hand_both",
+   "augmentation": "scribbled"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 3,
+  "seed": 2029,
+  "force": {
+   "document": "insurance_property_contract",
+   "layout": "insurance_property_contract",
+   "variant": "l_hong_chuan_luc_khong",
+   "content": "invoice_vi",
+   "visual": "impact_invoice",
+   "color": "mono_black",
+   "ornament": "seal_and_paid",
+   "handwriting": "hand_both",
+   "augmentation": "worn_plate"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 4,
+  "seed": 2030,
+  "force": {
+   "document": "form_sectioned",
+   "layout": "form_multi_section",
+   "variant": "f_nga_nhat_lam_khong_tieu_de_khong_chan_chuan_vet_cheo_ky_len_tren_tong",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "thermal_yellow",
+   "ornament": "overlap_seal",
+   "handwriting": "hand_model",
+   "augmentation": "real_paper"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 5,
+  "seed": 2031,
+  "force": {
+   "document": "form_brief",
+   "layout": "form_project_kv",
+   "variant": "f_nga_muc_den_lam_nhat_co_dien_chuan_vach_gay_bang_len_truoc",
+   "content": "invoice_vi_upper",
+   "visual": "impact_invoice",
+   "color": "mono_black",
+   "ornament": "seal_and_paid",
+   "handwriting": "hand_both",
+   "augmentation": "ghost_text"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 6,
+  "seed": 2032,
+  "force": {
+   "document": "form_brief",
+   "layout": "form_questionnaire",
+   "variant": "f_xanh_lam_dam_lam_khong_tieu_de_khong_chan_thoang_goc_vuong_tong_trai_ky_phai",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "blue_ink",
+   "ornament": "verify_qr",
+   "handwriting": "typed",
+   "augmentation": "forwarded_photo"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 7,
+  "seed": 2033,
+  "force": {
+   "document": "bakery_order",
+   "layout": "invoice_brand",
+   "variant": "f_xanh_lam_dam_lam_khong_tieu_de_khong_chan_thoang_goc_vuong_tong_trai_ky_phai",
+   "content": "invoice_service_vnd",
+   "visual": "impact_invoice",
+   "color": "faded_gray",
+   "ornament": "seal_short_of_ink",
+   "handwriting": "hand_both",
+   "augmentation": "page_curl"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 8,
+  "seed": 2034,
+  "force": {
+   "document": "form_checklist",
+   "layout": "form_checkbox_heavy",
+   "variant": "f_nga_muc_den_xam_khong_so_may_thoang_rang_cua_truong_hai_cot",
+   "content": "invoice_vi",
+   "visual": "impact_invoice",
+   "color": "faded_gray",
+   "ornament": "copy_stamp",
+   "handwriting": "hand_both",
+   "augmentation": "heavy"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 9,
+  "seed": 2035,
+  "force": {
+   "document": "retail_vat_invoice",
+   "layout": "invoice_vat_summary",
+   "variant": "l_xanh_luc_chuan_lam_xam",
+   "content": "invoice_ascii",
+   "visual": "laser_invoice",
+   "color": "thermal_yellow",
+   "ornament": "seal_struck_twice",
+   "handwriting": "hand_model",
+   "augmentation": "screen_photo"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 10,
+  "seed": 2036,
+  "force": {
+   "document": "utility_power",
+   "layout": "invoice_power",
+   "variant": "l_trang_khung_ngoai_luc_nhat",
+   "content": "invoice_ascii",
+   "visual": "impact_invoice",
+   "color": "faded_gray",
+   "ornament": "verify_qr",
+   "handwriting": "hand_both",
+   "augmentation": "medium"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 11,
+  "seed": 2037,
+  "force": {
+   "document": "insurance_cargo_policy",
+   "layout": "insurance_cargo_policy",
+   "variant": "l_xanh_lam_khung_ngoai_luc_nhat",
+   "content": "invoice_ascii",
+   "visual": "laser_invoice",
+   "color": "thermal_yellow",
+   "ornament": "qr_and_seal",
+   "handwriting": "hand_both",
+   "augmentation": "security_guilloche"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 12,
+  "seed": 2038,
+  "force": {
+   "document": "hospital_bill",
+   "layout": "medical_statement",
+   "variant": "none",
+   "content": "invoice_service_dong",
+   "visual": "laser_invoice",
+   "color": "red_logo",
+   "ornament": "security_print",
+   "handwriting": "typed",
+   "augmentation": "pristine"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 13,
+  "seed": 2039,
+  "force": {
+   "document": "pub_eatery",
+   "layout": "eatery_indexed_b",
+   "variant": "l_hong_manh_xam_xam",
+   "content": "diacritics_mixed",
+   "visual": "dot_matrix",
+   "color": "mono_black",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "page_curl"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 14,
+  "seed": 2040,
+  "force": {
+   "document": "magazine_contents",
+   "layout": "magazine_contents",
+   "variant": "l_trang_khung_ngoai_trong_nhat",
+   "content": "diacritics_upper",
+   "visual": "thermal_narrow",
+   "color": "thermal_yellow",
+   "ornament": "watermark_copy",
+   "handwriting": "typed",
+   "augmentation": "forwarded_photo"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 15,
+  "seed": 2041,
+  "force": {
+   "document": "convenience_store",
+   "layout": "market_compact",
+   "variant": "l_xanh_luc_muc_den_xam_dam_khong",
+   "content": "dong_suffix",
+   "visual": "laser_sharp",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "misregistered"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 16,
+  "seed": 2042,
+  "force": {
+   "document": "insurance_life_schedule",
+   "layout": "insurance_life_schedule",
+   "variant": "l_xanh_lam_nhat_trong_xam",
+   "content": "invoice_vi",
+   "visual": "impact_invoice",
+   "color": "faded_gray",
+   "ornament": "seller_seal",
+   "handwriting": "typed",
+   "augmentation": "real_paper"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 17,
+  "seed": 2043,
+  "force": {
+   "document": "insurance_health_certificate",
+   "layout": "insurance_health_certificate",
+   "variant": "l_xam_dam_gach_chan_xam",
+   "content": "invoice_vi",
+   "visual": "impact_invoice",
+   "color": "mono_black",
+   "ornament": "copy_stamp",
+   "handwriting": "typed",
+   "augmentation": "medium"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 18,
+  "seed": 2044,
+  "force": {
+   "document": "export_invoice",
+   "layout": "invoice_export",
+   "variant": "l_xam_chuan_trong_xam",
+   "content": "invoice_vi_upper",
+   "visual": "impact_invoice",
+   "color": "mono_black",
+   "ornament": "seal_struck_twice",
+   "handwriting": "hand_model",
+   "augmentation": "heavy"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 19,
+  "seed": 2045,
+  "force": {
+   "document": "form_dense",
+   "layout": "form_dense_registration",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "red_logo",
+   "ornament": "seller_seal",
+   "handwriting": "hand_model",
+   "augmentation": "security_paper"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 20,
+  "seed": 2046,
+  "force": {
+   "document": "hotel_stay",
+   "layout": "invoice_hotel_compact",
+   "variant": "f_xanh_lam_dam_lam_khong_tieu_de_khong_chan_thoang_goc_vuong_tong_trai_ky_phai",
+   "content": "invoice_service_vnd",
+   "visual": "impact_invoice",
+   "color": "mono_black",
+   "ornament": "branded_teal",
+   "handwriting": "hand_both",
+   "augmentation": "flatbed_scan"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 21,
+  "seed": 2047,
+  "force": {
+   "document": "insurance_travel_certificate",
+   "layout": "insurance_travel_certificate",
+   "variant": "l_xanh_lam_khung_ngoai_gach_chan_xam",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "thermal_yellow",
+   "ornament": "seller_seal",
+   "handwriting": "typed",
+   "augmentation": "medium"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 22,
+  "seed": 2048,
+  "force": {
+   "document": "utility_power",
+   "layout": "invoice_power",
+   "variant": "l_nga_nhat_xam_dam_xam",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "faded_gray",
+   "ornament": "seal_short_of_ink",
+   "handwriting": "typed",
+   "augmentation": "scribbled"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 23,
+  "seed": 2049,
+  "force": {
+   "document": "insurance_auto_certificate",
+   "layout": "insurance_auto_certificate",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "impact_invoice",
+   "color": "thermal_yellow",
+   "ornament": "seal_short_of_ink",
+   "handwriting": "hand_model",
+   "augmentation": "annotated"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 24,
+  "seed": 2050,
+  "force": {
+   "document": "insurance_application_form",
+   "layout": "insurance_application_form",
+   "variant": "f_xanh_lam_khung_ngoai_xam_dam_xam_gian_chu_chuan_luoi_chan_bang_len_truoc",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "blue_ink",
+   "ornament": "seal_and_paid",
+   "handwriting": "hand_model",
+   "augmentation": "real_paper"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 25,
+  "seed": 2051,
+  "force": {
+   "document": "magazine_contents",
+   "layout": "magazine_contents",
+   "variant": "f_xanh_luc_dam_lam_xam_hien_dai_thoang_vach_gay_tong_trai_ky_phai",
+   "content": "diacritics_mixed",
+   "visual": "thermal_faint",
+   "color": "mono_black",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "light"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 26,
+  "seed": 2052,
+  "force": {
+   "document": "insurance_fire_certificate",
+   "layout": "insurance_fire_certificate",
+   "variant": "l_xanh_luc_khung_ngoai_gach_chan_xam",
+   "content": "invoice_ascii",
+   "visual": "impact_invoice",
+   "color": "mono_black",
+   "ornament": "seal_short_of_ink",
+   "handwriting": "hand_model",
+   "augmentation": "medium"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 27,
+  "seed": 2053,
+  "force": {
+   "document": "insurance_life_schedule",
+   "layout": "insurance_life_schedule",
+   "variant": "l_xanh_lam_nhat_trong_xam",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "thermal_yellow",
+   "ornament": "verify_qr",
+   "handwriting": "hand_both",
+   "augmentation": "ghost_text"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 28,
+  "seed": 2054,
+  "force": {
+   "document": "pub_eatery",
+   "layout": "eatery_indexed",
+   "variant": "none",
+   "content": "diacritics_mixed",
+   "visual": "dot_matrix",
+   "color": "faded_gray",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "annotated"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 29,
+  "seed": 2055,
+  "force": {
+   "document": "form_roster",
+   "layout": "form_timesheet_grid",
+   "variant": "l_xanh_luc_muc_den_xam_dam_khong",
+   "content": "invoice_ascii",
+   "visual": "laser_invoice",
+   "color": "mono_black",
+   "ornament": "seal_short_of_ink",
+   "handwriting": "typed",
+   "augmentation": "screen_photo"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 30,
+  "seed": 2056,
+  "force": {
+   "document": "newspaper_classifieds",
+   "layout": "newspaper_classifieds",
+   "variant": "f_xanh_lam_dam_xam_dam_xam_co_dien_thoang_vach_gay_bang_giua_ky_trai",
+   "content": "dong_suffix",
+   "visual": "thermal_faint",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "ghost_text"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 31,
+  "seed": 2057,
+  "force": {
+   "document": "pub_eatery",
+   "layout": "eatery_ascii",
+   "variant": "l_xanh_lam_nhat_trong_xam",
+   "content": "ascii_upper",
+   "visual": "dot_matrix",
+   "color": "mono_black",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "screen_photo"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 32,
+  "seed": 2058,
+  "force": {
+   "document": "form_brief",
+   "layout": "form_questionnaire",
+   "variant": "f_xanh_luc_dam_lam_xam_hien_dai_thoang_vach_gay_tong_trai_ky_phai",
+   "content": "invoice_vi_upper",
+   "visual": "laser_invoice",
+   "color": "blue_ink",
+   "ornament": "seller_seal",
+   "handwriting": "typed",
+   "augmentation": "heavy"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 33,
+  "seed": 2059,
+  "force": {
+   "document": "form_dense",
+   "layout": "form_dense_registration",
+   "variant": "none",
+   "content": "invoice_vi_upper",
+   "visual": "laser_invoice",
+   "color": "faded_gray",
+   "ornament": "seal_with_name_block",
+   "handwriting": "hand_model",
+   "augmentation": "light"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 34,
+  "seed": 2060,
+  "force": {
+   "document": "supermarket",
+   "layout": "market_barcode",
+   "variant": "l_xanh_luc_khung_ngoai_gach_chan_xam",
+   "content": "dong_suffix",
+   "visual": "thermal_narrow",
+   "color": "mono_black",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "pristine"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 35,
+  "seed": 2061,
+  "force": {
+   "document": "utility_power",
+   "layout": "invoice_power",
+   "variant": "l_xanh_lam_muc_den_trong_xam",
+   "content": "invoice_vi",
+   "visual": "impact_invoice",
+   "color": "faded_gray",
+   "ornament": "verify_qr",
+   "handwriting": "hand_both",
+   "augmentation": "impact_ribbon"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 36,
+  "seed": 2062,
+  "force": {
+   "document": "insurance_travel_certificate",
+   "layout": "insurance_travel_certificate",
+   "variant": "l_xanh_lam_nhat_trong_xam",
+   "content": "invoice_vi_upper",
+   "visual": "impact_invoice",
+   "color": "mono_black",
+   "ornament": "watermark_copy",
+   "handwriting": "typed",
+   "augmentation": "page_curl"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 37,
+  "seed": 2063,
+  "force": {
+   "document": "hotel_stay",
+   "layout": "invoice_hotel_compact",
+   "variant": "f_xanh_lam_dam_xam_dam_xam_co_dien_thoang_vach_gay_bang_giua_ky_trai",
+   "content": "invoice_service_vnd",
+   "visual": "impact_invoice",
+   "color": "thermal_yellow",
+   "ornament": "seal_short_of_ink",
+   "handwriting": "hand_both",
+   "augmentation": "misregistered"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 38,
+  "seed": 2064,
+  "force": {
+   "document": "vat_invoice_form",
+   "layout": "invoice_vat_form",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "blue_ink",
+   "ornament": "security_print",
+   "handwriting": "hand_model",
+   "augmentation": "scribbled"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 39,
+  "seed": 2065,
+  "force": {
+   "document": "form_checklist",
+   "layout": "form_checkbox_heavy",
+   "variant": "f_xanh_luc_khung_ngoai_trong_nhat_co_dien_nen_vet_cheo_dan_lai_toan_bo",
+   "content": "invoice_vi",
+   "visual": "impact_invoice",
+   "color": "thermal_yellow",
+   "ornament": "watermark_sample",
+   "handwriting": "hand_both",
+   "augmentation": "worn_plate"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 40,
+  "seed": 2066,
+  "force": {
+   "document": "insurance_auto_certificate",
+   "layout": "insurance_auto_certificate",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "impact_invoice",
+   "color": "mono_black",
+   "ornament": "watermark_copy",
+   "handwriting": "hand_both",
+   "augmentation": "pristine"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 41,
+  "seed": 2067,
+  "force": {
+   "document": "vat_invoice_form",
+   "layout": "invoice_vat_form",
+   "variant": "none",
+   "content": "invoice_vi_upper",
+   "visual": "impact_invoice",
+   "color": "mono_black",
+   "ornament": "qr_and_seal",
+   "handwriting": "hand_model",
+   "augmentation": "impact_ribbon"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 42,
+  "seed": 2068,
+  "force": {
+   "document": "convenience_store",
+   "layout": "notebook_ledger",
+   "variant": "l_hong_khung_ngoai_xam_xam",
+   "content": "market_full",
+   "visual": "thermal_faint",
+   "color": "mono_black",
+   "ornament": "no_ornament",
+   "handwriting": "hand_both",
+   "augmentation": "worn_plate"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 43,
+  "seed": 2069,
+  "force": {
+   "document": "supermarket_vat",
+   "layout": "market_barcode",
+   "variant": "l_trang_khung_ngoai_luc_nhat",
+   "content": "diacritics_upper",
+   "visual": "laser_sharp",
+   "color": "mono_black",
+   "ornament": "shelf_barcode",
+   "handwriting": "typed",
+   "augmentation": "flatbed_scan"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 44,
+  "seed": 2070,
+  "force": {
+   "document": "hospital_bill",
+   "layout": "medical_statement",
+   "variant": "none",
+   "content": "invoice_service_vnd",
+   "visual": "impact_invoice",
+   "color": "thermal_yellow",
+   "ornament": "seal_and_paid",
+   "handwriting": "hand_model",
+   "augmentation": "light"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 45,
+  "seed": 2071,
+  "force": {
+   "document": "form_symmetric",
+   "layout": "form_two_column",
+   "variant": "none",
+   "content": "invoice_vi_upper",
+   "visual": "impact_invoice",
+   "color": "faded_gray",
+   "ornament": "no_ornament",
+   "handwriting": "hand_model",
+   "augmentation": "ghost_text"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 46,
+  "seed": 2072,
+  "force": {
+   "document": "utility_water",
+   "layout": "invoice_water",
+   "variant": "l_xanh_luc_khung_ngoai_gach_chan_xam",
+   "content": "invoice_vi",
+   "visual": "impact_invoice",
+   "color": "faded_gray",
+   "ornament": "verify_qr",
+   "handwriting": "hand_both",
+   "augmentation": "ghost_text"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 47,
+  "seed": 2073,
+  "force": {
+   "document": "form_dense",
+   "layout": "form_government_app",
+   "variant": "none",
+   "content": "invoice_ascii",
+   "visual": "laser_invoice",
+   "color": "blue_ink",
+   "ornament": "watermark_sample",
+   "handwriting": "hand_both",
+   "augmentation": "flatbed_scan"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 48,
+  "seed": 2074,
+  "force": {
+   "document": "form_sectioned",
+   "layout": "form_multi_section",
+   "variant": "f_xam_khung_ngoai_lam_nhat_gian_chu_nen_vet_cheo_truong_hai_cot",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "faded_gray",
+   "ornament": "watermark_copy",
+   "handwriting": "typed",
+   "augmentation": "medium"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 49,
+  "seed": 2075,
+  "force": {
+   "document": "authorisation_letter",
+   "layout": "authorisation_letter",
+   "variant": "l_hong_manh_xam_xam",
+   "content": "invoice_service_dong",
+   "visual": "impact_invoice",
+   "color": "faded_gray",
+   "ornament": "seal_and_paid",
+   "handwriting": "hand_both",
+   "augmentation": "light"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 50,
+  "seed": 2076,
+  "force": {
+   "document": "magazine_contents",
+   "layout": "magazine_contents",
+   "variant": "f_xam_khung_ngoai_trong_khong_hien_dai_thoang_vet_cheo_truong_hai_cot",
+   "content": "diacritics_upper",
+   "visual": "dot_matrix",
+   "color": "mono_black",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "impact_ribbon"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 51,
+  "seed": 2077,
+  "force": {
+   "document": "supermarket",
+   "layout": "market_barcode",
+   "variant": "l_trang_khung_ngoai_trong_nhat",
+   "content": "diacritics_upper",
+   "visual": "laser_sharp",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "light"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 52,
+  "seed": 2078,
+  "force": {
+   "document": "insurance_travel_certificate",
+   "layout": "insurance_travel_certificate",
+   "variant": "l_xanh_luc_chuan_lam_xam",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "hand_both",
+   "augmentation": "annotated"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 53,
+  "seed": 2079,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_minimalist",
+   "variant": "f_xanh_lam_nhat_luc_xam_tieu_de_khong_chan_thoang_khong_le_hep_tieu_de_lon",
+   "content": "invoice_ascii",
+   "visual": "impact_invoice",
+   "color": "thermal_yellow",
+   "ornament": "seal_struck_twice",
+   "handwriting": "typed",
+   "augmentation": "light"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 54,
+  "seed": 2080,
+  "force": {
+   "document": "invoice_detailed",
+   "layout": "invoice_logo_split",
+   "variant": "f_trang_dam_luc_xam_tieu_de_khong_chan_thoang_khong_bang_len_truoc",
+   "content": "invoice_ascii",
+   "visual": "laser_invoice",
+   "color": "blue_ink",
+   "ornament": "seller_seal",
+   "handwriting": "typed",
+   "augmentation": "worn_plate"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 55,
+  "seed": 2081,
+  "force": {
+   "document": "resort_stay",
+   "layout": "invoice_hotel_compact",
+   "variant": "f_xam_muc_den_xam_khong_tieu_de_khong_chan_chuan_khong_bang_len_truoc",
+   "content": "invoice_service_vnd",
+   "visual": "laser_invoice",
+   "color": "mono_black",
+   "ornament": "hotel_seal",
+   "handwriting": "typed",
+   "augmentation": "security_guilloche"
+  },
+  "by": "coverage",
+  "note": ""
+ },
+ {
+  "index": 56,
+  "seed": 2082,
+  "force": {
+   "document": "pub_eatery",
+   "layout": "eatery_indexed",
+   "variant": "none",
+   "content": "diacritics_mixed",
+   "visual": "dot_matrix",
+   "color": "faded_gray",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "worn_plate"
+  },
+  "by": "llm",
+  "note": "rules refused layout=market_compact, variant=f_nga_muc_den_xam_khong_so_may_thoang_rang_cua_truong_hai_cot, content=invoice_service_dong, ornament=seal_short_of_ink, handwriting=hand_model"
+ },
+ {
+  "index": 57,
+  "seed": 2083,
+  "force": {
+   "document": "supermarket",
+   "layout": "market_barcode",
+   "variant": "l_xanh_luc_chuan_lam_xam",
+   "content": "diacritics_upper",
+   "visual": "laser_sharp",
+   "color": "blue_ink",
+   "ornament": "shelf_barcode",
+   "handwriting": "typed",
+   "augmentation": "annotated"
+  },
+  "by": "llm",
+  "note": "rules refused ornament=seal_and_paid, handwriting=hand_both"
+ },
+ {
+  "index": 58,
+  "seed": 2084,
+  "force": {
+   "document": "form_brief",
+   "layout": "form_project_kv",
+   "variant": "none",
+   "content": "invoice_ascii",
+   "visual": "laser_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "light"
+  },
+  "by": "llm",
+  "note": "rules refused layout=invoice_power, visual=thermal_narrow"
+ },
+ {
+  "index": 59,
+  "seed": 2085,
+  "force": {
+   "document": "utility_power",
+   "layout": "invoice_power",
+   "variant": "l_xanh_lam_nhat_trong_xam",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "faded_gray",
+   "ornament": "watermark_copy",
+   "handwriting": "hand_model",
+   "augmentation": "scribbled"
+  },
+  "by": "llm",
+  "note": "rules refused layout=invoice_hotel_compact, content=invoice_service_vnd, visual=thermal_faint"
+ }
+]

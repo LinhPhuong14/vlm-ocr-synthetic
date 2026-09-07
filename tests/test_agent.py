@@ -12,7 +12,8 @@ from __future__ import annotations
 import json
 import sys
 import threading
-from http.server import BaseHTTPRequestHandler, HTTPServer
+import time
+from http.server import BaseHTTPRequestHandler, HTTPServer, ThreadingHTTPServer
 from pathlib import Path
 
 import pytest
@@ -24,6 +25,7 @@ for extra in (REPO_ROOT, REPO_ROOT / "generators" / "html"):
 
 from agent import client, planner, policy, variants  # noqa: E402
 from agent import rules as agent_rules  # noqa: E402
+from pipeline.invariants import CLEAN_FORCES  # noqa: E402
 
 CATALOGUE = variants.build(count=24, seed=11)
 
@@ -189,6 +191,10 @@ class _Stub(BaseHTTPRequestHandler):
 
     pages: list = []
     calls: int = 0
+    # Only the concurrency timing test sets this above zero -- everything
+    # else answers immediately, so a delay left over from a previous test
+    # would silently slow every one after it.
+    delay: float = 0.0
 
     def log_message(self, *_args):        # noqa: D102 -- silence the test run
         pass
@@ -201,6 +207,8 @@ class _Stub(BaseHTTPRequestHandler):
 
     def do_POST(self):                    # noqa: N802
         type(self).calls += 1
+        if self.delay:
+            time.sleep(self.delay)
         length = int(self.headers.get("Content-Length", 0))
         body = json.loads(self.rfile.read(length) or b"{}")
         block = (body["response_format"]["json_schema"]["schema"]
@@ -216,6 +224,20 @@ class _Stub(BaseHTTPRequestHandler):
 @pytest.fixture
 def stub():
     server = HTTPServer(("127.0.0.1", 0), _Stub)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    yield server
+    server.shutdown()
+
+
+@pytest.fixture
+def threaded_stub():
+    """Like `stub`, but able to answer more than one request at once --
+    plain `HTTPServer` serves its accept loop on one thread, so a
+    concurrency test against it would serialise regardless of how many
+    requests `plan()` fired, and pass by accident. Only the concurrency
+    tests below need this; everything else keeps the simpler `stub`."""
+    server = ThreadingHTTPServer(("127.0.0.1", 0), _Stub)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     yield server
@@ -255,6 +277,61 @@ def test_an_illegal_pick_is_replaced_and_said_so(built, stub):
     # rules refuse it and the objective fills the slot instead.
     assert any("rules refused" in d.note for d in decisions)
     assert planner.verify(decisions, rules) == []
+
+
+def test_concurrent_planning_matches_sequential_byte_for_byte(built, threaded_stub):
+    """`concurrency>1` fetches several blocks at once; the plan it produces
+    must be the one `concurrency=1` produces, because reproducibility -- same
+    seed, same bytes -- does not get to depend on which network reply came
+    back first. See `plan`'s own docstring for why applying stays sequential
+    while fetching does not."""
+    rules, pol = built
+    _Stub.pages = [{"document": "supermarket", "layout": "market_barcode",
+                    "variant": "none", "content": "market_upper",
+                    "visual": "till_thermal", "color": "mono_black",
+                    "ornament": "no_ornament", "augmentation": "pristine"}]
+    legal = {name: {o.id for o in options} for name, options in rules.items()}
+    _Stub.pages[0] = {k: v for k, v in _Stub.pages[0].items() if v in legal.get(k, ())}
+    if len(_Stub.pages[0]) < 3:
+        pytest.skip("the shipped rules renamed the ids this stub names")
+    sequential = planner.plan(30, seed=42, rules=rules, policy=pol,
+                              llm=_client(threaded_stub), block=6, concurrency=1)
+    concurrent = planner.plan(30, seed=42, rules=rules, policy=pol,
+                              llm=_client(threaded_stub), block=6, concurrency=4)
+    assert [d.force for d in sequential] == [d.force for d in concurrent]
+    assert [d.by for d in sequential] == [d.by for d in concurrent]
+
+
+def test_concurrent_planning_is_actually_concurrent(built, threaded_stub):
+    """Not just correct -- faster, against a server that can answer more than
+    one request at a time. `HTTPServer` in the test above cannot show this
+    (it serves one request per accept-loop turn regardless of how many a
+    client fires), which is exactly why this one needs `threaded_stub`."""
+    rules, pol = built
+    _Stub.pages = [{"document": "supermarket", "layout": "market_barcode",
+                    "variant": "none", "content": "market_upper",
+                    "visual": "till_thermal", "color": "mono_black",
+                    "ornament": "no_ornament", "augmentation": "pristine"}]
+    legal = {name: {o.id for o in options} for name, options in rules.items()}
+    _Stub.pages[0] = {k: v for k, v in _Stub.pages[0].items() if v in legal.get(k, ())}
+    if len(_Stub.pages[0]) < 3:
+        pytest.skip("the shipped rules renamed the ids this stub names")
+    _Stub.delay = 0.3
+    try:
+        start = time.time()
+        planner.plan(24, seed=1, rules=rules, policy=pol,
+                     llm=_client(threaded_stub), block=6, concurrency=1)
+        sequential_seconds = time.time() - start
+
+        start = time.time()
+        planner.plan(24, seed=1, rules=rules, policy=pol,
+                     llm=_client(threaded_stub), block=6, concurrency=4)
+        concurrent_seconds = time.time() - start
+    finally:
+        _Stub.delay = 0.0
+    # 4 blocks at 0.3s each: ~1.2s sequential, ~0.3s at concurrency=4. A wide
+    # margin (2x rather than the ~4x measured) keeps this off a loaded CI box.
+    assert concurrent_seconds < sequential_seconds / 2
 
 
 def test_a_server_that_is_not_there_is_a_mode_and_not_a_crash(built):
@@ -443,3 +520,23 @@ def test_the_ink_sources_that_need_writevit_are_named(built):
     rules, _ = built
     have = {option.id for option in rules["handwriting"]}
     assert set(agent_rules.NEEDS_WRITEVIT) <= have, have
+
+
+# ------------------------------------------------------------------- --clean
+
+
+def test_pin_wins_over_the_objective_the_way_the_model_does(built):
+    """A page under `--clean` (`pin=CLEAN_FORCES`) must draw
+    `augmentation=pristine` even with no model in play at all -- the coverage
+    objective alone would draw plenty of chain-bearing values over 200 pages,
+    which is exactly the run this regresses against: `render.py`'s own
+    `--force` loses to a job's `force`, and a job's `force` IS what `plan()`
+    returns, so a value that slips past HERE reaches a shard that never
+    installed Blender and fails the whole run on it.
+    """
+    rules, pol = built
+    decisions = planner.plan(200, seed=7, rules=rules, policy=pol, pin=CLEAN_FORCES)
+    wrong = [d for d in decisions if d.force.get("augmentation")
+             != CLEAN_FORCES["augmentation"]]
+    assert wrong == [], wrong[:5]
+    assert planner.verify(decisions, rules) == []

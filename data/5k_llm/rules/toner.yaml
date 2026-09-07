@@ -1,5 +1,0 @@
-options:
-- id: no_toner
-  weight: 17.0
-  tags:
-  - toner_clean

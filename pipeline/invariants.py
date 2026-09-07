@@ -82,22 +82,12 @@ INVARIANTS_NAME = "invariants.json"
 # What `--clean` pins: for EVERY attribute that can add steps to the ageing
 # chain, the value whose chain is empty.
 #
-# It used to be one name, because `augmentation` used to be the only attribute
-# that carried a chain. Splitting the copier into `toner`, `drum` and `rollers`
-# ended that, and a clean run that pinned only `augmentation` would have gone
-# on calling itself clean while a drum streak was drawn across it. The clean
-# set is the CEILING every ageing number is measured against, so that is not a
-# cosmetic bug -- it moves the baseline and nothing says so.
-#
 # `tools/rules_report.py` checks this dict against the rules both ways: every
 # chain-bearing attribute must be named here, and every value named here must
 # have an empty chain. Rename a value in the YAML and preflight fails, which is
 # the whole reason these live in a constant rather than inline.
 CLEAN_FORCES: dict[str, str] = {
     "augmentation": "pristine",
-    "toner": "no_toner",
-    "drum": "no_drum",
-    "rollers": "no_rollers",
 }
 
 # Characters that mean a font had nothing to draw. They reach the label only

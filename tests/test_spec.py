@@ -399,23 +399,16 @@ def test_order_manifest_drives_the_attribute_list():
 
 
 def test_the_ageing_attributes_are_drawn_after_everything_on_the_paper():
-    """Ageing comes last, and `augmentation` is no longer the only one of it.
+    """Ageing comes last -- `augmentation` is currently the only one of it.
 
-    This used to read `ATTRIBUTES[-1] == "augmentation"`, which was a name
-    standing in for a rule. The rule is that an attribute carrying a `chain`
-    describes what happened to a page AFTER it was printed, so all of them come
-    after every attribute that decides what is printed. Splitting the copier
-    into `toner`, `drum` and `rollers` is what made the difference visible.
-
-    `toner`/`drum`/`rollers` themselves currently carry no chain at all --
-    every worn-machine option was pulled from all three (see toner.yaml) -- so
-    checking "the chain-bearing attributes are exactly one contiguous suffix"
-    would now fail on a fact that is deliberate, not a reordering mistake:
-    `augmentation` chains, the copier's three parts sit right after it in
-    `_order.yaml` and do not. They are still the same post-print domain
-    `POST_PRINT` names below, on paper (`_order.yaml`'s own comment) even
-    while switched off, which is the fact this test must not mistake for one
-    of them having drifted out of place.
+    An attribute carrying a `chain` describes what happened to a page AFTER
+    it was printed, so it must come after every attribute that decides what
+    is printed. Checked generically rather than as `ATTRIBUTES[-1] ==
+    "augmentation"`, which is a name standing in for the rule: the copier
+    attributes this repository once split ageing across (`toner`, `drum`,
+    `rollers`) were removed once none of them carried a live chain any more,
+    but the next chain-bearing attribute added should not have to touch this
+    test to be covered by it.
     """
     from rulebase import load_rules
 
@@ -425,22 +418,9 @@ def test_the_ageing_attributes_are_drawn_after_everything_on_the_paper():
     assert ageing, "something has to carry the ageing chain"
     first_ageing = ATTRIBUTES.index(ageing[0])
     # Everything from the first ageing attribute onwards must either age the
-    # page or do NOTHING to it.
-    #
-    # It read `== ageing` -- a strict suffix -- and that stopped being true
-    # twice over, for two deliberate reasons: `rollers` was switched off and
-    # then the whole copier was, so `toner`, `drum` and `rollers` now carry one
-    # value each and no chain at all. They still sit after `augmentation` in
-    # `_order.yaml`, where the post-print domain belongs, and the suffix form
-    # would call that a reordering mistake.
-    #
-    # A hand-written set of "the attributes allowed to be there" would work and
-    # would have to be re-earned by whoever adds the next one. This says what
-    # the rule always meant instead: an attribute drawn after the ageing has
+    # page or do NOTHING to it -- an attribute drawn after the ageing has
     # begun may not put ANYTHING on the sheet except through a chain, because
-    # the chain is the only thing that runs in draw order. A switched-off
-    # copier carries no params and passes; a copier that started printing
-    # something without a chain would not.
+    # the chain is the only thing that runs in draw order.
     #
     # `handwriting` is the case that makes the distinction matter. It does put
     # ink on the page, and it is drawn BEFORE `augmentation` for exactly that

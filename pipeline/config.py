@@ -37,6 +37,8 @@ from typing import Any
 
 import yaml
 
+from pipeline.plan import DEFAULT_NAMING
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 # Where a run-specific rules directory is announced to the renderers. Unset
@@ -44,8 +46,16 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 # byte-identical to one from before this existed.
 RULES_ENV = "VLM_RULES_ROOT"
 
+# Same idea, for LLM-composed content (`agent/compose.py`): a path to a JSON
+# file of `{seed: {field: value}}` overrides, read inside `rulebase/content.py`
+# -- not a new CLI flag or `Job`/`force` field, because a renderer subprocess
+# needing more than an id string is exactly what `RULES_ENV` above already
+# solves, and a second style for the same problem would be the wrong kind of
+# new. Unset means every field comes from corpus/params as it always has.
+CONTENT_OVERRIDES_ENV = "VLM_CONTENT_OVERRIDES"
+
 RUN_KEYS = {"out", "per_backend", "seed", "workers", "clean", "force", "pairing",
-            "layouts", "template"}
+            "layouts", "template", "naming"}
 SHARD_KEYS = {"size"}
 QUALITY_KEYS = {"drift_tolerance", "sample_for_ocr"}
 TOP_KEYS = {"run", "backends", "shard", "overrides", "quality"}
@@ -140,6 +150,13 @@ class Config:
     # forces one particular dress. The glyph backend has no CSS at all, so a run
     # that asks for a sheet must not include it -- see `Config.from_dict`.
     template: str = ""
+    # A format string over `backend`, `index`, and any rule-base attribute a
+    # page was drawn with (`document`, `layout`, `visual`, ...). The default
+    # keeps every filename this repository has ever committed unchanged;
+    # naming by document type, or by anything else, is `run.naming` in
+    # `pipeline.yaml` -- one line, not a rule this file hardcodes. See
+    # `resolve_naming` for what makes a template valid.
+    naming: str = DEFAULT_NAMING
     overrides: dict[str, Any] = field(default_factory=dict)
     quality: dict[str, Any] = field(default_factory=dict)
     source: Path | None = None
@@ -226,6 +243,8 @@ class Config:
                 f"run.template: expected 'grid', 'auto' or a layout id, got "
                 f"{template!r}")
 
+        naming = resolve_naming(run.get("naming"))
+
         return cls(
             # Absolute here, at the edge, once. A renderer that runs from its
             # own directory turns a relative output path into a directory
@@ -244,6 +263,7 @@ class Config:
             pairing=pairing,
             layouts=tuple(str(name) for name in layouts),
             template=template,
+            naming=naming,
             overrides=dict(overrides),
             quality=dict(quality),
             source=source,
@@ -275,6 +295,35 @@ def resolve_per_backend(value: Any) -> int:
     if per_backend < 1:
         raise ConfigError(f"run.per_backend: must be >= 1, got {per_backend}")
     return per_backend
+
+
+def resolve_naming(value: Any) -> str:
+    """A checked `run.naming`, or `DEFAULT_NAMING` if the run named none.
+
+    Checked once, here, against every placeholder a template could legally
+    use -- `backend`, `index`, and every attribute name `rulebase/rules/`
+    ships (read from `_order.yaml` through `rulebase.spec.ATTRIBUTES`, not
+    listed by hand, so an attribute added later is usable in a template
+    without a change on this side) plus `variant`, which only an agent run
+    adds. A typo here is a config that runs for hours and never once agrees
+    with itself about a file's name; the alternative is a `KeyError` three
+    shards in, with no line number pointing at `pipeline.yaml`.
+    """
+    from rulebase.spec import ATTRIBUTES
+
+    template = str(value or DEFAULT_NAMING)
+    sample = {"backend": "html", "index": 0,
+             **{name: "x" for name in ATTRIBUTES}, "variant": "x"}
+    try:
+        template.format(**sample)
+    except KeyError as error:
+        raise ConfigError(
+            f"run.naming: {template!r} names {error}, which is not `backend`, "
+            f"`index`, or a rule-base attribute; have "
+            f"{', '.join(sorted(sample))}") from error
+    except (IndexError, ValueError) as error:
+        raise ConfigError(f"run.naming: {template!r} is not a valid format string ({error})")
+    return template
 
 
 def resolve_workers(value: Any) -> int:
@@ -374,9 +423,11 @@ def materialise_rules(rules: dict, destination: Path) -> Path:
 __all__ = [
     "Config",
     "ConfigError",
+    "CONTENT_OVERRIDES_ENV",
     "RULES_ENV",
     "apply_overrides",
     "materialise_rules",
+    "resolve_naming",
     "resolve_per_backend",
     "resolve_workers",
 ]

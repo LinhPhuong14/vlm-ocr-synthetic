@@ -1,5 +1,0 @@
-options:
-- id: no_drum
-  weight: 17.0
-  tags:
-  - drum_clean

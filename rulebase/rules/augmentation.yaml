@@ -278,11 +278,15 @@ options:
   #     (`ink_degradation` nay đã tắt — `degradation.SWITCHED_OFF`.)
   #
   # Ba mô hình còn lại của đợt ấy — `bad_photocopy`, `dirty_drum`,
-  # `dirty_rollers` — KHÔNG có mặt trong file này. Chúng là ba bộ phận của cái
-  # máy đã sao tờ giấy, hỏng độc lập với nhau, nên mỗi cái thành một thuộc tính
-  # riêng: `toner.yaml`, `drum.yaml`, `rollers.yaml`. Gói chúng vào một giá trị
-  # ở đây thì mỗi tổ hợp phải viết tay một kịch bản, và số kịch bản phải viết
-  # là TÍCH chứ không phải tổng.
+  # `dirty_rollers` — KHÔNG có mặt trong file này. Chúng từng là ba thuộc
+  # tính riêng (`toner`, `drum`, `rollers` trong `_order.yaml`) mô phỏng cái
+  # máy đã sao tờ giấy, độc lập với `augmentation` — đã bị xoá hẳn khỏi
+  # rule-base vì cả ba chỉ còn đúng một giá trị "tắt" mỗi file, không còn gì
+  # để LLM/coverage-sampler thật sự chọn. Ba mô hình vẫn còn trong
+  # `degradation/` nhưng không được đăng ký ở đâu nữa — bật lại đồng nghĩa
+  # với việc thêm cả thuộc tính lẫn giá trị hỏng lại, không chỉ gọi tên chúng
+  # ở đây, vì gói chúng vào một giá trị ở đây thì mỗi tổ hợp phải viết tay
+  # một kịch bản, và số kịch bản phải viết là TÍCH chứ không phải tổng.
   #   * nhiễu MÀU. Mười sáu mô hình trước đó đều chỉ đổi độ sáng, nên một mô
   #     hình OCR học trên bộ này gặp viền màu lần đầu ở ảnh thật.
   #   * nét NGƯỜI THÊM VÀO — bút dạ quang, khoanh tròn, gạch xoá, nguệch ngoạc.

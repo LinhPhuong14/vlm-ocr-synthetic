@@ -248,10 +248,10 @@ HTML_TAG = {
 # the label `label_for` already computes is cheaper and just as faithful:
 # every existing reader of `label_for`/`blocks[]` sees no change at all.
 DOCSYNTH_LABELS = frozenset({
-    "Caption", "Footnote", "Equation-Block", "List-Group", "Page-Header",
-    "Page-Footer", "Image", "Section-Header", "Table", "Text",
+    "Caption", "Footnote", "Formula", "List-Group", "Page-Header",
+    "Page-Footer", "Image", "Section-Header", "Table", "Text", "Title",
     "Complex-Block", "Code-Block", "Form", "Table-Of-Contents", "Figure",
-    "Chemical-Block", "Diagram", "Bibliography", "Blank-Page",
+    "Diagram", "Bibliography", "Blank-Page",
 })
 
 # kind prefix -> `docsynth.annotations.v1` label, DIRECTLY -- not through
@@ -269,20 +269,19 @@ DOCSYNTH_LABELS = frozenset({
 #
 # Same rule as `LABELS`: longest prefix wins. A `kind` this does not cover
 # reads as `Text`, `layout_class_for`'s own default -- most of what a
-# Vietnamese business document says IS running text, and the eight labels
+# Vietnamese business document says IS running text, and the nine labels
 # actually used below (`Caption`, `Image`, `Page-Footer`, `Page-Header`,
-# `Section-Header`, `Table`, `Table-Of-Contents`, `Text`) are what this
-# repository's content actually is; the other eleven (`Equation-Block`,
-# `Chemical-Block`, `Bibliography`, ...) name things no layout here draws,
-# and forcing a `kind` onto one of them would be a label lying about the
-# page, not a use of the vocabulary's breadth.
+# `Section-Header`, `Table`, `Table-Of-Contents`, `Text`, `Title`) are what
+# this repository's content actually is; the other ten (`Formula`,
+# `Bibliography`, ...) name things no layout here draws, and forcing a
+# `kind` onto one of them would be a label lying about the page, not a use
+# of the vocabulary's breadth.
 DOCSYNTH_LABEL_FOR_KIND: dict[str, str] = {
-    # A document's own title reads as `Page-Header` here by explicit call:
-    # this repository draws one document per page, so "the page's header"
-    # and "the document's title" are the same band of ink -- a choice, not
-    # the DocLayNet-style reading that would put it under `Section-Header`
-    # instead.
-    "title": "Page-Header",
+    # The document's own title is its own label, distinct from the page's
+    # running header: it reads once per page, largest type, and a
+    # layout-detection model loses a real signal if that is folded into
+    # `Page-Header` the way it used to be here.
+    "title": "Title",
     "subtitle": "Section-Header",
     "parties.title": "Section-Header",
     # Only the org's own name is PAGE-HEADER material -- the running

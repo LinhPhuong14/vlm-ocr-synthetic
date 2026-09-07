@@ -1,0 +1,27 @@
+options:
+- id: typed
+  weight: 6.0
+  tags:
+  - typed_fields
+- id: hand_font
+  weight: 1.0
+  tags:
+  - hand_filled
+  - ink_font
+  requires:
+  - fillable
+- id: hand_model
+  weight: 2.0
+  tags:
+  - hand_filled
+  - ink_model
+  requires:
+  - fillable
+- id: hand_both
+  weight: 6.0
+  tags:
+  - hand_filled
+  - ink_font
+  - ink_model
+  requires:
+  - fillable
