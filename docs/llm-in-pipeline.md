@@ -59,11 +59,18 @@ flowchart TD
     O --> R["4 · report.json / manifest.json<br/>ghi sha256 của compose.jsonl"]
 ```
 
-**Vì sao `compose` là tiến trình con chứ không phải một import.** Renderer đã
-là tiến trình con (`pipeline/worker.py::renderer_command`); `compose` đi đúng
-đường ấy. Nhờ thế ranh giới trong `tests/test_llm.py` còn nguyên: `pipeline/`
-gọi một lệnh, không import `agent`. Lượt chạy không khai `llm:` thì pha này
-không tồn tại — CI, baseline vàng và mọi tập đã commit đi đúng đường cũ.
+**Sửa lại so với bản vẽ ban đầu ở đây: `agent/compose.py` (phần nội dung, §4)
+chạy bằng IMPORT TRỰC TIẾP từ `tools/agent_dataset.py`, không phải tiến
+trình con.** Lý do: `tests/test_llm.py::test_the_render_path_cannot_reach_
+the_generator` chỉ cấm `generators/`, `pipeline/`, `rulebase/`,
+`degradation/`, `components/` import `agent/` — `tools/` chưa bao giờ nằm
+trong danh sách đó, và nó đã import `agent.planner`/`agent.client` trực
+tiếp từ trước khi tài liệu này được viết. Ranh giới thật sự nằm ở
+**renderer** (`generators/html/render.py`, chạy như tiến trình con của
+`pipeline/worker.py`) — nó không import `agent` bao giờ, và nhận nội dung
+model viết qua một file JSON + biến môi trường (`VLM_CONTENT_OVERRIDES`,
+đọc trong `rulebase/content.py`) — cùng kiểu với `VLM_RULES_ROOT` đã có sẵn,
+không phải CLI flag mới. Xem §4, đã làm.
 
 **Model không phát minh ra cơ chế mới.** Nó chỉ điền vào hai chỗ pipeline đã có
 sẵn:
@@ -72,7 +79,7 @@ sẵn:
 | :--- | :--- | :--- |
 | trang này dùng biến thể bố cục khác | một file YAML trong `out/.rules/layouts/` + `force: {layout: <id biến thể>}` | `rulebase` đọc như bố cục thường |
 | trang này làm cũ kiểu khác | `force: {augmentation: …, ornament: …, handwriting: …}` | `worklist` + `--force`, đã có |
-| trang này điền nội dung khác | `content: {store.name: …, menu[3].name: …}` | *(bước 4 dưới đây — chỗ duy nhất cần code mới trong đường vẽ)* |
+| trang này điền nội dung khác | một dòng trong `content_overrides.json` (`{"<seed>": {"store.name": …, "menu[3].name": …}}`) | `rulebase/content.py` đọc qua `VLM_CONTENT_OVERRIDES` — xem §4, đã làm |
 
 Hai dòng đầu **không cần sửa renderer một dòng nào**. Đó là lý do thiết kế này
 nhỏ hơn nó nghe.
@@ -81,7 +88,10 @@ nhỏ hơn nó nghe.
 
 ## 3. Ràng buộc: chứng từ nào được biến đổi ✅
 
-`rulebase/augmentable.yaml` + `agent/augmentable.py` — **đã làm**.
+`agent/policy.yaml` + `agent/policy.py` — **đã làm** (hợp nhất từ
+`rulebase/augmentable.yaml`/`agent/augmentable.py`, nay đã xoá, vào một
+nguồn duy nhất; tên mức cũng đổi: `fixed→locked`, `styled→livery`,
+`free→free` giữ nguyên).
 
 | mức | nghĩa | ai |
 | :--- | :--- | :--- |
@@ -99,31 +109,55 @@ vào thẳng `fixed` vì cùng lý do.
 pháp lý bịa theo cách chưa ai duyệt. `policy.problems()` báo tên những loại
 chưa khai, cả hai chiều.
 
-```bash
-python -m agent.augmentable --check
-```
+Không còn CLI `--check` riêng: `agent/policy.py` không có `main()`, và bài
+kiểm hai chiều (mọi chứng từ đã phân loại, không chứng từ nào ở hai lớp) là
+`tests/test_agent.py::test_every_shipped_document_is_classified` +
+`test_a_document_cannot_be_in_two_classes`.
 
 ---
 
-## 4. Nội dung do model viết, thay vì lấy từ corpus
+## 4. Nội dung do model viết, thay vì lấy từ corpus ✅
 
-Đây là phần duy nhất cần một đường mới trong lúc vẽ, và nó vẫn không phải một
-lệnh gọi mạng.
+**Đã làm** — `agent/compose.py`, `tools/agent_dataset.py --content-llm`.
+Không đi qua `force` như bản vẽ ban đầu ở đây từng đề xuất: `force` là
+`dict[str, str]` của đúng 6 thuộc tính luật (`rulebase.parse_force` từ chối
+mọi tên khác), còn nội dung là theo TỪNG SEED, không theo job/attribute, nên
+nó có đường riêng — một biến môi trường, cùng kiểu `VLM_RULES_ROOT` đã có:
 
-`rulebase.content.build` điền trường từ corpus. Thêm **một lớp phủ**: nếu
-recipe mang `content_overrides` thì các trường ấy lấy giá trị đã ghi sẵn, phần
-còn lại vẫn từ corpus như cũ. Lớp phủ đi vào qua `force` — nó đã là đường
-truyền tham số vào một trang.
+* `agent/compose.py::decide(decisions, rules, llm=..., concurrency=...)` —
+  cùng khối/`concurrency` như `agent/planner.py`, nhưng gộp khối theo
+  **profile** (9 `profile:` trong `rulebase/documents/*.yaml`) chứ không phải
+  theo chỉ số trang, vì schema khác nhau giữa các profile.
+* Ghi hai file: `compose.jsonl` (sổ cái đầy đủ, có cả giá trị bị từ chối và
+  vì sao) và `content_overrides.json` (`{"<seed>": {"store.name": …}}`, file
+  gọn `rulebase/content.py` thực sự đọc).
+* `rulebase/content.py` đọc `content_overrides.json` qua biến môi trường
+  `VLM_CONTENT_OVERRIDES` (đọc lười, cache 1 lần/tiến trình) — **chữ ký
+  `content.build()`/`rulebase.make()`/`rulebase.make_content()` không đổi
+  gì cả**, và `generators/html/render.py` cũng vậy.
 
-Giá trị model viết ra **phải qua `corpus_rules`** đúng như dòng corpus do model
-sinh: đó là bộ luật đo từ chính corpus người viết, và nó đã từng loại 48 % số
-dòng của lượt sinh đầu tiên. Không có ngoại lệ nào cho "model viết thẳng vào
-trang" — trái lại, ở đó nó nguy hiểm hơn, vì không có ai đọc diff trước.
+Giá trị model viết ra **qua `agent.corpus_rules.check_name()`** — đúng hàm
+đang gác `agent/augment_content.py` — **cộng thêm** một điều kiện
+`check_name` không có: `pipeline.drift.has_diacritics()`, bắt buộc mọi giá
+trị phải còn dấu tiếng Việt. Điều kiện này **không** thêm vào `check_name`
+dùng chung (dòng corpus người viết vẫn được phép không dấu — `"Natri Clorid
+0,9%"`, `"iPad"`) — nó chỉ áp cho giá trị model viết cho `content_overrides`.
+Một giá trị bị loại thì bỏ TRƯỜNG đó, không bỏ cả trang — trang vẫn dựng,
+trường ấy lấy từ corpus như chưa từng có override.
 
 Ràng buộc số học **không** giao cho model: tiền, thuế, tổng cộng vẫn do
 `rulebase.content` tính, vì `pipeline/invariants.py` kiểm chúng và một model
-cộng sai sẽ làm hỏng cả shard. Model viết **chữ**: tên cửa hàng, tên mặt hàng,
-địa chỉ, tiêu đề bài báo, đoạn mở của một mẩu rao vặt.
+cộng sai sẽ làm hỏng cả shard. Model viết **chữ**: tên cửa hàng, tên mặt hàng
+(`store.name`, `menu[i].name`) — và với bảng kê viện phí, **một lựa chọn
+ràng buộc enum**: `admission.diagnosis`/`admission.comorbid`, chọn đúng một
+cặp mã-tên đã có sẵn trong `diagnoses:`/`comorbidities:` của chính file
+`rulebase/documents/hospital_bill.yaml`, không tự bịa mã ICD mới — đây là
+chỗ sửa đúng lỗi thật đã đo được: khoa phòng, chẩn đoán và danh mục dịch vụ
+trước đây bốc độc lập bằng ba lần `rng.choice()` không liên quan gì nhau.
+
+Phạm vi CHƯA làm ở bước này: `store.address`/`store.branch`/`store.website`
+(chỉ `store.name` + `menu[i].name` + hai trường enum y tế), và 4 loại
+`kind: periodical` (route riêng qua `rulebase/periodical.py`, không đụng).
 
 ---
 
@@ -210,23 +244,29 @@ Nguyên tắc chung: **một lượt chạy không bao giờ hỏng vì model c�
 
 ## 8. Cấu hình
 
-```yaml
-llm:
-  host: http://gpu-box.lan:11434   # hoặc để trống, đọc VLM_LLM_HOST
-  model: qwen2.5:32b-instruct
-  temperature: 0.9
-  variety: 8              # biến thể tối đa mỗi bố cục gốc
-  content: true           # để model viết chữ vào trang, không chỉ đổi bố cục
-  on_error: stop          # stop | skip
-  timeout: 900
+**Thực tế đã làm khác bản vẽ này ở chỗ: không có khối `llm:` trong
+`pipeline.yaml`.** `tools/agent_dataset.py` không đọc `pipeline.yaml` cho
+phần agent; cấu hình là biến môi trường + cờ dòng lệnh:
+
+```bash
+export VLM_LLM_URL=http://gpu-box.lan:8000/v1   # hoặc VLM_LLM_URL rỗng = coverage thuần
+export VLM_LLM_MODEL=Qwen/Qwen3.8-27B-FP8
+export VLM_LLM_KEY=EMPTY                        # tuỳ server
+
+python tools/agent_dataset.py -o out -n 5000 \
+  --llm-concurrency 4    # bắn N khối cùng lúc, cho cả lập kế hoạch lẫn compose
+  --content-llm           # BẮT BUỘC gõ riêng — không tự bật dù có VLM_LLM_URL,
+                          # vì đổi nội dung là thay đổi lớn hơn chọn thuộc tính
 ```
 
-Không khai `llm:` thì không có pha compose. Đó là mặc định, và mọi thứ đã
-commit tới hôm nay đều là lượt chạy như thế.
+`VLM_LLM_URL` rỗng thì không gọi model ở bước nào cả (kể cả lập kế hoạch) —
+mọi thứ đã commit tới hôm nay đều là lượt chạy như thế. Có `VLM_LLM_URL`
+nhưng KHÔNG có `--content-llm` thì chỉ bước lập kế hoạch (thuộc tính) dùng
+model; nội dung vẫn 100% từ corpus như trước — đây là điểm khác biệt có chủ
+đích so với "khai `llm:` là bật hết" của bản vẽ ban đầu.
 
-Client đã đọc `VLM_LLM_HOST`, `VLM_LLM_MODEL`, `VLM_LLM_TOKEN` ✅ — trỏ sang
-server là một biến môi trường, không phải một bản viết lại, vì Ollama từ xa nói
-đúng `/api/chat` như Ollama cục bộ.
+Client đọc `VLM_LLM_URL`, `VLM_LLM_MODEL`, `VLM_LLM_KEY` ✅ (`agent/client.py`,
+API kiểu OpenAI — không phải `VLM_LLM_HOST`/Ollama như bản vẽ ban đầu ghi).
 
 ---
 
@@ -234,13 +274,13 @@ server là một biến môi trường, không phải một bản viết lại, 
 
 | # | việc | file | xong khi |
 | ---: | :--- | :--- | :--- |
-| 1 ✅ | client nói chuyện được với server | `agent/ollama.py` | `VLM_LLM_HOST` trỏ đi đâu thì gọi đúng đấy; loopback không qua proxy, host xa thì qua |
-| 2 ✅ | chính sách chứng từ nào được biến đổi | `rulebase/augmentable.yaml`, `agent/augmentable.py` | `--check` khớp hai chiều với `rules/document.yaml` |
-| 3 | `compose` sinh biến thể theo lô | `agent/compose.py` | 32 phôi × `variety`, mỗi biến thể qua đủ sáu cửa ải của `augment_layout` |
-| 4 | ngân sách cân bằng | `agent/compose.py` + `pipeline/drift.py` | 1 000 ảnh giả lập: total variation mọi trục ≤ dung sai |
-| 5 | sổ cái + `pipeline/run.py` gọi pha compose | `pipeline/run.py`, `pipeline/compose.py` | chạy lại từ `compose.jsonl` ra đúng byte; `manifest.json` mang sha256 |
-| 6 | lớp phủ nội dung | `rulebase/content.py`, `worklist.py` | trường do model viết qua được `corpus_rules`; số tiền vẫn do rule-base tính |
-| 7 | tài liệu + một tập mẫu | `data/llm<N>/` | tập đầu tiên có biến thể do model sinh, kèm sổ cái |
+| 1 ✅ | client nói chuyện được với server | `agent/client.py` (thay `agent/ollama.py` cũ — API kiểu OpenAI, dùng cho vLLM) | `VLM_LLM_URL` trỏ đi đâu thì gọi đúng đấy; đã đo thật trên server vLLM thật của team |
+| 2 ✅ | chính sách chứng từ nào được biến đổi | `agent/policy.yaml`, `agent/policy.py` | `tests/test_agent.py` khớp hai chiều với `rules/document.yaml` |
+| 3 | `compose` sinh **biến thể bố cục** theo lô | *(chưa làm — khác với mục 6)* | 32 phôi × `variety`, mỗi biến thể qua đủ sáu cửa ải của `augment_layout`; `agent/augment_layout.py` hiện chỉ chạy tay, từng bố cục một, không theo lô/ngân sách tự động |
+| 4 | ngân sách cân bằng (cho biến thể bố cục) | *(chưa làm — phụ thuộc mục 3)* | 1 000 ảnh giả lập: total variation mọi trục ≤ dung sai |
+| 5 | `pipeline/run.py` tự gọi pha sinh biến thể bố cục | *(chưa làm — phụ thuộc mục 3)* | chạy lại từ sổ cái ra đúng byte; `manifest.json` mang sha256 |
+| 6 ✅ | lớp phủ nội dung | `agent/compose.py`, `rulebase/content.py` (biến môi trường `VLM_CONTENT_OVERRIDES`, không phải `worklist.py`) | trường do model viết qua được `corpus_rules` + kiểm dấu tiếng Việt; số tiền vẫn do rule-base tính; test: `tests/test_compose.py` |
+| 7 | tài liệu + một tập mẫu | `data/llm<N>/` | tập đầu tiên có biến thể do model sinh, kèm sổ cái — còn thiếu bản demo với server thật (đã demo bằng server giả lập trong phiên làm việc thêm mục 6) |
 
 Bước 3 và 5 là phần lớn công việc. Bước 1–2 xong rồi, và chúng là hai thứ phải
 đúng trước: một client không trỏ được sang server thì không có gì để thiết kế,

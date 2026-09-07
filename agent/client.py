@@ -54,6 +54,16 @@ class Client:
     # spend with no return, so it is asked for explicitly and low; a server
     # that does not know the field ignores it.
     reasoning_effort: str = "low"
+    # `reasoning_effort` alone did NOT stop a real Qwen3 server (vllm 0.21)
+    # from thinking: a bare request with no `chat_template_kwargs` spent its
+    # whole `max_tokens` on an unfinished `reasoning` field and came back with
+    # `content: null` after 38s for a three-word answer -- measured against
+    # the team's own vLLM host. Qwen3's own template switch, `enable_thinking:
+    # false`, cut that to 0.4s on the same server, same request otherwise.
+    # Sent unconditionally: a server that does not read `chat_template_kwargs`
+    # (SGLang, llama.cpp, a hosted endpoint) ignores an object it does not
+    # recognise the same way it already ignores `reasoning_effort`.
+    enable_thinking: bool = False
 
     def _post(self, payload: dict) -> dict:
         body = json.dumps(payload).encode("utf-8")
@@ -83,6 +93,7 @@ class Client:
                                                 "strict": True}},
             "temperature": self.temperature,
             "reasoning_effort": self.reasoning_effort,
+            "chat_template_kwargs": {"enable_thinking": self.enable_thinking},
         })
         try:
             content = answer["choices"][0]["message"]["content"]

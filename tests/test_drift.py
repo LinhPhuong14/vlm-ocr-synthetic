@@ -141,10 +141,10 @@ def test_the_expectation_is_conditioned_on_the_pins_the_run_used(tmp_path):
 
 
 def test_a_clean_run_expects_every_chain_attribute_pinned(tmp_path):
-    """Not just `augmentation`: `toner`, `drum` and `rollers` carry chains too.
+    """Not just `augmentation` -- any chain-bearing attribute in `CLEAN_FORCES`.
 
-    An expectation that left them free would report drift on a clean run for
-    the three attributes the run had in fact pinned to nothing.
+    An expectation that left one free would report drift on a clean run for
+    an attribute the run had in fact pinned to nothing.
     """
     shard = build_shard(tmp_path / "s", make_records(range(4)))
     shares, _problems = drift.expected_shares(

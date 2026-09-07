@@ -60,8 +60,8 @@ from paths import VENVS, venv_python  # noqa: E402
 
 import worklist  # noqa: E402
 from pipeline import drift, imagetimes, invariants, record, synthesis  # noqa: E402
-from pipeline.config import RULES_ENV  # noqa: E402
-from pipeline.plan import image_name  # noqa: E402
+from pipeline.config import CONTENT_OVERRIDES_ENV, RULES_ENV  # noqa: E402
+from pipeline.plan import DEFAULT_NAMING, image_name  # noqa: E402
 
 DONE = "DONE"
 
@@ -146,13 +146,10 @@ def renderer_command(backend: str, staging: Path, jobs: Path,
     ]
     forced = list(force)
     if clean:
-        # Every chain-bearing attribute, not just `augmentation`: pinning one
+        # Every chain-bearing attribute, not just `augmentation` -- pinning one
         # of them and not the others would leave the rest free to draw a mark
-        # onto the "clean" set. `toner`/`drum`/`rollers` (the copier, split
-        # into its three independently-failing parts) are in CLEAN_FORCES too,
-        # though every one of their own worn-machine options is gone today --
-        # see toner.yaml -- so pinning them currently changes nothing. An
-        # explicit `--force` still wins over any of this.
+        # onto the "clean" set. An explicit `--force` still wins over any of
+        # this.
         already = {item.partition("=")[0] for item in forced}
         forced += [f"{attribute}={value}" for attribute, value in CLEAN_FORCES.items()
                    if attribute not in already]
@@ -168,11 +165,15 @@ def renderer_command(backend: str, staging: Path, jobs: Path,
 
 
 def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None = None,
-                 log=None) -> dict:
+                 content_overrides: Path | None = None, log=None) -> dict:
     """Render one shard into `out/shard-NNNN/`. Returns what it produced."""
     backend = shard["backend"]
     if backend not in BACKENDS:
         raise ShardError(f"unknown backend {backend!r}; have {sorted(BACKENDS)}")
+    # Already checked once, in `pipeline.config.resolve_naming`, when the run
+    # was loaded -- a plan a worker subprocess reads is trusted, the same way
+    # `clean`/`template`/`force` a few lines below are.
+    naming = plan.get("naming") or DEFAULT_NAMING
 
     directory = shard_dir(out, shard["index"])
     if is_done(directory):
@@ -190,6 +191,8 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
     environment = dict(os.environ)
     if rules_root is not None:
         environment[RULES_ENV] = str(rules_root)
+    if content_overrides is not None:
+        environment[CONTENT_OVERRIDES_ENV] = str(content_overrides)
 
     # One call site for the content checks, here rather than in each renderer.
     # Three copies of an invariant is three chances for one of them to be
@@ -283,7 +286,6 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
                 for offset in range(run["count"]):
                     item = produced[cursor]
                     cursor += 1
-                    target = image_name(backend, run["first_index"] + offset)
                     drawn_name = record.file_name(item)
                     # The renderer's own provenance says which layout it drew.
                     # Checked against the job it was meant to be, because
@@ -297,6 +299,18 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
                             f"is {drawn!r} where the plan asked for "
                             f"{run['layout']!r}; the renderer returned its pages "
                             f"in a different order from the job list")
+
+                    page = dict(drew.entry(drawn_name))
+                    recipe = drew.recipe(drawn_name)
+                    # `run.naming` may ask for any rule-base attribute, not
+                    # just `layout` -- fetched here, after the renderer's own
+                    # recipe is in hand, because that is the first point this
+                    # loop knows what the page was actually drawn with rather
+                    # than only what the job asked for.
+                    fields = {name: str(body.get("id", ""))
+                             for name, body in (recipe.get("attributes") or {}).items()}
+                    target = image_name(backend, run["first_index"] + offset,
+                                        template=naming, fields=fields)
                     shutil.move(str(staging / drawn_name), str(directory / target))
                     clock = drawn_times.get(drawn_name)
                     if clock is not None:
@@ -307,9 +321,6 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
                         timed.append(imagetimes.Entry(
                             file=target, layout=run["layout"],
                             seconds=clock.seconds, stages=dict(clock.stages)))
-
-                    page = dict(drew.entry(drawn_name))
-                    recipe = drew.recipe(drawn_name)
                     # Four fields follow the dataset's own name for the page,
                     # and the `job_id` is a function of all four. The layout is
                     # the plan's here, not the renderer's: they were checked
@@ -399,6 +410,7 @@ def main() -> int:
     parser.add_argument("--shard", type=int, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--rules-root", type=Path)
+    parser.add_argument("--content-overrides", type=Path)
     args = parser.parse_args()
 
     # Absolute before anything else touches it: a backend that runs from its
@@ -416,8 +428,8 @@ def main() -> int:
     logs.mkdir(parents=True, exist_ok=True)
     with open(logs / f"shard-{args.shard:04d}.log", "w", encoding="utf-8") as log:
         try:
-            result = render_shard(shard, out, plan,
-                                  rules_root=args.rules_root, log=log)
+            result = render_shard(shard, out, plan, rules_root=args.rules_root,
+                                  content_overrides=args.content_overrides, log=log)
         except ShardError as error:
             log.write(f"FAILED: {error}\n")
             print(f"shard {args.shard}: {error}", file=sys.stderr)

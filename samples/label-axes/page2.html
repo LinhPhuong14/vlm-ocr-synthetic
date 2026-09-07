@@ -1,0 +1,372 @@
+<!--
+  Trang 2 của fixture: những section mà chứng từ giao dịch KHÔNG bao giờ sinh ra.
+
+  Chiếu 33.830 hộp đã commit lên bộ section của bên dùng dữ liệu thì 9 lớp về 0:
+  Equation-Block, Code-Block, Chemical-Block, Diagram, Figure, Bibliography,
+  Complex-Block, List-Group, Blank-Page. Đó KHÔNG phải là "9 lớp thừa" — bên
+  yêu cầu liệt kê chúng vì họ cần model nhận ra chúng. Số 0 là **thiếu loại tài
+  liệu**, không phải thiếu từ vựng.
+
+  Trang này là bằng chứng cho điều đó: một trang tiêu chuẩn kỹ thuật tiếng Việt,
+  loại phôi mà kho hiện chưa có, và nó sinh ra 8 trong 9 lớp kia. Lớp thứ chín,
+  `Blank-Page`, không thể là một hộp — xem ghi chú cuối file.
+-->
+<style>
+  #sheet{
+    position:relative; width:794px; min-height:1123px; margin:0 auto;
+    background:#fff; color:#111; padding:34px 44px 30px;
+    font-family:LiberationSerif,'DejaVu Serif',serif; font-size:12.5px; line-height:1.5;
+  }
+  #sheet *{box-sizing:border-box;}
+
+  /* `display:block` trên một span có nhãn thì hộp rộng bằng cả khối chứa nó,
+     không ôm chữ — trên trang này tiêu đề tài liệu đo ra 794 px, đúng bề ngang
+     tờ giấy. `width:max-content` giữ được việc xuống dòng mà hộp vẫn bám chữ.
+     Hộp phải tả CHỮ; còn khối là việc của trục 1, đo riêng ở `data-region-box`. */
+  [data-ink="print"]     {}
+  [data-ink="hand"]      {font-family:PatrickHand,'Segoe Script',cursive;
+                          font-size:14px; color:#1a2f6b;}
+  [data-ink="stamp"]     {font-family:LiberationSans,sans-serif; font-weight:700;
+                          color:#a8281e; letter-spacing:.06em;}
+  [data-ink="dotmatrix"] {font-family:LiberationMono,monospace; letter-spacing:.08em;
+                          color:#2b2b2b; opacity:.86;}
+  [data-ink="thermal"]   {font-family:LiberationMono,monospace; color:#4a4a4a; opacity:.72;}
+  [data-ink="reversed"]  {color:#fff;}
+
+  .b-head{display:flex; justify-content:space-between; font-size:10.5px; color:#666;
+          border-bottom:.5px solid #bbb; padding-bottom:4px; margin-bottom:14px;}
+  .b-title{text-align:center; margin-bottom:4px;}
+  .b-title .t{margin-left:auto; margin-right:auto; font-size:19px; font-weight:700; display:block; width:max-content; letter-spacing:.02em;}
+  .b-title .s{margin-left:auto; margin-right:auto; font-size:11.5px; color:#555; display:block; width:max-content; margin-top:3px;}
+  .b-h{font-weight:700; font-size:13.5px; display:block; width:max-content; margin:16px 0 5px;}
+  .b-p{text-align:justify; margin:0 0 8px;}
+
+  /* Equation-Block: căn giữa, đánh số bên phải — đúng quy ước bài báo kỹ thuật */
+  .b-eq{display:flex; align-items:center; justify-content:center; gap:24px;
+        margin:12px 0; font-family:LiberationSerif,serif; font-style:italic;
+        font-size:15px;}
+  .b-eq .no{font-style:normal; font-size:12px; color:#555;}
+  .b-eq sub{font-style:normal; font-size:.7em;}
+
+  /* Code-Block: nền chìm, gutter số dòng */
+  .b-code{background:#f4f6f8; border:.5px solid #d6dee6; border-left:2.5px solid #1d3b5c;
+          padding:9px 12px; margin:10px 0; font-family:LiberationMono,monospace;
+          font-size:11.5px; line-height:1.55;}
+  .b-code span{display:block; width:max-content;}
+
+  /* Chemical-Block: phản ứng, căn giữa */
+  .b-chem{text-align:center; margin:12px 0; font-size:14px; letter-spacing:.02em;}
+  .b-chem sub{font-size:.72em;}
+  /* Bọc công thức trong đúng MỘT thẻ con: xem ghi chú ở cuối file. */
+  /* Bọc công thức/mục có thẻ inline trong đúng MỘT thẻ con — xem cuối file. */
+  .tex{display:inline;}
+  .b-chem .tex, .b-eq .tex{display:inline-block;}
+
+  /* Figure = ảnh + chú thích, coi là một khối gộp */
+  .b-fig{margin:14px 0; text-align:center;}
+  .b-fig .box{height:112px; background:
+      repeating-linear-gradient(45deg,#eef2f6 0 9px,#e3e9f0 9px 18px);
+      border:.5px solid #c3ccd6; display:flex; align-items:center; justify-content:center;}
+  .b-fig .cap{margin-left:auto; margin-right:auto; font-size:11px; color:#555; font-style:italic; display:block; width:max-content; margin-top:5px;}
+
+  /* Diagram: cấu trúc vẽ ra để ĐỌC như cấu trúc, không phải ảnh chụp.
+     KHÔNG có khung bao. Bản trước có một khung nét đứt, vẽ ra chỉ để nhìn thấy
+     khối — và vì hộp vùng lấy cả thứ được vẽ, chính cái khung trang trí ấy
+     định nghĩa luôn vùng: hộp rộng cả khổ giấy trong khi sơ đồ chỉ chiếm
+     khoảng giữa. Một tài liệu kỹ thuật thật không đóng khung lưu đồ. */
+  .b-dia{margin:14px 0; padding:6px 10px;
+         display:flex; align-items:center; justify-content:center; gap:10px;
+         font-family:LiberationSans,sans-serif; font-size:11px;}
+  .b-dia .n{border:1px solid #1d3b5c; border-radius:3px; padding:6px 10px;
+            background:#eef3f9; white-space:nowrap;}
+  .b-dia .a{color:#1d3b5c; font-size:15px;}
+
+  /* Complex-Block: khối con có region KHÁC NHAU, tách ra là mất nghĩa */
+  .b-cx{border:1px solid #c9d3dd; background:#fbfcfd; padding:12px 14px; margin:14px 0;}
+  .b-cx .t{font-weight:700; display:block; width:max-content; margin-bottom:5px; font-size:12.5px;}
+  .b-cx table{width:100%; border-collapse:collapse; margin:7px 0; font-size:11.5px;}
+  .b-cx th,.b-cx td{border:.5px solid #b9c4cf; padding:3px 6px; text-align:left;}
+  .b-cx .n{font-size:10.5px; color:#555; display:block; width:max-content; margin-top:5px;}
+
+  .b-toc{margin:12px 0;}
+  .b-toc .row{display:flex; gap:8px; align-items:baseline; padding:2px 0;}
+  .b-toc .row .d{flex:1; border-bottom:1px dotted #aab4be; transform:translateY(-3px);}
+  /* Như trang 1: dấu đầu dòng phải là run có nhãn, không phải `list-style`. */
+  .b-list{margin:8px 0;}
+  .b-list ul{margin:0; padding-left:0; list-style:none;}
+  .b-list li{margin-bottom:3px; display:flex; gap:7px;}
+  .b-list li .no{flex:none;}
+
+  .b-bib{margin:14px 0 0;}
+  .b-bib .row{padding-left:22px; text-indent:-22px; margin-bottom:4px; font-size:11.5px;}
+  .b-fn{border-top:.5px solid #bbb; margin-top:16px; padding-top:6px;
+        font-size:10.5px; color:#555;}
+  .b-fn span{display:block; width:max-content; margin-bottom:2px;}
+  .b-foot{display:flex; justify-content:space-between; margin-top:20px; padding-top:5px;
+          border-top:.5px solid #bbb; font-size:10.5px; color:#666;}
+</style>
+
+<div id="sheet">
+
+<!-- ══ Page-Header ══ role: note -->
+<div class="b-head">
+  <span data-region="Page-Header" data-role="note" data-ink="print"
+        data-region-box="Page-Header"
+        data-kind="head.standard">TCVN 8400-2:2025</span>
+  <span data-region="Page-Header" data-role="note" data-ink="print"
+        data-region-box="Page-Header"
+        data-kind="head.page">Trang 12/48</span>
+</div>
+
+<!-- ══ Title ══ -->
+<div class="b-title" data-region-box="Section-Header">
+  <span class="t" data-region="Section-Header" data-role="heading" data-ink="print"
+        data-kind="doc.title">XÁC ĐỊNH HÀM LƯỢNG NITƠ TỔNG SỐ</span>
+  <span class="s" data-region="Section-Header" data-role="subheading" data-ink="print"
+        data-kind="doc.subtitle">Phương pháp Kjeldahl — Phần 2: Quy trình phân tích</span>
+</div>
+
+<!-- ══ Table-Of-Contents ══ role: item -->
+<span class="b-h" data-region-box="Section-Header" data-region="Section-Header" data-role="heading" data-ink="print"
+      data-kind="toc.title">Nội dung phần này</span>
+<div class="b-toc" data-region-box="Table-Of-Contents">
+  <div class="row"><span data-region="Table-Of-Contents" data-role="item" data-ink="print"
+        data-kind="toc.entry">4.1 Nguyên tắc phương pháp</span><span class="d"></span><span
+        data-region="Table-Of-Contents" data-role="value" data-ink="print"
+        data-kind="toc.page">12</span></div>
+  <div class="row"><span data-region="Table-Of-Contents" data-role="item" data-ink="print"
+        data-kind="toc.entry">4.2 Thuốc thử và dung dịch chuẩn</span><span class="d"></span><span
+        data-region="Table-Of-Contents" data-role="value" data-ink="print"
+        data-kind="toc.page">13</span></div>
+  <div class="row"><span data-region="Table-Of-Contents" data-role="item" data-ink="print"
+        data-kind="toc.entry">4.3 Tính kết quả và biểu thị độ không đảm bảo</span><span class="d"></span><span
+        data-region="Table-Of-Contents" data-role="value" data-ink="print"
+        data-kind="toc.page">15</span></div>
+</div>
+
+<!-- ══ Section-Header + Text ══ -->
+<span class="b-h" data-region-box="Section-Header" data-region="Section-Header" data-role="heading" data-ink="print"
+      data-kind="sec.title">4.1 Nguyên tắc phương pháp</span>
+<p class="b-p" data-region-box="Text"><span data-region="Text" data-role="body" data-ink="print"
+   data-kind="sec.body">Mẫu thử được vô cơ hoá bằng axit sunfuric đậm đặc với sự có mặt
+   của chất xúc tác. Nitơ hữu cơ chuyển thành amoni sunfat; dung dịch sau đó được kiềm
+   hoá và chưng cất, phần amoniac giải phóng được hấp thụ vào dung dịch axit boric rồi
+   chuẩn độ bằng axit chuẩn. Hàm lượng nitơ tổng số tính theo phần trăm khối lượng.</span></p>
+
+<!-- ══ Formula ══ role: body
+     A chemical reaction and a numbered equation are both `Formula` now: the
+     class boundary sits where a downstream step actually treats two things
+     differently, and nothing here reads a reaction and an equation
+     differently -- both are laid out apart from running text and read as
+     one line of notation. -->
+<div class="b-chem" data-region-box="Formula">
+  <span data-region="Formula" data-role="body" data-ink="print"
+        data-kind="chem.reaction"
+        data-text="(NH4)2SO4 + 2 NaOH → 2 NH3↑ + Na2SO4 + 2 H2O"><span class="tex">(NH<sub>4</sub>)<sub>2</sub>SO<sub>4</sub> + 2 NaOH → 2 NH<sub>3</sub>↑ + Na<sub>2</sub>SO<sub>4</sub> + 2 H<sub>2</sub>O</span></span>
+</div>
+
+<!-- ══ Formula ══ roles: body, value -->
+<div class="b-eq" data-region-box="Formula">
+  <span data-region="Formula" data-role="body" data-ink="print"
+        data-kind="eq.body"
+        data-text="wN = (V1 − V0) · c · 14,007 · 100 / m"><span class="tex">w<sub>N</sub> = (V<sub>1</sub> − V<sub>0</sub>) · c · 14,007 · 100 / m</span></span>
+  <span class="no" data-region="Formula" data-role="value" data-ink="print"
+        data-kind="eq.number">(4.1)</span>
+</div>
+<p class="b-p" data-region-box="Text"><span data-region="Text" data-role="body" data-ink="print"
+   data-kind="sec.body">trong đó V1 là thể tích axit chuẩn tiêu tốn cho mẫu thử,
+   tính bằng mililít; V0 là thể tích cho mẫu trắng; c là nồng độ đương lượng của
+   axit chuẩn; m là khối lượng phần mẫu thử, tính bằng gam.</span></p>
+
+<!-- ══ Diagram ══ role: item / body -->
+<div class="b-dia" data-region-box="Diagram">
+  <span class="n" data-region="Diagram" data-role="item" data-ink="print"
+        data-kind="dia.node">Cân mẫu</span>
+  <span class="a" data-region="Diagram" data-role="body" data-ink="print"
+        data-kind="dia.edge">→</span>
+  <span class="n" data-region="Diagram" data-role="item" data-ink="print"
+        data-kind="dia.node">Vô cơ hoá</span>
+  <span class="a" data-region="Diagram" data-role="body" data-ink="print"
+        data-kind="dia.edge">→</span>
+  <span class="n" data-region="Diagram" data-role="item" data-ink="print"
+        data-kind="dia.node">Chưng cất</span>
+  <span class="a" data-region="Diagram" data-role="body" data-ink="print"
+        data-kind="dia.edge">→</span>
+  <span class="n" data-region="Diagram" data-role="item" data-ink="print"
+        data-kind="dia.node">Chuẩn độ</span>
+</div>
+
+<!-- ══ Figure ══ = ảnh + chú thích, một khối gộp -->
+<div class="b-fig" data-region-box="Figure">
+  <div class="box"><span data-region="Figure" data-role="mark" data-ink="print"
+        data-kind="fig.image">Hình chụp bộ chưng cất Kjeldahl</span></div>
+  <span class="cap" data-region="Caption" data-role="caption" data-ink="print"
+        data-region-box="Caption"
+        data-kind="fig.caption">Hình 4.1 — Sơ đồ lắp bộ chưng cất, bình hứng đặt ngập đầu ống dẫn.</span>
+</div>
+
+<!-- Ở đây bản trước có một hàm Python. Một tiêu chuẩn TCVN về phân tích nitơ
+     không chứa mã nguồn — nó có mặt chỉ để lớp `Code-Block` xuất hiện. Nội
+     dung bịa cho vừa cái nhãn là đúng thứ đầu độc một bộ dữ liệu, nên nó bị bỏ
+     đi và `Code-Block` chuyển sang `page3.html`, một trang tài liệu kỹ thuật
+     phần mềm — nơi mã nguồn có thật. -->
+<span class="b-h" data-region-box="Section-Header" data-region="Section-Header" data-role="heading" data-ink="print"
+      data-kind="sec.title">4.3 Tính kết quả</span>
+<p class="b-p" data-region-box="Text"><span data-region="Text" data-role="body" data-ink="print"
+   data-kind="sec.body">Kết quả là trung bình cộng của hai lần xác định song
+   song, làm tròn đến 0,01 % khối lượng. Báo cáo thử nghiệm phải ghi rõ phương
+   pháp viện dẫn, khối lượng phần mẫu thử và nhiệt độ vô cơ hoá đã dùng.</span></p>
+
+<!-- ══ List-Group ══ role: item -->
+<div class="b-list">
+  <!-- Câu dẫn kết thúc bằng dấu hai chấm, chữ thường, không đánh số — đó là
+       CÂU MỞ ĐẦU của danh sách, không phải tiêu đề mục. `Section-Header` dành
+       cho một phần được đặt tên của tài liệu: "4.1 Nguyên tắc phương pháp". -->
+  <span data-region="Text" data-role="body" data-ink="print"
+        data-region-box="Text"
+        data-kind="list.lead">Điều kiện phải thoả đồng thời:</span>
+  <ul data-region-box="List-Group">
+    <li><span class="no" data-region="List-Group" data-role="item" data-ink="print"
+              data-kind="list.marker">—</span><span
+              data-region="List-Group" data-role="item" data-ink="print"
+              data-kind="list.item">Nhiệt độ khối phản ứng giữ trong khoảng 370 °C đến 400 °C.</span></li>
+    <li><span class="no" data-region="List-Group" data-role="item" data-ink="print"
+              data-kind="list.marker">—</span><span
+              data-region="List-Group" data-role="item" data-ink="print"
+              data-kind="list.item">Mẫu trắng phải cho kết quả không vượt quá 0,02 % nitơ.</span></li>
+    <li><span class="no" data-region="List-Group" data-role="item" data-ink="print"
+              data-kind="list.marker">—</span><span
+              data-region="List-Group" data-role="item" data-ink="print"
+              data-kind="list.item">Hai lần xác định song song chênh nhau không quá 0,05 %.</span></li>
+  </ul>
+</div>
+
+<!-- ══ Caption + Table + Footnote ══ ba vùng, không phải một khối gộp.
+     Bản trước gán cả khối này là `Complex-Block`, và đó là sai. Định nghĩa của
+     lớp ấy là "khối con có region khác nhau và TÁCH RA THÌ MẤT NGHĨA" — mà một
+     bảng có chú thích ở trên và ghi chú ở dưới là cấu trúc thường gặp nhất
+     trong tài liệu kỹ thuật, tách ra không mất gì cả. Mọi bộ dữ liệu bố cục
+     đều gán nó là Caption + Table + Text/Footnote.
+     Lý do thật khiến nó từng là `Complex-Block`: tôi cần lớp ấy xuất hiện trên
+     trang. Đó là chế dữ liệu cho vừa cái nhãn, đúng thứ làm hỏng bộ dữ liệu. -->
+<div class="b-cx">
+  <span class="t" data-region="Caption" data-role="caption" data-ink="print"
+        data-region-box="Caption"
+        data-kind="table.caption">Bảng 4.2 — Giới hạn phát hiện theo nền mẫu, kèm chú giải</span>
+  <table data-region-box="Table">
+    <tr>
+      <th><span data-region="Table" data-role="colhdr" data-ink="print"
+                data-kind="lod.colhdr">Nền mẫu</span></th>
+      <th><span data-region="Table" data-role="colhdr" data-ink="print"
+                data-kind="lod.colhdr">LOD (% N)</span></th>
+      <th><span data-region="Table" data-role="colhdr" data-ink="print"
+                data-kind="lod.colhdr">Ghi chú</span></th>
+    </tr>
+    <tr>
+      <td><span data-region="Table" data-role="cell" data-ink="print"
+                data-kind="lod.cell">Thức ăn chăn nuôi</span></td>
+      <td><span data-region="Table" data-role="cell" data-ink="print"
+                data-kind="lod.cell">0,02</span></td>
+      <td><span data-region="Table" data-role="cell" data-ink="print"
+                data-kind="lod.cell">nghiền qua rây 1 mm</span></td>
+    </tr>
+    <tr>
+      <td><span data-region="Table" data-role="cell" data-ink="print"
+                data-kind="lod.cell">Phân bón hữu cơ</span></td>
+      <td><span data-region="Table" data-role="cell" data-ink="print"
+                data-kind="lod.cell">0,05</span></td>
+      <td><span data-region="Table" data-role="cell" data-ink="print"
+                data-kind="lod.cell">sấy 105 °C đến khối lượng không đổi</span></td>
+    </tr>
+  </table>
+  <span class="n" data-region="Footnote" data-role="note" data-ink="print"
+        data-region-box="Footnote"
+        data-kind="table.note">Giá trị LOD xác định theo 3σ của mười lần đo mẫu trắng, làm tròn lên.</span>
+</div>
+
+<!-- ══ Form ══ trên tài liệu kỹ thuật: khối duyệt, có chữ ký tay và dấu -->
+<div style="display:flex; gap:36px; margin-top:16px; align-items:flex-start"
+     data-region-box="Form">
+  <div>
+    <span data-region="Form" data-role="key" data-ink="print"
+          data-kind="review.by.label">Người soát xét:</span>
+    <span data-region="Form" data-role="value" data-ink="hand"
+          data-kind="review.by">Lê Minh Đức</span>
+  </div>
+  <div>
+    <span data-region="Form" data-role="key" data-ink="print"
+          data-kind="review.date.label">Ngày:</span>
+    <span data-region="Form" data-role="value" data-ink="hand"
+          data-kind="review.date">02/6/2026</span>
+  </div>
+  <!-- Con dấu chữ nhật có chữ ĐỌC ĐƯỢC. `Image` nghĩa là raster không có cấu
+       trúc đọc được; đây thì mô hình phải đọc ra "ĐÃ SOÁT XÉT". Việc "đây là
+       con dấu" đã có trục 3 ghi (`ink=stamp`) — đẩy nó lên trục 1 là lấy CHẤT
+       LIỆU thay cho VAI TRÒ, cùng cái sai đã đẩy letterhead vào Page-Header. -->
+  <div data-region-box="Text">
+    <span data-region="Text" data-role="mark" data-ink="stamp"
+          data-kind="review.seal">ĐÃ SOÁT XÉT</span>
+  </div>
+</div>
+
+<!-- ══ Bibliography ══ role: item -->
+<span class="b-h" data-region-box="Section-Header" data-region="Section-Header" data-role="heading" data-ink="print"
+      data-kind="bib.title">Tài liệu viện dẫn</span>
+<div class="b-bib" data-region-box="Bibliography">
+  <div class="row"><span data-region="Bibliography" data-role="item" data-ink="print"
+        data-kind="bib.entry"
+        data-text="[1] TCVN 4328-1:2007, Thức ăn chăn nuôi — Xác định hàm lượng nitơ và tính hàm lượng protein thô — Phần 1: Phương pháp Kjeldahl."><span class="tex">[1] TCVN 4328-1:2007, <i>Thức ăn chăn nuôi — Xác định hàm lượng nitơ và tính hàm lượng protein thô — Phần 1: Phương pháp Kjeldahl</i>.</span></span></div>
+  <div class="row"><span data-region="Bibliography" data-role="item" data-ink="print"
+        data-kind="bib.entry"
+        data-text="[2] ISO 5983-2:2009, Animal feeding stuffs — Determination of nitrogen content and calculation of crude protein content — Part 2: Block digestion and steam distillation method."><span class="tex">[2] ISO 5983-2:2009, <i>Animal feeding stuffs — Determination of nitrogen content and calculation of crude protein content — Part 2: Block digestion and steam distillation method</i>.</span></span></div>
+  <div class="row"><span data-region="Bibliography" data-role="item" data-ink="print"
+        data-kind="bib.entry"
+        data-text="[3] AOAC Official Method 984.13, Protein (Crude) in Animal Feed and Pet Food, 18th ed., 2005."><span class="tex">[3] AOAC Official Method 984.13, <i>Protein (Crude) in Animal Feed and Pet Food</i>, 18th ed., 2005.</span></span></div>
+</div>
+
+<!-- ══ Footnote ══ role: note -->
+<div class="b-fn" data-region-box="Footnote">
+  <span data-region="Footnote" data-role="note" data-ink="print"
+        data-kind="fn.entry">¹ Hằng số 14,007 là khối lượng nguyên tử của nitơ theo IUPAC 2021.</span>
+  <span data-region="Footnote" data-role="note" data-ink="thermal"
+        data-kind="fn.entry">² Bản in nội bộ, không thay thế bản gốc lưu tại Tổng cục Tiêu chuẩn Đo lường Chất lượng.</span>
+</div>
+
+<!-- ══ Page-Footer ══ -->
+<div class="b-foot">
+  <span data-region="Page-Footer" data-role="note" data-ink="print"
+        data-region-box="Page-Footer"
+        data-kind="foot.note">© TCVN 2026 — không sao chép khi chưa được phép</span>
+  <span data-region="Page-Footer" data-role="value" data-ink="dotmatrix"
+        data-region-box="Page-Footer"
+        data-kind="foot.doc_id">TCVN-8400-2-P12</span>
+</div>
+
+</div>
+
+<!--
+  CÔNG THỨC, VÀ VÌ SAO CHÚNG PHẢI BỌC MỘT LỚP
+
+  `Equation-Block` và `Chemical-Block` cần <sub>/<sup> — mà hợp đồng nhãn hiện
+  nay là "một span chứa CHỈ chữ đã escape", đúng vì `CELL_RECTS_JS` đo
+  `span.firstElementChild || span`: một thẻ lồng lặng lẽ trở thành cái hộp.
+
+  Đo được, không phải suy đoán: bản đầu của trang này viết <sub> trực tiếp, và
+  hộp của cả phương trình hoá học rộng **5,3 px** thay vì ~400 px — nó là hộp
+  của chữ số 4 trong (NH₄)₂SO₄.
+
+  Lối đi ở đây KHÔNG sửa renderer: bọc toàn bộ công thức trong ĐÚNG MỘT thẻ con
+  và cho chuỗi chữ đi kèm ở `data-text`. Đó chính là cơ chế renderer đã có cho
+  mực viết tay của WriteViT — một <img> thay cho text node, chữ ở `data-text` —
+  nên `firstElementChild` là cả công thức và hộp đo đúng.
+
+  Đánh đổi: mất hộp cho từng ký hiệu bên trong công thức. Với bài toán dò bố
+  cục thì đó là thứ đang cần — bên dùng dữ liệu muốn cái KHỐI, không muốn từng
+  chỉ số dưới. Muốn có hộp bên trong thì phải nới phép đo, và đó là một quyết
+  định về hợp đồng chứ không phải một bản vá.
+
+  `Blank-Page` KHÔNG có mặt ở đây, và không thể có: một trang trắng không có
+  hộp nào để gắn nhãn. Nó là thuộc tính của TRANG, không phải của một vùng —
+  nên chỗ của nó là trong bản ghi trang (`pages[].blank: true`), không phải
+  trong `blocks[]`. Đây là chỉnh sửa duy nhất về CẤU TRÚC mà bộ 19 lớp cần.
+-->

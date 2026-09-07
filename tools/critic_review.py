@@ -66,8 +66,8 @@ def _rules_for(dataset: Path):
     would be too late for any process that has already imported the module, and
     the symptom is not an error -- it is a different set of attributes. That
     silently cost the repair pass every page it tried, planning against the
-    shipped eleven attributes (`handwriting`, `toner`, `drum`, `rollers`, no
-    `variant`) and then failing to draw what it planned.
+    shipped eight attributes (`handwriting` and no `variant` among them) and
+    then failing to draw what it planned.
 
     The variable is still exported, because the renderer subprocesses read it.
     """

@@ -79,9 +79,9 @@ def test_renderer_command_carries_the_pins_and_the_page_model(tmp_path, monkeypa
     assert "--template" in command
     assert command[command.index("--template") + 1] == "auto"
     assert "--force" in command
-    # Every chain-bearing attribute, not just `augmentation`. A clean run that
-    # pinned one of the four would let `toner`, `drum` or `rollers` draw a mark
-    # onto the set that every ageing number is measured against.
+    # Every chain-bearing attribute, not just `augmentation` -- a clean run
+    # that left any of them free could draw a mark onto the set that every
+    # ageing number is measured against.
     for attribute, value in worker.CLEAN_FORCES.items():
         assert f"{attribute}={value}" in command, f"a clean run left {attribute} free"
     assert "--clean" not in command, (

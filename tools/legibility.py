@@ -124,11 +124,9 @@ def measure(base, boxes, chain, seed: int, floor: float) -> dict:
 def chains_from_rules(only) -> list[tuple[str, list]]:
     """Every value that carries an ageing chain, from every attribute.
 
-    Not just `augmentation`: `toner`, `drum` and `rollers` carry chains too,
-    and a page draws one of each, so measuring only the scenarios would score a
-    page that no run ever produces. Each is measured on its own -- what the
-    combinations do is the product of these, and a table of 24 x 4 x 4 x 4 rows
-    is a table nobody reads.
+    Not just `augmentation` -- any attribute in `_order.yaml` may carry a
+    chain, and a page draws one of each, so measuring only `augmentation`'s
+    scenarios would score a page that no run ever produces.
     """
     order = yaml.safe_load((RULES_DIR / "_order.yaml").read_text(encoding="utf-8"))["order"]
     out = []
@@ -170,9 +168,7 @@ def sampled(base, boxes, count: int, seed: int, floor: float):
 
     The per-value table above measures one value at a time. A real page draws
     one value from every attribute that carries a chain -- `augmentation`
-    today, plus `toner`, `drum` and `rollers` (the copier, split into its
-    three independently-failing parts) whenever any of the three has a live
-    option again -- and the composition is what reaches a dataset.
+    today -- and the composition is what reaches a dataset.
     `impact_ribbon` keeps 0.53 of its contrast on its own; what it does
     alongside whatever else a real draw adds is a question no single row
     answers.
@@ -260,7 +256,7 @@ def main() -> int:
         print(f"  recipes losing 5%+ of their boxes: {len(bad)}/{len(rows)} ({share:.0f}%)")
         for row in bad[:8]:
             named = " ".join(f"{key}={value}" for key, value in row["ids"].items()
-                             if key in ("augmentation", "toner", "drum", "rollers"))
+                             if key == "augmentation")
             print(f"    {row['lost']:5.1f}%  {named}")
         if bad:
             worst.append(("sampled recipes", share))

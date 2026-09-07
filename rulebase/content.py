@@ -11,14 +11,112 @@ so a label cannot describe something the image does not show.
 
 from __future__ import annotations
 
+import functools
+import json
+import os
 import random
+import re
 from dataclasses import asdict, dataclass, field
 from datetime import date as _date
 from datetime import timedelta
+from pathlib import Path
 from typing import Any
 
 from . import corpus
 from .text import apply_case, ascii_fold, money, quantity, words_vi
+
+# Where `agent/compose.py` announces LLM-written field values, one JSON file
+# for the whole run: `{"<seed>": {"store.name": "...", ...}, ...}`. Same
+# pattern as `rulebase.spec.RULES_ROOT`/`VLM_RULES_ROOT` -- a renderer
+# subprocess needing more than an id string reads a file, not a bigger CLI
+# string, and this repository already has exactly one way to do that. Unset
+# means every field comes from corpus/params exactly as before this existed.
+CONTENT_OVERRIDES_ENV = "VLM_CONTENT_OVERRIDES"
+
+
+@functools.lru_cache(maxsize=1)
+def _all_overrides() -> dict[str, dict[str, str]]:
+    """The whole overrides file, read once per process and cached.
+
+    Cached rather than re-read per page: a run composes thousands of pages in
+    one renderer process, and the file does not change under it -- `agent/
+    compose.py` writes it once, before any render subprocess starts.
+    """
+    path = os.environ.get(CONTENT_OVERRIDES_ENV, "").strip()
+    if not path:
+        return {}
+    try:
+        return json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        # A run must not fail because the ledger it wrote a moment ago is
+        # unreadable -- that is a bug to see in a log, not a reason to lose
+        # every page a shard was about to draw. Corpus/params still answer
+        # every field, exactly as when no override file was ever given.
+        return {}
+
+
+def _overrides_for(seed: int) -> dict[str, str]:
+    return _all_overrides().get(str(seed), {})
+
+
+_ITEM_KEY = re.compile(r"^(?:menu|item)\[(\d+)\]\.name$")
+
+
+def apply_content_overrides(store: Store, items: list[Item],
+                            admission: dict[str, Any] | None,
+                            document: dict[str, Any],
+                            overrides: dict[str, str], case=lambda text: text) -> None:
+    """Apply LLM-written field values in place, after corpus/params drew every
+    field as usual -- an overlay, not a replacement path.
+
+    Deliberately NOT a generic dotted-path/JSON-path walker: the whole
+    override surface this repository has a use for today is `store.<field>`,
+    `menu[i].name`/`item[i].name`, and (medical only) `admission.diagnosis`/
+    `admission.comorbid` -- five kinds of key, enumerated here, not derived.
+    A key this function does not recognise, or a value that does not fit
+    where it is going, is silently skipped: a run must not fail a page over
+    one bad key from a model that had an off day, and `agent/compose.py`
+    already validated every value before writing this file -- what lands
+    here has already passed `corpus_rules.check_name` and the diacritic gate.
+
+    Numbers are never in `overrides` at all -- `agent/compose.py`'s schema
+    never offers a numeric field, so there is nothing here to guard against
+    on that front; the arithmetic in the rest of this module is the only
+    thing that ever computes `amount`/`total`/etc.
+    """
+    for key, value in overrides.items():
+        value = str(value)
+        if key.startswith("store."):
+            field_name = key[len("store."):]
+            if hasattr(store, field_name) and not callable(getattr(store, field_name)):
+                # `case()` here, not left to a later pass: every OTHER field on
+                # `store` already went through it once at construction, and
+                # this is the one write after that a reader could still see
+                # the page's own uppercase/ascii-fold style skip.
+                setattr(store, field_name, case(value))
+            continue
+        match = _ITEM_KEY.match(key)
+        if match:
+            index = int(match.group(1))
+            if 0 <= index < len(items):
+                items[index].name = case(value)
+            continue
+        # `admission.*` stays UNcased here on purpose: `_build_invoice` reads
+        # `admission["diagnosis"]`/`["comorbid"]` itself and applies `case()`
+        # there, exactly like every other admission field -- casing it twice
+        # would be the wrong kind of upper-cased.
+        if key == "admission.diagnosis" and admission is not None:
+            pair = next((p for p in document.get("diagnoses") or [] if p[0] == value), None)
+            if pair:
+                admission["diagnosis"] = f"{pair[0]}-{pair[1]}"
+                admission["icd"] = pair[0]
+            continue
+        if key == "admission.comorbid" and admission is not None:
+            pair = next((p for p in document.get("comorbidities") or [] if p[0] == value), None)
+            if pair:
+                admission["comorbid"] = f"({pair[0]}) {pair[1]}"
+                admission["comorbid_icd"] = pair[0]
+            continue
 
 # What the title line says, by document kind. Taken from the sample photos.
 TITLES = {
@@ -1453,6 +1551,14 @@ def build(recipe, rng: random.Random | None = None) -> Receipt:
         store = _build_store(profile, rng, case)
         items = _build_items(profile, rng, case, params)
         meta = _build_meta(profile, rng, case, params)
+
+    # An overlay, applied after every field has its normal corpus/params
+    # value -- see `apply_content_overrides`. Empty and a no-op on every run
+    # that never set `VLM_CONTENT_OVERRIDES`, which is every run before this
+    # existed.
+    overrides = _overrides_for(recipe.seed)
+    if overrides:
+        apply_content_overrides(store, items, admission, document, overrides, case)
 
     # A group heading is a row of the table that carries its block's subtotal,
     # so summing it with the lines would count that block twice.

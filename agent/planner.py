@@ -211,9 +211,21 @@ def _bare_penalty(policy, document: str) -> float:
 
 
 def decide_one(chooser: Chooser, policy, index: int, seed: int,
-               proposal: dict[str, str] | None = None) -> Decision:
-    """One page: the model's ids where they are legal, the objective elsewhere."""
+               proposal: dict[str, str] | None = None,
+               pin: dict[str, str] | None = None) -> Decision:
+    """One page: the model's ids where they are legal, the objective elsewhere.
+
+    `pin` (from `--clean`, typically `pipeline.invariants.CLEAN_FORCES`) wins
+    over BOTH: a page under `--clean` must draw `augmentation=pristine`
+    whether the model proposed something else or the objective would have
+    drawn it, because a chain-bearing value the render step neither expects
+    nor gets to override is exactly what made `--clean` a promise the planner
+    did not keep before this -- render.py's own `--force` loses to a job's
+    `force`, and every job's `force` IS this function's `force` return value,
+    so pinning it here is the only place that sticks.
+    """
     proposal = proposal or {}
+    pin = pin or {}
     last: Clash | None = None
     # A walk can dead-end: `form_project_kv` is a legal document whose every
     # layout is `enabled: false`, and nothing about the document says so. The
@@ -229,6 +241,21 @@ def decide_one(chooser: Chooser, policy, index: int, seed: int,
         penalty = 1.0
         try:
             for attribute in chooser.order:
+                pinned = str(pin.get(attribute, "") or "")
+                if pinned:
+                    option = chooser.find(attribute, pinned, tags)
+                    if option is None:
+                        raise ValueError(
+                            f"{attribute}={pinned!r} is pinned (--clean) but not "
+                            f"legal with tags {sorted(tags)} -- a chain-empty "
+                            "value should never be tag-restricted; see "
+                            "pipeline.invariants.CLEAN_FORCES")
+                    force[attribute] = option.id
+                    taken.append((attribute, option.id))
+                    tags = tags | option.tags
+                    if attribute == "document":
+                        penalty = _bare_penalty(policy, option.id)
+                    continue
                 wanted = str(proposal.get(attribute, "") or "")
                 option = chooser.find(attribute, wanted, tags) if wanted else None
                 if wanted and option is None:
@@ -326,10 +353,39 @@ def propose(llm, rules, order, block: int, seen: dict[str, dict[str, int]],
 def plan(count: int, seed: int, rules: dict[str, list[Option]], policy,
          *, order: tuple[str, ...] | None = None, llm=None,
          pressure: float = DEFAULT_PRESSURE, block: int = 24,
+         concurrency: int = 1,
+         pin: dict[str, str] | None = None,
          penalty: dict[str, dict[str, float]] | None = None,
          ban: Iterable[tuple[tuple[str, str], tuple[str, str]]] = (),
          resume: list[Decision] = (), checkpoint=None) -> list[Decision]:
     """`count` decided pages, in output order.
+
+    `pin` (typically `pipeline.invariants.CLEAN_FORCES` under `--clean`) wins
+    over the model AND the objective for the attributes it names -- see
+    `decide_one`'s own docstring for why this is the only place that sticks.
+
+    `concurrency` prefetches that many blocks' worth of model proposals AT
+    ONCE, over separate threads: measured against the team's own vLLM host,
+    one block of 24 pages is a single ~2 000-token completion at roughly
+    12 tokens/s of raw decode speed, so the wait is a network round trip, not
+    CPU work, and threading is exactly the tool for that. vLLM's continuous
+    batching also serves several requests at once far better than one stream
+    at a time, so this can raise throughput rather than just hide the wait.
+
+    What stays STRICTLY SEQUENTIAL, always, is *applying* a block once its
+    proposals are back: `decide_one` advances the chooser (coverage counts,
+    the RNG stream), and this repository's reproducibility invariant --
+    same seed, same bytes -- depends on every page before page N having been
+    applied in order, not on which network reply happened to arrive first.
+    So block 3 may be IN FLIGHT while blocks 0-2 are still being applied; it
+    is never USED before them.
+
+    The one thing concurrency trades away: `propose`'s "used the most so far"
+    tally is a snapshot taken when that block was SUBMITTED, so a block
+    fetched while three siblings are still in flight prompts the model with a
+    tally a few blocks stale. The chooser's own coverage sampler still
+    enforces legality and coverage regardless of what the tally said, so this
+    softens a diversity HINT, not a correctness property.
 
     `penalty` and `ban` are the previous run's review, as
     `agent/critic.py::load_feedback` hands them back. Passing them is how the
@@ -362,22 +418,66 @@ def plan(count: int, seed: int, rules: dict[str, list[Option]], policy,
     for decision in out:
         for attribute, option_id in decision.force.items():
             chooser.record(attribute, option_id)
-    pending: list[dict[str, str]] = []
 
-    with Bar(count, "trang") as bar:
-        bar.set(len(out))
-        since_checkpoint = 0
-        for index in range(len(out), count):
-            if llm is not None and not pending:
-                pending = propose(llm, rules, order, min(block, count - index), chooser.used)
-            proposal = pending.pop(0) if pending else None
-            decision = decide_one(chooser, policy, index, seed + index, proposal)
+    def apply_block(bar, start: int, size: int, proposals: list[dict[str, str]],
+                     since_checkpoint: int) -> int:
+        """Decide pages `start..start+size`, in order. Returns the updated
+        `since_checkpoint` -- the one piece of loop state both call sites need
+        back, since a block is applied from two different places below."""
+        for offset in range(size):
+            index = start + offset
+            proposal = proposals.pop(0) if proposals else None
+            decision = decide_one(chooser, policy, index, seed + index, proposal, pin)
             out.append(decision)
             bar.advance(1, note=decision.by)
             since_checkpoint += 1
             if checkpoint is not None and since_checkpoint >= block:
                 write(checkpoint, out)
                 since_checkpoint = 0
+        return since_checkpoint
+
+    with Bar(count, "trang") as bar:
+        bar.set(len(out))
+        since_checkpoint = 0
+        starts = list(range(len(out), count, block))
+
+        if llm is not None and concurrency > 1 and len(starts) > 1:
+            import concurrent.futures as cf  # noqa: PLC0415 -- this branch only
+
+            with cf.ThreadPoolExecutor(max_workers=concurrency) as pool:
+                futures: dict[int, cf.Future] = {}
+                next_submit = 0
+
+                def submit_next() -> None:
+                    nonlocal next_submit
+                    if next_submit >= len(starts):
+                        return
+                    start = starts[next_submit]
+                    size = min(block, count - start)
+                    # A copy, not the live `chooser.used`: this runs in the
+                    # main thread right before handing `seen` to a worker, so
+                    # a page applied later mutating the SAME dict a worker is
+                    # still iterating would be a race, not just a stale read.
+                    seen = {name: dict(counts) for name, counts in chooser.used.items()}
+                    futures[start] = pool.submit(propose, llm, rules, order, size, seen)
+                    next_submit += 1
+
+                for _ in range(min(concurrency, len(starts))):
+                    submit_next()
+                for start in starts:
+                    proposals = futures.pop(start).result()
+                    submit_next()
+                    size = min(block, count - start)
+                    since_checkpoint = apply_block(bar, start, size, proposals,
+                                                   since_checkpoint)
+        else:
+            pending: list[dict[str, str]] = []
+            for index in range(len(out), count):
+                if llm is not None and not pending:
+                    pending = propose(llm, rules, order, min(block, count - index),
+                                      chooser.used)
+                since_checkpoint = apply_block(bar, index, 1, pending, since_checkpoint)
+
         if checkpoint is not None and since_checkpoint:
             write(checkpoint, out)
     return out
@@ -408,7 +508,8 @@ def verify(decisions: list[Decision], rules: dict[str, list[Option]]) -> list[st
     return problems
 
 
-def audit_drawn(out, decisions: list[Decision], backend: str = "html") -> list[str]:
+def audit_drawn(out, decisions: list[Decision], backend: str = "html",
+                naming: str | None = None) -> list[str]:
     """Compare what was DRAWN against what was decided. Empty is healthy.
 
     `verify()` proves the plan is a plan the sampler would honour. It cannot
@@ -421,19 +522,27 @@ def audit_drawn(out, decisions: list[Decision], backend: str = "html") -> list[s
     So the run reads its own provenance back. `synthesis.json` records the
     attributes each page was actually built from; this is the one place they
     are held against the decision that asked for them.
+
+    `naming` must be the SAME template the run was rendered with (`Config.
+    naming`, defaults to `pipeline.plan.DEFAULT_NAMING`), because the name
+    it computes is a lookup key into `pages` below, not a cosmetic label: a
+    naming scheme that reads `document` reads it out of `decision.force`
+    here, since the agent already decided every attribute a page needs
+    before the renderer ever saw a seed.
     """
     import json
     from pathlib import Path
 
-    from pipeline.plan import image_name
+    from pipeline.plan import DEFAULT_NAMING, image_name
 
+    naming = naming or DEFAULT_NAMING
     path = Path(out) / backend / "synthesis.json"
     if not path.exists():
         return [f"{path} is missing, so nothing can be checked against the plan"]
     pages = (json.loads(path.read_text(encoding="utf-8")) or {}).get("pages") or {}
     problems: list[str] = []
     for decision in decisions:
-        name = image_name(backend, decision.index)
+        name = image_name(backend, decision.index, template=naming, fields=decision.force)
         entry = pages.get(name)
         if entry is None:
             continue                    # not drawn: the shard report covers that
