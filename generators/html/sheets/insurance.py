@@ -41,6 +41,18 @@ def _stamp(*, size_mm: float = 30) -> str:
     return base.stamp("BẢO HIỂM\nMINH HOẠ", colour=_RED, size_mm=size_mm)
 
 
+def _ornament_stamp(recipe, receipt) -> str:
+    """The seal the `ornament` attribute chose, or "" when it chose none.
+
+    This family already draws a stamp of its own (`_stamp()`, a fixed "BẢO
+    HIỂM MINH HOẠ" circle) and that is furniture predating the attribute. Where
+    the rules DID sample a seal it wins, because a page carrying both would
+    put two circles in one signature column -- and because the sampled one
+    reads the issuer's real name while the fixed one never can.
+    """
+    slot, _totals, _overlay = base.render_ornament_marks(recipe, receipt)
+    return slot
+
 def _stamp_wrap(*, size_mm: float = 30) -> str:
     """`_stamp()` is `position:absolute`, so a caller that places it beside
     ordinary flow text (rather than through `signature_block(stamp=)`, which
@@ -240,7 +252,7 @@ def _build_life_schedule(recipe, receipt, spec: dict, parse: dict, rng: random.R
         f'<section>{_kv_block(receipt, parse, "left", title="Bên mua bảo hiểm")}</section>'
         f'{_table(spec, receipt, parse, rows)}'
         f'{_notes(receipt, boxed=True)}'
-        f'<div class="signs">{base.signature_block(receipt, parse, stamp=_stamp())}</div>'
+        f'<div class="signs">{base.signature_block(receipt, parse, stamp=_ornament_stamp(recipe, receipt) or _stamp())}</div>'
         '</main>'
         f'{base.footer_block(parse)}'
     )
@@ -319,7 +331,7 @@ def _build_application_form(recipe, receipt, spec: dict, parse: dict,
         f'<div class="sec"><div class="t">{span("subhead.label", "C")}</div>'
         f'<div class="b">{_checks_table(receipt)}</div></div>'
         f'{_notes(receipt, boxed=True)}'
-        f'<div class="signs">{base.signature_block(receipt, parse)}</div>'
+        f'<div class="signs">{base.signature_block(receipt, parse, stamp=_ornament_stamp(recipe, receipt))}</div>'
         f'{base.footer_block(parse)}'
     )
     css = _SHARED_CSS + f"""
@@ -404,7 +416,7 @@ def _build_health_cert(recipe, receipt, spec: dict, parse: dict, rng: random.Ran
         f'<h1 class="title" style="text-align:left">{span("title", receipt.title)}</h1>'
         f'{_table(spec, receipt, parse, rows, with_totals=False)}'
         f'{_notes(receipt, boxed=True)}'
-        f'<div class="signs">{base.signature_block(receipt, parse, stamp=_stamp())}</div>'
+        f'<div class="signs">{base.signature_block(receipt, parse, stamp=_ornament_stamp(recipe, receipt) or _stamp())}</div>'
         '</main>'
     )
     body = f'<div class="sidebar-wrap">{sidebar}{main}</div>{base.footer_block(parse)}'
@@ -445,7 +457,7 @@ def _build_cargo_policy(recipe, receipt, spec: dict, parse: dict, rng: random.Ra
         f'<h1 class="title">{span("title", receipt.title)}</h1>'
         f'<div class="fields">{"".join(rows_html)}</div>'
         f'{_notes(receipt, boxed=True)}'
-        f'<div class="signs">{base.signature_block(receipt, parse, stamp=_stamp())}</div>'
+        f'<div class="signs">{base.signature_block(receipt, parse, stamp=_ornament_stamp(recipe, receipt) or _stamp())}</div>'
         f'{base.footer_block(parse)}'
     )
     css = _SHARED_CSS + f"""
@@ -482,7 +494,7 @@ def _build_fire_cert(recipe, receipt, spec: dict, parse: dict, rng: random.Rando
         f'<div class="sec2"><div class="cap">'
         f'{span("subhead", "III. Phí bảo hiểm và thời hạn")}</div>'
         f'{_notes(receipt)}</div>'
-        f'<div class="signs">{base.signature_block(receipt, parse, stamp=_stamp())}</div>'
+        f'<div class="signs">{base.signature_block(receipt, parse, stamp=_ornament_stamp(recipe, receipt) or _stamp())}</div>'
         f'{base.footer_block(parse)}'
     )
     css = _SHARED_CSS + f"""
@@ -519,7 +531,7 @@ def _build_travel_cert(recipe, receipt, spec: dict, parse: dict, rng: random.Ran
         f'<div class="right">{_table(spec, receipt, parse, rows, with_totals=False)}'
         f'{_notes(receipt, boxed=True)}</div>'
         '</div>'
-        f'<div class="signs">{base.signature_block(receipt, parse, stamp=_stamp())}</div>'
+        f'<div class="signs">{base.signature_block(receipt, parse, stamp=_ornament_stamp(recipe, receipt) or _stamp())}</div>'
         f'{base.footer_block(parse)}'
     )
     css = _SHARED_CSS + f"""
@@ -558,7 +570,7 @@ def _build_property_contract(recipe, receipt, spec: dict, parse: dict,
         f'{span("subhead", "Đối tượng bảo hiểm và số tiền bảo hiểm")}</div>'
         f'{_table(spec, receipt, parse, rows)}</div>'
         f'{_notes(receipt)}'
-        f'<div class="signs">{base.signature_block(receipt, parse, stamp=_stamp())}</div>'
+        f'<div class="signs">{base.signature_block(receipt, parse, stamp=_ornament_stamp(recipe, receipt) or _stamp())}</div>'
         f'{base.footer_block(parse)}'
     )
     css = _SHARED_CSS + f"""

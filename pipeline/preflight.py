@@ -370,6 +370,58 @@ def sheet_coverage() -> list[str]:
             f"belongs to." for name in missing]
 
 
+def warp_engines() -> list[str]:
+    """Every enabled `augmentation` value whose warp engine is not installed.
+
+    A warp is the one step allowed to change a page's size, and the Blender
+    engine is the one that shells out to a program this repository does not
+    ship. When it is missing, `degradation.blender` raises the moment a page
+    asks for it -- which is halfway through a run, after the browser is up and
+    some shards have already written images.
+
+    Reported here instead because that is the whole point of a preflight: a
+    rule naming a tool the machine does not have is a fact about the machine,
+    knowable before the first page, and the fix (`make setup-blender`) is one
+    command. Marked `UNCHECKED` rather than as a fault in the rules -- the
+    rules are right and the clone is short a program, which is the same shape
+    as a missing Python library.
+    """
+    try:
+        from degradation import warp as warp_module
+        from rulebase import load_rules
+    except ImportError as error:
+        return [f"{UNCHECKED} warp engines: {error}"]
+
+    try:
+        options = load_rules()["augmentation"]
+    except Exception as error:            # noqa: BLE001 -- reported, not raised
+        return [f"{UNCHECKED} warp engines: {error}"]
+
+    wanted: dict[str, list[str]] = {}
+    for option in options:
+        name = (option.params.get("warp") or {}).get("name")
+        if name and getattr(option, "enabled", True):
+            wanted.setdefault(str(name), []).append(option.id)
+    if not wanted:
+        return []
+
+    missing: list[str] = []
+    for name, ids in sorted(wanted.items()):
+        try:
+            engine = warp_module.engine_for(name)
+        except KeyError as error:
+            missing.append(f"augmentation: {error}")
+            continue
+        ready = getattr(engine, "available", None)
+        if ready is not None and not ready():
+            missing.append(
+                f"{UNCHECKED} augmentation: {', '.join(sorted(ids))} need the "
+                f"{name!r} warp engine, and it is not installed. Run "
+                f"`make setup-blender`, or set `enabled: false` on those "
+                f"values -- a run that draws one now fails mid-shard.")
+    return missing
+
+
 def check() -> list[str]:
     """Every problem, in the order a person would want to fix them."""
     problems: list[str] = []
@@ -394,6 +446,7 @@ def check() -> list[str]:
     problems += ornament_assets()
     problems += sheet_overflow()
     problems += sheet_coverage()
+    problems += warp_engines()
     return problems
 
 

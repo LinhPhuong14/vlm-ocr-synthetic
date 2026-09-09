@@ -40,6 +40,7 @@ import base64
 import html
 import io
 import random
+import re
 import sys
 import unicodedata
 from pathlib import Path
@@ -565,8 +566,25 @@ def seal_mark(kind: str, *, seed: int, lines: list[str], anchor: str,
           f'src="data:image/png;base64,{data}">')
     # `image.height / image.width` as a percentage of `size_pct`: see the
     # docstring above for why `padding-bottom` (not `height`) carries it.
+    # Resolves against the CONTAINING block's width regardless of the box's
+    # own `width` below, so it is unaffected by the `page_edge_left` halving.
     height_pct = round(size_pct * image.height / max(image.width, 1), 2)
-    box = (f'<span data-kind="seal.{esc(shape)}" data-text="{esc(text)}" style="{placed}'
+    # `page_edge_left` centres the `<img>` ON the page edge on purpose --
+    # `overflow:hidden` on `#sheet` crops the other half for the "giáp lai"
+    # look (see `_PAGE_ANCHOR_CSS`). `getBoundingClientRect()` does not know
+    # about that crop, though: the label span at the SAME position would
+    # measure the mark's full, half-off-page geometry, and `pipeline/
+    # invariants.py` is right to reject a box that claims pixels nothing
+    # painted. Left-aligned at the edge with half the width instead, the
+    # label describes exactly the surviving half rather than the whole mark.
+    box_style = (f'position:absolute;left:0%;top:50%;transform:translate(0,-50%) '
+                f'rotate({deg:.1f}deg);width:{size_pct / 2}%;'
+                if anchor == "page_edge_left" else placed)
+    # `data-ink="stamp"`: axis 3. A seal impression is not printed text and
+    # not handwriting, and `kind` alone cannot say so on a page whose default
+    # ink is thermal or dot-matrix -- see `pipeline/record.py::ink_for`.
+    box = (f'<span data-kind="seal.{esc(shape)}" data-ink="stamp" '
+           f'data-text="{esc(text)}" style="{box_style}'
           f'height:0;padding-bottom:{height_pct}%;box-sizing:content-box;'
           f'white-space:nowrap;overflow:hidden;opacity:0;pointer-events:none;">'
           f'{esc(text)}</span>')
@@ -711,14 +729,27 @@ def items_table(spec: dict, receipt, parse: dict, rows: Rows, *,
               and any(place[0] <= row[0][0] <= place[1] for place in first)]
     stacked = [row for row in plan[1:] if row not in folded]
 
-    for item in receipt.items:
-        values = item_values(item, receipt)
+    # A column's own `cellstyle:` -- read here, once, rather than per row --
+    # paints the CELL a value sits in, never the value itself: the text a
+    # reader would copy off the page is exactly what `values.get(source, "")`
+    # already was, and `check_boxes.py`'s ink check reads the same pixels
+    # either way. See `_heat_fills`/`_HATCH_CLS`.
+    heat_keys = [c["key"] for c in columns if c.get("cellstyle") == "heatmap"]
+    hatch_keys = {c["key"] for c in columns if c.get("cellstyle") == "hatch_zero"}
+    item_values_list = [(item, item_values(item, receipt)) for item in receipt.items]
+    heat_max = {key: max((v for v in
+                          (_numeric(vals.get(key, "")) for _it, vals in item_values_list)
+                          if v), default=0.0)
+               for key in heat_keys}
+
+    for item, values in item_values_list:
         extra: dict[int, list[tuple[str, str]]] = {}
         for row in folded:
             start, _end, source, _align = row[0]
             text = values.get(source, "")
             if text:
                 extra.setdefault(start, []).append((f"menu.{source}", text))
+        fills = _heat_fills(values, heat_keys, heat_max)
         if getattr(item, "is_group", False):
             # A block heading is a row of the table, not a caption above it: it
             # carries the block's column sums. Its name runs across the columns
@@ -726,10 +757,10 @@ def items_table(spec: dict, receipt, parse: dict, rows: Rows, *,
             # because a heading has none of those.
             table_rows.append(_group_row(columns, keys, values, spec, item))
             continue
-        table_rows.append(_item_row(columns, first, values, extra))
+        table_rows.append(_item_row(columns, first, values, extra, fills, hatch_keys))
         for row in stacked:
             if any(values.get(place[2]) for place in row):
-                table_rows.append(_item_row(columns, row, values, {}))
+                table_rows.append(_item_row(columns, row, values, {}, fills, hatch_keys))
         table_rows.extend(_item_extras(spec, item, receipt, values, columns))
 
     for _ in range(blank_rows):
@@ -767,6 +798,13 @@ def items_table(spec: dict, receipt, parse: dict, rows: Rows, *,
     # PDF's character stream that the markup lists once -- which is exactly the
     # noise `match_runs` has to step over to find the next field.
     repeat = bool((spec.get("table") or {}).get("repeat_header", True))
+    # `.rothdr` is `table-layout:fixed` (see `document()`'s shared style) --
+    # only when a header is rotated, not on every table, because a rotated
+    # title is the one case an auto-layout column would otherwise widen to
+    # fit: the browser sizes an auto column from its WIDEST rendered content,
+    # and a vertical/diagonal title's rendered width is its own height.
+    if (spec.get("table") or {}).get("header_style"):
+        cls = f"{cls} rothdr"
     table = TableSpec(rows=table_rows, columns=table_columns, border=Border.none(),
                       cls=cls, repeat_header=repeat)
     return render_table(table, rows=rows)
@@ -808,6 +846,24 @@ def _item_extras(spec: dict, item, receipt, values: dict[str, str],
     return out
 
 
+_HEADER_STYLE_CLASS = {"vertical": "vert", "diagonal": "diag"}
+
+
+def _header_title(title: str, rotate: str | None) -> str:
+    """A column title, rotated by wrapping it rather than by rotating the cell.
+
+    The `<th>` itself stays unrotated: it is what `CELL_REGIONS_JS` measures
+    for `data-cell`'s own extent (`_render_cell` in `components/table.py`),
+    and a rotated CELL reports a `getBoundingClientRect()` enclosing the
+    rotated rectangle -- wider and shorter than the column it names, and
+    liable to overlap its neighbour's. The wrapper carries the transform
+    instead, so the column boundary a reader of the structure sees is still
+    the column's real edges; only the text inside leans.
+    """
+    run = span("colhdr", title)
+    return f'<div class="{rotate}">{run}</div>' if rotate and run else run
+
+
 def _header_rows(columns: list[dict], spec: dict) -> list[Row]:
     """The column titles, in one band or two.
 
@@ -818,8 +874,19 @@ def _header_rows(columns: list[dict], spec: dict) -> list[Row]:
     works the edges out. There is no arithmetic here and that is the point: the
     same statement drawn on a character grid would be a wide cell that happens to
     have no rule under half of it.
+
+    `table.header_style: vertical|diagonal` turns every title on its side
+    instead -- a narrow column bought back at the cost of a taller header
+    band, which is a real trade a print shop makes when it has more columns
+    than width. The rotation is CSS only (`.vert`/`.diag`, in `document()`'s
+    shared style), never a second element inside the labelled span: `page.py::
+    CELL_RECTS_JS` already knows to measure a transformed run as one box
+    rather than walking it character by character (see its own comment), so
+    a plain `span(kind, title)` stays exactly what every other header cell
+    writes.
     """
     groups = (spec.get("table") or {}).get("header_groups") or []
+    rotate = _HEADER_STYLE_CLASS.get((spec.get("table") or {}).get("header_style", ""))
     keys = [column["key"] for column in columns]
     resolved_spans: list[tuple[int, int, str]] = []
     for entry in groups:
@@ -832,7 +899,7 @@ def _header_rows(columns: list[dict], spec: dict) -> list[Row]:
 
     if not resolved_spans:
         return [Row([
-            Cell(span("colhdr", column.get("title", "")), html=True, kind="colhdr",
+            Cell(_header_title(column.get("title", ""), rotate), html=True, kind="colhdr",
                 align=safe_align(column.get("title_align", "center")),
                 cls=align_class(column.get("title_align", "center")))
             for column in columns
@@ -910,8 +977,51 @@ def _placements(row: list[dict], keys: list[str]) -> list[tuple[int, int, str, s
     return sorted(out)
 
 
+_DIGITS = re.compile(r"\d")
+
+
+def _numeric(text: str) -> float | None:
+    """The magnitude a formatted money cell shows, or None if it shows none.
+
+    Off the same STRING every reader sees (`values.get(source, "")`, already
+    through `receipt.cash()`), not off the `Item`'s own field -- a column's
+    `source` key does not always name one field (`_placements` also resolves
+    `span: [...]`), and re-deriving that mapping here to reach a raw number
+    would be a second, easier-to-drift path to the same value the page
+    already committed to printing.
+
+    Every digit, `,`/`.`/whitespace dropped, not parsed as a real decimal:
+    `rulebase.text.money`'s four styles do not agree on which mark is the
+    thousands separator -- `dot` writes `12.904`, `comma_2dp` writes
+    `12,904.00` -- so treating either punctuation mark as authoritative reads
+    one style right and every other style off by a factor of a thousand.
+    A heatmap only compares rows against each other WITHIN one table, which
+    one `money_style` renders throughout, so the relative order this produces
+    is exactly as correct as the true value would have been; the absolute
+    number is not read by anything.
+    """
+    digits = "".join(_DIGITS.findall(text))
+    return float(digits) if digits else None
+
+
+def _heat_fills(values: dict[str, str], heat_keys: list[str],
+                heat_max: dict[str, float]) -> dict[str, float]:
+    """This row's share of each heatmap column's largest value, 0..100."""
+    fills: dict[str, float] = {}
+    for key in heat_keys:
+        largest = heat_max.get(key) or 0.0
+        if not largest:
+            continue
+        number = _numeric(values.get(key, ""))
+        if number:
+            fills[key] = round(min(100.0, 100.0 * number / largest), 1)
+    return fills
+
+
 def _item_row(columns: list[dict], places: list[tuple[int, int, str, str]],
-              values: dict[str, str], extra: dict[int, list[tuple[str, str]]]) -> Row:
+              values: dict[str, str], extra: dict[int, list[tuple[str, str]]],
+              fills: dict[str, float] | None = None,
+              hatch_keys: set[str] | None = None) -> Row:
     """One row: the placed cells, and an empty cell for every column between.
 
     A gap cell's `align` is left unset rather than restated: it carries no
@@ -919,7 +1029,16 @@ def _item_row(columns: list[dict], places: list[tuple[int, int, str, str]],
     column's own default (see `components.table._render_cell`) -- the same
     outcome `cls=align_class(...)` alone produced before, one fewer thing
     computed twice.
+
+    `fills`/`hatch_keys` paint the CELL a column's own `cellstyle:` asked for
+    (D-2/D-3 of the table-diversity guideline: a mini-bar behind a money
+    column's largest values, or a hatch over one that is genuinely empty on
+    this row) -- both are `Cell.bg`/`Cell.cls`, which `render_table` already
+    turns into inline CSS the DOM does not otherwise carry, so neither can
+    move a box `CELL_RECTS_JS` measures or duplicate the text a reader copies.
     """
+    fills = fills or {}
+    hatch_keys = hatch_keys or set()
     cells: list[Cell] = []
     column = 0
     for start, end, source, align in places:
@@ -928,13 +1047,21 @@ def _item_row(columns: list[dict], places: list[tuple[int, int, str, str]],
             column += 1
         if column > end:
             continue                  # two entries claimed the same column
-        inner = span(f"menu.{source}", values.get(source, ""))
-        for kind, text in extra.get(start, []):
-            inner += f'<div class="sub">{span(kind, text)}</div>'
+        text = values.get(source, "")
+        inner = span(f"menu.{source}", text)
+        for kind, extra_text in extra.get(start, []):
+            inner += f'<div class="sub">{span(kind, extra_text)}</div>'
         resolved_align = safe_align(align or columns[start].get("align", "left"))
+        cls = align_class(align or columns[start].get("align", "left"))
+        bg = None
+        if source in fills:
+            pct = fills[source]
+            bg = f"linear-gradient(to right,#cfe3ff {pct:g}%,transparent {pct:g}%)"
+        elif source in hatch_keys and not text.strip():
+            cls = f"{cls} hatch".strip()
         cells.append(Cell(inner, html=True, kind=f"menu.{source}",
                           colspan=end - start + 1, align=resolved_align,
-                          cls=align_class(align or columns[start].get("align", "left"))))
+                          cls=cls, bg=bg))
         column = end + 1
     while column < len(columns):
         cells.append(Cell(cls=align_class(columns[column].get("align", "left"))))
@@ -1007,7 +1134,18 @@ def signature_block(receipt, parse: dict, *, stamp: str = "", stamp_index: int =
     for index, (title, note) in enumerate(invoice.signatures):
         who = names[index] if index < len(names) else ""
         columns.append(
-            f'<div class="sign">'
+            # `position:relative` inline, not left to each family's `.sign`
+            # rule. `seal_mark` places a slot-anchored stamp with
+            # `position:absolute;top:0;left:50%`, which resolves against the
+            # nearest POSITIONED ancestor -- so a family whose `.sign` is
+            # static sends the seal to `#sheet`'s own top-centre, straight
+            # across the letterhead. `lodging.py` happened to set it and was
+            # the only family drawing seals at all; the moment the other nine
+            # were wired up, the first page put a company seal through the
+            # middle of its own name. The requirement belongs to the function
+            # that emits the div, not to ten stylesheets that each have to
+            # remember it.
+            f'<div class="sign" style="position:relative;">'
             f'{span("sign.title", title, "t")}'
             f'<div class="n">{span("sign.note", note)}</div>'
             f'<div class="who">{span("sign.name", who)}</div>'
@@ -1112,6 +1250,12 @@ thead.once{{display:table-row-group;}}
 td.r,th.r,.r{{text-align:right;}}
 td.c,th.c,.c{{text-align:center;}}
 .sub{{font-style:italic;color:#3a3a3a;}}
+.hatch{{background:repeating-linear-gradient(45deg,transparent 0 2.2mm,#00000014 2.2mm 3mm);}}
+table.rothdr{{table-layout:fixed;}}
+.vert{{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;
+  padding-top:2mm;padding-bottom:2mm;}}
+.diag{{writing-mode:horizontal-tb;transform:rotate(-45deg);transform-origin:left bottom;
+  white-space:nowrap;display:inline-block;}}
 .foot div{{margin-top:.4mm;}}
 {css}
 </style></head><body><div id="sheet">{overlay}{body}</div></body></html>"""

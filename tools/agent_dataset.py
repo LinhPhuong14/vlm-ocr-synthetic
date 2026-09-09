@@ -35,6 +35,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -45,13 +46,34 @@ for _extra in (REPO_ROOT, REPO_ROOT / "tools"):
         sys.path.insert(0, str(_extra))
 
 from agent import client as llm_client  # noqa: E402
-from agent import compose, planner, policy, variants  # noqa: E402
+from agent import compose, compose_layout, planner, policy, variants  # noqa: E402
 from agent import rules as agent_rules  # noqa: E402
 from pipeline.invariants import CLEAN_FORCES  # noqa: E402
 
 PLAN_NAME = "agent_plan.json"
 REPORT_NAME = "agent_report.json"
 RULES_DIR = "rules"
+LAYOUTS_DIR = REPO_ROOT / "rulebase" / "layouts"
+
+
+def table_layout_ids(layouts_dir: Path = LAYOUTS_DIR) -> set[str]:
+    """Every layout id whose file lays out a real item table.
+
+    Read off `rulebase/layouts/*.yaml` at call time -- a `columns:` list is
+    what every renderer keys its `items_table()` call on regardless of family
+    (till roll, A4 form, medical statement), so it is the one generic signal
+    that a page has rows of items rather than fields or running text. Nothing
+    here names a layout: a new table-bearing layout is picked up the next
+    time this runs, and one that stops carrying a table drops out on its own.
+    """
+    import yaml  # noqa: PLC0415 -- only this helper needs it
+
+    ids = set()
+    for path in sorted(layouts_dir.glob("*.yaml")):
+        spec = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        if spec.get("columns"):
+            ids.add(str(spec.get("id") or path.stem))
+    return ids
 
 
 def report(out: Path, decisions, rules, pol, catalogue, elapsed: dict,
@@ -83,6 +105,69 @@ def report(out: Path, decisions, rules, pol, catalogue, elapsed: dict,
     return payload
 
 
+def compose_new_layouts(args, out: Path) -> list[str]:
+    """MỨC 3 as a step of a run: compose `--compose-layout N` new layouts.
+
+    Runs `agent/compose_layout.py`'s own command, once per layout, in a
+    subprocess -- not by importing and calling it. Three reasons, and the
+    third is the one that matters:
+
+    * that command already owns the seven gates, the registration and the
+      rollback, and a second caller doing four of the seven is how the two
+      drift apart;
+    * `rulebase` and `sheets` cache the layout directory at import, and this
+      writes into it -- the same reason `augment_layout.draws` is a subprocess;
+    * **a layout that fails leaves nothing behind.** The command removes the
+      file and reverts both registries itself, so a run that composes five and
+      lands three continues with three rather than with a rule base naming two
+      files that are not there.
+
+    Which documents: `agent/constraints.yaml`'s reviewed list, intersected
+    with the ones that actually have a visible third layer (§8.2). Read from
+    the data, not listed here -- a document reviewed tomorrow joins without
+    this file changing.
+    """
+    from agent import constraints as constraints_mod
+
+    wanted = args.compose_document
+    if not wanted:
+        wanted = []
+        for document in constraints_mod.load().documents():
+            try:
+                if compose_layout.layers(compose_layout.references(document)).free:
+                    wanted.append(document)
+            except compose_layout.ComposeError:
+                continue
+    if not wanted:
+        print("[agent] mức 3: chưa chứng từ nào vừa được duyệt trong "
+              "agent/constraints.yaml vừa có lớp 3 — bỏ qua bước soạn")
+        return []
+
+    made: list[str] = []
+    for index in range(args.compose_layout):
+        document = wanted[index % len(wanted)]
+        # The id carries the run's seed, so two runs never race for one name
+        # and a composed layout can be traced back to the run that made it.
+        layout_id = f"{document}_c{args.seed}_{index:02d}"
+        done = subprocess.run(
+            [sys.executable, "-m", "agent.compose_layout",
+             "--document", document, "--id", layout_id,
+             "--seed", str(args.seed + index), "--write"],
+            cwd=str(REPO_ROOT), capture_output=True, text=True)
+        if done.returncode == 0:
+            made.append(layout_id)
+        else:
+            tail = [line for line in (done.stdout or "").splitlines()
+                    if line.strip().startswith("✗")]
+            print(f"[agent] mức 3: {layout_id} trượt — "
+                  f"{tail[-1].strip() if tail else 'xem log'}")
+    if made:
+        (out / "composed_layouts.json").write_text(
+            json.dumps({"layouts": made, "seed": args.seed}, ensure_ascii=False,
+                       indent=1) + "\n", encoding="utf-8")
+    return made
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("-o", "--out", type=Path, default=REPO_ROOT / "data" / "5k_llm")
@@ -109,6 +194,18 @@ def main() -> int:
              "diversity tally a concurrent block's prompt sees, which goes a "
              "few blocks stale). 1 keeps the old one-at-a-time behaviour.")
     parser.add_argument(
+        "--compose-layout", type=int, default=0, metavar="N",
+        help="MỨC 3: soạn N bố cục MỚI trước khi lập kế hoạch, rồi vẽ trên cả "
+             "chúng. Model nhận k phôi cùng loại chứng từ làm bằng chứng và "
+             "viết ra một cấu trúc chưa từng có; nó đi qua bảy cửa ải rồi mới "
+             "được đăng ký, và cái nào trượt thì bị xoá cùng cả hai đăng ký. "
+             "Chỉ những chứng từ đã duyệt trong agent/constraints.yaml mới "
+             "được soạn. Xem agent/compose_layout.py.")
+    parser.add_argument(
+        "--compose-document", action="append", default=None, metavar="ID",
+        help="chỉ soạn cho những chứng từ này (lặp lại cờ). Mặc định: mọi "
+             "chứng từ constraints.yaml đã duyệt VÀ có lớp 3 nhìn thấy được")
+    parser.add_argument(
         "--content-llm", action="store_true",
         help="let the model write store names, item names, and (medical "
              "documents) the diagnosis/comorbid pair, instead of "
@@ -126,6 +223,12 @@ def main() -> int:
              "drawn less often and pairs that only fail together stop being "
              "drawn at all -- which is how the reviewing agent reaches the "
              "generating one instead of just filing a report nobody reads")
+    parser.add_argument(
+        "--layouts-with-table", action="store_true",
+        help="draw only layouts that lay out a real item table -- a letter, "
+             "a questionnaire, a magazine page have nothing to switch off "
+             "for. The set is read off rulebase/layouts/*.yaml at run time "
+             "(see table_layout_ids), not written down here")
     parser.add_argument("--clean", action="store_true", help="no ageing at all")
     parser.add_argument("--template", default="auto",
                         help="page model; 'auto' is the sheet the layout belongs to")
@@ -139,17 +242,23 @@ def main() -> int:
                         help="0 uses --workers")
     parser.add_argument("--no-proof", action="store_true",
                         help="skip the field-box proof (proof/) drawn by default")
-    parser.add_argument("--proof-layout", action="store_true",
-                        help="also draw a proof from layout_annotations "
+    parser.add_argument("--no-proof-layout", action="store_true",
+                        help="skip the proof from layout_annotations "
                              "(proof_layout/), one box per region, coloured "
-                             "by the 19-label docsynth vocabulary. Off by "
-                             "default: an extra pass over every page nobody "
-                             "asked for costs time for nothing.")
-    parser.add_argument("--proof-words", action="store_true",
-                        help="also draw a proof from word_annotations "
+                             "by the 19-label docsynth vocabulary. Drawn by "
+                             "default alongside proof/ and proof_words/ -- "
+                             "a page from this driver is meant to be looked "
+                             "at, not just trusted.")
+    parser.add_argument("--no-proof-words", action="store_true",
+                        help="skip the proof from word_annotations "
                              "(proof_words/), one box per word, same "
-                             "palette as --proof-layout, tagged by "
-                             "field_role. Off by default, same reason.")
+                             "palette as proof_layout, tagged by "
+                             "field_role. Drawn by default, same reason.")
+    parser.add_argument("--no-save-html", action="store_true",
+                        help="skip writing each page's own markup beside its "
+                             "image (html_000.html next to html_000.jpg). "
+                             "Saved by default -- see "
+                             "generators/html/render.py --save-html.")
     parser.add_argument("--plan-only", action="store_true",
                         help="decide and report, draw nothing")
     parser.add_argument(
@@ -195,9 +304,32 @@ def main() -> int:
         print(f"[agent] lọc theo khoảng cách >= {table.get('min')}: "
               f"{len(catalogue)}/{before} dressing giữ lại ({free} loại free)")
     pol = policy.load()
+
+    # MỨC 3, và nó phải chạy TRƯỚC `materialise`: một bố cục soạn ra chỉ tồn
+    # tại khi nó đã nằm trong `rulebase/rules/layout.yaml` và `blanks.yaml`,
+    # và rules root của lượt chạy được dựng từ hai file ấy. Soạn sau là soạn
+    # ra thứ kế hoạch không biết tới.
+    if args.compose_layout:
+        started = time.time()
+        made = compose_new_layouts(args, out)
+        clock["compose_layout"] = round(time.time() - started, 2)
+        if made:
+            print(f"[agent] mức 3: {len(made)} bố cục mới đăng ký — "
+                  f"{', '.join(made)}")
+        else:
+            print("[agent] mức 3: không bố cục nào qua được hàng rào; "
+                  "lượt chạy tiếp tục với các phôi đang có")
+
     root = agent_rules.materialise(out / RULES_DIR, catalogue, pol)
     agent_rules.activate(root)
     rules = agent_rules.compose(catalogue, pol)
+
+    if args.layouts_with_table:
+        keep = table_layout_ids()
+        drop = {option.id for option in rules["layout"]} - keep
+        rules = agent_rules.switch_off(rules, "layout", drop)
+        print(f"[agent] --layouts-with-table: giữ {len(keep)}/{len(keep) + len(drop)} "
+              f"bố cục có bảng hàng")
 
     # `handwriting.py` refuses to fake ink when WriteViT is absent, and it is
     # right to: a page whose label says a field was filled by hand and whose
@@ -303,6 +435,15 @@ def main() -> int:
     from pipeline.config import Config
     from pipeline.run import execute
 
+    # `build_plan` insists every layout it is handed gets at least one page
+    # (see `pipeline/plan.py::uncovered`) -- right for the ordinary quota
+    # driver, and wrong here read against ALL 52 shipped layouts: this run's
+    # plan already names exactly which layout every page uses, so the only
+    # universe that check should cover is the one this run actually drew
+    # from, which shrinks with `--layouts-with-table` and with a small -n
+    # alike. Leaving this `[]` (`pipeline/run.py`'s "no run.layouts" -> "every
+    # shipped layout") is what made `-n 4` fail before either restriction was
+    # a factor: 4 pages cannot cover a fixed 52.
     config = Config.from_dict({
         "run": {
             "out": str(out),
@@ -310,10 +451,11 @@ def main() -> int:
             "seed": args.seed,
             "workers": args.workers,
             "clean": bool(args.clean),
-            "layouts": [],
+            "layouts": sorted({decision.layout for decision in drawing}),
             "force": [],
             "pairing": "paired",
             "template": args.template,
+            "save_html": not args.no_save_html,
             "naming": args.naming,
         },
         "backends": ["html"],
@@ -338,14 +480,13 @@ def main() -> int:
         return 1
     print(f"[agent] {len(drawing)} trang: thuộc tính đã vẽ khớp kế hoạch")
 
-    # 5. A proof beside every page -- up to three, one per `proof_boxes.MODES`,
-    # each its own attribute rather than folded into one flag: a person
-    # reading field boxes day to day should not pay for the other two just
-    # because they exist, and someone checking the label-axes migration wants
-    # exactly `layout`/`words` without the field-box one.
+    # 5. A proof beside every page -- all three of `proof_boxes.MODES` by
+    # default, each its own opt-OUT flag rather than folded into one: someone
+    # who wants only `layout`/`words` without the field-box one still needs to
+    # drop exactly that one, not rebuild the whole set from nothing.
     wanted = [mode for mode, flag in (("blocks", not args.no_proof),
-                                       ("layout", args.proof_layout),
-                                       ("words", args.proof_words)) if flag]
+                                       ("layout", not args.no_proof_layout),
+                                       ("words", not args.no_proof_words)) if flag]
     if wanted:
         import proof_boxes  # noqa: PLC0415 -- needs cv2, and step 4 does not
 

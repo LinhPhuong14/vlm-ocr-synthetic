@@ -1,0 +1,87 @@
+[
+ {
+  "index": 0,
+  "seed": 2026,
+  "force": {
+   "document": "hospital_bill",
+   "layout": "medical_statement",
+   "variant": "none",
+   "content": "invoice_ascii",
+   "visual": "laser_invoice",
+   "color": "mono_black",
+   "ornament": "watermark_copy",
+   "handwriting": "typed",
+   "augmentation": "folded"
+  },
+  "by": "llm",
+  "note": "rules refused layout=form_table_based, content=dong_suffix, visual=thermal_faint"
+ },
+ {
+  "index": 1,
+  "seed": 2027,
+  "force": {
+   "document": "street_eatery",
+   "layout": "eatery_ascii",
+   "variant": "none",
+   "content": "ascii_upper",
+   "visual": "thermal_faint",
+   "color": "mono_black",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "folded"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, content=market_full, ornament=copy_stamp"
+ },
+ {
+  "index": 2,
+  "seed": 2028,
+  "force": {
+   "document": "hotel_stay",
+   "layout": "invoice_hotel_compact",
+   "variant": "none",
+   "content": "invoice_service_dong",
+   "visual": "impact_invoice",
+   "color": "mono_black",
+   "ornament": "watermark_copy",
+   "handwriting": "typed",
+   "augmentation": "folded"
+  },
+  "by": "llm",
+  "note": "rules refused layout=form_table_based, content=dong_suffix, visual=thermal_faint"
+ },
+ {
+  "index": 3,
+  "seed": 2029,
+  "force": {
+   "document": "hotel_stay",
+   "layout": "invoice_hotel_stay",
+   "variant": "none",
+   "content": "invoice_service_dong",
+   "visual": "impact_invoice",
+   "color": "mono_black",
+   "ornament": "watermark_copy",
+   "handwriting": "typed",
+   "augmentation": "folded"
+  },
+  "by": "llm",
+  "note": "rules refused layout=form_table_based, content=dong_suffix, visual=thermal_faint"
+ },
+ {
+  "index": 4,
+  "seed": 2030,
+  "force": {
+   "document": "street_eatery",
+   "layout": "eatery_indexed_b",
+   "variant": "none",
+   "content": "dong_suffix",
+   "visual": "thermal_faint",
+   "color": "mono_black",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "folded"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, ornament=watermark_copy"
+ }
+]

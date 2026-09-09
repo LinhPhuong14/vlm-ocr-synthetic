@@ -79,6 +79,11 @@ table:
   # Dải tiêu đề cột có nền xám nhạt — tờ này do phần mềm in ra chứ không
   # phải tờ mẫu in sẵn, và đây là chỗ dễ nhận ra nhất.
   shade: 0.10
+  # Thuế suất và tiền thuế cùng thuộc một khoản mục "Thuế GTGT" trên tờ mẫu
+  # thật — hai cột gộp dưới một tiêu đề chung, các cột còn lại xuống qua cả
+  # hai tầng như `medical_statement.yaml`.
+  header_groups:
+    - {title: "Thuế GTGT", from: vat_rate, to: vat_amount}
 
 item:
   wrap_name: true

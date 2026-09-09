@@ -173,17 +173,38 @@ options:
 
   # Bản photo dựng KHÔNG có lưới tram: tương phản cao, mực bệt, nhoè ống kính.
   # `photocopy_screened` ở cuối file là bản có tram thật.
+  #
+  # Ba giá trị `photocopy*` từng TẮT mà không có dòng nào ghi vì sao, và
+  # `halftone_screen` tắt theo chúng — lý do nó ghi trong `degradation/
+  # __init__.py` đọc nguyên văn là "không tự nó bị loại: hai giá trị duy nhất
+  # gọi tới nó đã tắt cùng `photocopy`". Một vòng luẩn quẩn: photocopy tắt nên
+  # halftone tắt, halftone tắt nên photocopy không bật lại được.
+  #
+  # Cắt vòng bằng cách đo. Ba trang mỗi giá trị (seed 11, 23, 41), mọi trục
+  # khác ghim cứng, chấm bằng `agent/critic.py`: **0 lỗi nặng, 0 lỗi nhẹ** cho
+  # cả ba — bằng đúng `pristine`. Chữ vẫn đọc được qua lưới tram; không mã nào
+  # trong mười ba mã kêu.
+  #
+  # `photocopy_stamped` cũng là consumer sống duy nhất của `pattern_overlay`,
+  # một mô hình đang BẬT mà trước đó không luật nào gọi tới.
   - id: photocopy
-    enabled: false
+    enabled: true
     weight: 3
     tags: [textured, high_contrast]
     params:
       chain:
         - [paper_texture, {alpha: 0.25, grain: 0.35}]
         - [phantom_character, {frequency: rare}]
+        # Hộp mực sắp hết: mảng đậm, mảng cháy trắng, dải xám bị đẩy về
+        # hai đầu. Đây là thứ ăn mất DẤU THANH trước tiên — dấu là nét
+        # mảnh nên xám hơn thân chữ.
+        - [bad_photocopy, {blotch: 0.30, wash: 0.20, contrast: 0.30, cell: 52}]
         - [blur, {radius: 0.8}]
         - [shadow_binding, {border: top, distance_ratio: 0.08, intensity: 0.3}]
         - [paper_overlay, {alpha: 0.22, lighten: 0.4}]
+        # Máy photo chỉ có MỘT hộp mực. Cuối chuỗi, vì mọi bước dán ảnh
+        # giấy ở trên đều mang màu vào lại.
+        - [monochrome, {}]
 
   # --------------------------------------------------------------------
   # HOẠ TIẾT CỦA KHÂU CHỤP LẠI
@@ -208,7 +229,7 @@ options:
   # tram thật. Giữ cả hai để một lượt chạy so được chúng với nhau, và để dataset
   # cũ tham chiếu `photocopy` theo tên vẫn ra đúng thứ nó vẫn ra.
   - id: photocopy_screened
-    enabled: false
+    enabled: true
     weight: 3
     excludes: [thermal]     # không ai photo một tờ giấy nhiệt: nó tự phai
     tags: [textured, screened]
@@ -224,10 +245,15 @@ options:
         # mép chấm. Ngược lại thì ra chấm sắc trên nền đã nhoè, không máy nào
         # cho ra như thế.
         - [blur, {radius: 0.6}]
+        # Trống mực xước in lại vết ấy mỗi vòng quay → sọc LIỀN chạy dọc
+        # tờ giấy. Sọc đứt quãng là nhiễu; sọc liền là cái trống.
+        - [dirty_drum, {lines: 4, direction: vertical, intensity: 0.30,
+                        line_width: 2}]
         - [scan_banding, {period: 46, amplitude: 0.045}]
+        - [monochrome, {}]
 
   - id: photocopy_stamped
-    enabled: false
+    enabled: true
     weight: 2
     excludes: [thermal]
     tags: [textured, screened]
@@ -236,11 +262,25 @@ options:
         - [paper_texture, {alpha: 0.30, grain: 0.45}]
         - [halftone_screen, {cell: 3.6, angle: 45, strength: 0.7}]
         - [blur, {radius: 0.7}]
+        - [bad_photocopy, {blotch: 0.38, wash: 0.26, contrast: 0.35, cell: 44}]
+        - [dirty_drum, {lines: 6, direction: vertical, intensity: 0.42,
+                        line_width: 3}]
         # Dấu đóng lên bản photo, nên nó nằm TRÊN lưới tram chứ không bị tram
         # hoá cùng trang.
         - [pattern_overlay, {pattern: seal_square_copy, scale: 0.34,
                              opacity: 0.55, anchor: bottom_right, rotate: 8}]
         - [scan_banding, {period: 34, amplitude: 0.06}]
+        # Cuối cùng, SAU cả con dấu. Comment ở `pattern_overlay` trên nói
+        # dấu được đóng lên bản photo — nếu vậy nó giữ mực xanh thật và
+        # dòng này nên nằm TRƯỚC nó. Để sau vì yêu cầu là cả ảnh phải
+        # xám; đổi chỗ một dòng là quay về cách kia.
+        #
+        # `warmth: 0`, không phải một chút ám vàng cho ra dáng giấy cũ. Đo
+        # được: `warmth: 0.25` để lại chroma khác 0, và JPEG 4:2:0 dội quanh
+        # các chấm tram thành viền BÃO HOÀ 255 trên 0,5-0,7% pixel — tức tấm
+        # ảnh không còn là greyscale nữa dù mắt thường không thấy. Muốn giấy
+        # ngả vàng thì làm ở `paper_texture`, nơi nó không đi qua chroma.
+        - [monochrome, {}]
 
   - id: flatbed_scan
     weight: 3
@@ -467,11 +507,113 @@ options:
   # trang -- không phải milli-giây như mọi model khác trong `degradation/`.
   #
   # `enabled: false` cả ba: đã nối dây đủ (rule-base, renderer, test), nhưng
-  # chưa lượt nào nhìn qua ảnh thật để chỉnh biên độ, nên chưa vào lượt bốc
-  # mặc định -- và chi phí thời gian ở trên cũng không hợp một lượt chạy toàn
-  # bộ dataset cho tới khi có quyết định khác. Dựng thử:
-  # `--force augmentation=page_curl` (hoặc `folded`, `lifted_corner`). Cần
-  # Blender cài sẵn -- `make setup-blender`.
+  # ĐÃ soát bằng ảnh thật, và lượt soát ấy tìm ra hai lỗi chứ không phải một
+  # con số biên độ cần vặn:
+  #
+  #   1. Blender dựng trên canvas 1536x2048 rồi crop về đúng bóng trang. Camera
+  #      phải lùi ra cho nếp gấp lọt khung, nên trang chỉ chiếm một phần khung:
+  #      A4 vào 1191x1684, ra 803x1036 -- hai phần ba kích thước thẳng. Mọi
+  #      glyph co theo, chữ 8pt tụt dưới ngưỡng `chu_nho`. Warp được phép BẺ
+  #      CONG trang, không được phép hạ độ phân giải của nó; `degradation/
+  #      blender/render.py` nay phóng lại sao cho không trục nào mất pixel.
+  #   2. `agent/critic.py::overlaps` đo chồng lấn bằng HỘP BAO. Một dòng chữ
+  #      trên trang cong là hình bình hành nghiêng, hộp bao to hơn hẳn vệt mực,
+  #      nên hai dòng kề nhau "đè" nhau mà thân không chạm. Nay cắt đa giác
+  #      thật (Sutherland-Hodgman); hộp bao chỉ còn làm bộ lọc rẻ cho phép
+  #      quét.
+  #
+  # Đo lại sau hai sửa ấy, một trang mỗi kịch bản, mọi trục khác ghim cứng:
+  # `page_curl`, `folded`, `lifted_corner`, `crease_bundle`, `crumple`,
+  # `paper_creased` -- **0 lỗi nặng, 0 lỗi nhẹ** cho cả sáu. Trước đó lần lượt
+  # là 12, 11, 12, 7, 3 và 0.
+  #
+  # Dịch chuyển hộp, tính theo % đường chéo trang (trung vị / tối đa):
+  # paper_creased 0,5/1,2 · crease_bundle 4,0/6,4 · crumple 4,8/7,8 ·
+  # folded 6,6/14,9 · lifted_corner 9,5/15,0 · page_curl 7,9/19,7.
+  #
+  # Chi phí thời gian ở trên vẫn đúng: vài giây tới hơn một phút một trang, so
+  # với vài milli-giây của `paper_photo`. Trọng số của bốn giá trị này để thấp
+  # vì lý do đó, không phải vì chất lượng. Cần Blender cài sẵn --
+  # `make setup-blender`.
+
+  # `paper_photo` KHÔNG qua Blender: trường dịch chuyển đọc thẳng từ ẢNH CHỤP
+  # GIẤY trong `augmentations/data/image/` (độ sáng = độ cao), rồi CHÍNH tấm
+  # ảnh ấy phủ lên trên. Một lượt vài milli-giây thay vì vài giây tới hơn một
+  # phút, nên đây là giá trị warp duy nhất BẬT mặc định.
+  #
+  # Hai nửa dùng CÙNG một bản crop: nếp gấp nhìn thấy đúng là nếp gấp đã bẻ
+  # pixel. Vì thế `chain` ở đây KHÔNG có `paper_overlay` -- gọi thêm là bốc
+  # ảnh giấy lần hai, bóng nếp gấp rơi lệch khỏi chỗ vừa bẻ.
+  #
+  # `max_stretch` chặn BIẾN DẠNG CỤC BỘ (|det(J) - 1|), không chặn số pixel
+  # dịch chuyển -- xem docstring `degradation/paper_warp.py`. Ở 0.28, đo trên
+  # sáu layout trong `data/paper_warp_test/`: det(J) 0.746..1.295, pixel dịch
+  # tới ~33px trên trang 1020x2289 mà không trang nào rách chữ. Muốn cong hơn
+  # thì vặn số này; qua ~0.5 là bắt đầu phải soát lại bằng mắt.
+  # ---- GIẤY VÒ MÔ PHỎNG: giá trị DUY NHẤT ở đây phá được chữ ----
+  #
+  # Đo trên cùng một trang mẫu 60 hộp (`tools/legibility.py`):
+  #
+  #     engine                        méo tối đa   hộp hỏng   hộp bị che
+  #     paper_photo                        ~1.0       0/60         0/60
+  #     blender (mesh giải tích)           1.46       0/60         0/60
+  #     simulated_paper (ARCSim)          14.42      24/60        53/60
+  #
+  # Hai engine đầu KHÔNG THỂ phá chữ, và đó là do cấu trúc chứ không do may:
+  # `paper_photo` chặn Jacobian; `blender/meshes.py` dựng mặt KHẢ TRIỂN (bảo
+  # toàn độ dài cung, nên nếp gấp không kéo giãn được thứ in trên nó) và
+  # `vendor/camera_angle_sampler.py` TỪ CHỐI mọi góc máy không thấy trọn tờ --
+  # đo được: `crumple` ở biên độ 0.030, gấp đôi mức đang ship, bị từ chối sau
+  # sáu lần thử.
+  #
+  # Giấy vò thật thì khác hẳn về bản chất: mặt không khả triển, giấy gập lên
+  # chính nó, và mảng này che mảng kia. `simulated_paper` là engine duy nhất
+  # trả về `legible: false` cho những hộp bị che -- đầu vào mà assertion
+  # `illegible_silence` cần, và là thứ không mô hình lọc pixel nào giả được.
+  #
+  # `meshes` ĐỂ TRỐNG trong repo, và trống thì bước này là no-op. Mesh không
+  # nằm trong kho: chúng do người vận hành tự mô phỏng, và bộ mesh đã dùng để
+  # dựng/đo cái này ra từ ARCSim -- giấy phép CHỈ CHO giáo dục, nghiên cứu,
+  # phi lợi nhuận (xem `degradation/blender/vendor/NOTICE.md`). **Dataset
+  # thương mại không được xây trên output ARCSim khi chưa có giấy phép thương
+  # mại của Berkeley.** Engine chỉ đọc `.obj`, không quan tâm ai sinh ra.
+  #
+  # `frame` là NÚM ĐỘ KHÓ, và là thứ đáng chỉnh nhất ở đây: 0 = tờ phẳng,
+  # 1 = vò nát thành cục. Đo trên 118 frame của một lượt ARCSim crumple:
+  # 0.25 -> 60/60 hộp đọc được, 0.70 -> 31/60, 0.99 -> 10/60. Khoảng 0.55-0.80
+  # là chỗ trang vừa hỏng thật vừa còn phần lớn nhãn dùng được.
+  #
+  # Giá: 0,2-4 giây một trang (numpy, tự chiếu và tô), so với vài phút của
+  # đường Blender. `enabled: false` vì `meshes` trống, không vì chi phí.
+  - id: simulated_crumple
+    enabled: false
+    weight: 1
+    tags: [textured, warped, creased]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.32, grain: 0.5}]
+      warp:
+        name: simulated_paper
+        params:
+          meshes: ""          # thư mục .obj đã mô phỏng; trống = no-op
+          frame: [0.55, 0.80]
+          elev: [-22.0, 22.0]
+          azim: [-22.0, 22.0]
+          shade: 0.55
+
+  - id: paper_creased
+    enabled: true
+    weight: 3
+    tags: [textured, warped, creased]
+    params:
+      chain:
+        - [paper_texture, {alpha: 0.32, grain: 0.5}]
+      warp:
+        name: paper_photo
+        params:
+          max_stretch: [0.22, 0.28]
+          alpha: 0.38
+          lighten: 0.35
 
   - id: page_curl
     enabled: true
@@ -486,7 +628,7 @@ options:
           angle: [20.0, 45.0]
 
   - id: folded
-    enabled: false
+    enabled: true
     weight: 2
     tags: [textured, warped, creased]
     params:
@@ -502,7 +644,7 @@ options:
           crease_width_ratio: [0.03, 0.06]
 
   - id: lifted_corner
-    enabled: false
+    enabled: true
     weight: 1
     tags: [textured, warped]
     params:
@@ -522,8 +664,19 @@ options:
   # (`crease_bundle`) hoặc nhàu rải rác (`crumple`, xấp xỉ phẳng của
   # `fall_on_many` -- xem docstring hai hàm trong `degradation/blender/
   # meshes.py` cho lý do đây không phải cùng một phép dựng với `fold_crease`).
+  # `angles` (độ) ép mỗi crease vào một hướng cụ thể thay vì để rơi ngẫu nhiên
+  # trong [0, 180) -- [0, 90, 45, 135] đảm bảo luôn có đủ dọc, ngang VÀ hai
+  # chéo cắt nhau, thay vì trông cậy vào may rủi để có "đan xen" thật. `profile:
+  # sharp` (thay `gaussian` mặc định) đổi dạng lát cắt mỗi nếp từ gò tròn sang
+  # có gãy khúc thật ở đỉnh (`exp(-|x|)` thay vì `exp(-x^2)`) -- xem docstring
+  # `crease_bundle` trong meshes.py. `depth`/`width_ratio` ở đây NÔNG và RỘNG
+  # hơn mặc định của hàm cố tình: bốn nếp cắt nhau + `profile: sharp` cùng làm
+  # tăng độ cong cục bộ, khiến camera-visibility-check (degradation/blender/
+  # vendor/camera_angle_sampler.py) phải lùi xa hơn để qua -- giá trị này đã đo
+  # bằng mắt trên `medical_statement` (data/paper_warp_test/) là mức vừa đủ để
+  # còn ra ảnh đọc được (~1100x530) chứ không co lại còn vài trăm pixel.
   - id: crease_bundle
-    enabled: false
+    enabled: true
     weight: 1
     tags: [textured, warped, creased]
     params:
@@ -533,12 +686,14 @@ options:
       warp:
         name: crease_bundle
         params:
-          n_creases: [2, 4]
-          depth: [0.01, 0.022]
-          width_ratio: [0.03, 0.055]
+          n_creases: 4
+          angles: [0, 90, 45, 135]
+          profile: sharp
+          depth: [0.006, 0.012]
+          width_ratio: [0.05, 0.08]
 
   - id: crumple
-    enabled: false
+    enabled: true
     weight: 1
     tags: [textured, warped, creased]
     params:

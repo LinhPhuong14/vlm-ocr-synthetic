@@ -350,21 +350,34 @@ def paper_overlay(
 
     out, was_gray = _as_bgr(image)
     height, width = out.shape[:2]
-    sheet = cv2.cvtColor(_cover(texture, (width, height)), cv2.COLOR_BGR2GRAY)
-    sheet = sheet.astype(np.float32)[:, :, None] / 255.0
+    return _restore(blend_sheet(out, _cover(texture, (width, height)), alpha, lighten), was_gray)
 
-    page = out.astype(np.float32) / 255.0
+
+def blend_sheet(
+    page_bgr: np.ndarray, sheet_bgr: np.ndarray, alpha: float, lighten: float
+) -> np.ndarray:
+    """The blend itself, against a sheet the CALLER has already aligned.
+
+    Split out of `paper_overlay` for `degradation.paper_warp`, which has to
+    blend against the very crop it differentiated to build its displacement
+    field. Letting it pick its own sheet instead would put the fold shading on
+    pixels the warp did not move -- the one mismatch that gives the effect away,
+    since a fold you can see and a fold you can measure would be in two places.
+    """
+    sheet = cv2.cvtColor(sheet_bgr, cv2.COLOR_BGR2GRAY).astype(np.float32)[:, :, None] / 255.0
+
+    page = page_bgr.astype(np.float32) / 255.0
     multiplied = page * (1.0 - float(alpha) * (1.0 - sheet))
     screened = 1.0 - (1.0 - multiplied) * (1.0 - float(lighten) * sheet)
 
     # The gate: 1 on bare paper, 0 on ink. Squared so that mid-greys -- the
     # anti-aliased rim of a glyph -- stay closer to the ink than to the paper,
     # which is what keeps a thin stroke from dissolving into its own halo.
-    luma = cv2.cvtColor(out, cv2.COLOR_BGR2GRAY).astype(np.float32)[:, :, None] / 255.0
+    luma = cv2.cvtColor(page_bgr, cv2.COLOR_BGR2GRAY).astype(np.float32)[:, :, None] / 255.0
     gate = float(lighten) * np.clip(luma, 0.0, 1.0) ** 2
 
     blended = multiplied * (1.0 - gate) + screened * gate
-    return _restore(np.clip(blended * 255.0, 0, 255).astype(np.uint8), was_gray)
+    return np.clip(blended * 255.0, 0, 255).astype(np.uint8)
 
 
 # ------------------------------------------------------- gradient domain

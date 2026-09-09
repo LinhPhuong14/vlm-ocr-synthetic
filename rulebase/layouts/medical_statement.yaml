@@ -59,8 +59,8 @@ columns:
   - {key: name,         title: "Nội dung",                   width: 0,  align: left,   title_align: center}
   - {key: unit,         title: "Đơn vị tính",                width: 8,  align: center, title_align: center}
   - {key: qty,          title: "Số lượng",                   width: 6,  align: right,  title_align: center}
-  - {key: price_bv,     title: "Đơn giá BV",                 width: 13, align: right,  title_align: center}
-  - {key: price_bh,     title: "Đơn giá BH",                 width: 13, align: right,  title_align: center}
+  - {key: price_bv,     title: "Đơn giá BV",                 width: 13, align: right,  title_align: center, cellstyle: hatch_zero}
+  - {key: price_bh,     title: "Đơn giá BH",                 width: 13, align: right,  title_align: center, cellstyle: hatch_zero}
   - {key: rate_service, title: "Tỷ lệ TT dịch vụ",           width: 7,  align: center, title_align: center}
   - {key: amount_bv,    title: "Thành tiền BV",              width: 15, align: right,  title_align: center}
   - {key: rate_bhyt,    title: "Tỷ lệ TT BHYT",              width: 7,  align: center, title_align: center}

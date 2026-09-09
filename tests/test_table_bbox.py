@@ -17,6 +17,7 @@ or the browser is not available, same as every other renderer-backed test.
 
 from __future__ import annotations
 
+import functools
 import sys
 from pathlib import Path
 
@@ -26,14 +27,34 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "generators" / "html"))
 
 
+@functools.lru_cache(maxsize=1)
 def _browser_ready() -> bool:
+    """Whether a browser can actually be launched.
+
+    NOT `find_chromium() is not None`, which is what this used to be. That
+    helper returns None on the ORDINARY path and says so in its own docstring:
+    `launch(executable_path=None)` is how Playwright uses the build it manages
+    itself, and only a container with a pre-installed browser overrides it.
+    Reading None as "no browser" skipped all eight cases below on every machine
+    that renders pages perfectly well -- the worst kind of green, a suite
+    reporting success for tests it never ran.
+
+    So the question is asked the only way it can be answered, by launching.
+    Cached because these are `skipif` decorators evaluated at collection time
+    and one browser start answers all of them.
+    """
     try:
-        import playwright.sync_api  # noqa: F401
+        from playwright.sync_api import sync_playwright
     except ImportError:
         return False
     from page import find_chromium
 
-    return find_chromium() is not None
+    try:
+        with sync_playwright() as playwright:
+            playwright.chromium.launch(executable_path=find_chromium()).close()
+    except Exception:                        # noqa: BLE001 -- any failure is "none"
+        return False
+    return True
 
 
 pytestmark = pytest.mark.slow

@@ -35,7 +35,7 @@ columns:
   - {key: unit,       title: "ĐVT",                    width: 8,  align: center, title_align: center}
   - {key: qty,        title: "Số lượng",               width: 8,  align: right,  title_align: right}
   - {key: unit_price, title: "Đơn giá",                width: 13, align: right,  title_align: right}
-  - {key: amount,     title: "Thành tiền",             width: 15, align: right,  title_align: right}
+  - {key: amount,     title: "Thành tiền",             width: 15, align: right,  title_align: right, cellstyle: heatmap}
 
 table:
   frame: false

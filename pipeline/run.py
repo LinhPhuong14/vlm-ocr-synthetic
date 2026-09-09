@@ -249,6 +249,15 @@ def assemble(out: Path, plan: dict, shards_root: Path
                         os.link(source, destination)
                     except OSError:
                         shutil.copy2(source, destination)
+                    # The renderer's own markup, same stem (`--save-html`) --
+                    # optional, so only carried over when the shard has one.
+                    html_source = source.with_suffix(".html")
+                    if html_source.exists():
+                        html_destination = destination.with_suffix(".html")
+                        try:
+                            os.link(html_source, html_destination)
+                        except OSError:
+                            shutil.copy2(html_source, html_destination)
                     record.write_one(item, target)
 
                     page = dict(drew.entry(name))

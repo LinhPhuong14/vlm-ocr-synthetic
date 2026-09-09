@@ -29,10 +29,11 @@ Three `--mode`, three arrays, three colourings:
   `pipeline.record.DOCSYNTH_LABELS` -- so the palette is DERIVED from that
   set (`_docsynth_palette`) rather than hand-picked: a label added there gets
   a colour for free, and this file never grows a matching entry to keep up.
-- `words`: `item["word_annotations"]`, one box per word, same `layout_class`
-  palette so a layout proof and a word proof read as the same colours, tagged
-  by `field_role` (key/value/unbound) instead of the class, since a viewer
-  reading word-by-word wants to know which of a pair is the label.
+- `words`: `item["word_annotations"]`, one box per word. Coloured AND tagged
+  by `field_role` (key/value/unbound, `FIELD_ROLE_COLOURS`) rather than the
+  19-label `layout_class`: a viewer reading word-by-word wants to see which
+  of a pair is the label at a glance, and three hand-picked colours read
+  faster for that than three of nineteen hue-wheel slices would.
 """
 
 from __future__ import annotations
@@ -66,6 +67,17 @@ FAMILIES: tuple[tuple[str, tuple[int, int, int]], ...] = (
 )
 OTHER = (80, 80, 80)
 LEGEND_HEIGHT = 26
+
+# BGR, `--mode words` only. Three fixed colours rather than a slice of
+# `_docsynth_palette()` -- there are only ever three `field_role` values
+# (`pipeline.record._word_field_role`), and a viewer scanning key/value pairs
+# wants the same two colours everywhere on the page, not a colour that shifts
+# with which of the 19 `layout_class` regions a word happens to sit in.
+FIELD_ROLE_COLOURS: dict[str, tuple[int, int, int]] = {
+    "key": (30, 140, 230),      # the caption half of a pair -- warm, stands out
+    "value": (170, 120, 40),    # the content half -- cool, the bulk of the page
+    "unbound": (110, 110, 110), # page furniture bound to no field
+}
 
 
 def family(kind: str) -> tuple[str, tuple[int, int, int]]:
@@ -126,18 +138,16 @@ def _entries(item: dict, mode: str) -> list[tuple[str, tuple, dict]]:
             _name, colour = family(kind)
             out.append((kind, colour, box))
         return out
-    palette = _docsynth_palette()
     if mode == "layout":
+        palette = _docsynth_palette()
         return [(str(region.get("layout_class", "?")),
                  palette.get(region.get("layout_class"), OTHER), region)
                 for region in schema.layout_annotations(item)]
-    # "words": same palette as "layout" so the two proofs read as the same
-    # colours, tagged by field_role -- key/value/unbound -- rather than by
-    # layout_class, since a viewer reading word-by-word wants to know which
-    # of a pair is the label rather than which of 19 it belongs to (the
-    # colour already says that).
+    # "words": coloured AND tagged by field_role -- key/value/unbound -- so
+    # every "key" on the page is the same colour wherever it sits, rather
+    # than shifting with the layout_class of whatever region it is in.
     return [(str(word.get("field_role", "?")),
-             palette.get(word.get("layout_class"), OTHER), word)
+             FIELD_ROLE_COLOURS.get(word.get("field_role"), OTHER), word)
             for word in schema.word_annotations(item)]
 
 

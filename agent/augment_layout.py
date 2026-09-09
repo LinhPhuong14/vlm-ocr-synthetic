@@ -231,7 +231,8 @@ def _block_after(text: str, anchor: str) -> tuple[int, int, str]:
     return start, end, "".join(lines[start:end])
 
 
-def register(layout_id: str, parent: str, today: str) -> list[str]:
+def register(layout_id: str, parent: str, today: str,
+             note: str = "") -> list[str]:
     """Put the variant into `rules/layout.yaml` and `blanks.yaml`.
 
     Copied from the parent's entry rather than invented: a variant is the same
@@ -251,7 +252,12 @@ def register(layout_id: str, parent: str, today: str) -> list[str]:
 
     entry = block.rstrip("\n").split("\n")
     indent = " " * (len(entry[0]) - len(entry[0].lstrip()))
-    out = [f"{indent}# {schema_mod.MARK[2:]}, varied from {parent} on {today}.",
+    # `note` because level 3 registers through here too and is NOT a variant of
+    # its parent: `agent/compose_layout.py` hands the reference it copied the
+    # requires/excludes from, and a comment claiming the file was "varied from"
+    # it would describe the wrong process to the next person reading the diff.
+    out = [f"{indent}# {schema_mod.MARK[2:]}, "
+           f"{note or f'varied from {parent}'} on {today}.",
            f"{indent}# Same document kind, so the same requires/excludes/tags;"
            f" half the weight,",
            f"{indent}# because a variant should not double how often this kind"
@@ -294,15 +300,43 @@ def register(layout_id: str, parent: str, today: str) -> list[str]:
         parts = text.splitlines(keepends=True)
         text = "".join(parts[:end]) + "\n".join(new) + "\n\n" + "".join(parts[end:])
     # ... and the documents that may draw the parent may draw the variant.
-    out_lines = []
-    for line in text.splitlines(keepends=True):
-        head, sep, rest = line.partition(":")
-        if sep and rest.strip().startswith("[") and parent in rest \
-                and layout_id not in rest:
-            rest = rest.rstrip().rstrip("]") + f", {layout_id}]\n"
-            line = head + sep + rest
-        out_lines.append(line)
-    BLANKS.write_text("".join(out_lines), encoding="utf-8")
+    #
+    # A `documents:` value is a flow list, and it is NOT always on the line
+    # that names it: the two longest, `invoice_plain` and `invoice_detailed`,
+    # wrap onto a second line because six layout ids do not fit in one. The
+    # first version of this matched `<name>: [` and so skipped exactly those
+    # two -- silently, because the layout still got its own blank and only
+    # `preflight` noticed, two steps later, with "no document draws from it".
+    #
+    # So the scan is over the whole flow list rather than over a line: find
+    # where it opens, find where it closes, and append to the line that closes
+    # it. Still textual, for the reason `_block_after` gives -- `blanks.yaml`
+    # is more comment than data and a YAML round-trip would throw all of it
+    # away.
+    lines = text.splitlines(keepends=True)
+    index = 0
+    while index < len(lines):
+        head, sep, rest = lines[index].partition(":")
+        if not sep or head.strip().startswith("#"):
+            index += 1
+            continue
+        opens = index if rest.strip().startswith("[") else (
+            index + 1 if index + 1 < len(lines)
+            and lines[index + 1].strip().startswith("[") else -1)
+        if opens < 0:
+            index += 1
+            continue
+        closes = next((i for i in range(opens, len(lines)) if "]" in lines[i]), -1)
+        if closes < 0:
+            index += 1
+            continue
+        block = "".join(lines[opens:closes + 1])
+        if parent in block and layout_id not in block:
+            tail = lines[closes]
+            body, bracket, after = tail.rpartition("]")
+            lines[closes] = f"{body.rstrip()}, {layout_id}{bracket}{after}"
+        index = closes + 1
+    BLANKS.write_text("".join(lines), encoding="utf-8")
     return []
 
 

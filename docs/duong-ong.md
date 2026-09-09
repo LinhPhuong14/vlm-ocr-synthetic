@@ -134,6 +134,63 @@ thứ hai**, và cần cả hai.
 | --- | --- | --- |
 | `boxes` | `span[data-kind]` — `CELL_RECTS_JS` | **mực ở đâu** |
 | `cells` | `[data-cell]` + `td.colSpan`/`rowSpan` — `CELL_REGIONS_JS` | **ô rộng tới đâu**, ở `row`/`col` nào, gộp mấy |
+| `graphics` | logo, hoa văn, mã vạch, watermark, chữ ký — `GRAPHIC_RECTS_JS` | **mực KHÔNG phải chữ ở đâu** |
+
+Hộp thứ ba ra đời sau, và ra đời vì một lỗ hổng nhìn thấy được: `CELL_RECTS_JS`
+chỉ đi `span[data-kind]`, nên **nửa hình ảnh của trang giấy không có trong bất
+kỳ nhãn nào**. Ảnh proof cho thấy vòng tròn logo "C" trên đầu mọi hoá đơn
+`modern` không có hộp nào bao quanh — và watermark, hoa văn, mã vạch, chữ ký
+cũng vậy. **Mực không có hộp là mực không có nhãn**, đúng cái I-5 tồn tại để
+từ chối.
+
+Mỗi graphic thành **một vùng `Image` trong `layout_annotations`, và KHÔNG thành
+một `blocks[]`** — phân biệt ấy là cả vấn đề: một block hứa với người đọc rằng
+có chữ để đọc, mà logo thì không có chữ nào.
+
+Ba trường hợp bị loại, mỗi cái là một phần tử thật trên một trang thật:
+
+* **chứa `span[data-kind]`** — `.flag` của măng-sét báo và `.brand` của hoá đơn
+  trông như hình nhưng là **hộp đựng** các run có nhãn; hộp của chúng sẽ nuốt
+  gọn các run bên trong;
+* **nằm trong `span[data-kind]`** — ô điền tay là một `<img>` mực nằm trong một
+  span có nhãn, và `CELL_RECTS_JS` đã đóng hộp nó rồi; đóng lần nữa là hai nhãn
+  trên một vết mực;
+* **nằm trong một graphic khác** — `statement.py` vẽ `<svg class="mark">`, khớp
+  cả bộ chọn class lẫn bộ chọn tag. Phần tử ngoài mới là bức hình.
+
+### Thuộc tính `ornament` — chín họ từng khai mà không in
+
+`base.render_ornament_marks()` ra đời cùng `lodging.py`, và **chỉ `lodging.py`
+từng gọi nó**. Chín họ còn lại bốc một giá trị `ornament`, ghi nó vào
+`synthesis.json` lẫn `agent_plan.json`, rồi **không đặt giọt mực nào lên
+giấy**. Đo được: cùng một seed, `ornament=no_ornament` và
+`ornament=seal_with_name_block` cho ra hai file JPEG **trùng md5**.
+
+Đó đúng là thứ kho này dựng lên để từ chối — nhãn hứa một thứ tờ giấy không
+mang — và không test nào bắt được, vì mọi test đang hỏi "trang có dựng được
+không", chưa test nào hỏi "thuộc tính này có ĐỔI trang không".
+
+Nay chia hai đường theo đúng chỗ mỗi loại dấu cần:
+
+| | phủ | nối ở đâu |
+| --- | ---: | --- |
+| dấu neo theo TRANG | 21/31 | `sheets/__init__.py::_page_ornaments` — chèn ngay sau `<div id="sheet">`, đúng chỗ `document(overlay=)` đặt. **Một hàm cho cả mười họ** |
+| dấu neo theo KHỐI | 10/31 | `stamp=` của `signature_block`/`totals_block` — cần DOM riêng nên phải nối từng họ |
+
+Một hook chung thay vì luồn tham số qua 25 chỗ gọi `base.document(...)`: họ thứ
+mười một không thể quên cái nó không phải nhớ. Hai nửa gọi **cùng một hàm
+thuần** `(recipe, receipt)` và mỗi bên lấy đúng nửa của mình, nên chúng không
+thể lệch nhau và không dấu nào bị vẽ hai lần.
+
+Cạm bẫy đã vấp khi nối: `seal_mark` đặt dấu khe bằng
+`position:absolute;top:0;left:50%`, mà `absolute` neo vào **tổ tiên có
+`position` gần nhất**. `lodging` tình cờ đặt `.sign{position:relative}`; chín
+họ kia không, nên con dấu đầu tiên bay lên **giữa tiêu đề công ty**. Sửa ở
+`signature_block()` — nơi phát ra `<div class="sign">` — chứ không ở mười
+stylesheet mà mỗi cái phải tự nhớ.
+
+`tests/test_ornament_reaches_paper.py` hỏi câu còn thiếu, cho **từng họ**, và
+danh sách họ đọc thẳng từ `rulebase/layouts/` nên họ thêm sau tự vào test.
 
 `generators/html/sheets/base.py::cell()` nói vì sao phải có cái thứ hai:
 

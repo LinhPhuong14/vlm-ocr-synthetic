@@ -499,6 +499,61 @@ def block_content(label: str, text: str) -> str:
     return MARKDOWN_PREFIX.get(label, "") + text if text else ""
 
 
+# ---------------------------------------------------------------- axis 3: ink
+
+# **How the mark got onto the paper**, and the third of the three axes
+# `agent/prompts/regions.md` defines: a run IS a region (axis 1,
+# `layout_class`), it DOES a role (axis 2, `field_role`), and it was PUT THERE
+# somehow -- which is this.
+#
+# The repository had the first two and not the third, so a reader could tell a
+# heading from a table cell and a key from a value, and could not tell printed
+# text from a stamp impression or from something a person wrote by hand. That
+# distinction is the whole reason `generators/html/handwriting.py` and
+# `signature.py` exist, and it was reaching the dataset only as pixels.
+#
+# Six values, from that document. Fixed by what reads these records, the same
+# way `DOCSYNTH_LABELS` is.
+INK_VALUES = frozenset({"print", "hand", "stamp", "dotmatrix", "thermal",
+                        "reversed"})
+
+# `kind` prefix -> ink, for the marks the renderer does not have to say
+# anything about because their kind already does. Longest prefix wins, same
+# convention as `LABELS`.
+INK_FOR_KIND: dict[str, str] = {
+    # A seal impression is `seal_mark`'s own doing and always a stamp; the
+    # renderer marks it too (`data-ink`), and this is the belt to that braces
+    # -- a record built from a set drawn before that attribute existed still
+    # gets it right.
+    "seal.": "stamp",
+}
+
+
+def ink_for(kind: str, explicit: str = "", default: str = "print") -> str:
+    """Which of `INK_VALUES` this run was laid down with.
+
+    Three sources, in the order of how much each one knows:
+
+    1. **what the renderer said** (`data-ink` on the span). It is the only one
+       that can know a run is handwritten or reversed out of a dark band,
+       because both are decided while drawing and leave no trace in `kind`.
+    2. **what the kind says** -- a `seal.` run is a stamp whatever else is true.
+    3. **the page's own default**, from the recipe: a thermal roll prints
+       every run thermally, a dot-matrix invoice every run as dots.
+
+    An unknown value from (1) is dropped rather than trusted: the vocabulary is
+    closed, and a typo in a family module must not put a seventh ink in a
+    dataset a consumer has six classes for.
+    """
+    if explicit in INK_VALUES:
+        return explicit
+    for prefix in sorted(INK_FOR_KIND, key=len, reverse=True):
+        if kind.startswith(prefix):
+            return INK_FOR_KIND[prefix]
+    return default if default in INK_VALUES else "print"
+
+
+
 def blocks_from_boxes(boxes: Iterable[dict[str, Any]], *,
                       page_number: int = 1) -> list[dict[str, Any]]:
     """One block per drawn field, in the order the renderer drew them."""
@@ -537,7 +592,8 @@ def _word_field_role(kind: str) -> str:
     return "value"
 
 
-def words_from_boxes(boxes: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
+def words_from_boxes(boxes: Iterable[dict[str, Any]],
+                     ink: str = "print") -> list[dict[str, Any]]:
     """One `docsynth.annotations.v1` `word_annotations` entry per word --
     `boxes` here is `page.py::CELL_RECTS_JS`'s `words` array, already one
     entry per whitespace-separated word (or, for an inked run with no text
@@ -556,8 +612,11 @@ def words_from_boxes(boxes: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
         if not isinstance(box, dict):
             continue
         kind = str(box.get("kind", ""))
-        bbox = bbox_of(box.get("quad"))
+        quad = box.get("quad")
+        bbox = bbox_of(quad)
         x1, y1, x2, y2 = bbox["x1"], bbox["y1"], bbox["x2"], bbox["y2"]
+        corners = [[float(x), float(y)] for x, y in quad] if quad and len(quad) == 4 \
+            else [[x1, y1], [x2, y1], [x2, y2], [x1, y2]]
         out.append({
             "word_index": index,
             "text": str(box.get("text", "")),
@@ -568,19 +627,24 @@ def words_from_boxes(boxes: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
             # already knows what EVERY `kind` this repository writes means.
             "layout_class": layout_class_for(kind),
             "field_role": _word_field_role(kind),
+            # Axis 3. See `ink_for`.
+            "ink": ink_for(kind, str(box.get("ink", "")), ink),
             "field_path": kind,
             "relation_path": kind,
             "field_pattern": kind,
             "field_name": kind.rsplit(".", 1)[-1] if kind else "",
             "bbox": [x1, y1, x2, y2],
             "bbox_mode": "xyxy_pixel",
-            # Not "*_3d_projected_perimeter" like the sample this was built
-            # from: this repository does not re-project a box through a
-            # geometric distortion after it is measured (`render.py` asserts
-            # against exactly that), so the polygon below is the plain
-            # rectangle `bbox` already is, not an approximation of a curve.
+            # `visible_content_perimeter`, not `bbox`: `augmentation.warp`
+            # (`degradation/warp.py` -- `paper_photo`'s displacement field or
+            # a real Blender render) DOES re-project every box after it is
+            # measured, moving each of the four corners independently, so a
+            # warped page's `quad` is genuinely not a rectangle. `polygon`
+            # below is that quad, closed into a ring; `bbox` stays the
+            # axis-aligned summary `bbox_of` computes over the same corners,
+            # for a reader that only wants "roughly where."
             "bbox_strategy": "visible_content_perimeter",
-            "polygon": [[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]],
+            "polygon": [*corners, corners[0]],
         })
     return out
 
@@ -591,6 +655,13 @@ def words_from_boxes(boxes: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
 # than proportional to the page: the point is "this box has the breathing room
 # a component has," not a second wear knob.
 REGION_PAD_PX = 6
+
+# What a graphic region is called. `Image` rather than `Picture` because
+# `layout_annotations` speaks `DOCSYNTH_LABELS`, and the two vocabularies spell
+# the same idea differently -- `PAGE_LABELS`, which `blocks` speaks, calls it
+# `Picture`. A graphic gets a region and NOT a block, and that distinction is
+# the point: a block promises a reader some text to read, and a logo has none.
+GRAPHIC_LABEL = "Image"
 
 # How many word-heights of vertical gap end a region and start the next one,
 # when grouping by `layout_class` -- see `regions_from_words`.
@@ -670,6 +741,7 @@ def _region_gap_ok(current_bbox: list[float], word_bbox: list[float],
 
 def regions_from_words(words: list[dict[str, Any]], *,
                        cells: Iterable[dict[str, Any]] = (),
+                       graphics: Iterable[dict[str, Any]] = (),
                        page_size: tuple[int, int] | None = None) -> list[dict[str, Any]]:
     """Every `layout_annotations` region on the page, covering EVERY word --
     not only the ones that happen to sit in an obviously named block. As a
@@ -694,6 +766,16 @@ def regions_from_words(words: list[dict[str, Any]], *,
        into a new region wherever the next word is not "close" to the run so
        far -- see `_region_gap_ok` for what "close" means. This is what gives
        every remaining word a region: there is no third bucket.
+
+    3. **Ink that is not a word** (`graphics`, from `page.py::
+       GRAPHIC_RECTS_JS` -- empty for the character-grid backend, which draws
+       none): the logo, the rosette, the barcode, the watermark, the
+       signature. Every one of them puts ink on the paper and none of them is
+       a run, so before this they appeared in no annotation at all -- a proof
+       image showed the "C" logo at the top of every `modern` invoice with no
+       box round it. Appended rather than interleaved, which matches what the
+       Table region already does: reading order is not what `region_index`
+       has ever meant here.
     """
     cells = list(cells or [])
     regions: list[dict[str, Any]] = []
@@ -712,6 +794,8 @@ def regions_from_words(words: list[dict[str, Any]], *,
             cy = (word["bbox"][1] + word["bbox"][3]) / 2
             if x1 <= cx <= x2 and y1 <= cy <= y2:
                 covered[i] = True
+
+    graphics = list(graphics or [])
 
     heights = [w["bbox"][3] - w["bbox"][1] for i, w in enumerate(words) if not covered[i]]
     median_height = sorted(heights)[len(heights) // 2] if heights else 12.5
@@ -750,6 +834,20 @@ def regions_from_words(words: list[dict[str, Any]], *,
             flush()
             current = {"layout_class": cls, "members": [word], "bbox": list(wb)}
     flush()
+
+    # Pass 3: ink that is not a word. `text` stays empty and that is not an
+    # omission -- a region's `text` is what a reader reads off it, and there is
+    # nothing to read off a logo. What it is instead rides in `bbox_strategy`,
+    # which already distinguishes a measured element from a union of words.
+    for mark in graphics:
+        quad = mark.get("quad") or []
+        if len(quad) < 4:
+            continue
+        xs = [float(point[0]) for point in quad[:4]]
+        ys = [float(point[1]) for point in quad[:4]]
+        regions.append(_region_entry(len(regions), GRAPHIC_LABEL, "",
+                                     (min(xs), min(ys), max(xs), max(ys)),
+                                     "dom_element_perimeter", page_size))
     return regions
 
 
@@ -844,7 +942,9 @@ def field_paths(extracted: Any, prefix: str = "") -> list[str]:
 
 def build(*, filename: str, width: int, height: int, parser: str,
           boxes: Iterable[dict[str, Any]] = (), words: Iterable[dict[str, Any]] = (),
-          cells: Iterable[dict[str, Any]] = (), extracted: Any = None, seed: Any = "",
+          cells: Iterable[dict[str, Any]] = (),
+          graphics: Iterable[dict[str, Any]] = (), ink: str = "print",
+          extracted: Any = None, seed: Any = "",
           layout: str = "", task: str = TASK_CONVERT,
           settings: dict[str, Any] | None = None) -> dict[str, Any]:
     """One metadata line, assembled once so the three renderers cannot drift.
@@ -865,11 +965,18 @@ def build(*, filename: str, width: int, height: int, parser: str,
     list (empty off the character-grid backend, which draws no `<table>`) --
     lets the Table region use the cells' own measured boxes instead of a
     union of the words inside them. See `regions_from_words`.
+
+    `graphics`: `generators/html/render.py::graphics_from_rects`'s list of
+    everything that puts ink on the page without being a run -- the logo, the
+    rosette, the barcode, the watermark, the signature. Each becomes one
+    `Image` region and NO block: a block promises text to read, and none of
+    these has any. Empty off the character-grid backend, which draws none.
     """
     blocks = blocks_from_boxes(boxes)
-    word_annotations = words_from_boxes(words)
+    word_annotations = words_from_boxes(words, ink)
     layout_annotations = regions_from_words(
-        word_annotations, cells=cells, page_size=(int(width), int(height)))
+        word_annotations, cells=cells, graphics=graphics,
+        page_size=(int(width), int(height)))
 
     options = {**BASE_SETTINGS, **(settings or {})}
     options["convert_mode"] = parser
@@ -1046,11 +1153,17 @@ def validate(record: dict[str, Any], *, strict: bool = True) -> list[str]:
         else:
             wanted = {"word_index", "text", "layout_region_index", "layout_class",
                      "field_role", "field_path", "relation_path", "field_pattern",
-                     "field_name", "bbox", "bbox_mode", "bbox_strategy", "polygon"}
+                     "field_name", "bbox", "bbox_mode", "bbox_strategy", "polygon",
+                     "ink"}
             for position, word in enumerate(word_annotations):
                 if not isinstance(word, dict) or wanted - set(word):
                     problems.append(
                         f"word_annotations[{position}] needs {', '.join(sorted(wanted))}")
+                    break
+                if word["ink"] not in INK_VALUES:
+                    problems.append(
+                        f"word_annotations[{position}].ink must be one of "
+                        f"{', '.join(sorted(INK_VALUES))}")
                     break
                 if word["field_role"] not in ("key", "value", "unbound"):
                     problems.append(
@@ -1570,6 +1683,10 @@ __all__ = [
     "read",
     "read_one",
     "refresh",
+    "GRAPHIC_LABEL",
+    "INK_FOR_KIND",
+    "INK_VALUES",
+    "ink_for",
     "regions_from_words",
     "stamp",
     "rows",

@@ -221,10 +221,52 @@ def build(recipe, receipt, template: str | None = None) -> str:
     # them -- that is the half of a dressing which is layout rather than paint.
     spec = variant.restructure(load_layout(layout_id), recipe)
     markup = family_of(layout_id).build(recipe, receipt, spec, receipt.ground_truth())
+    markup = _page_ornaments(markup, recipe, receipt)
     # The `variant` attribute exists only in a rules root a run materialised
     # for itself, so this is a no-op under the shipped rules -- which is what
     # keeps the committed datasets reproducible. See sheets/variant.py.
     return variant.apply(markup, recipe)
+
+
+# Where `base.document()` puts `overlay=`: the first thing inside `#sheet`.
+_SHEET_OPEN = '<div id="sheet">'
+
+
+def _page_ornaments(markup: str, recipe, receipt) -> str:
+    """Strike the page-anchored half of the `ornament` attribute, for EVERY
+    family, here rather than in each of them.
+
+    `base.render_ornament_marks()` returns three slots and shipped with
+    `lodging.py`. For as long as it existed **only `lodging.py` ever called
+    it**, so nine of the ten sheet families sampled an `ornament` value,
+    recorded it in `synthesis.json` and in `agent_plan.json`, and put no ink
+    on the paper at all. Measured: forcing `ornament=no_ornament` and
+    `ornament=seal_with_name_block` on the same seed produced two
+    byte-identical JPEGs -- the label promised a seal the page did not have.
+
+    Twenty-one of the thirty-one marks the rules define are page-anchored
+    (`page_center`, `footer_band`, `table_back`, `header_band`, `letterhead`,
+    the four corners, `page_full`, `page_edge_left`), and those need no hook
+    inside the family's own DOM: `document()` puts `overlay=` immediately
+    inside `#sheet`, so injecting them here reaches the same place from
+    outside. That is why this is one function instead of an argument threaded
+    through twenty-five `base.document(...)` call sites -- the eleventh family
+    cannot forget a hook it never has to remember.
+
+    The other ten marks are `signature_seller`/`signature_buyer`/`totals`,
+    which DO need the block their family draws, so those stay a `stamp=`
+    argument. Both halves call the same pure function of `(recipe, receipt)`
+    and each uses only its own half, so the two calls cannot disagree.
+    """
+    from .base import render_ornament_marks
+
+    _slot, _totals, overlay = render_ornament_marks(recipe, receipt)
+    if not overlay or _SHEET_OPEN not in markup:
+        return markup
+    # `document()` already wrote its own `overlay=` for a family that passes
+    # one; appending rather than replacing keeps both, and no family passes
+    # one today (see the docstring).
+    return markup.replace(_SHEET_OPEN, _SHEET_OPEN + overlay, 1)
 
 
 class _Cells(HTMLParser):

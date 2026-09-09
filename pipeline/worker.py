@@ -112,7 +112,8 @@ def mark_done(directory: Path, payload: dict) -> None:
 
 
 def renderer_command(backend: str, staging: Path, jobs: Path,
-                     clean: bool, force: list[str], template: str = "") -> list[str]:
+                     clean: bool, force: list[str], template: str = "",
+                     save_html: bool = False) -> list[str]:
     """One invocation for the whole shard, not one per layout.
 
     A shard used to be rendered by one process per run, and a run is one
@@ -161,6 +162,8 @@ def renderer_command(backend: str, staging: Path, jobs: Path,
     # kind, so a clean run is now exactly `augmentation=pristine`.
     if template:
         command += ["--template", template]
+    if save_html:
+        command += ["--save-html"]
     return command
 
 
@@ -223,7 +226,8 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
             command = renderer_command(backend, staging, jobs_path,
                                        bool(plan.get("clean")),
                                        list(plan.get("force") or []),
-                                       str(plan.get("template") or ""))
+                                       str(plan.get("template") or ""),
+                                       bool(plan.get("save_html")))
             if log:
                 log.write(f"$ {' '.join(command)}\n")
                 # Images PER PROCESS, which is the number W3b was about, and it
@@ -312,6 +316,14 @@ def render_shard(shard: dict, out: Path, plan: dict, *, rules_root: Path | None 
                     target = image_name(backend, run["first_index"] + offset,
                                         template=naming, fields=fields)
                     shutil.move(str(staging / drawn_name), str(directory / target))
+                    # The renderer's own markup, same stem as the image
+                    # (`--save-html`) -- not a record, so nothing rebuilds it
+                    # the way `record.write_one` rebuilds the `.json` below;
+                    # it only exists if this move carries it over. Optional:
+                    # a run drawn before `--save-html` existed has none.
+                    staged_html = (staging / drawn_name).with_suffix(".html")
+                    if staged_html.exists():
+                        shutil.move(str(staged_html), str((directory / target).with_suffix(".html")))
                     clock = drawn_times.get(drawn_name)
                     if clock is not None:
                         # The plan's layout, not the renderer's, for the same

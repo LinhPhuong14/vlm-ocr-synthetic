@@ -243,7 +243,12 @@ def build(recipe, receipt, spec: dict, parse: dict) -> str:
         elif name == "words":
             blocks.append(base.words_block(receipt, parse))
         elif name == "signatures":
-            block = base.signature_block(receipt, parse, stamp=_stamp(parse))
+            # `_stamp(parse)` is the green e-invoice signature BOX, not a seal --
+            # a real form carries both, so the sampled seal is appended rather
+            # than replacing it.
+            block = base.signature_block(
+                receipt, parse,
+                stamp=_stamp(parse) + base.render_ornament_marks(recipe, receipt)[0])
             if block.count('class="sign"') == 1:
                 block = block.replace('<div class="signs">', '<div class="signs one">', 1)
             blocks.append(block)

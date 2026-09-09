@@ -1,0 +1,82 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><style>
+@font-face{font-family:'Cousine';font-weight:700;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/mono/Cousine-Bold.ttf') format('truetype');}
+@font-face{font-family:'Cousine';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/mono/Cousine-Regular.ttf') format('truetype');}
+@font-face{font-family:'LiberationMono';font-weight:700;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/mono/LiberationMono-Bold.ttf') format('truetype');}
+@font-face{font-family:'LiberationMono';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/mono/LiberationMono-Regular.ttf') format('truetype');}
+@font-face{font-family:'NotoMono';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/mono/NotoMono-Regular.ttf') format('truetype');}
+@font-face{font-family:'Arimo';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/sans/Arimo-Regular.ttf') format('truetype');}
+@font-face{font-family:'DejaVuSans';font-weight:700;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/sans/DejaVuSans-Bold.ttf') format('truetype');}
+@font-face{font-family:'DejaVuSans';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/sans/DejaVuSans.ttf') format('truetype');}
+@font-face{font-family:'LiberationSans';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/sans/LiberationSans-Regular.ttf') format('truetype');}
+@font-face{font-family:'NotoSans';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/sans/NotoSans-Regular.ttf') format('truetype');}
+@font-face{font-family:'LiberationSerif';font-weight:700;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/serif/LiberationSerif-Bold.ttf') format('truetype');}
+@font-face{font-family:'LiberationSerif';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/serif/LiberationSerif-Regular.ttf') format('truetype');}
+@font-face{font-family:'IndieFlower';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/hand/IndieFlower-Regular.ttf') format('truetype');}
+@font-face{font-family:'PatrickHand';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/hand/PatrickHand-Regular.ttf') format('truetype');}
+@page{size:A4 portrait;margin:0;}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:#fff;}
+#sheet{
+  position:relative;width:210mm;min-height:297mm;padding:15mm 15mm;
+  background:#fff;color:#1a1a1a;font-family:'LiberationSerif','DejaVu Serif',serif;font-size:8.6pt;
+  line-height:1.4;overflow:hidden;-webkit-font-smoothing:antialiased;
+}
+table{width:100%;border-collapse:collapse;}
+thead.once{display:table-row-group;}
+td.r,th.r,.r{text-align:right;}
+td.c,th.c,.c{text-align:center;}
+.sub{font-style:italic;color:#3a3a3a;}
+.hatch{background:repeating-linear-gradient(45deg,transparent 0 2.2mm,#00000014 2.2mm 3mm);}
+table.rothdr{table-layout:fixed;}
+.vert{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;
+  padding-top:2mm;padding-bottom:2mm;}
+.diag{writing-mode:horizontal-tb;transform:rotate(-45deg);transform-origin:left bottom;
+  white-space:nowrap;display:inline-block;}
+.foot div{margin-top:.4mm;}
+
+.head{margin-bottom:5mm;}
+.org{text-align:center;margin-bottom:2mm;}
+.org .on{display:block;font-weight:bold;font-size:9.4pt;letter-spacing:.3pt;color:#374a3d;}
+.org .orgb{display:block;font-size:6.8pt;letter-spacing:1.6pt;color:#374a3d;margin-top:.6mm;}
+.orgc{font-size:7pt;color:#4a4a4a;margin-top:.4mm;}
+.govt{text-align:center;margin-bottom:4mm;}
+.g1{font-weight:bold;font-size:9pt;}
+.g2{font-size:8.4pt;margin-top:.5mm;}
+.grule{width:26mm;border-top:.3mm solid #333;margin:1.4mm auto 0;}
+.photobox{float:right;width:24mm;height:32mm;border:.25mm solid #666;
+   text-align:center;font-size:6.6pt;color:#888;padding-top:12mm;margin-left:4mm;}
+.doc{display:block;text-align:center;font-size:14pt;font-weight:bold;
+   letter-spacing:.4pt;margin:2mm 0 0;}
+.docmeta{text-align:center;font-size:7.4pt;color:#444;margin-top:1.4mm;}
+.docmeta div{margin-bottom:.4mm;}
+.fields{margin:4mm 0;}
+.fcap{font-weight:bold;font-size:7.6pt;letter-spacing:.6pt;color:#374a3d;margin-bottom:1.6mm;}
+.frow{margin-bottom:1.4mm;}
+.frow .k{font-weight:bold;margin-right:1.2mm;}
+.fields-two{display:table;width:100%;margin:4mm 0;border-top:.3mm solid #ccc;padding-top:3mm;}
+.fcol{display:table-cell;width:50%;vertical-align:top;padding-right:5mm;}
+.section{margin:4mm 0;}
+.shead{font-weight:bold;font-size:8.6pt;color:#374a3d;margin-bottom:2mm;
+   border-bottom:.25mm solid #ccc;padding-bottom:1mm;}
+.shead .sl{font-size:10pt;}
+.checklist{margin:4mm 0;}
+.crow{margin-bottom:1.8mm;}
+.crow .box{display:inline-block;width:5mm;font-size:9pt;text-align:center;}
+.notes{margin:4mm 0;}
+.notes p{margin:1.6mm 0;}
+.notes p.nh{font-weight:bold;margin-top:3mm;}
+.totals{margin:5mm 0;}
+.trow{display:table;width:100%;padding:.6mm 0;}
+.trow .lab{display:table-cell;text-align:right;padding-right:4mm;}
+.trow .amt{display:table-cell;text-align:right;width:32%;}
+.trow.grand{font-weight:bold;border-top:.3mm solid #374a3d;margin-top:1.6mm;padding-top:1.6mm;}
+.signs{display:table;width:100%;margin-top:12mm;}
+.sign{display:table-cell;text-align:center;vertical-align:top;}
+.sign .t{font-weight:bold;color:#374a3d;}
+.sign .n{font-size:6.6pt;font-style:italic;color:#555;}
+.sign .who{margin-top:14mm;}
+.foot{margin-top:8mm;text-align:center;font-size:6.6pt;font-style:italic;color:#444;}
+table.items thead th{font-weight:bold;font-size:7.2pt;}
+table.items tbody td{padding:1.6mm 1.8mm;}
+
+</style></head><body><div id="sheet"><div class="head"><div class="org"><span data-kind="store.name" class="on">CÔNG TY TNHH THƯƠNG MẠI VÀ DỊCH VỤ TRUNG KIÊN</span><span data-kind="store.branch" class="orgb">CHI NHÁNH HÀ NỘI</span><div class="orgc"><span data-kind="store.address">SỐ 321 XUÂN THỦY, PHƯỜNG 12, BÌNH THẠNH, TPHCM</span></div><div class="orgc"><span data-kind="store.phone">0463520811</span></div></div><span data-kind="title" class="doc">SƠ YẾU LÝ LỊCH TỰ THUẬT</span><div class="docmeta"><div><span data-kind="invoice.serial">SYLL9187</span></div><div><span data-kind="invoice.subtitle">QUÁ TRÌNH HOẠT ĐỘNG CỦA BẢN THÂN</span></div></div></div><table style="width:100%;border-collapse:collapse"><colgroup><col style="width:5.56%"><col style="width:16.7%"><col style="width:28.9%"><col style="width:8.89%"><col style="width:8.89%"><col style="width:13.3%"><col style="width:17.8%"></colgroup><thead><tr><th style="text-align:center;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab;font-weight:bold;background:#eef0f2" data-cell="" data-row="0" data-col="0"><span data-kind="colhdr">STT</span></th><th style="text-align:center;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab;font-weight:bold;background:#eef0f2" data-cell="" data-row="0" data-col="1"><span data-kind="colhdr">Thời gian</span></th><th style="text-align:left;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab;font-weight:bold;background:#eef0f2" data-cell="" data-row="0" data-col="2"><span data-kind="colhdr">Nội dung hoạt động</span></th><th style="text-align:center;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab;font-weight:bold;background:#eef0f2" data-cell="" data-row="0" data-col="3"><span data-kind="colhdr">Số lần</span></th><th style="text-align:center;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab;font-weight:bold;background:#eef0f2" data-cell="" data-row="0" data-col="4"><span data-kind="colhdr">ĐVT</span></th><th style="text-align:left;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab;font-weight:bold;background:#eef0f2" data-cell="" data-row="0" data-col="5"><span data-kind="colhdr">Ghi chú</span></th><th style="text-align:right;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab;font-weight:bold;background:#eef0f2" data-cell="" data-row="0" data-col="6"><span data-kind="colhdr">Phụ cấp</span></th></tr></thead><tbody><tr><td style="text-align:center;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab" data-cell="" data-row="1" data-col="0"><span data-kind="menu.stt">1</span></td><td style="text-align:center;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab" data-cell="" data-row="1" data-col="1"></td><td style="text-align:left;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab" data-cell="" data-row="1" data-col="2"><span data-kind="menu.name">THIẾT BỊ CHUYỂN MẠCH 24 CỔNG</span></td><td style="text-align:center;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab" data-cell="" data-row="1" data-col="3"><span data-kind="menu.qty">1</span></td><td style="text-align:center;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab" data-cell="" data-row="1" data-col="4"><span data-kind="menu.unit">-</span></td><td style="text-align:left;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab" data-cell="" data-row="1" data-col="5"></td><td style="text-align:right;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab" data-cell="" data-row="1" data-col="6"><span data-kind="menu.amount">8.545.959</span></td></tr><tr><td style="text-align:center;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab" data-cell="" data-row="2" data-col="0"><span data-kind="menu.stt">2</span></td><td style="text-align:center;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab" data-cell="" data-row="2" data-col="1"></td><td style="text-align:left;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab" data-cell="" data-row="2" data-col="2"><span data-kind="menu.name">GHẾ XOAY VĂN PHÒNG LƯNG LƯỚI</span></td><td style="text-align:center;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab" data-cell="" data-row="2" data-col="3"><span data-kind="menu.qty">2</span></td><td style="text-align:center;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab" data-cell="" data-row="2" data-col="4"><span data-kind="menu.unit">-</span></td><td style="text-align:left;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab" data-cell="" data-row="2" data-col="5"></td><td style="text-align:right;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab" data-cell="" data-row="2" data-col="6"><span data-kind="menu.amount">6.167.010</span></td></tr><tr><td style="text-align:center;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab" data-cell="" data-row="3" data-col="0"><span data-kind="menu.stt">3</span></td><td style="text-align:center;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab" data-cell="" data-row="3" data-col="1"></td><td style="text-align:left;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab" data-cell="" data-row="3" data-col="2"><span data-kind="menu.name">GIẤY IN A4 ĐỊNH LƯỢNG 70GSM</span></td><td style="text-align:center;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab" data-cell="" data-row="3" data-col="3"><span data-kind="menu.qty">1</span></td><td style="text-align:center;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab" data-cell="" data-row="3" data-col="4"><span data-kind="menu.unit">-</span></td><td style="text-align:left;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab" data-cell="" data-row="3" data-col="5"></td><td style="text-align:right;vertical-align:top;border-top:0.2mm solid #9aa3ab;border-right:0.2mm solid #9aa3ab;border-bottom:0.2mm solid #9aa3ab;border-left:0.2mm solid #9aa3ab" data-cell="" data-row="3" data-col="6"><span data-kind="menu.amount">71.086</span></td></tr></tbody></table><div class="totals" style="margin-left:55%;"><div class="trow grand"><span data-kind="total.grand.label" class="lab">THANH TOÁN</span><span data-kind="total.grand" class="amt">14.784.055</span></div></div><div class="notes"><p class="nh"><span data-kind="note">KHEN THƯỞNG</span></p><p class=""><span data-kind="note">KHÔNG</span></p><p class="nh"><span data-kind="note">KỶ LUẬT</span></p><p class=""><span data-kind="note">KHÔNG</span></p><p class=""><span data-kind="note">TÔI XIN CAM ĐOAN NHỮNG LỜI KHAI TRÊN ĐÂY LÀ ĐÚNG SỰ THẬT, NẾU CÓ ĐIỀU GÌ KHAI KHÔNG ĐÚNG TÔI XIN CHỊU HOÀN TOÀN TRÁCH NHIỆM TRƯỚC PHÁP LUẬT.</span></p></div><div class="signs"><div class="sign" style="position:relative;"><span data-kind="sign.title" class="t">XÁC NHẬN CỦA THỦ TRƯỞNG CƠ QUAN, ĐƠN VỊ</span><div class="n"><span data-kind="sign.note">(KÝ, ĐÓNG DẤU, GHI RÕ HỌ TÊN)</span></div><div class="who"></div></div><div class="sign" style="position:relative;"><span data-kind="sign.title" class="t">NGƯỜI KHAI KÝ TÊN</span><div class="n"><span data-kind="sign.note">(KÝ, GHI RÕ HỌ TÊN)</span></div><div class="who"></div></div></div><div class="foot"><div><span data-kind="footer">(CHỨNG TỪ NÀY KHÔNG CÓ GIÁ TRỊ THAY THẾ HOÁ ĐƠN GỐC NẾU CHƯA KÝ SỐ)</span></div></div></div></body></html>

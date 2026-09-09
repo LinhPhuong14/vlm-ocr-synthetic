@@ -1,0 +1,4181 @@
+options:
+- id: none
+  weight: 2.5
+  params:
+    label: không dựng lại — giữ nguyên phôi
+    level: locked
+    css: ''
+- id: l_hong_khung_ngoai_xam_xam
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: liên hồng, chỉ khung ngoài đậm, tiêu đề nền xám, sọc xám
+    level: livery
+    axes:
+      stock: hong
+      rule: khung_ngoai
+      band: xam
+      zebra: xam
+    css: '#sheet{background:#fdf4f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.2mm;}
+
+      #sheet table.items{outline:.55mm solid #333;outline-offset:0;}
+
+      #sheet table.items th{background:#ececea;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: l_xanh_luc_chuan_lam_xam
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: liên xanh lục, nét chuẩn, tiêu đề nền lam, sọc xám
+    level: livery
+    axes:
+      stock: xanh_luc
+      rule: chuan
+      band: lam
+      zebra: xam
+    css: '#sheet{background:#f2faf4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;}
+
+      #sheet table.items th{background:#e4ecf6;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: l_xanh_lam_muc_den_trong_xam
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: liên xanh lam, nét mực đen, tiêu đề không nền, sọc xám
+    level: livery
+    axes:
+      stock: xanh_lam
+      rule: muc_den
+      band: trong
+      zebra: xam
+    css: '#sheet{background:#f3f7fc;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;border-color:#1c1c1c;}
+
+      #sheet table.items th{background:transparent;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: l_xanh_lam_nhat_trong_xam
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: liên xanh lam, nét nhạt, tiêu đề không nền, sọc xám
+    level: livery
+    axes:
+      stock: xanh_lam
+      rule: nhat
+      band: trong
+      zebra: xam
+    css: '#sheet{background:#f3f7fc;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.25mm;border-color:#8d8d8d;}
+
+      #sheet table.items th{background:transparent;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: l_xam_dam_gach_chan_xam
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: giấy xám nhạt, nét đậm, tiêu đề gạch chân dày, sọc xám
+    level: livery
+    axes:
+      stock: xam
+      rule: dam
+      band: gach_chan
+      zebra: xam
+    css: '#sheet{background:#f6f6f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.5mm;}
+
+      #sheet table.items th{background:transparent;border-bottom-width:.7mm;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: l_hong_chuan_luc_khong
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: liên hồng, nét chuẩn, tiêu đề nền lục, không sọc
+    level: livery
+    axes:
+      stock: hong
+      rule: chuan
+      band: luc
+      zebra: khong
+    css: '#sheet{background:#fdf4f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;}
+
+      #sheet table.items th{background:#e3f1e6;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: l_xam_chuan_xam_dam_nhat
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: giấy xám nhạt, nét chuẩn, tiêu đề nền xám đậm, sọc rất nhạt
+    level: livery
+    axes:
+      stock: xam
+      rule: chuan
+      band: xam_dam
+      zebra: nhat
+    css: '#sheet{background:#f6f6f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;}
+
+      #sheet table.items th{background:#d8d8d5;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: l_xanh_luc_khung_ngoai_lam_nhat
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: liên xanh lục, chỉ khung ngoài đậm, tiêu đề nền lam, sọc rất nhạt
+    level: livery
+    axes:
+      stock: xanh_luc
+      rule: khung_ngoai
+      band: lam
+      zebra: nhat
+    css: '#sheet{background:#f2faf4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.2mm;}
+
+      #sheet table.items{outline:.55mm solid #333;outline-offset:0;}
+
+      #sheet table.items th{background:#e4ecf6;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: l_trang_khung_ngoai_luc_nhat
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: giấy trắng, chỉ khung ngoài đậm, tiêu đề nền lục, sọc rất nhạt
+    level: livery
+    axes:
+      stock: trang
+      rule: khung_ngoai
+      band: luc
+      zebra: nhat
+    css: '#sheet{background:#ffffff;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.2mm;}
+
+      #sheet table.items{outline:.55mm solid #333;outline-offset:0;}
+
+      #sheet table.items th{background:#e3f1e6;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: l_xanh_luc_muc_den_xam_dam_khong
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: liên xanh lục, nét mực đen, tiêu đề nền xám đậm, không sọc
+    level: livery
+    axes:
+      stock: xanh_luc
+      rule: muc_den
+      band: xam_dam
+      zebra: khong
+    css: '#sheet{background:#f2faf4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;border-color:#1c1c1c;}
+
+      #sheet table.items th{background:#d8d8d5;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: l_xanh_luc_khung_ngoai_gach_chan_xam
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: liên xanh lục, chỉ khung ngoài đậm, tiêu đề gạch chân dày, sọc xám
+    level: livery
+    axes:
+      stock: xanh_luc
+      rule: khung_ngoai
+      band: gach_chan
+      zebra: xam
+    css: '#sheet{background:#f2faf4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.2mm;}
+
+      #sheet table.items{outline:.55mm solid #333;outline-offset:0;}
+
+      #sheet table.items th{background:transparent;border-bottom-width:.7mm;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: l_xanh_lam_khung_ngoai_luc_nhat
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: liên xanh lam, chỉ khung ngoài đậm, tiêu đề nền lục, sọc rất nhạt
+    level: livery
+    axes:
+      stock: xanh_lam
+      rule: khung_ngoai
+      band: luc
+      zebra: nhat
+    css: '#sheet{background:#f3f7fc;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.2mm;}
+
+      #sheet table.items{outline:.55mm solid #333;outline-offset:0;}
+
+      #sheet table.items th{background:#e3f1e6;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: l_nga_nhat_xam_dam_xam
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: giấy ngà, nét nhạt, tiêu đề nền xám đậm, sọc xám
+    level: livery
+    axes:
+      stock: nga
+      rule: nhat
+      band: xam_dam
+      zebra: xam
+    css: '#sheet{background:#fbf7ee;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.25mm;border-color:#8d8d8d;}
+
+      #sheet table.items th{background:#d8d8d5;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: l_xanh_lam_khung_ngoai_gach_chan_xam
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: liên xanh lam, chỉ khung ngoài đậm, tiêu đề gạch chân dày, sọc xám
+    level: livery
+    axes:
+      stock: xanh_lam
+      rule: khung_ngoai
+      band: gach_chan
+      zebra: xam
+    css: '#sheet{background:#f3f7fc;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.2mm;}
+
+      #sheet table.items{outline:.55mm solid #333;outline-offset:0;}
+
+      #sheet table.items th{background:transparent;border-bottom-width:.7mm;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: l_trang_khung_ngoai_trong_nhat
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: giấy trắng, chỉ khung ngoài đậm, tiêu đề không nền, sọc rất nhạt
+    level: livery
+    axes:
+      stock: trang
+      rule: khung_ngoai
+      band: trong
+      zebra: nhat
+    css: '#sheet{background:#ffffff;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.2mm;}
+
+      #sheet table.items{outline:.55mm solid #333;outline-offset:0;}
+
+      #sheet table.items th{background:transparent;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: l_hong_manh_xam_xam
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: liên hồng, nét mảnh, tiêu đề nền xám, sọc xám
+    level: livery
+    axes:
+      stock: hong
+      rule: manh
+      band: xam
+      zebra: xam
+    css: '#sheet{background:#fdf4f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.18mm;}
+
+      #sheet table.items th{background:#ececea;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: l_xam_chuan_trong_xam
+  weight: 1.0
+  tags:
+  - dressed_livery
+  excludes:
+  - aug_locked
+  params:
+    label: giấy xám nhạt, nét chuẩn, tiêu đề không nền, sọc xám
+    level: livery
+    axes:
+      stock: xam
+      rule: chuan
+      band: trong
+      zebra: xam
+    css: '#sheet{background:#f6f6f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;}
+
+      #sheet table.items th{background:transparent;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves: []
+- id: f_xanh_lam_manh_trong_xam_hien_dai_nen_vet_cheo_bang_giua_ky_trai
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: liên xanh lam, nét mảnh, tiêu đề không nền, sọc xám, chữ không chân, nén
+      dòng, vệt loang chéo, bảng canh giữa hẹp, chữ ký dồn trái, ghi chú lên đầu
+    level: free
+    axes:
+      stock: xanh_lam
+      rule: manh
+      band: trong
+      zebra: xam
+      type: hien_dai
+      density: nen
+      mark: vet_cheo
+      structure: bang_giua_ky_trai
+    css: '#sheet{background:#f3f7fc;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.18mm;}
+
+      #sheet table.items th{background:transparent;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet table.items th,#sheet table.items td{padding:.55mm .9mm;}
+
+      #sheet{line-height:1.18;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:-10%;top:-10%;width:120%;height:120%;opacity:.05;background:linear-gradient(28deg,transparent
+      42%,#213a5c 50%,transparent 58%);}
+
+      #sheet{padding:14mm 9mm;}
+
+      #sheet table.items{width:78%;margin-left:auto;margin-right:auto;}
+
+      #sheet .signs{width:58%;margin-right:auto;margin-left:0;}
+
+      #sheet .head{display:block;}
+
+      #sheet .head > div{display:block;width:auto;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - notes
+      - table
+    - - before
+      - signatures
+      - totals
+    - - after
+      - words
+      - signatures
+- id: f_xanh_lam_dam_lam_khong_tieu_de_khong_chan_thoang_goc_vuong_tong_trai_ky_phai
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: liên xanh lam, nét đậm, tiêu đề nền lam, không sọc, thân có chân, tiêu
+      đề không chân, dòng thoáng, nẹp góc trên phải, khối tổng dồn trái, chữ ký dồn
+      phải, bảng thu hẹp
+    level: free
+    axes:
+      stock: xanh_lam
+      rule: dam
+      band: lam
+      zebra: khong
+      type: tieu_de_khong_chan
+      density: thoang
+      mark: goc_vuong
+      structure: tong_trai_ky_phai
+    css: '#sheet{background:#f3f7fc;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.5mm;}
+
+      #sheet table.items th{background:#e4ecf6;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;}
+
+      #sheet table.items th{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu
+      Sans'',sans-serif;letter-spacing:.15pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1.5mm 1.7mm;}
+
+      #sheet{line-height:1.42;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;right:4mm;top:4mm;width:16mm;height:16mm;border-top:.8mm
+      solid #b4482f;border-right:.8mm solid #b4482f;}
+
+      #sheet{padding:13mm 12mm;}
+
+      #sheet .signs{width:50%;margin-left:auto;}
+
+      #sheet .foot{text-align:left;}
+
+      #sheet table.items{width:86%;}
+
+      #sheet .frame{border:0;padding:0;}
+
+      #sheet .inner{border:0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - footer
+      - signatures
+    - - swap
+      - letterhead
+      - doctitle
+    - - after
+      - words
+      - signatures
+- id: f_xam_dam_trong_khong_co_dien_thoang_vet_cheo_truong_hai_cot
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: giấy xám nhạt, nét đậm, tiêu đề không nền, không sọc, chữ có chân, dòng
+      thoáng, vệt loang chéo, khối trường xếp hai cột, lề rộng, ký cuối
+    level: free
+    axes:
+      stock: xam
+      rule: dam
+      band: trong
+      zebra: khong
+      type: co_dien
+      density: thoang
+      mark: vet_cheo
+      structure: truong_hai_cot
+    css: '#sheet{background:#f6f6f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.5mm;}
+
+      #sheet table.items th{background:transparent;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;}
+
+      #sheet table.items th,#sheet table.items td{padding:1.5mm 1.7mm;}
+
+      #sheet{line-height:1.42;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:-10%;top:-10%;width:120%;height:120%;opacity:.05;background:linear-gradient(28deg,transparent
+      42%,#213a5c 50%,transparent 58%);}
+
+      #sheet{padding:15mm 14mm;}
+
+      #sheet .f{display:inline-table;width:48%;vertical-align:top;}
+
+      #sheet .block .f:nth-child(odd){padding-right:2mm;}
+
+      #sheet table.items{width:100%;margin-top:3mm;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - swap
+      - letterhead
+      - doctitle
+    - - after
+      - words
+      - signatures
+- id: f_xanh_luc_muc_den_luc_xam_so_may_thoang_luoi_chan_truong_hai_cot
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: liên xanh lục, nét mực đen, tiêu đề nền lục, sọc xám, chữ không chân, cột
+      số kiểu máy in, dòng thoáng, lưới mờ chân trang, khối trường xếp hai cột, lề
+      rộng, ký cuối
+    level: free
+    axes:
+      stock: xanh_luc
+      rule: muc_den
+      band: luc
+      zebra: xam
+      type: so_may
+      density: thoang
+      mark: luoi_chan
+      structure: truong_hai_cot
+    css: '#sheet{background:#f2faf4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;border-color:#1c1c1c;}
+
+      #sheet table.items th{background:#e3f1e6;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet td.r,#sheet th.r{font-family:''LiberationMono'',''Cousine'',monospace;letter-spacing:-.1pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1.5mm 1.7mm;}
+
+      #sheet{line-height:1.42;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;right:0;bottom:0;height:14mm;opacity:.09;background:repeating-linear-gradient(0deg,#333
+      0 .25mm,transparent .25mm 2mm);}
+
+      #sheet{padding:15mm 14mm;}
+
+      #sheet .f{display:inline-table;width:48%;vertical-align:top;}
+
+      #sheet .block .f:nth-child(odd){padding-right:2mm;}
+
+      #sheet table.items{width:100%;margin-top:3mm;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - swap
+      - letterhead
+      - doctitle
+    - - after
+      - words
+      - signatures
+- id: f_xam_manh_lam_nhat_hien_dai_chuan_bang_dinh_dan_lai_toan_bo
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: 'giấy xám nhạt, nét mảnh, tiêu đề nền lam, sọc rất nhạt, chữ không chân,
+      dòng chuẩn, băng đỉnh trang, dàn lại cả trang: đầu trang xếp chồng, bảng hẹp
+      giữa, ký giữa'
+    level: free
+    axes:
+      stock: xam
+      rule: manh
+      band: lam
+      zebra: nhat
+      type: hien_dai
+      density: chuan
+      mark: bang_dinh
+      structure: dan_lai_toan_bo
+    css: '#sheet{background:#f6f6f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.18mm;}
+
+      #sheet table.items th{background:#e4ecf6;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet table.items th,#sheet table.items td{padding:1mm 1.2mm;}
+
+      #sheet{line-height:1.3;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;right:0;top:0;height:3mm;background:linear-gradient(90deg,#1f6f4a,#7cc0a1);}
+
+      #sheet{padding:16mm 15mm;}
+
+      #sheet .head{display:block;}
+
+      #sheet .head > div{display:block;width:auto;text-align:left;}
+
+      #sheet table.items{width:82%;margin-left:auto;margin-right:auto;}
+
+      #sheet .signs{width:70%;margin:0 auto;}
+
+      #sheet .frame{border:0;padding:0;}
+
+      #sheet .inner{border:0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - swap
+      - letterhead
+      - doctitle
+    - - before
+      - notes
+      - table
+    - - after
+      - words
+      - signatures
+- id: f_xanh_luc_muc_den_trong_xam_so_may_nen_khong_le_hep_tieu_de_lon
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: liên xanh lục, nét mực đen, tiêu đề không nền, sọc xám, chữ không chân,
+      cột số kiểu máy in, nén dòng, không hoạ tiết, lề hẹp, tiêu đề phóng to, chân
+      trang lên trước chữ ký
+    level: free
+    axes:
+      stock: xanh_luc
+      rule: muc_den
+      band: trong
+      zebra: xam
+      type: so_may
+      density: nen
+      mark: khong
+      structure: le_hep_tieu_de_lon
+    css: '#sheet{background:#f2faf4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;border-color:#1c1c1c;}
+
+      #sheet table.items th{background:transparent;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet td.r,#sheet th.r{font-family:''LiberationMono'',''Cousine'',monospace;letter-spacing:-.1pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:.55mm .9mm;}
+
+      #sheet{line-height:1.18;}
+
+      #sheet{padding:5mm 5mm;}
+
+      #sheet .t1,#sheet .title{font-size:20pt;letter-spacing:.4pt;}
+
+      #sheet table.items{width:100%;}
+
+      #sheet .signs{width:60%;margin-left:auto;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - footer
+      - signatures
+    - - before
+      - notes
+      - table
+- id: f_xanh_luc_manh_trong_xam_so_may_nen_bang_dinh_le_hep_tieu_de_lon
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: liên xanh lục, nét mảnh, tiêu đề không nền, sọc xám, chữ không chân, cột
+      số kiểu máy in, nén dòng, băng đỉnh trang, lề hẹp, tiêu đề phóng to, chân trang
+      lên trước chữ ký
+    level: free
+    axes:
+      stock: xanh_luc
+      rule: manh
+      band: trong
+      zebra: xam
+      type: so_may
+      density: nen
+      mark: bang_dinh
+      structure: le_hep_tieu_de_lon
+    css: '#sheet{background:#f2faf4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.18mm;}
+
+      #sheet table.items th{background:transparent;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet td.r,#sheet th.r{font-family:''LiberationMono'',''Cousine'',monospace;letter-spacing:-.1pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:.55mm .9mm;}
+
+      #sheet{line-height:1.18;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;right:0;top:0;height:3mm;background:linear-gradient(90deg,#1f6f4a,#7cc0a1);}
+
+      #sheet{padding:5mm 5mm;}
+
+      #sheet .t1,#sheet .title{font-size:20pt;letter-spacing:.4pt;}
+
+      #sheet table.items{width:100%;}
+
+      #sheet .signs{width:60%;margin-left:auto;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - footer
+      - signatures
+    - - before
+      - notes
+      - table
+- id: f_trang_manh_gach_chan_nhat_tieu_de_khong_chan_nen_vet_cheo_dan_lai_toan_bo
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: 'giấy trắng, nét mảnh, tiêu đề gạch chân dày, sọc rất nhạt, thân có chân,
+      tiêu đề không chân, nén dòng, vệt loang chéo, dàn lại cả trang: đầu trang xếp
+      chồng, bảng hẹp giữa, ký giữa'
+    level: free
+    axes:
+      stock: trang
+      rule: manh
+      band: gach_chan
+      zebra: nhat
+      type: tieu_de_khong_chan
+      density: nen
+      mark: vet_cheo
+      structure: dan_lai_toan_bo
+    css: '#sheet{background:#ffffff;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.18mm;}
+
+      #sheet table.items th{background:transparent;border-bottom-width:.7mm;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;}
+
+      #sheet table.items th{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu
+      Sans'',sans-serif;letter-spacing:.15pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:.55mm .9mm;}
+
+      #sheet{line-height:1.18;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:-10%;top:-10%;width:120%;height:120%;opacity:.05;background:linear-gradient(28deg,transparent
+      42%,#213a5c 50%,transparent 58%);}
+
+      #sheet{padding:16mm 15mm;}
+
+      #sheet .head{display:block;}
+
+      #sheet .head > div{display:block;width:auto;text-align:left;}
+
+      #sheet table.items{width:82%;margin-left:auto;margin-right:auto;}
+
+      #sheet .signs{width:70%;margin:0 auto;}
+
+      #sheet .frame{border:0;padding:0;}
+
+      #sheet .inner{border:0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - swap
+      - letterhead
+      - doctitle
+    - - before
+      - notes
+      - table
+    - - after
+      - words
+      - signatures
+- id: f_xam_nhat_trong_khong_hien_dai_nen_rang_cua_bang_len_truoc
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: giấy xám nhạt, nét nhạt, tiêu đề không nền, không sọc, chữ không chân,
+      nén dòng, mép răng cưa phải, bảng hàng lên trước khối bên mua/bên bán
+    level: free
+    axes:
+      stock: xam
+      rule: nhat
+      band: trong
+      zebra: khong
+      type: hien_dai
+      density: nen
+      mark: rang_cua
+      structure: bang_len_truoc
+    css: '#sheet{background:#f6f6f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.25mm;border-color:#8d8d8d;}
+
+      #sheet table.items th{background:transparent;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet table.items th,#sheet table.items td{padding:.55mm .9mm;}
+
+      #sheet{line-height:1.18;}
+
+      #sheet::after{content:'''';position:absolute;z-index:-1;pointer-events:none;right:0;top:0;bottom:0;width:2.4mm;background:repeating-linear-gradient(180deg,#c9c9c4
+      0 1.6mm,transparent 1.6mm 3.2mm);}
+
+      #sheet{padding:8mm 7mm;}
+
+      #sheet .parties,#sheet .seller{padding-top:3mm;}
+
+      #sheet table.items{margin-top:0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - table
+      - parties
+    - - after
+      - words
+      - signatures
+    - - before
+      - footer
+      - signatures
+- id: f_nga_nhat_trong_khong_so_may_chuan_goc_vuong_bang_giua_ky_trai
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: giấy ngà, nét nhạt, tiêu đề không nền, không sọc, chữ không chân, cột số
+      kiểu máy in, dòng chuẩn, nẹp góc trên phải, bảng canh giữa hẹp, chữ ký dồn trái,
+      ghi chú lên đầu
+    level: free
+    axes:
+      stock: nga
+      rule: nhat
+      band: trong
+      zebra: khong
+      type: so_may
+      density: chuan
+      mark: goc_vuong
+      structure: bang_giua_ky_trai
+    css: '#sheet{background:#fbf7ee;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.25mm;border-color:#8d8d8d;}
+
+      #sheet table.items th{background:transparent;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet td.r,#sheet th.r{font-family:''LiberationMono'',''Cousine'',monospace;letter-spacing:-.1pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1mm 1.2mm;}
+
+      #sheet{line-height:1.3;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;right:4mm;top:4mm;width:16mm;height:16mm;border-top:.8mm
+      solid #b4482f;border-right:.8mm solid #b4482f;}
+
+      #sheet{padding:14mm 9mm;}
+
+      #sheet table.items{width:78%;margin-left:auto;margin-right:auto;}
+
+      #sheet .signs{width:58%;margin-right:auto;margin-left:0;}
+
+      #sheet .head{display:block;}
+
+      #sheet .head > div{display:block;width:auto;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - notes
+      - table
+    - - before
+      - signatures
+      - totals
+    - - after
+      - words
+      - signatures
+- id: f_xam_muc_den_xam_khong_tieu_de_khong_chan_chuan_khong_bang_len_truoc
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: giấy xám nhạt, nét mực đen, tiêu đề nền xám, không sọc, thân có chân, tiêu
+      đề không chân, dòng chuẩn, không hoạ tiết, bảng hàng lên trước khối bên mua/bên
+      bán
+    level: free
+    axes:
+      stock: xam
+      rule: muc_den
+      band: xam
+      zebra: khong
+      type: tieu_de_khong_chan
+      density: chuan
+      mark: khong
+      structure: bang_len_truoc
+    css: '#sheet{background:#f6f6f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;border-color:#1c1c1c;}
+
+      #sheet table.items th{background:#ececea;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;}
+
+      #sheet table.items th{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu
+      Sans'',sans-serif;letter-spacing:.15pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1mm 1.2mm;}
+
+      #sheet{line-height:1.3;}
+
+      #sheet{padding:8mm 7mm;}
+
+      #sheet .parties,#sheet .seller{padding-top:3mm;}
+
+      #sheet table.items{margin-top:0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - table
+      - parties
+    - - after
+      - words
+      - signatures
+    - - before
+      - footer
+      - signatures
+- id: f_xanh_lam_chuan_xam_nhat_hien_dai_chuan_bang_dinh_le_rong_dao_khoi
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: liên xanh lam, nét chuẩn, tiêu đề nền xám, sọc rất nhạt, chữ không chân,
+      dòng chuẩn, băng đỉnh trang, lề rộng, đầu trang xếp chồng, ghi chú lên trước
+      bảng
+    level: free
+    axes:
+      stock: xanh_lam
+      rule: chuan
+      band: xam
+      zebra: nhat
+      type: hien_dai
+      density: chuan
+      mark: bang_dinh
+      structure: le_rong_dao_khoi
+    css: '#sheet{background:#f3f7fc;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;}
+
+      #sheet table.items th{background:#ececea;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet table.items th,#sheet table.items td{padding:1mm 1.2mm;}
+
+      #sheet{line-height:1.3;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;right:0;top:0;height:3mm;background:linear-gradient(90deg,#1f6f4a,#7cc0a1);}
+
+      #sheet{padding:18mm 17mm;}
+
+      #sheet .head{display:block;}
+
+      #sheet .head > div{display:block;width:auto;text-align:left;}
+
+      #sheet table.items{width:94%;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - notes
+      - table
+    - - swap
+      - letterhead
+      - doctitle
+    - - after
+      - words
+      - signatures
+- id: f_xanh_luc_muc_den_xam_nhat_gian_chu_thoang_khong_truong_hai_cot
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: liên xanh lục, nét mực đen, tiêu đề nền xám, sọc rất nhạt, chữ giãn, dòng
+      thoáng, không hoạ tiết, khối trường xếp hai cột, lề rộng, ký cuối
+    level: free
+    axes:
+      stock: xanh_luc
+      rule: muc_den
+      band: xam
+      zebra: nhat
+      type: gian_chu
+      density: thoang
+      mark: khong
+      structure: truong_hai_cot
+    css: '#sheet{background:#f2faf4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;border-color:#1c1c1c;}
+
+      #sheet table.items th{background:#ececea;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;letter-spacing:.22pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1.5mm 1.7mm;}
+
+      #sheet{line-height:1.42;}
+
+      #sheet{padding:15mm 14mm;}
+
+      #sheet .f{display:inline-table;width:48%;vertical-align:top;}
+
+      #sheet .block .f:nth-child(odd){padding-right:2mm;}
+
+      #sheet table.items{width:100%;margin-top:3mm;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - swap
+      - letterhead
+      - doctitle
+    - - after
+      - words
+      - signatures
+- id: f_xanh_lam_dam_xam_xam_tieu_de_khong_chan_nen_goc_vuong_tong_trai_ky_phai
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: liên xanh lam, nét đậm, tiêu đề nền xám, sọc xám, thân có chân, tiêu đề
+      không chân, nén dòng, nẹp góc trên phải, khối tổng dồn trái, chữ ký dồn phải,
+      bảng thu hẹp
+    level: free
+    axes:
+      stock: xanh_lam
+      rule: dam
+      band: xam
+      zebra: xam
+      type: tieu_de_khong_chan
+      density: nen
+      mark: goc_vuong
+      structure: tong_trai_ky_phai
+    css: '#sheet{background:#f3f7fc;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.5mm;}
+
+      #sheet table.items th{background:#ececea;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;}
+
+      #sheet table.items th{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu
+      Sans'',sans-serif;letter-spacing:.15pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:.55mm .9mm;}
+
+      #sheet{line-height:1.18;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;right:4mm;top:4mm;width:16mm;height:16mm;border-top:.8mm
+      solid #b4482f;border-right:.8mm solid #b4482f;}
+
+      #sheet{padding:13mm 12mm;}
+
+      #sheet .signs{width:50%;margin-left:auto;}
+
+      #sheet .foot{text-align:left;}
+
+      #sheet table.items{width:86%;}
+
+      #sheet .frame{border:0;padding:0;}
+
+      #sheet .inner{border:0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - footer
+      - signatures
+    - - swap
+      - letterhead
+      - doctitle
+    - - after
+      - words
+      - signatures
+- id: f_xanh_luc_dam_lam_xam_hien_dai_thoang_vach_gay_tong_trai_ky_phai
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: liên xanh lục, nét đậm, tiêu đề nền lam, sọc xám, chữ không chân, dòng
+      thoáng, vạch gáy trái, khối tổng dồn trái, chữ ký dồn phải, bảng thu hẹp
+    level: free
+    axes:
+      stock: xanh_luc
+      rule: dam
+      band: lam
+      zebra: xam
+      type: hien_dai
+      density: thoang
+      mark: vach_gay
+      structure: tong_trai_ky_phai
+    css: '#sheet{background:#f2faf4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.5mm;}
+
+      #sheet table.items th{background:#e4ecf6;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet table.items th,#sheet table.items td{padding:1.5mm 1.7mm;}
+
+      #sheet{line-height:1.42;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;top:0;bottom:0;width:3.2mm;background:linear-gradient(90deg,#2f5d8a,#2f5d8a55);}
+
+      #sheet{padding:13mm 12mm;}
+
+      #sheet .signs{width:50%;margin-left:auto;}
+
+      #sheet .foot{text-align:left;}
+
+      #sheet table.items{width:86%;}
+
+      #sheet .frame{border:0;padding:0;}
+
+      #sheet .inner{border:0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - footer
+      - signatures
+    - - swap
+      - letterhead
+      - doctitle
+    - - after
+      - words
+      - signatures
+- id: f_nga_muc_den_lam_nhat_co_dien_chuan_vach_gay_bang_len_truoc
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: giấy ngà, nét mực đen, tiêu đề nền lam, sọc rất nhạt, chữ có chân, dòng
+      chuẩn, vạch gáy trái, bảng hàng lên trước khối bên mua/bên bán
+    level: free
+    axes:
+      stock: nga
+      rule: muc_den
+      band: lam
+      zebra: nhat
+      type: co_dien
+      density: chuan
+      mark: vach_gay
+      structure: bang_len_truoc
+    css: '#sheet{background:#fbf7ee;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;border-color:#1c1c1c;}
+
+      #sheet table.items th{background:#e4ecf6;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;}
+
+      #sheet table.items th,#sheet table.items td{padding:1mm 1.2mm;}
+
+      #sheet{line-height:1.3;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;top:0;bottom:0;width:3.2mm;background:linear-gradient(90deg,#2f5d8a,#2f5d8a55);}
+
+      #sheet{padding:8mm 7mm;}
+
+      #sheet .parties,#sheet .seller{padding-top:3mm;}
+
+      #sheet table.items{margin-top:0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - table
+      - parties
+    - - after
+      - words
+      - signatures
+    - - before
+      - footer
+      - signatures
+- id: f_hong_khung_ngoai_xam_dam_nhat_co_dien_chuan_vet_cheo_le_rong_dao_khoi
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: liên hồng, chỉ khung ngoài đậm, tiêu đề nền xám đậm, sọc rất nhạt, chữ
+      có chân, dòng chuẩn, vệt loang chéo, lề rộng, đầu trang xếp chồng, ghi chú lên
+      trước bảng
+    level: free
+    axes:
+      stock: hong
+      rule: khung_ngoai
+      band: xam_dam
+      zebra: nhat
+      type: co_dien
+      density: chuan
+      mark: vet_cheo
+      structure: le_rong_dao_khoi
+    css: '#sheet{background:#fdf4f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.2mm;}
+
+      #sheet table.items{outline:.55mm solid #333;outline-offset:0;}
+
+      #sheet table.items th{background:#d8d8d5;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;}
+
+      #sheet table.items th,#sheet table.items td{padding:1mm 1.2mm;}
+
+      #sheet{line-height:1.3;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:-10%;top:-10%;width:120%;height:120%;opacity:.05;background:linear-gradient(28deg,transparent
+      42%,#213a5c 50%,transparent 58%);}
+
+      #sheet{padding:18mm 17mm;}
+
+      #sheet .head{display:block;}
+
+      #sheet .head > div{display:block;width:auto;text-align:left;}
+
+      #sheet table.items{width:94%;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - notes
+      - table
+    - - swap
+      - letterhead
+      - doctitle
+    - - after
+      - words
+      - signatures
+- id: f_xanh_luc_khung_ngoai_trong_nhat_co_dien_nen_vet_cheo_dan_lai_toan_bo
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: 'liên xanh lục, chỉ khung ngoài đậm, tiêu đề không nền, sọc rất nhạt, chữ
+      có chân, nén dòng, vệt loang chéo, dàn lại cả trang: đầu trang xếp chồng, bảng
+      hẹp giữa, ký giữa'
+    level: free
+    axes:
+      stock: xanh_luc
+      rule: khung_ngoai
+      band: trong
+      zebra: nhat
+      type: co_dien
+      density: nen
+      mark: vet_cheo
+      structure: dan_lai_toan_bo
+    css: '#sheet{background:#f2faf4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.2mm;}
+
+      #sheet table.items{outline:.55mm solid #333;outline-offset:0;}
+
+      #sheet table.items th{background:transparent;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;}
+
+      #sheet table.items th,#sheet table.items td{padding:.55mm .9mm;}
+
+      #sheet{line-height:1.18;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:-10%;top:-10%;width:120%;height:120%;opacity:.05;background:linear-gradient(28deg,transparent
+      42%,#213a5c 50%,transparent 58%);}
+
+      #sheet{padding:16mm 15mm;}
+
+      #sheet .head{display:block;}
+
+      #sheet .head > div{display:block;width:auto;text-align:left;}
+
+      #sheet table.items{width:82%;margin-left:auto;margin-right:auto;}
+
+      #sheet .signs{width:70%;margin:0 auto;}
+
+      #sheet .frame{border:0;padding:0;}
+
+      #sheet .inner{border:0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - swap
+      - letterhead
+      - doctitle
+    - - before
+      - notes
+      - table
+    - - after
+      - words
+      - signatures
+- id: f_nga_muc_den_xam_khong_so_may_thoang_rang_cua_truong_hai_cot
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: giấy ngà, nét mực đen, tiêu đề nền xám, không sọc, chữ không chân, cột
+      số kiểu máy in, dòng thoáng, mép răng cưa phải, khối trường xếp hai cột, lề
+      rộng, ký cuối
+    level: free
+    axes:
+      stock: nga
+      rule: muc_den
+      band: xam
+      zebra: khong
+      type: so_may
+      density: thoang
+      mark: rang_cua
+      structure: truong_hai_cot
+    css: '#sheet{background:#fbf7ee;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;border-color:#1c1c1c;}
+
+      #sheet table.items th{background:#ececea;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet td.r,#sheet th.r{font-family:''LiberationMono'',''Cousine'',monospace;letter-spacing:-.1pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1.5mm 1.7mm;}
+
+      #sheet{line-height:1.42;}
+
+      #sheet::after{content:'''';position:absolute;z-index:-1;pointer-events:none;right:0;top:0;bottom:0;width:2.4mm;background:repeating-linear-gradient(180deg,#c9c9c4
+      0 1.6mm,transparent 1.6mm 3.2mm);}
+
+      #sheet{padding:15mm 14mm;}
+
+      #sheet .f{display:inline-table;width:48%;vertical-align:top;}
+
+      #sheet .block .f:nth-child(odd){padding-right:2mm;}
+
+      #sheet table.items{width:100%;margin-top:3mm;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - swap
+      - letterhead
+      - doctitle
+    - - after
+      - words
+      - signatures
+- id: f_xanh_lam_dam_xam_dam_xam_co_dien_thoang_vach_gay_bang_giua_ky_trai
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: liên xanh lam, nét đậm, tiêu đề nền xám đậm, sọc xám, chữ có chân, dòng
+      thoáng, vạch gáy trái, bảng canh giữa hẹp, chữ ký dồn trái, ghi chú lên đầu
+    level: free
+    axes:
+      stock: xanh_lam
+      rule: dam
+      band: xam_dam
+      zebra: xam
+      type: co_dien
+      density: thoang
+      mark: vach_gay
+      structure: bang_giua_ky_trai
+    css: '#sheet{background:#f3f7fc;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.5mm;}
+
+      #sheet table.items th{background:#d8d8d5;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;}
+
+      #sheet table.items th,#sheet table.items td{padding:1.5mm 1.7mm;}
+
+      #sheet{line-height:1.42;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;top:0;bottom:0;width:3.2mm;background:linear-gradient(90deg,#2f5d8a,#2f5d8a55);}
+
+      #sheet{padding:14mm 9mm;}
+
+      #sheet table.items{width:78%;margin-left:auto;margin-right:auto;}
+
+      #sheet .signs{width:58%;margin-right:auto;margin-left:0;}
+
+      #sheet .head{display:block;}
+
+      #sheet .head > div{display:block;width:auto;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - notes
+      - table
+    - - before
+      - signatures
+      - totals
+    - - after
+      - words
+      - signatures
+- id: f_nga_nhat_lam_khong_tieu_de_khong_chan_chuan_vet_cheo_ky_len_tren_tong
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: giấy ngà, nét nhạt, tiêu đề nền lam, không sọc, thân có chân, tiêu đề không
+      chân, dòng chuẩn, vệt loang chéo, chữ ký và chân trang đảo lên trên khối tổng,
+      lề hẹp
+    level: free
+    axes:
+      stock: nga
+      rule: nhat
+      band: lam
+      zebra: khong
+      type: tieu_de_khong_chan
+      density: chuan
+      mark: vet_cheo
+      structure: ky_len_tren_tong
+    css: '#sheet{background:#fbf7ee;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.25mm;border-color:#8d8d8d;}
+
+      #sheet table.items th{background:#e4ecf6;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;}
+
+      #sheet table.items th{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu
+      Sans'',sans-serif;letter-spacing:.15pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1mm 1.2mm;}
+
+      #sheet{line-height:1.3;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:-10%;top:-10%;width:120%;height:120%;opacity:.05;background:linear-gradient(28deg,transparent
+      42%,#213a5c 50%,transparent 58%);}
+
+      #sheet{padding:11mm 6mm;}
+
+      #sheet .signs{width:100%;padding-top:2mm;}
+
+      #sheet .foot{text-align:right;padding-top:1mm;}
+
+      #sheet table.items{width:96%;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - signatures
+      - totals
+    - - before
+      - footer
+      - signatures
+    - - swap
+      - letterhead
+      - doctitle
+- id: f_xam_nhat_xam_dam_khong_gian_chu_thoang_khong_dan_lai_toan_bo
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: 'giấy xám nhạt, nét nhạt, tiêu đề nền xám đậm, không sọc, chữ giãn, dòng
+      thoáng, không hoạ tiết, dàn lại cả trang: đầu trang xếp chồng, bảng hẹp giữa,
+      ký giữa'
+    level: free
+    axes:
+      stock: xam
+      rule: nhat
+      band: xam_dam
+      zebra: khong
+      type: gian_chu
+      density: thoang
+      mark: khong
+      structure: dan_lai_toan_bo
+    css: '#sheet{background:#f6f6f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.25mm;border-color:#8d8d8d;}
+
+      #sheet table.items th{background:#d8d8d5;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;letter-spacing:.22pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1.5mm 1.7mm;}
+
+      #sheet{line-height:1.42;}
+
+      #sheet{padding:16mm 15mm;}
+
+      #sheet .head{display:block;}
+
+      #sheet .head > div{display:block;width:auto;text-align:left;}
+
+      #sheet table.items{width:82%;margin-left:auto;margin-right:auto;}
+
+      #sheet .signs{width:70%;margin:0 auto;}
+
+      #sheet .frame{border:0;padding:0;}
+
+      #sheet .inner{border:0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - swap
+      - letterhead
+      - doctitle
+    - - before
+      - notes
+      - table
+    - - after
+      - words
+      - signatures
+- id: f_nga_nhat_lam_nhat_hien_dai_nen_vach_gay_bang_len_truoc
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: giấy ngà, nét nhạt, tiêu đề nền lam, sọc rất nhạt, chữ không chân, nén
+      dòng, vạch gáy trái, bảng hàng lên trước khối bên mua/bên bán
+    level: free
+    axes:
+      stock: nga
+      rule: nhat
+      band: lam
+      zebra: nhat
+      type: hien_dai
+      density: nen
+      mark: vach_gay
+      structure: bang_len_truoc
+    css: '#sheet{background:#fbf7ee;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.25mm;border-color:#8d8d8d;}
+
+      #sheet table.items th{background:#e4ecf6;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet table.items th,#sheet table.items td{padding:.55mm .9mm;}
+
+      #sheet{line-height:1.18;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;top:0;bottom:0;width:3.2mm;background:linear-gradient(90deg,#2f5d8a,#2f5d8a55);}
+
+      #sheet{padding:8mm 7mm;}
+
+      #sheet .parties,#sheet .seller{padding-top:3mm;}
+
+      #sheet table.items{margin-top:0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - table
+      - parties
+    - - after
+      - words
+      - signatures
+    - - before
+      - footer
+      - signatures
+- id: f_xam_khung_ngoai_lam_nhat_gian_chu_nen_vet_cheo_truong_hai_cot
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: giấy xám nhạt, chỉ khung ngoài đậm, tiêu đề nền lam, sọc rất nhạt, chữ
+      giãn, nén dòng, vệt loang chéo, khối trường xếp hai cột, lề rộng, ký cuối
+    level: free
+    axes:
+      stock: xam
+      rule: khung_ngoai
+      band: lam
+      zebra: nhat
+      type: gian_chu
+      density: nen
+      mark: vet_cheo
+      structure: truong_hai_cot
+    css: '#sheet{background:#f6f6f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.2mm;}
+
+      #sheet table.items{outline:.55mm solid #333;outline-offset:0;}
+
+      #sheet table.items th{background:#e4ecf6;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;letter-spacing:.22pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:.55mm .9mm;}
+
+      #sheet{line-height:1.18;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:-10%;top:-10%;width:120%;height:120%;opacity:.05;background:linear-gradient(28deg,transparent
+      42%,#213a5c 50%,transparent 58%);}
+
+      #sheet{padding:15mm 14mm;}
+
+      #sheet .f{display:inline-table;width:48%;vertical-align:top;}
+
+      #sheet .block .f:nth-child(odd){padding-right:2mm;}
+
+      #sheet table.items{width:100%;margin-top:3mm;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - swap
+      - letterhead
+      - doctitle
+    - - after
+      - words
+      - signatures
+- id: f_xam_khung_ngoai_trong_khong_hien_dai_thoang_vet_cheo_truong_hai_cot
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: giấy xám nhạt, chỉ khung ngoài đậm, tiêu đề không nền, không sọc, chữ không
+      chân, dòng thoáng, vệt loang chéo, khối trường xếp hai cột, lề rộng, ký cuối
+    level: free
+    axes:
+      stock: xam
+      rule: khung_ngoai
+      band: trong
+      zebra: khong
+      type: hien_dai
+      density: thoang
+      mark: vet_cheo
+      structure: truong_hai_cot
+    css: '#sheet{background:#f6f6f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.2mm;}
+
+      #sheet table.items{outline:.55mm solid #333;outline-offset:0;}
+
+      #sheet table.items th{background:transparent;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet table.items th,#sheet table.items td{padding:1.5mm 1.7mm;}
+
+      #sheet{line-height:1.42;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:-10%;top:-10%;width:120%;height:120%;opacity:.05;background:linear-gradient(28deg,transparent
+      42%,#213a5c 50%,transparent 58%);}
+
+      #sheet{padding:15mm 14mm;}
+
+      #sheet .f{display:inline-table;width:48%;vertical-align:top;}
+
+      #sheet .block .f:nth-child(odd){padding-right:2mm;}
+
+      #sheet table.items{width:100%;margin-top:3mm;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - swap
+      - letterhead
+      - doctitle
+    - - after
+      - words
+      - signatures
+- id: f_hong_muc_den_xam_nhat_co_dien_chuan_khong_bang_giua_ky_trai
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: liên hồng, nét mực đen, tiêu đề nền xám, sọc rất nhạt, chữ có chân, dòng
+      chuẩn, không hoạ tiết, bảng canh giữa hẹp, chữ ký dồn trái, ghi chú lên đầu
+    level: free
+    axes:
+      stock: hong
+      rule: muc_den
+      band: xam
+      zebra: nhat
+      type: co_dien
+      density: chuan
+      mark: khong
+      structure: bang_giua_ky_trai
+    css: '#sheet{background:#fdf4f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.3mm;border-color:#1c1c1c;}
+
+      #sheet table.items th{background:#ececea;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;}
+
+      #sheet table.items th,#sheet table.items td{padding:1mm 1.2mm;}
+
+      #sheet{line-height:1.3;}
+
+      #sheet{padding:14mm 9mm;}
+
+      #sheet table.items{width:78%;margin-left:auto;margin-right:auto;}
+
+      #sheet .signs{width:58%;margin-right:auto;margin-left:0;}
+
+      #sheet .head{display:block;}
+
+      #sheet .head > div{display:block;width:auto;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - notes
+      - table
+    - - before
+      - signatures
+      - totals
+    - - after
+      - words
+      - signatures
+- id: f_hong_manh_xam_dam_nhat_so_may_thoang_guilloche_bang_giua_ky_trai
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: liên hồng, nét mảnh, tiêu đề nền xám đậm, sọc rất nhạt, chữ không chân,
+      cột số kiểu máy in, dòng thoáng, nền hoa văn chìm, bảng canh giữa hẹp, chữ ký
+      dồn trái, ghi chú lên đầu
+    level: free
+    axes:
+      stock: hong
+      rule: manh
+      band: xam_dam
+      zebra: nhat
+      type: so_may
+      density: thoang
+      mark: guilloche
+      structure: bang_giua_ky_trai
+    css: '#sheet{background:#fdf4f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.18mm;}
+
+      #sheet table.items th{background:#d8d8d5;}
+
+      #sheet table.items tr:nth-child(even) td{background:#fafafa;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;}
+
+      #sheet td.r,#sheet th.r{font-family:''LiberationMono'',''Cousine'',monospace;letter-spacing:-.1pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1.5mm 1.7mm;}
+
+      #sheet{line-height:1.42;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;right:0;top:0;bottom:0;opacity:.055;background:repeating-linear-gradient(38deg,#20406b
+      0 .5mm,transparent .5mm 2.6mm),repeating-linear-gradient(-38deg,#20406b 0 .5mm,transparent
+      .5mm 2.6mm);}
+
+      #sheet{padding:14mm 9mm;}
+
+      #sheet table.items{width:78%;margin-left:auto;margin-right:auto;}
+
+      #sheet .signs{width:58%;margin-right:auto;margin-left:0;}
+
+      #sheet .head{display:block;}
+
+      #sheet .head > div{display:block;width:auto;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - notes
+      - table
+    - - before
+      - signatures
+      - totals
+    - - after
+      - words
+      - signatures
+- id: f_trang_dam_luc_xam_tieu_de_khong_chan_thoang_khong_bang_len_truoc
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: giấy trắng, nét đậm, tiêu đề nền lục, sọc xám, thân có chân, tiêu đề không
+      chân, dòng thoáng, không hoạ tiết, bảng hàng lên trước khối bên mua/bên bán
+    level: free
+    axes:
+      stock: trang
+      rule: dam
+      band: luc
+      zebra: xam
+      type: tieu_de_khong_chan
+      density: thoang
+      mark: khong
+      structure: bang_len_truoc
+    css: '#sheet{background:#ffffff;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.5mm;}
+
+      #sheet table.items th{background:#e3f1e6;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;}
+
+      #sheet table.items th{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu
+      Sans'',sans-serif;letter-spacing:.15pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1.5mm 1.7mm;}
+
+      #sheet{line-height:1.42;}
+
+      #sheet{padding:8mm 7mm;}
+
+      #sheet .parties,#sheet .seller{padding-top:3mm;}
+
+      #sheet table.items{margin-top:0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - table
+      - parties
+    - - after
+      - words
+      - signatures
+    - - before
+      - footer
+      - signatures
+- id: f_xanh_lam_nhat_luc_xam_tieu_de_khong_chan_thoang_khong_le_hep_tieu_de_lon
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: liên xanh lam, nét nhạt, tiêu đề nền lục, sọc xám, thân có chân, tiêu đề
+      không chân, dòng thoáng, không hoạ tiết, lề hẹp, tiêu đề phóng to, chân trang
+      lên trước chữ ký
+    level: free
+    axes:
+      stock: xanh_lam
+      rule: nhat
+      band: luc
+      zebra: xam
+      type: tieu_de_khong_chan
+      density: thoang
+      mark: khong
+      structure: le_hep_tieu_de_lon
+    css: '#sheet{background:#f3f7fc;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.25mm;border-color:#8d8d8d;}
+
+      #sheet table.items th{background:#e3f1e6;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;}
+
+      #sheet table.items th{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu
+      Sans'',sans-serif;letter-spacing:.15pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1.5mm 1.7mm;}
+
+      #sheet{line-height:1.42;}
+
+      #sheet{padding:5mm 5mm;}
+
+      #sheet .t1,#sheet .title{font-size:20pt;letter-spacing:.4pt;}
+
+      #sheet table.items{width:100%;}
+
+      #sheet .signs{width:60%;margin-left:auto;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - footer
+      - signatures
+    - - before
+      - notes
+      - table
+- id: f_xanh_lam_khung_ngoai_xam_dam_xam_gian_chu_chuan_luoi_chan_bang_len_truoc
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: liên xanh lam, chỉ khung ngoài đậm, tiêu đề nền xám đậm, sọc xám, chữ giãn,
+      dòng chuẩn, lưới mờ chân trang, bảng hàng lên trước khối bên mua/bên bán
+    level: free
+    axes:
+      stock: xanh_lam
+      rule: khung_ngoai
+      band: xam_dam
+      zebra: xam
+      type: gian_chu
+      density: chuan
+      mark: luoi_chan
+      structure: bang_len_truoc
+    css: '#sheet{background:#f3f7fc;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.2mm;}
+
+      #sheet table.items{outline:.55mm solid #333;outline-offset:0;}
+
+      #sheet table.items th{background:#d8d8d5;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet{font-family:''DejaVuSans'',''LiberationSans'',''DejaVu Sans'',sans-serif;letter-spacing:.22pt;}
+
+      #sheet table.items th,#sheet table.items td{padding:1mm 1.2mm;}
+
+      #sheet{line-height:1.3;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;right:0;bottom:0;height:14mm;opacity:.09;background:repeating-linear-gradient(0deg,#333
+      0 .25mm,transparent .25mm 2mm);}
+
+      #sheet{padding:8mm 7mm;}
+
+      #sheet .parties,#sheet .seller{padding-top:3mm;}
+
+      #sheet table.items{margin-top:0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - table
+      - parties
+    - - after
+      - words
+      - signatures
+    - - before
+      - footer
+      - signatures
+- id: f_xam_dam_gach_chan_xam_co_dien_nen_guilloche_bang_len_truoc
+  weight: 2.5
+  tags:
+  - dressed_free
+  requires:
+  - aug_free
+  excludes:
+  - till_receipt
+  params:
+    label: giấy xám nhạt, nét đậm, tiêu đề gạch chân dày, sọc xám, chữ có chân, nén
+      dòng, nền hoa văn chìm, bảng hàng lên trước khối bên mua/bên bán
+    level: free
+    axes:
+      stock: xam
+      rule: dam
+      band: gach_chan
+      zebra: xam
+      type: co_dien
+      density: nen
+      mark: guilloche
+      structure: bang_len_truoc
+    css: '#sheet{background:#f6f6f4;}
+
+      #sheet table.items th,#sheet table.items td{border-width:.5mm;}
+
+      #sheet table.items th{background:transparent;border-bottom-width:.7mm;}
+
+      #sheet table.items tr:nth-child(even) td{background:#f2f2f0;}
+
+      #sheet{font-family:''LiberationSerif'',''DejaVu Serif'',serif;}
+
+      #sheet table.items th,#sheet table.items td{padding:.55mm .9mm;}
+
+      #sheet{line-height:1.18;}
+
+      #sheet::before{content:'''';position:absolute;z-index:-1;pointer-events:none;left:0;right:0;top:0;bottom:0;opacity:.055;background:repeating-linear-gradient(38deg,#20406b
+      0 .5mm,transparent .5mm 2.6mm),repeating-linear-gradient(-38deg,#20406b 0 .5mm,transparent
+      .5mm 2.6mm);}
+
+      #sheet{padding:8mm 7mm;}
+
+      #sheet .parties,#sheet .seller{padding-top:3mm;}
+
+      #sheet table.items{margin-top:0;}
+
+      #sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+
+      #sheet table.items{table-layout:fixed;}
+
+      #sheet .inner table.items{table-layout:fixed;}
+
+      #sheet main table.items{table-layout:fixed;}
+
+      #sheet .frame table.items{table-layout:fixed;}
+
+      #sheet .card table.items{table-layout:fixed;}
+
+      #sheet table.items th{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items th{overflow-wrap:anywhere;}
+
+      #sheet main table.items th{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items th{overflow-wrap:anywhere;}
+
+      #sheet .card table.items th{overflow-wrap:anywhere;}
+
+      #sheet table.items td{overflow-wrap:anywhere;}
+
+      #sheet .inner table.items td{overflow-wrap:anywhere;}
+
+      #sheet main table.items td{overflow-wrap:anywhere;}
+
+      #sheet .frame table.items td{overflow-wrap:anywhere;}
+
+      #sheet .card table.items td{overflow-wrap:anywhere;}
+
+      #sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet
+      > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}'
+    moves:
+    - - before
+      - table
+      - parties
+    - - after
+      - words
+      - signatures
+    - - before
+      - footer
+      - signatures

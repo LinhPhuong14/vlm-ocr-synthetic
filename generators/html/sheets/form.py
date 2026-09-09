@@ -281,7 +281,8 @@ def _roster_table(spec: dict, receipt, parse: dict, rows, rng: random.Random) ->
 
 
 def _section_html(name: str, receipt, spec: dict, parse: dict, sections: list,
-                  rng: random.Random, rows: Rows) -> str:
+                  rng: random.Random, rows: Rows, *, stamp: str = "",
+                  totals_stamp: str = "") -> str:
     if name in ("header", "letterhead"):
         pieces = [_orgname(parse)]
         if (spec.get("header") or {}).get("masthead") == "govt":
@@ -330,9 +331,9 @@ def _section_html(name: str, receipt, spec: dict, parse: dict, sections: list,
             return _checklist(receipt, spec, rng)
         return _notes_block(receipt, spec)
     if name == "totals":
-        return base.totals_block(parse, indent=0.55)
+        return base.totals_block(parse, indent=0.55, stamp=totals_stamp)
     if name == "signatures":
-        return base.signature_block(receipt, parse)
+        return base.signature_block(receipt, parse, stamp=stamp)
     if name == "footer":
         return base.footer_block(parse)
     return ""
@@ -344,7 +345,14 @@ def build(recipe, receipt, spec: dict, parse: dict) -> str:
     sections = spec.get("sections") or []
     rows = Rows()
 
-    blocks = [_section_html(name, receipt, spec, parse, sections, rng, rows) for name in sections]
+    # The two ornament slots that need this family's own DOM. The page-anchored
+    # rest is struck for every family by `sheets/__init__.py::_page_ornaments`,
+    # so only the slots are taken here -- taking the overlay too would draw
+    # those marks twice.
+    stamp_slot, totals_stamp, _overlay = base.render_ornament_marks(recipe, receipt)
+    blocks = [_section_html(name, receipt, spec, parse, sections, rng, rows,
+                            stamp=stamp_slot, totals_stamp=totals_stamp)
+              for name in sections]
     body = "".join(block for block in blocks if block)
 
     css = f"""

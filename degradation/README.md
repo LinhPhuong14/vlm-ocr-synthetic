@@ -231,7 +231,9 @@ The biggest gap it names: **not one model here moves a pixel.** The chain is
 asserted not to resize the page, so the dataset had every kind of dirt and no
 sheet that was skewed, curled or photographed at an angle.
 
-That gap now has a fix, in [`blender/`](blender) — but deliberately not inside
+That gap now has a fix — two of them, [`blender/`](blender) and
+[`paper_warp.py`](paper_warp.py), picked between by name in
+[`warp.py`](warp.py) — but deliberately not inside
 `DEGRADATIONS`/`apply_recipe`. The shape assertion above is exactly what a
 page-geometry model cannot satisfy, so it runs as ITS OWN step, after the
 chain and after that assertion, moving the sheet's box collections (`boxes`,
@@ -256,16 +258,33 @@ whole sheet, one of four studio lighting presets in a random direction —
 (`shadow_binding.angle`) as a defect a model would learn and fail on real
 photos lit from elsewhere, and this does not repeat it. `blender/render.py`
 inverts Blender's own UV ground-truth map to remap the page's label quads
-into the render, and is what `generators/html/render.py` actually calls.
+into the render. `generators/html/render.py` reaches both engines through
+[`warp.py`](warp.py), so a rule names a warp and the renderer stays out of the
+choice.
 
 Three scenarios, one per SyntheticDoc simulation family it stands in for:
 `page_curl` (`curve_by_pull`), `fold_crease` (`fold_by_pull`), `corner_bulge`
-(`fall_on_ball`/`fall_on_roller`). See `rulebase/rules/augmentation.yaml`'s
-"HÌNH HỌC" section for how a recipe opts in through `augmentation.warp`. All
-three ship `enabled: false` — reachable with `--force augmentation=page_curl`
-(or `folded`, `lifted_corner`), needs Blender (`make setup-blender`), and
-costs seconds to over a minute per page rather than the microseconds of every
-other model here, which is also why it is not in a default run yet.
+(`fall_on_ball`/`fall_on_roller`), plus two surface deformations
+(`crease_bundle`, `crumple`). See `rulebase/rules/augmentation.yaml`'s "HÌNH
+HỌC" section for how a recipe opts in through `augmentation.warp`. They need
+Blender (`make setup-blender`) and cost seconds to over a minute per page
+rather than the microseconds of every other model here, which is why four of
+the five ship `enabled: false` — reachable with `--force augmentation=folded`
+(or `lifted_corner`, `crease_bundle`, `crumple`).
+
+**[`paper_warp.py`](paper_warp.py) is the cheap engine**, and the one a
+default run actually draws (`augmentation=paper_creased`). No mesh, no camera,
+no light: the fold shape is read out of the same photograph of crumpled paper
+that `paper_overlay` lays on top (`augmentations/data/image/`, SynthDoG's), by
+treating its brightness as a height field and remapping the page by that
+field's gradient. Both halves use ONE aligned crop of that photo, so the fold
+you can see is the fold that moved the pixels — the alignment is the whole
+effect, and it is why this option's chain does not also name `paper_overlay`.
+The displacement is bounded by CURVATURE rather than by pixel shift
+(`max_stretch`, that module's docstring says why), which is what lets a glyph
+travel 30px without stretching. Milliseconds a page, and the label quads are
+remapped by inverting the field, checked against the ink in
+`tests/test_paper_warp.py`.
 
 ---
 

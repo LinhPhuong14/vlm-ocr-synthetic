@@ -36,6 +36,7 @@ table:
   shade: 0.10
   header_rules: true
   compact: true
+  header_style: vertical
 
 item:
   wrap_name: true

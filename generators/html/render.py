@@ -40,6 +40,7 @@ import sheets  # noqa: E402
 from page import (  # noqa: E402
     CELL_RECTS_JS,
     CELL_REGIONS_JS,
+    GRAPHIC_RECTS_JS,
     find_chromium,
     font_faces,
     served,
@@ -48,7 +49,7 @@ from page import (  # noqa: E402
 import profiling  # noqa: E402
 import rulebase  # noqa: E402
 import worklist  # noqa: E402
-from degradation.blender import warp_regions  # noqa: E402
+from degradation.warp import warp_regions  # noqa: E402
 from degradation.pipeline import apply_recipe  # noqa: E402
 from pipeline import imagetimes, record, synthesis  # noqa: E402
 
@@ -216,6 +217,29 @@ def regions_from_rects(rects, scale: float, factor: float) -> list[dict]:
     return cells
 
 
+def graphics_from_rects(rects, scale: float, factor: float) -> list[dict]:
+    """Ink that is not a run: `{kind, quad}`, in the image's own pixels.
+
+    Same two multiplications as `quads_from_rects` and for the same reason, and
+    deliberately NOT that function: it drops anything whose `text` is empty (a
+    rule of dashes is not a field), and every graphic on the page has empty
+    text by definition. Reusing it would have silently dropped all of them.
+    """
+    ratio = scale * factor
+    out = []
+    for rect in rects:
+        if rect["w"] <= 0 or rect["h"] <= 0:
+            continue
+        x0, y0 = rect["x"] * ratio, rect["y"] * ratio
+        x1, y1 = x0 + rect["w"] * ratio, y0 + rect["h"] * ratio
+        out.append({
+            "kind": str(rect.get("kind", "") or "graphic"),
+            "quad": [[round(x0, 1), round(y0, 1)], [round(x1, 1), round(y0, 1)],
+                     [round(x1, 1), round(y1, 1)], [round(x0, 1), round(y1, 1)]],
+        })
+    return out
+
+
 def quads_from_rects(rects, scale: float, factor: float) -> list[dict]:
     """Browser rects -> the same `{kind, text, quad}` the glyph renderer writes.
 
@@ -238,6 +262,10 @@ def quads_from_rects(rects, scale: float, factor: float) -> list[dict]:
         quads.append({
             "kind": rect["kind"],
             "text": rect["text"],
+            # Axis 3, when the renderer said one. Absent for an ordinary
+            # printed run; the page default fills it in -- see
+            # `pipeline/record.py::ink_for`.
+            "ink": rect.get("ink") or "",
             # Axis-aligned, but written as four corners so the schema matches
             # the glyph renderer's, whose quads are genuinely rotated by the
             # paper curl. One loader reads both.
@@ -245,6 +273,30 @@ def quads_from_rects(rects, scale: float, factor: float) -> list[dict]:
                      [round(x1, 1), round(y1, 1)], [round(x0, 1), round(y1, 1)]],
         })
     return quads
+
+
+# The page's own ink, when a run says nothing about its own. Read off the tags
+# the recipe already carries rather than from a new attribute: a thermal roll
+# and a dot-matrix invoice are decided by `document`/`visual`, and both already
+# tag themselves. `print` is the answer for everything else, which is most
+# pages.
+INK_BY_TAG = (("thermal", "thermal"), ("impact", "dotmatrix"))
+
+
+def page_ink(recipe) -> str:
+    """Which of `record.INK_VALUES` this page prints in by default.
+
+    Two of the six are properties of the WHOLE sheet -- a thermal roll prints
+    every run thermally, an impact printer every run as dots -- so they belong
+    here rather than on each span. The other four are per-run: `stamp` and
+    `hand` are what a run IS, `reversed` is one band of one page, and `print`
+    is what is left.
+    """
+    tags = set(getattr(recipe, "tags", ()) or ())
+    for tag, ink in INK_BY_TAG:
+        if tag in tags:
+            return ink
+    return "print"
 
 
 class HtmlReceiptRenderer:
@@ -406,6 +458,10 @@ class HtmlReceiptRenderer:
                 # docstring for why two grains come out of one walk.
                 rects = page.evaluate(CELL_RECTS_JS)
                 regions = page.evaluate(CELL_REGIONS_JS) if self.template else []
+                # Ink that is not a labelled run: the logo, the rosette, the
+                # barcode, the watermark, the signature. Measured off the same
+                # laid-out page as the words, for the same reason they are.
+                graphics = page.evaluate(GRAPHIC_RECTS_JS)
             with profiling.stage("render"):
                 shot = sheet.screenshot(type="png")
         finally:
@@ -435,6 +491,7 @@ class HtmlReceiptRenderer:
             boxes = quads_from_rects(rects["cells"], self.scale, factor)
             words = quads_from_rects(rects["words"], self.scale, factor)
             cells = regions_from_rects(regions, self.scale, factor)
+            marks = graphics_from_rects(graphics, self.scale, factor)
 
         # Ageing runs after the boxes are computed and must not move a pixel --
         # every model in `degradation/` filters or composites in place. Asserted
@@ -464,22 +521,23 @@ class HtmlReceiptRenderer:
         # Hình học -- không phải chuỗi làm cũ. Ở NGOÀI `apply_recipe`/`chain`
         # có chủ đích: mọi model trong đó bị buộc GIỮ NGUYÊN kích thước (kiểm
         # tra ngay trên), còn cong giấy thì đổi cả hai. `augmentation.warp` là
-        # nơi duy nhất một trang được phép cong -- xem `degradation/blender/`
+        # nơi duy nhất một trang được phép cong -- xem `degradation/warp.py`
         # và header "HÌNH HỌC" của `rulebase/rules/augmentation.yaml`. Vắng mặt
-        # (giá trị mặc định) thì bước này là no-op; ba id có nó đều
-        # `enabled: false` cho tới khi có người soát bằng mắt.
+        # (giá trị mặc định của mọi giá trị khác) thì bước này là no-op.
         #
-        # Bước này gọi ra Blender qua subprocess (vài giây tới hơn một phút một
-        # trang, không phải milli-giây) -- xem `degradation/blender/render.py`.
+        # Tên warp chọn ENGINE, qua `degradation/warp.py`: `paper_photo` là
+        # trường dịch chuyển đọc từ ảnh chụp giấy (milli-giây, xem
+        # `degradation/paper_warp.py`), năm tên còn lại render thật qua Blender
+        # bằng subprocess (vài giây tới hơn một phút một trang).
         warp = recipe.get("augmentation", "warp")
         if warp:
             with profiling.stage("geometry"):
-                aged, boxes, words, cells = warp_regions(
+                aged, boxes, words, cells, marks = warp_regions(
                     warp["name"], aged, warp.get("params"),
-                    random.Random(seed), boxes, words, cells)
+                    random.Random(seed), boxes, words, cells, marks)
 
-        return (recipe, receipt, grid, aged, boxes, words, cells, hand_report,
-                sign_report)
+        return (recipe, receipt, grid, aged, boxes, words, cells, marks,
+                hand_report, sign_report, markup)
 
 
 def signers(seed: int, count: int = 6) -> list[str]:
@@ -517,8 +575,8 @@ def structure_from_cells(cells: list[dict]) -> list[str]:
     return structure_tokens(ordered)
 
 
-def _emit_page(args, name, recipe, receipt, image, boxes, words, cells,
-               hand_report, sign_report, seed, notes) -> None:
+def _emit_page(args, name, recipe, receipt, image, boxes, words, cells, marks,
+               hand_report, sign_report, markup, seed, notes) -> None:
     """Everything an image costs after it is drawn: the JPEG, the record, the
     provenance line.
 
@@ -529,6 +587,12 @@ def _emit_page(args, name, recipe, receipt, image, boxes, words, cells,
     """
     with profiling.stage("export"):
         cv2.imwrite(str(args.out / name), image, [cv2.IMWRITE_JPEG_QUALITY, 90])
+        if args.save_html:
+            # Beside the image, same stem, like the JSON record --
+            # `pipeline/record.py::beside`'s "not a subdirectory" reasoning
+            # applies just as much here: the images are the listing, and a
+            # file named after one of them should sit next to it.
+            (args.out / name).with_suffix(".html").write_text(markup, encoding="utf-8")
     with profiling.stage("annotation"):
         # Which page model drew THIS image. At set level in `dataset.json` it
         # could not say whether a set was mixed; per image it can, and a reader
@@ -542,9 +606,11 @@ def _emit_page(args, name, recipe, receipt, image, boxes, words, cells,
             extra["handwriting"] = hand_report
         if sign_report is not None:
             # The style of every mark on the page, and every block that went
-            # unsigned. A signature carries no box and no text, so this record
-            # is the only place it exists in the label at all -- and a set that
-            # wanted signatures and drew none should say so here.
+            # unsigned. A signature is not a field to read -- no `data-kind`,
+            # no entry in `blocks` -- but it does have a box: `GRAPHIC_RECTS_JS`
+            # gives its ink an `Image` region, because ink with no box is ink
+            # with no label. This record is what says WHICH mark it was, and a
+            # set that wanted signatures and drew none should say so here.
             extra["signature"] = sign_report
         if cells:
             # Additive, and only for a template render: the structure half of
@@ -555,6 +621,7 @@ def _emit_page(args, name, recipe, receipt, image, boxes, words, cells,
         item = record.build(
             filename=name, width=image.shape[1], height=image.shape[0],
             parser="html", boxes=boxes, words=words, cells=cells,
+            graphics=marks, ink=page_ink(recipe),
             extracted=receipt.ground_truth(), seed=seed, layout=recipe.layout.id)
     with profiling.stage("export"):
         # The record beside its image, and the provenance streamed into the one
@@ -617,6 +684,14 @@ def main() -> int:
         "--profile", metavar="JSON",
         help="time every stage and write the breakdown here. Off by default, "
              "and off costs nothing: see profiling.py",
+    )
+    parser.add_argument(
+        "--save-html", action="store_true",
+        help="write the page's own markup beside its image, `html_000.html` "
+             "next to `html_000.jpg` -- the markup a browser actually laid "
+             "out, after every dressing (sheet, ink, signature) but before "
+             "the screenshot. Off by default: a run that never wants it "
+             "should not pay to keep every page's HTML around.",
     )
     worklist.add_argument(parser)
     args = parser.parse_args()
@@ -685,8 +760,8 @@ def main() -> int:
                 # raises still leaves a row saying which page it was.
                 with clock.time(name, layout=job.layout or "") as timed:
                     drawing = time.monotonic()
-                    (recipe, receipt, _grid, image, boxes, words, cells,
-                     hand_report, sign_report) = renderer.render(seed, forces[job])
+                    (recipe, receipt, _grid, image, boxes, words, cells, marks,
+                     hand_report, sign_report, markup) = renderer.render(seed, forces[job])
                     # Two stages, because they answer different questions: `draw`
                     # is the renderer and `write` is the disk, and a run that has
                     # got slow is one or the other.
@@ -696,7 +771,7 @@ def main() -> int:
                     writing = time.monotonic()
                     _emit_page(
                         args, name, recipe, receipt, image, boxes, words, cells,
-                        hand_report, sign_report, seed, notes)
+                        marks, hand_report, sign_report, markup, seed, notes)
                     timed.stages["write"] = time.monotonic() - writing
                 inked = len(hand_report["inked"]) if hand_report else 0
                 signed = len(sign_report["marks"]) if sign_report else 0

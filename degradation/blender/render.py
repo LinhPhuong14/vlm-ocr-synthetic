@@ -302,9 +302,53 @@ def apply_warp(
             new_cols -= crop_x0
             quads = np.stack([new_cols, new_rows], axis=-1).reshape(quads.shape).astype(np.float32)
 
+        # Back up to the resolution the page came in at. A warp may BEND a
+        # sheet; it may not make it smaller, and cropping to the page's
+        # footprint on a canvas the camera had to back away from does exactly
+        # that -- measured, an A4 invoice went in at 1191x1684 and came out at
+        # 803x1036, two thirds of its linear size.
+        #
+        # What that costs is not "a slightly smaller picture". Every glyph
+        # shrinks with the sheet, so 8pt body text drops under the pixel floor
+        # `agent/critic.py` calls `chu_nho`, and boxes that merely touched
+        # start overlapping (`chong_lan`). Measured over one page per
+        # scenario, before this: `page_curl` 12 severe findings, `folded` 11,
+        # `lifted_corner` 12, `crease_bundle` 7, `crumple` 3 -- against 0 for
+        # `paper_photo`, whose displacement field never changes the size at
+        # all. `page_curl` ships `enabled: true`, so those pages were reaching
+        # real datasets.
+        #
+        # `max` of the two ratios, not `min` and not the diagonal: the promise
+        # is that NEITHER axis loses resolution, and a fold that narrows the
+        # sheet must not be allowed to pay for its width with its height. Only
+        # ever upwards -- a warp that happens to render larger than the source
+        # is left alone rather than thrown away.
+        grew = max(width / max(rendered.shape[1], 1), height / max(rendered.shape[0], 1))
+        if grew > 1.0:
+            rendered = cv2.resize(
+                rendered,
+                (max(int(round(rendered.shape[1] * grew)), 1),
+                 max(int(round(rendered.shape[0] * grew)), 1)),
+                interpolation=cv2.INTER_CUBIC)
+            if quads.size:
+                quads = (quads * grew).astype(np.float32)
+
         return rendered, quads
     finally:
         shutil.rmtree(tmp_dir, ignore_errors=True)
+
+
+def available() -> bool:
+    """Whether this engine can actually run -- a real `blender` on PATH.
+
+    `pipeline/preflight.py::warp_engines` asks before a run starts, so a rule
+    naming a Blender scenario on a machine without Blender is one line at the
+    top instead of an exception halfway through a shard.
+    """
+    try:
+        return bool(find_blender())
+    except BlenderWarpError:
+        return False
 
 
 def warp_regions(
@@ -335,4 +379,5 @@ def warp_regions(
     return (new_image, *out)
 
 
-__all__ = ["BlenderWarpError", "apply_warp", "find_blender", "warp_regions"]
+__all__ = ["BlenderWarpError", "apply_warp", "available", "find_blender",
+           "warp_regions"]

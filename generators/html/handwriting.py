@@ -474,7 +474,7 @@ class FontHand:
         # shift with no stacking context, and it costs nothing in the browser.
         style = f"vertical-align:{SIT_EM - page.sit():.3f}em;"
         extra = "hand" if self.mark == "hand" else f"hand {self.mark}"
-        return (f'<span data-kind="{html.escape(kind)}" '
+        return (f'<span data-kind="{html.escape(kind)}" data-ink="hand" '
                 f'class="{_classes(classes, extra)}" style="{style}">'
                 f'{html.escape(text)}</span>')
 
@@ -1070,6 +1070,7 @@ def ink_span(kind: str, classes: str, text: str, png: bytes,
     cls = ((existing.group(1) + " ") if existing else "") + "hand"
     data = base64.b64encode(png).decode("ascii")
     return (f'<span data-kind="{html.escape(kind)}" class="{cls}" '
+            f'data-ink="hand" '
             f'data-text="{html.escape(text, quote=True)}">'
             f'<img alt="{html.escape(text, quote=True)}" style="{style}" '
             f'src="data:image/png;base64,{data}"></span>')

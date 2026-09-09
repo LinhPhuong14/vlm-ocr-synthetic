@@ -1,0 +1,26 @@
+{
+  "per_framework": 30,
+  "layouts": [
+    "invoice_dense_table",
+    "invoice_logo_center",
+    "invoice_minimalist",
+    "invoice_multipage"
+  ],
+  "pairing": "paired",
+  "clean": false,
+  "force": [],
+  "template": "auto",
+  "frameworks": {
+    "html": {
+      "images": 30,
+      "distinct_seeds": 30,
+      "distinct_labels": 30,
+      "by_layout": {
+        "invoice_logo_center": 6,
+        "invoice_minimalist": 9,
+        "invoice_multipage": 4,
+        "invoice_dense_table": 11
+      }
+    }
+  }
+}

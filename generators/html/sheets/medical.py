@@ -157,6 +157,9 @@ def _sum_row(receipt, spec: dict, columns: list[dict], rows: Rows) -> str:
 
 
 def build(recipe, receipt, spec: dict, parse: dict) -> str:
+    # The signature slot of the `ornament` attribute. The page-anchored rest is
+    # struck for every family by `sheets/__init__.py::_page_ornaments`.
+    stamp_slot, _totals, _overlay = base.render_ornament_marks(recipe, receipt)
     rng = base.rng_for(recipe)
     ink = LIVERIES[rng.randrange(len(LIVERIES))]
     sections = spec.get("sections") or []
@@ -186,7 +189,7 @@ def build(recipe, receipt, spec: dict, parse: dict) -> str:
         elif name == "words":
             blocks.append(base.words_block(receipt, parse))
         elif name == "signatures":
-            blocks.append(base.signature_block(receipt, parse))
+            blocks.append(base.signature_block(receipt, parse, stamp=stamp_slot))
         elif name == "footer":
             blocks.append(base.footer_block(parse))
 

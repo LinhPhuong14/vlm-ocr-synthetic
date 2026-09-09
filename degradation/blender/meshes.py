@@ -217,6 +217,8 @@ def crease_bundle(
     n_creases: Any = (2, 4),
     depth: Any = (0.01, 0.025),
     width_ratio: Any = (0.03, 0.06),
+    angles: list[float] | None = None,
+    profile: str = "gaussian",
     grid: tuple[int, int] = (70, 100),
 ) -> Path:
     """Several creases at independent angles, crossing near the middle -- a sheet handled
@@ -224,11 +226,28 @@ def crease_bundle(
     on a dense jittered grid of small spheres (`fall_on_many`) -- crumpling it through
     contact rather than a single deliberate fold. What is reused here is only the RESULT,
     several intersecting creases, not the mechanism: each is a straight ridge, its height a
-    Gaussian in the signed distance to its own line, summed rather than integrated along one
+    bump in the signed distance to its own line, summed rather than integrated along one
     bending axis -- `fold_crease`'s developable construction has no "and then a second,
     differently-angled crease" step, so this is a genuinely different (simpler, not
     arc-length-preserving) construction, not a generalisation of it.
+
+    `angles`, in degrees, pins each crease to a chosen direction instead of drawing it
+    uniformly from `[0, 180)` -- e.g. `[0, 90]` for one horizontal and one vertical crease
+    guaranteed rather than left to chance, `[0, 90, 45, 135]` to add both diagonals. Cycled
+    if `n_creases` draws more creases than there are angles; ignored (random, as before) if
+    left `None`.
+
+    `profile` picks the ridge's cross-section: `"gaussian"` (the original, round-topped --
+    `exp(-x^2)`) or `"sharp"` (`exp(-|x|)`, a Laplace bump with a genuine cusp at the crease
+    line, the way a real fold has a distinct kink rather than a smooth swell). `"sharp"`
+    reaches the same peak `depth` in less lateral distance for the same `width_ratio`, so it
+    also raises local curvature at the ridge -- the render's camera-visibility check (a real
+    fold viewed near edge-on fails it) gets pickier as this sharpens; narrow `depth` and widen
+    `width_ratio` together if it starts rejecting every candidate angle.
     """
+    if profile not in ("gaussian", "sharp"):
+        raise ValueError(f"profile must be 'gaussian' or 'sharp', got {profile!r}")
+
     nx, ny = grid
     xs = np.linspace(0, width, nx) - width / 2
     ys = np.linspace(0, height, ny) - height / 2
@@ -237,17 +256,18 @@ def crease_bundle(
     zz = np.zeros_like(xx)
     n = int(round(_sample_range(rng, n_creases)))
     span = min(width, height)
-    for _ in range(n):
+    for i in range(n):
         cx = rng.uniform(-width / 2 * 0.6, width / 2 * 0.6)
         cy = rng.uniform(-height / 2 * 0.6, height / 2 * 0.6)
-        angle = rng.uniform(0, math.pi)
+        angle = math.radians(angles[i % len(angles)]) if angles else rng.uniform(0, math.pi)
         sign = rng.choice((-1.0, 1.0))
         depth_v = sign * _sample_range(rng, depth)
         sigma = _sample_range(rng, width_ratio) * span
         # signed distance from every grid point to the infinite line through (cx, cy) at `angle`
         nx_, ny_ = -math.sin(angle), math.cos(angle)
         dist = (xx - cx) * nx_ + (yy - cy) * ny_
-        zz += depth_v * np.exp(-((dist / sigma) ** 2))
+        bump = np.exp(-np.abs(dist / sigma)) if profile == "sharp" else np.exp(-((dist / sigma) ** 2))
+        zz += depth_v * bump
 
     _write_obj(out_path, xx, yy, zz, nx, ny)
     return out_path

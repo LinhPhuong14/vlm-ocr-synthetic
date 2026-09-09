@@ -1,0 +1,512 @@
+[
+ {
+  "index": 0,
+  "seed": 2026,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_logo_center",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "page_curl"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, visual=thermal_faint, handwriting=hand_both, augmentation=stains"
+ },
+ {
+  "index": 1,
+  "seed": 2027,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_logo_center",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "worn_plate"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, visual=thermal_faint, handwriting=hand_both, augmentation=stains"
+ },
+ {
+  "index": 2,
+  "seed": 2028,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_minimalist",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "impact_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "screen_photo"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, visual=thermal_faint, handwriting=hand_both, augmentation=stains"
+ },
+ {
+  "index": 3,
+  "seed": 2029,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_minimalist",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "impact_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "annotated"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, visual=thermal_faint, handwriting=hand_both, augmentation=stains"
+ },
+ {
+  "index": 4,
+  "seed": 2030,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_logo_center",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "impact_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "paper_creased"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, visual=thermal_faint, handwriting=hand_both, augmentation=stains"
+ },
+ {
+  "index": 5,
+  "seed": 2031,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_minimalist",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "impact_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "medium"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, visual=thermal_faint, handwriting=hand_both, augmentation=stains"
+ },
+ {
+  "index": 6,
+  "seed": 2032,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_multipage",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "impact_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "crumple"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, visual=thermal_faint, handwriting=hand_both, augmentation=stains"
+ },
+ {
+  "index": 7,
+  "seed": 2033,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_dense_table",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "forwarded_photo"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, visual=thermal_faint, handwriting=hand_both, augmentation=stains"
+ },
+ {
+  "index": 8,
+  "seed": 2034,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_dense_table",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "security_paper"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, visual=thermal_faint, handwriting=hand_both, augmentation=stains"
+ },
+ {
+  "index": 9,
+  "seed": 2035,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_minimalist",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "heavy"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, visual=thermal_faint, handwriting=hand_both, augmentation=stains"
+ },
+ {
+  "index": 10,
+  "seed": 2036,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_dense_table",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "flatbed_scan"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, visual=thermal_faint, handwriting=hand_both, augmentation=stains"
+ },
+ {
+  "index": 11,
+  "seed": 2037,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_logo_center",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "annotated"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, visual=thermal_faint, handwriting=hand_both, augmentation=stains"
+ },
+ {
+  "index": 12,
+  "seed": 2038,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_dense_table",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "impact_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "ghost_text"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, visual=thermal_faint, handwriting=hand_both, augmentation=stains"
+ },
+ {
+  "index": 13,
+  "seed": 2039,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_multipage",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "pristine"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, visual=thermal_faint, handwriting=hand_both, augmentation=stains"
+ },
+ {
+  "index": 14,
+  "seed": 2040,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_logo_center",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "security_guilloche"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, visual=thermal_faint, handwriting=hand_both, augmentation=stains"
+ },
+ {
+  "index": 15,
+  "seed": 2041,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_multipage",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "flatbed_scan"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, visual=thermal_faint, handwriting=hand_both, augmentation=stains"
+ },
+ {
+  "index": 16,
+  "seed": 2042,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_dense_table",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "scribbled"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, visual=thermal_faint, handwriting=hand_both, augmentation=stains"
+ },
+ {
+  "index": 17,
+  "seed": 2043,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_dense_table",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "crumple"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, visual=thermal_faint, handwriting=hand_both, augmentation=stains"
+ },
+ {
+  "index": 18,
+  "seed": 2044,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_minimalist",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "impact_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "medium"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, visual=thermal_faint, handwriting=hand_both, augmentation=stains"
+ },
+ {
+  "index": 19,
+  "seed": 2045,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_minimalist",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "folded"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, visual=thermal_faint, handwriting=hand_both, augmentation=stains"
+ },
+ {
+  "index": 20,
+  "seed": 2046,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_dense_table",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "pristine"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, visual=thermal_faint, handwriting=hand_both, augmentation=stains"
+ },
+ {
+  "index": 21,
+  "seed": 2047,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_minimalist",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "impact_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "impact_ribbon"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, visual=thermal_faint, handwriting=hand_both, augmentation=stains"
+ },
+ {
+  "index": 22,
+  "seed": 2048,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_dense_table",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "impact_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "forwarded_photo"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, visual=thermal_faint, handwriting=hand_both, augmentation=stains"
+ },
+ {
+  "index": 23,
+  "seed": 2049,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_dense_table",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "impact_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "worn_plate"
+  },
+  "by": "llm",
+  "note": "rules refused layout=notebook_ledger, visual=thermal_faint, handwriting=hand_both, augmentation=stains"
+ },
+ {
+  "index": 24,
+  "seed": 2050,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_dense_table",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "flatbed_scan"
+  },
+  "by": "llm",
+  "note": ""
+ },
+ {
+  "index": 25,
+  "seed": 2051,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_minimalist",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "impact_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "annotated"
+  },
+  "by": "llm",
+  "note": ""
+ },
+ {
+  "index": 26,
+  "seed": 2052,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_logo_center",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "medium"
+  },
+  "by": "llm",
+  "note": ""
+ },
+ {
+  "index": 27,
+  "seed": 2053,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_multipage",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "impact_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "worn_plate"
+  },
+  "by": "llm",
+  "note": ""
+ },
+ {
+  "index": 28,
+  "seed": 2054,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_dense_table",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "laser_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "forwarded_photo"
+  },
+  "by": "llm",
+  "note": ""
+ },
+ {
+  "index": 29,
+  "seed": 2055,
+  "force": {
+   "document": "invoice_plain",
+   "layout": "invoice_minimalist",
+   "variant": "none",
+   "content": "invoice_vi",
+   "visual": "impact_invoice",
+   "color": "thermal_yellow",
+   "ornament": "no_ornament",
+   "handwriting": "typed",
+   "augmentation": "crumple"
+  },
+  "by": "llm",
+  "note": ""
+ }
+]

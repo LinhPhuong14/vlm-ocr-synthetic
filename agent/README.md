@@ -283,17 +283,20 @@ python tools/proof_boxes.py --dataset data/5k_llm --workers 3
 | `augmentable.py` | đọc `rulebase/augmentable.yaml`: chứng từ nào được đề xuất biến đổi |
 | `corpus_rules.py` | gác cổng dòng corpus; mọi ngưỡng đo từ corpus đã commit |
 | `augment_content.py` | xin model viết dòng corpus mới, qua gác cổng, rồi ghi |
-| `layout_schema.py` | schema suy ra từ 17 layout viết tay, không phải khai tay |
-| `augment_layout.py` | xin model viết biến thể layout, qua sáu cửa ải, rồi ghi |
+| `layout_schema.py` | schema suy ra từ 51 layout viết tay, không phải khai tay |
+| `augment_layout.py` | **mức 2** — xin model sửa MỘT file layout, qua sáu cửa ải, rồi ghi |
+| `constraints.yaml` | **mức 3** — khổ giấy nào đi với chứng từ nào, và ai đã duyệt |
+| `constraints.py` | đọc và kiểm ràng buộc; document chưa duyệt thì từ chối |
+| `compose_layout.py` | **mức 3** — soạn MỚI một bố cục từ *k* phôi, không sửa phôi nào |
 | `provenance.py` | đóng dấu `# >>> llm …` quanh khối do model viết |
-| `prompts/` | ba prompt, là file markdown chứ không phải chuỗi trong code |
+| `prompts/` | bốn prompt, là file markdown chứ không phải chuỗi trong code |
 
 Ngoài gói này:
 `generators/html/sheets/variant.py` (dán CSS vào trang, và từ chối CSS phá hợp
 đồng hộp), `tools/agent_dataset.py` (driver), `tools/critic_review.py` (chạy
 `critic` + `guideline` như một lệnh), `tools/layout_gallery.py` (thư viện thiết
-kế), `tools/proof_boxes.py` (ảnh proof), `tests/test_agent.py` và
-`tests/test_llm.py`.
+kế), `tools/proof_boxes.py` (ảnh proof), `tests/test_agent.py`,
+`tests/test_llm.py` và `tests/test_compose_layout.py`.
 
 ---
 
@@ -462,3 +465,299 @@ thẳng hai điều đó.
 vào kho đòi chụp lại golden baseline, mà việc đó đang bị chặn bởi một lỗi có sẵn
 (`invoice_export` seed 6026: `menu.nm` có trong nhãn mà không có hộp nào). Máy
 móc đã xong và đã chứng minh; dữ liệu sinh ra thì chờ lỗi kia được sửa.
+
+## 17. Soạn bố cục: `compose_layout.py` — mức 3
+
+```bash
+python -m agent.compose_layout --document invoice_detailed --explain          # ba lớp §8.1
+python -m agent.compose_layout --document invoice_detailed --id invoice_kiosk # xem trước
+python -m agent.compose_layout --document invoice_detailed --id invoice_kiosk --write
+python -m agent.compose_layout --document invoice_detailed --distance invoice_kiosk
+```
+
+Ba mức, và chúng hỏi ba câu khác nhau về **cùng một tờ giấy**:
+
+| mức | file | được đổi | câu hỏi |
+| :--- | :--- | :--- | :--- |
+| 1 · dùng lại | `variants.py` | mực: nét kẻ, tông giấy, bộ chữ, hoạ tiết | *tờ này, in mực khác?* |
+| 2 · dựng lại | `redesign.py`, `augment_layout.py` | thứ tự khối, số cột, chỗ đặt khối tổng | *tờ này, bày khác đi?* |
+| **3 · soạn mới** | **`compose_layout.py`** | **có mấy khối, khối nào, khổ giấy nào** | *một nhà in KHÁC sẽ làm ra tờ gì?* |
+
+Khác biệt với mức 2 không phải là diff to hơn. Mức 2 **nhận một file layout rồi
+sửa**, nên đầu ra luôn là đầu vào cộng thay đổi và về cấu trúc không thể bỏ một
+khối mà phôi cha có. Mức 3 nhận *k* phôi làm **bằng chứng về một loại chứng
+từ**, cộng đặc tả trường, cộng ràng buộc — rồi viết ra một cấu trúc không có
+trong phôi nào.
+
+### Model trả về CẤU TRÚC, không bao giờ trả về markup
+
+`Composition` là khối, cột, khổ giấy và `reasoning`. `to_layout()` — **code,
+không phải model** — biến nó thành đúng file `rulebase/layouts/*.yaml` mà người
+vẫn viết, rồi `sheets/` biến file ấy thành HTML như từ trước tới nay.
+
+Đó không phải gọn gàng, đó là **hợp đồng nhãn**. Mỗi run phải là một `<span>`
+chứa chỉ chữ đã escape, vì phép đo lấy `span.firstElementChild || span` — một
+thẻ lồng lặng lẽ trở thành cái hộp được ghi. Đã đo: một `<sub>` trong công thức
+làm hộp rộng **5,3 px** thay vì 310,6. Model viết HTML thì hợp đồng ấy phụ
+thuộc vào việc model không quên, ở mọi trang, trong 5000 trang; bộ dựng viết
+thì nó đúng theo cấu trúc. Nên không chuỗi nào được chứa `<`, và một ký tự ấy
+làm cả bố cục bị từ chối.
+
+Ba thứ model **không** được đụng, và code viết thay: `item.rows` (dây nối vào
+dữ liệu, suy từ chính các cột đã chọn), `source:` (xuất xứ — mọi phôi viết tay
+dùng ô ấy để ghi tấm ảnh đã đo, còn bố cục soạn mới thì không đo từ ảnh nào),
+và `family:`.
+
+### Ba lớp của §8.1 được TÍNH, không phải được khai
+
+`layers()` giao *k* phôi để ra cái chúng đều có (lớp 1+2 — bất biến pháp lý và
+quy ước ngành) và trừ ra cái chúng khác nhau (lớp 3 — lựa chọn của nhà in). Đó
+là một khẳng định về một tập file, nên nó được đọc từ file.
+
+"Lớp 3" rộng hơn "phôi mang khối khác nhau", và phải rộng hơn: đọc hẹp thì
+đúng **1 trên 33** chứng từ đủ điều kiện. `invoice_plain` có bốn phôi — logo
+canh giữa, bảng dày, tối giản, nhiều trang — mang **cùng bốn khối, cùng thứ
+tự**, và khác nhau ở `table.compact`, `table.blank_rows`, `totals.grand_scale`
+và bề ngang. Bốn trang một người đã vẽ từ bốn tấm ảnh khác nhau, tức là đúng
+định nghĩa lớp 3, mà phép giao nhìn một khoá thì gọi là rỗng. Nên `layers()`
+đo bất đồng trên **sáu chiều**: khối, thứ tự khối, cột, thuộc tính cột, tuỳ
+chọn khối, khổ giấy.
+
+Phôi nào cũng giống nhau trên cả sáu thì **không có lớp 3**, và `layers()` nói
+thế thay vì bịa ra một cái. Đúng §8.2 "báo lại, đừng bịa".
+
+### Đủ điều kiện: 9/33, không phải 28
+
+Spec (R-1) nói "28 chứng từ đủ điều kiện". Đo trên kho này thì **9**:
+
+```
+invoice_detailed   6 phôi  khối, thứ tự khối, thuộc tính cột, tuỳ chọn khối, khổ giấy
+invoice_plain      4 phôi  thuộc tính cột, tuỳ chọn khối, khổ giấy
+convenience_store  2 phôi  cột, thuộc tính cột, tuỳ chọn khối, khổ giấy
+hotel_stay         2 phôi  ·  resort_stay 2  ·  pub_eatery 2  ·  street_eatery 2
+supermarket        2 phôi  ·  supermarket_vat 2
+```
+
+24 chứng từ còn lại trượt, và trượt vì một lý do duy nhất: **22 cái chỉ có một
+phôi**, `form_brief` có hai phôi giống hệt nhau, `restaurant_vat` có hai nhưng
+một là do máy sinh nên không tính. Đó không phải giới hạn của bộ soạn — đó là
+đo được rằng kho chưa có đủ bằng chứng để nói "một nhà in khác sẽ làm gì".
+Muốn mở thêm thì đo thêm một phôi thật, không phải nới luật.
+
+**Phôi do máy sinh không phải bằng chứng.** `layout_schema.py` loại chúng khỏi
+phép suy schema vì "biến thể đầu nới rộng schema, biến thể sau bị kiểm theo lỗi
+của biến thể đầu"; suy luận về lớp cũng hỏng đúng thế, chỉ chậm hơn. Chỉ cái
+người đã đo từ giấy mới được tính.
+
+### Hai cửa vào, và cả hai đều TỪ CHỐI thay vì mặc định
+
+`policy.yaml` nói tờ này có được dựng lại dáng không — `locked` không bao giờ
+tới đây. `constraints.yaml` nói được thì **trong khoảng nào**, và chứng từ chưa
+có mục đã duyệt thì bị từ chối kèm tên file phải sửa. Không cái nào mặc định
+là cho phép: quên khai một phôi thì mất một biến thể, còn mặc định cho phép thì
+ra một tờ giấy tờ nhà nước do máy sinh.
+
+`constraints.yaml` là **việc thủ công**, và cố ý thế. Số đo từ
+`rulebase/layouts/` chỉ nói các phôi ĐANG thế nào; file này phải nói một nhà in
+KHÁC còn được làm gì, và không phôi nào biết điều đó. Sáu phôi của
+`invoice_detailed` đều rộng `[78, 92]` ký tự — đo thì ra "78..92", nhưng đó là
+sáu lần cùng một lựa chọn chứ không phải một giới hạn.
+
+### `couples:` — chỗ phép giao đếm sai
+
+Phép giao đếm **KHỐI**; một trang làm bằng **TRƯỜNG**. Phôi bỏ một khối mà vẫn
+in đủ trường của nó là vì khối khác được bảo làm thay:
+
+| phôi bỏ | vì tuỳ chọn | in thay ở đâu |
+| :--- | :--- | :--- |
+| `strip` | `header.align: corner` | hộp góc phải đã vẽ số, ngày, hạn thanh toán |
+| `totals` | `table.component: true` | ba dòng tổng thành ba dòng cuối bảng hàng |
+
+Cặp là **loại trừ hai chiều**: không có khối và cũng không bật tuỳ chọn thì
+nhãn không có mực (I-5); có cả hai thì cùng một trường in hai lần. Viết tay chứ
+không suy ra, vì đây là chuyện hai hàm của bộ dựng tương tác với nhau — đọc bao
+nhiêu phôi cũng không ra, phải đọc `sheets/modern.py`.
+
+Bản đầu không có `couples:` mà đòi luôn cả hai khối. An toàn, và mất mọi biến
+thể mà một nhà in thật đã làm.
+
+Bản thứ hai có `couples:` nhưng để **model tự khai tuỳ chọn** — và nó hỏng theo
+một kiểu đáng nhớ. Trên cả 52 phôi, `header.align: corner` đúng bằng "không có
+`strip`" và `table.component: true` đúng bằng "không có `totals`": **một quyết
+định**, mà danh sách khối đã nói rồi. Hỏi lần thứ hai là mời model tự mâu
+thuẫn, và một server thật mâu thuẫn **ba vòng liên tiếp** — mỗi vòng đều muốn
+tiêu đề hộp góc *và* dải ngày. Một trang hợp lý, bị từ chối vì không thống nhất
+với chính nó về thứ nó bị hỏi hai lần.
+
+Nay giá trị ghép bị **gạch khỏi schema** (`_settable`) và `to_layout` suy nó ra
+từ danh sách khối, đúng cách `item.rows` được suy từ danh sách cột. Lá vẫn còn
+nếu nó còn giá trị khác — `header.align: split` vẫn là một lựa chọn, vì nó là
+một lựa chọn thật; `table.component` bị gỡ hẳn vì giá trị còn lại đúng bằng mặc
+định, tức một câu hỏi chỉ có một đáp án.
+
+**Bài học lặp lại lần thứ hai:** cửa 1 phải làm cái sai thành *không đánh vần
+được*, không phải thành *bị từ chối*. Lần đầu là tuỳ chọn của khối khác; lần
+này là một quyết định bị hỏi hai lần.
+
+### Bảy cửa ải
+
+| # | kiểm | ở đâu | bắt được gì |
+| --- | --- | --- | --- |
+| 1 | guided decoding theo schema | `schema_for()` | id không tồn tại, thiếu khoá, sai kiểu, **tuỳ chọn của khối khác** |
+| 2 | trọng tài số | `check_numbers()` | cột co giãn hụt chỗ, khoảng đảo, khổ giấy sai |
+| 3 | chữ in ra | `check_numbers()` + cửa 4 | tiêu đề cột rỗng, quá dài, không có chữ cái |
+| 4 | schema bố cục | `layout_schema.check/ranges/missing` | key lạ, ngoài dải đã đo |
+| 5 | hợp đồng nhãn | `check_contract()` | `<`, `text-transform`, `content:` mang chữ |
+| 6 | dựng + preflight | `augment_layout.draws/preflight` | nhãn mồ côi, tràn khổ, đăng ký sai |
+| 7 | critic | `--proof N` → `agent/critic.py` | chồng lấn, tràn lề, chữ nhỏ — 13 mã |
+
+Sáu cửa đầu chạy trong `--write`. **Cửa 7 cần ảnh thật**, nên nó là một lệnh
+riêng chạy sau khi layout đã được ghi:
+
+```bash
+python -m agent.compose_layout --document invoice_detailed --id invoice_thu --proof 12
+```
+
+Nó vẽ 12 trang vào `data/compose/<id>/html/` rồi đọc lại bằng `agent/critic.py`
+— cùng đường mà `tools/critic_review.py` đọc một lượt chạy thật, nên bố cục
+soạn ra được chấm bằng đúng con mắt chấm mọi trang khác.
+
+**Hai trục bị ghim, năm trục vẫn bốc.** Đo trên 12 trang thật:
+
+| thuộc tính | số giá trị | do đâu |
+| :--- | ---: | :--- |
+| `layout` | **1** | thứ model soạn ra — cả 12 trang cùng một file |
+| `document` · `variant` · `augmentation` | 1 · 1 · 1 | ghim: `none` và `CLEAN_FORCES` |
+| `content` · `color` · `visual` · `handwriting` · `ornament` | 3 · 4 · 2 · 3 · 6 | rulebase bốc theo seed |
+
+Ghim `variant`/`augmentation` là vì hai trục ấy che mất thứ đang soi: một dải
+guilloche hay một lớp mực mòn làm hộp nhãn dịch chỗ, và bản án về bố cục sẽ
+phụ thuộc vào việc hạt giống trúng mô hình nào — lần đầu chạy nó trúng một mô
+hình cần Blender và render chết luôn.
+
+Năm trục kia **cố ý** không ghim: một bố cục chỉ sống được với đúng một màu
+mực và đúng một kiểu nội dung là một bố cục tồi, và 12 trang cùng nội dung thì
+không nói được điều đó. Đổi lại, một lỗi `critic` báo ra chưa chắc do bố cục —
+`critic.rank()` quy trách nhiệm theo từng giá trị thuộc tính, nhưng cần nhiều
+hơn 12 trang mới có ý nghĩa thống kê. Với 12 trang thì nó là **phép thử khói**,
+không phải bản án.
+
+Ảnh để lại chính là thứ A-5 cần: "một nhà in có thể đã in tờ này" là phán đoán
+về một tấm ảnh giấy, không ai đưa ra được từ một file YAML. Vẽ hộp nhãn đè lên
+để đọc nhanh hơn:
+
+```bash
+python tools/proof_boxes.py --dataset data/compose/<id> --mode layout
+```
+
+`layout` tô theo 18 vùng trục 1, `blocks` (mặc định) theo từng trường, `words`
+theo từng từ.
+
+Hỏng ở bất kỳ bước nào: file bị xoá và **cả hai đăng ký được hoàn nguyên**.
+Cửa 6 báo nhãn mồ côi thì lệnh chỉ thẳng vào `sections.required` /`couples:` của
+chứng từ ấy — đó là chỗ sửa, không phải chỗ nới luật.
+
+#### Cửa 1 phải làm cái sai thành BẤT KHẢ, không phải thành bị-từ-chối
+
+Bản đầu để tuỳ chọn nằm **trong** mỗi khối. Danh sách khối là một mảng JSON, mà
+một mảng chỉ có một schema cho phần tử — nên tập tuỳ chọn phải là **hợp của mọi
+khối**, và schema hoá ra *cho phép* `header.name_gap` (có thật, ở `signatures`)
+và `table.indent` (có thật, ở `totals`). Model được mời điền thì nó điền, rồi
+`check_structure` từ chối ngay sau đó.
+
+Đo trên lần chạy thật đầu tiên với server local: **9/13 lỗi vòng 1, 12/14 vòng
+2, 7/11 vòng 3** đúng là chuyện ấy — schema mời một khoá và cửa kiểm đuổi nó.
+
+Nay tuỳ chọn nằm **cạnh** khối, khoá theo tên khối (`settings: {header: {...},
+table: {...}}`), mỗi khối một object riêng với `additionalProperties: false`.
+`header.name_gap` thành **không đánh vần được**. Tình cờ đó cũng đúng hình dạng
+của file đang dựng: `sections: [...]` ở trên và `header: {...}` bên cạnh chính
+là cách một layout YAML được viết.
+
+Hai lỗi còn lại schema **không** diễn đạt được, nên chúng nằm ở prompt cộng cửa
+kiểm — đúng cách mục 16 đã xử hai lần:
+
+* **khoảng đảo ngược** (`[1.4, 1]`, `[84, 76]`) — JSON Schema không nói được
+  "tăng dần";
+* **cột trùng `key`** — `uniqueItems` so cả object, mà hai cột khác nhau đúng ở
+  `title` vẫn là hai object khác nhau. Cái schema làm được là không cho xin
+  nhiều cột hơn số khoá đang có.
+
+### Đã chạy thật, và bắt được đúng những gì thiết kế để bắt
+
+Bốn vòng của chế độ `coverage` trên `invoice_detailed`, mỗi vòng một lỗi thật:
+
+| vòng | bộ soạn viết | cửa nào bắt |
+| --- | --- | --- |
+| 1 | cột co giãn còn 14 ký tự (cần 16) | 2 — trước khi vẽ gì |
+| 2 | `source:` chứa `;`, ký tự không phôi nào in | 4 |
+| 3 | bỏ `strip` rồi bỏ `totals` mà không bù | 6 — `invoice.strip.Ngày`, `total.Tổng cộng thanh toán`, cả 10 seed |
+| 4 | không tuỳ chọn nào ⇒ `notes` về `style: block` | 6 — **108% khổ A4** ở seed 2 |
+
+Và ba vòng của nhánh có model trên server local — 13 lỗi, rồi 1–2, rồi 1:
+
+| vòng | model viết | ai sai | sửa ở đâu |
+| --- | --- | --- | --- |
+| 1 | `header.name_gap`, `table.indent`, `notes.rule_after` (9/13 lỗi) | **tôi** — schema gộp tuỳ chọn mọi khối | `settings` tách theo khối |
+| 2 | cột cố định ăn hết bề ngang, cột tên còn 0 rồi −2 | **tôi** — trần cột là 48, phôi rộng nhất 15 | trần đo từ phôi = 21, và đưa phép tính vào prompt |
+| 2 | `totals` + `table.component: true` | **tôi** — quên nói với model về `couples` | liệt kê cặp trong lượt người dùng |
+| 3 | `totals.indent: 0` | **tôi** — JSON một kiểu số, `layout_schema` hai | `to_layout` viết theo kiểu corpus viết |
+| 3 | `{"type":"integer","minimum":1.4285…}` → vLLM HTTP 500 | **tôi** — `bounds()` đệm SLACK nên luôn ra float | `ceil`/`floor` về số nguyên bao trong |
+| 4 | `strip` + `header.align: corner`, ba vòng liền | **tôi** — một quyết định hỏi hai chỗ | gạch giá trị ghép khỏi schema, bộ dựng suy ra |
+
+Sáu lỗi, **sáu lần là thiết kế sai chứ không phải model bịa**. Đó là cái đáng
+ghi lại nhất ở đây: khi cửa 1 mời một câu trả lời rồi cửa 2 phạt nó, thứ hỏng
+là cái cửa, không phải cái model.
+
+Vòng 5 qua cả sáu cửa chạy được ngoại tuyến. Hai lần sửa là sửa **dữ liệu**
+(`constraints.yaml`), một lần sửa **bộ soạn** (chép tuỳ chọn từ phôi xương sống
+thay vì để trống), một lần sửa **đăng ký** (`augment_layout.register` chỉ vá
+được danh sách `documents:` viết trên một dòng, mà `invoice_detailed` và
+`invoice_plain` viết trên hai — nên đúng hai chứng từ nhiều phôi nhất bị bỏ
+sót, lặng lẽ).
+
+### A-2 đo được, và chế độ `coverage` TRƯỢT nó
+
+`--distance` vẽ bố cục soạn ra cạnh từng phôi, cùng seed cùng dressing, rồi đếm
+run đã dịch — dùng lại `compare`/`render` của `distance.py` không sửa gì. Lấy
+**gần nhất** chứ không lấy trung bình: một tờ xa năm phôi mà trùng phôi thứ sáu
+vẫn là bản sao.
+
+```
+0.708  invoice_two_column     ← gần nhất
+0.782  invoice_keyvalue
+0.793  invoice_logo_split
+0.793  invoice_remittance
+0.796  invoice_header_table
+0.949  invoice_sidebar
+```
+
+**0.708 < 0.764**, và đó là câu trả lời đúng. Chế độ `coverage` chép thứ tự
+khối, thứ tự cột và tuỳ chọn từ một phôi rồi mới xê dịch — nó không được thiết
+kế để sáng tạo, nó được thiết kế để **lặp lại được** (R-6: cùng seed ra cùng
+byte, thứ một LLM chỉ *thường* làm được). Vượt 0.764 là việc của nhánh có model.
+
+### A-5 trên tờ đầu tiên: tạm được, và chỗ lộ nằm ở đâu
+
+12 trang của `invoice_kiosk` (chế độ `coverage`): **0 trang lỗi nặng**, dưới
+ngưỡng A-3 là 1,2%. Cửa 7 sạch.
+
+Đọc bằng mắt thì khác. Tờ giấy đúng dáng hoá đơn GTGT — hộp góc phải có số,
+ngày, hạn thanh toán; ba dòng tổng gộp vào cuối bảng; khối ngân hàng; tiền
+bằng chữ; hai ô ký. Nhưng **khối `parties` là 11 dòng liền không ngắt**: năm
+trường bên bán chảy thẳng vào sáu trường bên mua, không tiêu đề, không vạch
+ngăn. Không nhà in nào dàn như thế.
+
+Đó là `parties.style: stacked` — một giá trị hợp lệ, trong dải đã đo, có trên
+phôi thật, và sai ở đây. (Chữ không dấu trên cùng trang ấy thì **không** phải
+lỗi bố cục: `content: invoice_ascii` bốc trúng 2/12 trang, và nó là một kiểu
+nội dung có thật của kho.) **Không cửa nào bắt được**, đúng như §10 lường trước:
+ba trong năm kiểu sai không có cửa ải nào chặn, và A-5 là chỗ duy nhất chặn
+được. Nó vừa chứng minh mình cần thiết ngay trên tờ đầu tiên.
+
+### Bố cục soạn ra chưa được commit
+
+Cùng lý do mục 16: nó qua hàng rào, nhưng thêm một layout vào kho làm
+`test_agent.py::test_coverage_beats_independent_draws_on_the_tail` đỏ (400 lượt
+bốc không còn phủ hết) và đòi chụp lại golden baseline. Máy móc đã xong và đã
+chứng minh; layout sinh ra thì chờ.

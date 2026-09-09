@@ -284,10 +284,23 @@ người ta làm thế. `handwriting.fill` có thể thay một run `sign.name` 
 markup bên trong. Ký sau thì trên đúng những trang được điền tay nhiều nhất,
 chữ ký sẽ lặng lẽ không xuất hiện.
 
-### Dấu ký không bao giờ là một run có nhãn
+### Dấu ký không bao giờ là một run có nhãn — nhưng nó CÓ hộp
 
-Đây là điểm tựa của cả thiết kế. Chữ ký là **mực không có hộp và không có
-chữ**: nó phải nằm trên trang và phải nằm ngoài nhãn.
+Đây là điểm tựa của cả thiết kế. Chữ ký **không phải một trường để đọc**: nó
+không có `data-kind`, không vào `blocks[]`, không hứa với ai rằng có chữ đọc
+được ở đó.
+
+Nó **không** vì thế mà nằm ngoài nhãn. Từ khi `page.py::GRAPHIC_RECTS_JS` ra
+đời, mực chữ ký có một vùng `Image` trong `layout_annotations`, cùng chỗ với
+logo, watermark, mã vạch và hoa văn. Bản trước để nó hoàn toàn không hộp, và
+đó là sai theo đúng I-5: **mực không có hộp là mực không có nhãn**. Hai câu
+khác nhau, và chỉ câu đầu là chủ ý:
+
+| | chữ ký |
+| :--- | :--- |
+| `blocks[]` (trường để đọc) | **không** — không có chữ nào để đọc |
+| `layout_annotations` (vùng trên trang) | **có** — một vùng `Image` |
+| `record["signature"]` | có — kiểu nét, ai ký, khối nào bỏ trống |
 
 * thẻ phát ra là `<span class="sig">`, **không có `data-kind`**;
 * `sheets.labelled_runs` và `sheets.structure_from_markup` cho kết quả **y hệt**

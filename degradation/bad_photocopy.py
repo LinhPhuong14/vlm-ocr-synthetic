@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import random
 
+import cv2
 import numpy as np
 
 from .texture import _as_bgr, _restore, _value_noise
@@ -97,4 +98,42 @@ def bad_photocopy(
 
 
 
-__all__ = ["bad_photocopy"]
+def monochrome(image: np.ndarray, warmth: float = 0.0) -> np.ndarray:
+    """Bỏ hết màu khỏi trang: máy photo chỉ có MỘT hộp mực.
+
+    Cái máy không có màu nào để in ra, nên bản photo của một tờ hoá đơn mực
+    xanh, một con dấu đỏ và một dấu "BẢN SAO" xanh lam đều ra cùng một thang
+    xám. Không có bước này thì chuỗi `photocopy*` cho ra tờ giấy **có màu mà
+    lại mang lưới tram** — hai thứ không bao giờ đi cùng nhau trên giấy thật.
+
+    Trọng số luminance (BT.601, đúng cái `cv2.COLOR_BGR2GRAY` dùng) chứ không
+    phải trung bình ba kênh: mắt người và cảm biến CCD của máy quét đều nhạy
+    với lục hơn lam gấp nhiều lần, nên trung bình cộng làm chữ đỏ ra quá nhạt
+    và chữ lam ra quá đậm so với bản photo thật.
+
+    **Đặt CUỐI chuỗi, không phải đầu.** `paper_texture` và `paper_overlay`
+    dán một tấm ảnh giấy thật lên trang, và ảnh ấy có màu; `pattern_overlay`
+    đóng con dấu cũng có màu. Chuyển xám trước chúng thì màu quay lại ngay sau
+    đó. Cuối chuỗi là chỗ duy nhất bảo đảm được điều đầu đề nói.
+
+    `warmth` (0..1) pha lại một chút ám vàng của giấy đã ngả, cho tờ photo cũ.
+    0 là xám thuần, và đó là mặc định — **cũng là giá trị duy nhất giữ được
+    lời hứa "cả ảnh là greyscale"**. Đo được: ở `warmth: 0.25` kênh chroma còn
+    khác 0, và JPEG 4:2:0 lúc ghi ảnh dội quanh các chấm halftone thành viền
+    bão hoà 255 trên 0,5-0,7% pixel — mắt thường không thấy, `cv2.cvtColor(...,
+    BGR2HSV)[...,1].max()` thấy ngay. Muốn giấy ngả vàng thì làm ở
+    `paper_texture`, nơi nó không phải đi qua chroma của một ảnh nén.
+    """
+    out, was_gray = _as_bgr(image)
+    grey = cv2.cvtColor(out, cv2.COLOR_BGR2GRAY)
+    out = cv2.cvtColor(grey, cv2.COLOR_GRAY2BGR).astype(np.float32)
+    warmth = float(np.clip(warmth, 0.0, 1.0))
+    if warmth:
+        # BGR: hạ lam, giữ lục, nâng đỏ -- ám vàng, không phải ám nâu.
+        tint = np.array([1.0 - 0.16 * warmth, 1.0, 1.0 + 0.06 * warmth],
+                        dtype=np.float32)
+        out *= tint
+    return _restore(np.clip(out, 0, 255).astype(np.uint8), was_gray)
+
+
+__all__ = ["bad_photocopy", "monochrome"]

@@ -1,0 +1,5 @@
+{"file": "html_000.jpg", "layout": "market_compact", "seconds": 3.9044, "stages": {"draw": 3.8665, "write": 0.0379}}
+{"file": "html_001.jpg", "layout": "form_activity_signature", "seconds": 3.4087, "stages": {"draw": 3.3555, "write": 0.0532}}
+{"file": "html_002.jpg", "layout": "invoice_brand", "seconds": 59.9673, "stages": {"draw": 59.8772, "write": 0.0901}}
+{"file": "html_003.jpg", "layout": "insurance_property_contract", "seconds": 11.2443, "stages": {"draw": 11.0985, "write": 0.1458}}
+{"file": "html_004.jpg", "layout": "form_multi_section", "seconds": 39.5391, "stages": {"draw": 39.466, "write": 0.0731}}

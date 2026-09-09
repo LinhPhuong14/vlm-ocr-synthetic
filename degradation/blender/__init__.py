@@ -11,6 +11,8 @@ key of `rulebase.rules.augmentation.yaml`'s "HÌNH HỌC" options, read from the
 from __future__ import annotations
 
 from .meshes import names
-from .render import BlenderWarpError, apply_warp, find_blender, warp_regions
+from .render import (BlenderWarpError, apply_warp, available, find_blender,
+                     warp_regions)
 
-__all__ = ["BlenderWarpError", "apply_warp", "find_blender", "names", "warp_regions"]
+__all__ = ["BlenderWarpError", "apply_warp", "available", "find_blender", "names",
+           "warp_regions"]

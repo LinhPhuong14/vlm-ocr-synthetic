@@ -1,0 +1,235 @@
+options:
+- id: diacritics_mixed
+  weight: 3.0
+  tags:
+  - diacritics
+  excludes:
+  - ascii_only
+  - doc_invoice
+  params:
+    money_style: dot
+    prob_ascii_fold: 0.0
+    prob_uppercase: 0.15
+    show_subtotal: true
+    show_payment: true
+    num_footers:
+    - 1
+    - 3
+    prob_item_discount: 0.1
+- id: diacritics_upper
+  weight: 3.0
+  tags:
+  - diacritics
+  excludes:
+  - ascii_only
+  - doc_invoice
+  params:
+    money_style: dot
+    prob_ascii_fold: 0.0
+    prob_uppercase: 0.85
+    show_subtotal: true
+    show_payment: true
+    num_footers:
+    - 1
+    - 3
+    prob_item_discount: 0.1
+- id: ascii_upper
+  weight: 2.0
+  tags:
+  - no_diacritics
+  excludes:
+  - doc_invoice
+  params:
+    money_style: comma
+    prob_ascii_fold: 1.0
+    prob_uppercase: 1.0
+    show_subtotal: false
+    show_payment: false
+    num_footers:
+    - 1
+    - 2
+    prob_item_discount: 0.0
+- id: market_full
+  weight: 3.0
+  tags:
+  - diacritics
+  requires:
+  - doc_market
+  excludes:
+  - ascii_only
+  - doc_invoice
+  params:
+    money_style: comma
+    prob_ascii_fold: 0.0
+    prob_uppercase: 0.55
+    show_subtotal: true
+    show_vat: true
+    show_payment: true
+    show_item_count: false
+    num_footers:
+    - 2
+    - 4
+    prob_item_discount: 0.3
+    prob_weighed: 0.25
+- id: market_decimals
+  weight: 3.0
+  tags:
+  - diacritics
+  - two_decimals
+  requires:
+  - vat_rows
+  excludes:
+  - ascii_only
+  - doc_invoice
+  params:
+    money_style: comma_2dp
+    prob_ascii_fold: 0.0
+    prob_uppercase: 0.3
+    show_subtotal: true
+    show_vat: true
+    show_payment: true
+    show_item_count: true
+    num_footers:
+    - 1
+    - 3
+    prob_item_discount: 0.2
+    prob_weighed: 0.15
+- id: dong_suffix
+  weight: 1.0
+  tags:
+  - currency_suffix
+  - diacritics
+  excludes:
+  - ascii_only
+  - doc_invoice
+  - two_decimals
+  params:
+    money_style: dot
+    money_suffix: đ
+    prob_ascii_fold: 0.0
+    prob_uppercase: 0.4
+    show_subtotal: true
+    show_payment: true
+    num_footers:
+    - 0
+    - 2
+    prob_item_discount: 0.05
+- id: invoice_vi
+  weight: 3.0
+  tags:
+  - diacritics
+  - invoice_text
+  requires:
+  - doc_invoice
+  excludes:
+  - lang_en
+  params:
+    money_style: dot
+    prob_ascii_fold: 0.0
+    prob_uppercase: 0.1
+    show_subtotal: true
+    show_vat: true
+    show_payment: false
+    num_footers:
+    - 1
+    - 2
+    prob_item_discount: 0.0
+- id: invoice_vi_upper
+  weight: 1.0
+  tags:
+  - diacritics
+  - invoice_text
+  requires:
+  - doc_invoice
+  excludes:
+  - lang_en
+  params:
+    money_style: dot
+    prob_ascii_fold: 0.0
+    prob_uppercase: 0.8
+    show_subtotal: true
+    show_vat: true
+    show_payment: false
+    num_footers:
+    - 1
+    - 2
+    prob_item_discount: 0.0
+- id: invoice_ascii
+  weight: 1.0
+  tags:
+  - invoice_text
+  - no_diacritics
+  requires:
+  - doc_invoice
+  excludes:
+  - lang_en
+  params:
+    money_style: comma
+    prob_ascii_fold: 1.0
+    prob_uppercase: 1.0
+    show_subtotal: true
+    show_vat: true
+    show_payment: false
+    num_footers:
+    - 1
+    - 2
+    prob_item_discount: 0.0
+- id: invoice_en
+  weight: 2.0
+  tags:
+  - invoice_text
+  - no_diacritics
+  requires:
+  - lang_en
+  params:
+    money_style: cents
+    money_prefix: $
+    prob_ascii_fold: 0.0
+    prob_uppercase: 0.0
+    show_subtotal: true
+    show_vat: true
+    show_payment: false
+    num_footers:
+    - 1
+    - 3
+    prob_item_discount: 0.0
+- id: invoice_service_dong
+  weight: 2.0
+  tags:
+  - currency_suffix
+  - diacritics
+  - invoice_text
+  requires:
+  - doc_service
+  params:
+    money_style: dot
+    money_suffix: đ
+    prob_ascii_fold: 0.0
+    prob_uppercase: 0.1
+    show_subtotal: true
+    show_vat: true
+    show_payment: false
+    num_footers:
+    - 1
+    - 2
+    prob_item_discount: 0.0
+- id: invoice_service_vnd
+  weight: 2.0
+  tags:
+  - currency_suffix
+  - diacritics
+  - invoice_text
+  requires:
+  - doc_service
+  params:
+    money_style: dot
+    money_suffix: ' VND'
+    prob_ascii_fold: 0.0
+    prob_uppercase: 0.15
+    show_subtotal: true
+    show_vat: true
+    show_payment: false
+    num_footers:
+    - 1
+    - 2
+    prob_item_discount: 0.0

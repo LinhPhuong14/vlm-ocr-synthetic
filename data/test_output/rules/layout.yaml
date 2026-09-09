@@ -1,0 +1,536 @@
+options:
+- id: eatery_indexed
+  weight: 3.0
+  tags:
+  - has_index_column
+  - till_receipt
+  - two_line_items
+  requires:
+  - doc_eatery
+  excludes:
+  - doc_invoice
+- id: eatery_indexed_b
+  weight: 1.0
+  tags:
+  - has_index_column
+  - till_receipt
+  - two_line_items
+  requires:
+  - doc_eatery
+  excludes:
+  - doc_invoice
+- id: eatery_ascii
+  weight: 2.0
+  tags:
+  - ascii_only
+  - no_title
+  - till_receipt
+  requires:
+  - doc_eatery
+  excludes:
+  - doc_invoice
+  - has_vat
+- id: market_barcode
+  weight: 3.0
+  tags:
+  - barcode_rows
+  - till_receipt
+  requires:
+  - has_barcode
+  excludes:
+  - doc_invoice
+- id: market_compact
+  weight: 3.0
+  tags:
+  - till_receipt
+  - wrapped_names
+  requires:
+  - doc_market
+  excludes:
+  - doc_invoice
+  - has_vat_lines
+- id: notebook_ledger
+  weight: 2.0
+  tags:
+  - fillable
+  - handwritten
+  - ruled_paper
+  - till_receipt
+  requires:
+  - doc_market
+  excludes:
+  - doc_invoice
+  - has_barcode
+  - has_vat_lines
+- id: market_vat
+  weight: 2.0
+  tags:
+  - till_receipt
+  - vat_rows
+  requires:
+  - has_vat_lines
+  excludes:
+  - doc_invoice
+- id: invoice_vat_form
+  weight: 2.0
+  tags:
+  - dotted_fields
+  - fillable
+  - printed_form
+  - ruled_table
+  - wide_paper
+  requires:
+  - doc_invoice
+  - invoice_form
+- id: invoice_vat_summary
+  weight: 2.0
+  tags:
+  - boxed_letterhead
+  - fillable
+  - printed_form
+  - ruled_table
+  - summary_table
+  - wide_paper
+  requires:
+  - doc_invoice
+  - invoice_summary
+- id: invoice_export
+  weight: 2.0
+  tags:
+  - bilingual
+  - fillable
+  - numbered_columns
+  - printed_form
+  - ruled_table
+  - stacked_parties
+  - wide_paper
+  requires:
+  - doc_export
+  - doc_invoice
+  excludes:
+  - has_vat
+- id: invoice_water
+  weight: 2.0
+  tags:
+  - fillable
+  - meter_rows
+  - printed_form
+  - ruled_table
+  - wide_paper
+  requires:
+  - doc_utility
+  - metered_water
+- id: invoice_power
+  weight: 2.0
+  tags:
+  - fillable
+  - printed_form
+  - ruled_table
+  - tier_rows
+  - wide_paper
+  requires:
+  - doc_utility
+  - metered_power
+- id: invoice_hotel_stay
+  weight: 2.0
+  tags:
+  - dated_rows
+  - fillable
+  - key_strip
+  - no_frame
+  - signature_names
+  - wide_paper
+  requires:
+  - doc_lodging
+- id: invoice_hotel_compact
+  weight: 2.0
+  tags:
+  - dated_rows
+  - fillable
+  - key_strip
+  - narrow_sheet
+  - no_frame
+  - signature_names
+  - wide_paper
+  requires:
+  - doc_lodging
+- id: invoice_tax_en
+  weight: 2.0
+  tags:
+  - fillable
+  - no_frame
+  - wide_paper
+  requires:
+  - doc_invoice
+  - lang_en
+- id: invoice_brand
+  weight: 2.0
+  tags:
+  - fillable
+  - footer_columns
+  - key_strip
+  - no_frame
+  - wide_paper
+  requires:
+  - doc_brand
+  - doc_invoice
+- id: invoice_header_table
+  weight: 2.0
+  tags:
+  - fillable
+  - no_frame
+  - wide_paper
+  requires:
+  - doc_invoice
+  - rich_fields
+- id: invoice_logo_split
+  weight: 2.0
+  tags:
+  - fillable
+  - no_frame
+  - wide_paper
+  requires:
+  - doc_invoice
+  - rich_fields
+- id: invoice_logo_center
+  weight: 2.0
+  tags:
+  - no_frame
+  - wide_paper
+  requires:
+  - bare_fields
+  - doc_invoice
+- id: invoice_two_column
+  weight: 2.0
+  tags:
+  - fillable
+  - no_frame
+  - wide_paper
+  requires:
+  - doc_invoice
+  - rich_fields
+- id: invoice_sidebar
+  weight: 2.0
+  tags:
+  - fillable
+  - no_frame
+  - wide_paper
+  requires:
+  - doc_invoice
+  - rich_fields
+- id: invoice_keyvalue
+  weight: 2.0
+  tags:
+  - fillable
+  - no_frame
+  - wide_paper
+  requires:
+  - doc_invoice
+  - rich_fields
+- id: invoice_dense_table
+  weight: 2.0
+  tags:
+  - no_frame
+  - wide_paper
+  requires:
+  - bare_fields
+  - doc_invoice
+- id: invoice_minimalist
+  weight: 2.0
+  tags:
+  - no_frame
+  - wide_paper
+  requires:
+  - bare_fields
+  - doc_invoice
+- id: invoice_multipage
+  weight: 1.0
+  tags:
+  - no_frame
+  - wide_paper
+  requires:
+  - bare_fields
+  - doc_invoice
+- id: invoice_remittance
+  weight: 2.0
+  tags:
+  - fillable
+  - no_frame
+  - wide_paper
+  requires:
+  - doc_invoice
+  - rich_fields
+- id: medical_statement
+  weight: 2.0
+  tags:
+  - fillable
+  - grouped_rows
+  - multi_source
+  - printed_form
+  - ruled_table
+  - wide_paper
+  requires:
+  - doc_invoice
+  - doc_medical
+- id: authorisation_letter
+  weight: 2.0
+  tags:
+  - dotted_fields
+  - field_form
+  - fillable
+  - no_frame
+  - printed_form
+  - wide_paper
+  requires:
+  - doc_authorisation
+  - doc_invoice
+- id: form_questionnaire
+  weight: 2.0
+  tags:
+  - field_form
+  - fillable
+  - printed_form
+  - wide_paper
+  requires:
+  - bare_kv
+  - doc_invoice
+- id: form_timesheet_grid
+  weight: 1.0
+  tags:
+  - grid_form
+  - printed_form
+  - ruled_table
+  - wide_paper
+  requires:
+  - doc_invoice
+  - roster
+- id: form_project_kv
+  weight: 2.0
+  tags:
+  - field_form
+  - fillable
+  - printed_form
+  - wide_paper
+  requires:
+  - bare_kv
+  - doc_invoice
+- id: form_two_column
+  weight: 1.0
+  tags:
+  - field_form
+  - fillable
+  - printed_form
+  - two_column
+  - wide_paper
+  requires:
+  - doc_invoice
+  - symmetric
+- id: form_multi_section
+  weight: 1.0
+  tags:
+  - field_form
+  - fillable
+  - printed_form
+  - ruled_table
+  - wide_paper
+  requires:
+  - doc_invoice
+  - sectioned
+- id: form_checkbox_heavy
+  weight: 1.0
+  tags:
+  - checkbox_form
+  - fillable
+  - printed_form
+  - wide_paper
+  requires:
+  - checklist
+  - doc_invoice
+- id: form_activity_signature
+  weight: 1.0
+  tags:
+  - field_form
+  - printed_form
+  - ruled_table
+  - wide_paper
+  requires:
+  - activity
+  - doc_invoice
+- id: form_table_based
+  weight: 1.0
+  tags:
+  - checkbox_form
+  - printed_form
+  - ruled_table
+  - wide_paper
+  requires:
+  - checklist_table
+  - doc_invoice
+- id: form_government_app
+  weight: 1.0
+  tags:
+  - field_form
+  - fillable
+  - govt_masthead
+  - printed_form
+  - wide_paper
+  requires:
+  - dense_registry
+  - doc_invoice
+- id: form_dense_registration
+  weight: 1.0
+  tags:
+  - field_form
+  - fillable
+  - printed_form
+  - wide_paper
+  requires:
+  - dense_registry
+  - doc_invoice
+- id: newspaper_front_broadsheet
+  weight: 2.0
+  tags:
+  - lead_sidebar
+  - multi_column_body
+  - periodical
+  - wide_paper
+  requires:
+  - periodical_lead_sidebar
+  excludes:
+  - doc_invoice
+- id: newspaper_classifieds
+  weight: 2.0
+  tags:
+  - classified_ads
+  - periodical
+  - six_column
+  - wide_paper
+  requires:
+  - periodical_classifieds
+  excludes:
+  - doc_invoice
+- id: magazine_contents
+  weight: 2.0
+  tags:
+  - periodical
+  - toc_listing
+  - two_column
+  - wide_paper
+  requires:
+  - periodical_toc
+  excludes:
+  - doc_invoice
+- id: magazine_qa_interview
+  weight: 2.0
+  tags:
+  - full_bleed_photo
+  - periodical
+  - qa_transcript
+  - two_column
+  - wide_paper
+  requires:
+  - periodical_qa
+  excludes:
+  - doc_invoice
+- id: insurance_moto_certificate
+  weight: 2.0
+  tags:
+  - fillable
+  - insurance
+  - landscape
+  - tiny_card
+  requires:
+  - doc_invoice
+  - insurance_moto_cert
+- id: insurance_auto_certificate
+  weight: 2.0
+  tags:
+  - fillable
+  - insurance
+  - landscape
+  - table_form
+  requires:
+  - doc_invoice
+  - insurance_auto_cert
+- id: insurance_life_schedule
+  weight: 2.0
+  tags:
+  - boxed_note
+  - fillable
+  - insurance
+  - priced_table
+  requires:
+  - doc_invoice
+  - insurance_life_schedule
+- id: insurance_application_form
+  weight: 2.0
+  tags:
+  - checklist_table
+  - comb_box
+  - fillable
+  - insurance
+  requires:
+  - doc_invoice
+  - insurance_application_form
+- id: insurance_health_id_card
+  weight: 2.0
+  tags:
+  - fillable
+  - id_card
+  - insurance
+  - landscape
+  - two_faces
+  requires:
+  - doc_invoice
+  - insurance_health_id_card
+- id: insurance_health_certificate
+  weight: 2.0
+  tags:
+  - fillable
+  - grouped_rows
+  - insurance
+  - sidebar
+  requires:
+  - doc_invoice
+  - insurance_health_cert
+- id: insurance_cargo_policy
+  weight: 2.0
+  tags:
+  - bare_kv
+  - bilingual
+  - fillable
+  - insurance
+  requires:
+  - doc_invoice
+  - insurance_cargo_policy
+- id: insurance_fire_certificate
+  weight: 2.0
+  tags:
+  - fillable
+  - insurance
+  - priced_table
+  - roman_sections
+  requires:
+  - doc_invoice
+  - insurance_fire_cert
+- id: insurance_travel_certificate
+  weight: 2.0
+  tags:
+  - bilingual
+  - fillable
+  - insurance
+  - landscape
+  - priced_table
+  requires:
+  - doc_invoice
+  - insurance_travel_cert
+- id: insurance_property_contract
+  weight: 2.0
+  tags:
+  - fillable
+  - insurance
+  - priced_table
+  - two_party
+  requires:
+  - doc_invoice
+  - insurance_property_contract

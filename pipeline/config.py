@@ -55,7 +55,7 @@ RULES_ENV = "VLM_RULES_ROOT"
 CONTENT_OVERRIDES_ENV = "VLM_CONTENT_OVERRIDES"
 
 RUN_KEYS = {"out", "per_backend", "seed", "workers", "clean", "force", "pairing",
-            "layouts", "template", "naming"}
+            "layouts", "template", "naming", "save_html"}
 SHARD_KEYS = {"size"}
 QUALITY_KEYS = {"drift_tolerance", "sample_for_ocr"}
 TOP_KEYS = {"run", "backends", "shard", "overrides", "quality"}
@@ -150,6 +150,10 @@ class Config:
     # forces one particular dress. The glyph backend has no CSS at all, so a run
     # that asks for a sheet must not include it -- see `Config.from_dict`.
     template: str = ""
+    # Beside every image, its own page's markup as `.html` -- see
+    # `generators/html/render.py --save-html`. Off by default, same reason a
+    # run that never asked for it should not carry it.
+    save_html: bool = False
     # A format string over `backend`, `index`, and any rule-base attribute a
     # page was drawn with (`document`, `layout`, `visual`, ...). The default
     # keeps every filename this repository has ever committed unchanged;
@@ -263,6 +267,7 @@ class Config:
             pairing=pairing,
             layouts=tuple(str(name) for name in layouts),
             template=template,
+            save_html=bool(run.get("save_html", False)),
             naming=naming,
             overrides=dict(overrides),
             quality=dict(quality),

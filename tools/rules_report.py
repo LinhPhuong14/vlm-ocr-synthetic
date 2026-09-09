@@ -188,6 +188,34 @@ def check() -> list[str]:
     except ImportError:
         problems.append("degradation not importable (needs numpy and opencv); chains unchecked")
 
+    # `warp.name` picks the GEOMETRY engine, and nothing checked it until this
+    # ran: a typo there costs a full render (up to a minute, if it lands on the
+    # Blender engine) before `warp_regions` raises on a page that was otherwise
+    # finished. Checked through the one dispatcher, so a rule may name a mesh
+    # scenario or the paper-photo field without this knowing the difference.
+    #
+    # Existence only, deliberately NOT reachability: unlike a chain model, a
+    # warp engine that no ENABLED value names is the normal state here -- the
+    # five Blender scenarios are switched off for their render cost, which is a
+    # decision recorded in `rulebase/rules/augmentation.yaml`, not a mistake.
+    try:
+        from degradation.warp import names as warp_names
+
+        known_warps = set(warp_names())
+        for attribute, options in rules.items():
+            for option in options:
+                warp = option.params.get("warp")
+                if not warp:
+                    continue
+                name = warp.get("name") if isinstance(warp, dict) else warp
+                if name not in known_warps:
+                    problems.append(
+                        f"{attribute}/{option.id}: unknown warp {name!r}; "
+                        f"have {', '.join(sorted(known_warps))}")
+    except ImportError:
+        problems.append("degradation.warp not importable (needs numpy and opencv); "
+                        "warps unchecked")
+
     # A paper named by a visual value must exist, or the sheet silently falls
     # back to a generated one and the recipe stops describing the image.
     papers = {p.stem for p in (Path(__file__).resolve().parent.parent / "textures" / "paper")

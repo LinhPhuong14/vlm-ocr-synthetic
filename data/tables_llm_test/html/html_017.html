@@ -1,0 +1,110 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><style>
+@font-face{font-family:'Cousine';font-weight:700;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/mono/Cousine-Bold.ttf') format('truetype');}
+@font-face{font-family:'Cousine';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/mono/Cousine-Regular.ttf') format('truetype');}
+@font-face{font-family:'LiberationMono';font-weight:700;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/mono/LiberationMono-Bold.ttf') format('truetype');}
+@font-face{font-family:'LiberationMono';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/mono/LiberationMono-Regular.ttf') format('truetype');}
+@font-face{font-family:'NotoMono';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/mono/NotoMono-Regular.ttf') format('truetype');}
+@font-face{font-family:'Arimo';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/sans/Arimo-Regular.ttf') format('truetype');}
+@font-face{font-family:'DejaVuSans';font-weight:700;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/sans/DejaVuSans-Bold.ttf') format('truetype');}
+@font-face{font-family:'DejaVuSans';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/sans/DejaVuSans.ttf') format('truetype');}
+@font-face{font-family:'LiberationSans';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/sans/LiberationSans-Regular.ttf') format('truetype');}
+@font-face{font-family:'NotoSans';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/sans/NotoSans-Regular.ttf') format('truetype');}
+@font-face{font-family:'LiberationSerif';font-weight:700;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/serif/LiberationSerif-Bold.ttf') format('truetype');}
+@font-face{font-family:'LiberationSerif';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/serif/LiberationSerif-Regular.ttf') format('truetype');}
+@font-face{font-family:'IndieFlower';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/hand/IndieFlower-Regular.ttf') format('truetype');}
+@font-face{font-family:'PatrickHand';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/hand/PatrickHand-Regular.ttf') format('truetype');}
+@page{size:A4 portrait;margin:0;}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:#fff;}
+#sheet{
+  position:relative;width:210mm;min-height:297mm;padding:16mm 15mm;
+  background:#fff;color:#1c1c1c;font-family:'DejaVuSans','LiberationSans','DejaVu Sans',sans-serif;font-size:8.4pt;
+  line-height:1.45;overflow:hidden;-webkit-font-smoothing:antialiased;
+}
+table{width:100%;border-collapse:collapse;}
+thead.once{display:table-row-group;}
+td.r,th.r,.r{text-align:right;}
+td.c,th.c,.c{text-align:center;}
+.sub{font-style:italic;color:#3a3a3a;}
+.hatch{background:repeating-linear-gradient(45deg,transparent 0 2.2mm,#00000014 2.2mm 3mm);}
+table.rothdr{table-layout:fixed;}
+.vert{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;
+  padding-top:2mm;padding-bottom:2mm;}
+.diag{writing-mode:horizontal-tb;transform:rotate(-45deg);transform-origin:left bottom;
+  white-space:nowrap;display:inline-block;}
+.foot div{margin-top:.4mm;}
+
+.brand{text-align:center;padding-bottom:6mm;}
+.brand .h1{display:block;color:#0f4c5c;font-size:15pt;font-weight:bold;letter-spacing:1.4pt;}
+.brand .tag{display:block;margin-top:1.6mm;color:#0f4c5c;font-size:6.4pt;letter-spacing:3.4pt;}
+.brand .cl{font-size:6.6pt;color:#4a4a4a;margin-top:.8mm;}
+.doc{display:block;text-align:center;margin:0 0 2mm;font-size:15pt;letter-spacing:.6pt;}
+.docmeta{text-align:center;font-size:6.8pt;color:#4a4a4a;margin-bottom:6mm;}
+.docmeta div{margin-bottom:.5mm;}
+.strip{text-align:center;font-size:6.8pt;color:#4a4a4a;margin-bottom:5mm;}
+.strip .sep{padding:0 1.2mm;color:#aaa;}
+.parties{display:table;width:100%;margin-bottom:7mm;}
+.parties.stacked{display:block;}
+.pleft,.pright{display:table-cell;vertical-align:top;}
+.pleft{font-weight:bold;font-size:7pt;line-height:1.6;color:#0f4c5c;}
+.crow{margin-bottom:.8mm;}
+.crow .k{color:#3a3a3a;font-weight:bold;}
+table.items thead th{font-weight:normal;color:#4a4a4a;font-size:6.8pt;text-align:left;
+   padding:2mm 1.5mm;border-top:.4mm solid #0f4c5c;border-bottom:.4mm solid #0f4c5c;}
+table.items th.r{text-align:right;} table.items th.c{text-align:center;}
+table.items tbody td{padding:2.4mm 1.5mm;vertical-align:top;}
+table.items tbody tr + tr td{border-top:.15mm solid #d8d8d8;}
+table.items tbody tr:last-child td{border-bottom:.4mm solid #0f4c5c;}
+.totals{margin-top:6mm;}
+.trow{display:table;width:100%;padding:.8mm 0;}
+.trow .lab{display:table-cell;text-align:right;padding-right:4mm;}
+.trow .amt{display:table-cell;text-align:right;width:34%;}
+.trow.grand{font-weight:bold;margin-top:3mm;border-top:.3mm solid #0f4c5c;padding-top:1.6mm;}
+.notes{display:table;width:100%;margin-top:14mm;font-size:6.8pt;}
+.nleft,.nright,.nfull{display:table-cell;vertical-align:top;}
+.notes .h{font-weight:bold;margin-bottom:1mm;}
+.nright{text-align:right;color:#2a2a2a;}
+.notes div div{margin-bottom:.7mm;}
+.signs{display:table;width:100%;margin-top:14mm;}
+.sign{display:table-cell;text-align:center;}
+.sign .t{font-weight:bold;color:#0f4c5c;}
+.sign .n{font-size:6.4pt;font-style:italic;color:#555;}
+.sign .who{margin-top:14mm;}
+.words{margin-top:4mm;font-weight:bold;font-size:7pt;}
+.words .wl{margin-right:1.5mm;color:#0f4c5c;}
+.foot{margin-top:10mm;text-align:center;font-size:6.6pt;font-style:italic;color:#444;}
+.items tbody td{padding:1.1mm 1.4mm;}.items thead th{padding:1.3mm 1.4mm;}
+
+.mast-split{display:table;width:100%;margin-bottom:6mm;}
+.mast-l{display:table-cell;vertical-align:middle;text-align:left;}
+.mast-l .brand{text-align:left;padding-bottom:0;}
+.mast-r{display:table-cell;vertical-align:middle;text-align:right;width:44%;}
+.mast-r .doc{margin:0;text-align:right;}
+.mast-corner{display:table;width:100%;margin-bottom:2mm;}
+.mc-l{display:table-cell;vertical-align:top;text-align:left;}
+.mc-l-inner{display:flex;align-items:center;gap:3mm;}
+.mc-l .brand{text-align:left;padding-bottom:0;}
+.logo{flex:none;width:10mm;height:10mm;border-radius:50%;background:#0f4c5c;color:#fff;
+   font-weight:bold;font-size:11pt;text-align:center;line-height:10mm;}
+.mc-r{display:table-cell;vertical-align:top;text-align:right;width:34%;}
+.cornermeta{font-size:6.6pt;color:#4a4a4a;}
+.cornermeta div{margin-bottom:.6mm;}
+.cornermeta .k{margin-right:1mm;}
+.wm{position:fixed;top:46%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);
+   font-size:46pt;font-weight:bold;color:#0f4c5c;opacity:.05;white-space:nowrap;}
+.capl{display:block;font-weight:bold;font-size:6.6pt;letter-spacing:1pt;color:#0f4c5c;margin-bottom:1.6mm;}
+.parties.two{display:table;width:100%;margin-bottom:7mm;}
+.pleft2,.pright2{display:table-cell;vertical-align:top;padding-right:6mm;}
+.pright2{padding-right:0;padding-left:6mm;}
+.parties.boxed,.notes.boxed{border:.3mm solid #0f4c5c;border-radius:1mm;padding:4mm 5mm;}
+.notes.boxed{margin-top:8mm;}
+.sidebar-wrap{display:flex;margin:-16mm -15mm;min-height:calc(100% + 32mm);}
+.side{width:36%;flex:none;background:#0f4c5c;color:#f2f2f2;padding:16mm 9mm;box-sizing:border-box;}
+.side .brand .h1,.side .brand .tag,.side .pleft{color:#fff;}
+.side .brand .cl,.side .strip,.side .docmeta,.side .crow .k{color:#e6e6e6;}
+.side .strip .sep{color:#cfcfcf;}
+.main{flex:1;min-width:0;padding:16mm 15mm;box-sizing:border-box;}
+.pagemark{margin-top:10mm;text-align:right;font-size:6.6pt;color:#888;font-style:italic;
+   border-top:.2mm dashed #ccc;padding-top:2mm;}
+
+</style></head><body><div id="sheet"><div class="brand"><span data-kind="store.name" class="h1">CÔNG TY TNHH XÂY DỰNG VÀ THƯƠNG MẠI PHƯƠNG NAM</span><span data-kind="store.branch" class="tag">Ban Điều hành Dự án</span><div class="cl"> <span data-kind="store.address">Số 325 Võ Văn Kiệt, An Hải Bắc, Sơn Trà, Đà Nẵng</span></div><div class="cl"> <span data-kind="store.phone">0472680458</span></div><div class="cl"> <span data-kind="store.tax_code">7272746539</span></div><div class="cl"> <span data-kind="store.account">999179670909</span></div></div><span data-kind="title" class="doc">HOÁ ĐƠN</span><div class="docmeta"><div><span data-kind="invoice.serial">1K19MBS</span></div><div><span data-kind="invoice.number">00510495</span></div><div><span data-kind="invoice.period">Ngày 18/10/2019</span></div></div><table class="items rothdr" style="width:100%;border-collapse:collapse"><colgroup><col style="width:4.26%"><col style="width:55.3%"><col style="width:6.38%"><col style="width:6.38%"><col style="width:12.8%"><col style="width:14.9%"></colgroup><thead><tr><th style="text-align:center;font-weight:bold" class="c" data-cell="colhdr" data-row="0" data-col="0"><div class="vert"><span data-kind="colhdr">STT</span></div></th><th style="text-align:left;font-weight:bold" data-cell="colhdr" data-row="0" data-col="1"><div class="vert"><span data-kind="colhdr">Tên hàng</span></div></th><th style="text-align:center;font-weight:bold" class="c" data-cell="colhdr" data-row="0" data-col="2"><div class="vert"><span data-kind="colhdr">ĐVT</span></div></th><th style="text-align:right;font-weight:bold" class="r" data-cell="colhdr" data-row="0" data-col="3"><div class="vert"><span data-kind="colhdr">SL</span></div></th><th style="text-align:right;font-weight:bold" class="r" data-cell="colhdr" data-row="0" data-col="4"><div class="vert"><span data-kind="colhdr">Đơn giá</span></div></th><th style="text-align:right;font-weight:bold" class="r" data-cell="colhdr" data-row="0" data-col="5"><div class="vert"><span data-kind="colhdr">Thành tiền</span></div></th></tr></thead><tbody><tr><td style="text-align:center" class="c" data-cell="menu.stt" data-row="1" data-col="0"><span data-kind="menu.stt">1</span></td><td style="text-align:left" data-cell="menu.name" data-row="1" data-col="1"><span data-kind="menu.name">Bảo hộ lao động - áo phản quang</span></td><td style="text-align:center" class="c" data-cell="menu.unit" data-row="1" data-col="2"><span data-kind="menu.unit">Gói</span></td><td style="text-align:right" class="r" data-cell="menu.qty" data-row="1" data-col="3"><span data-kind="menu.qty">2</span></td><td style="text-align:right" class="r" data-cell="menu.unit_price" data-row="1" data-col="4"><span data-kind="menu.unit_price">141.000</span></td><td style="text-align:right" class="r" data-cell="menu.amount" data-row="1" data-col="5"><span data-kind="menu.amount">282.000</span></td></tr><tr><td style="text-align:center" class="c" data-cell="menu.stt" data-row="2" data-col="0"><span data-kind="menu.stt">2</span></td><td style="text-align:left" data-cell="menu.name" data-row="2" data-col="1"><span data-kind="menu.name">Phí lưu kho và bốc xếp</span></td><td style="text-align:center" class="c" data-cell="menu.unit" data-row="2" data-col="2"><span data-kind="menu.unit">Thùng</span></td><td style="text-align:right" class="r" data-cell="menu.qty" data-row="2" data-col="3"><span data-kind="menu.qty">3</span></td><td style="text-align:right" class="r" data-cell="menu.unit_price" data-row="2" data-col="4"><span data-kind="menu.unit_price">478.000</span></td><td style="text-align:right" class="r" data-cell="menu.amount" data-row="2" data-col="5"><span data-kind="menu.amount">1.434.000</span></td></tr><tr><td style="text-align:center" class="c" data-cell="menu.stt" data-row="3" data-col="0"><span data-kind="menu.stt">3</span></td><td style="text-align:left" data-cell="menu.name" data-row="3" data-col="1"><span data-kind="menu.name">Phí duy trì tên miền và lưu trữ</span></td><td style="text-align:center" class="c" data-cell="menu.unit" data-row="3" data-col="2"><span data-kind="menu.unit">Bộ</span></td><td style="text-align:right" class="r" data-cell="menu.qty" data-row="3" data-col="3"><span data-kind="menu.qty">3</span></td><td style="text-align:right" class="r" data-cell="menu.unit_price" data-row="3" data-col="4"><span data-kind="menu.unit_price">3.125.000</span></td><td style="text-align:right" class="r" data-cell="menu.amount" data-row="3" data-col="5"><span data-kind="menu.amount">9.375.000</span></td></tr><tr><td style="text-align:center" class="c" data-cell="menu.stt" data-row="4" data-col="0"><span data-kind="menu.stt">4</span></td><td style="text-align:left" data-cell="menu.name" data-row="4" data-col="1"><span data-kind="menu.name">Camera quan sát ngoài trời</span></td><td style="text-align:center" class="c" data-cell="menu.unit" data-row="4" data-col="2"><span data-kind="menu.unit">Cái</span></td><td style="text-align:right" class="r" data-cell="menu.qty" data-row="4" data-col="3"><span data-kind="menu.qty">1</span></td><td style="text-align:right" class="r" data-cell="menu.unit_price" data-row="4" data-col="4"><span data-kind="menu.unit_price">4.637.000</span></td><td style="text-align:right" class="r" data-cell="menu.amount" data-row="4" data-col="5"><span data-kind="menu.amount">4.637.000</span></td></tr><tr><td style="text-align:center" class="c" data-cell="menu.stt" data-row="5" data-col="0"><span data-kind="menu.stt">5</span></td><td style="text-align:left" data-cell="menu.name" data-row="5" data-col="1"><span data-kind="menu.name">Cáp mạng CAT6 cuộn 305m</span></td><td style="text-align:center" class="c" data-cell="menu.unit" data-row="5" data-col="2"><span data-kind="menu.unit">Cái</span></td><td style="text-align:right" class="r" data-cell="menu.qty" data-row="5" data-col="3"><span data-kind="menu.qty">2</span></td><td style="text-align:right" class="r" data-cell="menu.unit_price" data-row="5" data-col="4"><span data-kind="menu.unit_price">2.591.000</span></td><td style="text-align:right" class="r" data-cell="menu.amount" data-row="5" data-col="5"><span data-kind="menu.amount">5.182.000</span></td></tr><tr><td style="text-align:center" class="c" data-cell="menu.stt" data-row="6" data-col="0"><span data-kind="menu.stt">6</span></td><td style="text-align:left" data-cell="menu.name" data-row="6" data-col="1"><span data-kind="menu.name">Bàn làm việc gỗ công nghiệp</span></td><td style="text-align:center" class="c" data-cell="menu.unit" data-row="6" data-col="2"><span data-kind="menu.unit">Gói</span></td><td style="text-align:right" class="r" data-cell="menu.qty" data-row="6" data-col="3"><span data-kind="menu.qty">2</span></td><td style="text-align:right" class="r" data-cell="menu.unit_price" data-row="6" data-col="4"><span data-kind="menu.unit_price">2.677.000</span></td><td style="text-align:right" class="r" data-cell="menu.amount" data-row="6" data-col="5"><span data-kind="menu.amount">5.354.000</span></td></tr></tbody></table><div class="totals" style="margin-left:42%;"><div class="trow"><span data-kind="total.line.label" class="lab">Tạm tính</span><span data-kind="total.line" class="amt">26.264.000</span></div><div class="trow"><span data-kind="total.line.label" class="lab">Thuế GTGT 5%</span><span data-kind="total.line" class="amt">1.313.200</span></div><div class="trow grand"><span data-kind="total.grand.label" class="lab">Tổng cộng thanh toán</span><span data-kind="total.grand" class="amt">27.577.200</span></div></div><div class="foot"><div><span data-kind="footer">(Khởi tạo từ phần mềm hoá đơn điện tử của nhà cung cấp dịch vụ)</span></div><div><span data-kind="footer">Tra cứu hoá đơn tại địa chỉ: https://hoadondientu.gdt.gov.vn</span></div></div></div></body></html>

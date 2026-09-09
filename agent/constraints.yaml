@@ -1,0 +1,156 @@
+# KHỔ GIẤY NÀO ĐI VỚI CHỨNG TỪ NÀO — cửa vào thứ hai của mức 3.
+#
+# `policy.yaml` trả lời "tờ này có được dựng lại dáng không". File này trả lời
+# câu tiếp theo: "được thì trong khoảng nào". Hai câu khác nhau, nên hai file.
+#
+# ---------------------------------------------------------------------------
+# VÌ SAO FILE NÀY KHÔNG SUY RA ĐƯỢC TỪ DỮ LIỆU
+#
+# Đo được từ `rulebase/layouts/` là những gì các phôi ĐANG có. Cái file này
+# phải nói là những gì một nhà in KHÁC còn được phép làm — và không phôi nào
+# trong kho biết điều đó. Sáu phôi của `invoice_detailed` đều rộng [78, 92] ký
+# tự; đo thì ra "78..92", nhưng đó là sáu lần cùng một lựa chọn chứ không phải
+# một giới hạn. Một luật sinh từ số đo ấy sẽ khoá mức 3 vào đúng cái nó đang
+# cố thoát ra.
+#
+# Ngược lại, mức 3 chặn được tờ **không vẽ được** và tờ **tràn khổ** bằng số ở
+# đây; nó KHÔNG chặn được tờ vẽ đẹp mà vô lý — hoá đơn siêu thị khổ A3 hoàn
+# toàn vẽ được và không tràn. Chỗ ấy là việc của năm câu hỏi trong
+# `agent/prompts/compose.md` và của người duyệt, không phải của một luật.
+#
+# ---------------------------------------------------------------------------
+# `reviewed:` LÀ CÔNG TẮC, VÀ MẶC ĐỊNH LÀ TẮT
+#
+# `agent/compose_layout.py` TỪ CHỐI mọi chứng từ không có mục ở đây, và từ
+# chối luôn mục có `reviewed: false`. Quên khai thì mất một biến thể — chứ
+# không phải bịa ra một tờ giấy tờ pháp lý. Đó cũng đúng cách `policy.py` xử
+# một document lạ: báo lỗi, không mặc định `free`.
+#
+# Thêm một chứng từ là: đọc các phôi nó đang có (`python -m agent.compose_layout
+# --document <id> --explain` in ra ba lớp của §8.1), quyết những con số dưới
+# đây, rồi bật `reviewed: true` kèm tên người quyết.
+#
+# ---------------------------------------------------------------------------
+# CÁC KHOÁ, VÀ CÁI GÌ KIỂM CHÚNG
+#
+#   reviewed    bắt buộc. `false` là "chưa ai đọc" — mức 3 không chạy.
+#   reviewer    ai đã quyết. Trống khi `reviewed: false`.
+#   papers      danh sách `sheet:` được phép. Tên lấy từ `rulebase/style.py::
+#               SHEETS` (a4, a4_landscape, a5, a5_landscape, letter). Chuỗi
+#               rỗng "" nghĩa là giấy cuộn liên tục — không có mép dưới.
+#   width       [nhỏ nhất, lớn nhất] bề ngang tính bằng KÝ TỰ, không phải mm.
+#               Đây là đơn vị của cả `rulebase/layout.py`.
+#   gutter      [nhỏ nhất, lớn nhất] số ký tự trắng giữa hai cột.
+#   columns     [ít nhất, nhiều nhất] số cột của bảng hàng.
+#   flex_min    số ký tự tối thiểu còn lại cho cột `width: 0` sau khi trừ các
+#               cột cố định và gutter. Đây là "lề tối thiểu" của §IN-4 dịch
+#               sang lưới ký tự: cột co giãn hụt chỗ thì tên hàng bị cắt cụt
+#               trong khi nhãn vẫn khai đủ — xem `augment_layout._slack`.
+#   sections    khối:
+#                 min/max   số khối trên trang
+#                 forbidden khối không bao giờ được dùng cho chứng từ này
+#                 required  khối bắt buộc mà PHÉP GIAO KHÔNG THẤY
+#               Khối có mặt trên MỌI phôi (lớp 1+2 của §8.1) tự vào nhóm bắt
+#               buộc, không phải khai. `required:` là chỗ sửa cái phép giao
+#               đếm sai: nó đếm KHỐI, không đếm TRƯỜNG. Một phôi bỏ khối X mà
+#               vẫn in đủ trường của X ở chỗ khác thì phép giao kết luận X là
+#               tự do — và bố cục nào bỏ X mà không bù sẽ để lại nhãn không có
+#               mực. Đó là lỗi cửa ải 6 báo dưới dạng "is in the label and on
+#               no run", và đây là chỗ ghi lại nó.
+#   families    họ CSS được phép (`family:` trong file bố cục).
+#   note        câu người duyệt để lại cho người duyệt sau.
+
+# Áp cho mọi mục không tự khai khoá ấy. Cố ý rộng: chỗ hẹp là việc của từng
+# mục, và một mặc định hẹp sẽ lặng lẽ bó những chứng từ chưa ai đọc kỹ.
+defaults:
+  gutter: [1, 3]
+  flex_min: 12
+  sections:
+    min: 4
+    max: 12
+    forbidden: []
+
+documents:
+
+  # -------------------------------------------------------------------------
+  # MỤC MẪU — chứng từ duy nhất đã duyệt tay. Mọi mục khác viết theo hình này.
+  #
+  # Chọn `invoice_detailed` vì nó có SÁU phôi tham khảo, nhiều nhất kho: lớp 3
+  # của §8.1 nhìn thấy rõ mà không phải đoán. Bốn khối `doctitle`, `strip`,
+  # `totals`, `notes` có phôi mang phôi không; sáu khối còn lại có trên cả sáu.
+  # Đó là chỗ mức 3 được tự do, và nó đo ra chứ không do ai khai.
+  invoice_detailed:
+    reviewed: true
+    reviewer: "LinhPhuong14"
+    # Hoá đơn bán hàng doanh nghiệp tự thiết kế, in laser. A4 dọc là khổ thật
+    # sự duy nhất: A5 in được nhưng sáu cột và khối chữ ký hai bên không còn
+    # chỗ thở, và không nhà in nào ra hoá đơn ngang.
+    papers: [a4]
+    # Sáu phôi đều [78, 92]. Nới xuống 72 và lên 96 là phán đoán, không phải
+    # số đo: 72 ký tự vẫn đủ sáu cột trên A4 khi chữ to hơn, 96 là chỗ chữ bắt
+    # đầu nhỏ hơn cái một người cầm hoá đơn đọc thoải mái.
+    width: [72, 96]
+    gutter: [1, 3]
+    # Sáu cột là dáng quen của hoá đơn GTGT tự in (STT · tên · ĐVT · SL · đơn
+    # giá · thành tiền). Bốn là bỏ STT và ĐVT — vẫn có nhà in làm thế. Bảy là
+    # thêm một cột thuế suất; quá bảy thì cột tên hết chỗ.
+    columns: [4, 7]
+    flex_min: 16
+    sections:
+      min: 6
+      max: 11
+      # Bảng kê thuế GTGT theo mẫu là việc của `vat_invoice_form`, không phải
+      # của một tờ hoá đơn tự thiết kế. Lưới ngày cũng vậy.
+      forbidden: [vat_summary, items, columns, meta]
+      # Hai khối dưới đây có trên NĂM trên sáu phôi, nên phép giao xếp chúng
+      # vào lớp 3 — sai. Bỏ chúng mà không bù thì trường của chúng nằm trong
+      # nhãn và không có trên giấy: đo được, cả 10 hạt giống, cửa ải 6, trước
+      # là `invoice.strip.Ngày` rồi tới `total.Tổng cộng thanh toán`.
+      #
+      # Phôi thứ sáu bỏ được cả hai vì nó BÙ — xem `couples:` ngay dưới.
+      required: [strip, totals]
+    # Khối nào có KHỐI KHÁC làm thay được việc, và bằng tuỳ chọn nào.
+    #
+    # `invoice_header_table` là phôi duy nhất trong sáu tờ bỏ cả `strip` lẫn
+    # `totals`, và nó bỏ được vì hai dòng dưới đây. Đọc từ code chứ không đọc
+    # từ phôi: phôi chỉ cho thấy khối vắng mặt, `sheets/modern.py` mới cho
+    # thấy vì sao trang vẫn đủ chữ.
+    #
+    # Cặp là loại trừ HAI CHIỀU. Không có khối và cũng không bật tuỳ chọn thì
+    # nhãn không có mực (I-5); có cả hai thì cùng một trường in hai lần.
+    couples:
+      - option: header.align
+        equals: corner
+        replaces: strip
+        why: >
+          Hộp góc phải của tiêu đề đã vẽ số hoá đơn, ngày và hạn thanh toán —
+          đúng những trường `strip` in. `invoice_header_table.yaml` ghi lại
+          điều này ở comment của chính nó.
+      - option: table.component
+        equals: true
+        replaces: totals
+        why: >
+          `sheets/modern.py::_grid_items_table` gộp ba dòng tổng thành ba dòng
+          cuối của bảng hàng, nên bảng in luôn phần khối `totals` in.
+    families: [modern]
+    note: >
+      Trường bắt buộc theo luật (mã số thuế bên bán, ký hiệu và số hoá đơn,
+      dòng tiền bằng chữ, ô ký hai bên) đều nằm trong khối `header`,
+      `parties`, `words`, `signatures` — cả bốn có trên cả sáu phôi, nên
+      chúng tự vào nhóm bắt buộc mà không phải khai ở đây.
+
+  # -------------------------------------------------------------------------
+  # KHUÔN ĐỂ CHÉP — bỏ dấu `#`, đổi id, điền số, rồi bật `reviewed: true`.
+  #
+  # <document_id>:
+  #   reviewed: false
+  #   reviewer: ""
+  #   papers: [a4]
+  #   width: [78, 92]
+  #   gutter: [1, 3]
+  #   columns: [3, 8]
+  #   flex_min: 12
+  #   sections: {min: 4, max: 12, forbidden: []}
+  #   families: [modern]
+  #   note: >
+  #     Vì sao những con số trên là những con số ấy.

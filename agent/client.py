@@ -71,13 +71,36 @@ class Client:
             self.url.rstrip("/") + "/chat/completions", data=body,
             headers={"Content-Type": "application/json",
                      "Authorization": f"Bearer {self.key}"})
-        last: Exception | None = None
+        last: str = "no attempt was made"
         for attempt in range(self.retries + 1):
             try:
                 with urllib.request.urlopen(request, timeout=self.timeout) as response:
                     return json.loads(response.read().decode("utf-8"))
+            except urllib.error.HTTPError as error:
+                # `HTTPError` is a `URLError` AND a file object: the server's own
+                # explanation is sitting in its body, and the branch below used
+                # to drop it on the floor, leaving "HTTP Error 500: Internal
+                # Server Error" -- true, and useless. A 500 from vLLM is almost
+                # always one specific sentence (a schema the grammar backend
+                # cannot compile, a chat-template kwarg the model's template
+                # rejects), and that sentence is the whole diagnosis.
+                detail = ""
+                try:
+                    detail = error.read().decode("utf-8", "replace").strip()
+                except Exception:       # noqa: BLE001 -- the body is a bonus
+                    pass
+                last = f"HTTP {error.code} {error.reason}"
+                if detail:
+                    last += f" -- {detail[:1200]}"
+                # 4xx is a verdict on THIS payload; sending it again unchanged
+                # buys nothing but 4.5s of sleep. 5xx and transport errors can
+                # be the server catching its breath, so those still retry.
+                if error.code < 500:
+                    break
+                if attempt < self.retries:
+                    time.sleep(1.5 * (attempt + 1))
             except (urllib.error.URLError, OSError, ValueError) as error:
-                last = error
+                last = f"{type(error).__name__}: {error}"
                 if attempt < self.retries:
                     time.sleep(1.5 * (attempt + 1))
         raise LLMError(f"{self.url}: {last}")

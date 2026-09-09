@@ -252,7 +252,8 @@ def _notes(receipt, spec: dict) -> str:
 
 
 def _section_html(name: str, receipt, spec: dict, parse: dict, sections: list,
-                  table: str, header_mode: str) -> str:
+                  table: str, header_mode: str, *, stamp: str = "",
+                  totals_stamp: str = "") -> str:
     """One named block of `sections:`, the same dispatch for every page shape.
 
     Pulled out of `build()` so the plain top-to-bottom flow and the sidebar
@@ -261,6 +262,12 @@ def _section_html(name: str, receipt, spec: dict, parse: dict, sections: list,
     being duplicated once per shape. `header_mode` is `header.align` off the
     spec, defaulted to `"center"` -- `"split"` and `"corner"` are the two
     alternatives, see `_masthead_split` and `_masthead_corner`.
+
+    `stamp`/`totals_stamp` are the two anchored slots of
+    `base.render_ornament_marks()`. They are passed in rather than computed
+    here because the third slot (the page overlay) belongs to `document()`,
+    and one call deciding all three is what keeps a mark from being drawn
+    twice.
     """
     if name in ("header", "letterhead"):
         if header_mode == "split":
@@ -287,13 +294,14 @@ def _section_html(name: str, receipt, spec: dict, parse: dict, sections: list,
         return table
     if name == "totals":
         settings = spec.get("totals") or {}
-        return base.totals_block(parse, indent=float(settings.get("indent", 0.40)))
+        return base.totals_block(parse, indent=float(settings.get("indent", 0.40)),
+                                 stamp=totals_stamp)
     if name == "notes":
         return _notes(receipt, spec)
     if name == "words":
         return base.words_block(receipt, parse)
     if name == "signatures":
-        return base.signature_block(receipt, parse)
+        return base.signature_block(receipt, parse, stamp=stamp)
     if name == "footer":
         return base.footer_block(parse)
     return ""
@@ -378,6 +386,19 @@ def build(recipe, receipt, spec: dict, parse: dict) -> str:
     sections = spec.get("sections") or []
     narrow = "footer_columns" in recipe.layout.tags
     rows = Rows()
+    # The two ornament slots that need this family's own DOM: the seal in the
+    # signature column and the one in the totals block. The page-anchored rest
+    # is struck for every family at once by `sheets/__init__.py::
+    # _page_ornaments`, so `_overlay` is deliberately dropped here -- taking it
+    # too would draw those marks twice.
+    #
+    # This family drew NONE of them until now. `render_ornament_marks` shipped
+    # with `lodging.py` and only `lodging.py` ever called it, so nine of the ten
+    # sheet families sampled an `ornament` value, recorded it in
+    # `synthesis.json` and `agent_plan.json`, and put no ink on the paper --
+    # measured: forcing `ornament=no_ornament` and `ornament=seal_with_name_
+    # block` on the same seed produced two byte-identical JPEGs.
+    stamp_slot, totals_stamp, _overlay = base.render_ornament_marks(recipe, receipt)
     header_spec = {**(spec.get("header") or {}), **(spec.get("letterhead") or {})}
     header_mode = header_spec.get("align") or "center"
     page = spec.get("page") or {}
@@ -399,19 +420,26 @@ def build(recipe, receipt, spec: dict, parse: dict) -> str:
         side_names = set(page.get("sidebar_sections") or ["header", "strip"])
         side_blocks, main_blocks = [], []
         for name in sections:
-            piece = _section_html(name, receipt, spec, parse, sections, table, header_mode)
+            piece = _section_html(name, receipt, spec, parse, sections, table,
+                                  header_mode, stamp=stamp_slot,
+                                  totals_stamp=totals_stamp)
             if not piece:
                 continue
             (side_blocks if name in side_names else main_blocks).append(piece)
         body = (f'<div class="sidebar-wrap"><div class="side">{"".join(side_blocks)}</div>'
                 f'<div class="main">{"".join(main_blocks)}</div></div>')
     else:
-        blocks = [_section_html(name, receipt, spec, parse, sections, table, header_mode)
+        blocks = [_section_html(name, receipt, spec, parse, sections, table,
+                                header_mode, stamp=stamp_slot,
+                                totals_stamp=totals_stamp)
                   for name in sections]
         if "doctitle" not in sections:
             # A layout that names no `doctitle` still has a title, and the
             # reference sheet prints it right under the shop's name.
-            blocks.insert(1, _section_html("doctitle", receipt, spec, parse, sections, table, header_mode))
+            blocks.insert(1, _section_html("doctitle", receipt, spec, parse,
+                                           sections, table, header_mode,
+                                           stamp=stamp_slot,
+                                           totals_stamp=totals_stamp))
         body = "".join(block for block in blocks if block)
 
     marker = page.get("marker")

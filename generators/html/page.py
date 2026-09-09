@@ -131,24 +131,58 @@ def served(markup: str):
 # The character grid never takes this path -- its cells are `white-space:pre`
 # and always one line -- so nothing about it changes.
 CELL_RECTS_JS = """() => {
-  const sheet = document.querySelector('#sheet').getBoundingClientRect();
+  const sheetEl = document.querySelector('#sheet');
+  const sheet = sheetEl.getBoundingClientRect();
+  // A rotated/vertical header (`table.header_style: vertical|diagonal`) puts
+  // its `transform`/`writing-mode` on an ANCESTOR of the span, never the span
+  // itself -- the label contract still owns the span (see the module
+  // docstring's three contracts). The per-character path below assumes
+  // horizontal, unrotated glyphs: consecutive characters' `top` stays within
+  // 1px of each other on an ordinary line, and under a rotated ancestor it
+  // does not, so the "same line" test fires on almost every character and
+  // splits one header into a dozen one-glyph boxes instead of one box round
+  // the run. Detected once per span (walking to `#sheet`, never more than a
+  // handful of elements) and routed through the SAME single-box path already
+  // used for a hand-filled/sealed run's `<img>`, which is exactly what a
+  // rotated run needs too: one `getBoundingClientRect()` of the whole thing,
+  // not an attempt to line-group it.
+  const isTransformed = (el) => {
+    while (el && el !== sheetEl) {
+      const t = getComputedStyle(el);
+      if ((t.transform && t.transform !== 'none') ||
+          (t.writingMode && t.writingMode !== 'horizontal-tb')) return true;
+      el = el.parentElement;
+    }
+    return false;
+  };
   const cells = [];
   const words = [];
-  const pushCell = (kind, text, box) => {
+  // `ink` is axis 3 (`pipeline/record.py::ink_for`): how the mark got onto the
+  // paper. Absent on an ordinary printed run -- the page's own default covers
+  // that -- and set only where the renderer knows something `kind` cannot say,
+  // which is handwriting, a stamp impression, and type reversed out of a dark
+  // band.
+  const pushCell = (kind, ink, text, box) => {
     if (!text.trim()) return;
-    cells.push({kind, text, x: box.left - sheet.left, y: box.top - sheet.top,
+    cells.push({kind, ink, text, x: box.left - sheet.left, y: box.top - sheet.top,
                 w: box.width, h: box.height});
   };
-  const pushWord = (kind, text, box) => {
+  const pushWord = (kind, ink, text, box) => {
     if (!text.trim()) return;
-    words.push({kind, text, x: box.left - sheet.left, y: box.top - sheet.top,
+    words.push({kind, ink, text, x: box.left - sheet.left, y: box.top - sheet.top,
                 w: box.width, h: box.height});
   };
   const range = document.createRange();
   for (const span of document.querySelectorAll('#sheet span[data-kind]')) {
     const kind = span.dataset.kind;
+    // `closest`, not `span.dataset.ink`: a family marks a whole reversed BAND
+    // once rather than every run inside it, and a hand-filled field wraps its
+    // ink in an element of its own.
+    const inked = span.closest('[data-ink]');
+    const ink = inked ? inked.dataset.ink : '';
     const node = span.firstChild;
-    const simple = node && node.nodeType === 3 && span.childNodes.length === 1;
+    const simple = node && node.nodeType === 3 && span.childNodes.length === 1
+                   && !isTransformed(span);
     // A hand-filled or sealed run holds an <img> of ink, not a text node, so
     // its text rides on `data-text`. There is no glyph run to split by word
     // here -- the ink is shaped like the whole run -- so it becomes one cell
@@ -156,8 +190,8 @@ CELL_RECTS_JS = """() => {
     if (!simple) {
       const text = span.dataset.text ?? span.textContent;
       const box = (span.firstElementChild || span).getBoundingClientRect();
-      pushCell(kind, text, box);
-      pushWord(kind, text, box);
+      pushCell(kind, ink, text, box);
+      pushWord(kind, ink, text, box);
       continue;
     }
     const text = node.data;
@@ -165,13 +199,13 @@ CELL_RECTS_JS = """() => {
     let word = null;   // accumulates since the last whitespace, for `words`
     const flushLine = () => {
       if (!line) return;
-      pushCell(kind, text.slice(line.from, line.to),
+      pushCell(kind, ink, text.slice(line.from, line.to),
                {left: line.left, top: line.top, width: line.right - line.left,
                 height: line.bottom - line.top});
     };
     const flushWord = () => {
       if (!word) return;
-      pushWord(kind, text.slice(word.from, word.to),
+      pushWord(kind, ink, text.slice(word.from, word.to),
                {left: word.left, top: word.top, width: word.right - word.left,
                 height: word.bottom - word.top});
       word = null;
@@ -253,7 +287,56 @@ CELL_REGIONS_JS = """() => {
   });
 }"""
 
+
+# Every element that puts INK on the page and is not already a labelled run:
+# a logo monogram, a rosette, a barcode, a watermark, a signature.
+#
+# `CELL_RECTS_JS` walks `span[data-kind]` and nothing else, so a page's
+# pictorial furniture was invisible to the record -- a proof image showed the
+# "C" logo circle at the top of every `modern` invoice with no box round it at
+# all. Ink with no box is ink with no label, which is the one thing
+# `pipeline/invariants.py` exists to refuse.
+#
+# **A list of selectors here rather than a `data-graphic` attribute in nine
+# family modules.** Adding an attribute at every call site means the tenth
+# family forgets, silently, and the failure looks exactly like this one did.
+# `data-graphic` is still honoured first, for anything a family wants to mark
+# explicitly.
+#
+# Three exclusions, and each of them is a real element on a real page:
+#
+# * **contains a `span[data-kind]`** -- `.flag` on a newspaper masthead and
+#   `.brand` on an invoice are CONTAINERS of labelled runs, not pictures. Their
+#   box would swallow the runs inside them and claim the whole block was an
+#   image.
+# * **inside a `span[data-kind]`** -- a hand-filled field is an `<img>` of ink
+#   inside a labelled span, and `CELL_RECTS_JS` already boxes it as that run.
+#   Boxing it again would put two labels on one mark.
+# * **inside another candidate** -- `statement.py` draws `<svg class="mark">`,
+#   which matches twice. The outer element is the picture.
+GRAPHIC_RECTS_JS = """() => {
+  const sheet = document.querySelector('#sheet').getBoundingClientRect();
+  const SELECTOR = '[data-graphic],.logo,.mark,.bars,.wm,.sig,svg,img';
+  const all = [...document.querySelectorAll('#sheet ' + SELECTOR)];
+  const keep = all.filter(el => {
+    if (el.querySelector('span[data-kind]')) return false;
+    if (el.closest('span[data-kind]')) return false;
+    if (all.some(other => other !== el && other.contains(el))) return false;
+    const box = el.getBoundingClientRect();
+    return box.width > 0 && box.height > 0;
+  });
+  return keep.map(el => {
+    const box = el.getBoundingClientRect();
+    return {
+      kind: el.dataset.graphic || el.className.baseVal || el.className || el.tagName.toLowerCase(),
+      x: box.left - sheet.left, y: box.top - sheet.top,
+      w: box.width, h: box.height,
+    };
+  });
+}"""
+
 __all__ = [
     "CELL_RECTS_JS", "CELL_REGIONS_JS", "CHROMIUM_CANDIDATES", "FONT_ROOT",
+    "GRAPHIC_RECTS_JS",
     "REPO_ROOT", "find_chromium", "font_faces", "served",
 ]

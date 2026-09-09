@@ -1,0 +1,165 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><style>
+@font-face{font-family:'Cousine';font-weight:700;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/mono/Cousine-Bold.ttf') format('truetype');}
+@font-face{font-family:'Cousine';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/mono/Cousine-Regular.ttf') format('truetype');}
+@font-face{font-family:'LiberationMono';font-weight:700;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/mono/LiberationMono-Bold.ttf') format('truetype');}
+@font-face{font-family:'LiberationMono';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/mono/LiberationMono-Regular.ttf') format('truetype');}
+@font-face{font-family:'NotoMono';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/mono/NotoMono-Regular.ttf') format('truetype');}
+@font-face{font-family:'Arimo';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/sans/Arimo-Regular.ttf') format('truetype');}
+@font-face{font-family:'DejaVuSans';font-weight:700;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/sans/DejaVuSans-Bold.ttf') format('truetype');}
+@font-face{font-family:'DejaVuSans';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/sans/DejaVuSans.ttf') format('truetype');}
+@font-face{font-family:'LiberationSans';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/sans/LiberationSans-Regular.ttf') format('truetype');}
+@font-face{font-family:'NotoSans';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/sans/NotoSans-Regular.ttf') format('truetype');}
+@font-face{font-family:'LiberationSerif';font-weight:700;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/serif/LiberationSerif-Bold.ttf') format('truetype');}
+@font-face{font-family:'LiberationSerif';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/serif/LiberationSerif-Regular.ttf') format('truetype');}
+@font-face{font-family:'IndieFlower';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/hand/IndieFlower-Regular.ttf') format('truetype');}
+@font-face{font-family:'PatrickHand';font-weight:400;src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/hand/PatrickHand-Regular.ttf') format('truetype');}
+@page{size:A5 portrait;margin:0;}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:#fff;}
+#sheet{
+  position:relative;width:148mm;min-height:210mm;padding:12mm 11mm 10mm;
+  background:#fff;color:#1c1c1c;font-family:'DejaVuSans','LiberationSans','DejaVu Sans',sans-serif;font-size:7.4pt;
+  line-height:1.45;overflow:hidden;-webkit-font-smoothing:antialiased;
+}
+table{width:100%;border-collapse:collapse;}
+thead.once{display:table-row-group;}
+td.r,th.r,.r{text-align:right;}
+td.c,th.c,.c{text-align:center;}
+.sub{font-style:italic;color:#3a3a3a;}
+.hatch{background:repeating-linear-gradient(45deg,transparent 0 2.2mm,#00000014 2.2mm 3mm);}
+table.rothdr{table-layout:fixed;}
+.vert{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;
+  padding-top:2mm;padding-bottom:2mm;}
+.diag{writing-mode:horizontal-tb;transform:rotate(-45deg);transform-origin:left bottom;
+  white-space:nowrap;display:inline-block;}
+.foot div{margin-top:.4mm;}
+
+.brand{text-align:center;padding-bottom:6mm;}
+.brand .h1{display:block;color:#1f3864;font-size:15pt;font-weight:bold;letter-spacing:1.4pt;}
+.brand .tag{display:block;margin-top:1.6mm;color:#1f3864;font-size:6.4pt;letter-spacing:3.4pt;}
+.brand .cl{font-size:6.6pt;color:#4a4a4a;margin-top:.8mm;}
+.doc{display:block;text-align:center;margin:0 0 2mm;font-size:15pt;letter-spacing:.6pt;}
+.docmeta{text-align:center;font-size:6.8pt;color:#4a4a4a;margin-bottom:6mm;}
+.docmeta div{margin-bottom:.5mm;}
+.strip{text-align:center;font-size:6.8pt;color:#4a4a4a;margin-bottom:5mm;}
+.strip .sep{padding:0 1.2mm;color:#aaa;}
+.parties{display:table;width:100%;margin-bottom:7mm;}
+.parties.stacked{display:block;}
+.pleft,.pright{display:table-cell;vertical-align:top;}
+.pleft{font-weight:bold;font-size:7pt;line-height:1.6;color:#1f3864;}
+.crow{margin-bottom:.8mm;}
+.crow .k{color:#3a3a3a;font-weight:bold;}
+table.items thead th{font-weight:normal;color:#4a4a4a;font-size:6.8pt;text-align:left;
+   padding:2mm 1.5mm;border-top:.4mm solid #1f3864;border-bottom:.4mm solid #1f3864;}
+table.items th.r{text-align:right;} table.items th.c{text-align:center;}
+table.items tbody td{padding:2.4mm 1.5mm;vertical-align:top;}
+table.items tbody tr + tr td{border-top:.15mm solid #d8d8d8;}
+table.items tbody tr:last-child td{border-bottom:.4mm solid #1f3864;}
+.totals{margin-top:6mm;}
+.trow{display:table;width:100%;padding:.8mm 0;}
+.trow .lab{display:table-cell;text-align:right;padding-right:4mm;}
+.trow .amt{display:table-cell;text-align:right;width:34%;}
+.trow.grand{font-weight:bold;margin-top:3mm;border-top:.3mm solid #1f3864;padding-top:1.6mm;}
+.notes{display:table;width:100%;margin-top:14mm;font-size:6.8pt;}
+.nleft,.nright,.nfull{display:table-cell;vertical-align:top;}
+.notes .h{font-weight:bold;margin-bottom:1mm;}
+.nright{text-align:right;color:#2a2a2a;}
+.notes div div{margin-bottom:.7mm;}
+.signs{display:table;width:100%;margin-top:14mm;}
+.sign{display:table-cell;text-align:center;}
+.sign .t{font-weight:bold;color:#1f3864;}
+.sign .n{font-size:6.4pt;font-style:italic;color:#555;}
+.sign .who{margin-top:14mm;}
+.words{margin-top:4mm;font-weight:bold;font-size:7pt;}
+.words .wl{margin-right:1.5mm;color:#1f3864;}
+.foot{margin-top:10mm;text-align:center;font-size:6.6pt;font-style:italic;color:#444;}
+
+
+.mast-split{display:table;width:100%;margin-bottom:6mm;}
+.mast-l{display:table-cell;vertical-align:middle;text-align:left;}
+.mast-l .brand{text-align:left;padding-bottom:0;}
+.mast-r{display:table-cell;vertical-align:middle;text-align:right;width:44%;}
+.mast-r .doc{margin:0;text-align:right;}
+.mast-corner{display:table;width:100%;margin-bottom:2mm;}
+.mc-l{display:table-cell;vertical-align:top;text-align:left;}
+.mc-l-inner{display:flex;align-items:center;gap:3mm;}
+.mc-l .brand{text-align:left;padding-bottom:0;}
+.logo{flex:none;width:10mm;height:10mm;border-radius:50%;background:#1f3864;color:#fff;
+   font-weight:bold;font-size:11pt;text-align:center;line-height:10mm;}
+.mc-r{display:table-cell;vertical-align:top;text-align:right;width:34%;}
+.cornermeta{font-size:6.6pt;color:#4a4a4a;}
+.cornermeta div{margin-bottom:.6mm;}
+.cornermeta .k{margin-right:1mm;}
+.wm{position:fixed;top:46%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);
+   font-size:46pt;font-weight:bold;color:#1f3864;opacity:.05;white-space:nowrap;}
+.capl{display:block;font-weight:bold;font-size:6.6pt;letter-spacing:1pt;color:#1f3864;margin-bottom:1.6mm;}
+.parties.two{display:table;width:100%;margin-bottom:7mm;}
+.pleft2,.pright2{display:table-cell;vertical-align:top;padding-right:6mm;}
+.pright2{padding-right:0;padding-left:6mm;}
+.parties.boxed,.notes.boxed{border:.3mm solid #1f3864;border-radius:1mm;padding:4mm 5mm;}
+.notes.boxed{margin-top:8mm;}
+.sidebar-wrap{display:flex;margin:-16mm -15mm;min-height:calc(100% + 32mm);}
+.side{width:36%;flex:none;background:#1f3864;color:#f2f2f2;padding:16mm 9mm;box-sizing:border-box;}
+.side .brand .h1,.side .brand .tag,.side .pleft{color:#fff;}
+.side .brand .cl,.side .strip,.side .docmeta,.side .crow .k{color:#e6e6e6;}
+.side .strip .sep{color:#cfcfcf;}
+.main{flex:1;min-width:0;padding:16mm 15mm;box-sizing:border-box;}
+.pagemark{margin-top:10mm;text-align:right;font-size:6.6pt;color:#888;font-style:italic;
+   border-top:.2mm dashed #ccc;padding-top:2mm;}
+
+
+/* variant: f_nga_muc_den_xam_khong_so_may_thoang_rang_cua_truong_hai_cot */
+#sheet{background:#fbf7ee;}
+#sheet table.items th,#sheet table.items td{border-width:.3mm;border-color:#1c1c1c;}
+#sheet table.items th{background:#ececea;}
+#sheet{font-family:'DejaVuSans','LiberationSans','DejaVu Sans',sans-serif;}
+#sheet td.r,#sheet th.r{font-family:'LiberationMono','Cousine',monospace;letter-spacing:-.1pt;}
+#sheet table.items th,#sheet table.items td{padding:1.5mm 1.7mm;}
+#sheet{line-height:1.42;}
+#sheet::after{content:'';position:absolute;z-index:-1;pointer-events:none;right:0;top:0;bottom:0;width:2.4mm;background:repeating-linear-gradient(180deg,#c9c9c4 0 1.6mm,transparent 1.6mm 3.2mm);}
+#sheet{padding:15mm 14mm;}
+#sheet .f{display:inline-table;width:48%;vertical-align:top;}
+#sheet .block .f:nth-child(odd){padding-right:2mm;}
+#sheet table.items{width:100%;margin-top:3mm;}
+#sheet > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+#sheet .inner > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+#sheet main > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+#sheet .frame > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+#sheet .card > table.items{margin-left:0;margin-right:0;padding-left:0;padding-right:0;width:100%;}
+#sheet table.items{table-layout:fixed;}
+#sheet .inner table.items{table-layout:fixed;}
+#sheet main table.items{table-layout:fixed;}
+#sheet .frame table.items{table-layout:fixed;}
+#sheet .card table.items{table-layout:fixed;}
+#sheet table.items th{overflow-wrap:anywhere;}
+#sheet .inner table.items th{overflow-wrap:anywhere;}
+#sheet main table.items th{overflow-wrap:anywhere;}
+#sheet .frame table.items th{overflow-wrap:anywhere;}
+#sheet .card table.items th{overflow-wrap:anywhere;}
+#sheet table.items td{overflow-wrap:anywhere;}
+#sheet .inner table.items td{overflow-wrap:anywhere;}
+#sheet main table.items td{overflow-wrap:anywhere;}
+#sheet .frame table.items td{overflow-wrap:anywhere;}
+#sheet .card table.items td{overflow-wrap:anywhere;}
+#sheet > .frame,#sheet .frame > .frame,#sheet > .card,#sheet .frame > .card,#sheet > .inner,#sheet .frame > .inner{margin-left:0;margin-right:0;background:transparent;color:inherit;}
+
+/* Ink laid over a printed form. The image carries its own width in em so a
+   field too narrow for the writing shrinks it whole -- `max-width` with a
+   fixed `height` would squash the hand instead of scaling it. */
+#sheet span.hand{white-space:nowrap;}
+#sheet span.hand img{max-width:100%;height:auto;image-rendering:auto;}
+
+/* Handwriting set as text, not pasted as an image -- see FontHand. The face is
+   embedded from IndieFlower-Regular.ttf the same way `page.font_faces()` embeds the printed
+   ones: a CSS stack that fell through to the system is how a page ends up in a
+   font with no Vietnamese diacritics. */
+@font-face{font-family:'IndieFlower';font-weight:400;
+  src:url('file:///home/linhnp69/MY_PROJECTs/vlm-ocr-synthetic/fonts/hand/IndieFlower-Regular.ttf') format('truetype');}
+#sheet span.hand-font{
+  font-family:'IndieFlower',cursive;
+  font-size:1.301em;
+  color:#1c2a68;
+  font-weight:400;
+}
+#sheet span.hand-font b,#sheet span.hand-font strong{font-weight:400;}
+</style></head><body><div id="sheet"><div class="brand"><span data-kind="store.name" class="h1">NGUYỄN HOÀNG SANG</span><span data-kind="store.branch" class="tag">CÀ PHÊ &amp; ĐỒ ĂN SÁNG</span><div class="cl"> <span data-kind="store.account">306206274794</span></div></div><span data-kind="title" class="doc">HOÁ ĐƠN</span><div class="strip"><span data-kind="invoice.field.label" class="k">Số hoá đơn:</span> <span data-kind="invoice.field" class="v hand hand-font" style="vertical-align:-0.069em;">HD9673</span> <span class="sep">|</span> <span data-kind="invoice.field.label" class="k">Ngày:</span> <span data-kind="invoice.field" class="v hand hand-font" style="vertical-align:0.042em;">18/03/2024</span></div><div class="parties"><div class="pleft" style="width:38%"></div><div class="pright"><div class="crow"><span data-kind="invoice.field.label" class="k">Khách hàng:</span> <span data-kind="invoice.field" class="v hand" data-text="Bùi Thị Kim Oanh"><img alt="Bùi Thị Kim Oanh" style="width:8.53em;vertical-align:-0.526em;" src="data:image/png;base64,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"></span></div><div class="crow"><span data-kind="invoice.field.label" class="k">Điện thoại Khách hàng:</span> <span data-kind="invoice.field" class="v hand hand-font" style="vertical-align:-0.058em;">0557421476</span></div><div class="crow"><span data-kind="invoice.field.label" class="k">Địa chỉ Khách hàng:</span> <span data-kind="invoice.field" class="v hand hand-font" style="vertical-align:-0.007em;">237 Phan Xích Long</span></div></div></div><table class="items" style="width:100%;border-collapse:collapse"><colgroup><col style="width:6.94%"><col style="width:38.9%"><col style="width:13.9%"><col style="width:19.4%"><col style="width:20.8%"></colgroup><thead><tr><th style="text-align:center;font-weight:bold" class="c" data-cell="colhdr" data-row="0" data-col="0"><span data-kind="colhdr">Mục</span></th><th style="text-align:left;font-weight:bold" data-cell="colhdr" data-row="0" data-col="1"><span data-kind="colhdr">Sản phẩm</span></th><th style="text-align:right;font-weight:bold" class="r" data-cell="colhdr" data-row="0" data-col="2"><span data-kind="colhdr">Số lượng</span></th><th style="text-align:right;font-weight:bold" class="r" data-cell="colhdr" data-row="0" data-col="3"><span data-kind="colhdr">Đơn giá</span></th><th style="text-align:right;font-weight:bold" class="r" data-cell="colhdr" data-row="0" data-col="4"><span data-kind="colhdr">Thành tiền</span></th></tr></thead><tbody><tr><td style="text-align:center" class="c" data-cell="menu.stt" data-row="1" data-col="0"><span data-kind="menu.stt">1</span></td><td style="text-align:left" data-cell="menu.name" data-row="1" data-col="1"><span data-kind="menu.name">Sô cô la nóng</span></td><td style="text-align:right" class="r" data-cell="menu.qty" data-row="1" data-col="2"><span data-kind="menu.qty">3</span></td><td style="text-align:right" class="r" data-cell="menu.unit_price" data-row="1" data-col="3"><span data-kind="menu.unit_price">71.000đ</span></td><td style="text-align:right" class="r" data-cell="menu.amount" data-row="1" data-col="4"><span data-kind="menu.amount">213.000đ</span></td></tr><tr><td style="text-align:center" class="c" data-cell="menu.stt" data-row="2" data-col="0"><span data-kind="menu.stt">2</span></td><td style="text-align:left" data-cell="menu.name" data-row="2" data-col="1"><span data-kind="menu.name">Nước ép cam tươi</span></td><td style="text-align:right" class="r" data-cell="menu.qty" data-row="2" data-col="2"><span data-kind="menu.qty">1</span></td><td style="text-align:right" class="r" data-cell="menu.unit_price" data-row="2" data-col="3"><span data-kind="menu.unit_price">42.000đ</span></td><td style="text-align:right" class="r" data-cell="menu.amount" data-row="2" data-col="4"><span data-kind="menu.amount">42.000đ</span></td></tr><tr><td style="text-align:center" class="c" data-cell="menu.stt" data-row="3" data-col="0"><span data-kind="menu.stt">3</span></td><td style="text-align:left" data-cell="menu.name" data-row="3" data-col="1"><span data-kind="menu.name">Sinh tố bơ sữa dừa</span></td><td style="text-align:right" class="r" data-cell="menu.qty" data-row="3" data-col="2"><span data-kind="menu.qty">2</span></td><td style="text-align:right" class="r" data-cell="menu.unit_price" data-row="3" data-col="3"><span data-kind="menu.unit_price">54.000đ</span></td><td style="text-align:right" class="r" data-cell="menu.amount" data-row="3" data-col="4"><span data-kind="menu.amount">108.000đ</span></td></tr><tr><td style="text-align:center" class="c" data-cell="menu.stt" data-row="4" data-col="0"><span data-kind="menu.stt">4</span></td><td style="text-align:left" data-cell="menu.name" data-row="4" data-col="1"><span data-kind="menu.name">Phí đóng gói quà tặng</span></td><td style="text-align:right" class="r" data-cell="menu.qty" data-row="4" data-col="2"><span data-kind="menu.qty">3</span></td><td style="text-align:right" class="r" data-cell="menu.unit_price" data-row="4" data-col="3"><span data-kind="menu.unit_price">74.000đ</span></td><td style="text-align:right" class="r" data-cell="menu.amount" data-row="4" data-col="4"><span data-kind="menu.amount">222.000đ</span></td></tr></tbody></table><div class="totals" style="margin-left:40%;"><div class="trow"><span data-kind="total.line.label" class="lab">Tổng tiền đơn hàng</span><span data-kind="total.line" class="amt">585.000đ</span></div><div class="trow"><span data-kind="total.line.label" class="lab">Thuế 8%</span><span data-kind="total.line" class="amt">46.800đ</span></div><div class="trow grand"><span data-kind="total.grand.label" class="lab">Tổng tiền thanh toán</span><span data-kind="total.grand" class="amt">631.800đ</span></div></div><div class="notes"><div class="nleft" style="width:52%"><div class="h"><span data-kind="note.left">Thông tin ngân hàng</span></div><div class=""><span data-kind="note.left">Ngân hàng Vietcombank</span></div><div class=""><span data-kind="note.left">Tên tài khoản: NGUYỄN HOÀNG SANG</span></div><div class=""><span data-kind="note.left">Số tài khoản: 306206274794</span></div></div><div class="nright"><div class=""><span data-kind="note.right">0498115345</span></div><div class=""><span data-kind="note.right">Số 135 Giải Phóng, Phường 11, Phú Nhuận, TPHCM</span></div></div></div><div class="foot"><div><span data-kind="footer">Bánh ngon nhất trong 48 giờ kể từ khi ra lò</span></div></div></div></body></html>

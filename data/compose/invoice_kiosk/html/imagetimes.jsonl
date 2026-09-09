@@ -1,0 +1,12 @@
+{"file": "html_000.jpg", "layout": "invoice_kiosk", "seconds": 10.4487, "stages": {"draw": 10.4038, "write": 0.0449}}
+{"file": "html_001.jpg", "layout": "invoice_kiosk", "seconds": 6.0841, "stages": {"draw": 6.056, "write": 0.028}}
+{"file": "html_002.jpg", "layout": "invoice_kiosk", "seconds": 9.0567, "stages": {"draw": 9.008, "write": 0.0486}}
+{"file": "html_003.jpg", "layout": "invoice_kiosk", "seconds": 6.082, "stages": {"draw": 6.046, "write": 0.036}}
+{"file": "html_004.jpg", "layout": "invoice_kiosk", "seconds": 1.3583, "stages": {"draw": 1.302, "write": 0.0563}}
+{"file": "html_005.jpg", "layout": "invoice_kiosk", "seconds": 1.5859, "stages": {"draw": 1.525, "write": 0.0609}}
+{"file": "html_006.jpg", "layout": "invoice_kiosk", "seconds": 1.4279, "stages": {"draw": 1.381, "write": 0.047}}
+{"file": "html_007.jpg", "layout": "invoice_kiosk", "seconds": 2.9643, "stages": {"draw": 2.9301, "write": 0.0342}}
+{"file": "html_008.jpg", "layout": "invoice_kiosk", "seconds": 1.0381, "stages": {"draw": 1.003, "write": 0.0351}}
+{"file": "html_009.jpg", "layout": "invoice_kiosk", "seconds": 1.0276, "stages": {"draw": 0.9774, "write": 0.0501}}
+{"file": "html_010.jpg", "layout": "invoice_kiosk", "seconds": 4.0389, "stages": {"draw": 4.0082, "write": 0.0307}}
+{"file": "html_011.jpg", "layout": "invoice_kiosk", "seconds": 3.2645, "stages": {"draw": 3.2316, "write": 0.0329}}

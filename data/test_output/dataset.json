@@ -1,0 +1,28 @@
+{
+  "per_framework": 5,
+  "layouts": [
+    "eatery_ascii",
+    "eatery_indexed_b",
+    "invoice_hotel_compact",
+    "invoice_hotel_stay",
+    "medical_statement"
+  ],
+  "pairing": "paired",
+  "clean": false,
+  "force": [],
+  "template": "auto",
+  "frameworks": {
+    "html": {
+      "images": 5,
+      "distinct_seeds": 5,
+      "distinct_labels": 5,
+      "by_layout": {
+        "market_compact": 1,
+        "form_activity_signature": 1,
+        "invoice_brand": 1,
+        "insurance_property_contract": 1,
+        "form_multi_section": 1
+      }
+    }
+  }
+}

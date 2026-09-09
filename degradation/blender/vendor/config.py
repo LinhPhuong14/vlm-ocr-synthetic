@@ -20,8 +20,8 @@ RENDER_SAMPLES = 48
 # distro package (Ubuntu's `apt install blender`, notably) raises and retries once with this
 # off, so a machine without it still renders instead of failing the whole page.
 USE_DENOISING = True  # CYCLES only
-RESOLUTION_X = 1024
-RESOLUTION_Y = 1440
+RESOLUTION_X = 1536
+RESOLUTION_Y = 2048
 RESOLUTION_PERCENTAGE = 100  # scale factor applied to the resolution above
 FILE_FORMAT = "PNG"
 COLOR_DEPTH = "8"  # '8', '16'

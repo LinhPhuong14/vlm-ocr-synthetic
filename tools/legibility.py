@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import random
 import sys
 from pathlib import Path
 
@@ -51,6 +52,8 @@ sys.path.insert(0, str(REPO_ROOT))
 from degradation import apply_chain  # noqa: E402
 from degradation.pipeline import apply_recipe  # noqa: E402
 from degradation.regions import normalise_boxes  # noqa: E402
+from degradation.blender import BlenderWarpError  # noqa: E402
+from degradation.warp import warp_regions  # noqa: E402
 
 RULES_DIR = REPO_ROOT / "rulebase" / "rules"
 
@@ -102,10 +105,27 @@ def contrasts(image: np.ndarray, boxes) -> np.ndarray:
     return np.asarray(out, dtype=np.float32)
 
 
-def measure(base, boxes, chain, seed: int, floor: float) -> dict:
+def warped(image, boxes, warp, seed: int):
+    """Bước hình học, đúng chỗ renderer chạy nó: SAU chuỗi, và nó DỜI CẢ HỘP.
+
+    Đây là lý do phép đo này phải biết đến `warp` chứ không đo chung với chuỗi.
+    Một chuỗi làm cũ giữ nguyên toạ độ, nên đo lại đúng ô cũ là đúng. Một warp
+    thì không: đo ô CŨ trên ảnh ĐÃ CONG là đang đo lệch chỗ, và sẽ báo mất chữ
+    ở nơi chữ chỉ vừa dịch sang chỗ khác. Hộp phải đi theo ảnh — cùng một hàm
+    `generators/html/render.py` gọi, nên cái đo được ở đây là cái dataset nhận.
+    """
+    if not warp:
+        return image, boxes
+    image, moved = warp_regions(warp["name"], image, warp.get("params"),
+                                random.Random(seed), boxes)
+    return image, moved
+
+
+def measure(base, boxes, chain, warp, seed: int, floor: float) -> dict:
     before = contrasts(base, boxes)
     aged = apply_chain(base.copy(), chain, seed=seed, regions=boxes)
-    after = contrasts(aged, boxes)
+    aged, moved = warped(aged, boxes, warp, seed)
+    after = contrasts(aged, moved)
     # Chỉ tính trên những hộp VỐN đã đọc được: một hộp trống từ đầu không phải
     # lỗi của chuỗi làm cũ, và để nó vào mẫu thì mọi chuỗi đều xấu như nhau.
     live = before >= floor
@@ -121,12 +141,17 @@ def measure(base, boxes, chain, seed: int, floor: float) -> dict:
     }
 
 
-def chains_from_rules(only) -> list[tuple[str, list]]:
-    """Every value that carries an ageing chain, from every attribute.
+def chains_from_rules(only) -> list[tuple[str, list, dict | None]]:
+    """Every value that ages or bends a page, from every attribute.
 
     Not just `augmentation` -- any attribute in `_order.yaml` may carry a
     chain, and a page draws one of each, so measuring only `augmentation`'s
     scenarios would score a page that no run ever produces.
+
+    A value carrying only `warp` and an empty `chain` counts too. It used to be
+    skipped, back when nothing here moved a pixel; a geometry step is exactly
+    the kind that can age text out of its own box, so leaving it unmeasured put
+    the one model that needs this gate outside it.
     """
     order = yaml.safe_load((RULES_DIR / "_order.yaml").read_text(encoding="utf-8"))["order"]
     out = []
@@ -135,13 +160,15 @@ def chains_from_rules(only) -> list[tuple[str, list]]:
         options = rules.get("options") or [
             option for group in (rules.get("groups") or []) for option in group["options"]]
         for option in options:
-            chain_raw = (option.get("params") or {}).get("chain")
-            if not chain_raw:
+            params = option.get("params") or {}
+            chain_raw, warp = params.get("chain"), params.get("warp")
+            if not chain_raw and not warp:
                 continue
             label = option["id"] if attribute == "augmentation" \
                 else f"{attribute}/{option['id']}"
             if only and option["id"] not in only and label not in only:
                 continue
+            chain_raw = chain_raw or []
             chain = []
             for entry in chain_raw:
                 name = entry[0]
@@ -159,7 +186,7 @@ def chains_from_rules(only) -> list[tuple[str, list]]:
             if attribute != "augmentation":
                 chain.insert(0, ("paper_texture",
                                  {"paper": "office_a5", "alpha": 0.28, "grain": 0.4}))
-            out.append((label, chain))
+            out.append((label, chain, warp))
     return out
 
 
@@ -186,7 +213,12 @@ def sampled(base, boxes, count: int, seed: int, floor: float):
     for index in range(count):
         recipe = rulebase.sample_recipe(seed=seed + index)
         aged = apply_recipe(base.copy(), recipe, seed=seed + index, boxes=boxes)
-        after = contrasts(aged, boxes)
+        # The renderer runs the geometry step after the chain and outside it,
+        # so a composed measurement that stopped at `apply_recipe` would score
+        # a page no run produces -- the same mistake as measuring `augmentation`
+        # alone. See `generators/html/render.py`, right below the shape check.
+        aged, moved = warped(aged, boxes, recipe.get("augmentation", "warp"), seed + index)
+        after = contrasts(aged, moved)
         kept = after[live] / np.maximum(before[live], 1e-6)
         rows.append({
             "ids": recipe.ids(),
@@ -229,18 +261,28 @@ def main() -> int:
         args.out.mkdir(parents=True, exist_ok=True)
 
     print(f"{len(boxes)} boxes, floor {args.floor:.0f} grey levels, seed {args.seed}\n")
-    print(f"{'chain':28} {'boxes':>5} {'kept':>6} {'worst':>6} {'lost %':>7}")
+    print(f"{'value':28} {'warp':12} {'boxes':>5} {'kept':>6} {'worst':>6} {'lost %':>7}")
     worst = []
-    for name, chain in chains:
-        result = measure(base, boxes, chain, args.seed, args.floor)
+    unmeasured = []
+    for name, chain, warp in chains:
+        try:
+            result = measure(base, boxes, chain, warp, args.seed, args.floor)
+        except BlenderWarpError as error:
+            # An engine that is not installed leaves its row UNMEASURED and
+            # says so, rather than crashing the gate for every other value or
+            # -- worse -- being skipped in silence, which reads as "passed".
+            unmeasured.append((name, str(error).split(".")[0]))
+            print(f"{name:28} {warp['name']:12} {'':>5} {'':>6} {'':>6} {'   n/a':>7}"
+                  f"  <-- không đo được")
+            continue
         flag = ""
         if result["lost"] >= 5.0:
             flag = "  <-- poisons labels"
             worst.append((name, result["lost"]))
         elif result["lost"] > 0:
             flag = "  <-- some"
-        print(f"{name:28} {result['boxes']:5} {result['kept']:6.2f} "
-              f"{result['worst']:6.2f} {result['lost']:7.1f}{flag}")
+        print(f"{name:28} {(warp['name'] if warp else '-'):12} {result['boxes']:5} "
+              f"{result['kept']:6.2f} {result['worst']:6.2f} {result['lost']:7.1f}{flag}")
         if args.out and "image" in result:
             cv2.imwrite(str(args.out / f"legibility-{name.replace(chr(47), chr(45))}.jpg"), result["image"],
                         [cv2.IMWRITE_JPEG_QUALITY, 88])
@@ -260,6 +302,11 @@ def main() -> int:
             print(f"    {row['lost']:5.1f}%  {named}")
         if bad:
             worst.append(("sampled recipes", share))
+
+    if unmeasured:
+        print("\nKhông đo được (engine chưa cài) — những giá trị này CHƯA qua cổng:")
+        for name, why in unmeasured:
+            print(f"  {name:28} {why}")
 
     if worst:
         print("\nChains losing 5% or more of their boxes to the ageing:")

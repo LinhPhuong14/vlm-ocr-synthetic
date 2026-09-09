@@ -40,7 +40,7 @@ from typing import Any, Callable, Iterable
 
 import numpy as np
 
-from .bad_photocopy import bad_photocopy
+from .bad_photocopy import bad_photocopy, monochrome
 from .bleed_through import bleed_through
 from .blur_zones import blur, blur_zones
 from .capture import halftone_screen, jpeg_blocks, scan_banding
@@ -108,9 +108,15 @@ DEGRADATIONS: dict[str, tuple[Callable[..., np.ndarray], bool, bool]] = {
     # these three any more, and `tools/rules_report.py --check` would flag
     # them as dead otherwise. Re-enable by restoring an option to each of the
     # three YAML files and putting these three lines back.
-    #     "bad_photocopy": (bad_photocopy, True, False),
-    #     "dirty_drum": (dirty_drum, True, False),
     #     "dirty_rollers": (dirty_rollers, True, False),
+    # `bad_photocopy` and `dirty_drum` came back OFF that list: the three
+    # `photocopy*` scenarios name them now, which is the condition the comment
+    # above sets for restoring a line. `dirty_rollers` stays out -- no rule
+    # names it, and `SWITCHED_OFF` says why.
+    "bad_photocopy": (bad_photocopy, True, False),
+    "dirty_drum": (dirty_drum, True, False),
+    # One toner, so no colour. Last in a `photocopy*` chain -- see its docstring.
+    "monochrome": (monochrome, False, False),
     # Augraphy: how the ink was laid down, and how it failed (printing.py)
     "letterpress": (letterpress, True, False),
     "hollow": (hollow, True, False),
@@ -168,9 +174,15 @@ SWITCHED_OFF = {
     # these three any more, and `tools/rules_report.py --check` would flag
     # them as dead otherwise. Re-enable by restoring an option to each of the
     # three YAML files and putting these three lines back.
-    #     "bad_photocopy": (bad_photocopy, True, False),
-    #     "dirty_drum": (dirty_drum, True, False),
     #     "dirty_rollers": (dirty_rollers, True, False),
+    # `bad_photocopy` and `dirty_drum` came back OFF that list: the three
+    # `photocopy*` scenarios name them now, which is the condition the comment
+    # above sets for restoring a line. `dirty_rollers` stays out -- no rule
+    # names it, and `SWITCHED_OFF` says why.
+    "bad_photocopy": (bad_photocopy, True, False),
+    "dirty_drum": (dirty_drum, True, False),
+    # One toner, so no colour. Last in a `photocopy*` chain -- see its docstring.
+    "monochrome": (monochrome, False, False),
     # Augraphy: how the ink was laid down, and how it failed (printing.py)
     "letterpress": (letterpress, True, False),
     "hollow": (hollow, True, False),
@@ -214,11 +226,6 @@ SWITCHED_OFF = {
     "dirty_rollers": (
         "dải ngang do trục lăn bẩn. Tắt cả ba giá trị của thuộc tính "
         "`rollers`, xem rulebase/rules/rollers.yaml"
-    ),
-    "halftone_screen": (
-        "lưới tram của máy photocopy. Không tự nó bị loại: hai giá trị duy "
-        "nhất gọi tới nó, `photocopy_screened` và `photocopy_stamped`, đã tắt "
-        "cùng `photocopy`"
     ),
     "ink_degradation": (
         "mô hình nhiễu cục bộ của DocCreator (Kieu và cs.) — đốm mực quanh và "
@@ -306,6 +313,7 @@ __all__ = [
     "apply_chain",
     "apply_one",
     "bad_photocopy",
+    "monochrome",
     "bleed_through",
     "blur",
     "blur_zones",

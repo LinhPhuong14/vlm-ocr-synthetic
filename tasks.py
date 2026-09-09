@@ -148,6 +148,19 @@ def setup_blender(args) -> None:
     # interpreter, a download from blender.org bundles its own. Either way `numpy` is the
     # one thing that Python needs and does not already have; asking Blender for its own
     # `sys.executable` is what makes this work for both without telling them apart.
+    # Already there? A distro Blender on a machine with `python3-numpy` needs
+    # nothing at all, and asking first turns the common case into one command
+    # that prints a version instead of an install that fails loudly.
+    #
+    # Asked by looking for the MARKER in the output, not by the exit code:
+    # **Blender exits 0 even when `--python-expr` raises**. Measured -- a
+    # `ModuleNotFoundError` inside the expression printed a full traceback,
+    # "Blender quit", and `$? == 0`, so an exit-code probe reports a Blender
+    # with no numpy as ready and the first warped page is where you find out.
+    if _blender_has_numpy(blender):
+        print("blender geometry warps ready")
+        return
+
     print("Installing numpy into Blender's own Python...")
     # `--break-system-packages` is only a valid pip flag on a PEP 668 "externally managed"
     # interpreter -- true for `apt install blender`'s shared system Python, an error on
@@ -166,10 +179,65 @@ def setup_blender(args) -> None:
         "    subprocess.check_call([sys.executable, '-m', 'pip', 'install', '-q',"
         " '--break-system-packages', 'numpy'])\n"
     )
-    run([blender, "--background", "--python-expr", install_numpy])
+    run([blender, "--background", "--python-expr", install_numpy], check=False)
+    if not _blender_has_numpy(blender):
+        # Debian and Ubuntu ship their Blender against the SYSTEM python and strip
+        # `ensurepip` out of it, so the three-step fallback above has nothing left to
+        # fall back to: no `pip`, and no way to bootstrap one. Measured on Ubuntu with
+        # Blender 4.0.2 -- `/usr/bin/python3.12 -m ensurepip` exits non-zero and
+        # `-m pip` reports "No module named pip".
+        #
+        # The distro's own numpy is the answer there, and naming it is the whole
+        # value of this branch: the failure it replaces was two nested tracebacks
+        # ending in `ModuleNotFoundError: No module named 'pip'`, which says what
+        # broke and not one word about what to do.
+        interpreter = _blender_python(blender)
+        raise SystemExit(
+            f"Could not install numpy into Blender's Python ({interpreter or 'unknown'}).\n"
+            f"\n"
+            f"If that path is your SYSTEM python -- which is what `apt install blender`\n"
+            f"gives you -- pip cannot be bootstrapped into it, and the distro package is\n"
+            f"the way in:\n"
+            f"\n"
+            f"    sudo apt-get install -y python3-numpy\n"
+            f"\n"
+            f"then re-run `make setup-blender` to confirm. For a blender.org download,\n"
+            f"which bundles its own Python, install numpy into THAT interpreter instead.")
 
-    run([blender, "--background", "--python-expr",
-         "import numpy; print('blender geometry warps ready: numpy', numpy.__version__)"])
+    print("blender geometry warps ready")
+
+
+MARKER = "__numpy_ok__"
+
+
+def _blender_has_numpy(blender: str) -> bool:
+    """Whether Blender's Python can `import numpy` -- by the marker it prints.
+
+    Not by the exit code: Blender returns 0 whatever the expression does. See
+    `setup_blender`.
+    """
+    try:
+        out = subprocess.run(
+            [blender, "--background", "--python-expr",
+             f"import numpy; print('{MARKER}', numpy.__version__)"],
+            capture_output=True, text=True, timeout=180)
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return MARKER in (out.stdout or "")
+
+
+def _blender_python(blender: str) -> str:
+    """Which interpreter Blender runs scripts against -- the system one for a
+    distro package, a bundled one for a blender.org download. Reported rather
+    than guessed at, because the fix differs between the two."""
+    try:
+        out = subprocess.run(
+            [blender, "--background", "--python-expr", "import sys; print(sys.executable)"],
+            capture_output=True, text=True, timeout=120).stdout
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    return next((line.strip() for line in out.splitlines()
+                 if line.strip().startswith("/")), "")
 
 
 @task("setup", "build the renderer environment (html)")
